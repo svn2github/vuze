@@ -157,7 +157,7 @@ DHTTransferHandler
 	
 		throws DHTTransportException
 	{
-		DHTTransportTransferHandler	handler = (DHTTransportTransferHandler)transfer_handlers.get(new HashWrapper( transfer_key ));
+		transferHandlerInterceptor	handler = transfer_handlers.get(new HashWrapper( transfer_key ));
 		
 		if ( handler == null ){
 			
@@ -366,101 +366,77 @@ DHTTransferHandler
 						//logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
 						
 					}else{
-											
 						try{
-							final transferQueue new_queue = new transferQueue( read_transfers, req.getConnectionId());
-						
-								// add the initial data for this write request
-							
-							new_queue.add( req );
-							
-								// set up the queue processor
-								
-							try{
-								this_mon.enter();
-								
-								if ( active_write_queue_processor_count >= TRANSFER_QUEUE_MAX ){
-									
-									new_queue.destroy();
-									
-									throw( new DHTTransportException( "Active write queue process thread limit exceeded" ));
-								}
-								
-								active_write_queue_processor_count++;
-								
-								if ( XFER_TRACE ){
-									System.out.println( "active_write_queue_processor_count=" + active_write_queue_processor_count );
-								}
-							}finally{
-								
-								this_mon.exit();
-							}
 
-							new AEThread2( "DHTTransportUDP:writeQueueProcessor", true )
-								{
-									public void
-									run()
-									{
+							int	req_total_len = req.getTotalLength();
+							
+							if (  handler.getBooleanOption( "disable_call_acks", false ) && req_total_len == req.getLength()){
+								
+								byte[] write_data = req.getData();
+								
+								if ( write_data.length != req_total_len ){
+									
+									byte[]	temp = new byte[req_total_len];
+									
+									System.arraycopy( write_data, 0, temp, 0, req_total_len );
+									
+									write_data = temp;
+								}
+								
+								final byte[]	reply_data = handler.handleWrite( originator, req.getConnectionId(), req.getRequestKey(), write_data );
+								
+								if ( reply_data != null ){
+									
+									if ( reply_data.length <= max_data ){
+										
+										// TEMPORARY HACK DURING UPDATE!
+										
+										sendWriteReply(
+												req.getConnectionId(),
+												originator,
+												transfer_key,
+												req.getRequestKey(),
+												req.getStartPosition(),
+												req.getLength());
+																				
+										long write_connection_id = adapter.getConnectionID();
+										
+										sendWriteRequest(
+												write_connection_id,
+												originator,
+												transfer_key,
+												req.getRequestKey(),
+												reply_data,
+												0,
+												reply_data.length,
+												reply_data.length );
+									}else{
+										
 										try{
-											byte[] write_data = 
-												runTransferQueue( 
-													new_queue, 
-													new DHTTransportProgressListener()
-													{
-														public void
-														reportSize(
-															long	size )
-														{
-															if ( XFER_TRACE ){
-																System.out.println( "writeXfer: size=" + size );
-															}
-														}
-														
-														public void
-														reportActivity(
-															String	str )
-														{
-															if ( XFER_TRACE ){
-																System.out.println( "writeXfer: act=" + str );
-															}
-														}
-														
-														public void
-														reportCompleteness(
-															int		percent )
-														{
-															if ( XFER_TRACE ){
-																System.out.println( "writeXfer: %=" + percent );
-															}
-														}
-													},
-													originator,
-													req.getTransferKey(),
-													req.getRequestKey(),
-													60000,
-													false );
+											this_mon.enter();
 											
-											if ( write_data != null ){
-												
-													// xfer complete, send ack if multi-packet xfer
-													// (ack already sent below if single packet)
-												
-												if ( 	req.getStartPosition() != 0 ||
-														req.getLength() != req.getTotalLength() ){
-													
-													sendWriteReply(
-															req.getConnectionId(),
-															originator,
-															req.getTransferKey(),
-															req.getRequestKey(),
-															0,
-															req.getTotalLength());
-												}
-												
-												byte[]	reply_data = handler.handleWrite( originator, req.getConnectionId(), req.getRequestKey(), write_data );
-												
-												if ( reply_data != null ){
-													
+											if ( active_write_queue_processor_count >= TRANSFER_QUEUE_MAX ){
+																								
+												throw( new DHTTransportException( "Active write queue process thread limit exceeded" ));
+											}
+											
+											active_write_queue_processor_count++;
+											
+											if ( XFER_TRACE ){
+												System.out.println( "active_write_queue_processor_count=" + active_write_queue_processor_count );
+											}
+										}finally{
+											
+											this_mon.exit();
+										}
+										
+										new AEThread2( "DHTTransportUDP:writeQueueProcessor", true )
+										{
+											public void
+											run()
+											{
+												try{
+
 													writeTransfer(
 															new DHTTransportProgressListener()
 															{
@@ -496,44 +472,208 @@ DHTTransferHandler
 															req.getRequestKey(),
 															reply_data,
 															WRITE_REPLY_TIMEOUT );
-															
+													
+												}catch( DHTTransportException e ){
+													
+													logger.log( "Failed to process transfer queue: " + Debug.getNestedExceptionMessage(e));
+													
+												}finally{
+													
+													try{
+														this_mon.enter();
+																										
+														active_write_queue_processor_count--;
+														
+														if ( XFER_TRACE ){
+															System.out.println( "active_write_queue_processor_count=" + active_write_queue_processor_count );
+														}
+													}finally{
+														
+														this_mon.exit();
+													}
 												}
 											}
+										}.start();
+										
+											// indicate that at least one packet has been received
 											
-										}catch( DHTTransportException e ){
-											
-											logger.log( "Failed to process transfer queue: " + Debug.getNestedExceptionMessage(e));
-											
-										}finally{
-											
+										sendWriteReply(
+											req.getConnectionId(),
+											originator,
+											req.getTransferKey(),
+											req.getRequestKey(),
+											req.getStartPosition(),
+											req.getLength());
+									}	
+								}					
+							}else{
+								
+								final transferQueue new_queue = new transferQueue( read_transfers, req.getConnectionId());
+							
+									// add the initial data for this write request
+								
+								new_queue.add( req );
+								
+									// set up the queue processor
+									
+								try{
+									this_mon.enter();
+									
+									if ( active_write_queue_processor_count >= TRANSFER_QUEUE_MAX ){
+										
+										new_queue.destroy();
+										
+										throw( new DHTTransportException( "Active write queue process thread limit exceeded" ));
+									}
+									
+									active_write_queue_processor_count++;
+									
+									if ( XFER_TRACE ){
+										System.out.println( "active_write_queue_processor_count=" + active_write_queue_processor_count );
+									}
+								}finally{
+									
+									this_mon.exit();
+								}
+	
+								new AEThread2( "DHTTransportUDP:writeQueueProcessor", true )
+									{
+										public void
+										run()
+										{
 											try{
-												this_mon.enter();
-																								
-												active_write_queue_processor_count--;
+												byte[] write_data = 
+													runTransferQueue( 
+														new_queue, 
+														new DHTTransportProgressListener()
+														{
+															public void
+															reportSize(
+																long	size )
+															{
+																if ( XFER_TRACE ){
+																	System.out.println( "writeXfer: size=" + size );
+																}
+															}
+															
+															public void
+															reportActivity(
+																String	str )
+															{
+																if ( XFER_TRACE ){
+																	System.out.println( "writeXfer: act=" + str );
+																}
+															}
+															
+															public void
+															reportCompleteness(
+																int		percent )
+															{
+																if ( XFER_TRACE ){
+																	System.out.println( "writeXfer: %=" + percent );
+																}
+															}
+														},
+														originator,
+														req.getTransferKey(),
+														req.getRequestKey(),
+														60000,
+														false );
 												
-												if ( XFER_TRACE ){
-													System.out.println( "active_write_queue_processor_count=" + active_write_queue_processor_count );
+												if ( write_data != null ){
+													
+														// xfer complete, send ack if multi-packet xfer
+														// (ack already sent below if single packet)
+													
+													if ( 	req.getStartPosition() != 0 ||
+															req.getLength() != req.getTotalLength() ){
+														
+														sendWriteReply(
+																req.getConnectionId(),
+																originator,
+																req.getTransferKey(),
+																req.getRequestKey(),
+																0,
+																req.getTotalLength());
+													}
+													
+													byte[]	reply_data = handler.handleWrite( originator, req.getConnectionId(), req.getRequestKey(), write_data );
+													
+													if ( reply_data != null ){
+														
+														writeTransfer(
+																new DHTTransportProgressListener()
+																{
+																	public void
+																	reportSize(
+																		long	size )
+																	{
+																		if ( XFER_TRACE ){
+																			System.out.println( "writeXferReply: size=" + size );
+																		}
+																	}
+																	
+																	public void
+																	reportActivity(
+																		String	str )
+																	{
+																		if ( XFER_TRACE ){
+																			System.out.println( "writeXferReply: act=" + str );
+																		}
+																	}
+																	
+																	public void
+																	reportCompleteness(
+																		int		percent )
+																	{
+																		if ( XFER_TRACE ){
+																			System.out.println( "writeXferReply: %=" + percent );
+																		}
+																	}
+																},
+																originator,
+																req.getTransferKey(),
+																req.getRequestKey(),
+																reply_data,
+																WRITE_REPLY_TIMEOUT );
+																
+													}
 												}
+												
+											}catch( DHTTransportException e ){
+												
+												logger.log( "Failed to process transfer queue: " + Debug.getNestedExceptionMessage(e));
+												
 											}finally{
 												
-												this_mon.exit();
+												try{
+													this_mon.enter();
+																									
+													active_write_queue_processor_count--;
+													
+													if ( XFER_TRACE ){
+														System.out.println( "active_write_queue_processor_count=" + active_write_queue_processor_count );
+													}
+												}finally{
+													
+													this_mon.exit();
+												}
 											}
 										}
-									}
-								}.start();
-								
-									// indicate that at least one packet has been received
-								
-							sendWriteReply(
-								req.getConnectionId(),
-								originator,
-								req.getTransferKey(),
-								req.getRequestKey(),
-								req.getStartPosition(),
-								req.getLength());
-							
+									}.start();
+									
+										// indicate that at least one packet has been received
+									
+								sendWriteReply(
+									req.getConnectionId(),
+									originator,
+									req.getTransferKey(),
+									req.getRequestKey(),
+									req.getStartPosition(),
+									req.getLength());
+							}
 						}catch( DHTTransportException e ){
-							
+								
 							long now = SystemTime.getMonotonousTime();
 							
 							if ( last_xferq_log == 0 || now - last_xferq_log > 5*60*1000 ){
@@ -939,14 +1079,23 @@ DHTTransferHandler
 	writeReadTransfer(
 		DHTTransportProgressListener	listener,
 		DHTTransportContact				target,
-		byte[]							handler_key,
+		byte[]							transfer_key,
 		byte[]							data,
 		long							timeout )	
 	
 		throws DHTTransportException
 	{
+		transferHandlerInterceptor	handler = transfer_handlers.get(new HashWrapper( transfer_key ));
+
+		if ( handler == null ){
+			
+			return( null );
+		}
+		
+		boolean	no_acks = handler.getBooleanOption( "disable_call_acks", false ) && data.length <= max_data;
+			
 		long	connection_id 	= adapter.getConnectionID();
-				
+		
 		byte[]	call_key = new byte[20];
 		
 		RandomUtils.SECURE_RANDOM.nextBytes( call_key );
@@ -965,22 +1114,102 @@ DHTTransferHandler
 			this_mon.exit();
 		}
 		
-		writeTransfer( listener, target, connection_id, handler_key, call_key, data, timeout );
+		boolean	removed = false;
 		
-		if ( call_sem.reserve( timeout )){
-			
-			try{
-				this_mon.enter();
-			
-				Object	res = call_transfers.remove( wrapped_key );
+		try{
+			if ( no_acks ){
+								
+				int retry_count = 0;
 				
-				if ( res instanceof byte[] ){
+				while( true ){
 					
-					return((byte[])res);
+					long	start = SystemTime.getMonotonousTime();
+
+					sendWriteRequest(
+							connection_id,
+							target,
+							transfer_key,
+							call_key,
+							data,
+							0,
+							data.length,
+							data.length );
+					
+					long timeout_to_use = Math.min( timeout,  WRITE_XFER_RESEND_DELAY );
+					
+					if ( call_sem.reserve( timeout_to_use )){
+						
+						try{
+							this_mon.enter();
+						
+							Object	res = call_transfers.remove( wrapped_key );
+							
+							removed = true;
+									
+							if ( res instanceof byte[] ){
+								
+								return((byte[])res);
+							}
+						}finally{
+							
+							this_mon.exit();
+						}
+						
+						break;
+						
+					}else{
+						
+						if ( retry_count > 0 ){
+							
+							break;
+						}
+						
+						retry_count++;
+						
+						timeout -= SystemTime.getMonotonousTime() - start;
+						
+						if ( timeout < 1000 ){
+							
+							break;
+						}
+					}
 				}
-			}finally{
+			}else{
+							
+				writeTransfer( listener, target, connection_id, transfer_key, call_key, data, timeout );
 				
-				this_mon.exit();
+				if ( call_sem.reserve( timeout )){
+					
+					try{
+						this_mon.enter();
+					
+						Object	res = call_transfers.remove( wrapped_key );
+						
+						removed = true;
+						
+						if ( res instanceof byte[] ){
+							
+							return((byte[])res);
+						}
+					}finally{
+						
+						this_mon.exit();
+					}
+				}
+			}
+		}finally{
+			
+			if ( !removed ){
+				
+				try{
+					this_mon.enter();
+				
+					call_transfers.remove( wrapped_key );
+					
+				}finally{
+					
+					this_mon.exit();
+				}
 			}
 		}
 		
@@ -1320,6 +1549,21 @@ DHTTransferHandler
 			return( handler.getName());
 		}
 		
+		public boolean
+		getBooleanOption(
+			String		name,
+			boolean		def )
+		{
+			if ( options == null ){
+				
+				return( def );
+			}
+			
+			Boolean b = (Boolean)options.get( name );
+			
+			return( b==null?def:b );
+		}
+		
 		public byte[]
     	handleRead(
     		DHTTransportContact		originator,
@@ -1396,6 +1640,8 @@ DHTTransferHandler
 		private int		length;
 		private int		total_length;
 		
+		private int		flags;
+		
 		public
 		Packet(
 			long		_connection_id,
@@ -1415,6 +1661,29 @@ DHTTransferHandler
 			start_position	= _start_position;
 			length			= _length;
 			total_length	= _total_length;
+		}
+		
+		public
+		Packet(
+			long		_connection_id,
+			byte		_packet_type,
+			byte[]		_transfer_key,
+			byte[]		_key,
+			byte[]		_data,
+			int			_start_position,
+			int			_length,
+			int			_total_length,
+			int			_flags )
+		{
+			connection_id	= _connection_id;
+			packet_type		= _packet_type;
+			transfer_key	= _transfer_key;
+			key				= _key;
+			data			= _data;
+			start_position	= _start_position;
+			length			= _length;
+			total_length	= _total_length;
+			flags			= _flags;
 		}
 		
 		public long
@@ -1463,6 +1732,12 @@ DHTTransferHandler
 		getTotalLength()
 		{
 			return( total_length );
+		}
+		
+		public int
+		getFlags()
+		{
+			return( flags );
 		}
 		
 		public String
