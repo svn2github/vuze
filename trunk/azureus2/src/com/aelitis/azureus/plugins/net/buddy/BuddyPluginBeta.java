@@ -833,6 +833,19 @@ BuddyPluginBeta
 			}
 		}
 		
+		public int
+		getEstimatedNodes()
+		{
+			Map<String,Object> map = status;
+			
+			if ( status == null ){
+				
+				return( -1 );
+			}
+			
+			return(((Number)map.get( "node_est" )).intValue());
+		}
+		
 		public String
 		getStatus()
 		{
@@ -841,19 +854,19 @@ BuddyPluginBeta
 
 			if ( current_pi == null ){
 				
-				return( "Error: Message Sync Plugin not installed" );
+				return( MessageText.getString( "azbuddy.dchat.status.noplugin" ));
 			}
 			
 			if ( current_handler == null ){
 				
-				return( "Error: No handler" );
+				return( MessageText.getString( "azbuddy.dchat.status.nohandler" ));
 			}
 			
 			Map<String,Object> map = status;
 			
 			if ( map == null ){
 				
-				return( "No status available yet" );
+				return( MessageText.getString( "azbuddy.dchat.status.notavail" ));
 				
 			}else{
 				int status 			= ((Number)map.get( "status" )).intValue();
@@ -871,32 +884,42 @@ BuddyPluginBeta
 									
 				if ( status == 0 || status == 1 ){
 					
-					String	result = "";
-
+					String	arg1;
+					String	arg2;
+					
 					if ( isPrivateChat()){
 						
-						result = "Private chat";
-						
+						arg1 = MessageText.getString( "label.private.chat" ) + ": ";
+						arg2 = "";
 					}else{
 						
 						if ( status == 0 ){
 						
-							result = "Initialising: dht=" + (dht_count<0?"...":String.valueOf(dht_count));
-						
+							arg1 = MessageText.getString( "pairing.status.initialising" ) + ": ";
+							arg2 = "DHT=" + (dht_count<0?"...":String.valueOf(dht_count)) + ", ";
+
 						}else if ( status == 1 ){
-						
-							result = "dht=" + dht_count;
+							
+							arg1 = "";
+							arg2 = "DHT=" + dht_count + ", ";
+					
+						}else{
+							arg1 = "";
+							arg2 = "";
 						}
 					}
 					
-					result += 	", nodes=" + nodes_local+"/"+nodes_live+"/"+nodes_dying +
-								", req=" + DisplayFormatters.formatDecimal(req_in_rate,1) + "/" +  DisplayFormatters.formatDecimal(req_out_rate,1);
+					String arg3 = nodes_local+"/"+nodes_live+"/"+nodes_dying;
+					String arg4 = DisplayFormatters.formatDecimal(req_in_rate,1) + "/" +  DisplayFormatters.formatDecimal(req_out_rate,1);
 					
-					return( result );
+					return( 
+						MessageText.getString(
+							"azbuddy.dchat.node.status",
+							new String[]{ arg1, arg2, arg3, arg4 }));	
 					
 				}else{
 					
-					return( "Destroyed" );
+					return( MessageText.getString( "azbuddy.dchat.status.destroyed" ));
 				}
 			}
 		}

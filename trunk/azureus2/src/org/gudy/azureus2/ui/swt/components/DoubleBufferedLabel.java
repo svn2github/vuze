@@ -28,7 +28,6 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.util.Debug;
@@ -121,19 +120,21 @@ DoubleBufferedLabel
 		boolean changed, 
 		boolean realWidth ) 
 	{
+		/* Can't do this as things are often layed out when invisible and 
+		 * don't get redone on visibility change :(
+		 
 		if (!isVisible()){
 			
 			return (new Point(0, 0));
 		}
-
+		*/
+		
 		if (wHint != SWT.DEFAULT && hHint != SWT.DEFAULT) {
 			return new Point(wHint, hHint);
 		}
 		Point pt = new Point(wHint, hHint);
 
 		Point lastSize = new Point(0, 0);
-
-
 
 		GC gc = new GC(this);
 		

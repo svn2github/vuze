@@ -56,6 +56,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
@@ -88,13 +89,14 @@ BuddyPluginViewBetaChat
 	private Shell 					shell;
 	
 	private StyledText 				log;
+	private BufferedLabel			table_header;
 	private Table					buddy_table;
 	private BufferedLabel		 	status;
 	
-	private Button 			shared_nick_button;
-	private Text 			nickname;
+	private Button 					shared_nick_button;
+	private Text 					nickname;
 	
-	private Text 		input_area;
+	private Text 					input_area;
 	
 	private List<ChatMessage>			messages		= new ArrayList<ChatMessage>();
 	private List<ChatParticipant>		participants 	= new ArrayList<ChatParticipant>();
@@ -194,11 +196,14 @@ BuddyPluginViewBetaChat
 		layout.numColumns = 1;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
+		layout.marginTop = 4;
+		layout.marginLeft = 4;
 		lhs.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_BOTH );
 		grid_data.widthHint = 300;
 		lhs.setLayoutData(grid_data);
 		
+		/*
 		Composite temp = new Composite(lhs, SWT.NONE);
 		layout = new GridLayout();
 		layout.numColumns = 1;
@@ -209,12 +214,13 @@ BuddyPluginViewBetaChat
 		grid_data.horizontalIndent = 4;
 		grid_data.heightHint = 20;
 		temp.setLayoutData(grid_data);
+		*/
 		
-		status = new BufferedLabel( temp, SWT.LEFT | SWT.DOUBLE_BUFFERED );
-		grid_data = new GridData(GridData.FILL_BOTH);
+		status = new BufferedLabel( lhs, SWT.LEFT | SWT.DOUBLE_BUFFERED );
+		grid_data = new GridData(GridData.FILL_HORIZONTAL);
 		
 		status.setLayoutData(grid_data);
-		status.setText( "Pending" );
+		status.setText( MessageText.getString( "PeersView.state.pending" ));
 		
 		Composite log_holder = new Composite(lhs, SWT.BORDER);
 		layout = new GridLayout();
@@ -382,6 +388,8 @@ BuddyPluginViewBetaChat
 		layout.numColumns = 1;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
+		layout.marginTop = 4;
+		layout.marginRight = 4;
 		rhs.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_VERTICAL );
 		grid_data.widthHint = 150;
@@ -394,16 +402,19 @@ BuddyPluginViewBetaChat
 		layout.numColumns = 3;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		layout.marginRight = 4;
+		
 		top_right.setLayout(layout);
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
-		grid_data.heightHint = 50;
+		//grid_data.heightHint = 50;
 		top_right.setLayoutData(grid_data);
 		
 		Label label = new Label( top_right, SWT.NULL );
 		
 		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.nick.shared" ));
-
+		grid_data = new GridData();
+		grid_data.horizontalIndent=4;
+		label.setLayoutData(grid_data);
+		
 		shared_nick_button = new Button( top_right, SWT.CHECK );
 		
 		shared_nick_button.setSelection( chat.isSharedNickname());
@@ -451,6 +462,13 @@ BuddyPluginViewBetaChat
 	        	}
 	        }
 	    });
+		
+		table_header = new BufferedLabel( top_right, SWT.DOUBLE_BUFFERED );
+		grid_data = new GridData( GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan=3;
+		grid_data.horizontalIndent=4;
+		table_header.setLayoutData( grid_data );
+		table_header.setText(MessageText.getString( "PeersView.state.pending" ));
 		
 			// table
 		
@@ -863,6 +881,23 @@ BuddyPluginViewBetaChat
 		}
 	}
 	
+	private void
+	updateTableHeader()
+	{
+		int	active 	= buddy_table.getItemCount();
+		int online	= chat.getEstimatedNodes();
+		
+		String msg = 
+			lu.getLocalisedMessageText( 
+				"azbuddy.dchat.user.status",
+					new String[]{
+						online >=100?"100+":String.valueOf( online ),
+						String.valueOf( active )
+					});
+			
+		table_header.setText( msg );
+	}
+	
 	protected void
 	updateTable(
 		boolean	async )
@@ -883,6 +918,8 @@ BuddyPluginViewBetaChat
 							}
 							
 							updateTable( false );
+							
+							updateTableHeader();
 						}
 					});
 			}					
@@ -985,6 +1022,8 @@ BuddyPluginViewBetaChat
 						
 						updateTable( false );
 					}
+					
+					updateTableHeader();
 				}
 			});
 	}
