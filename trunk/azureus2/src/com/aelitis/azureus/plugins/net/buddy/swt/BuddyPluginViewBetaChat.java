@@ -394,6 +394,7 @@ BuddyPluginViewBetaChat
 		layout.numColumns = 3;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
+		layout.marginRight = 4;
 		top_right.setLayout(layout);
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
 		grid_data.heightHint = 50;
@@ -409,6 +410,7 @@ BuddyPluginViewBetaChat
 		
 		LinkLabel link = new LinkLabel( top_right, "label.help", lu.getLocalisedMessageText( "azbuddy.dchat.link.url" ));	
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
+		grid_data.horizontalAlignment = SWT.END;
 		link.getlabel().setLayoutData( grid_data );
 
 		nickname = new Text( top_right, SWT.BORDER );
@@ -473,7 +475,7 @@ BuddyPluginViewBetaChat
 	    buddy_table.setHeaderVisible(true);
 
 	    grid_data = new GridData(GridData.FILL_BOTH);
-	    grid_data.heightHint = buddy_table.getHeaderHeight() * 3;
+	    // grid_data.heightHint = buddy_table.getHeaderHeight() * 3;
 		buddy_table.setLayoutData(grid_data);
 		
 		
@@ -745,7 +747,7 @@ BuddyPluginViewBetaChat
 		input_area = new Text( parent, SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
-		grid_data.heightHint = 50;
+		grid_data.heightHint = 30;
 		input_area.setLayoutData(grid_data);
 			
 		input_area.setTextLimit( 256 );
