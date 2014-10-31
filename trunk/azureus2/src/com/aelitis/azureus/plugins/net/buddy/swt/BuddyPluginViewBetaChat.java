@@ -63,6 +63,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -390,7 +391,7 @@ BuddyPluginViewBetaChat
 		
 		Composite top_right = new Composite(rhs, SWT.NONE);
 		layout = new GridLayout();
-		layout.numColumns = 2;
+		layout.numColumns = 3;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		top_right.setLayout(layout);
@@ -406,11 +407,15 @@ BuddyPluginViewBetaChat
 		
 		shared_nick_button.setSelection( chat.isSharedNickname());
 		
+		LinkLabel link = new LinkLabel( top_right, "label.help", lu.getLocalisedMessageText( "azbuddy.dchat.link.url" ));	
+		grid_data = new GridData( GridData.FILL_HORIZONTAL );
+		link.getlabel().setLayoutData( grid_data );
+
 		nickname = new Text( top_right, SWT.BORDER );
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
-		grid_data.horizontalSpan = 2;
+		grid_data.horizontalSpan=3;
 		nickname.setLayoutData( grid_data );
-		
+
 		nickname.setText( chat.getNickname());
 
 		shared_nick_button.addSelectionListener(

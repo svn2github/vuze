@@ -24,12 +24,14 @@ package com.aelitis.azureus.plugins.net.buddy.swt;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -611,6 +613,12 @@ BuddyPluginView
 		}
 	}
 	
+	private static AsyncDispatcher	public_dispatcher 	= new AsyncDispatcher();
+	private static AsyncDispatcher	anon_dispatcher 	= new AsyncDispatcher();
+	
+	private static AtomicInteger	public_done = new AtomicInteger();
+	private static AtomicInteger	anon_done 	= new AtomicInteger();
+	
 	private class
 	BetaSubViewHolder
 	{
@@ -717,8 +725,13 @@ BuddyPluginView
 		
 		private void
 		activate(
-			Download		download )
+			final Download		download )
 		{
+			if ( download.getTorrent() == null ){
+				
+				return;
+			}
+			
 			//System.out.println( "Would open chat for " + download.getName());
 			
 			for ( Control c: composite.getChildren()){
@@ -726,17 +739,70 @@ BuddyPluginView
 				c.dispose();
 			}
 			
-			try{
-				ChatInstance chat = plugin.getBeta().getChat( AENetworkClassifier.AT_PUBLIC, download.getName());
+			final String chat_name = download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
+			
+			final String network = AENetworkClassifier.AT_PUBLIC;
+			
+			AsyncDispatcher disp 		= network==AENetworkClassifier.AT_PUBLIC?public_dispatcher:anon_dispatcher;
+			
+			final AtomicInteger	counter 	= network==AENetworkClassifier.AT_PUBLIC?public_done:anon_done;
+			
+			disp.dispatch(
+				new AERunnable(){						
+					@Override
+					public void 
+					runSupport() 
+					{
+						if ( composite.isDisposed()){
+							
+							return;
+						}
+					
+						try{
+							final ChatInstance chat = plugin.getBeta().getChat( AENetworkClassifier.AT_PUBLIC, chat_name );
+					
+							counter.incrementAndGet();
+							
+								// TODO: maintain list of chats
+							
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										if ( composite.isDisposed()){
+											
+											return;
+										}
+									
+										for ( Control c: composite.getChildren()){
+											
+											c.dispose();
+										}
+										
+										BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( plugin, chat, composite );
+										
+										composite.layout( true, true );
+									}
+								});
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}	
+						
+					}
+				});
+	
+			if ( counter.get() == 0 ){
 				
-				new BuddyPluginViewBetaChat( plugin, chat, composite );
+				Label label = new Label( composite, SWT.NULL );
 				
-				composite.layout( true, true );
-				
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
+				label.setText( MessageText.getString( "v3.MainWindow.view.wait" ));
 			}
+			
+			composite.layout( true, true );
 		}
 		
 		private void
