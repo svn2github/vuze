@@ -85,6 +85,7 @@ BuddyPluginViewBetaChat
 	private LocaleUtilities		lu;
 	
 	private Shell 					shell;
+	
 	private StyledText 				log;
 	private Table					buddy_table;
 	private BufferedLabel		 	status;
@@ -137,15 +138,57 @@ BuddyPluginViewBetaChat
 				
 		Utils.setShellIcon(shell);
 		
+		build( shell );
+		
+		shell.addListener(
+				SWT.Traverse, 
+				new Listener() 
+				{	
+					public void 
+					handleEvent(
+						Event e ) 
+					{
+						if ( e.character == SWT.ESC){
+						
+							close();
+					}
+				}
+			});
+		
+	    shell.setSize( 500, 500 );
+	    
+	    Utils.createURLDropTarget(shell, input_area);
+	    Utils.centreWindow(shell);
+	    shell.open();
+	}
+	
+	protected
+	BuddyPluginViewBetaChat(
+		BuddyPlugin		_plugin,
+		ChatInstance	_chat,
+		Composite		_parent )
+	{
+		plugin	= _plugin;
+		chat	= _chat;
+		
+		lu		= plugin.getPluginInterface().getUtilities().getLocaleUtilities();
+		
+		build( _parent );
+	}
+	
+	private void
+	build(
+		Composite		parent )
+	{
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 2;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		shell.setLayout(layout);
+		parent.setLayout(layout);
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
-		shell.setLayoutData(grid_data);
+		parent.setLayoutData(grid_data);
 
-		Composite lhs = new Composite(shell, SWT.NONE);
+		Composite lhs = new Composite(parent, SWT.NONE);
 		layout = new GridLayout();
 		layout.numColumns = 1;
 		layout.marginHeight = 0;
@@ -333,7 +376,7 @@ BuddyPluginViewBetaChat
 
 		
 		
-		Composite rhs = new Composite(shell, SWT.NONE);
+		Composite rhs = new Composite(parent, SWT.NONE);
 		layout = new GridLayout();
 		layout.numColumns = 1;
 		layout.marginHeight = 0;
@@ -694,7 +737,7 @@ BuddyPluginViewBetaChat
 		
 			// Text
 		
-		input_area = new Text( shell, SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
+		input_area = new Text( parent, SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
 		grid_data.heightHint = 50;
@@ -733,21 +776,6 @@ BuddyPluginViewBetaChat
 		
 		input_area.setFocus();
 		
-		shell.addListener(
-			SWT.Traverse, 
-			new Listener() 
-			{	
-				public void 
-				handleEvent(
-					Event e ) 
-				{
-					if ( e.character == SWT.ESC){
-					
-						close();
-				}
-			}
-		});
-		
 		BuddyPluginBeta.ChatParticipant[] existing_participants = chat.getParticipants();
 		
 		synchronized( participants ){
@@ -767,12 +795,6 @@ BuddyPluginViewBetaChat
 		}
 		
 		chat.addListener( this );
-		
-	    shell.setSize( 500, 500 );
-	    
-	    Utils.createURLDropTarget(shell, input_area);
-	    Utils.centreWindow(shell);
-	    shell.open();
 	}
 	
 	private void
@@ -821,13 +843,16 @@ BuddyPluginViewBetaChat
 	addDisposeListener(
 		final DisposeListener	listener )
 	{
-		if ( shell.isDisposed()){
+		if ( shell != null ){
 			
-			listener.widgetDisposed( null );
-			
-		}else{
-								
-			shell.addDisposeListener( listener );
+			if ( shell.isDisposed()){
+				
+				listener.widgetDisposed( null );
+				
+			}else{
+									
+				shell.addDisposeListener( listener );
+			}
 		}
 	}
 	
@@ -872,7 +897,10 @@ BuddyPluginViewBetaChat
 	protected void
 	close()
 	{
-		shell.dispose();
+		if ( shell != null ){
+		
+			shell.dispose();
+		}
 	}
 	
 	protected void

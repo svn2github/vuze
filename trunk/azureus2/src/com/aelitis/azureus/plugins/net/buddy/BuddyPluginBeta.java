@@ -102,6 +102,12 @@ BuddyPluginBeta
 		shared_anon_endpoint	= COConfigurationManager.getBooleanParameter( "azbuddy.chat.share_i2p_endpoint", true );
 	}
 	
+	public boolean 
+	isAvailable()
+	{
+		return( plugin_interface.getPluginManager().getPluginInterfaceByID( "azmsgsync", true ) != null );
+	}
+	
 	public String
 	getSharedPublicNickname()
 	{

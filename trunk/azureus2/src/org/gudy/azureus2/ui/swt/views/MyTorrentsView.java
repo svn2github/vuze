@@ -2604,7 +2604,8 @@ public class MyTorrentsView
 			FilesView.MSGID_PREFIX
 		));
 				
-		// discoveries sub-tab hack
+		// sub-tab hacks
+		restrictTo.add( "azbuddy.ui.menu.chat" );
 		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
 		PluginInterface pi = pm.getPluginInterfaceByID("aercm", true);
 

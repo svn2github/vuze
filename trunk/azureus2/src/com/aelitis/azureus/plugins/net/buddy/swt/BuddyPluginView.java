@@ -22,17 +22,25 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
@@ -45,7 +53,6 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAdapter;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
@@ -135,6 +142,11 @@ BuddyPluginView
 		});
 		
 		ui_instance.addView(	UISWTInstance.VIEW_MAIN, VIEW_ID, this );
+		
+		if ( plugin.isBetaEnabled() && plugin.getBeta().isAvailable()){
+			
+			addBetaSubviews( true );
+		}
 	}
 	
 	public boolean 
@@ -485,6 +497,252 @@ BuddyPluginView
 			boolean 				enabled ) 
 		{
 			updateStatus();
+		}
+	}
+	
+	private HashMap<UISWTView,BetaSubViewHolder> beta_subviews = new HashMap<UISWTView,BetaSubViewHolder>();
+
+	private void
+	addBetaSubviews(
+		boolean	enable )
+	{
+		String[] views = {
+			TableManager.TABLE_MYTORRENTS_ALL_BIG,
+			TableManager.TABLE_MYTORRENTS_INCOMPLETE,
+			TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,
+			TableManager.TABLE_MYTORRENTS_COMPLETE,
+		};
+		
+		if ( enable ){
+				
+			UISWTViewEventListener listener = 
+				new UISWTViewEventListener()
+				{	
+					public boolean 
+					eventOccurred(
+						UISWTViewEvent event ) 
+					{
+						UISWTView 	currentView = event.getView();
+						
+						switch (event.getType()) {
+							case UISWTViewEvent.TYPE_CREATE:{
+								
+								beta_subviews.put(currentView, new BetaSubViewHolder());
+								
+								break;
+							}
+							case UISWTViewEvent.TYPE_INITIALIZE:{
+							
+								BetaSubViewHolder subview = beta_subviews.get(currentView);
+								
+								if ( subview != null ){
+									
+									subview.initialise((Composite)event.getData());
+								}
+		
+								break;
+							}
+							case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:{
+								
+								BetaSubViewHolder subview = beta_subviews.get(currentView);
+								
+								if ( subview != null ){
+									
+									subview.setDataSource( event.getData());
+								}
+								
+								break;
+							}
+							case UISWTViewEvent.TYPE_FOCUSGAINED:{
+								
+								BetaSubViewHolder subview = beta_subviews.get(currentView);
+								
+								if ( subview != null ){
+									
+									subview.gotFocus();
+								}
+								
+								break;
+							}
+							case UISWTViewEvent.TYPE_FOCUSLOST:{
+								
+								BetaSubViewHolder subview = beta_subviews.get(currentView);
+								
+								if ( subview != null ){
+									
+									subview.lostFocus();
+								}
+								
+								break;
+							}
+							case UISWTViewEvent.TYPE_DESTROY:{
+								
+								BetaSubViewHolder subview = beta_subviews.remove(currentView);
+							
+								if ( subview != null ){
+									
+									subview.destroy();
+								}
+								
+								break;
+							}
+						}
+						return true;
+					}
+				};
+				
+			for ( String table_id: views ){
+				
+				ui_instance.addView(table_id, "azbuddy.ui.menu.chat",	listener );
+			}
+		}else{
+			
+			for ( String table_id: views ){
+				
+				ui_instance.removeViews( table_id, "azbuddy.ui.menu.chat" );
+			}
+			
+			for ( UISWTView entry: new ArrayList<UISWTView>(beta_subviews.keySet())){
+				
+				entry.closeView();
+			}
+			
+			beta_subviews.clear();
+		}
+	}
+	
+	private class
+	BetaSubViewHolder
+	{
+		private Composite		composite;
+		
+		private Download		current_download;
+		private boolean			have_focus;
+		
+		private
+		BetaSubViewHolder()
+		{
+		}
+		
+		private void
+		initialise(
+			Composite		parent )
+		{		
+			composite	= parent;
+		}
+		
+		private void
+		setDataSource(
+			Object		obj )
+		{									
+			Download 			dl 		= null;
+			DiskManagerFileInfo	dl_file = null;
+			
+			if ( obj instanceof Object[]){
+				
+				Object[] ds = (Object[])obj;
+				
+				if ( ds.length > 0 ){
+					
+					if ( ds[0] instanceof Download ){
+		
+						dl = (Download)ds[0];
+						
+					}else if ( ds[0] instanceof DiskManagerFileInfo ){
+						
+						dl_file = (DiskManagerFileInfo)ds[0];
+					}
+				}
+			}else{
+				
+				if ( obj instanceof Download ){
+					
+					dl = (Download)obj;
+					
+				}else if ( obj instanceof DiskManagerFileInfo ){
+					
+					dl_file = (DiskManagerFileInfo)obj;
+				}
+			}
+			
+			if ( dl_file != null ){
+				
+				try{
+					dl = dl_file.getDownload();
+					
+				}catch( Throwable e ){	
+				}
+			}
+			
+			synchronized( this ){
+				
+				if ( dl == current_download ){
+					
+					return;
+				}
+				
+				current_download = dl;
+				
+				if ( have_focus && dl != null ){
+					
+					activate( current_download );
+				}
+			}
+		}
+		
+		private void
+		gotFocus()
+		{
+			synchronized( this ){
+				
+				have_focus = true;
+				
+				if ( current_download == null ){
+					
+					return;
+				}
+				
+				activate( current_download );
+			}
+		}
+		
+		private void
+		lostFocus()
+		{
+			synchronized( this ){
+				
+				have_focus = false;
+			}
+		}
+		
+		private void
+		activate(
+			Download		download )
+		{
+			//System.out.println( "Would open chat for " + download.getName());
+			
+			for ( Control c: composite.getChildren()){
+				
+				c.dispose();
+			}
+			
+			try{
+				ChatInstance chat = plugin.getBeta().getChat( AENetworkClassifier.AT_PUBLIC, download.getName());
+				
+				new BuddyPluginViewBetaChat( plugin, chat, composite );
+				
+				composite.layout( true, true );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		private void
+		destroy()
+		{			
+			//System.out.println( "Destroyed" );
 		}
 	}
 }
