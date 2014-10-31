@@ -206,7 +206,7 @@ BuddyPluginViewBetaChat
 		layout.marginWidth = 0;
 		temp.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
-		grid_data.horizontalIndent = 8;
+		grid_data.horizontalIndent = 4;
 		grid_data.heightHint = 20;
 		temp.setLayoutData(grid_data);
 		
