@@ -572,7 +572,19 @@ BuddyPluginBeta
 		public String
 		getName()
 		{
-			return( MessageText.getString(network==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon") + " - '" + key + "'" );
+			String str = key;
+			
+			int pos = str.indexOf( '[' );
+			
+			if ( pos != -1 ){
+				
+				str = str.substring( 0, pos );
+			}
+			
+			return( 
+				MessageText.getString(
+					network==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon") + 
+					" - '" + str + "'" );
 		}
 		
 		public String
@@ -585,6 +597,19 @@ BuddyPluginBeta
 		getKey()
 		{
 			return( key );
+		}
+		
+		public String
+		getURL()
+		{
+			if ( network == AENetworkClassifier.AT_PUBLIC ){
+				
+				return( "chat:?" + UrlUtils.encode( key ));
+				
+			}else{
+				
+				return( "chat:anon:?" + UrlUtils.encode( key ));
+			}
 		}
 		
 		public byte[]

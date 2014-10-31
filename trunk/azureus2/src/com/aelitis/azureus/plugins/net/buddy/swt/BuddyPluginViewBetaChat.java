@@ -46,6 +46,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -58,6 +59,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
@@ -136,7 +138,7 @@ BuddyPluginViewBetaChat
 					closed();
 				}
 			});
-		
+				
 		shell.setText( lu.getLocalisedMessageText( "label.chat" ) + ": " + chat.getName());
 				
 		Utils.setShellIcon(shell);
@@ -221,6 +223,106 @@ BuddyPluginViewBetaChat
 		
 		status.setLayoutData(grid_data);
 		status.setText( MessageText.getString( "PeersView.state.pending" ));
+		
+		Control status_control = status.getControl();
+		
+		Menu status_menu = new Menu( status_control );
+		status.getControl().setMenu( status_menu );
+			
+		Menu status_clip_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
+		MenuItem status_clip_item = new MenuItem( status_menu, SWT.CASCADE);
+		status_clip_item.setMenu(status_clip_menu);
+		status_clip_item.setText(  MessageText.getString( "ConfigView.copy.to.clipboard.tooltip" ));
+		
+		MenuItem status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
+		status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.key" ));
+		
+		status_mi.addSelectionListener(
+				new SelectionAdapter() {				
+					public void 
+					widgetSelected(
+						SelectionEvent e ) 
+					{
+						ClipboardCopy.copyToClipBoard( chat.getKey());
+					}
+				});
+		
+		status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
+		status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.url" ));
+		
+		status_mi.addSelectionListener(
+				new SelectionAdapter() {				
+					public void 
+					widgetSelected(
+						SelectionEvent e ) 
+					{
+						ClipboardCopy.copyToClipBoard( chat.getURL());
+					}
+				});
+		
+		status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
+		status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.pk" ));
+		
+		status_mi.addSelectionListener(
+				new SelectionAdapter() {				
+					public void 
+					widgetSelected(
+						SelectionEvent e ) 
+					{
+						ClipboardCopy.copyToClipBoard( Base32.encode( chat.getPublicKey()));
+					}
+				});
+				
+		Menu status_channel_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
+		MenuItem status_channel_item = new MenuItem( status_menu, SWT.CASCADE);
+		status_channel_item.setMenu(status_channel_menu);
+		status_channel_item.setText(  MessageText.getString( "azbuddy.dchat.rchans" ));
+
+		status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
+		status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.managed" ));
+
+		status_mi.addSelectionListener(
+				new SelectionAdapter() {				
+					public void 
+					widgetSelected(
+						SelectionEvent event ) 
+					{
+						String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "]";
+						
+						try{
+							ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
+							
+							new BuddyPluginViewBetaChat( plugin, inst );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				});
+		
+		status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
+		status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.ro" ));
+
+		status_mi.addSelectionListener(
+				new SelectionAdapter() {				
+					public void 
+					widgetSelected(
+						SelectionEvent event ) 
+					{
+						String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "&ro=1]";
+						
+						try{
+							ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
+							
+							new BuddyPluginViewBetaChat( plugin, inst );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}						
+					}
+				});
 		
 		Composite log_holder = new Composite(lhs, SWT.BORDER);
 		layout = new GridLayout();
