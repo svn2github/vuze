@@ -273,56 +273,59 @@ BuddyPluginViewBetaChat
 					}
 				});
 				
-		Menu status_channel_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
-		MenuItem status_channel_item = new MenuItem( status_menu, SWT.CASCADE);
-		status_channel_item.setMenu(status_channel_menu);
-		status_channel_item.setText(  MessageText.getString( "azbuddy.dchat.rchans" ));
-
-		status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
-		status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.managed" ));
-
-		status_mi.addSelectionListener(
-				new SelectionAdapter() {				
-					public void 
-					widgetSelected(
-						SelectionEvent event ) 
-					{
-						String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "]";
-						
-						try{
-							ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
+		if ( !chat.isManaged()){
+			
+			Menu status_channel_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
+			MenuItem status_channel_item = new MenuItem( status_menu, SWT.CASCADE);
+			status_channel_item.setMenu(status_channel_menu);
+			status_channel_item.setText(  MessageText.getString( "azbuddy.dchat.rchans" ));
+	
+			status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
+			status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.managed" ));
+	
+			status_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent event ) 
+						{
+							String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "]";
 							
-							new BuddyPluginViewBetaChat( plugin, inst );
-							
-						}catch( Throwable e ){
-							
-							Debug.out( e );
+							try{
+								ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
+								
+								new BuddyPluginViewBetaChat( plugin, inst );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
 						}
-					}
-				});
-		
-		status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
-		status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.ro" ));
-
-		status_mi.addSelectionListener(
-				new SelectionAdapter() {				
-					public void 
-					widgetSelected(
-						SelectionEvent event ) 
-					{
-						String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "&ro=1]";
-						
-						try{
-							ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
+					});
+			
+			status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
+			status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.ro" ));
+	
+			status_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent event ) 
+						{
+							String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "&ro=1]";
 							
-							new BuddyPluginViewBetaChat( plugin, inst );
-							
-						}catch( Throwable e ){
-							
-							Debug.out( e );
-						}						
-					}
-				});
+							try{
+								ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
+								
+								new BuddyPluginViewBetaChat( plugin, inst );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}						
+						}
+					});
+		}
 		
 		Composite log_holder = new Composite(lhs, SWT.BORDER);
 		layout = new GridLayout();
@@ -903,7 +906,8 @@ BuddyPluginViewBetaChat
 		
 		if ( chat.isReadOnly()){
 		
-			input_area.setText( "Read only channel" );
+			input_area.setText( MessageText.getString( "azbuddy.dchat.ro" ));
+			
 			
 			input_area.setEnabled( false );
 			
