@@ -972,12 +972,18 @@ BuddyPluginBeta
 					
 					if ( isReadOnly()){
 						
-						str += ", RO";
+						str += ", R-";
 						
 					}else if ( amManager()){
 						
-						str += ", M+";
+						if ( read_only ){
+							
+							str += ", R+";
+							
+						}else{
 						
+							str += ", M+";
+						}
 					}else if ( isManaged()){
 						
 						str += ", M-";
