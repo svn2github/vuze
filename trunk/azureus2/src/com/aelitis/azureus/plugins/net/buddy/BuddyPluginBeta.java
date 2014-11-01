@@ -387,12 +387,37 @@ BuddyPluginBeta
 	}
 	
 	public ChatInstance
-	getChat(
-		String			network,
-		String			key )		
+	importChat(
+		String		import_data )
+		
 		throws Exception
 	{
-		return( getChat( network, key, null, null ));
+		if ( azmsgsync_pi == null ){
+			
+			throw( new Exception( "Plugin unavailable " ));
+		}
+		
+		Map<String,Object>		options = new HashMap<String, Object>();
+				
+		options.put( "import_data", import_data.getBytes( "UTF-8" ));
+	
+		Map<String,Object> reply = (Map<String,Object>)azmsgsync_pi.getIPC().invoke( "importMessageHandler", new Object[]{ options } );
+
+		String	key			= new String((byte[])reply.get( "key" ), "UTF-8" );
+		String	network	 	= (String)reply.get( "network" );
+		Object	handler 	= reply.get( "handler" );
+		
+		return( getChat( network, key, null, handler, false ));
+	}
+
+	public ChatInstance
+	getChat(
+		String			network,
+		String			key )	
+		
+		throws Exception
+	{
+		return( getChat( network, key, null, null, false ));
 	}
 	
 	public ChatInstance
@@ -403,7 +428,7 @@ BuddyPluginBeta
 	{
 		String key = participant.getChat().getKey() + " - " + participant.getName() + " (outgoing)";
 		
-		return( getChat( participant.getChat().getNetwork(), key, participant, null ));
+		return( getChat( participant.getChat().getNetwork(), key, participant, null, true ));
 	}
 	
 	public ChatInstance
@@ -415,7 +440,7 @@ BuddyPluginBeta
 	{
 		String key = parent_participant.getChat().getKey() + " - " + parent_participant.getName() + " (incoming)";
 
-		return( getChat( parent_participant.getChat().getNetwork(), key, null, handler ));
+		return( getChat( parent_participant.getChat().getNetwork(), key, null, handler, true ));
 	}
 	
 	private ChatInstance
@@ -423,7 +448,8 @@ BuddyPluginBeta
 		String				network,
 		String				key,
 		ChatParticipant		private_target,
-		Object				handler )
+		Object				handler,
+		boolean				is_private_chat )
 		
 		throws Exception
 	{
@@ -440,7 +466,7 @@ BuddyPluginBeta
 			
 			if ( inst == null ){
 							
-				inst = new ChatInstance( network, key, private_target, handler );
+				inst = new ChatInstance( network, key, private_target, handler, is_private_chat );
 			
 				chat_instances.put( meta_key, inst );
 				
@@ -540,16 +566,16 @@ BuddyPluginBeta
 			String				_network,
 			String				_key,
 			ChatParticipant		_private_target,
-			Object				_handler )
+			Object				_handler,
+			boolean				_is_private_chat )
 		{
 			network 		= _network;
 			key				= _key;
 			
 				// private chat args
 			
-			private_target	= _private_target;
-			
-			is_private_chat = private_target != null || _handler != null;
+			private_target	= _private_target;			
+			is_private_chat = _is_private_chat;
 			
 			String chat_key_base = "azbuddy.chat." + getNetAndKey();
 			
@@ -1633,6 +1659,30 @@ BuddyPluginBeta
 					
 					Debug.out( e );
 				}
+			}
+		}
+		
+		public String
+		export()
+		{
+			if ( handler == null || msgsync_pi == null ){
+
+				return( "" );
+			}
+			try{
+				Map<String,Object>		options = new HashMap<String, Object>();
+				
+				options.put( "handler", handler );
+	
+				Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "exportMessageHandler", new Object[]{ options } );
+
+				return((String)reply.get( "export_data" ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+				
+				return( "" );
 			}
 		}
 		

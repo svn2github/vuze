@@ -272,7 +272,20 @@ BuddyPluginViewBetaChat
 						ClipboardCopy.copyToClipBoard( Base32.encode( chat.getPublicKey()));
 					}
 				});
-				
+			
+		status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
+		status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.export" ));
+		
+		status_mi.addSelectionListener(
+				new SelectionAdapter() {				
+					public void 
+					widgetSelected(
+						SelectionEvent e ) 
+					{
+						ClipboardCopy.copyToClipBoard( chat.export());
+					}
+				});
+		
 		if ( !chat.isManaged()){
 			
 			Menu status_channel_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);

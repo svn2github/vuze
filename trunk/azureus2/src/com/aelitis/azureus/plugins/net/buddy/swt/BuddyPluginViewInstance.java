@@ -479,7 +479,112 @@ BuddyPluginViewInstance
 						}
 					}
 				});
+		
+			// import
 			
+		Group import_area = new Group( main, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		//layout.marginHeight = 0;
+		//layout.marginWidth = 0;
+		import_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		import_area.setLayoutData(grid_data);
+		
+		import_area.setText( lu.getLocalisedMessageText( "azbuddy.dchat.cannel.import" ));
+	
+		label = new Label( import_area, SWT.NULL );
+		
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.import.data" ));
+		
+		final Text import_data = new Text( import_area, SWT.BORDER );
+		grid_data = new GridData();
+		grid_data.widthHint = 400;
+		import_data.setLayoutData( grid_data );
+			
+		final Button import_button = new Button( import_area, SWT.NULL );
+	
+		import_button.setText( lu.getLocalisedMessageText( "br.restore" ));
+		
+		import_button.addSelectionListener(
+				new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent ev )
+				{
+					import_button.setEnabled( false );
+					
+					final Display display = composite.getDisplay();
+
+					final String data		= import_data.getText().trim();
+					
+					new AEThread2( "async" )
+					{
+						public void
+						run()
+						{
+							if ( display.isDisposed()){
+								
+								return;
+							}
+							
+							try{
+								final BuddyPluginBeta.ChatInstance inst = plugin_beta.importChat( data );
+								
+								display.asyncExec(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											if ( !display.isDisposed()){
+																							
+												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, inst );
+													
+												import_button.setEnabled( true );
+												
+												chat.addDisposeListener(
+													new DisposeListener()
+													{
+														public void 
+														widgetDisposed(
+															DisposeEvent e) 
+														{
+															if ( !import_button.isDisposed()){
+															
+																import_button.setEnabled( true );
+															}
+														}
+													});
+											}
+										}
+									});
+									
+							}catch( Throwable e){
+								
+								display.asyncExec(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											if ( !import_button.isDisposed()){
+											
+												import_button.setEnabled( true );
+											}
+										}
+									});
+								
+								Debug.out( e );
+							}
+						}
+					}.start();
+				}
+			});
+	
+	
 		List<Button>	buttons = new ArrayList<Button>();
 		
 		buttons.add( create_button );
