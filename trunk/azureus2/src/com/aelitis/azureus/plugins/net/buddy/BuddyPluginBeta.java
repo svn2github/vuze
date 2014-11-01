@@ -511,6 +511,8 @@ BuddyPluginBeta
 		private volatile Object					handler;
 		
 		private byte[]							my_public_key;
+		private byte[]							managing_public_key;
+		private boolean							read_only;
 		
 		private Object	chat_lock = this;
 		
@@ -597,6 +599,24 @@ BuddyPluginBeta
 		getKey()
 		{
 			return( key );
+		}
+		
+		public boolean
+		isManaged()
+		{
+			return( managing_public_key != null );
+		}
+		
+		public boolean
+		amManager()
+		{
+			return( managing_public_key != null && Arrays.equals( my_public_key, managing_public_key ));
+		}
+		
+		public boolean
+		isReadOnly()
+		{
+			return( read_only && !amManager());
 		}
 		
 		public String
@@ -725,8 +745,12 @@ BuddyPluginBeta
 							
 					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "updateMessageHandler", new Object[]{ options } );
 						
-					my_public_key = (byte[])reply.get( "pk" );
+					my_public_key 		= (byte[])reply.get( "pk" );
+					managing_public_key = (byte[])reply.get( "mpk" );
+					Boolean ro 			= (Boolean)reply.get( "ro" );
 
+					read_only = ro != null && ro;
+					
 					for ( ChatListener l: listeners ){
 						
 						try{
@@ -768,6 +792,10 @@ BuddyPluginBeta
 					handler = reply.get( "handler" );
 					
 					my_public_key = (byte[])reply.get( "pk" );
+					managing_public_key = (byte[])reply.get( "mpk" );
+					Boolean ro 			= (Boolean)reply.get( "ro" );
+
+					read_only = ro != null && ro;
 					
 					for ( ChatListener l: listeners ){
 						
@@ -937,10 +965,26 @@ BuddyPluginBeta
 					String arg3 = nodes_local+"/"+nodes_live+"/"+nodes_dying;
 					String arg4 = DisplayFormatters.formatDecimal(req_in_rate,1) + "/" +  DisplayFormatters.formatDecimal(req_out_rate,1);
 					
-					return( 
+					String str = 
 						MessageText.getString(
 							"azbuddy.dchat.node.status",
-							new String[]{ arg1, arg2, arg3, arg4 }));	
+							new String[]{ arg1, arg2, arg3, arg4 });
+					
+					if ( isReadOnly()){
+						
+						str += ", RO";
+						
+					}else if ( amManager()){
+						
+						str += ", M+";
+						
+					}else if ( isManaged()){
+						
+						str += ", M-";
+					}
+						
+					
+					return( str );
 					
 				}else{
 					

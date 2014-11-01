@@ -901,7 +901,16 @@ BuddyPluginViewBetaChat
 				}
 			});
 		
-		input_area.setFocus();
+		if ( chat.isReadOnly()){
+		
+			input_area.setText( "Read only channel" );
+			
+			input_area.setEnabled( false );
+			
+		}else{
+		
+			input_area.setFocus();
+		}
 		
 		BuddyPluginBeta.ChatParticipant[] existing_participants = chat.getParticipants();
 		
