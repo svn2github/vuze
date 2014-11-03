@@ -760,6 +760,58 @@ DownloadManagerStatsImpl
 		return (int) ((1000 * uploaded) / downloaded);
 	}
 	
+	public void
+	setShareRatio(
+		int		ratio )
+	{
+		if ( ratio < 0 ){
+			ratio = 0;
+		}
+		
+		if ( ratio > 1000000 ){
+			ratio = 1000000;
+		}
+		
+		DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfoSet().getFiles();
+		
+		long total_size = 0;
+		
+		for ( DiskManagerFileInfo file: files ){
+			
+			if ( !file.isSkipped()){
+				
+				total_size += file.getLength();
+			}
+		}
+		
+		if ( total_size == 0 ){
+			
+				// can't do much if they have no files selected (which would be stupid anyway)
+			
+			return;
+		}
+		
+		saved_hashfails				= 0;
+		saved_discarded				= 0;
+		saved_data_bytes_downloaded	= 0;
+		saved_data_bytes_uploaded	= 0;
+		
+		long downloaded	= getTotalGoodDataBytesReceived();
+		long uploaded	= getTotalDataBytesSent();
+
+			// manipulate by updating downloaded to be one full copy and then uploaded as required
+		
+		long	target_downloaded 	= total_size;
+		long	target_uploaded 	= ( ratio * total_size ) / 1000;
+		
+		saved_data_bytes_downloaded	= target_downloaded - downloaded;
+		saved_data_bytes_uploaded	= target_uploaded - uploaded;
+		
+		if ( download_manager.getPeerManager() == null ){
+
+			saveSessionTotals();
+		}
+	}
   
 	public long 
 	getSecondsDownloading() 

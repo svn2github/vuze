@@ -126,7 +126,10 @@ DownloadManagerStats
 	public int
 	getShareRatio();
 	
- 
+	public void
+	setShareRatio(
+		int		ratio );
+	
 	public long getDataReceiveRate();
   
 	public long getProtocolReceiveRate();

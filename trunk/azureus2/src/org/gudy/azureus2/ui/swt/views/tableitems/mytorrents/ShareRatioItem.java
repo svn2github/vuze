@@ -23,17 +23,20 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.Color;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
-
+import org.gudy.azureus2.ui.swt.views.tableitems.files.NameItem;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -67,6 +70,44 @@ public class ShareRatioItem
 
     iMinShareRatio = COConfigurationManager.getIntParameter(CONFIG_ID);
     COConfigurationManager.addParameterListener(CONFIG_ID, this);
+    
+    TableContextMenuItem menuItem = addContextMenuItem("label.set.share.ratio");
+	
+	menuItem.setStyle(MenuItem.STYLE_PUSH);
+	
+	menuItem.addMultiListener(new MenuItemListener() {
+		public void selected(MenuItem menu, Object target) {
+			final Object[] dms = (Object[])target;
+			
+			SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+					"set.share.ratio.win.title", "set.share.ratio.win.msg");
+			
+			entryWindow.setPreenteredText( "1.000", false );
+			entryWindow.selectPreenteredText( true );
+			
+			entryWindow.prompt();
+			
+			if ( entryWindow.hasSubmittedInput()){
+				
+				try{
+					String str = entryWindow.getSubmittedInput().trim();
+					
+					int share_ratio = (int)( Float.parseFloat( str ) * 1000 );
+					
+					for ( Object o: dms ){
+						
+					    DownloadManager dm = (DownloadManager)o;
+					    
+					    dm.getStats().setShareRatio( share_ratio );
+					}
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+	});
   }
 
   protected void finalize() throws Throwable {
