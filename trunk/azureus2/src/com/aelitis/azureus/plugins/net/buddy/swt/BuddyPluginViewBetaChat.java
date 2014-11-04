@@ -368,79 +368,7 @@ BuddyPluginViewBetaChat
 		FontData fontData = log.getFont().getFontData()[0];
 		
 		italic_font = new Font( log.getDisplay(), new FontData( fontData.getName(), fontData.getHeight(), SWT.ITALIC ));
-		
-		final MenuItem mi_open_vuze = new MenuItem( log_menu, SWT.PUSH );
-		
-		mi_open_vuze.addSelectionListener(
-			new SelectionAdapter() {
 				
-				public void 
-				widgetSelected(
-					SelectionEvent e ) 
-				{
-					String url_str = (String)mi_open_vuze.getData();
-					
-					if ( url_str != null ){
-						
-						String lc_url_str = url_str.toLowerCase( Locale.US );
-						
-						if ( lc_url_str.startsWith( "chat:" )){
-							
-							try{
-								plugin.getBeta().handleURI( url_str );
-								
-							}catch( Throwable f ){
-								
-								Debug.out( f );
-							}
-							
-						}else{
-						
-							TorrentOpener.openTorrent( url_str );
-						}
-					}
-				}
-			});
-		
-		final MenuItem mi_open_ext = new MenuItem( log_menu, SWT.PUSH );
-		
-		mi_open_ext.setText( lu.getLocalisedMessageText( "azbuddy.dchat.open.in.browser" ));
-		
-		mi_open_ext.addSelectionListener(
-			new SelectionAdapter() {
-				
-				public void 
-				widgetSelected(
-					SelectionEvent e ) 
-				{
-					String url_str = (String)mi_open_ext.getData();
-					
-					Utils.launch( url_str );
-				}
-			});
-		
-		new MenuItem( log_menu, SWT.SEPARATOR );
-		
-		final MenuItem mi_copy_clip = new MenuItem( log_menu, SWT.PUSH );
-		
-		mi_copy_clip.setText( lu.getLocalisedMessageText( "ConfigView.copy.to.clipboard.tooltip" ));
-		
-		mi_copy_clip.addSelectionListener(
-				new SelectionAdapter() {
-					
-					public void 
-					widgetSelected(
-						SelectionEvent e ) 
-					{
-						String url_str = (String)mi_copy_clip.getData();
-						
-						if ( url_str != null ){
-							
-							ClipboardCopy.copyToClipBoard( url_str );
-						}
-					}
-				});
-		
 		log.addMenuDetectListener(
 			new MenuDetectListener() {
 				
@@ -459,10 +387,29 @@ BuddyPluginViewBetaChat
 						
 						if ( sr != null ){
 							
-							String url_str = (String)sr.data;
+							for ( MenuItem mi: log_menu.getItems()){
+								
+								mi.dispose();
+							}
+
+							Object data = sr.data;
 							
-							if ( url_str != null ){
-																
+							if ( data instanceof ChatParticipant ){
+								
+								ChatParticipant cp = (ChatParticipant)data;
+								
+								List<ChatParticipant> cps = new ArrayList<ChatParticipant>();
+								
+								cps.add( cp );
+								
+								buildParticipantMenu( log_menu, cps );
+								
+								e.doit = true;
+								
+							}else if ( data instanceof String ){
+								
+								String url_str = (String)sr.data;
+								
 								String str = url_str;
 								
 								if ( str.length() > 50 ){
@@ -471,6 +418,81 @@ BuddyPluginViewBetaChat
 								}
 								
 								str = lu.getLocalisedMessageText( "azbuddy.dchat.open.in.vuze" ) + ": " + str;
+																	
+								final MenuItem mi_open_vuze = new MenuItem( log_menu, SWT.PUSH );
+								
+								mi_open_vuze.addSelectionListener(
+									new SelectionAdapter() {
+										
+										public void 
+										widgetSelected(
+											SelectionEvent e ) 
+										{
+											String url_str = (String)mi_open_vuze.getData();
+											
+											if ( url_str != null ){
+												
+												String lc_url_str = url_str.toLowerCase( Locale.US );
+												
+												if ( lc_url_str.startsWith( "chat:" )){
+													
+													try{
+														plugin.getBeta().handleURI( url_str );
+														
+													}catch( Throwable f ){
+														
+														Debug.out( f );
+													}
+													
+												}else{
+												
+													TorrentOpener.openTorrent( url_str );
+												}
+											}
+										}
+									});
+								
+								final MenuItem mi_open_ext = new MenuItem( log_menu, SWT.PUSH );
+								
+								mi_open_ext.setText( lu.getLocalisedMessageText( "azbuddy.dchat.open.in.browser" ));
+								
+								mi_open_ext.addSelectionListener(
+									new SelectionAdapter() {
+										
+										public void 
+										widgetSelected(
+											SelectionEvent e ) 
+										{
+											String url_str = (String)mi_open_ext.getData();
+											
+											Utils.launch( url_str );
+										}
+									});
+								
+								new MenuItem( log_menu, SWT.SEPARATOR );
+								
+								final MenuItem mi_copy_clip = new MenuItem( log_menu, SWT.PUSH );
+								
+								mi_copy_clip.setText( lu.getLocalisedMessageText( "ConfigView.copy.to.clipboard.tooltip" ));
+								
+								mi_copy_clip.addSelectionListener(
+										new SelectionAdapter() {
+											
+											public void 
+											widgetSelected(
+												SelectionEvent e ) 
+											{
+												String url_str = (String)mi_copy_clip.getData();
+												
+												if ( url_str != null ){
+													
+													ClipboardCopy.copyToClipBoard( url_str );
+												}
+											}
+										});
+								
+								
+								
 								
 								mi_open_vuze.setText( str);
 								mi_open_vuze.setData( url_str );
@@ -662,214 +684,16 @@ BuddyPluginViewBetaChat
 
 					final TableItem[] selection = buddy_table.getSelection();
 					
-					boolean	can_ignore 	= false;
-					boolean	can_listen	= false;
-					boolean	can_pin		= false;
-					boolean	can_unpin	= false;
+					List<ChatParticipant>	participants = new ArrayList<BuddyPluginBeta.ChatParticipant>( selection.length );
 					
 					for (int i=0;i<selection.length;i++){
 						
 						ChatParticipant	participant = (ChatParticipant)selection[i].getData();
-						
-						if ( DEBUG_ENABLED ){
-							
-							System.out.println( participant.getName() + "/" + participant.getAddress());
-							
-							List<ChatMessage>	messages = participant.getMessages();
-							
-							for ( ChatMessage msg: messages ){
-								
-								System.out.println( "    " + msg.getTimeStamp() + ", " + msg.getAddress() + " - " + msg.getMessage());
-							}
-						}
-						
-						if ( participant.isIgnored()){
-						
-							can_listen = true;
-							
-						}else{
-							
-							can_ignore = true;
-						}
-						
-						if ( participant.isPinned()){
-							
-							can_unpin = true;
-							
-						}else{
-							
-							can_pin = true;
-						}
+
+						participants.add( participant );
 					}
 					
-					final MenuItem ignore_item = new MenuItem(menu, SWT.PUSH);
-					
-					ignore_item.setText( lu.getLocalisedMessageText( "label.mute" ) );
-
-					ignore_item.addSelectionListener(
-						new SelectionAdapter() 
-						{
-							public void 
-							widgetSelected(
-								SelectionEvent e) 
-							{
-								for (int i=0;i<selection.length;i++){
-									
-									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
-									
-									if ( !participant.isIgnored()){
-										
-										participant.setIgnored( true );
-										
-										setProperties( selection[i], participant );
-										
-										messagesChanged();
-									}
-								}
-							};
-						});
-					
-					ignore_item.setEnabled( can_ignore );
-					
-					final MenuItem listen_item = new MenuItem(menu, SWT.PUSH);
-					
-					listen_item.setText(lu.getLocalisedMessageText( "label.listen" ) );
-
-					listen_item.addSelectionListener(
-						new SelectionAdapter() 
-						{
-							public void 
-							widgetSelected(
-								SelectionEvent e) 
-							{
-								for (int i=0;i<selection.length;i++){
-									
-									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
-									
-									if ( participant.isIgnored()){
-										
-										participant.setIgnored( false );
-										
-										setProperties( selection[i], participant );
-										
-										messagesChanged();
-									}
-								}
-							};
-						});
-					
-					listen_item.setEnabled( can_listen );
-					
-					new MenuItem(menu, SWT.SEPARATOR );
-					
-					final MenuItem pin_item = new MenuItem(menu, SWT.PUSH);
-					
-					pin_item.setText( lu.getLocalisedMessageText( "label.pin" ) );
-
-					pin_item.addSelectionListener(
-						new SelectionAdapter() 
-						{
-							public void 
-							widgetSelected(
-								SelectionEvent e) 
-							{
-								for (int i=0;i<selection.length;i++){
-									
-									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
-									
-									if ( !participant.isPinned()){
-										
-										participant.setPinned( true );
-										
-										setProperties( selection[i], participant );
-									}
-								}
-							};
-						});
-					
-					pin_item.setEnabled( can_pin );
-					
-					final MenuItem unpin_item = new MenuItem(menu, SWT.PUSH);
-					
-					unpin_item.setText( lu.getLocalisedMessageText( "label.unpin" ) );
-
-					unpin_item.addSelectionListener(
-						new SelectionAdapter() 
-						{
-							public void 
-							widgetSelected(
-								SelectionEvent e) 
-							{
-								for (int i=0;i<selection.length;i++){
-									
-									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
-									
-									if ( participant.isPinned()){
-										
-										participant.setPinned( false );
-										
-										setProperties( selection[i], participant );
-									}
-								}
-							};
-						});
-					
-					unpin_item.setEnabled( can_unpin );
-					
-					if ( !chat.isPrivateChat()){
-						
-						new MenuItem(menu, SWT.SEPARATOR );
-						
-						final MenuItem private_chat_item = new MenuItem(menu, SWT.PUSH);
-						
-						private_chat_item.setText( lu.getLocalisedMessageText( "label.private.chat" ) );
-	
-						final byte[]	chat_pk = chat.getPublicKey();
-	
-						private_chat_item.addSelectionListener(
-							new SelectionAdapter() 
-							{
-								public void 
-								widgetSelected(
-									SelectionEvent e) 
-								{
-									for (int i=0;i<selection.length;i++){
-										
-										ChatParticipant	participant = (ChatParticipant)selection[i].getData();
-										
-										if ( TEST_LOOPBACK_CHAT || !Arrays.equals( participant.getPublicKey(), chat_pk )){
-											
-											try{
-												ChatInstance chat = participant.createPrivateChat();
-											
-												new BuddyPluginViewBetaChat( plugin, chat);
-												
-											}catch( Throwable f ){
-												
-												Debug.out( f );
-											}
-										}
-									}
-								};
-							});
-							
-						boolean	pc_enable = false;
-						
-						if ( chat_pk != null ){
-							
-							for (int i=0;i<selection.length;i++){
-								
-								ChatParticipant	participant = (ChatParticipant)selection[i].getData();
-								
-								if ( !Arrays.equals( participant.getPublicKey(), chat_pk )){
-									
-									pc_enable = true;
-								}
-							}
-						}
-						
-						private_chat_item.setEnabled( pc_enable || TEST_LOOPBACK_CHAT );
-					}
+					buildParticipantMenu( menu, participants );
 				}
 				
 				public void menuHidden(MenuEvent e) {
@@ -948,6 +772,220 @@ BuddyPluginViewBetaChat
 		}
 		
 		chat.addListener( this );
+	}
+	
+	private void
+	buildParticipantMenu(
+		final Menu					menu,
+		final List<ChatParticipant>	participants )
+	{
+		boolean	can_ignore 	= false;
+		boolean	can_listen	= false;
+		boolean	can_pin		= false;
+		boolean	can_unpin	= false;
+		
+		for ( ChatParticipant participant: participants ){
+						
+			if ( DEBUG_ENABLED ){
+				
+				System.out.println( participant.getName() + "/" + participant.getAddress());
+				
+				List<ChatMessage>	messages = participant.getMessages();
+				
+				for ( ChatMessage msg: messages ){
+					
+					System.out.println( "    " + msg.getTimeStamp() + ", " + msg.getAddress() + " - " + msg.getMessage());
+				}
+			}
+			
+			if ( participant.isIgnored()){
+			
+				can_listen = true;
+				
+			}else{
+				
+				can_ignore = true;
+			}
+			
+			if ( participant.isPinned()){
+				
+				can_unpin = true;
+				
+			}else{
+				
+				can_pin = true;
+			}
+		}
+		
+		final MenuItem ignore_item = new MenuItem(menu, SWT.PUSH);
+		
+		ignore_item.setText( lu.getLocalisedMessageText( "label.mute" ) );
+
+		ignore_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					for ( ChatParticipant participant: participants ){
+						
+						if ( !participant.isIgnored()){
+							
+							participant.setIgnored( true );
+							
+							setProperties( participant );
+							
+							messagesChanged();
+						}
+					}
+				};
+			});
+		
+		ignore_item.setEnabled( can_ignore );
+		
+		final MenuItem listen_item = new MenuItem(menu, SWT.PUSH);
+		
+		listen_item.setText(lu.getLocalisedMessageText( "label.listen" ) );
+
+		listen_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					for ( ChatParticipant participant: participants ){
+						
+						if ( participant.isIgnored()){
+							
+							participant.setIgnored( false );
+							
+							setProperties( participant );
+							
+							messagesChanged();
+						}
+					}
+				};
+			});
+		
+		listen_item.setEnabled( can_listen );
+		
+		new MenuItem(menu, SWT.SEPARATOR );
+		
+		final MenuItem pin_item = new MenuItem(menu, SWT.PUSH);
+		
+		pin_item.setText( lu.getLocalisedMessageText( "label.pin" ) );
+
+		pin_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					for ( ChatParticipant participant: participants ){
+						
+						if ( !participant.isPinned()){
+							
+							participant.setPinned( true );
+							
+							setProperties( participant );
+						}
+					}
+				};
+			});
+		
+		pin_item.setEnabled( can_pin );
+		
+		final MenuItem unpin_item = new MenuItem(menu, SWT.PUSH);
+		
+		unpin_item.setText( lu.getLocalisedMessageText( "label.unpin" ) );
+
+		unpin_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					for ( ChatParticipant participant: participants ){
+						
+						if ( participant.isPinned()){
+							
+							participant.setPinned( false );
+							
+							setProperties( participant );
+						}
+					}
+				};
+			});
+		
+		unpin_item.setEnabled( can_unpin );
+		
+		if ( !chat.isPrivateChat()){
+			
+			new MenuItem(menu, SWT.SEPARATOR );
+			
+			final MenuItem private_chat_item = new MenuItem(menu, SWT.PUSH);
+			
+			private_chat_item.setText( lu.getLocalisedMessageText( "label.private.chat" ) );
+
+			final byte[]	chat_pk = chat.getPublicKey();
+
+			private_chat_item.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent e) 
+					{
+						for ( ChatParticipant participant: participants ){
+							
+							if ( TEST_LOOPBACK_CHAT || !Arrays.equals( participant.getPublicKey(), chat_pk )){
+								
+								try{
+									ChatInstance chat = participant.createPrivateChat();
+								
+									new BuddyPluginViewBetaChat( plugin, chat);
+									
+								}catch( Throwable f ){
+									
+									Debug.out( f );
+								}
+							}
+						}
+					};
+				});
+				
+			boolean	pc_enable = false;
+			
+			if ( chat_pk != null ){
+				
+				for ( ChatParticipant participant: participants ){
+					
+					if ( !Arrays.equals( participant.getPublicKey(), chat_pk )){
+						
+						pc_enable = true;
+					}
+				}
+			}
+			
+			private_chat_item.setEnabled( pc_enable || TEST_LOOPBACK_CHAT );
+		}
+	}
+	
+	private void
+	setProperties(
+		ChatParticipant		p )
+	{
+		for ( TableItem ti: buddy_table.getItems()){
+			
+			if ( ti.getData() == p ){
+				
+				setProperties( ti, p );
+			}
+		}
 	}
 	
 	private void
@@ -1433,6 +1471,7 @@ BuddyPluginViewBetaChat
 					styleRange.start = start;
 					styleRange.length = says.length();
 					styleRange.foreground = colour;
+					styleRange.data = participant;
 					
 					if ( participant.isMe()){
 						styleRange.font = italic_font;
