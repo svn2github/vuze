@@ -466,7 +466,7 @@ BuddyPluginBeta
 			
 			if ( inst == null ){
 							
-				inst = new ChatInstance( network, key, private_target, handler, is_private_chat );
+				inst = new ChatInstance( network, key, private_target, is_private_chat );
 			
 				chat_instances.put( meta_key, inst );
 				
@@ -566,7 +566,6 @@ BuddyPluginBeta
 			String				_network,
 			String				_key,
 			ChatParticipant		_private_target,
-			Object				_handler,
 			boolean				_is_private_chat )
 		{
 			network 		= _network;
@@ -586,6 +585,19 @@ BuddyPluginBeta
 			instance_nick 	= COConfigurationManager.getStringParameter( nick_key, "" );
 			
 			addReference();
+		}
+		
+		public ChatInstance
+		getClone()
+		
+			throws Exception
+		{
+			if ( is_private_chat ){
+				
+				throw( new Exception( "Not supported" ));
+			}
+			
+			return( BuddyPluginBeta.this.getChat( network, key ));
 		}
 		
 		protected void

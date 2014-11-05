@@ -36,11 +36,14 @@ import org.eclipse.swt.events.MenuDetectEvent;
 import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -75,6 +78,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
 BuddyPluginViewBetaChat 
@@ -548,28 +552,76 @@ BuddyPluginViewBetaChat
 		//grid_data.heightHint = 50;
 		top_right.setLayoutData(grid_data);
 		
+		boolean	can_popout = shell == null && !chat.isPrivateChat();
+
 		Label label = new Label( top_right, SWT.NULL );
+		grid_data = new GridData( GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan=can_popout?1:2;
+		label.setLayoutData(grid_data);
 		
-		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.nick.shared" ));
+		LinkLabel link = new LinkLabel( top_right, "label.help", lu.getLocalisedMessageText( "azbuddy.dchat.link.url" ));	
+		//grid_data.horizontalAlignment = SWT.END;
+		//link.getlabel().setLayoutData( grid_data );
+
+		if ( can_popout ){
+			
+			Label pop_out = new Label( top_right, SWT.NULL );
+			Image image = ImageLoader.getInstance().getImage( "popout_window" );
+			pop_out.setImage( image );
+			grid_data = new GridData();
+			grid_data.widthHint=image.getBounds().width;
+			grid_data.heightHint=image.getBounds().height;
+			pop_out.setLayoutData(grid_data);
+			
+			pop_out.setCursor(label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+			
+			pop_out.setToolTipText( MessageText.getString( "label.pop.out" ));
+			
+			pop_out.addMouseListener(new MouseAdapter() {
+				public void mouseUp(MouseEvent arg0) {
+					try{
+						new BuddyPluginViewBetaChat( plugin, chat.getClone());
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e);
+					}
+				}
+			});
+				
+		}	
+		
+			// nick name
+		
+		Composite nick_area = new Composite(top_right, SWT.NONE);
+		layout = new GridLayout();
+		layout.numColumns = 4;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		nick_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan=3;
+		nick_area.setLayoutData(grid_data);
+		
+		label = new Label( nick_area, SWT.NULL );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.nick" ));
 		grid_data = new GridData();
 		grid_data.horizontalIndent=4;
 		label.setLayoutData(grid_data);
-		
-		shared_nick_button = new Button( top_right, SWT.CHECK );
-		
-		shared_nick_button.setSelection( chat.isSharedNickname());
-		
-		LinkLabel link = new LinkLabel( top_right, "label.help", lu.getLocalisedMessageText( "azbuddy.dchat.link.url" ));	
-		grid_data = new GridData( GridData.FILL_HORIZONTAL );
-		grid_data.horizontalAlignment = SWT.END;
-		link.getlabel().setLayoutData( grid_data );
 
-		nickname = new Text( top_right, SWT.BORDER );
+		nickname = new Text( nick_area, SWT.BORDER );
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
-		grid_data.horizontalSpan=3;
+		grid_data.horizontalSpan=1;
 		nickname.setLayoutData( grid_data );
 
 		nickname.setText( chat.getNickname());
+
+		label = new Label( nick_area, SWT.NULL );
+		label.setText( lu.getLocalisedMessageText( "label.shared" ));
+
+		shared_nick_button = new Button( nick_area, SWT.CHECK );
+		
+		shared_nick_button.setSelection( chat.isSharedNickname());
 
 		shared_nick_button.addSelectionListener(
 			new SelectionAdapter() 
@@ -602,10 +654,11 @@ BuddyPluginViewBetaChat
 	        	}
 	        }
 	    });
+				
 		
 		table_header = new BufferedLabel( top_right, SWT.DOUBLE_BUFFERED );
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
-		grid_data.horizontalSpan=3;
+		grid_data.horizontalSpan=2;
 		grid_data.horizontalIndent=4;
 		table_header.setLayoutData( grid_data );
 		table_header.setText(MessageText.getString( "PeersView.state.pending" ));
@@ -617,7 +670,7 @@ BuddyPluginViewBetaChat
 		String[] headers = { 
 				"azbuddy.ui.table.name" };
 
-		int[] sizes = { 120 };
+		int[] sizes = { 140 };
 
 		int[] aligns = { SWT.LEFT };
 
@@ -1359,12 +1412,16 @@ BuddyPluginViewBetaChat
 		}
 	}
 	
+	private String previous_says = null;
+			
 	private void
 	resetChatMessages()
 	{
 		log.setText( "" );
 		
 		messages.clear();
+		
+		previous_says	= null;
 		
 		synchronized( participants ){
 			
@@ -1461,26 +1518,31 @@ BuddyPluginViewBetaChat
 				
 				says += message_type == ChatMessage.MT_NORMAL?"\n":" ";
 				
-				int	start = log.getText().length();
+				if ( previous_says == null || !previous_says.equals( says )){
+					
+					previous_says = says;
+					
+					int	start = log.getText().length();
+							
+					log.append( says ); 
+					
+					if ( colour != Colors.black ){
 						
-				log.append( says ); 
-				
-				if ( colour != Colors.black ){
-					
-					StyleRange styleRange = new StyleRange();
-					styleRange.start = start;
-					styleRange.length = says.length();
-					styleRange.foreground = colour;
-					styleRange.data = participant;
-					
-					if ( participant.isMe()){
-						styleRange.font = italic_font;
+						StyleRange styleRange = new StyleRange();
+						styleRange.start = start;
+						styleRange.length = says.length();
+						styleRange.foreground = colour;
+						styleRange.data = participant;
+						
+						if ( participant.isMe()){
+							styleRange.font = italic_font;
+						}
+						
+						log.setStyleRange(styleRange);
 					}
-					
-					log.setStyleRange(styleRange);
 				}
-								
-				start = log.getText().length();
+				
+				int start = log.getText().length();
 				
 				log.append( msg ); 
 
