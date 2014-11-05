@@ -543,11 +543,29 @@ WebEngine
 	
 		throws SearchException
 	{
+		return( getWebPageContent( searchParameters, searchContext, headers, only_if_modified, null ));
+	}
+	
+	protected pageDetails 
+	getWebPageContent(
+		SearchParameter[] 		searchParameters,
+		Map<String,String>		searchContext,
+		String					headers,
+		boolean					only_if_modified,
+		pageDetailsVerifier		verifier )
+	
+		throws SearchException
+	{
 		String searchURL = searchURLFormat;
 
 		try{
 			pageDetails	details = getWebPageContentSupport( null, null, searchURL, searchParameters, searchContext, headers, only_if_modified );
 		
+			if ( verifier != null ){
+				
+				verifier.verify( details );
+			}
+			
 			return( details );
 			
 		}catch( SearchException e ){
@@ -573,6 +591,11 @@ WebEngine
 						
 						pageDetails	details = getWebPageContentSupport( proxy, proxy_host, url.toExternalForm(), searchParameters, searchContext, headers, only_if_modified );
 					
+						if ( verifier != null ){
+							
+							verifier.verify( details );;
+						}
+						
 						ok = true;
 						
 						return( details );
@@ -1377,6 +1400,8 @@ WebEngine
 		private URL			final_url;
 		private String		content;
 		
+		private Object		verified_state;
+		
 		protected
 		pageDetails(
 			URL		_initial_url,
@@ -1405,5 +1430,28 @@ WebEngine
 		{
 			return( content );
 		}
+		
+		public void
+		setVerifiedState(
+			Object		state )
+		{
+			verified_state = state;
+		}
+		
+		public Object
+		getVerifiedState()
+		{
+			return( verified_state );
+		}
+	}
+	
+	public interface
+	pageDetailsVerifier
+	{
+		public void
+		verify(
+			pageDetails	details )
+		
+			throws SearchException;
 	}
 }

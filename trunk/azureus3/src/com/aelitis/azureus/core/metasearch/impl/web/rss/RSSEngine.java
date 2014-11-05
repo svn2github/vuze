@@ -32,6 +32,7 @@ import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine.pageDetails;
 
 public class 
 RSSEngine 
@@ -189,7 +190,44 @@ RSSEngine
 		
 		boolean	only_if_mod = !searchContext.containsKey( Engine.SC_FORCE_FULL );
 		
-		pageDetails page_details = super.getWebPageContent( searchParameters, searchContext, headers, only_if_mod );
+		pageDetails page_details = 
+			super.getWebPageContent( 
+				searchParameters, 
+				searchContext, 
+				headers, 
+				only_if_mod,
+				new pageDetailsVerifier() {
+					
+					public void 
+					verify(
+						pageDetails details )
+							
+						throws SearchException
+					{
+						try{
+							String	page = details.getContent();
+	
+							if ( page != null && page.length() > 0 ){
+								
+								ByteArrayInputStream bais = new ByteArrayInputStream( page.getBytes("UTF-8"));
+								
+								RSSFeed rssFeed = StaticUtilities.getRSSFeed( bais );
+		
+								details.setVerifiedState( rssFeed );
+							}
+						}catch( Throwable e ){
+							
+							debugLog( "failed: " + Debug.getNestedExceptionMessageAndStack( e ));
+							
+							if ( e instanceof SearchException ){
+								
+								throw((SearchException)e );
+							}
+							
+							throw( new SearchException( "RSS matching failed", e ));
+						}
+					}
+				});
 		
 		String	page = page_details.getContent();
 		
@@ -203,10 +241,8 @@ RSSEngine
 			return( new Result[0]);
 		}
 		
-		try {
-			ByteArrayInputStream bais = new ByteArrayInputStream( page.getBytes("UTF-8"));
-			
-			RSSFeed rssFeed = StaticUtilities.getRSSFeed( bais );
+		try{
+			RSSFeed rssFeed = (RSSFeed)page_details.getVerifiedState();
 			
 			RSSChannel[] channels = rssFeed.getChannels();
 			
@@ -702,7 +738,7 @@ RSSEngine
 			return( res );
 			
 			
-		}catch ( Throwable e ){
+		}catch( Throwable e ){
 			
 			debugLog( "failed: " + Debug.getNestedExceptionMessageAndStack( e ));
 			
