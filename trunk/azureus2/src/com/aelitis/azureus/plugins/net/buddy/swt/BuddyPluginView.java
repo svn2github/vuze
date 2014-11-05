@@ -27,9 +27,14 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -40,6 +45,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -624,8 +630,11 @@ BuddyPluginView
 	private class
 	BetaSubViewHolder
 	{
-		private Composite		composite;
-		private Composite		chat_composite;
+		private Composite[]		chat_composites;
+		
+		private	CTabFolder  	tab_folder;
+		private CTabItem 		public_item;
+		private CTabItem 		anon_item;
 		
 		private Download		current_download;
 		private boolean			have_focus;
@@ -639,7 +648,7 @@ BuddyPluginView
 		initialise(
 			Composite		parent )
 		{		
-			composite	= parent;
+			Composite composite	= parent;
 			
 			GridLayout layout = new GridLayout();
 			layout.numColumns = 2;
@@ -652,7 +661,72 @@ BuddyPluginView
 			GridData grid_data = new GridData(GridData.FILL_BOTH );
 			composite.setLayoutData(grid_data);
 
-			chat_composite = new Composite( composite, SWT.NULL );
+			Composite lhs = new Composite( composite, SWT.NULL );
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			lhs.setLayout(layout);
+			grid_data = new GridData(GridData.FILL_VERTICAL );
+			//grid_data.widthHint = 200;
+			lhs.setLayoutData(grid_data);
+
+			Button downloads = new Button( lhs, SWT.NULL );
+			
+			downloads.setText( "Download" );
+			
+			
+			tab_folder = new CTabFolder(composite, SWT.LEFT);
+			
+			tab_folder.setTabHeight(20);
+			grid_data = new GridData(GridData.FILL_BOTH);
+			tab_folder.setLayoutData(grid_data);
+			
+				// public
+			
+			public_item = new CTabItem(tab_folder, SWT.NULL);
+
+			public_item.setText( MessageText.getString( "label.public.chat" ));
+			public_item.setData( AENetworkClassifier.AT_PUBLIC );
+			
+			Composite public_composite = new Composite( tab_folder, SWT.NULL );
+	
+			public_item.setControl( public_composite );
+			
+			grid_data = new GridData(GridData.FILL_BOTH );
+			public_composite.setLayoutData(grid_data);
+			
+				// anon
+
+			Composite anon_composite = null;
+			
+			if ( plugin.getBeta().isI2PAvailable()){
+								
+				anon_item = new CTabItem(tab_folder, SWT.NULL);
+	
+				anon_item.setText( MessageText.getString( "label.anon.chat" ));
+				anon_item.setData( AENetworkClassifier.AT_I2P );
+				
+				anon_composite = new Composite( tab_folder, SWT.NULL );
+		
+				anon_item.setControl( anon_composite );
+				
+				grid_data = new GridData(GridData.FILL_BOTH );
+				anon_composite.setLayoutData(grid_data);
+			}
+			
+			chat_composites = new Composite[]{ public_composite, anon_composite };
+				
+			tab_folder.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					CTabItem item = (CTabItem) e.item;
+					
+					String network = (String)item.getData();
+					
+					if ( current_download != null ){
+						
+						activate( current_download, network, false );
+					}
+				}
+			});
 		}
 		
 		private void
@@ -743,89 +817,148 @@ BuddyPluginView
 		activate(
 			final Download		download )
 		{
+			String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+			
+			boolean	pub 	= false;
+			boolean	anon	= false;
+			
+			for ( String net: nets ){
+			
+				if ( net == AENetworkClassifier.AT_PUBLIC ){
+					
+					pub = true;
+					
+				}else if ( net == AENetworkClassifier.AT_I2P ){
+					
+					anon = true;
+				}
+			}
+			
+			if ( pub && anon ){
+				activate( download, AENetworkClassifier.AT_PUBLIC, true );
+				activate( download, AENetworkClassifier.AT_I2P, false );
+			}else if ( pub ){
+				activate( download, AENetworkClassifier.AT_PUBLIC, true );
+			}else if ( anon ){
+				activate( download, AENetworkClassifier.AT_I2P, true );
+			}
+		}
+		
+		private void
+		activate(
+			Download		download,
+			String			network,
+			boolean			select_tab )
+		{
 			if ( download.getTorrent() == null ){
 				
 				return;
 			}
 			
-			String network = AENetworkClassifier.AT_PUBLIC;
-
 			String key = "Download: " + download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
 			
-			activate( network, key );
+			activate( network, key, select_tab );
 		}
 		
 		private void
 		activate(
 			final String		network,
-			final String		key )
-		{			
-			for ( Control c: chat_composite.getChildren()){
+			final String		key,
+			boolean				select_tab )	
+		{		
+			final Composite chat_composite = chat_composites[network==AENetworkClassifier.AT_PUBLIC?0:1];
+			
+			if ( chat_composite == null ){
 				
-				c.dispose();
+				return;
 			}
 			
+			final String comp_key = network + ":" + key;
 			
-			AsyncDispatcher disp 		= network==AENetworkClassifier.AT_PUBLIC?public_dispatcher:anon_dispatcher;
+			String existing_comp_key = (String)chat_composite.getData();
 			
-			final AtomicInteger	counter 	= network==AENetworkClassifier.AT_PUBLIC?public_done:anon_done;
-			
-			disp.dispatch(
-				new AERunnable(){						
-					@Override
-					public void 
-					runSupport() 
-					{
-						if ( chat_composite.isDisposed()){
-							
-							return;
-						}
+			if ( existing_comp_key == null || !existing_comp_key.equals( comp_key )){
+								
+				for ( Control c: chat_composite.getChildren()){
 					
-						try{
-							final ChatInstance chat = plugin.getBeta().getChat( AENetworkClassifier.AT_PUBLIC, key );
-					
-							counter.incrementAndGet();
-							
-								// TODO: maintain list of chats
-							
-							Utils.execSWTThread(
-								new Runnable()
-								{
-									public void
-									run()
-									{
-										if ( chat_composite.isDisposed()){
-											
-											return;
-										}
-									
-										for ( Control c: chat_composite.getChildren()){
-											
-											c.dispose();
-										}
-										
-										BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( plugin, chat, chat_composite );
-										
-										chat_composite.layout( true, true );
-									}
-								});
-							
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
-						}	
+					c.dispose();
+				}
 						
-					}
-				});
+				AsyncDispatcher disp 		= network==AENetworkClassifier.AT_PUBLIC?public_dispatcher:anon_dispatcher;
+				
+				final AtomicInteger	counter 	= network==AENetworkClassifier.AT_PUBLIC?public_done:anon_done;
+				
+				disp.dispatch(
+					new AERunnable(){						
+						@Override
+						public void 
+						runSupport() 
+						{
+							if ( chat_composite.isDisposed()){
+								
+								return;
+							}
+						
+							try{
+								final ChatInstance chat = plugin.getBeta().getChat( network, key );
+						
+								counter.incrementAndGet();
+								
+									// TODO: maintain list of chats
+								
+								Utils.execSWTThread(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											if ( chat_composite.isDisposed()){
+												
+												return;
+											}
+										
+											for ( Control c: chat_composite.getChildren()){
+												
+												c.dispose();
+											}
+											
+											BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( plugin, chat, chat_composite );
+											
+											chat_composite.layout( true, true );
+											
+											chat_composite.setData( comp_key );
+										}
+									});
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}	
+							
+						}
+					});
+		
+				if ( counter.get() == 0 ){
+					
+					GridLayout layout = new GridLayout();
+					layout.numColumns = 1;
+					chat_composite.setLayout(layout);
 	
-			if ( counter.get() == 0 ){
+					Label label = new Label( chat_composite, SWT.NULL );
+					
+					label.setText( MessageText.getString( "v3.MainWindow.view.wait" ));
+					GridData grid_data = new GridData(GridData.FILL_BOTH );
+					label.setLayoutData(grid_data);
+	
+				}
 				
-				Label label = new Label( chat_composite, SWT.NULL );
-				
-				label.setText( MessageText.getString( "v3.MainWindow.view.wait" ));
+				chat_composite.layout( true, true );
 			}
 			
-			chat_composite.layout( true, true );
+			if ( select_tab ){
+				
+				tab_folder.setSelection( network==AENetworkClassifier.AT_PUBLIC?public_item:anon_item );
+			}
 		}
 		
 		private void

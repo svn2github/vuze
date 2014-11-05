@@ -1863,6 +1863,7 @@ public class TagUIUtils
 				if ( pub_chat_pending.get()){
 					
 					chat_pub.setEnabled( false );
+					chat_pub.setText( chat_pub.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
 				}
 				
 				if ( BuddyPluginUtils.isBetaChatAnonAvailable()){
@@ -1892,6 +1893,8 @@ public class TagUIUtils
 					if ( anon_chat_pending.get()){
 						
 						chat_priv.setEnabled( false );
+						chat_priv.setText( chat_priv.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
+
 					}
 				}
 			}

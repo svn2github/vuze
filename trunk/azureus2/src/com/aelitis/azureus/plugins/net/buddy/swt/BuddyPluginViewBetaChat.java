@@ -660,7 +660,7 @@ BuddyPluginViewBetaChat
 		
 		table_header = new BufferedLabel( top_right, SWT.DOUBLE_BUFFERED );
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
-		grid_data.horizontalSpan=2;
+		grid_data.horizontalSpan=3;
 		//grid_data.horizontalIndent=4;
 		table_header.setLayoutData( grid_data );
 		table_header.setText(MessageText.getString( "PeersView.state.pending" ));
@@ -763,6 +763,7 @@ BuddyPluginViewBetaChat
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
 		grid_data.heightHint = 30;
+		grid_data.horizontalIndent = 4;
 		input_area.setLayoutData(grid_data);
 			
 		input_area.setTextLimit( 256 );
