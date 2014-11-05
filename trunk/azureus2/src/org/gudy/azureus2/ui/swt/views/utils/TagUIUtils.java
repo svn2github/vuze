@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
@@ -76,6 +77,7 @@ import com.aelitis.azureus.core.tag.impl.TagTypeDownloadManual;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -90,6 +92,9 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 public class TagUIUtils
 {
 	public static final int MAX_TOP_LEVEL_TAGS_IN_MENU	= 20;
+	
+	private static AtomicBoolean	pub_chat_pending 	= new AtomicBoolean();
+	private static AtomicBoolean	anon_chat_pending 	= new AtomicBoolean();
 	
 	public static void
 	setupSideBarMenus(
@@ -1819,6 +1824,79 @@ public class TagUIUtils
 		
 		needs_separator_next = true;
 
+		if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
+			
+			if ( BuddyPluginUtils.isBetaChatAvailable()){
+				
+				final String chat_key = "Tag : " + tag.getTagName( true );
+				
+				final Menu chat_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+				
+				final MenuItem chat_item = new MenuItem(menu, SWT.CASCADE);
+				
+				Messages.setLanguageText( chat_item, "label.chat" );
+				
+				chat_item.setMenu(chat_menu);
+	
+				MenuItem chat_pub = new MenuItem(chat_menu, SWT.PUSH);
+				
+				Messages.setLanguageText(chat_pub, "label.public");
+				
+				chat_pub.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event){
+						
+						pub_chat_pending.set( true );
+						
+						BuddyPluginUtils.createBetaChat(
+							AENetworkClassifier.AT_PUBLIC, 
+							chat_key,
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									pub_chat_pending.set( false );
+								}
+							});
+					}});
+				
+				if ( pub_chat_pending.get()){
+					
+					chat_pub.setEnabled( false );
+				}
+				
+				if ( BuddyPluginUtils.isBetaChatAnonAvailable()){
+					
+					MenuItem chat_priv = new MenuItem(chat_menu, SWT.PUSH);
+					
+					Messages.setLanguageText(chat_priv, "label.anon");
+					
+					chat_priv.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event){
+							
+							anon_chat_pending.set( true );
+							
+							BuddyPluginUtils.createBetaChat( 
+								AENetworkClassifier.AT_I2P, 
+								chat_key,
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										anon_chat_pending.set( false );
+									}
+								});
+						}});
+					
+					if ( anon_chat_pending.get()){
+						
+						chat_priv.setEnabled( false );
+					}
+				}
+			}
+		}
+		
 		MenuItem itemShowStats = new MenuItem(menu, SWT.PUSH);
 		
 		Messages.setLanguageText(itemShowStats, "tag.show.stats");

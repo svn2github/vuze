@@ -372,6 +372,25 @@ BuddyPluginBeta
 		ui.openChat( chat );
 	}
 	
+	public void
+	getAndShowChat(
+		String		network,
+		String		key )
+		
+		throws Exception
+	{
+		BuddyPluginViewInterface ui = plugin.getSWTUI();
+		
+		if ( ui == null ){
+			
+			throw( new Exception( "UI unavailable" ));
+		}
+				
+		ChatInstance chat = getChat( network, key) ;
+			
+		ui.openChat( chat );
+	}
+	
 	private String
 	pkToString(
 		byte[]		pk )

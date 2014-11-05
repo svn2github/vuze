@@ -63,6 +63,7 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
@@ -536,7 +537,8 @@ BuddyPluginViewBetaChat
 		layout.marginRight = 4;
 		rhs.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_VERTICAL );
-		grid_data.widthHint = 150;
+		int rhs_width=Constants.isWindows?150:160;
+		grid_data.widthHint = rhs_width;
 		rhs.setLayoutData(grid_data);
 
 			// options
@@ -606,7 +608,7 @@ BuddyPluginViewBetaChat
 		label = new Label( nick_area, SWT.NULL );
 		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.nick" ));
 		grid_data = new GridData();
-		grid_data.horizontalIndent=4;
+		//grid_data.horizontalIndent=4;
 		label.setLayoutData(grid_data);
 
 		nickname = new Text( nick_area, SWT.BORDER );
@@ -659,7 +661,7 @@ BuddyPluginViewBetaChat
 		table_header = new BufferedLabel( top_right, SWT.DOUBLE_BUFFERED );
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan=2;
-		grid_data.horizontalIndent=4;
+		//grid_data.horizontalIndent=4;
 		table_header.setLayoutData( grid_data );
 		table_header.setText(MessageText.getString( "PeersView.state.pending" ));
 		
@@ -670,7 +672,7 @@ BuddyPluginViewBetaChat
 		String[] headers = { 
 				"azbuddy.ui.table.name" };
 
-		int[] sizes = { 140 };
+		int[] sizes = { rhs_width-10 };
 
 		int[] aligns = { SWT.LEFT };
 

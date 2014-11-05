@@ -28,6 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -623,6 +625,7 @@ BuddyPluginView
 	BetaSubViewHolder
 	{
 		private Composite		composite;
+		private Composite		chat_composite;
 		
 		private Download		current_download;
 		private boolean			have_focus;
@@ -637,6 +640,19 @@ BuddyPluginView
 			Composite		parent )
 		{		
 			composite	= parent;
+			
+			GridLayout layout = new GridLayout();
+			layout.numColumns = 2;
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			layout.marginTop = 4;
+			layout.marginRight = 4;
+			composite.setLayout(layout);
+			
+			GridData grid_data = new GridData(GridData.FILL_BOTH );
+			composite.setLayoutData(grid_data);
+
+			chat_composite = new Composite( composite, SWT.NULL );
 		}
 		
 		private void
@@ -732,16 +748,23 @@ BuddyPluginView
 				return;
 			}
 			
-			//System.out.println( "Would open chat for " + download.getName());
+			String network = AENetworkClassifier.AT_PUBLIC;
+
+			String key = "Download: " + download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
 			
-			for ( Control c: composite.getChildren()){
+			activate( network, key );
+		}
+		
+		private void
+		activate(
+			final String		network,
+			final String		key )
+		{			
+			for ( Control c: chat_composite.getChildren()){
 				
 				c.dispose();
 			}
 			
-			final String chat_name = download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
-			
-			final String network = AENetworkClassifier.AT_PUBLIC;
 			
 			AsyncDispatcher disp 		= network==AENetworkClassifier.AT_PUBLIC?public_dispatcher:anon_dispatcher;
 			
@@ -753,13 +776,13 @@ BuddyPluginView
 					public void 
 					runSupport() 
 					{
-						if ( composite.isDisposed()){
+						if ( chat_composite.isDisposed()){
 							
 							return;
 						}
 					
 						try{
-							final ChatInstance chat = plugin.getBeta().getChat( AENetworkClassifier.AT_PUBLIC, chat_name );
+							final ChatInstance chat = plugin.getBeta().getChat( AENetworkClassifier.AT_PUBLIC, key );
 					
 							counter.incrementAndGet();
 							
@@ -771,19 +794,19 @@ BuddyPluginView
 									public void
 									run()
 									{
-										if ( composite.isDisposed()){
+										if ( chat_composite.isDisposed()){
 											
 											return;
 										}
 									
-										for ( Control c: composite.getChildren()){
+										for ( Control c: chat_composite.getChildren()){
 											
 											c.dispose();
 										}
 										
-										BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( plugin, chat, composite );
+										BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( plugin, chat, chat_composite );
 										
-										composite.layout( true, true );
+										chat_composite.layout( true, true );
 									}
 								});
 							
@@ -797,12 +820,12 @@ BuddyPluginView
 	
 			if ( counter.get() == 0 ){
 				
-				Label label = new Label( composite, SWT.NULL );
+				Label label = new Label( chat_composite, SWT.NULL );
 				
 				label.setText( MessageText.getString( "v3.MainWindow.view.wait" ));
 			}
 			
-			composite.layout( true, true );
+			chat_composite.layout( true, true );
 		}
 		
 		private void
