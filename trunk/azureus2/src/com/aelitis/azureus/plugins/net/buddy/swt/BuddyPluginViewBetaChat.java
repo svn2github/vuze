@@ -343,6 +343,30 @@ BuddyPluginViewBetaChat
 							}						
 						}
 					});
+			
+			if ( plugin.getBeta().isI2PAvailable()){
+				
+				status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
+				status_mi.setText( MessageText.getString(  chat.getNetwork()==AENetworkClassifier.AT_I2P?"azbuddy.dchat.rchans.pub":"azbuddy.dchat.rchans.anon" ));
+		
+				status_mi.addSelectionListener(
+						new SelectionAdapter() {				
+							public void 
+							widgetSelected(
+								SelectionEvent event ) 
+							{
+										try{
+									ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork()==AENetworkClassifier.AT_I2P?AENetworkClassifier.AT_PUBLIC:AENetworkClassifier.AT_I2P, chat.getKey());
+									
+									new BuddyPluginViewBetaChat( plugin, inst );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}						
+							}
+						});
+			}
 		}
 		
 		Composite log_holder = new Composite(lhs, SWT.BORDER);
