@@ -624,6 +624,10 @@ BuddyPluginViewBetaChat
 		layout.numColumns = 4;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
+		if ( !Constants.isWindows ){
+			layout.horizontalSpacing = 2;
+			layout.verticalSpacing = 2;
+		}
 		nick_area.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan=3;
@@ -685,7 +689,9 @@ BuddyPluginViewBetaChat
 		table_header = new BufferedLabel( top_right, SWT.DOUBLE_BUFFERED );
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan=3;
-		//grid_data.horizontalIndent=4;
+		if ( !Constants.isWindows ){
+			grid_data.horizontalIndent = 2;
+		}
 		table_header.setLayoutData( grid_data );
 		table_header.setText(MessageText.getString( "PeersView.state.pending" ));
 		
