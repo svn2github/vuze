@@ -228,19 +228,77 @@ SimpleXMLParserDocumentImpl
 							
 								// try connecting too as connection-refused will also bork XML parsing
 							
+							InputStream is = null;
+							
 							try{
 								URLConnection con = url.openConnection();
 								
 								con.setConnectTimeout( 15*1000 );
 								con.setReadTimeout( 15*1000 );
 								
-								InputStream is = con.getInputStream();
-										
-								is.close();
+								is = con.getInputStream();
+									
+								byte[]	buffer = new byte[32];
 								
+								int	pos = 0;
+								
+								while( pos < buffer.length ){
+									
+									int len = is.read( buffer, pos, buffer.length - pos );
+									
+									if ( len <= 0 ){
+										
+										break;
+									}
+									
+									pos += len;
+								}
+																
+								String str = new String( buffer, "UTF-8" ).trim().toLowerCase( Locale.US );
+								
+								if ( !str.contains( "<?xml" )){
+									
+										// not straightforward to check for naked DTDs, could be lots of <!-- commentry preamble which of course can occur
+										// in HTML too
+									
+									buffer = new byte[32000];
+									
+									pos = 0;
+									
+									while( pos < buffer.length ){
+										
+										int len = is.read( buffer, pos, buffer.length - pos );
+										
+										if ( len <= 0 ){
+											
+											break;
+										}
+										
+										pos += len;
+									}
+									
+									str += new String( buffer, "UTF-8" ).trim().toLowerCase( Locale.US );
+									
+									if ( str.contains( "<html") && str.contains( "<head" )){
+									
+										throw( new Exception( "Bad DTD" ));
+									}
+								}
 							}catch( Throwable e ){
 								
 								return new InputSource(	new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
+								
+							}finally{
+								
+								if ( is != null ){
+									
+									try{
+										is.close();
+										
+									}catch( Throwable e){
+										
+									}
+								}
 							}
 							return( null );
 							
