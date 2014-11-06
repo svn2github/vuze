@@ -208,8 +208,22 @@ Utilities
 	public SimpleXMLParserDocumentFactory
 	getSimpleXMLParserDocumentFactory();
 	
+	/**
+	 * @deprecated
+	 * @param is
+	 * @return
+	 * @throws SimpleXMLParserDocumentException
+	 */
+	
 	public RSSFeed
 	getRSSFeed(
+		InputStream		is )
+	
+		throws SimpleXMLParserDocumentException;
+	
+	public RSSFeed
+	getRSSFeed(
+		URL				source_url,
 		InputStream		is )
 	
 		throws SimpleXMLParserDocumentException;
@@ -220,8 +234,23 @@ Utilities
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException;
 	
+	/**
+	 * @deprecated
+	 * @param feed_location
+	 * @return
+	 * @throws ResourceDownloaderException
+	 * @throws SimpleXMLParserDocumentException
+	 */
+	
 	public RSSFeed
 	getRSSFeed(
+		ResourceDownloader	feed_location )
+	
+		throws ResourceDownloaderException, SimpleXMLParserDocumentException;
+
+	public RSSFeed
+	getRSSFeed(
+		URL					source_url,
 		ResourceDownloader	feed_location )
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException;

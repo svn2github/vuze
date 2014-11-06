@@ -205,7 +205,7 @@ UPNPMSBrowserImpl
 			rd.setProperty( "URL_X-AV-Client-Info", "av=1.0; cn=\"Azureus Software, Inc.\"; mn=\"" + client_name + "\"; mv=\""+ Constants.AZUREUS_VERSION + "\"" );
 			rd.setProperty( "URL_Content-Type", "text/xml; charset=\"utf-8\"" );
 					
-			SimpleXMLParserDocument  doc = SimpleXMLParserDocumentFactory.create( rd.download());
+			SimpleXMLParserDocument  doc = SimpleXMLParserDocumentFactory.create( url, rd.download());
 
 			// doc.print();
 			

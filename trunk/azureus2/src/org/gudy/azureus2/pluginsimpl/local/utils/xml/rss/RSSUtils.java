@@ -154,7 +154,7 @@ RSSUtils
 					InputStream is = new BufferedInputStream( new FileInputStream( file ));
 					
 					try{
-						new RSSFeedImpl( new UtilitiesImpl( null, null ), is );
+						new RSSFeedImpl( new UtilitiesImpl( null, null ), null, is );
 						
 						return( true );
 						

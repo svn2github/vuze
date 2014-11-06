@@ -20,6 +20,7 @@
 package org.gudy.azureus2.plugins.utils;
 
 import java.io.InputStream;
+import java.net.URL;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
@@ -71,11 +72,12 @@ public class StaticUtilities {
   
   public static RSSFeed
   getRSSFeed(
+	URL				source_url,
 	InputStream		is )
   
   	throws SimpleXMLParserDocumentException
   {
-	  return( PluginInitializer.getDefaultInterface().getUtilities().getRSSFeed( is ));
+	  return( PluginInitializer.getDefaultInterface().getUtilities().getRSSFeed( source_url, is ));
   }
   	/**
   	 * See UIInstance.promptUser

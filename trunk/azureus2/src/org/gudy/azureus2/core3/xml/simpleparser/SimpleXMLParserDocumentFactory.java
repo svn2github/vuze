@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.xml.simpleparser;
 
 import java.io.*;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
@@ -40,13 +41,29 @@ SimpleXMLParserDocumentFactory
 		return( new SimpleXMLParserDocumentImpl( file ));
 	}
 	
+	/**
+	 * @deprecated
+	 * @param is
+	 * @return
+	 * @throws SimpleXMLParserDocumentException
+	 */
 	public static SimpleXMLParserDocument
 	create(
 		InputStream		is )
 		
 		throws SimpleXMLParserDocumentException
 	{
-		return( new SimpleXMLParserDocumentImpl( is ));
+		return( new SimpleXMLParserDocumentImpl( null, is ));
+	}
+	
+	public static SimpleXMLParserDocument
+	create(
+		URL				source_url,
+		InputStream		is )
+		
+		throws SimpleXMLParserDocumentException
+	{
+		return( new SimpleXMLParserDocumentImpl( source_url, is ));
 	}
 	
 	public static SimpleXMLParserDocument

@@ -211,7 +211,7 @@ RSSEngine
 								
 								ByteArrayInputStream bais = new ByteArrayInputStream( page.getBytes("UTF-8"));
 								
-								RSSFeed rssFeed = StaticUtilities.getRSSFeed( bais );
+								RSSFeed rssFeed = StaticUtilities.getRSSFeed( details.getInitialURL(), bais );
 		
 								details.setVerifiedState( rssFeed );
 							}

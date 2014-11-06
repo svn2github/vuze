@@ -20,6 +20,7 @@
 package org.gudy.azureus2.pluginsimpl.local.utils.xml.rss;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -48,22 +49,24 @@ RSSFeedImpl
 	public
 	RSSFeedImpl(
 		Utilities			utilities,
+		URL					source_url,
 		ResourceDownloader	downloader )
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException
 	{
-		this( utilities, downloader.download());
+		this( utilities, source_url, downloader.download());
 	}
 	
 	public
 	RSSFeedImpl(
 		Utilities			utilities,
+		URL					source_url,
 		InputStream			is  )
 	
 		throws SimpleXMLParserDocumentException
 	{
 		try{
-			SimpleXMLParserDocument	doc = utilities.getSimpleXMLParserDocumentFactory().create( is );
+			SimpleXMLParserDocument	doc = utilities.getSimpleXMLParserDocumentFactory().create( source_url, is );
 		
 			String	doc_name = doc.getName();
 			

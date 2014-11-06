@@ -26,6 +26,7 @@ import javax.xml.parsers.*;
 
 import org.xml.sax.*;
 import org.apache.commons.lang.Entities;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
@@ -49,8 +50,10 @@ SimpleXMLParserDocumentImpl
 {
 	private static DocumentBuilderFactory 		dbf_singleton;
 
-	protected Document							document;
-	protected SimpleXMLParserDocumentNodeImpl	root_node;
+	private URL			source_url;
+	
+	private Document						document;
+	private SimpleXMLParserDocumentNodeImpl	root_node;
 	
 	
 	public
@@ -83,13 +86,30 @@ SimpleXMLParserDocumentImpl
 		}
 	}
 
+	/**
+	 * @deprecated
+	 * @param _input_stream
+	 * @throws SimpleXMLParserDocumentException
+	 */
 	public
 	SimpleXMLParserDocumentImpl(
-		InputStream		input_stream )
+		InputStream		_input_stream )
 		
 		throws SimpleXMLParserDocumentException
 	{
-		create( input_stream );
+		this( null, _input_stream );
+	}
+	
+	public
+	SimpleXMLParserDocumentImpl(
+		URL				_source_url,
+		InputStream		_input_stream )
+		
+		throws SimpleXMLParserDocumentException
+	{
+		source_url		= _source_url;
+		
+		create( _input_stream );
 	}
 	
 	protected static synchronized DocumentBuilderFactory
@@ -222,6 +242,19 @@ SimpleXMLParserDocumentImpl
 						try{
 							URL url  = new URL( systemId );
 							
+							if ( source_url != null ){
+								
+								String net = AENetworkClassifier.categoriseAddress( source_url.getHost());
+								
+								if ( net != AENetworkClassifier.AT_PUBLIC ){
+									
+									if ( AENetworkClassifier.categoriseAddress( url.getHost()) != net ){
+				
+										return new InputSource(	new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
+									}
+								}
+							}
+									
 							String host = url.getHost();
 							
 							InetAddress.getByName( host );

@@ -540,12 +540,22 @@ UtilitiesImpl
 	
 	public RSSFeed
 	getRSSFeed(
-		InputStream	is )
+		InputStream		is )
+	
+		throws SimpleXMLParserDocumentException
+	{
+		return( getRSSFeed( null, is ));
+	}
+	
+	public RSSFeed
+	getRSSFeed(
+		URL				source_url,
+		InputStream		is )
 	
 		throws SimpleXMLParserDocumentException
 	{
 		try{
-			return( new RSSFeedImpl( this, is ));
+			return( new RSSFeedImpl( this, source_url, is ));
 			
 		}finally{
 			
@@ -572,7 +582,18 @@ UtilitiesImpl
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException
 	{
-		return( new RSSFeedImpl( this, feed_location ));
+		return( getRSSFeed( null, feed_location ));
+	}
+
+	
+	public RSSFeed
+	getRSSFeed(
+		URL					source_url,
+		ResourceDownloader	feed_location )
+	
+		throws ResourceDownloaderException, SimpleXMLParserDocumentException
+	{
+		return( new RSSFeedImpl( this, source_url, feed_location ));
 	}
 	
 	public InetAddress
