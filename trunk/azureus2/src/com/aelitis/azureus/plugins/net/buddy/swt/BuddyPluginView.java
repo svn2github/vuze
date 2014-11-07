@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.net.buddy.swt;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
@@ -38,6 +39,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -53,11 +55,15 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
@@ -630,13 +636,22 @@ BuddyPluginView
 	private class
 	BetaSubViewHolder
 	{
+		private int CHAT_DOWNLOAD 		= 0;
+		private int CHAT_TAG	 		= 1;
+		
 		private Composite[]		chat_composites;
+		
+		private Group			middle;
 		
 		private	CTabFolder  	tab_folder;
 		private CTabItem 		public_item;
 		private CTabItem 		anon_item;
 		
+		private int				chat_mode	= CHAT_DOWNLOAD;
+		
 		private Download		current_download;
+		private Tag				current_tag;
+		
 		private boolean			have_focus;
 		
 		private
@@ -648,10 +663,10 @@ BuddyPluginView
 		initialise(
 			Composite		parent )
 		{		
-			Composite composite	= parent;
+			final Composite composite	= parent;
 			
 			GridLayout layout = new GridLayout();
-			layout.numColumns = 2;
+			layout.numColumns = 3;
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
 			layout.marginTop = 4;
@@ -661,18 +676,61 @@ BuddyPluginView
 			GridData grid_data = new GridData(GridData.FILL_BOTH );
 			composite.setLayoutData(grid_data);
 
-			Composite lhs = new Composite( composite, SWT.NULL );
+				// left
+			
+			Group lhs = new Group( composite, SWT.NULL );
+			lhs.setText( "Chat Type" );
 			layout = new GridLayout();
-			layout.numColumns = 2;
+			layout.numColumns = 1;
+			layout.horizontalSpacing = 1;
+			layout.verticalSpacing = 1;
 			lhs.setLayout(layout);
 			grid_data = new GridData(GridData.FILL_VERTICAL );
 			//grid_data.widthHint = 200;
 			lhs.setLayoutData(grid_data);
-
-			Button downloads = new Button( lhs, SWT.NULL );
+			
+			Button downloads = new Button( lhs, SWT.TOGGLE );
 			
 			downloads.setText( "Download" );
 			
+			Button tags = new Button( lhs, SWT.TOGGLE );
+			
+			tags.setText( "Tags" );
+
+				// middle
+			
+			middle = new Group( composite, SWT.NULL );
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			middle.setLayout(layout);
+			grid_data = new GridData(GridData.FILL_VERTICAL );
+			grid_data.widthHint = 0;
+			middle.setLayoutData(grid_data);
+
+			middle.setText( "" );
+			
+			middle.setVisible( false );
+			
+			downloads.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					buildChatMode( CHAT_DOWNLOAD, middle );
+				}});
+			
+			tags.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					
+					buildChatMode( CHAT_TAG, middle );
+				}});	
+				
+			downloads.setSelection( true );
+			
+			final List<Button>	buttons = new ArrayList<Button>();
+			buttons.add( downloads );
+			buttons.add( tags );
+			
+			setupButtonGroup( buttons );
+			
+				// chat tab area
 			
 			tab_folder = new CTabFolder(composite, SWT.LEFT);
 			
@@ -693,6 +751,7 @@ BuddyPluginView
 			
 			grid_data = new GridData(GridData.FILL_BOTH );
 			public_composite.setLayoutData(grid_data);
+			public_composite.setData( "tabitem", public_item );
 			
 				// anon
 
@@ -711,6 +770,7 @@ BuddyPluginView
 				
 				grid_data = new GridData(GridData.FILL_BOTH );
 				anon_composite.setLayoutData(grid_data);
+				anon_composite.setData( "tabitem", anon_item );
 			}
 			
 			chat_composites = new Composite[]{ public_composite, anon_composite };
@@ -720,13 +780,113 @@ BuddyPluginView
 					CTabItem item = (CTabItem) e.item;
 					
 					String network = (String)item.getData();
-					
-					if ( current_download != null ){
-						
-						activate( current_download, network, false );
-					}
+											
+					activateNetwork( network );
 				}
 			});
+		}
+		
+		private void
+		setupButtonGroup(
+			final List<Button>		buttons )
+		{
+			for ( final Button b: buttons ){
+				b.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						if ( !b.getSelection()){
+							
+							b.setSelection( true );
+						}
+						for ( Button b2: buttons ){
+							
+							if ( b2 != b ){
+								b2.setSelection( false );
+							}
+						}
+					}});
+			}
+			
+			Utils.makeButtonsEqualWidth( buttons );
+		}
+		
+		private void
+		buildChatMode(
+			int				mode,
+			Group			middle )
+		{
+			chat_mode = mode;
+			
+			for ( Control c: middle.getChildren()){
+				
+				c.dispose();
+			}
+			
+			if ( current_download == null ){
+			
+				middle.setVisible( false );
+				
+			}else{
+				if ( mode == CHAT_DOWNLOAD ){
+					
+					middle.setVisible( false );
+					
+					middle.setText( "" );
+					
+					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+					grid_data.widthHint = 0;
+					middle.setLayoutData(grid_data);
+					
+				}else if ( mode == CHAT_TAG ){
+					
+					middle.setVisible( true );
+					
+					middle.setText( "Tag Selection" );
+					
+					List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( current_download ));
+					
+					if ( tags.size() == 0 ){
+						
+						current_tag = null;
+						
+					}else{
+						
+						current_tag = tags.get(0);
+						
+						GridLayout layout = new GridLayout();
+						layout.horizontalSpacing = 1;
+						layout.verticalSpacing = 1;
+						
+						layout.numColumns = 1;
+						middle.setLayout(layout);
+						GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+						middle.setLayoutData(grid_data);
+
+						final List<Button>	buttons = new ArrayList<Button>();
+
+						for ( final Tag tag: tags ){
+							
+							Button button = new Button( middle, SWT.TOGGLE );
+							
+							button.setText( tag.getTagName( true ));
+
+							button.addSelectionListener(new SelectionAdapter() {
+								public void widgetSelected(SelectionEvent e) {
+									current_tag = tag;
+									activate( false );
+								}});
+							buttons.add( button );
+						}
+						
+						buttons.get(0).setSelection( true );
+						
+						setupButtonGroup( buttons );
+					}
+				}
+			}
+			
+			middle.getParent().layout( true, true );
+
+			activate( false );	
 		}
 		
 		private void
@@ -783,7 +943,7 @@ BuddyPluginView
 				
 				if ( have_focus && dl != null ){
 					
-					activate( current_download );
+					activate( true );
 				}
 			}
 		}
@@ -800,7 +960,7 @@ BuddyPluginView
 					return;
 				}
 				
-				activate( current_download );
+				activate( false );
 			}
 		}
 		
@@ -815,53 +975,95 @@ BuddyPluginView
 		
 		private void
 		activate(
-			final Download		download )
+			boolean		rebuild )
 		{
-			String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
-			
-			boolean	pub 	= false;
-			boolean	anon	= false;
-			
-			for ( String net: nets ){
-			
-				if ( net == AENetworkClassifier.AT_PUBLIC ){
-					
-					pub = true;
-					
-				}else if ( net == AENetworkClassifier.AT_I2P ){
-					
-					anon = true;
-				}
+			if ( rebuild ){
+							
+				buildChatMode( chat_mode, middle);
 			}
 			
-			if ( pub && anon ){
-				activate( download, AENetworkClassifier.AT_PUBLIC, true );
-				activate( download, AENetworkClassifier.AT_I2P, false );
-			}else if ( pub ){
-				activate( download, AENetworkClassifier.AT_PUBLIC, true );
-			}else if ( anon ){
-				activate( download, AENetworkClassifier.AT_I2P, true );
-			}
+			activateNetwork( null );
 		}
 		
 		private void
-		activate(
-			Download		download,
-			String			network,
-			boolean			select_tab )
+		activateNetwork(
+			String		network  )
 		{
-			if ( download.getTorrent() == null ){
+			Download	download 	= current_download;
+			
+			if ( download == null ){
 				
 				return;
 			}
 			
-			String key = "Download: " + download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
-			
-			activate( network, key, select_tab );
+			if ( network == null ){				
+				
+				String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+				
+				boolean	pub 	= false;
+				boolean	anon	= false;
+				
+				for ( String net: nets ){
+				
+					if ( net == AENetworkClassifier.AT_PUBLIC ){
+						
+						pub = true;
+						
+					}else if ( net == AENetworkClassifier.AT_I2P ){
+						
+						anon = true;
+					}
+				}
+				
+				if ( pub && anon ){
+					activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
+					activateNetwork( AENetworkClassifier.AT_I2P, false );
+				}else if ( pub ){
+					activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
+				}else if ( anon ){
+					activateNetwork( AENetworkClassifier.AT_I2P, true );
+				}
+			}else{
+				
+				activateNetwork( network, false );
+			}
 		}
 		
 		private void
-		activate(
+		activateNetwork(
+			String			network,
+			boolean			select_tab )
+		{		
+			String key;
+		
+			if ( chat_mode == CHAT_DOWNLOAD ){
+			
+				Download	download 	= current_download;
+				
+				if ( download == null ){
+					
+					return;
+				}
+
+				key = "Download: " + download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
+			
+			}else{
+				
+				Tag	tag = current_tag;
+				
+				if ( tag == null ){
+					
+					return;
+				}
+						
+				key = TagUIUtils.getChatKey( tag );
+			}
+			
+			activateChat( network, key, select_tab );
+		}
+		
+		private void
+		activateChat(
 			final String		network,
 			final String		key,
 			boolean				select_tab )	
@@ -923,6 +1125,8 @@ BuddyPluginView
 											}
 											
 											BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( plugin, chat, chat_composite );
+											
+											((CTabItem)chat_composite.getData("tabitem")).setToolTipText( key );
 											
 											chat_composite.layout( true, true );
 											
