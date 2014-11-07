@@ -680,8 +680,12 @@ BuddyPluginView
 	{
 		private int CHAT_DOWNLOAD 		= 0;
 		private int CHAT_TAG	 		= 1;
+		private int CHAT_GENERAL		= 2;
+		private int CHAT_FAVOURITES		= 3;
 		
 		private Composite[]		chat_composites;
+		
+		private List<Button>	mode_buttons = new ArrayList<Button>();
 		
 		private Group			middle;
 		
@@ -689,12 +693,16 @@ BuddyPluginView
 		private CTabItem 		public_item;
 		private CTabItem 		anon_item;
 		
-		private int				chat_mode	= CHAT_DOWNLOAD;
+		private int				last_build_chat_mode	= -1;
+		private int				chat_mode				= CHAT_DOWNLOAD;
 		
 		private Download		current_download;
 		private Tag				current_tag;
+		private String			current_general;
+		private String			current_favourite;
 		
 		private boolean			have_focus;
+		private boolean			rebuild_outstanding	= true;
 		
 		private
 		BetaSubViewHolder()
@@ -731,14 +739,22 @@ BuddyPluginView
 			//grid_data.widthHint = 200;
 			lhs.setLayoutData(grid_data);
 			
-			Button downloads = new Button( lhs, SWT.TOGGLE );
-			
+			Button downloads = new Button( lhs, SWT.TOGGLE );		
 			downloads.setText( MessageText.getString( "v3.MainWindow.button.download" ));
+			downloads.setData( CHAT_DOWNLOAD );
 			
-			Button tags = new Button( lhs, SWT.TOGGLE );
-			
+			Button tags = new Button( lhs, SWT.TOGGLE );			
 			tags.setText( MessageText.getString( "label.tags" ));
-
+			tags.setData( CHAT_TAG );
+			
+			Button general = new Button( lhs, SWT.TOGGLE );			
+			general.setText( MessageText.getString( "ConfigView.section.global" ));
+			general.setData( CHAT_GENERAL );
+			
+			Button favourites = new Button( lhs, SWT.TOGGLE );
+			favourites.setText( MessageText.getString( "label.favorites" ));
+			favourites.setData( CHAT_FAVOURITES );
+			
 				// middle
 			
 			middle = new Group( composite, SWT.NULL );
@@ -755,22 +771,35 @@ BuddyPluginView
 			
 			downloads.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
-					buildChatMode( CHAT_DOWNLOAD, middle );
+					buildChatMode( CHAT_DOWNLOAD, true );
 				}});
 			
 			tags.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					
-					buildChatMode( CHAT_TAG, middle );
+					buildChatMode( CHAT_TAG, true );
 				}});	
-				
+			
+			general.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					
+					buildChatMode( CHAT_GENERAL, true );
+				}});
+			
+			favourites.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					
+					buildChatMode( CHAT_FAVOURITES, true );
+				}});
+			
 			downloads.setSelection( true );
 			
-			final List<Button>	buttons = new ArrayList<Button>();
-			buttons.add( downloads );
-			buttons.add( tags );
+			mode_buttons.add( downloads );
+			mode_buttons.add( tags );
+			mode_buttons.add( general );
+			mode_buttons.add( favourites );
 			
-			setupButtonGroup( buttons );
+			setupButtonGroup( mode_buttons );
 			
 				// chat tab area
 			
@@ -834,6 +863,11 @@ BuddyPluginView
 		{
 			Download download = current_download;
 			
+			if ( download == null ){
+				
+				return;
+			}
+			
 			if ( chat_mode == CHAT_TAG ){
 			
 				if ( dm == PluginCoreUtils.unwrap( download )){
@@ -844,10 +878,11 @@ BuddyPluginView
 							public void 
 							run() 
 							{
-								activate( true );
+								rebuild_outstanding = true;
+								
+								activate();
 							}
 						});
-					
 				}
 			}
 		}
@@ -857,6 +892,7 @@ BuddyPluginView
 			final List<Button>		buttons )
 		{
 			for ( final Button b: buttons ){
+
 				b.addSelectionListener(new SelectionAdapter() {
 					public void widgetSelected(SelectionEvent e) {
 						if ( !b.getSelection()){
@@ -876,37 +912,75 @@ BuddyPluginView
 		}
 		
 		private void
-		buildChatMode(
-			int				mode,
-			Group			middle )
+		selectButtonGroup(
+			List<Button>		buttons,
+			int					data )
 		{
-			chat_mode = mode;
-			
-			for ( Control c: middle.getChildren()){
+			for ( Button b: buttons ){
 				
-				c.dispose();
+				b.setSelection( (Integer)b.getData() == data );
+			}
+		}
+		
+		private void
+		selectButtonGroup(
+			List<Button>		buttons,
+			String				data )
+		{
+			for ( Button b: buttons ){
+				
+				String str = (String)b.getData();
+				
+				b.setSelection( str != null && str.endsWith( data ));
+			}
+		}
+		
+		private void
+		setChatMode(
+			int		mode )
+		{
+			if ( chat_mode == mode ){
+				
+				return;
 			}
 			
-			if ( current_download == null ){
+			chat_mode = mode;
 			
-				middle.setVisible( false );
+			selectButtonGroup( mode_buttons, mode );
+		}
+		
+		private void
+		buildChatMode(
+			int				mode,
+			boolean			activate )		
+		{
+			Download	download = current_download;
+			
+			chat_mode = mode;
+			
+			if ( mode == CHAT_GENERAL && last_build_chat_mode == mode ){
 				
+					// doesn't change so no rebuild required
 			}else{
-				if ( mode == CHAT_DOWNLOAD ){
+				
+				for ( Control c: middle.getChildren()){
+					
+					c.dispose();
+				}
+				
+				if ( mode == CHAT_DOWNLOAD ||(  mode == CHAT_TAG &&  download == null )){
 					
 					middle.setVisible( false );
-					
 					middle.setText( "" );
 					
 					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
 					grid_data.widthHint = 0;
 					middle.setLayoutData(grid_data);
-					
+											
 				}else if ( mode == CHAT_TAG ){
-					
-					middle.setVisible( true );
-					
-					middle.setText( "Tag Selection" );
+						
+					middle.setVisible( true );				
+					middle.setText( MessageText.getString( "label.tag.selection" ));
 					
 					List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( current_download ));
 					
@@ -928,19 +1002,19 @@ BuddyPluginView
 						middle.setLayout(layout);
 						GridData grid_data = new GridData(GridData.FILL_VERTICAL );
 						middle.setLayoutData(grid_data);
-
+	
 						final List<Button>	buttons = new ArrayList<Button>();
-
+	
 						for ( final Tag tag: tags ){
 							
 							Button button = new Button( middle, SWT.TOGGLE );
 							
 							button.setText( tag.getTagName( true ));
-
+	
 							button.addSelectionListener(new SelectionAdapter() {
 								public void widgetSelected(SelectionEvent e) {
 									current_tag = tag;
-									activate( false );
+									activate();
 								}});
 							buttons.add( button );
 						}
@@ -949,105 +1023,84 @@ BuddyPluginView
 						
 						setupButtonGroup( buttons );
 					}
-				}
-			}
-			
-			middle.getParent().layout( true, true );
-
-			activate( false );	
-		}
-		
-		private void
-		setDataSource(
-			Object		obj )
-		{									
-			Download 			dl 		= null;
-			DiskManagerFileInfo	dl_file = null;
-			
-			if ( obj instanceof Object[]){
-				
-				Object[] ds = (Object[])obj;
-				
-				if ( ds.length > 0 ){
+				}else if ( mode == CHAT_GENERAL ){
 					
-					if ( ds[0] instanceof Download ){
-		
-						dl = (Download)ds[0];
+					middle.setVisible( true );				
+					middle.setText( MessageText.getString( "azbuddy.dchat.general.chats" ));
+	
+					GridLayout layout = new GridLayout();
+					layout.horizontalSpacing = 1;
+					layout.verticalSpacing = 1;
+					
+					layout.numColumns = 1;
+					middle.setLayout(layout);
+					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+					middle.setLayoutData(grid_data);
+					
+					final List<Button>	buttons = new ArrayList<Button>();
 						
-					}else if ( ds[0] instanceof DiskManagerFileInfo ){
+					String[][] general_data = {
+							{ "label.help", 		"General: Help" },
+							{ "label.announce", 	"General: Announce" },	
+					};
+					
+					for ( String[] entry: general_data ){
+											
+						final	String key = entry[1];
 						
-						dl_file = (DiskManagerFileInfo)ds[0];
+						Button button = new Button( middle, SWT.TOGGLE );
+							
+						button.setText( MessageText.getString( entry[0] ) );
+						button.setData( key );
+						
+						button.addSelectionListener(new SelectionAdapter() {
+							public void widgetSelected(SelectionEvent e) {
+								current_general = key;;
+								activate();
+							}});
+						
+						buttons.add( button );
 					}
+					
+					setupButtonGroup( buttons );
+					
+					if ( current_general != null ){
+						
+						selectButtonGroup( buttons, current_general );
+					}
+				}else{
+					
+					middle.setVisible( true );				
+					middle.setText( MessageText.getString( "azbuddy.dchat.fave.chats" ) );
 				}
-			}else{
 				
-				if ( obj instanceof Download ){
-					
-					dl = (Download)obj;
-					
-				}else if ( obj instanceof DiskManagerFileInfo ){
-					
-					dl_file = (DiskManagerFileInfo)obj;
-				}
+				middle.getParent().layout( true, true );
+				
+				last_build_chat_mode	= mode;
 			}
-			
-			if ( dl_file != null ){
+		
+			if ( activate ){
 				
-				try{
-					dl = dl_file.getDownload();
-					
-				}catch( Throwable e ){	
-				}
-			}
-			
-			synchronized( this ){
-				
-				if ( dl == current_download ){
-					
-					return;
-				}
-				
-				current_download = dl;
-				
-				if ( have_focus && dl != null ){
-					
-					activate( true );
-				}
+				activate();
 			}
 		}
 		
 		private void
-		gotFocus()
+		activate()
 		{
-			synchronized( this ){
+			if ( rebuild_outstanding ){
 				
-				have_focus = true;
+				rebuild_outstanding = false;
 				
 				if ( current_download == null ){
 					
-					return;
+					if ( chat_mode == CHAT_DOWNLOAD || chat_mode == CHAT_TAG ){
+						
+						setChatMode( CHAT_GENERAL );
+					}
 				}
 				
-				activate( false );
-			}
-		}
-		
-		private void
-		lostFocus()
-		{
-			synchronized( this ){
-				
-				have_focus = false;
-			}
-		}
-		
-		private void
-		activate(
-			boolean		rebuild )
-		{
-			if ( rebuild ){
-							
-				buildChatMode( chat_mode, middle );
+				buildChatMode( chat_mode, false );
 			}
 			
 			activateNetwork( null );
@@ -1061,39 +1114,41 @@ BuddyPluginView
 			
 			if ( download == null ){
 				
-				return;
-			}
-			
-			if ( network == null ){				
+				activateNetwork( network==null?AENetworkClassifier.AT_PUBLIC:network, true );
 				
-				String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
-				
-				boolean	pub 	= false;
-				boolean	anon	= false;
-				
-				for ( String net: nets ){
-				
-					if ( net == AENetworkClassifier.AT_PUBLIC ){
-						
-						pub = true;
-						
-					}else if ( net == AENetworkClassifier.AT_I2P ){
-						
-						anon = true;
-					}
-				}
-				
-				if ( pub && anon ){
-					activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
-					activateNetwork( AENetworkClassifier.AT_I2P, false );
-				}else if ( pub ){
-					activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
-				}else if ( anon ){
-					activateNetwork( AENetworkClassifier.AT_I2P, true );
-				}
 			}else{
-				
-				activateNetwork( network, false );
+			
+				if ( network == null ){				
+					
+					String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+					
+					boolean	pub 	= false;
+					boolean	anon	= false;
+					
+					for ( String net: nets ){
+					
+						if ( net == AENetworkClassifier.AT_PUBLIC ){
+							
+							pub = true;
+							
+						}else if ( net == AENetworkClassifier.AT_I2P ){
+							
+							anon = true;
+						}
+					}
+					
+					if ( pub && anon ){
+						activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
+						activateNetwork( AENetworkClassifier.AT_I2P, false );
+					}else if ( pub ){
+						activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
+					}else if ( anon ){
+						activateNetwork( AENetworkClassifier.AT_I2P, true );
+					}
+				}else{
+					
+					activateNetwork( network, false );
+				}
 			}
 		}
 		
@@ -1110,21 +1165,32 @@ BuddyPluginView
 				
 				if ( download == null ){
 					
-					return;
-				}
+					key = null;
+					
+				}else{
 
-				key = "Download: " + download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
-			
-			}else{
+					key = "Download: " + download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
+				}
+			}else if ( chat_mode == CHAT_TAG ){
 				
 				Tag	tag = current_tag;
 				
 				if ( tag == null ){
 					
-					return;
-				}
+					key = null;
+					
+				}else{
 						
-				key = TagUIUtils.getChatKey( tag );
+					key = TagUIUtils.getChatKey( tag );
+				}
+				
+			}else if ( chat_mode == CHAT_GENERAL ){
+				
+				key = current_general;
+				
+			}else{
+				
+				key	= current_favourite;
 			}
 			
 			activateChat( network, key, select_tab );
@@ -1153,7 +1219,14 @@ BuddyPluginView
 					
 					c.dispose();
 				}
-						
+					
+				if ( key == null ){
+					
+					chat_composite.setData( comp_key );
+					
+					return;
+				}
+				
 				AsyncDispatcher disp 		= network==AENetworkClassifier.AT_PUBLIC?public_dispatcher:anon_dispatcher;
 				
 				final AtomicInteger	counter 	= network==AENetworkClassifier.AT_PUBLIC?public_done:anon_done;
@@ -1230,6 +1303,87 @@ BuddyPluginView
 			if ( select_tab ){
 				
 				tab_folder.setSelection( network==AENetworkClassifier.AT_PUBLIC?public_item:anon_item );
+			}
+		}
+		
+		private void
+		setDataSource(
+			Object		obj )
+		{									
+			Download 			dl 		= null;
+			DiskManagerFileInfo	dl_file = null;
+			
+			if ( obj instanceof Object[]){
+				
+				Object[] ds = (Object[])obj;
+				
+				if ( ds.length > 0 ){
+					
+					if ( ds[0] instanceof Download ){
+		
+						dl = (Download)ds[0];
+						
+					}else if ( ds[0] instanceof DiskManagerFileInfo ){
+						
+						dl_file = (DiskManagerFileInfo)ds[0];
+					}
+				}
+			}else{
+				
+				if ( obj instanceof Download ){
+					
+					dl = (Download)obj;
+					
+				}else if ( obj instanceof DiskManagerFileInfo ){
+					
+					dl_file = (DiskManagerFileInfo)obj;
+				}
+			}
+			
+			if ( dl_file != null ){
+				
+				try{
+					dl = dl_file.getDownload();
+					
+				}catch( Throwable e ){	
+				}
+			}
+			
+			synchronized( this ){
+				
+				if ( dl == current_download ){
+					
+					return;
+				}
+				
+				current_download = dl;
+				
+				rebuild_outstanding = true;
+				
+				if ( have_focus ){
+					
+					activate();
+				}
+			}
+		}
+		
+		private void
+		gotFocus()
+		{
+			synchronized( this ){
+				
+				have_focus = true;
+								
+				activate();
+			}
+		}
+		
+		private void
+		lostFocus()
+		{
+			synchronized( this ){
+				
+				have_focus = false;
 			}
 		}
 		
