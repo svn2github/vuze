@@ -916,6 +916,8 @@ BuddyPluginView
 						
 					}else{
 						
+						tags = TagUIUtils.sortTags( tags );
+						
 						current_tag = tags.get(0);
 						
 						GridLayout layout = new GridLayout();

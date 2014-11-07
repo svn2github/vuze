@@ -958,8 +958,10 @@ TagManagerImpl
 			// hack to support initial-save-location logic when a user manually assigns a tag and the download
 			// hasn't had files allocated yet (most common scenario is user has 'add-torrent-stopped' set up)
 		
+		int tt = tag_type.getTagType();
+		
 		try{
-			if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_MANUAL && tagged instanceof DownloadManager ){
+			if ( tt == TagType.TT_DOWNLOAD_MANUAL && tagged instanceof DownloadManager ){
 				
 				TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
 	
@@ -1000,20 +1002,26 @@ TagManagerImpl
 			Debug.out(e );
 		}
 		
-		synchronized( lifecycle_handlers ){
+			// hack to limit tagged/untagged callbacks as the auto-dl-state ones generate a lot
+			// of traffic and thusfar nobody's interested in it
+		
+		if ( tt == TagType.TT_DOWNLOAD_MANUAL ){
 			
-			long type = tagged.getTaggableType();
-			
-			LifecycleHandlerImpl handler = lifecycle_handlers.get( type );
-			
-			if ( handler == null ){
+			synchronized( lifecycle_handlers ){
 				
-				handler = new LifecycleHandlerImpl();
+				long type = tagged.getTaggableType();
 				
-				lifecycle_handlers.put( type, handler );
+				LifecycleHandlerImpl handler = lifecycle_handlers.get( type );
+				
+				if ( handler == null ){
+					
+					handler = new LifecycleHandlerImpl();
+					
+					lifecycle_handlers.put( type, handler );
+				}
+				
+				handler.taggableTagged( tag_type, tag, tagged );
 			}
-			
-			handler.taggableTagged( tag_type, tag, tagged );
 		}
 	}
 	
@@ -1023,20 +1031,27 @@ TagManagerImpl
 		Tag			tag,
 		Taggable	tagged )
 	{
-		synchronized( lifecycle_handlers ){
-			
-			long type = tagged.getTaggableType();
-			
-			LifecycleHandlerImpl handler = lifecycle_handlers.get( type );
-			
-			if ( handler == null ){
+		int tt = tag_type.getTagType();
+
+			// as above
+		
+		if ( tt == TagType.TT_DOWNLOAD_MANUAL ){
+
+			synchronized( lifecycle_handlers ){
 				
-				handler = new LifecycleHandlerImpl();
+				long type = tagged.getTaggableType();
 				
-				lifecycle_handlers.put( type, handler );
+				LifecycleHandlerImpl handler = lifecycle_handlers.get( type );
+				
+				if ( handler == null ){
+					
+					handler = new LifecycleHandlerImpl();
+					
+					lifecycle_handlers.put( type, handler );
+				}
+				
+				handler.taggableUntagged( tag_type, tag, tagged );
 			}
-			
-			handler.taggableUntagged( tag_type, tag, tagged );
 		}
 	}
 	

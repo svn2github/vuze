@@ -38,12 +38,24 @@ TaggableLifecycleListener
 	taggableDestroyed(
 		Taggable		taggable );
 	
+	/**
+	 * Currently only implemented for manual_download tag changes
+	 * @param tag_type
+	 * @param tag
+	 * @param taggable
+	 */
 	public void
 	taggableTagged(
 		TagType			tag_type,	
 		Tag				tag,
 		Taggable		taggable );
 	
+	/**
+	 * Currently only implemented for manual_download tag changes
+	 * @param tag_type
+	 * @param tag
+	 * @param taggable
+	 */
 	public void
 	taggableUntagged(
 		TagType			tag_type,	
