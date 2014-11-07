@@ -52,7 +52,6 @@ TaggableLifecycleAdapter
 		Tag				tag,
 		Taggable		taggable )
 	{
-		System.out.println( "tag" );
 	}
 	
 	public void
@@ -61,6 +60,5 @@ TaggableLifecycleAdapter
 		Tag				tag,
 		Taggable		taggable )
 	{
-		System.out.println( "untag" );
 	}
 }

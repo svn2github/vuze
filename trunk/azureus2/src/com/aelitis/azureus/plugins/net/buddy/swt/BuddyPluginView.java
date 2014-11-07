@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -64,6 +65,8 @@ import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.TaggableLifecycleAdapter;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
@@ -517,7 +520,7 @@ BuddyPluginView
 	}
 	
 	private HashMap<UISWTView,BetaSubViewHolder> beta_subviews = new HashMap<UISWTView,BetaSubViewHolder>();
-
+	
 	private void
 	addBetaSubviews(
 		boolean	enable )
@@ -530,7 +533,46 @@ BuddyPluginView
 		};
 		
 		if ( enable ){
-				
+			
+			TagManagerFactory.getTagManager().addTaggableLifecycleListener(
+				Taggable.TT_DOWNLOAD,
+				new TaggableLifecycleAdapter()
+				{
+					public void
+					taggableTagged(
+						TagType			tag_type,	
+						Tag				tag,
+						Taggable		taggable )
+					{
+						if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
+							
+							DownloadManager dm  = (DownloadManager)taggable;
+							
+							for ( BetaSubViewHolder h: beta_subviews.values()){
+								
+								h.tagsUpdated( dm );
+							}
+						}
+					}
+					
+					public void
+					taggableUntagged(
+						TagType			tag_type,	
+						Tag				tag,
+						Taggable		taggable )
+					{
+						if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
+							
+							DownloadManager dm  = (DownloadManager)taggable;
+							
+							for ( BetaSubViewHolder h: beta_subviews.values()){
+								
+								h.tagsUpdated( dm );
+							}
+						}
+					}
+				});
+			
 			UISWTViewEventListener listener = 
 				new UISWTViewEventListener()
 				{	
@@ -787,6 +829,30 @@ BuddyPluginView
 		}
 		
 		private void
+		tagsUpdated(
+			DownloadManager	dm )
+		{
+			Download download = current_download;
+			
+			if ( chat_mode == CHAT_TAG ){
+			
+				if ( dm == PluginCoreUtils.unwrap( download )){
+				
+					Utils.execSWTThread(
+						new Runnable() 
+						{	
+							public void 
+							run() 
+							{
+								activate( true );
+							}
+						});
+					
+				}
+			}
+		}
+		
+		private void
 		setupButtonGroup(
 			final List<Button>		buttons )
 		{
@@ -979,7 +1045,7 @@ BuddyPluginView
 		{
 			if ( rebuild ){
 							
-				buildChatMode( chat_mode, middle);
+				buildChatMode( chat_mode, middle );
 			}
 			
 			activateNetwork( null );
