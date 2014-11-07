@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeAdapter;
 import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.TaggableLifecycleAdapter;
 import com.aelitis.azureus.core.tag.TaggableLifecycleListener;
 
 public class 
@@ -54,7 +55,7 @@ TagPropertyTrackerTemplateHandler
 		
 		tag_manager.addTaggableLifecycleListener(
 			Taggable.TT_DOWNLOAD,
-			new TaggableLifecycleListener()
+			new TaggableLifecycleAdapter()
 			{
 				public void
 				initialised(
@@ -82,18 +83,6 @@ TagPropertyTrackerTemplateHandler
 							}
 						},
 						true );
-				}
-				
-				public void
-				taggableCreated(
-					Taggable		taggable )
-				{
-				}
-				
-				public void
-				taggableDestroyed(
-					Taggable		taggable )
-				{
 				}
 			});
 	}

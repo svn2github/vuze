@@ -1,13 +1,14 @@
 /*
- * Created on Sep 4, 2013
+ * Created on Nov 6, 2014
  * Created by Paul Gardner
  * 
- * Copyright 2013 Azureus Software, Inc.  All rights reserved.
+ * Copyright 2014 Azureus Software, Inc.  All rights reserved.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License only.
- * 
+ * the Free Software Foundation; either version 2 of the License, or 
+ * (at your option) any later version.
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -23,30 +24,43 @@ package com.aelitis.azureus.core.tag;
 
 import java.util.List;
 
-public interface 
-TaggableLifecycleListener 
+public class 
+TaggableLifecycleAdapter
+	implements TaggableLifecycleListener
 {
 	public void
 	initialised(
-		List<Taggable>	current_taggables );
+		List<Taggable>	current_taggables )
+	{
+	}
 	
 	public void
 	taggableCreated(
-		Taggable		taggable );
+		Taggable		taggable )
+	{
+	}
 	
 	public void
 	taggableDestroyed(
-		Taggable		taggable );
+		Taggable		taggable )
+	{
+	}
 	
 	public void
 	taggableTagged(
 		TagType			tag_type,	
 		Tag				tag,
-		Taggable		taggable );
+		Taggable		taggable )
+	{
+		System.out.println( "tag" );
+	}
 	
 	public void
 	taggableUntagged(
 		TagType			tag_type,	
 		Tag				tag,
-		Taggable		taggable );
+		Taggable		taggable )
+	{
+		System.out.println( "untag" );
+	}
 }

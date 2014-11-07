@@ -70,7 +70,7 @@ TagPropertyUntaggedHandler
 		
 		tag_manager.addTaggableLifecycleListener(
 			Taggable.TT_DOWNLOAD,
-			new TaggableLifecycleListener()
+			new TaggableLifecycleAdapter()
 			{
 				public void
 				initialised(
@@ -146,12 +146,6 @@ TagPropertyUntaggedHandler
 					Taggable		taggable )
 				{
 					addDownloads( Arrays.asList( new DownloadManager[]{ (DownloadManager)taggable }));
-				}
-				
-				public void
-				taggableDestroyed(
-					Taggable		taggable )
-				{
 				}
 			});
 	}

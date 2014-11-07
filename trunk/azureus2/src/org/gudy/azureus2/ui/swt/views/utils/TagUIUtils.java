@@ -96,6 +96,13 @@ public class TagUIUtils
 	private static AtomicBoolean	pub_chat_pending 	= new AtomicBoolean();
 	private static AtomicBoolean	anon_chat_pending 	= new AtomicBoolean();
 	
+	public static String
+	getChatKey(
+		Tag		tag )
+	{
+		return( "Tag: " + tag.getTagName( true ));
+	}
+	
 	public static void
 	setupSideBarMenus(
 		final MenuManager	menuManager )
@@ -1828,7 +1835,7 @@ public class TagUIUtils
 			
 			if ( BuddyPluginUtils.isBetaChatAvailable()){
 				
-				final String chat_key = "Tag : " + tag.getTagName( true );
+				final String chat_key = getChatKey( tag );
 				
 				final Menu chat_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
 				

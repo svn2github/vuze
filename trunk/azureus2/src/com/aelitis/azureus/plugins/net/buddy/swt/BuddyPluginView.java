@@ -679,7 +679,7 @@ BuddyPluginView
 				// left
 			
 			Group lhs = new Group( composite, SWT.NULL );
-			lhs.setText( "Chat Type" );
+			lhs.setText( MessageText.getString( "label.chat.type" ));
 			layout = new GridLayout();
 			layout.numColumns = 1;
 			layout.horizontalSpacing = 1;
@@ -691,11 +691,11 @@ BuddyPluginView
 			
 			Button downloads = new Button( lhs, SWT.TOGGLE );
 			
-			downloads.setText( "Download" );
+			downloads.setText( MessageText.getString( "v3.MainWindow.button.download" ));
 			
 			Button tags = new Button( lhs, SWT.TOGGLE );
 			
-			tags.setText( "Tags" );
+			tags.setText( MessageText.getString( "label.tags" ));
 
 				// middle
 			

@@ -999,6 +999,45 @@ TagManagerImpl
 		
 			Debug.out(e );
 		}
+		
+		synchronized( lifecycle_handlers ){
+			
+			long type = tagged.getTaggableType();
+			
+			LifecycleHandlerImpl handler = lifecycle_handlers.get( type );
+			
+			if ( handler == null ){
+				
+				handler = new LifecycleHandlerImpl();
+				
+				lifecycle_handlers.put( type, handler );
+			}
+			
+			handler.taggableTagged( tag_type, tag, tagged );
+		}
+	}
+	
+	public void
+	taggableRemoved(
+		TagType		tag_type,
+		Tag			tag,
+		Taggable	tagged )
+	{
+		synchronized( lifecycle_handlers ){
+			
+			long type = tagged.getTaggableType();
+			
+			LifecycleHandlerImpl handler = lifecycle_handlers.get( type );
+			
+			if ( handler == null ){
+				
+				handler = new LifecycleHandlerImpl();
+				
+				lifecycle_handlers.put( type, handler );
+			}
+			
+			handler.taggableUntagged( tag_type, tag, tagged );
+		}
 	}
 	
 	public List<Tag>
@@ -1954,8 +1993,13 @@ TagManagerImpl
 							{
 								for ( TaggableLifecycleListener listener: listeners_ref ){
 									
-									
-									listener.taggableCreated( t );
+									try{
+										listener.taggableCreated( t );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
 								}
 							}
 						});
@@ -1984,7 +2028,83 @@ TagManagerImpl
 							{
 								for ( TaggableLifecycleListener listener: listeners_ref ){
 									
-									listener.taggableDestroyed( t );
+									try{
+										listener.taggableDestroyed( t );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}
+						});
+				}
+			}
+		}
+		
+		public void
+		taggableTagged(
+			final TagType	tag_type,
+			final Tag		tag,
+			final Taggable	taggable )
+		{
+			synchronized( this ){
+				
+				if ( initialised ){
+					
+					final List<TaggableLifecycleListener> listeners_ref = listeners.getList();
+					 
+					async_dispatcher.dispatch(
+						new AERunnable()
+						{
+							@Override
+							public void 
+							runSupport() 
+							{
+								for ( TaggableLifecycleListener listener: listeners_ref ){
+									
+									try{
+										listener.taggableTagged( tag_type, tag, taggable);
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}
+						});
+				}
+			}
+		}
+		
+		public void
+		taggableUntagged(
+			final TagType	tag_type,
+			final Tag		tag,
+			final Taggable	taggable )
+		{
+			synchronized( this ){
+				
+				if ( initialised ){
+					
+					final List<TaggableLifecycleListener> listeners_ref = listeners.getList();
+					 
+					async_dispatcher.dispatch(
+						new AERunnable()
+						{
+							@Override
+							public void 
+							runSupport() 
+							{
+								for ( TaggableLifecycleListener listener: listeners_ref ){
+									
+									try{
+										listener.taggableUntagged( tag_type, tag, taggable );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
 								}
 							}
 						});

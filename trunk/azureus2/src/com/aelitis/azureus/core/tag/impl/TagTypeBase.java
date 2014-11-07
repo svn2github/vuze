@@ -404,6 +404,8 @@ TagTypeBase
 				}
 			}
 		}
+		
+		manager.taggableRemoved( this, tag, tagged );
 	}
 	
 	public void
