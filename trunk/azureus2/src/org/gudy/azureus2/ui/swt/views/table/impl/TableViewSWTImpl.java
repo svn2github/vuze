@@ -29,7 +29,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -45,6 +44,7 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.views.table.*;
@@ -261,11 +261,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
 	}
 
-	// AbstractIView::initialize
 	public void initialize(Composite composite) {
+		initialize( null, composite );
+	}
+		
+	// AbstractIView::initialize
+	public void initialize(UISWTView parentView, Composite composite) {
 		composite.setRedraw(false);
 
-		tvTabsCommon = new TableViewSWT_TabsCommon(this);
+		tvTabsCommon = new TableViewSWT_TabsCommon(parentView,this);
 
 		shell = composite.getShell();
 		mainComposite = tvTabsCommon.createSashForm(composite);

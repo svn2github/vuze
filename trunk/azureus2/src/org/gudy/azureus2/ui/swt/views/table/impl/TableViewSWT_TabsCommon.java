@@ -43,6 +43,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
@@ -61,6 +62,7 @@ public class TableViewSWT_TabsCommon
 {
 	private static final Object	NULL_DS = new Object();
 	
+	UISWTView parentView;
 	TableViewSWT<?> tv;
 	
 		/** TabViews */
@@ -77,7 +79,8 @@ public class TableViewSWT_TabsCommon
 	private boolean minimized;
 	private UISWTViewCore selectedView;
 
-	public TableViewSWT_TabsCommon(TableViewSWT<?> tv) {
+	public TableViewSWT_TabsCommon(UISWTView parentView, TableViewSWT<?> tv) {
+		this.parentView = parentView;
 		this.tv = tv;
 	}
 
@@ -336,6 +339,10 @@ public class TableViewSWT_TabsCommon
 		
 		try{
 			UISWTViewImpl view = new UISWTViewImpl(tv.getTableID(), view_id, listener, null);
+			
+			if ( parentView != null ){	
+				view.setParentView( parentView );
+			}
 			
 			triggerTabViewDataSourceChanged(view);
 	

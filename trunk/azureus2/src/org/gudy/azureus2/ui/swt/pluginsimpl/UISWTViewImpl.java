@@ -71,7 +71,11 @@ public class UISWTViewImpl
 
 	private PluginUISWTSkinObject skinObject;
 
-	private Object dataSource = null;
+	private final Object initialDatasource;
+	
+	private UISWTView	parentView;
+	
+	private Object dataSource 			= null;
 
 	private boolean useCoreDataSource = false;
 
@@ -100,10 +104,11 @@ public class UISWTViewImpl
 	private volatile Map<Object,Object>	user_data;
 	
 	public UISWTViewImpl(String sParentID, String sViewID,
-			UISWTViewEventListener eventListener, Object initialDatasource)
+			UISWTViewEventListener eventListener, Object _initialDatasource)
 			throws Exception {
 		//this.sParentID = sParentID;
 		this.sViewID = sViewID;
+		initialDatasource = _initialDatasource;
 		this.eventListener = eventListener;
 		if (eventListener instanceof UISWTViewCoreEventListener) {
 			useCoreDataSource = true;
@@ -136,10 +141,27 @@ public class UISWTViewImpl
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#getDataSource()
 	 */
+	public Object getInitialDataSource() {
+		return initialDatasource;
+	}
+	
 	public Object getDataSource() {
 		return dataSource;
 	}
 
+	public void
+	setParentView(
+		UISWTView		p )
+	{
+		parentView = p;
+	}
+	
+	public UISWTView
+	getParentView()
+	{
+		return( parentView );
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.ui.UIPluginView#getViewID()
 	 */

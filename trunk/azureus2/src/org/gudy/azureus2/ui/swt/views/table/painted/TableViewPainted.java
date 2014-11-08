@@ -27,7 +27,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
@@ -41,6 +40,7 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -1023,7 +1023,10 @@ public class TableViewPainted
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#initialize(org.eclipse.swt.widgets.Composite)
 	 */
 	public void initialize(Composite parent) {
-		tvTabsCommon = new TableViewSWT_TabsCommon(this);
+		initialize( null, parent );
+	}
+	public void initialize(UISWTView parentView, Composite parent) {
+		tvTabsCommon = new TableViewSWT_TabsCommon(parentView,this);
 
 		shell = parent.getShell();
 		mainComposite = tvTabsCommon.createSashForm(parent);

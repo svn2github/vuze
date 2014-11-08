@@ -61,7 +61,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 			tv.setParentDataSource(parentDataSource);
 		}
 		Composite parent = initComposite(composite);
-		tv.initialize(parent);
+		tv.initialize(swtView, parent);
 		if (parent != composite) {
 			this.composite = composite;
 		} else {

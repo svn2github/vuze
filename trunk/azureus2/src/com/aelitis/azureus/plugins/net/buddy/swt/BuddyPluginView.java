@@ -595,7 +595,7 @@ BuddyPluginView
 								
 								if ( subview != null ){
 									
-									subview.initialise((Composite)event.getData());
+									subview.initialise(event.getView(), (Composite)event.getData());
 								}
 		
 								break;
@@ -701,6 +701,8 @@ BuddyPluginView
 		private String			current_general;
 		private String			current_favourite;
 		
+		private Tag				current_ds_tag;
+
 		private boolean			have_focus;
 		private boolean			rebuild_outstanding	= true;
 		
@@ -711,8 +713,21 @@ BuddyPluginView
 		
 		private void
 		initialise(
+			UISWTView		view,
 			Composite		parent )
 		{		
+			UISWTView parent_view = view.getParentView();
+			
+			if ( parent_view != null ){
+			
+				Object initial_ds = parent_view.getInitialDataSource();
+			
+				if ( initial_ds instanceof Tag ){
+					
+					current_ds_tag = (Tag)initial_ds;
+				}
+			}
+			
 			final Composite composite	= parent;
 			
 			GridLayout layout = new GridLayout();
@@ -968,7 +983,7 @@ BuddyPluginView
 					c.dispose();
 				}
 				
-				if ( mode == CHAT_DOWNLOAD ||(  mode == CHAT_TAG &&  download == null )){
+				if ( mode == CHAT_DOWNLOAD ||(  mode == CHAT_TAG &&  download == null && current_ds_tag == null )){
 					
 					middle.setVisible( false );
 					middle.setText( "" );
@@ -982,7 +997,12 @@ BuddyPluginView
 					middle.setVisible( true );				
 					middle.setText( MessageText.getString( "label.tag.selection" ));
 					
-					List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( current_download ));
+					List<Tag> tags = current_download==null?new ArrayList<Tag>():TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( current_download ));
+					
+					if ( current_ds_tag != null && !tags.contains( current_ds_tag )){
+						
+						tags.add( current_ds_tag );
+					}
 					
 					if ( tags.size() == 0 ){
 						
@@ -1096,7 +1116,7 @@ BuddyPluginView
 					
 					if ( chat_mode == CHAT_DOWNLOAD || chat_mode == CHAT_TAG ){
 						
-						setChatMode( CHAT_GENERAL );
+						setChatMode( current_ds_tag==null?CHAT_GENERAL:CHAT_TAG );
 					}
 				}
 				
@@ -1312,6 +1332,7 @@ BuddyPluginView
 		{									
 			Download 			dl 		= null;
 			DiskManagerFileInfo	dl_file = null;
+			Tag					tag		= null;
 			
 			if ( obj instanceof Object[]){
 				
@@ -1337,6 +1358,10 @@ BuddyPluginView
 				}else if ( obj instanceof DiskManagerFileInfo ){
 					
 					dl_file = (DiskManagerFileInfo)obj;
+					
+				}else if ( obj instanceof Tag ){
+					
+					tag = (Tag)obj;
 				}
 			}
 			
@@ -1351,12 +1376,13 @@ BuddyPluginView
 			
 			synchronized( this ){
 				
-				if ( dl == current_download ){
+				if ( dl == current_download && tag == current_ds_tag ){
 					
 					return;
 				}
 				
-				current_download = dl;
+				current_download 	= dl;
+				current_ds_tag		= tag;
 				
 				rebuild_outstanding = true;
 				
