@@ -71,6 +71,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAdapter;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
@@ -1061,12 +1062,18 @@ BuddyPluginView
 						
 					String[][] general_data = {
 							{ "label.help", 		"General: Help" },
-							{ "label.announce", 	"General: Announce" },	
+							{ "label.announce", 	"General: Announce" },
+							{ "label.beta",			BuddyPluginBeta.BETA_CHAT_KEY },
 					};
 					
 					for ( String[] entry: general_data ){
 											
 						final	String key = entry[1];
+						
+						if ( key == BuddyPluginBeta.BETA_CHAT_KEY && !Constants.isCVSVersion()){
+							
+							continue;
+						}
 						
 						Button button = new Button( middle, SWT.TOGGLE );
 							
