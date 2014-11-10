@@ -1010,25 +1010,28 @@ BuddyPluginView
 						tags.add( current_ds_tag );
 					}
 					
+					GridLayout layout = new GridLayout();
+					layout.horizontalSpacing = 1;
+					layout.verticalSpacing = 1;
+					
+					layout.numColumns = 1;
+					middle.setLayout(layout);
+					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+					middle.setLayoutData(grid_data);
+
 					if ( tags.size() == 0 ){
 						
 						current_tag = null;
-						
+						Label label = new Label( middle, SWT.NULL );
+						label.setText( MessageText.getString( "label.none.assigned" ));
+						label.setEnabled( false );
+
 					}else{
 						
 						tags = TagUIUtils.sortTags( tags );
 						
 						current_tag = tags.get(0);
-						
-						GridLayout layout = new GridLayout();
-						layout.horizontalSpacing = 1;
-						layout.verticalSpacing = 1;
-						
-						layout.numColumns = 1;
-						middle.setLayout(layout);
-						GridData grid_data = new GridData(GridData.FILL_VERTICAL );
-						middle.setLayoutData(grid_data);
-	
+							
 						final List<Button>	buttons = new ArrayList<Button>();
 	
 						for ( final Tag tag: tags ){
@@ -1113,71 +1116,80 @@ BuddyPluginView
 					middle.setLayout(layout);
 					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
 					middle.setLayoutData(grid_data);
-					
-					final List<Button>	buttons = new ArrayList<Button>();
 
 					List<String[]>	list = plugin.getBeta().getFavourites();
-					
-					Collections.sort(
-						list,
-						new Comparator<String[]>()
-						{
-							Comparator<String> c = new FormattersImpl().getAlphanumericComparator( true );
-							
-							public int compare(String[] o1, String[] o2) {
+
+					if ( list.size() == 0 ){
+						
+						Label label = new Label( middle, SWT.NULL );
+						label.setText( MessageText.getString( "label.none.assigned" ));
+						label.setEnabled( false );
+											
+					}else{
+						
+						final List<Button>	buttons = new ArrayList<Button>();
+						
+						Collections.sort(
+							list,
+							new Comparator<String[]>()
+							{
+								Comparator<String> c = new FormattersImpl().getAlphanumericComparator( true );
 								
-								int result = o1[0].compareTo( o2[0] );
-					
-								if ( result == 0 ){
+								public int compare(String[] o1, String[] o2) {
 									
-									result = c.compare( o1[1], o2[1] );
+									int result = o1[0].compareTo( o2[0] );
+						
+									if ( result == 0 ){
+										
+										result = c.compare( o1[1], o2[1] );
+									}
+									
+									return( result );
 								}
-								
-								return( result );
-							}
-						});
-					
-					for ( String[] entry: list ){
+							});
 						
-						final	String net = entry[0];
-						final	String key = entry[1];
-						
-						Button button = new Button( middle, SWT.TOGGLE );
-						
-						String	short_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public.short":"label.anon.short" ) + ")";
-						
-						short_name += " " + key;
-						
-						if ( short_name.length() > 30 ){
+						for ( String[] entry: list ){
 							
-							short_name = short_name.substring( 0, 30 ) + "...";
+							final	String net = entry[0];
+							final	String key = entry[1];
+							
+							Button button = new Button( middle, SWT.TOGGLE );
+							
+							String	short_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public.short":"label.anon.short" ) + ")";
+							
+							short_name += " " + key;
+							
+							if ( short_name.length() > 30 ){
+								
+								short_name = short_name.substring( 0, 30 ) + "...";
+							}
+							
+							String	long_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon" ) + ")";
+							
+							long_name += " " + key;
+	
+							button.setText( short_name );
+							button.setAlignment( SWT.LEFT );
+							button.setToolTipText( long_name );
+							
+							button.setData( net + ":" + key );
+							
+							button.addSelectionListener(new SelectionAdapter() {
+								public void widgetSelected(SelectionEvent e) {
+									current_favourite_net = net;
+									current_favourite_key = key;
+									activate();
+								}});
+							
+							buttons.add( button );
 						}
 						
-						String	long_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon" ) + ")";
+						setupButtonGroup( buttons );
 						
-						long_name += " " + key;
-
-						button.setText( short_name );
-						button.setAlignment( SWT.LEFT );
-						button.setToolTipText( long_name );
-						
-						button.setData( net + ":" + key );
-						
-						button.addSelectionListener(new SelectionAdapter() {
-							public void widgetSelected(SelectionEvent e) {
-								current_favourite_net = net;
-								current_favourite_key = key;
-								activate();
-							}});
-						
-						buttons.add( button );
-					}
-					
-					setupButtonGroup( buttons );
-					
-					if ( current_favourite_key != null ){
-						
-						selectButtonGroup( buttons, current_favourite_net + ":" + current_favourite_key );
+						if ( current_favourite_key != null ){
+							
+							selectButtonGroup( buttons, current_favourite_net + ":" + current_favourite_key );
+						}
 					}
 				}
 				
