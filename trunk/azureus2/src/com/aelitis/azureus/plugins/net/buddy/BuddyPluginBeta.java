@@ -83,6 +83,7 @@ BuddyPluginBeta
 	private int						private_chat_state;
 	private boolean					shared_anon_endpoint;
 
+	private Map<String,Long>		favourite_map;
 	
 	protected
 	BuddyPluginBeta(
@@ -100,12 +101,96 @@ BuddyPluginBeta
 		private_chat_state	 	= COConfigurationManager.getIntParameter( "azbuddy.chat.private_chat_state", PRIVATE_CHAT_ENABLED );
 		
 		shared_anon_endpoint	= COConfigurationManager.getBooleanParameter( "azbuddy.chat.share_i2p_endpoint", true );
+		
+		favourite_map			= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
 	}
 	
 	public boolean 
 	isAvailable()
 	{
 		return( plugin_interface.getPluginManager().getPluginInterfaceByID( "azmsgsync", true ) != null );
+	}
+	
+	public boolean
+	getFavourite(
+		String		net,
+		String		key )
+	{
+		synchronized( favourite_map ){
+			
+			Long l = favourite_map.get( net + ":" + key );
+			
+			if ( l == null ){
+				
+				return( false );
+			}
+			
+			return ( l == 1 );
+		}
+	}
+	
+	public void
+	setFavourite(
+		String		net,
+		String		key,
+		boolean		b )
+	{
+		synchronized( favourite_map ){
+			
+			String net_key = net + ":" + key;
+			
+			Long existing = favourite_map.get( net_key );
+			
+			if ( existing == null && !b ){
+				
+				return;
+			}
+			
+			if ( existing != null && b == ( existing == 1 )){
+				
+				return;
+			}
+			
+			if ( b ){
+				
+				favourite_map.put( net_key, 1L );
+				
+			}else{
+				
+				favourite_map.remove( net_key );
+			}
+			
+			COConfigurationManager.setParameter( "azbuddy.dchat.favemap", favourite_map );	
+		}
+		
+		COConfigurationManager.save();
+	}
+	
+	public List<String[]>
+	getFavourites()
+	{
+		synchronized( favourite_map ){
+			
+			List<String[]>	result = new ArrayList<String[]>();
+			
+			for ( Map.Entry<String, Long> entry: favourite_map.entrySet()){
+				
+				String 	net_key = entry.getKey();
+				Long	value	= entry.getValue();
+				
+				if ( value == 1 ){
+					
+					String[] bits = net_key.split( ":", 2 );
+					
+					String network 	= AENetworkClassifier.internalise( bits[0] );
+					String key		= bits[1];
+					
+					result.add( new String[]{ network, key });
+				}
+			}
+			
+			return( result );
+		}
 	}
 	
 	public String
@@ -580,6 +665,8 @@ BuddyPluginBeta
 		
 		private int			reference_count;
 		
+		private boolean		is_favourite;
+		
 		private
 		ChatInstance(
 			String				_network,
@@ -602,6 +689,11 @@ BuddyPluginBeta
 
 			is_shared_nick 	= COConfigurationManager.getBooleanParameter( shared_key, true );
 			instance_nick 	= COConfigurationManager.getStringParameter( nick_key, "" );
+			
+			if ( !is_private_chat ){
+			
+				is_favourite = getFavourite( network, key );
+			}
 			
 			addReference();
 		}
@@ -656,6 +748,27 @@ BuddyPluginBeta
 		getKey()
 		{
 			return( key );
+		}
+		
+		public boolean
+		isFavourite()
+		{
+			return( is_favourite );
+		}
+		
+		public void
+		setFavourite(
+			boolean		b )
+		{
+			if ( !is_private_chat ){
+				
+				if ( b != is_favourite ){
+					
+					is_favourite = b;
+					
+					BuddyPluginBeta.this.setFavourite( network, key, b );
+				}
+			}
 		}
 		
 		public boolean

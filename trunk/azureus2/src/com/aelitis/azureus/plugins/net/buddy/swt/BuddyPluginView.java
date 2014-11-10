@@ -23,6 +23,8 @@ package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -49,6 +51,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -700,7 +703,9 @@ BuddyPluginView
 		private Download		current_download;
 		private Tag				current_tag;
 		private String			current_general;
-		private String			current_favourite;
+		
+		private String			current_favourite_net;
+		private String			current_favourite_key;
 		
 		private Tag				current_ds_tag;
 
@@ -1098,7 +1103,82 @@ BuddyPluginView
 				}else{
 					
 					middle.setVisible( true );				
-					middle.setText( MessageText.getString( "azbuddy.dchat.fave.chats" ) );
+					middle.setText( MessageText.getString( "azbuddy.dchat.fave.chats" ));
+					
+					GridLayout layout = new GridLayout();
+					layout.horizontalSpacing = 1;
+					layout.verticalSpacing = 1;
+					
+					layout.numColumns = 1;
+					middle.setLayout(layout);
+					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+					middle.setLayoutData(grid_data);
+					
+					final List<Button>	buttons = new ArrayList<Button>();
+
+					List<String[]>	list = plugin.getBeta().getFavourites();
+					
+					Collections.sort(
+						list,
+						new Comparator<String[]>()
+						{
+							Comparator<String> c = new FormattersImpl().getAlphanumericComparator( true );
+							
+							public int compare(String[] o1, String[] o2) {
+								
+								int result = o1[0].compareTo( o2[0] );
+					
+								if ( result == 0 ){
+									
+									result = c.compare( o1[1], o2[1] );
+								}
+								
+								return( result );
+							}
+						});
+					
+					for ( String[] entry: list ){
+						
+						final	String net = entry[0];
+						final	String key = entry[1];
+						
+						Button button = new Button( middle, SWT.TOGGLE );
+						
+						String	short_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public.short":"label.anon.short" ) + ")";
+						
+						short_name += " " + key;
+						
+						if ( short_name.length() > 30 ){
+							
+							short_name = short_name.substring( 0, 30 ) + "...";
+						}
+						
+						String	long_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon" ) + ")";
+						
+						long_name += " " + key;
+
+						button.setText( short_name );
+						button.setAlignment( SWT.LEFT );
+						button.setToolTipText( long_name );
+						
+						button.setData( net + ":" + key );
+						
+						button.addSelectionListener(new SelectionAdapter() {
+							public void widgetSelected(SelectionEvent e) {
+								current_favourite_net = net;
+								current_favourite_key = key;
+								activate();
+							}});
+						
+						buttons.add( button );
+					}
+					
+					setupButtonGroup( buttons );
+					
+					if ( current_favourite_key != null ){
+						
+						selectButtonGroup( buttons, current_favourite_net + ":" + current_favourite_key );
+					}
 				}
 				
 				middle.getParent().layout( true, true );
@@ -1137,44 +1217,58 @@ BuddyPluginView
 		activateNetwork(
 			String		network  )
 		{
-			Download	download 	= current_download;
-			
-			if ( download == null ){
+			if ( network != null ){
 				
-				activateNetwork( network==null?AENetworkClassifier.AT_PUBLIC:network, true );
+					// explicit network is only set when we're switching public/anon tabs so
+					// we use it directly and don't need to reselect the tab coz we're on it
+				
+				activateNetwork( network, false );
 				
 			}else{
-			
-				if ( network == null ){				
+					// network == null -> select most appropriate one
+				
+				if ( chat_mode == CHAT_FAVOURITES && current_favourite_net != null ){
 					
-					String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
-					
-					boolean	pub 	= false;
-					boolean	anon	= false;
-					
-					for ( String net: nets ){
-					
-						if ( net == AENetworkClassifier.AT_PUBLIC ){
-							
-							pub = true;
-							
-						}else if ( net == AENetworkClassifier.AT_I2P ){
-							
-							anon = true;
-						}
-					}
-					
-					if ( pub && anon ){
-						activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
-						activateNetwork( AENetworkClassifier.AT_I2P, false );
-					}else if ( pub ){
-						activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
-					}else if ( anon ){
-						activateNetwork( AENetworkClassifier.AT_I2P, true );
-					}
+					activateNetwork( current_favourite_net, true );
+	
 				}else{
 					
-					activateNetwork( network, false );
+					Download	download 	= current_download;
+					
+					if ( download == null ){
+						
+							// no current download to guide us, default to public
+						
+						activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
+						
+					}else{
+																			
+						String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+						
+						boolean	pub 	= false;
+						boolean	anon	= false;
+						
+						for ( String net: nets ){
+						
+							if ( net == AENetworkClassifier.AT_PUBLIC ){
+								
+								pub = true;
+								
+							}else if ( net == AENetworkClassifier.AT_I2P ){
+								
+								anon = true;
+							}
+						}
+						
+						if ( pub && anon ){
+							activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
+							activateNetwork( AENetworkClassifier.AT_I2P, false );	// warm it up
+						}else if ( pub ){
+							activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
+						}else if ( anon ){
+							activateNetwork( AENetworkClassifier.AT_I2P, true );
+						}
+					}
 				}
 			}
 		}
@@ -1217,7 +1311,7 @@ BuddyPluginView
 				
 			}else{
 				
-				key	= current_favourite;
+				key	= current_favourite_key;
 			}
 			
 			activateChat( network, key, select_tab );

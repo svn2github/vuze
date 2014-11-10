@@ -190,6 +190,8 @@ BuddyPluginViewBetaChat
 	build(
 		Composite		parent )
 	{
+		boolean public_chat = !chat.isPrivateChat();
+	
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 2;
 		layout.marginHeight = 0;
@@ -200,7 +202,7 @@ BuddyPluginViewBetaChat
 
 		Composite lhs = new Composite(parent, SWT.NONE);
 		layout = new GridLayout();
-		layout.numColumns = 1;
+		layout.numColumns = 2;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		layout.marginTop = 4;
@@ -210,18 +212,7 @@ BuddyPluginViewBetaChat
 		grid_data.widthHint = 300;
 		lhs.setLayoutData(grid_data);
 		
-		/*
-		Composite temp = new Composite(lhs, SWT.NONE);
-		layout = new GridLayout();
-		layout.numColumns = 1;
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		temp.setLayout(layout);
-		grid_data = new GridData(GridData.FILL_HORIZONTAL);
-		grid_data.horizontalIndent = 4;
-		grid_data.heightHint = 20;
-		temp.setLayoutData(grid_data);
-		*/
+		final Label menu_drop = new Label( lhs, SWT.NULL );
 		
 		status = new BufferedLabel( lhs, SWT.LEFT | SWT.DOUBLE_BUFFERED );
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
@@ -229,125 +220,106 @@ BuddyPluginViewBetaChat
 		status.setLayoutData(grid_data);
 		status.setText( MessageText.getString( "PeersView.state.pending" ));
 		
-		Control status_control = status.getControl();
-		
-		Menu status_menu = new Menu( status_control );
-		status.getControl().setMenu( status_menu );
+		if ( public_chat ){
 			
-		Menu status_clip_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
-		MenuItem status_clip_item = new MenuItem( status_menu, SWT.CASCADE);
-		status_clip_item.setMenu(status_clip_menu);
-		status_clip_item.setText(  MessageText.getString( "ConfigView.copy.to.clipboard.tooltip" ));
-		
-		MenuItem status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
-		status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.key" ));
-		
-		status_mi.addSelectionListener(
-				new SelectionAdapter() {				
-					public void 
-					widgetSelected(
-						SelectionEvent e ) 
-					{
-						ClipboardCopy.copyToClipBoard( chat.getKey());
-					}
-				});
-		
-		status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
-		status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.url" ));
-		
-		status_mi.addSelectionListener(
-				new SelectionAdapter() {				
-					public void 
-					widgetSelected(
-						SelectionEvent e ) 
-					{
-						ClipboardCopy.copyToClipBoard( chat.getURL());
-					}
-				});
-		
-		status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
-		status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.pk" ));
-		
-		status_mi.addSelectionListener(
-				new SelectionAdapter() {				
-					public void 
-					widgetSelected(
-						SelectionEvent e ) 
-					{
-						ClipboardCopy.copyToClipBoard( Base32.encode( chat.getPublicKey()));
-					}
-				});
+			Image image = ImageLoader.getInstance().getImage( "menu_down" );
+			menu_drop.setImage( image );
+			grid_data = new GridData();
+			grid_data.widthHint=image.getBounds().width;
+			grid_data.heightHint=image.getBounds().height;
+			menu_drop.setLayoutData(grid_data);
+
+			menu_drop.setCursor(menu_drop.getDisplay().getSystemCursor(SWT.CURSOR_HAND));		
+
+			Control status_control = status.getControl();
 			
-		status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
-		status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.export" ));
-		
-		status_mi.addSelectionListener(
-				new SelectionAdapter() {				
-					public void 
-					widgetSelected(
-						SelectionEvent e ) 
-					{
-						ClipboardCopy.copyToClipBoard( chat.export());
-					}
-				});
-		
-		if ( !chat.isManaged()){
+			final Menu status_menu = new Menu( status_control );
 			
-			Menu status_channel_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
-			MenuItem status_channel_item = new MenuItem( status_menu, SWT.CASCADE);
-			status_channel_item.setMenu(status_channel_menu);
-			status_channel_item.setText(  MessageText.getString( "azbuddy.dchat.rchans" ));
+			status.getControl().setMenu( status_menu );
+			menu_drop.setMenu( status_menu );
+			
+			menu_drop.addMouseListener(new MouseAdapter() {
+				public void mouseDown(MouseEvent event) {
+					try{
+						Point p = status_menu.getDisplay().map( menu_drop, null, event.x, event.y );
+						
+						status_menu.setLocation( p );
+						
+						status_menu.setVisible(true);
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e);
+					}
+				}
+			});
 	
-			status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
-			status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.managed" ));
-	
+			Menu status_clip_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
+			MenuItem status_clip_item = new MenuItem( status_menu, SWT.CASCADE);
+			status_clip_item.setMenu(status_clip_menu);
+			status_clip_item.setText(  MessageText.getString( "ConfigView.copy.to.clipboard.tooltip" ));
+			
+			MenuItem status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
+			status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.key" ));
+			
 			status_mi.addSelectionListener(
 					new SelectionAdapter() {				
 						public void 
 						widgetSelected(
-							SelectionEvent event ) 
+							SelectionEvent e ) 
 						{
-							String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "]";
-							
-							try{
-								ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
-								
-								new BuddyPluginViewBetaChat( plugin, inst );
-								
-							}catch( Throwable e ){
-								
-								Debug.out( e );
-							}
+							ClipboardCopy.copyToClipBoard( chat.getKey());
 						}
 					});
 			
-			status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
-			status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.ro" ));
-	
+			status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
+			status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.url" ));
+			
 			status_mi.addSelectionListener(
 					new SelectionAdapter() {				
 						public void 
 						widgetSelected(
-							SelectionEvent event ) 
+							SelectionEvent e ) 
 						{
-							String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "&ro=1]";
-							
-							try{
-								ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
-								
-								new BuddyPluginViewBetaChat( plugin, inst );
-								
-							}catch( Throwable e ){
-								
-								Debug.out( e );
-							}						
+							ClipboardCopy.copyToClipBoard( chat.getURL());
 						}
 					});
 			
-			if ( plugin.getBeta().isI2PAvailable()){
+			status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
+			status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.pk" ));
+			
+			status_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							ClipboardCopy.copyToClipBoard( Base32.encode( chat.getPublicKey()));
+						}
+					});
+							
+			status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
+			status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.export" ));
+			
+			status_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							ClipboardCopy.copyToClipBoard( chat.export());
+						}
+					});
+			
+			if ( !chat.isManaged()){
 				
+				Menu status_channel_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
+				MenuItem status_channel_item = new MenuItem( status_menu, SWT.CASCADE);
+				status_channel_item.setMenu(status_channel_menu);
+				status_channel_item.setText(  MessageText.getString( "azbuddy.dchat.rchans" ));
+		
 				status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
-				status_mi.setText( MessageText.getString(  chat.getNetwork()==AENetworkClassifier.AT_I2P?"azbuddy.dchat.rchans.pub":"azbuddy.dchat.rchans.anon" ));
+				status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.managed" ));
 		
 				status_mi.addSelectionListener(
 						new SelectionAdapter() {				
@@ -355,8 +327,33 @@ BuddyPluginViewBetaChat
 							widgetSelected(
 								SelectionEvent event ) 
 							{
-										try{
-									ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork()==AENetworkClassifier.AT_I2P?AENetworkClassifier.AT_PUBLIC:AENetworkClassifier.AT_I2P, chat.getKey());
+								String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "]";
+								
+								try{
+									ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
+									
+									new BuddyPluginViewBetaChat( plugin, inst );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						});
+				
+				status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
+				status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.ro" ));
+		
+				status_mi.addSelectionListener(
+						new SelectionAdapter() {				
+							public void 
+							widgetSelected(
+								SelectionEvent event ) 
+							{
+								String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "&ro=1]";
+								
+								try{
+									ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
 									
 									new BuddyPluginViewBetaChat( plugin, inst );
 									
@@ -366,7 +363,48 @@ BuddyPluginViewBetaChat
 								}						
 							}
 						});
+				
+				if ( plugin.getBeta().isI2PAvailable()){
+					
+					status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
+					status_mi.setText( MessageText.getString(  chat.getNetwork()==AENetworkClassifier.AT_I2P?"azbuddy.dchat.rchans.pub":"azbuddy.dchat.rchans.anon" ));
+			
+					status_mi.addSelectionListener(
+							new SelectionAdapter() {				
+								public void 
+								widgetSelected(
+									SelectionEvent event ) 
+								{
+											try{
+										ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork()==AENetworkClassifier.AT_I2P?AENetworkClassifier.AT_PUBLIC:AENetworkClassifier.AT_I2P, chat.getKey());
+										
+										new BuddyPluginViewBetaChat( plugin, inst );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}						
+								}
+							});
+				}
 			}
+							
+			final MenuItem fave_mi = new MenuItem( status_menu, SWT.CHECK );
+			fave_mi.setText( MessageText.getString( "label.fave" ));
+			fave_mi.setSelection( chat.isFavourite());
+			
+			fave_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							chat.setFavourite( fave_mi.getSelection());
+						}
+					});
+		}else{
+			
+			menu_drop.setVisible( false );
 		}
 		
 		Composite log_holder = new Composite(lhs, SWT.BORDER);
@@ -377,6 +415,7 @@ BuddyPluginViewBetaChat
 		layout.marginLeft = 4;
 		log_holder.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_BOTH );
+		grid_data.horizontalSpan = 2;
 		log_holder.setLayoutData(grid_data);
 		
 		log = new StyledText(log_holder,SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
@@ -578,7 +617,7 @@ BuddyPluginViewBetaChat
 		//grid_data.heightHint = 50;
 		top_right.setLayoutData(grid_data);
 		
-		boolean	can_popout = shell == null && !chat.isPrivateChat();
+		boolean	can_popout = shell == null && public_chat;
 
 		Label label = new Label( top_right, SWT.NULL );
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
