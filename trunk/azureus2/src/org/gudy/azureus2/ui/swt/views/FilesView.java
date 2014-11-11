@@ -332,11 +332,20 @@ public class FilesView
 			
 			ManagerUtils.open( fileInfo, openMode) ;
 			
-		}else if ( mode.equals( "3" )){
+		}else if ( mode.equals( "3" ) || mode.equals( "4" )){
 			
 			if ( fileInfo.getAccessMode() == DiskManagerFileInfo.READ ){
 				
-				Utils.launch(fileInfo);
+				if ( 	mode.equals( "4" ) &&
+						fileInfo.getDownloaded() == fileInfo.getLength() &&
+						Utils.isQuickViewSupported( fileInfo )){
+					
+					Utils.setQuickViewActive( fileInfo, true );
+					
+				}else{
+				
+					Utils.launch(fileInfo);
+				}
 			}	
 		}else{
 			

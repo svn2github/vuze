@@ -315,7 +315,7 @@ public class SBC_LibraryTableView
 				ManagerUtils.open(file, openMode);
 				return;
 			}
-		}else if (mode.equals("3")) {
+		}else if (mode.equals("3") || mode.equals("4")){
 			// Launch
 			DownloadManager dm = DataSourceUtils.getDM(ds);
 			if (dm != null) {
@@ -324,7 +324,14 @@ public class SBC_LibraryTableView
 			}
 			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
 			if (file != null) {
-				TorrentUtil.runDataSources(new Object[]{ file });
+				if (	mode.equals("4") &&
+						file.getDownloaded() == file.getLength() &&
+						Utils.isQuickViewSupported( file )){
+					
+					Utils.setQuickViewActive( file, true );
+				}else{
+					TorrentUtil.runDataSources(new Object[]{ file });
+				}
 				return;
 			}
 		}
