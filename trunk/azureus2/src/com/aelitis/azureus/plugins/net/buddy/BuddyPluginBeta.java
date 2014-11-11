@@ -363,7 +363,7 @@ BuddyPluginBeta
 					runSupport() 
 					{
 						try{
-							if ( Constants.isCVSVersion()){
+							if ( Constants.isCVSVersion() && enabled.getValue()){
 							
 								//Debug.out( "PUB CHAT DISABLED!!!!" );
 								
@@ -474,6 +474,22 @@ BuddyPluginBeta
 		ChatInstance chat = getChat( network, key) ;
 			
 		ui.openChat( chat );
+	}
+	
+	public void
+	showChat(
+		ChatInstance	inst )
+		
+		throws Exception
+	{
+		BuddyPluginViewInterface ui = plugin.getSWTUI();
+		
+		if ( ui == null ){
+			
+			throw( new Exception( "UI unavailable" ));
+		}
+							
+		ui.openChat( inst );
 	}
 	
 	private String
@@ -1764,6 +1780,105 @@ BuddyPluginBeta
 					return;
 				}
 				
+				if ( message.startsWith( "/" )){
+										
+					String[] bits = message.split( "[\\s]+", 3 );
+					
+					String command = bits[0].toLowerCase( Locale.US );
+					
+					boolean	ok = false;
+					
+					try{
+						if ( command.equals( "/join" )){
+							
+							if ( bits.length > 1 ){
+								
+								getAndShowChat( AENetworkClassifier.AT_PUBLIC, bits[1] );
+								
+								ok = true;
+							}
+						}else if ( command.equals( "/ajoin" )){
+							
+							if ( bits.length > 1 && isI2PAvailable()){
+								
+								getAndShowChat( AENetworkClassifier.AT_I2P, bits[1] );
+								
+								ok = true;
+							}
+						}else if ( command.equals( "/msg" ) || command.equals( "/query" )){
+							
+							if ( bits.length > 1 ){
+								
+								String nick = bits[1];
+								
+								String	pm = bits.length ==2?"":bits[2].trim();
+								
+								ChatParticipant p = getParticipant( nick );
+								
+								if ( p == null ){
+									
+									throw( new Exception( "Nick not found: " + nick ));
+									
+								}else if ( p.isMe()){
+									
+									throw( new Exception( "Can't chat to yourself" ));
+								}
+								
+								ChatInstance ci = p.createPrivateChat();
+								
+								if ( pm.length() > 0 ){
+								
+									ci.sendMessage( pm );
+								}
+								
+								showChat( ci );
+								
+								ok = true;
+							}
+						}else if ( command.equals( "/ignore" )){
+							
+							if ( bits.length > 1 ){
+								
+								String nick = bits[1];
+								
+								boolean	ignore = true;
+								
+								if ( nick.equals( "-r" ) && bits.length > 2 ){
+									
+									nick = bits[2];
+									
+									ignore = false;
+								}
+								
+								ChatParticipant p = getParticipant( nick );
+								
+								if ( p == null ){
+									
+									throw( new Exception( "Nick not found: " + nick ));
+								}
+								
+								p.setIgnored( ignore );
+								
+									// obviously the setter should do this but whatever for the mo
+								
+								updated( p );
+								
+								ok = true;
+							}
+						}
+						
+						if ( !ok ){
+							
+							Debug.outNoStack( "Unhandled command: " + message );
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+					
+					return;
+				}
+				
 				try{
 					ChatMessage		prev_message = null;
 					
@@ -1837,6 +1952,24 @@ BuddyPluginBeta
 				
 				return( participants.values().toArray( new ChatParticipant[ participants.size()]));
 			}
+		}
+		
+		public ChatParticipant
+		getParticipant(
+			String	nick )
+		{
+			synchronized( chat_lock ){
+				
+				for ( ChatParticipant cp: participants.values()){
+					
+					if ( cp.getName().equals( nick )){
+						
+						return( cp );
+					}
+				}
+			}
+			
+			return( null );
 		}
 		
 		protected void

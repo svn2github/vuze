@@ -1441,6 +1441,8 @@ BuddyPluginViewBetaChat
 							
 							if ( item.getData() == participant ){
 								
+								setProperties( item, participant );
+								
 								String old_name = item.getText(0);
 								
 								if ( !old_name.equals( name )){
