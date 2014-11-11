@@ -32,6 +32,7 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuDetectEvent;
 import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.events.MenuEvent;
@@ -220,40 +221,40 @@ BuddyPluginViewBetaChat
 		status.setLayoutData(grid_data);
 		status.setText( MessageText.getString( "PeersView.state.pending" ));
 		
-		if ( public_chat ){
-			
-			Image image = ImageLoader.getInstance().getImage( "menu_down" );
-			menu_drop.setImage( image );
-			grid_data = new GridData();
-			grid_data.widthHint=image.getBounds().width;
-			grid_data.heightHint=image.getBounds().height;
-			menu_drop.setLayoutData(grid_data);
+		Image image = ImageLoader.getInstance().getImage( "menu_down" );
+		menu_drop.setImage( image );
+		grid_data = new GridData();
+		grid_data.widthHint=image.getBounds().width;
+		grid_data.heightHint=image.getBounds().height;
+		menu_drop.setLayoutData(grid_data);
 
-			menu_drop.setCursor(menu_drop.getDisplay().getSystemCursor(SWT.CURSOR_HAND));		
+		menu_drop.setCursor(menu_drop.getDisplay().getSystemCursor(SWT.CURSOR_HAND));		
 
-			Control status_control = status.getControl();
-			
-			final Menu status_menu = new Menu( status_control );
-			
-			status.getControl().setMenu( status_menu );
-			menu_drop.setMenu( status_menu );
-			
-			menu_drop.addMouseListener(new MouseAdapter() {
-				public void mouseDown(MouseEvent event) {
-					try{
-						Point p = status_menu.getDisplay().map( menu_drop, null, event.x, event.y );
-						
-						status_menu.setLocation( p );
-						
-						status_menu.setVisible(true);
-						
-					}catch( Throwable e ){
-						
-						Debug.out( e);
-					}
+		Control status_control = status.getControl();
+		
+		final Menu status_menu = new Menu( status_control );
+		
+		status.getControl().setMenu( status_menu );
+		menu_drop.setMenu( status_menu );
+		
+		menu_drop.addMouseListener(new MouseAdapter() {
+			public void mouseDown(MouseEvent event) {
+				try{
+					Point p = status_menu.getDisplay().map( menu_drop, null, event.x, event.y );
+					
+					status_menu.setLocation( p );
+					
+					status_menu.setVisible(true);
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e);
 				}
-			});
-	
+			}
+		});
+
+		if ( public_chat ){
+				
 			Menu status_clip_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
 			MenuItem status_clip_item = new MenuItem( status_menu, SWT.CASCADE);
 			status_clip_item.setMenu(status_clip_menu);
@@ -375,7 +376,7 @@ BuddyPluginViewBetaChat
 								widgetSelected(
 									SelectionEvent event ) 
 								{
-											try{
+									try{
 										ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork()==AENetworkClassifier.AT_I2P?AENetworkClassifier.AT_PUBLIC:AENetworkClassifier.AT_I2P, chat.getKey());
 										
 										new BuddyPluginViewBetaChat( plugin, inst );
@@ -404,7 +405,56 @@ BuddyPluginViewBetaChat
 					});
 		}else{
 			
-			menu_drop.setVisible( false );
+			final Menu status_priv_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
+			MenuItem status_priv_item = new MenuItem( status_menu, SWT.CASCADE);
+			status_priv_item.setMenu(status_priv_menu);
+			status_priv_item.setText(  MessageText.getString( "label.private.chat" ));
+					
+			SelectionAdapter listener = 
+				new SelectionAdapter()
+				{				
+					public void 
+					widgetSelected(
+						SelectionEvent e ) 
+					{
+						plugin.getBeta().setPrivateChatState((Integer)((MenuItem)e.widget).getData());
+					}
+				};
+			
+			MenuItem status_mi = new MenuItem( status_priv_menu, SWT.RADIO );
+			status_mi.setText( MessageText.getString( "devices.contextmenu.od.enabled" ));
+			status_mi.setData( BuddyPluginBeta.PRIVATE_CHAT_ENABLED );
+			
+			status_mi.addSelectionListener( listener );
+		
+			status_mi = new MenuItem( status_priv_menu, SWT.RADIO );
+			status_mi.setText( MessageText.getString( "label.pinned.only" ));
+			status_mi.setData( BuddyPluginBeta.PRIVATE_CHAT_PINNED_ONLY );
+			
+			status_mi.addSelectionListener( listener );
+
+			status_mi = new MenuItem( status_priv_menu, SWT.RADIO );
+			status_mi.setText( MessageText.getString( "pairing.status.disabled" ));
+			status_mi.setData( BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+			
+			status_mi.addSelectionListener( listener );
+
+			
+			status_priv_menu.addMenuListener(
+				new MenuAdapter() 
+				{
+					public void 
+					menuShown(
+						MenuEvent e ) 
+					{
+						int pc_state = plugin.getBeta().getPrivateChatState();
+						
+						for ( MenuItem mi: status_priv_menu.getItems()){
+							
+							mi.setSelection( pc_state == (Integer)mi.getData());
+						}
+					}
+				});
 		}
 		
 		Composite log_holder = new Composite(lhs, SWT.BORDER);
@@ -631,7 +681,7 @@ BuddyPluginViewBetaChat
 		if ( can_popout ){
 			
 			Label pop_out = new Label( top_right, SWT.NULL );
-			Image image = ImageLoader.getInstance().getImage( "popout_window" );
+			image = ImageLoader.getInstance().getImage( "popout_window" );
 			pop_out.setImage( image );
 			grid_data = new GridData();
 			grid_data.widthHint=image.getBounds().width;
