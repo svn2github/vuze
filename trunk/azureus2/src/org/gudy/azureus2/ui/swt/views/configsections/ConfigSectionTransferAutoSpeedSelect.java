@@ -5,6 +5,7 @@ import org.gudy.azureus2.ui.swt.views.stats.TransferStatsView;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -584,7 +585,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
 	    });
-
+	    ClipboardCopy.addCopyToClipMenu( linkLabel );
 
         return cSection;
     }//configSectionCreate

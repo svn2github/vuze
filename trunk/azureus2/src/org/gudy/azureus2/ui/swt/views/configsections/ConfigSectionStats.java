@@ -40,11 +40,11 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -209,6 +209,7 @@ public class ConfigSectionStats implements UISWTConfigSection {
     final String linkFAQ = "http://plugins.vuze.com/faq.php#20";
     lxslDetails.setCursor(lxslDetails.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     lxslDetails.setForeground(Colors.blue);
+    lxslDetails.setData( linkFAQ );
     lxslDetails.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
       	Utils.launch(linkFAQ);
@@ -217,6 +218,7 @@ public class ConfigSectionStats implements UISWTConfigSection {
       	Utils.launch(linkFAQ);
       }
     });
+    ClipboardCopy.addCopyToClipMenu( lxslDetails );
     controls[7] = lxslDetails;
     
     // row

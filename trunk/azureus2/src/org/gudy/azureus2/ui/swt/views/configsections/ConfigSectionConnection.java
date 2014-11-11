@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -314,6 +315,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 					Utils.launch((String) ((Label) arg0.widget).getData());
 				}
 			});
+			ClipboardCopy.addCopyToClipMenu( linkLabel );
 		}
 
 		if (userMode > 0) {

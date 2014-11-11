@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -307,7 +308,7 @@ ConfigSectionSecurity
 					Utils.launch((String) ((Label) arg0.widget).getData());
 				}
 			});
-			
+			ClipboardCopy.addCopyToClipMenu( linkLabel );
 			
 				// publick key display
 

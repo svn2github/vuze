@@ -28,7 +28,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
@@ -40,6 +39,7 @@ import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -233,6 +233,7 @@ ConfigSectionTrackerServer
     Messages.setLanguageText(ssl_faq_label, CFG_PREFIX + "tracker.sslport.info");
     final String linkFAQ = "http://plugins.vuze.com/faq.php#19";
     ssl_faq_label.setCursor(ssl_faq_label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+    ssl_faq_label.setData(linkFAQ);
     ssl_faq_label.setForeground(Colors.blue);
     ssl_faq_label.addMouseListener(new MouseAdapter() {
        public void mouseDoubleClick(MouseEvent arg0) {
@@ -242,6 +243,7 @@ ConfigSectionTrackerServer
       	 Utils.launch(linkFAQ);
        }
     });
+    ClipboardCopy.addCopyToClipMenu( ssl_faq_label );
     
     Control[] ssl_controls = { 	
     		tracker_port_ssl.getControl(),

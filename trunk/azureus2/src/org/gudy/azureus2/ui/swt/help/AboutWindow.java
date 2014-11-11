@@ -28,7 +28,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -205,10 +204,11 @@ public class AboutWindow {
         public void mouseDoubleClick(MouseEvent arg0) {
         	Utils.launch((String) ((CLabel) arg0.widget).getData());
         }
-        public void mouseDown(MouseEvent arg0) {
+        public void mouseUp(MouseEvent arg0) {
         	Utils.launch((String) ((CLabel) arg0.widget).getData());
         }
       });
+      ClipboardCopy.addCopyToClipMenu( linkLabel );
     }
     
     Label labelOwner = new Label(window, SWT.WRAP | SWT.CENTER);

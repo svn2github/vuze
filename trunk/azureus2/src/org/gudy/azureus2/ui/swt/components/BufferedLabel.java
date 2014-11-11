@@ -196,6 +196,8 @@ BufferedLabel
 		    	  }
 		      }
 		    });	
+		    
+		    ClipboardCopy.addCopyToClipMenu( label );
 		}
 	}
 	

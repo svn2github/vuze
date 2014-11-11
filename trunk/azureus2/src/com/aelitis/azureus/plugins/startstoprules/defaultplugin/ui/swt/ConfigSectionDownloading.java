@@ -30,6 +30,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.IntParameter;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -102,6 +103,8 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
 			Utils.launch((String) ((Label) arg0.widget).getData());
 		}
 	});
+	ClipboardCopy.addCopyToClipMenu( linkLabel );
+	
     	// enable
     
     gridData = new GridData();

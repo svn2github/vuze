@@ -36,8 +36,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -161,7 +161,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 4;
     linkLabel.setLayoutData(gridData);
-   
+    ClipboardCopy.addCopyToClipMenu( linkLabel );
     
     final Runnable setModeText = 
     	new Runnable()

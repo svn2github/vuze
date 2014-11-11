@@ -25,9 +25,9 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 public class 
@@ -86,7 +86,8 @@ LinkLabel
 	      public void mouseUp(MouseEvent arg0) {
 	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
-	    });		
+	    });	
+	    ClipboardCopy.addCopyToClipMenu( label );
 	}
 	
 	public static void updateLinkedLabel(Label label, String hyperlink) {

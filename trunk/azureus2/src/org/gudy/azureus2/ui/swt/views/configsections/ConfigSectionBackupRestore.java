@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.IntParameter;
 import org.gudy.azureus2.ui.swt.config.StringParameter;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -113,7 +114,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 		linkLabel.setData("http://wiki.vuze.com/w/Backup_And_Restore");
 		linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		linkLabel.setForeground(Colors.blue);
-    gridData = Utils.getWrappableLabelGridData(1, 0);
+		gridData = Utils.getWrappableLabelGridData(1, 0);
 		linkLabel.setLayoutData(gridData);
 		linkLabel.addMouseListener(new MouseAdapter() {
 			public void mouseDoubleClick(MouseEvent arg0) {
@@ -124,6 +125,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 				Utils.launch((String) ((Label) arg0.widget).getData());
 			}
 		});
+		ClipboardCopy.addCopyToClipMenu( linkLabel );
 		
 	    final BackupManager	backup_manager = BackupManagerFactory.getManager( AzureusCoreFactory.getSingleton());
 	    

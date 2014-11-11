@@ -118,6 +118,22 @@ public class ClipboardCopy {
 		  });
   }
   
+  public static void
+  addCopyToClipMenu(
+	final Control				control )
+  {
+	  addCopyToClipMenu(
+		control,
+		new copyToClipProvider()
+		{
+			  public String
+			  getText()
+			  {
+				  return((String)control.getData());
+			  }
+		});
+  }
+  
   public interface
   copyToClipProvider
   {
