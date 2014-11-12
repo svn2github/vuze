@@ -3,6 +3,39 @@ VUZE CHANGELOG
 
 2014.xx.yy | Vuze 5.4.0.1
 
+FEATURE: UI   | Added option to use quick-view rather than 'launch' when double-clicking files [Parg]
+FEATURE: UI   | Tag Discoveries [TuxPaper]
+FEATURE: UI   | Use of ctrl+<space> in download save location field now shows auto-complete suggestions [Parg]
+FEATURE: UI   | History size of saved download locations now configurable [Parg]
+FEATURE: UI   | Added option in torrent options dialog to remove top level folder in multi-file torrents [Parg]
+FEATURE: UI   | RSS subscriptions can now be added via search box [Parg]
+FEATURE: UI   | Added 'Tag groups' to allow more control over tag order in the sidebar [Parg]
+FEATURE: UI   | Tag buttons in Library views now obey visility settings [Parg]
+FEATURE: UI   | Option to only show tag buttons in the complete section of the Library views [Parg]
+FEATURE: UI   | Ability to set short-cut accelerators on a per-config panel basis [Parg]
+FEATURE: UI   | Optional 'selected download' aggregate up/down rates in Library header [Parg]
+FEATURE: UI   | Console UI commands for subscriptions [Parg]
+FEATURE: UI   | Console UI commands for tags [Parg]
+FEATURE: Core | Added ability set an explicit share ratio to help control seeding rules [Parg]
+FEATURE: Core | Option to prevent local tracker host DNS resolution when using SOCKS [Parg]
+FEATURE: Core | Added 'hasNet' to tag constraint language [Parg]
+FEATURE: Core | Speed limit handler ip-sets renamed to peer-sets and now support tags and networks [Parg]
+FEATURE: Core | Support for setting upload and download speeds to 'disabled' [Parg]
+
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Most http links in the UI now have copy-to-clipboard menu option [Parg]
+CHANGE: UI    | Personal share menu enable/disable state not calculated for large torrents due to resource cost [TuxPaper]
+CHANGE: UI    | Automatic renaming oftorrents who's top level folder has changed is now optional [Parg]
+CHANGE: UI    | Prevent disabled sub-rows from being expanded in Library [Parg]
+CHANGE: Core  | Ignore low-noise downloads when considering 'close on download complete' action [Parg]
+CHANGE: Core  | Option to remove low-noise downloads from RSS Feeds [Parg]
+CHANGE: Core  | Handle null-content type being returned by some borked feeds [Parg]
+
+BUGFIX: Core  | Tags weren't being propagated from subscriptions to downloads correctly [Parg]
+BUGFIX: Core  | Fix meta-data download over LT which was causing first peer to be ignored [Parg]
+BUGFIX: Core  | Fixed fast-extension exploit that could be used to waste seeding bandwidth [Parg]
+BUGFIX: Core  | Rotating bloom filters weren't being reset correctly [Parg]
+BUGFIX: Core  | Remove some DNS leaks [Parg]
 
 2014.07.30 | Vuze 5.4.0.0
 
@@ -34,7 +67,7 @@ CHANGE: UI    | Spanish translation update [Valtiel]
 CHANGE: UI    | Basque translation update [Azpidatziak]
 CHANGE: UI    | Network Status plugin results can now be copied to clipboard [Parg]
 CHANGE: UI    | Removed potential duplicate 'media already added' dialogs from inadvertent double-clicking [Parg]
-CHANGE: UI    | Windows: Azureus.exe binary description now set to play better with Firefox/Thunderbird URI launch dialog [Tux]
+CHANGE: UI    | Windows: Azureus.exe binary description now set to play better with Firefox/Thunderbird URI launch dialog [TuxPaper]
 CHANGE: UI    | All-peers and console views will now re-open on startup if open on close [Parg]
 CHANGE: UI    | Use consistent sash to separate the tabs area in library views [Parg]
 CHANGE: UI    | Sources view now displays scrape status for stopped downloads [Parg]
