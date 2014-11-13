@@ -100,6 +100,8 @@ BuddyPluginBeta
 		plugin				= _plugin;
 		enabled				= _enabled;
 		
+		ftux_accepted 	= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ftux.accepted", false );
+
 		shared_public_nickname 	= COConfigurationManager.getStringParameter( "azbuddy.chat.shared_nick", "" );
 		shared_anon_nickname 	= COConfigurationManager.getStringParameter( "azbuddy.chat.shared_anon_nick", "" );
 		private_chat_state	 	= COConfigurationManager.getIntParameter( "azbuddy.chat.private_chat_state", PRIVATE_CHAT_ENABLED );
@@ -461,14 +463,25 @@ BuddyPluginBeta
 		ui.openChat( chat );
 	}
 	
-	public void
-	setFTUXAccepted()
+	public boolean
+	getFTUXAccepted()
 	{
-		ftux_accepted = true;
+		return( ftux_accepted );
+	}
+	
+	public void
+	setFTUXAccepted(
+		boolean	accepted )
+	{
+		ftux_accepted = accepted;
+		
+		COConfigurationManager.setParameter( "azbuddy.dchat.ftux.accepted", true );
+		
+		COConfigurationManager.save();
 		
 		for ( FTUXStateChangeListener l: ftux_listeners ){
 			
-			l.stateChanged( true );
+			l.stateChanged( accepted );
 		}
 	}
 	
@@ -1809,6 +1822,12 @@ BuddyPluginBeta
 					sortMessages( false );
 					
 					return;
+					
+				}else if ( message.equals( "!ftux!" )){
+					
+					plugin.getBeta().setFTUXAccepted( false );
+					
+					return;
 				}
 				
 				if ( message.startsWith( "/" )){
@@ -2231,9 +2250,23 @@ BuddyPluginBeta
 		}
 		
 		public String
-		getName() 
+		getName()
 		{
-			return( nickname );
+			return( getName( true ));
+		}
+		
+		public String
+		getName(
+			boolean	use_nick )
+		{
+			if ( use_nick ){
+				
+				return( nickname );
+				
+			}else{
+				
+				return( pkToString( pk ));
+			}
 		}
 		
 		public boolean

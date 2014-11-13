@@ -127,6 +127,8 @@ BuddyPluginViewBetaChat
 	private Color	ftux_dark_fg;
 	private Color	ftux_light_bg;
 	
+	private boolean	ftux_ok;
+	
 	protected
 	BuddyPluginViewBetaChat(
 		BuddyPlugin		_plugin,
@@ -507,42 +509,6 @@ BuddyPluginViewBetaChat
 		final Composite log_holder = new Composite(ftux_stack, SWT.BORDER);
 		
 		final Composite ftux_holder = new Composite(ftux_stack, SWT.BORDER);
-			
-		final boolean[] ftux_init_done = { false };
-		
-		plugin.getBeta().addFTUXStateChangeListener(
-			new FTUXStateChangeListener()
-			{
-				public void
-				stateChanged(
-					final boolean		ftux_ok )
-				{
-					if ( ftux_stack.isDisposed()){
-						
-						plugin.getBeta().removeFTUXStateChangeListener( this );
-						
-					}else{
-						
-						Utils.execSWTThread(
-							new Runnable()
-							{
-								
-								public void 
-								run()
-								{
-									stack_layout.topControl = ftux_ok?log_holder:ftux_holder;
-									
-									if ( ftux_init_done[0]){
-									
-										ftux_stack.layout();
-									}
-								}
-							});
-					}
-				}
-			});
-
-		ftux_init_done[0] = true;
 		
 			// FTUX panel
 		
@@ -580,27 +546,28 @@ BuddyPluginViewBetaChat
 		ftux_top.setBackground( ftux_dark_bg );
 		ftux_top.setForeground( ftux_dark_fg );
 		ftux_top.setFont( big_font );
-		ftux_top.setText( "Welcome to Chat" );
+		ftux_top.setText( MessageText.getString( "azbuddy.dchat.ftux.welcome" ));
 		
 			// middle info
 		
 		final StyledText ftux_middle = new StyledText( ftux_holder, SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
 		
-		//Label ftux_middle = new Label( ftux_holder, SWT.WRAP );
 		grid_data = new GridData(GridData.FILL_BOTH );
 		grid_data.verticalIndent = 4;
 		grid_data.horizontalIndent = 16;
 		ftux_middle.setLayoutData(grid_data);
 		
 		ftux_middle.setBackground( ftux_light_bg );
-		ftux_middle.setLineSpacing( 0 );
-		
-		String info_text = 
+				
+		String info1_text = 
 		"Vuze chat allows you to communicate with other Vuze users directly by sending and receiving messages.\n" +
 		"It is a decentralized chat system - there are no central servers involved, all messages are passed directly between Vuze users.\n" +
 		"Consequently Vuze has absolutely no control over message content. In particular no mechanism exists (nor is possible) for Vuze to moderate or otherwise control either messages or the users that send messages.";
 		
-		String[] info_lines = info_text.split( "\\n" );
+		String info2_text =
+		"I UNDERSTAND AND AGREE that Vuze has no responsibility whatsoever with my enabling this function and using chat.";
+		
+		String[] info_lines = info1_text.split( "\n" );
 		
 		for ( String line: info_lines ){
 		
@@ -629,6 +596,8 @@ BuddyPluginViewBetaChat
 		
 		Composite ftux_check_area = new Composite( ftux_holder, SWT.NULL );
 		layout = new GridLayout();
+		layout.marginLeft = 0;
+		layout.marginWidth = 0;
 		layout.numColumns = 2;
 		ftux_check_area.setLayout(layout);
 		
@@ -647,7 +616,7 @@ BuddyPluginViewBetaChat
 		ftux_check_test.setLayoutData(grid_data);
 		
 		ftux_check_test.setBackground( ftux_light_bg );
-		ftux_check_test.setText( "I UNDERSTAND AND AGREE that Vuze has no responsibility whatsoever with my enabling this function and using chat." );
+		ftux_check_test.setText( info2_text );
 
 		
 			// bottom info
@@ -659,13 +628,13 @@ BuddyPluginViewBetaChat
 		
 		ftux_bottom.setBackground( ftux_light_bg );
 		ftux_bottom.setFont( bold_font );
-		ftux_bottom.setText( "Any use of Vuze\u00AE or Vuze+\u2122 that violates the rights of any person or entity is not allowed. " );
+		ftux_bottom.setText( MessageText.getString( "azbuddy.dchat.ftux.footer" ) + " " );
 		
 		{
 			int	start	= ftux_bottom.getText().length();
 			
-			String url 		= "http://wiki.vuze.com/w/FAQ_Legal";
-			String url_text	= "More...";
+			String url 		= MessageText.getString( "faq.legal.url" );
+			String url_text	= MessageText.getString( "label.more.dot" );
 			
 			ftux_bottom.append( url_text );
 			
@@ -728,7 +697,7 @@ BuddyPluginViewBetaChat
 		grid_data.widthHint = 60;
 		ftux_accept.setLayoutData(grid_data);
 
-		ftux_accept.setText( "Accept" );
+		ftux_accept.setText( MessageText.getString( "label.accept" ));
 		
 		ftux_accept.setEnabled( false );
 		
@@ -736,7 +705,7 @@ BuddyPluginViewBetaChat
 			new SelectionAdapter() {
 				
 				public void widgetSelected(SelectionEvent e) {
-					plugin.getBeta().setFTUXAccepted();
+					plugin.getBeta().setFTUXAccepted( true );
 				}
 			});
 		
@@ -1119,7 +1088,7 @@ BuddyPluginViewBetaChat
 					
 					item.setData( participant );
 					
-					item.setText(0, participant.getName());		
+					item.setText(0, participant.getName( ftux_ok ));		
 					
 					setProperties( item, participant );
 				}
@@ -1203,10 +1172,15 @@ BuddyPluginViewBetaChat
 				}
 			});
 		
+		ftux_ok = plugin.getBeta().getFTUXAccepted();
+		
 		if ( chat.isReadOnly()){
 		
 			input_area.setText( MessageText.getString( "azbuddy.dchat.ro" ));
-			
+					
+			input_area.setEnabled( false );
+		
+		}else if ( !ftux_ok ){
 			
 			input_area.setEnabled( false );
 			
@@ -1214,6 +1188,53 @@ BuddyPluginViewBetaChat
 		
 			input_area.setFocus();
 		}
+		
+		final boolean[] ftux_init_done = { false };
+		
+		plugin.getBeta().addFTUXStateChangeListener(
+			new FTUXStateChangeListener()
+			{
+				public void
+				stateChanged(
+					final boolean		_ftux_ok )
+				{
+					if ( ftux_stack.isDisposed()){
+						
+						plugin.getBeta().removeFTUXStateChangeListener( this );
+						
+					}else{
+						
+						Utils.execSWTThread(
+							new Runnable()
+							{
+								
+								public void 
+								run()
+								{
+									ftux_ok = _ftux_ok;
+									
+									stack_layout.topControl = ftux_ok?log_holder:ftux_holder;
+									
+									if ( ftux_init_done[0]){
+									
+										ftux_stack.layout( true, true );
+									}
+									
+									if ( !chat.isReadOnly()){
+										
+										input_area.setEnabled( ftux_ok );
+									}
+									
+									table_resort_required = true;
+									
+									updateTable( false );
+								}
+							});
+					}
+				}
+			});
+
+		ftux_init_done[0] = true;
 		
 		BuddyPluginBeta.ChatParticipant[] existing_participants = chat.getParticipants();
 		
@@ -1675,7 +1696,7 @@ BuddyPluginViewBetaChat
 					
 					if ( b_p1 == b_p2 ){
 					
-						return( comp.compare( p1.getName(), p2.getName()));
+						return( comp.compare( p1.getName( ftux_ok ), p2.getName( ftux_ok )));
 						
 					}else if ( b_p1 ){
 						
@@ -1722,7 +1743,7 @@ BuddyPluginViewBetaChat
 						
 						TableItem[] items = buddy_table.getItems();
 						
-						String	name = participant.getName();
+						String	name = participant.getName( ftux_ok );
 						
 						for ( TableItem item: items ){
 							
