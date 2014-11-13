@@ -85,6 +85,10 @@ BuddyPluginBeta
 
 	private Map<String,Long>		favourite_map;
 	
+	private CopyOnWriteList<FTUXStateChangeListener>		ftux_listeners = new CopyOnWriteList<FTUXStateChangeListener>();
+	
+	private boolean	ftux_accepted = false;
+	
 	protected
 	BuddyPluginBeta(
 		PluginInterface		_pi,
@@ -455,6 +459,33 @@ BuddyPluginBeta
 		ChatInstance chat = getChat(network, key);
 			
 		ui.openChat( chat );
+	}
+	
+	public void
+	setFTUXAccepted()
+	{
+		ftux_accepted = true;
+		
+		for ( FTUXStateChangeListener l: ftux_listeners ){
+			
+			l.stateChanged( true );
+		}
+	}
+	
+	public void
+	addFTUXStateChangeListener(
+		FTUXStateChangeListener		listener )
+	{
+		ftux_listeners.add( listener );
+		
+		listener.stateChanged( ftux_accepted );
+	}
+	
+	public void
+	removeFTUXStateChangeListener(
+		FTUXStateChangeListener		listener )
+	{
+		ftux_listeners.remove( listener );
 	}
 	
 	public void
@@ -2712,5 +2743,13 @@ BuddyPluginBeta
 		
 		public void
 		updated();
+	}
+	
+	public interface
+	FTUXStateChangeListener
+	{
+		public void
+		stateChanged(
+			boolean	accepted );
 	}
 }

@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.DisposeEvent;
@@ -39,11 +40,14 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GlyphMetrics;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -51,6 +55,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -114,6 +119,13 @@ BuddyPluginViewBetaChat
 	private boolean		table_resort_required;
 	
 	private Font	italic_font;
+	private Font	bold_font;
+	private Font	big_font;
+	private Font	small_font;
+	
+	private Color	ftux_dark_bg;
+	private Color	ftux_dark_fg;
+	private Color	ftux_light_bg;
 	
 	protected
 	BuddyPluginViewBetaChat(
@@ -134,11 +146,24 @@ BuddyPluginViewBetaChat
 				widgetDisposed(
 					DisposeEvent arg0 ) 
 				{
-					if ( italic_font != null ){
+					Font[] fonts = { italic_font, bold_font, big_font, small_font };
+					
+					for ( Font f: fonts ){
 						
-						italic_font.dispose();
+						if ( f != null ){
+							
+							f.dispose();
+						}
+					}
+					
+					Color[] colours = { ftux_dark_bg, ftux_dark_fg, ftux_light_bg };
+					
+					for ( Color c: colours ){
 						
-						italic_font = null;
+						if ( c != null ){
+							
+							c.dispose();
+						}
 					}
 					
 					closed();
@@ -214,6 +239,19 @@ BuddyPluginViewBetaChat
 		lhs.setLayoutData(grid_data);
 		
 		final Label menu_drop = new Label( lhs, SWT.NULL );
+		
+		FontData fontData = menu_drop.getFont().getFontData()[0];
+		
+		Display display = menu_drop.getDisplay();
+		
+		italic_font = new Font( display, new FontData( fontData.getName(), fontData.getHeight(), SWT.ITALIC ));
+		bold_font 	= new Font( display, new FontData( fontData.getName(), fontData.getHeight(), SWT.BOLD ));
+		big_font 	= new Font( display, new FontData( fontData.getName(), (int)(fontData.getHeight()*1.5), SWT.BOLD ));
+		small_font 	= new Font( display, new FontData( fontData.getName(), (int)(fontData.getHeight()*0.5), SWT.BOLD ));
+
+		ftux_dark_bg 	= new Color( display, 183, 200, 212 );
+		ftux_dark_fg 	= new Color( display, 0, 81, 134 );
+		ftux_light_bg 	= new Color( display, 236, 242, 246 );
 		
 		status = new BufferedLabel( lhs, SWT.LEFT | SWT.DOUBLE_BUFFERED );
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
@@ -457,16 +495,269 @@ BuddyPluginViewBetaChat
 				});
 		}
 		
-		Composite log_holder = new Composite(lhs, SWT.BORDER);
+		
+		final Composite ftux_stack = new Composite(lhs, SWT.NONE);
+		grid_data = new GridData(GridData.FILL_BOTH );
+		grid_data.horizontalSpan = 2;
+		ftux_stack.setLayoutData( grid_data );
+		
+        final StackLayout stack_layout = new StackLayout();
+        ftux_stack.setLayout(stack_layout);
+        
+		final Composite log_holder = new Composite(ftux_stack, SWT.BORDER);
+		
+		final Composite ftux_holder = new Composite(ftux_stack, SWT.BORDER);
+			
+		final boolean[] ftux_init_done = { false };
+		
+		plugin.getBeta().addFTUXStateChangeListener(
+			new FTUXStateChangeListener()
+			{
+				public void
+				stateChanged(
+					final boolean		ftux_ok )
+				{
+					if ( ftux_stack.isDisposed()){
+						
+						plugin.getBeta().removeFTUXStateChangeListener( this );
+						
+					}else{
+						
+						Utils.execSWTThread(
+							new Runnable()
+							{
+								
+								public void 
+								run()
+								{
+									stack_layout.topControl = ftux_ok?log_holder:ftux_holder;
+									
+									if ( ftux_init_done[0]){
+									
+										ftux_stack.layout();
+									}
+								}
+							});
+					}
+				}
+			});
+
+		ftux_init_done[0] = true;
+		
+			// FTUX panel
+		
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.verticalSpacing = 0;
+		ftux_holder.setLayout(layout);
+		
+		ftux_holder.setBackground( ftux_light_bg );
+
+			// top info
+		
+		Composite ftux_top_area = new Composite( ftux_holder, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.verticalSpacing = 0;
+		ftux_top_area.setLayout(layout);
+		
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.heightHint = 30;
+		ftux_top_area.setLayoutData(grid_data);
+		ftux_top_area.setBackground( ftux_dark_bg );
+
+		
+		Label ftux_top = new Label( ftux_top_area, SWT.WRAP );
+		grid_data = new GridData(SWT.LEFT, SWT.CENTER, true, true );
+		grid_data.horizontalIndent = 8;
+		ftux_top.setLayoutData(grid_data);
+		
+		ftux_top.setAlignment( SWT.LEFT );
+		ftux_top.setBackground( ftux_dark_bg );
+		ftux_top.setForeground( ftux_dark_fg );
+		ftux_top.setFont( big_font );
+		ftux_top.setText( "Welcome to Chat" );
+		
+			// middle info
+		
+		final StyledText ftux_middle = new StyledText( ftux_holder, SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
+		
+		//Label ftux_middle = new Label( ftux_holder, SWT.WRAP );
+		grid_data = new GridData(GridData.FILL_BOTH );
+		grid_data.verticalIndent = 4;
+		grid_data.horizontalIndent = 16;
+		ftux_middle.setLayoutData(grid_data);
+		
+		ftux_middle.setBackground( ftux_light_bg );
+		ftux_middle.setLineSpacing( 0 );
+		
+		String info_text = 
+		"Vuze chat allows you to communicate with other Vuze users directly by sending and receiving messages.\n" +
+		"It is a decentralized chat system - there are no central servers involved, all messages are passed directly between Vuze users.\n" +
+		"Consequently Vuze has absolutely no control over message content. In particular no mechanism exists (nor is possible) for Vuze to moderate or otherwise control either messages or the users that send messages.";
+		
+		String[] info_lines = info_text.split( "\\n" );
+		
+		for ( String line: info_lines ){
+		
+			ftux_middle.append( line );
+			
+			if ( line != info_lines[info_lines.length-1] ){
+			
+				ftux_middle.append( "\n" );
+				
+				int	pos = ftux_middle.getText().length();
+				
+					// zero width space in large font to get smaller paragraph spacing 
+				
+				ftux_middle.append( "\u200B" );
+				
+				StyleRange styleRange = new StyleRange();
+				styleRange.start = pos;
+				styleRange.length = 1;
+				styleRange.font = big_font;
+				
+				ftux_middle.setStyleRange( styleRange );
+			}
+		}
+
+			// checkbox area
+		
+		Composite ftux_check_area = new Composite( ftux_holder, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		ftux_check_area.setLayout(layout);
+		
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		ftux_check_area.setLayoutData( grid_data );
+		ftux_check_area.setBackground(  ftux_light_bg );
+
+		final Button ftux_check = new Button( ftux_check_area, SWT.CHECK );
+		grid_data = new GridData();
+		grid_data.horizontalIndent = 16;
+		ftux_check.setLayoutData( grid_data );
+		ftux_check.setBackground(  ftux_light_bg );
+		
+		Label ftux_check_test = new Label( ftux_check_area, SWT.WRAP );
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		ftux_check_test.setLayoutData(grid_data);
+		
+		ftux_check_test.setBackground( ftux_light_bg );
+		ftux_check_test.setText( "I UNDERSTAND AND AGREE that Vuze has no responsibility whatsoever with my enabling this function and using chat." );
+
+		
+			// bottom info
+		
+		final StyledText ftux_bottom = new StyledText( ftux_holder, SWT.READ_ONLY | SWT.WRAP | SWT.NO_FOCUS );
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalIndent = 16;
+		ftux_bottom.setLayoutData(grid_data);
+		
+		ftux_bottom.setBackground( ftux_light_bg );
+		ftux_bottom.setFont( bold_font );
+		ftux_bottom.setText( "Any use of Vuze\u00AE or Vuze+\u2122 that violates the rights of any person or entity is not allowed. " );
+		
+		{
+			int	start	= ftux_bottom.getText().length();
+			
+			String url 		= "http://wiki.vuze.com/w/FAQ_Legal";
+			String url_text	= "More...";
+			
+			ftux_bottom.append( url_text );
+			
+			StyleRange styleRange = new StyleRange();
+			styleRange.start = start;
+			styleRange.length = url_text.length();
+			styleRange.foreground = Colors.blue;
+			styleRange.underline = true;
+			
+			styleRange.data = url;
+			
+			ftux_bottom.setStyleRange( styleRange );
+		}
+		
+		ftux_bottom.addListener(
+				SWT.MouseUp, 
+				new Listener()
+				{
+					public void handleEvent(Event event) {
+						int offset = ftux_bottom.getOffsetAtLocation(new Point (event.x, event.y));
+						StyleRange style = ftux_bottom.getStyleRangeAtOffset(offset);
+						
+						if ( style != null ){
+							
+							String url = (String)style.data;
+							
+							try{
+								Utils.launch( new URL( url ));
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					}
+				});
+		
+		Label ftux_line = new Label( ftux_holder, SWT.SEPARATOR | SWT.HORIZONTAL );
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.verticalIndent = 4;
+		ftux_line.setLayoutData( grid_data ); 
+		
+		Composite ftux_button_area = new Composite( ftux_holder, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		ftux_button_area.setLayout(layout);
+		
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		ftux_button_area.setLayoutData( grid_data );
+		ftux_button_area.setBackground( Colors.white );
+		
+		Label filler = new Label( ftux_button_area, SWT.NULL );
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		filler.setLayoutData( grid_data );
+		filler.setBackground( Colors.white );
+		
+		final Button ftux_accept = new Button( ftux_button_area, SWT.PUSH );
+		grid_data = new GridData();
+		grid_data.horizontalAlignment = SWT.RIGHT;
+		grid_data.widthHint = 60;
+		ftux_accept.setLayoutData(grid_data);
+
+		ftux_accept.setText( "Accept" );
+		
+		ftux_accept.setEnabled( false );
+		
+		ftux_accept.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void widgetSelected(SelectionEvent e) {
+					plugin.getBeta().setFTUXAccepted();
+				}
+			});
+		
+		ftux_check.addSelectionListener(
+			new SelectionAdapter() {
+					
+				public void widgetSelected(SelectionEvent e) {
+					ftux_accept.setEnabled( ftux_check.getSelection());
+				}
+		});
+			// LOG panel
+		
 		layout = new GridLayout();
 		layout.numColumns = 1;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		layout.marginLeft = 4;
 		log_holder.setLayout(layout);
-		grid_data = new GridData(GridData.FILL_BOTH );
-		grid_data.horizontalSpan = 2;
-		log_holder.setLayoutData(grid_data);
+		//grid_data = new GridData(GridData.FILL_BOTH );
+		//grid_data.horizontalSpan = 2;
+		//log_holder.setLayoutData(grid_data);
 		
 		log = new StyledText(log_holder,SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
 		grid_data = new GridData(GridData.FILL_BOTH);
@@ -482,10 +773,6 @@ BuddyPluginViewBetaChat
 		final Menu log_menu = new Menu( log );
 		
 		log.setMenu(  log_menu );
-
-		FontData fontData = log.getFont().getFontData()[0];
-		
-		italic_font = new Font( log.getDisplay(), new FontData( fontData.getName(), fontData.getHeight(), SWT.ITALIC ));
 				
 		log.addMenuDetectListener(
 			new MenuDetectListener() {
