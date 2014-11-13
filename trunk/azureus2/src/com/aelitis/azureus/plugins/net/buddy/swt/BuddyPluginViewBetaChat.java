@@ -513,9 +513,10 @@ BuddyPluginViewBetaChat
 			// FTUX panel
 		
 		layout = new GridLayout();
-		layout.numColumns = 1;
+		layout.numColumns = 2;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
+		layout.horizontalSpacing = 0;
 		layout.verticalSpacing = 0;
 		ftux_holder.setLayout(layout);
 		
@@ -532,6 +533,7 @@ BuddyPluginViewBetaChat
 		ftux_top_area.setLayout(layout);
 		
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 2;
 		grid_data.heightHint = 30;
 		ftux_top_area.setLayoutData(grid_data);
 		ftux_top_area.setBackground( ftux_dark_bg );
@@ -550,9 +552,16 @@ BuddyPluginViewBetaChat
 		
 			// middle info
 		
+		Label ftux_hack = new Label( ftux_holder, SWT.NULL );
+		grid_data = new GridData();
+		grid_data.heightHint=40;
+		grid_data.widthHint=0;
+		ftux_hack.setLayoutData(grid_data);
+		
 		final StyledText ftux_middle = new StyledText( ftux_holder, SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
 		
 		grid_data = new GridData(GridData.FILL_BOTH );
+		grid_data.horizontalSpan = 1;
 		grid_data.verticalIndent = 4;
 		grid_data.horizontalIndent = 16;
 		ftux_middle.setLayoutData(grid_data);
@@ -602,6 +611,7 @@ BuddyPluginViewBetaChat
 		ftux_check_area.setLayout(layout);
 		
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 2;
 		ftux_check_area.setLayoutData( grid_data );
 		ftux_check_area.setBackground(  ftux_light_bg );
 
@@ -623,6 +633,7 @@ BuddyPluginViewBetaChat
 		
 		final StyledText ftux_bottom = new StyledText( ftux_holder, SWT.READ_ONLY | SWT.WRAP | SWT.NO_FOCUS );
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 2;
 		grid_data.horizontalIndent = 16;
 		ftux_bottom.setLayoutData(grid_data);
 		
@@ -674,6 +685,7 @@ BuddyPluginViewBetaChat
 		
 		Label ftux_line = new Label( ftux_holder, SWT.SEPARATOR | SWT.HORIZONTAL );
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 2;
 		grid_data.verticalIndent = 4;
 		ftux_line.setLayoutData( grid_data ); 
 		
@@ -683,6 +695,7 @@ BuddyPluginViewBetaChat
 		ftux_button_area.setLayout(layout);
 		
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 2;
 		ftux_button_area.setLayoutData( grid_data );
 		ftux_button_area.setBackground( Colors.white );
 		
@@ -1248,11 +1261,8 @@ BuddyPluginViewBetaChat
 		updateTable( false );
 		
 		BuddyPluginBeta.ChatMessage[] history = chat.getHistory();
-		
-		for (int i=0;i<history.length;i++){
-			
-			logChatMessage( history[i] );
-		}
+				
+		logChatMessages( history );
 		
 		chat.addListener( this );
 	}
@@ -1871,14 +1881,20 @@ BuddyPluginViewBetaChat
 	private void
 	logChatMessages(
 		ChatMessage[]		all_messages )
-	{
-		boolean	changed = false;
+	{	
+		SimpleDateFormat time_format = new SimpleDateFormat( "HH:mm" );
+		
+		int	existing_length = log.getText().length();
+		
+		StringBuffer	appended = new StringBuffer( 2048 );
+		
+		List<StyleRange>	new_ranges = new ArrayList<StyleRange>();
 		
 		for ( ChatMessage message: all_messages ){
 			
 			if ( messages.contains( message )){
 				
-				return;
+				continue;
 			}
 			
 			messages.add( message );
@@ -1886,9 +1902,7 @@ BuddyPluginViewBetaChat
 			String	msg		= message.getMessage();
 
 			if ( !message.isIgnored() && msg.length() > 0 ){
-				
-				changed = true;
-				
+								
 				String	nick 	= message.getNickName();
 				
 				int	message_type = message.getMessageType();
@@ -1916,7 +1930,7 @@ BuddyPluginViewBetaChat
 				
 				long time = message.getTimeStamp();
 				
-				String stamp = new SimpleDateFormat( "HH:mm" ).format( new Date( time ));
+				String stamp = time_format.format( new Date( time ));
 				
 				ChatMessage	last_message;
 				
@@ -1954,9 +1968,9 @@ BuddyPluginViewBetaChat
 					
 					previous_says = says;
 					
-					int	start = log.getText().length();
+					int	start = existing_length + appended.length();
 							
-					log.append( says ); 
+					appended.append( says ); 
 					
 					if ( colour != Colors.black ){
 						
@@ -1970,13 +1984,13 @@ BuddyPluginViewBetaChat
 							styleRange.font = italic_font;
 						}
 						
-						log.setStyleRange(styleRange);
+						new_ranges.add( styleRange);
 					}
 				}
 				
-				int start = log.getText().length();
+				int start = existing_length + appended.length();
 				
-				log.append( msg ); 
+				appended.append( msg ); 
 
 				if ( message_type ==  ChatMessage.MT_INFO ){
 					
@@ -1985,7 +1999,8 @@ BuddyPluginViewBetaChat
 					styleRange.length = msg.length();
 					styleRange.foreground = Colors.grey;
 					
-					log.setStyleRange(styleRange);
+					new_ranges.add( styleRange);
+					
 				}else{
 					int	pos = 0;
 					
@@ -2055,7 +2070,7 @@ BuddyPluginViewBetaChat
 								
 								styleRange.data = url_str;
 								
-								log.setStyleRange(styleRange);
+								new_ranges.add( styleRange);
 								
 							}catch( Throwable e ){
 								
@@ -2070,12 +2085,29 @@ BuddyPluginViewBetaChat
 					}
 				}
 				
-				log.append( "\n" ); 
+				appended.append( "\n" ); 
 			}
 		}
 
-		if ( changed ){
+		if ( appended.length() > 0 ){
 		
+			log.append( appended.toString());
+			
+			if ( new_ranges.size() > 0 ){
+			
+				List<StyleRange> existing_ranges = Arrays.asList( log.getStyleRanges());
+				
+				List<StyleRange> all_ranges = new ArrayList<StyleRange>( existing_ranges.size() + new_ranges.size());
+				
+				all_ranges.addAll( existing_ranges );
+				
+				all_ranges.addAll( new_ranges );
+				
+				StyleRange[] ranges = all_ranges.toArray( new StyleRange[ all_ranges.size()]);
+				
+				log.setStyleRanges( ranges );
+			}
+			
 			log.setSelection( log.getText().length());
 		}
 	}
