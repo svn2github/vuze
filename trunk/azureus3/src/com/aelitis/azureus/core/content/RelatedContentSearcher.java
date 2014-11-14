@@ -229,7 +229,7 @@ RelatedContentSearcher
 				public void
 				run()
 				{
-					final Set<String>	hashes = new HashSet<String>();
+					final Set<String>	hashes_sync_me = new HashSet<String>();
 					
 					try{				
 						List<RelatedContent>	matches = matchContent( term );
@@ -243,7 +243,7 @@ RelatedContentSearcher
 								continue;
 							}
 							
-							hashes.add( Base32.encode( hash ));
+							hashes_sync_me.add( Base32.encode( hash ));
 							
 							SearchResult result = 
 								new SearchResult()
@@ -537,7 +537,7 @@ RelatedContentSearcher
 										try{
 											logSearch( "Searching " + contact_to_search.getAddress());
 											
-											List<DistributedDatabaseContact> extra_contacts = sendRemoteSearch( si, hashes, contact_to_search, term, observer );
+											List<DistributedDatabaseContact> extra_contacts = sendRemoteSearch( si, hashes_sync_me, contact_to_search, term, observer );
 													
 											if ( extra_contacts == null ){
 												
@@ -944,7 +944,7 @@ RelatedContentSearcher
 	protected List<DistributedDatabaseContact>
 	sendRemoteSearch(
 		SearchInstance					si,
-		Set<String>						hashes,
+		Set<String>						hashes_sync_me,
 		DistributedDatabaseContact		contact,
 		String							term,
 		SearchObserver					observer )
@@ -1006,12 +1006,15 @@ RelatedContentSearcher
 				
 				String	hash_str = Base32.encode( hash );
 					
-				if ( hashes.contains( hash_str )){
+				synchronized( hashes_sync_me ){
 					
-					continue;
+					if ( hashes_sync_me.contains( hash_str )){
+						
+						continue;
+					}
+					
+					hashes_sync_me.add( hash_str );
 				}
-				
-				hashes.add( hash_str );
 
 				SearchResult result = 
 					new SearchResult()
