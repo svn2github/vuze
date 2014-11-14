@@ -766,10 +766,16 @@ BuddyPluginBeta
 		{
 			if ( is_private_chat ){
 				
-				throw( new Exception( "Not supported" ));
-			}
+				addReference();
+				
+				return( this );
+				
+			}else{
 			
-			return( BuddyPluginBeta.this.getChat( network, key ));
+					// can probably just do the above...
+				
+				return( BuddyPluginBeta.this.getChat( network, key ));
+			}
 		}
 		
 		protected void

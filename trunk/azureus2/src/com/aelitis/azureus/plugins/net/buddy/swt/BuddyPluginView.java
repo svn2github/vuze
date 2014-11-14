@@ -865,7 +865,13 @@ BuddyPluginView
 															
 															public void selected(MenuItem menu, Object target) {
 															
-																openChat( chat );
+																try{
+																	openChat( chat.getClone());
+																	
+																}catch( Throwable e ){
+																	
+																	Debug.out( e );
+																}
 															}
 														});
 													
