@@ -38,11 +38,13 @@ DHTTransportAlternativeNetworkImpl
 {
 	private static final int	LIVE_AGE_SECS 		= 20*60;
 	private static final int	LIVEISH_AGE_SECS 	= 40*60;
-	private static final int	MAX_CONTACTS		= 64;
+	private static final int	MAX_CONTACTS_PUB	= 64;
+	private static final int	MAX_CONTACTS_I2P	= 16;
 	
 	private static final boolean	TRACE = false;
 	
 	private int	network;
+	private final int	max_contacts;
 	
 	private TreeSet<DHTTransportAlternativeContact> contacts =
 		new TreeSet<DHTTransportAlternativeContact>(
@@ -70,6 +72,8 @@ DHTTransportAlternativeNetworkImpl
 		int		_net )
 	{
 		network	= _net;
+		
+		max_contacts = network == AT_I2P?MAX_CONTACTS_I2P:MAX_CONTACTS_PUB;
 	}
 	
 	public int
@@ -92,7 +96,7 @@ DHTTransportAlternativeNetworkImpl
 	{
 		if ( max == 0 ){
 			
-			max = MAX_CONTACTS;
+			max = max_contacts;
 		}
 		
 		List<DHTTransportAlternativeContact> result = new ArrayList<DHTTransportAlternativeContact>( max );
@@ -147,7 +151,7 @@ DHTTransportAlternativeNetworkImpl
 			
 			pos++;
 			
-			if(  pos > MAX_CONTACTS ){
+			if(  pos > max_contacts ){
 				
 				it.remove();
 			}
@@ -167,7 +171,7 @@ DHTTransportAlternativeNetworkImpl
 				contacts.add( new_contact );
 			}
 			
-			if ( contacts.size() > MAX_CONTACTS ){
+			if ( contacts.size() > max_contacts ){
 				
 				trim();
 			}
@@ -186,7 +190,7 @@ DHTTransportAlternativeNetworkImpl
 			
 			contacts.add( new_contact );
 				
-			if ( contacts.size() > MAX_CONTACTS ){
+			if ( contacts.size() > max_contacts ){
 				
 				trim();
 			}
@@ -204,9 +208,9 @@ DHTTransportAlternativeNetworkImpl
 			
 			int	result = 0;
 			
-			if ( num_contacts < MAX_CONTACTS ){
+			if ( num_contacts < max_contacts ){
 						
-				result =  MAX_CONTACTS - num_contacts;
+				result =  max_contacts - num_contacts;
 				
 			}else{
 				
@@ -220,7 +224,7 @@ DHTTransportAlternativeNetworkImpl
 					
 					if ( contact.getAge() > LIVE_AGE_SECS ){
 				
-						result = MAX_CONTACTS - pos;
+						result = max_contacts - pos;
 						
 						break;
 						

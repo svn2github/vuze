@@ -30,7 +30,7 @@ DHTTransportAlternativeNetwork
 	public static final int	AT_MLDHT_IPV6		= 2;
 	public static final int	AT_I2P				= 3;
 	
-	public static final int[]	AT_ALL = { AT_MLDHT_IPV4, AT_MLDHT_IPV6 };
+	public static final int[]	AT_ALL = { AT_MLDHT_IPV4, AT_MLDHT_IPV6, AT_I2P };
 	
 	public int
 	getNetworkType();
