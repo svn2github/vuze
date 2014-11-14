@@ -31,6 +31,7 @@ CHANGE: Core  | Ignore low-noise downloads when considering 'close on download c
 CHANGE: Core  | Option to remove low-noise downloads from RSS Feeds [Parg]
 CHANGE: Core  | Handle null-content type being returned by some borked feeds [Parg]
 
+BUGFIX: Core  | Fixed 100% CPU bug in search code [Parg]
 BUGFIX: Core  | Tags weren't being propagated from subscriptions to downloads correctly [Parg]
 BUGFIX: Core  | Fix meta-data download over LT which was causing first peer to be ignored [Parg]
 BUGFIX: Core  | Fixed fast-extension exploit that could be used to waste seeding bandwidth [Parg]
