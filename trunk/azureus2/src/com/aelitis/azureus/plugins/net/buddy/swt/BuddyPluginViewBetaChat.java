@@ -1927,6 +1927,8 @@ BuddyPluginViewBetaChat
 		
 		List<StyleRange>	new_ranges = new ArrayList<StyleRange>();
 		
+		boolean	new_message_not_ours = false;
+		
 		for ( ChatMessage message: all_messages ){
 			
 			if ( messages.containsKey( message )){
@@ -1937,15 +1939,22 @@ BuddyPluginViewBetaChat
 			String	msg		= message.getMessage();
 
 			if ( !message.isIgnored() && msg.length() > 0 ){
+				
+				ChatParticipant participant = message.getParticipant();
+
+				boolean	is_me = participant.isMe();
+				
+				if ( !is_me ){
 					
+					new_message_not_ours = true;
+				}
+				
 				int	overall_start = appended.length();
 				
 				String	nick 	= message.getNickName();
 				
 				int	message_type = message.getMessageType();
-				
-				ChatParticipant participant = message.getParticipant();
-				
+								
 				Color colour = Colors.blues[Colors.FADED_DARKEST];
 				
 				if ( message_type ==  ChatMessage.MT_INFO ){
@@ -1956,7 +1965,7 @@ BuddyPluginViewBetaChat
 						
 					colour = Colors.red;		
 					
-				}else if ( participant.isPinned() || participant.isMe()){
+				}else if ( participant.isPinned() || is_me ){
 					
 					colour = Colors.fadedGreen;
 					
@@ -2172,7 +2181,7 @@ BuddyPluginViewBetaChat
 			
 			log.setSelection( log.getText().length());
 			
-			if ( build_complete ){
+			if ( build_complete && new_message_not_ours ){
 				
 				if ( ( !log.isVisible()) || log.getDisplay().getFocusControl() == null ){
 										
