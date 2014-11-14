@@ -726,6 +726,7 @@ BuddyPluginBeta
 		private int			reference_count;
 		
 		private boolean		is_favourite;
+		private boolean		destroyed;
 		
 		private
 		ChatInstance(
@@ -2110,6 +2111,12 @@ BuddyPluginBeta
 			listeners.remove( listener );
 		}
 		
+		public boolean
+		isDestroyed()
+		{
+			return( destroyed );
+		}
+		
 		public void
 		destroy()
 		{
@@ -2124,6 +2131,8 @@ BuddyPluginBeta
 			}
 			
 			if ( !persistent ){
+				
+				destroyed = true;
 				
 				if ( handler != null ){
 							

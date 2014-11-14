@@ -64,7 +64,7 @@ BuddyPluginViewInstance
 	private static final int LOG_SUCCESS 	= 2;
 	private static final int LOG_ERROR 		= 3;
 
-
+	private BuddyPluginView		view;
 	private BuddyPlugin			plugin;
 	private UIInstance			ui_instance;
 	private LocaleUtilities		lu;
@@ -81,10 +81,12 @@ BuddyPluginViewInstance
 		
 	protected
 	BuddyPluginViewInstance(
+		BuddyPluginView	_view,
 		BuddyPlugin		_plugin,
 		UIInstance		_ui_instance,
 		Composite		_composite )
 	{
+		view		= _view;
 		plugin		= _plugin;
 		ui_instance	= _ui_instance;
 		composite	= _composite;
@@ -322,7 +324,7 @@ BuddyPluginViewInstance
 											{
 												if ( !display.isDisposed()){
 																								
-													BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, inst );
+													BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( view, plugin, inst );
 														
 													create_button.setEnabled( true );
 													
@@ -541,7 +543,7 @@ BuddyPluginViewInstance
 										{
 											if ( !display.isDisposed()){
 																							
-												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, inst );
+												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( view, plugin, inst );
 													
 												import_button.setEnabled( true );
 												
@@ -630,7 +632,7 @@ BuddyPluginViewInstance
 										{
 											if ( !display.isDisposed()){
 																							
-												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, inst );
+												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( view, plugin, inst );
 															
 												chat.addDisposeListener(
 													new DisposeListener()

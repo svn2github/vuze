@@ -97,10 +97,12 @@ BuddyPluginViewBetaChat
 	private static final int 	MAX_LOG_LINES	= 250;
 	private static final int	MAX_LOG_CHARS	= 10*1024;
 	
-	private BuddyPlugin			plugin;
-	private ChatInstance		chat;
+	private final BuddyPluginView		view;
+	private final BuddyPlugin			plugin;
+	private final BuddyPluginBeta		beta;
+	private final ChatInstance			chat;
 	
-	private LocaleUtilities		lu;
+	private final LocaleUtilities		lu;
 	
 	private Shell 					shell;
 	
@@ -131,14 +133,19 @@ BuddyPluginViewBetaChat
 	private Color	ftux_light_bg;
 	
 	private boolean	ftux_ok;
+	private boolean	build_complete;
+	private boolean	pending_marked;
 	
 	protected
 	BuddyPluginViewBetaChat(
+		BuddyPluginView	_view,
 		BuddyPlugin		_plugin,
 		ChatInstance	_chat )
 	{
+		view	= _view;
 		plugin	= _plugin;
 		chat	= _chat;
+		beta	= plugin.getBeta();
 		
 		lu		= plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 		
@@ -174,7 +181,15 @@ BuddyPluginViewBetaChat
 					closed();
 				}
 			});
-				
+			
+		shell.addListener(
+			SWT.Show,
+			new Listener() {
+				public void handleEvent(Event event) {
+					activate();
+				}
+			});
+		
 		shell.setText( lu.getLocalisedMessageText( "label.chat" ) + ": " + chat.getName());
 				
 		Utils.setShellIcon(shell);
@@ -205,13 +220,16 @@ BuddyPluginViewBetaChat
 	
 	protected
 	BuddyPluginViewBetaChat(
+		BuddyPluginView	_view,
 		BuddyPlugin		_plugin,
 		ChatInstance	_chat,
 		Composite		_parent )
 	{
+		view	= _view;
 		plugin	= _plugin;
 		chat	= _chat;
-		
+		beta	= plugin.getBeta();
+
 		lu		= plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 		
 		build( _parent );
@@ -374,9 +392,9 @@ BuddyPluginViewBetaChat
 								String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "]";
 								
 								try{
-									ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
+									ChatInstance inst = beta.getChat( chat.getNetwork(), new_key );
 									
-									new BuddyPluginViewBetaChat( plugin, inst );
+									new BuddyPluginViewBetaChat( view, plugin, inst );
 									
 								}catch( Throwable e ){
 									
@@ -397,9 +415,9 @@ BuddyPluginViewBetaChat
 								String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "&ro=1]";
 								
 								try{
-									ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork(), new_key );
+									ChatInstance inst = beta.getChat( chat.getNetwork(), new_key );
 									
-									new BuddyPluginViewBetaChat( plugin, inst );
+									new BuddyPluginViewBetaChat( view, plugin, inst );
 									
 								}catch( Throwable e ){
 									
@@ -408,7 +426,7 @@ BuddyPluginViewBetaChat
 							}
 						});
 				
-				if ( plugin.getBeta().isI2PAvailable()){
+				if ( beta.isI2PAvailable()){
 					
 					status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
 					status_mi.setText( MessageText.getString(  chat.getNetwork()==AENetworkClassifier.AT_I2P?"azbuddy.dchat.rchans.pub":"azbuddy.dchat.rchans.anon" ));
@@ -420,9 +438,9 @@ BuddyPluginViewBetaChat
 									SelectionEvent event ) 
 								{
 									try{
-										ChatInstance inst = plugin.getBeta().getChat( chat.getNetwork()==AENetworkClassifier.AT_I2P?AENetworkClassifier.AT_PUBLIC:AENetworkClassifier.AT_I2P, chat.getKey());
+										ChatInstance inst = beta.getChat( chat.getNetwork()==AENetworkClassifier.AT_I2P?AENetworkClassifier.AT_PUBLIC:AENetworkClassifier.AT_I2P, chat.getKey());
 										
-										new BuddyPluginViewBetaChat( plugin, inst );
+										new BuddyPluginViewBetaChat( view, plugin, inst );
 										
 									}catch( Throwable e ){
 										
@@ -460,7 +478,7 @@ BuddyPluginViewBetaChat
 					widgetSelected(
 						SelectionEvent e ) 
 					{
-						plugin.getBeta().setPrivateChatState((Integer)((MenuItem)e.widget).getData());
+						beta.setPrivateChatState((Integer)((MenuItem)e.widget).getData());
 					}
 				};
 			
@@ -490,7 +508,7 @@ BuddyPluginViewBetaChat
 					menuShown(
 						MenuEvent e ) 
 					{
-						int pc_state = plugin.getBeta().getPrivateChatState();
+						int pc_state = beta.getPrivateChatState();
 						
 						for ( MenuItem mi: status_priv_menu.getItems()){
 							
@@ -721,7 +739,7 @@ BuddyPluginViewBetaChat
 			new SelectionAdapter() {
 				
 				public void widgetSelected(SelectionEvent e) {
-					plugin.getBeta().setFTUXAccepted( true );
+					beta.setFTUXAccepted( true );
 				}
 			});
 		
@@ -827,7 +845,7 @@ BuddyPluginViewBetaChat
 												if ( lc_url_str.startsWith( "chat:" )){
 													
 													try{
-														plugin.getBeta().handleURI( url_str );
+														beta.handleURI( url_str );
 														
 													}catch( Throwable f ){
 														
@@ -967,7 +985,7 @@ BuddyPluginViewBetaChat
 			pop_out.addMouseListener(new MouseAdapter() {
 				public void mouseUp(MouseEvent arg0) {
 					try{
-						new BuddyPluginViewBetaChat( plugin, chat.getClone());
+						new BuddyPluginViewBetaChat( view, plugin, chat.getClone());
 						
 					}catch( Throwable e ){
 						
@@ -1033,11 +1051,11 @@ BuddyPluginViewBetaChat
 	        		
 	        		if ( chat.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
 	        		
-	        			plugin.getBeta().setSharedPublicNickname( nick );
+	        			beta.setSharedPublicNickname( nick );
 	        			
 	        		}else{
 	        			
-	        			plugin.getBeta().setSharedAnonNickname( nick );
+	        			beta.setSharedAnonNickname( nick );
 	        		}
 	        	}else{
 	        		
@@ -1188,7 +1206,7 @@ BuddyPluginViewBetaChat
 				}
 			});
 		
-		ftux_ok = plugin.getBeta().getFTUXAccepted();
+		ftux_ok = beta.getFTUXAccepted();
 		
 		if ( chat.isReadOnly()){
 		
@@ -1207,7 +1225,7 @@ BuddyPluginViewBetaChat
 		
 		final boolean[] ftux_init_done = { false };
 		
-		plugin.getBeta().addFTUXStateChangeListener(
+		beta.addFTUXStateChangeListener(
 			new FTUXStateChangeListener()
 			{
 				public void
@@ -1216,7 +1234,7 @@ BuddyPluginViewBetaChat
 				{
 					if ( ftux_stack.isDisposed()){
 						
-						plugin.getBeta().removeFTUXStateChangeListener( this );
+						beta.removeFTUXStateChangeListener( this );
 						
 					}else{
 						
@@ -1252,6 +1270,20 @@ BuddyPluginViewBetaChat
 
 		ftux_init_done[0] = true;
 		
+		Control[] focus_controls = { log, input_area, buddy_table, nickname, shared_nick_button };
+		
+		Listener focus_listener = new Listener() {
+			
+			public void handleEvent(Event event) {
+				activate();
+			}
+		};
+		
+		for ( Control c: focus_controls ){
+			
+			c.addListener( SWT.FocusIn, focus_listener );
+		}
+
 		BuddyPluginBeta.ChatParticipant[] existing_participants = chat.getParticipants();
 		
 		synchronized( participants ){
@@ -1268,6 +1300,8 @@ BuddyPluginViewBetaChat
 		logChatMessages( history );
 		
 		chat.addListener( this );
+		
+		build_complete	= true;
 	}
 	
 	private void
@@ -1443,7 +1477,7 @@ BuddyPluginViewBetaChat
 								try{
 									ChatInstance chat = participant.createPrivateChat();
 								
-									new BuddyPluginViewBetaChat( plugin, chat);
+									new BuddyPluginViewBetaChat( view, plugin, chat);
 									
 								}catch( Throwable f ){
 									
@@ -2051,7 +2085,7 @@ BuddyPluginViewBetaChat
 									
 									if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
 										
-										if ( !plugin.getBeta().isI2PAvailable()){
+										if ( !beta.isI2PAvailable()){
 											
 											throw( new Exception( "Anonymous chat unavailable" ));
 										}
@@ -2137,6 +2171,20 @@ BuddyPluginViewBetaChat
 			}
 			
 			log.setSelection( log.getText().length());
+			
+			if ( build_complete ){
+				
+				if ( ( !log.isVisible()) || log.getDisplay().getFocusControl() == null ){
+										
+					view.betaMessagePending( chat, log, true );
+				}
+			}
 		}
+	}
+	
+	public void
+	activate()
+	{
+		view.betaMessagePending( chat, log, false );
 	}
 }

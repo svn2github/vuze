@@ -26,7 +26,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
@@ -49,6 +53,10 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.menus.MenuContext;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
@@ -165,11 +173,8 @@ BuddyPluginView
 		});
 		
 		ui_instance.addView(	UISWTInstance.VIEW_MAIN, VIEW_ID, this );
-		
-		if ( plugin.isBetaEnabled() && plugin.getBeta().isAvailable()){
-			
-			addBetaSubviews( true );
-		}
+					
+		initBeta();
 	}
 	
 	public boolean 
@@ -190,7 +195,7 @@ BuddyPluginView
 			case UISWTViewEvent.TYPE_INITIALIZE:{
 				
 
-				current_instance = new BuddyPluginViewInstance(plugin, ui_instance, (Composite)event.getData());
+				current_instance = new BuddyPluginViewInstance( this, plugin, ui_instance, (Composite)event.getData());
 				
 				break;
 			}
@@ -236,7 +241,7 @@ BuddyPluginView
 						return;
 					}
 				
-					new BuddyPluginViewBetaChat( plugin, chat );
+					new BuddyPluginViewBetaChat( BuddyPluginView.this, plugin, chat );
 				}
 			});
 	}
@@ -525,6 +530,38 @@ BuddyPluginView
 	
 	private HashMap<UISWTView,BetaSubViewHolder> beta_subviews = new HashMap<UISWTView,BetaSubViewHolder>();
 	
+	private UISWTStatusEntry	beta_status;
+	private Image				bs_chat_gray;
+	private Image				bs_chat_green;
+	
+	private void
+	initBeta()
+	{
+		if ( plugin.isBetaEnabled() && plugin.getBeta().isAvailable()){
+
+			addBetaSubviews( true );
+			
+			beta_status	= ui_instance.createStatusEntry();
+
+			beta_status.setImageEnabled( true );
+			
+			beta_status.setVisible( true );
+			
+			beta_status.setTooltipText(MessageText.getString( "label.no.messages" ));
+			
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					ImageLoader imageLoader = ImageLoader.getInstance();
+
+					bs_chat_gray	= imageLoader.getImage( "dchat_gray" );
+					bs_chat_green 	= imageLoader.getImage( "dchat_green" );
+					
+					beta_status.setImage( bs_chat_gray );
+				}
+			});
+		}
+	}
+	
 	private void
 	addBetaSubviews(
 		boolean	enable )
@@ -670,6 +707,194 @@ BuddyPluginView
 			}
 			
 			beta_subviews.clear();
+		}
+	}
+	
+	private static Map<String,Object[]>	pending_msg_map = new HashMap<String,Object[]>();
+	private static TimerEventPeriodic	pending_msg_event;
+	
+	protected void
+	betaMessagePending(
+		ChatInstance		chat,
+		Control				comp,
+		boolean				is_pending )
+	{
+		synchronized( pending_msg_map ){
+			
+			String key = chat.getNetAndKey();
+			
+			Object[] entry = pending_msg_map.get( key );
+			
+			if ( is_pending ){
+				
+				if ( entry == null ){
+					
+					entry = new Object[]{ 1, new HashSet<Control>(), chat };
+					
+					pending_msg_map.put( key, entry );
+					
+				}else{
+					
+					entry[0] = ((Integer)entry[0]) + 1;
+				}
+				
+				((HashSet<Control>)entry[1]).add( comp );
+				
+				if ( pending_msg_event == null ){
+					
+					pending_msg_event = 
+						SimpleTimer.addPeriodicEvent(
+							"BPPM",
+							2500,
+							new TimerEventPerformer()
+							{	
+								private int	tick_count = 0;
+								
+								private Set<ChatInstance>	latest_instances = new HashSet<ChatInstance>();
+								
+								private List<MenuItem>		menu_items = new ArrayList<MenuItem>();
+								
+								public void 
+								perform(
+									TimerEvent event )
+								{
+									tick_count++;
+									
+									synchronized( pending_msg_map ){
+										
+										Set<ChatInstance>	current_instances = new HashSet<BuddyPluginBeta.ChatInstance>();
+										
+										Iterator<Map.Entry<String,Object[]>> it = pending_msg_map.entrySet().iterator();
+										
+										String tt_text = "";
+										
+										while( it.hasNext()){
+											
+											Map.Entry<String,Object[]> map_entry = it.next();
+											
+											Object[] entry = map_entry.getValue();
+											
+											ChatInstance chat = (ChatInstance)entry[2];
+											
+											if ( chat.isDestroyed()){
+												
+												it.remove();
+												
+											}else{
+											
+												HashSet<Control> comps = ((HashSet<Control>)entry[1]);
+												
+												Iterator<Control>	control_it = comps.iterator();
+												
+												while( control_it.hasNext()){
+													
+													Control c = control_it.next();
+													
+													if ( c.isDisposed()){
+														
+														it.remove();
+													}
+												}
+												
+												if ( comps.size() == 0 ){
+													
+													it.remove();
+													
+												}else{
+												
+													current_instances.add( chat );
+													
+													String	short_name = chat.getName();
+													
+													if ( short_name.length() > 60 ){
+														
+														short_name = short_name.substring( 0, 60 ) + "...";
+													}
+
+													tt_text += (tt_text.length()==0?"":"\n") + entry[0] + " - " + short_name;
+												}
+											}
+										}
+										
+										
+										if ( pending_msg_map.size() == 0 ){
+											
+											pending_msg_event.cancel();
+											
+											pending_msg_event = null;
+										}
+										
+										if ( current_instances.size() == 0 ){
+											
+											beta_status.setTooltipText( MessageText.getString( "label.no.messages" ));
+											
+											beta_status.setImage( bs_chat_gray );
+											
+											for ( MenuItem mi: menu_items ){
+												
+												mi.remove();
+											}
+										}else{
+											
+											if ( !latest_instances.equals( current_instances )){
+											
+												for ( MenuItem mi: menu_items ){
+													
+													mi.remove();
+												}
+												
+												menu_items.clear();
+												
+												MenuManager menu_manager = plugin.getPluginInterface().getUIManager().getMenuManager();
+
+												MenuContext mc = beta_status.getMenuContext();
+																	
+												for ( final ChatInstance chat: current_instances ){
+												
+													String	short_name = chat.getName();
+													
+													if ( short_name.length() > 60 ){
+														
+														short_name = short_name.substring( 0, 60 ) + "...";
+													}
+													
+													MenuItem mi = menu_manager.addMenuItem( mc, "!" + short_name + "!" );
+													
+													mi.addListener(
+														new MenuItemListener() {
+															
+															public void selected(MenuItem menu, Object target) {
+															
+																openChat( chat );
+															}
+														});
+													
+													menu_items.add( mi );
+												}
+															
+												latest_instances = current_instances;
+											}
+											
+											beta_status.setTooltipText( tt_text );
+										
+											beta_status.setImage( tick_count%2==0?bs_chat_gray:bs_chat_green);
+										}
+									}
+								}
+							});
+				}
+			}else{
+				
+				if ( entry != null ){
+					
+					pending_msg_map.remove( key );
+					
+					if ( pending_msg_event == null ){
+						
+						Debug.out( "eh?" );
+					}
+				}
+			}
 		}
 	}
 	
@@ -1398,13 +1623,15 @@ BuddyPluginView
 												c.dispose();
 											}
 											
-											BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( plugin, chat, chat_composite );
+											BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( BuddyPluginView.this, plugin, chat, chat_composite );
 											
 											((CTabItem)chat_composite.getData("tabitem")).setToolTipText( key );
 											
 											chat_composite.layout( true, true );
 											
 											chat_composite.setData( comp_key );
+											
+											chat_composite.setData( "viewitem", view );
 										}
 									});
 								
@@ -1431,6 +1658,15 @@ BuddyPluginView
 				}
 				
 				chat_composite.layout( true, true );
+				
+			}else{
+				
+				BuddyPluginViewBetaChat existing_chat =  (BuddyPluginViewBetaChat)chat_composite.getData( "viewitem" );
+				
+				if ( existing_chat != null ){
+					
+					existing_chat.activate();
+				}
 			}
 			
 			if ( select_tab ){
