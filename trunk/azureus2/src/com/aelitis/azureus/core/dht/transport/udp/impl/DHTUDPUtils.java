@@ -1385,17 +1385,61 @@ DHTUDPUtils
 		int			network,
 		int			max )
 	{
-		synchronized( transports ){
+		List<DHTTransportAlternativeContact>	result = new ArrayList<DHTTransportAlternativeContact>(max);
 		
-			for ( DHTTransportAlternativeNetwork net: alt_networks ){
+		if ( max > 0 ){
+			
+			synchronized( transports ){
+
+					// if we have a local provider then grab stuff from here
 				
-				if ( net.getNetworkType() == network ){
+				for ( DHTTransportAlternativeNetwork net: alt_networks ){
 					
-					return( net.getContacts( max ));
+					if ( net.getNetworkType() == network ){
+						
+						List<DHTTransportAlternativeContact> temp = net.getContacts( max );
+						
+						if ( temp != null ){
+							
+							result.addAll( temp );
+						}
+					}
+				}
+				
+				int rem = max - result.size();
+				
+				if ( rem > 0 ){
+				
+						// look for remote providers if needed
+					
+					for ( DHTTransportUDPImpl transport: transports ){
+						
+						DHTTransportAlternativeNetwork alt = transport.getAlternativeNetwork( network );
+						
+						if ( alt != null ){
+							
+							List<DHTTransportAlternativeContact> temp = alt.getContacts( rem );
+							
+							if ( temp != null ){
+								
+								if ( temp != null ){
+									
+									result.addAll( temp );
+									
+									rem -= temp.size();
+									
+									if ( rem <= 0 ){
+										
+										break;
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 		}
 	
-		return( new ArrayList<DHTTransportAlternativeContact>());
+		return( result );
 	}
 }
