@@ -31,9 +31,9 @@ public class GenericIntParameter
 
 	private GenericParameterAdapter adapter;
 
-	private int iMinValue = 0;
+	private int iMinValue = Integer.MIN_VALUE;
 
-	private int iMaxValue = -1;
+	private int iMaxValue = Integer.MAX_VALUE;
 
 	private int iDefaultValue;
 
@@ -178,7 +178,7 @@ public class GenericIntParameter
 
 	public void setMinimumValue(final int value) {
 		iMinValue = value;
-		if (iMinValue > 0 && getValue() < iMinValue) {
+		if (iMinValue != Integer.MIN_VALUE && getValue() < iMinValue) {
 			setValue(iMinValue);
 		}
 		Utils.execSWTThread(new AERunnable() {
@@ -188,14 +188,14 @@ public class GenericIntParameter
 		});
 	}
 
-	public void setMaximumValue(int value) {
+	public void setMaximumValue(final int value) {
 		iMaxValue = value;
-		if (iMaxValue != -1 && getValue() > iMaxValue) {
+		if (iMaxValue != Integer.MAX_VALUE && getValue() > iMaxValue) {
 			setValue(iMaxValue);
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				spinner.setMaximum(iMaxValue == -1 ? Integer.MAX_VALUE : iMaxValue);
+				spinner.setMaximum(value);
 			}
 		});
 	}
@@ -206,9 +206,9 @@ public class GenericIntParameter
 
 	public void setValue(int value) {
 		int newValue;
-		if (iMaxValue != -1 && value > iMaxValue) {
+		if (iMaxValue != Integer.MAX_VALUE && value > iMaxValue) {
 			newValue = iMaxValue;
-		} else if (iMinValue > 0 && value < iMinValue) {
+		} else if (iMinValue != Integer.MIN_VALUE && value < iMinValue) {
 			newValue = iMinValue;
 		} else {
 			newValue = value;
