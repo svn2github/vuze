@@ -40,14 +40,11 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GlyphMetrics;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -150,38 +147,7 @@ BuddyPluginViewBetaChat
 		lu		= plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 		
 		shell = ShellFactory.createMainShell( SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN | SWT.MAX );
-
-		shell.addDisposeListener(
-			new DisposeListener()
-			{
-				public void 
-				widgetDisposed(
-					DisposeEvent arg0 ) 
-				{
-					Font[] fonts = { italic_font, bold_font, big_font, small_font };
-					
-					for ( Font f: fonts ){
-						
-						if ( f != null ){
-							
-							f.dispose();
-						}
-					}
-					
-					Color[] colours = { ftux_dark_bg, ftux_dark_fg, ftux_light_bg };
-					
-					for ( Color c: colours ){
-						
-						if ( c != null ){
-							
-							c.dispose();
-						}
-					}
-					
-					closed();
-				}
-			});
-			
+		
 		shell.addListener(
 			SWT.Show,
 			new Listener() {
@@ -239,6 +205,8 @@ BuddyPluginViewBetaChat
 	build(
 		Composite		parent )
 	{
+		view.registerUI( chat );
+		
 		boolean public_chat = !chat.isPrivateChat();
 	
 		GridLayout layout = new GridLayout();
@@ -250,6 +218,38 @@ BuddyPluginViewBetaChat
 		parent.setLayoutData(grid_data);
 
 		Composite lhs = new Composite(parent, SWT.NONE);
+		
+		lhs.addDisposeListener(
+				new DisposeListener()
+				{
+					public void 
+					widgetDisposed(
+						DisposeEvent arg0 ) 
+					{
+						Font[] fonts = { italic_font, bold_font, big_font, small_font };
+						
+						for ( Font f: fonts ){
+							
+							if ( f != null ){
+								
+								f.dispose();
+							}
+						}
+						
+						Color[] colours = { ftux_dark_bg, ftux_dark_fg, ftux_light_bg };
+						
+						for ( Color c: colours ){
+							
+							if ( c != null ){
+								
+								c.dispose();
+							}
+						}
+						
+						closed();
+					}
+				});		
+		
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		layout.marginHeight = 0;
@@ -1649,6 +1649,8 @@ BuddyPluginViewBetaChat
 		chat.removeListener( this );
 		
 		chat.destroy();
+		
+		view.unregisterUI( chat );
 	}
 	
 	public void 

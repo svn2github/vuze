@@ -530,6 +530,8 @@ BuddyPluginView
 	
 	private HashMap<UISWTView,BetaSubViewHolder> beta_subviews = new HashMap<UISWTView,BetaSubViewHolder>();
 	
+	private Map<ChatInstance,Integer>	chat_uis = new HashMap<BuddyPluginBeta.ChatInstance, Integer>();
+	
 	private UISWTStatusEntry	beta_status;
 	private Image				bs_chat_gray;
 	private Image				bs_chat_green;
@@ -546,8 +548,8 @@ BuddyPluginView
 			beta_status.setImageEnabled( true );
 			
 			beta_status.setVisible( true );
-			
-			beta_status.setTooltipText(MessageText.getString( "label.no.messages" ));
+
+			updateIdleTT();
 			
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
@@ -712,6 +714,81 @@ BuddyPluginView
 	
 	private static Map<String,Object[]>	pending_msg_map = new HashMap<String,Object[]>();
 	private static TimerEventPeriodic	pending_msg_event;
+
+	protected void
+	registerUI(
+		ChatInstance		chat )
+	{
+		synchronized( pending_msg_map ){
+		
+			Integer num = chat_uis.get( chat );
+		
+			if ( num == null ){
+			
+				num = 1;
+				
+			}else{
+				
+				num++;
+			}
+			
+			chat_uis.put( chat, num );
+			
+			if ( num == 1 ){
+				
+				updateIdleTT();
+			}
+		}
+	}
+	
+	protected void
+	unregisterUI(
+		ChatInstance		chat )
+	{
+		synchronized( pending_msg_map ){
+			
+			Integer num = chat_uis.get( chat );
+		
+			if ( num == null ){
+			
+				//eh
+				
+			}else{
+				
+				num--;
+			}
+			
+			if ( num == 0 ){
+				
+				chat_uis.remove( chat );
+			
+				updateIdleTT();
+				
+			}else{
+				
+				chat_uis.put( chat, num );
+			}
+		}
+	}
+		
+	private void
+	updateIdleTT()
+	{
+		if ( pending_msg_map.size() == 0 ){
+		
+			String text = MessageText.getString( "label.no.messages" );
+			
+			if ( chat_uis.size() > 0 ){
+			
+				for ( ChatInstance chat: chat_uis.keySet()){
+				
+					text += "\n  " + chat.getShortName();
+				}
+			}
+			
+			beta_status.setTooltipText( text );
+		}
+	}
 	
 	protected void
 	betaMessagePending(
@@ -803,13 +880,8 @@ BuddyPluginView
 												}else{
 												
 													current_instances.add( chat );
-													
-													String	short_name = chat.getName();
-													
-													if ( short_name.length() > 60 ){
-														
-														short_name = short_name.substring( 0, 60 ) + "...";
-													}
+	
+													String short_name = chat.getShortName();
 
 													tt_text += (tt_text.length()==0?"":"\n") + entry[0] + " - " + short_name;
 												}
@@ -826,7 +898,7 @@ BuddyPluginView
 										
 										if ( current_instances.size() == 0 ){
 											
-											beta_status.setTooltipText( MessageText.getString( "label.no.messages" ));
+											updateIdleTT();
 											
 											beta_status.setImage( bs_chat_gray );
 											
@@ -851,13 +923,8 @@ BuddyPluginView
 																	
 												for ( final ChatInstance chat: current_instances ){
 												
-													String	short_name = chat.getName();
-													
-													if ( short_name.length() > 60 ){
-														
-														short_name = short_name.substring( 0, 60 ) + "...";
-													}
-													
+													String	short_name = chat.getShortName();
+																										
 													MenuItem mi = menu_manager.addMenuItem( mc, "!" + short_name + "!" );
 													
 													mi.addListener(

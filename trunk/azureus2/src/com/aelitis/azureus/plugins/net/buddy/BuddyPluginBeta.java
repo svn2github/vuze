@@ -806,6 +806,20 @@ BuddyPluginBeta
 		}
 		
 		public String
+		getShortName()
+		{
+			
+			String	short_name = getName();
+			
+			if ( short_name.length() > 60 ){
+				
+				short_name = short_name.substring( 0, 60 ) + "...";
+			}
+			
+			return( short_name );
+		}
+		
+		public String
 		getNetwork()
 		{
 			return( network );

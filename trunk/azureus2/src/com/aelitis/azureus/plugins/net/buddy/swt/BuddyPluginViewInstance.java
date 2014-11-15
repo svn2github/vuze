@@ -142,6 +142,8 @@ BuddyPluginViewInstance
 			return;
 		}
 		
+		boolean i2p_enabled = plugin_beta.isI2PAvailable();
+
 			// info
 		
 		Composite info_area = new Composite( main, SWT.NULL );
@@ -227,35 +229,21 @@ BuddyPluginViewInstance
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		label.setLayoutData(grid_data);
 
+			// notifications
 		
-			// public beta channel
+		Group noti_area = new Group( main, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		noti_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		noti_area.setLayoutData(grid_data);
 		
-		label = new Label( main, SWT.NULL );
-		
-		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.public.beta" ));
-		
-		Button beta_button = new Button( main, SWT.NULL );
-		
-		setupButton( beta_button, lu.getLocalisedMessageText( "Button.open" ), AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
-		
-		label = new Label( main, SWT.NULL );
-		
-			// anonymous beta channel
-		
-		boolean i2p_enabled = plugin_beta.isI2PAvailable();
+		noti_area.setText( lu.getLocalisedMessageText( "v3.MainWindow.tab.events" ));
 
-		label = new Label( main, SWT.NULL );
 		
-		label.setText(  lu.getLocalisedMessageText( "azbuddy.dchat.anon.beta" ));
-
-		Button beta_i2p_button = new Button( main, SWT.NULL );
-	
-		setupButton( beta_i2p_button, lu.getLocalisedMessageText( "Button.open" ), AENetworkClassifier.AT_I2P, BuddyPluginBeta.BETA_CHAT_KEY );
 		
-		beta_i2p_button.setEnabled( i2p_enabled );
-		
-		label = new Label( main, SWT.NULL );
-		
+			
 			// create a channel
 		
 		Group create_area = new Group( main, SWT.NULL );
@@ -487,8 +475,6 @@ BuddyPluginViewInstance
 		Group import_area = new Group( main, SWT.NULL );
 		layout = new GridLayout();
 		layout.numColumns = 3;
-		//layout.marginHeight = 0;
-		//layout.marginWidth = 0;
 		import_area.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 3;
@@ -586,7 +572,45 @@ BuddyPluginViewInstance
 				}
 			});
 	
+			// testing
+		
+		Group test_area = new Group( main, SWT.NULL );
+		test_area.setText( lu.getLocalisedMessageText( "br.test" ));
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		test_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		test_area.setLayoutData(grid_data);
+
 	
+			// public beta channel
+			
+		label = new Label( test_area, SWT.NULL );
+		
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.public.beta" ));
+		
+		Button beta_button = new Button( test_area, SWT.NULL );
+		
+		setupButton( beta_button, lu.getLocalisedMessageText( "Button.open" ), AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
+		
+		label = new Label( test_area, SWT.NULL );
+		
+			// anonymous beta channel
+			
+		label = new Label( test_area, SWT.NULL );
+		
+		label.setText(  lu.getLocalisedMessageText( "azbuddy.dchat.anon.beta" ));
+	
+		Button beta_i2p_button = new Button( test_area, SWT.NULL );
+	
+		setupButton( beta_i2p_button, lu.getLocalisedMessageText( "Button.open" ), AENetworkClassifier.AT_I2P, BuddyPluginBeta.BETA_CHAT_KEY );
+		
+		beta_i2p_button.setEnabled( i2p_enabled );
+		
+		label = new Label( test_area, SWT.NULL );
+
+		
 		List<Button>	buttons = new ArrayList<Button>();
 		
 		buttons.add( create_button );
