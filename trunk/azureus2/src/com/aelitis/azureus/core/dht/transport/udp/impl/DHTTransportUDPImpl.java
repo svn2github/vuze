@@ -3334,7 +3334,7 @@ outer:
 						
 						if ( provider != null ){
 							
-							local.addContacts( provider.getContacts( wanted ));
+							local.addContactsForSend( provider.getContacts( wanted ));
 						}
 					}
 					
@@ -3407,7 +3407,7 @@ outer:
 				
 				if ( net != null ){
 					
-					net.addContact( contact );
+					net.addContactFromReply( contact );
 				}
 			}
 		}

@@ -41,7 +41,7 @@ DHTTransportAlternativeNetworkImpl
 	private static final int	MAX_CONTACTS_PUB	= 64;
 	private static final int	MAX_CONTACTS_I2P	= 16;
 	
-	private static final boolean	TRACE = true;
+	private static final boolean	TRACE = false;
 	
 	private int	network;
 	private final int	max_contacts;
@@ -135,6 +135,10 @@ DHTTransportAlternativeNetworkImpl
 			}
 		}
 		
+		if ( TRACE ){
+			System.out.println( network + ": sending " + result.size() + " contacts" );
+		}
+		
 		return( result );
 	}
 	
@@ -159,14 +163,14 @@ DHTTransportAlternativeNetworkImpl
 	}
 	
 	protected void
-	addContacts(
+	addContactsForSend(
 		List<DHTTransportAlternativeContact>	new_contacts )
 	{
 		synchronized( contacts ){
 			
 			for ( DHTTransportAlternativeContact new_contact: new_contacts ){
 				
-				if ( TRACE ) System.out.println( "add contact: " + getString(new_contact));
+				if ( TRACE ) System.out.println( network + ": send: add contact: " + getString(new_contact));
 				
 				contacts.add( new_contact );
 			}
@@ -176,17 +180,17 @@ DHTTransportAlternativeNetworkImpl
 				trim();
 			}
 			
-			if ( TRACE ) System.out.println( "    contacts=" + contacts.size());
+			if ( TRACE ) System.out.println( network + ":     contacts=" + contacts.size());
 		}
 	}
 	
 	protected void
-	addContact(
+	addContactFromReply(
 		DHTTransportAlternativeContact		new_contact )
 	{
 		synchronized( contacts ){
 				
-			if ( TRACE ) System.out.println( "add contact: " +  getString(new_contact));
+			if ( TRACE ) System.out.println( network + ": recv: add contact: " +  getString(new_contact));
 			
 			contacts.add( new_contact );
 				
@@ -195,7 +199,7 @@ DHTTransportAlternativeNetworkImpl
 				trim();
 			}
 			
-			if ( TRACE ) System.out.println( "    contacts=" + contacts.size());
+			if ( TRACE ) System.out.println( network + ":     contacts=" + contacts.size());
 		}		
 	}
 	
