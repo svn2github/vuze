@@ -41,7 +41,7 @@ DHTTransportAlternativeNetworkImpl
 	private static final int	MAX_CONTACTS_PUB	= 64;
 	private static final int	MAX_CONTACTS_I2P	= 16;
 	
-	private static final boolean	TRACE = false;
+	private static final boolean	TRACE = true;
 	
 	private int	network;
 	private final int	max_contacts;
@@ -55,11 +55,11 @@ DHTTransportAlternativeNetworkImpl
 					DHTTransportAlternativeContact o1,
 					DHTTransportAlternativeContact o2 ) 
 				{
-					int res = o2.getLastAlive() - o1.getLastAlive();
+					int res = o1.getAge() - o2.getAge();
 					
 					if ( res == 0 ){
 						
-						res = o2.getID() - o1.getID();
+						res = o1.getID() - o2.getID();
 					}
 					
 					return( res );
