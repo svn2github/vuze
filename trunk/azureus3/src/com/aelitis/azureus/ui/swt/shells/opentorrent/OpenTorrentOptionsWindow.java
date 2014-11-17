@@ -850,6 +850,8 @@ public class OpenTorrentOptionsWindow
 							
 						final List<OpenTorrentInstance> non_simple_instances = new ArrayList<OpenTorrentOptionsWindow.OpenTorrentInstance>();
 								
+						boolean can_rtlf = false;
+						
 						for ( Object o: selected ){
 							
 							OpenTorrentInstance oti = (OpenTorrentInstance)o;
@@ -859,6 +861,11 @@ public class OpenTorrentOptionsWindow
 							if ( !oti.getOptions().isSimpleTorrent()){
 								
 								non_simple_instances.add( oti );
+								
+								if ( oti.canRemoveTopLevelFolder()){
+									
+									can_rtlf = true;
+								}
 							}
 						}
 							
@@ -900,12 +907,15 @@ public class OpenTorrentOptionsWindow
 											
 											OpenTorrentInstance	instance = (OpenTorrentInstance)obj;
 											
-											instance.removeTopLevelFolder();
+											if ( instance.canRemoveTopLevelFolder()){
+											
+												instance.removeTopLevelFolder();
+											}
 										}
 									}
 								});
 							
-							item.setEnabled( non_simple_instances.size() > 0 );
+							item.setEnabled( can_rtlf );
 						}
 						
 						{
@@ -3024,6 +3034,8 @@ public class OpenTorrentOptionsWindow
 								}
 							});
 						 
+						 item.setEnabled( canRemoveTopLevelFolder());
+						 
 						 item = new MenuItem(menu, SWT.CHECK );
 						
 						 item.setSelection( COConfigurationManager.getBooleanParameter( "open.torrent.window.rename.on.tlf.change" ));
@@ -3262,6 +3274,30 @@ public class OpenTorrentOptionsWindow
 					tfi.setFullDestName( null );
 				}
 				*/
+			}
+		}
+		
+		private boolean
+		canRemoveTopLevelFolder()
+		{
+			if ( torrentOptions.isSimpleTorrent()){
+				
+				return( false );
+				
+			}else{
+				
+				File oldDir = new File( torrentOptions.getDataDir());
+	
+				File newDir = oldDir.getParentFile();
+				
+				File newParent  = newDir.getParentFile();
+				
+					// newParent will be null if trying to remove the top level dir when already at a file system
+					// root (e.g. C:\) 
+					// we should of course be able to support this, but unfortunately there's lots of code in Vuze
+					// in places-i-don't-want-to-change that borks if we try and do this (feel free to try...)
+				
+				return( newParent != null );
 			}
 		}
 		
