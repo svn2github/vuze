@@ -1602,7 +1602,7 @@ BuddyPluginViewBetaChat
 			
 			if ( !buddy_table.isDisposed()){
 
-				buddy_table.getDisplay().asyncExec(
+				Utils.execSWTThread(
 					new Runnable()
 					{
 						public void
@@ -1662,7 +1662,7 @@ BuddyPluginViewBetaChat
 			return;
 		}
 	
-		buddy_table.getDisplay().asyncExec(
+		Utils.execSWTThread(
 			new Runnable()
 			{
 				public void
@@ -1686,7 +1686,7 @@ BuddyPluginViewBetaChat
 			return;
 		}
 	
-		status.getControl().getDisplay().asyncExec(
+		Utils.execSWTThread(
 			new Runnable()
 			{
 				public void
@@ -1779,7 +1779,7 @@ BuddyPluginViewBetaChat
 	{
 		if ( !buddy_table.isDisposed()){
 
-			buddy_table.getDisplay().asyncExec(
+			Utils.execSWTThread(
 				new Runnable()
 				{
 					public void
@@ -1844,7 +1844,7 @@ BuddyPluginViewBetaChat
 	{
 		if ( !log.isDisposed()){
 
-			log.getDisplay().asyncExec(
+			Utils.execSWTThread(
 				new Runnable()
 				{
 					public void
@@ -1866,7 +1866,7 @@ BuddyPluginViewBetaChat
 	{
 		if ( !log.isDisposed()){
 
-			log.getDisplay().asyncExec(
+			Utils.execSWTThread(
 				new Runnable()
 				{
 					public void
