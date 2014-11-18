@@ -23,10 +23,13 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeSet;
 
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
@@ -1385,9 +1388,29 @@ DHTUDPUtils
 		int			network,
 		int			max )
 	{
-		List<DHTTransportAlternativeContact>	result = new ArrayList<DHTTransportAlternativeContact>(max);
+		List<DHTTransportAlternativeContact>	result_list = new ArrayList<DHTTransportAlternativeContact>(max);
 		
 		if ( max > 0 ){
+			
+			TreeSet<DHTTransportAlternativeContact> result_set =
+				new TreeSet<DHTTransportAlternativeContact>(
+					new Comparator<DHTTransportAlternativeContact>() 
+					{
+						public int 
+						compare(
+							DHTTransportAlternativeContact o1,
+							DHTTransportAlternativeContact o2 ) 
+						{
+							int res = o1.getAge() - o2.getAge();
+							
+							if ( res == 0 ){
+								
+								res = o1.getID() - o2.getID();
+							}
+							
+							return( res );
+						}
+					});
 			
 			synchronized( transports ){
 
@@ -1401,45 +1424,37 @@ DHTUDPUtils
 						
 						if ( temp != null ){
 							
-							result.addAll( temp );
+							result_set.addAll( temp );
 						}
 					}
 				}
-				
-				int rem = max - result.size();
-				
-				if ( rem > 0 ){
-				
-						// look for remote providers if needed
-					
-					for ( DHTTransportUDPImpl transport: transports ){
-						
-						DHTTransportAlternativeNetwork alt = transport.getAlternativeNetwork( network );
-						
-						if ( alt != null ){
-							
-							List<DHTTransportAlternativeContact> temp = alt.getContacts( rem );
-							
-							if ( temp != null ){
 								
-								if ( temp != null ){
-									
-									result.addAll( temp );
-									
-									rem -= temp.size();
-									
-									if ( rem <= 0 ){
+					// merge in any remote contacts and then take the best ones
+				
+				for ( DHTTransportUDPImpl transport: transports ){
 										
-										break;
-									}
-								}
-							}
+					DHTTransportAlternativeNetwork alt = transport.getAlternativeNetwork( network );
+					
+					if ( alt != null ){
+						
+						List<DHTTransportAlternativeContact> temp = alt.getContacts( max );
+						
+						if ( temp != null ){
+							
+							result_set.addAll( temp );
 						}
 					}
 				}
 			}
-		}
 	
-		return( result );
+			Iterator<DHTTransportAlternativeContact> it = result_set.iterator();
+			
+			while( it.hasNext() && result_list.size() < max ){
+				
+				result_list.add( it.next());
+			}
+		}
+		
+		return( result_list );
 	}
 }
