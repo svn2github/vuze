@@ -3338,6 +3338,13 @@ outer:
 						}
 					}
 					
+						// need to limit response for large serialisations
+					
+					if ( net == DHTTransportAlternativeNetwork.AT_I2P ){
+						
+						count = Math.min( 2, count );
+					}
+					
 					alt_contacts.addAll( local.getContacts( count, true ));
 				}
 				
@@ -3365,12 +3372,19 @@ outer:
 				
 				if ( req > 0 ){
 					
+					int net_type = net.getNetworkType();
+					
+					if ( net_type == DHTTransportAlternativeNetwork.AT_I2P ){
+						
+						req = Math.min( 2, req );
+					}
+
 					if ( wanted == null ){
 						
 						wanted = new ArrayList<int[]>( alt_net_states.size());
 					}
 					
-					wanted.add( new int[]{ net.getNetworkType(), req } );
+					wanted.add( new int[]{ net_type, req } );
 				}
 			}
 			
