@@ -1893,8 +1893,9 @@ BuddyPluginViewBetaChat
 		}
 	}
 	
-	private String previous_says = null;
-			
+	private String	previous_says 		= null;
+	private long	last_seen_message	= -1;	
+	
 	private void
 	resetChatMessages()
 	{
@@ -1929,7 +1930,7 @@ BuddyPluginViewBetaChat
 		
 		List<StyleRange>	new_ranges = new ArrayList<StyleRange>();
 		
-		boolean	new_message_not_ours = false;
+		long last_message_not_ours = -1;
 		
 		for ( ChatMessage message: all_messages ){
 			
@@ -1942,13 +1943,15 @@ BuddyPluginViewBetaChat
 
 			if ( !message.isIgnored() && msg.length() > 0 ){
 				
+				long time = message.getTimeStamp();
+
 				ChatParticipant participant = message.getParticipant();
 
 				boolean	is_me = participant.isMe();
 				
 				if ( !is_me ){
 					
-					new_message_not_ours = true;
+					last_message_not_ours = time;
 				}
 				
 				int	overall_start = appended.length();
@@ -1975,9 +1978,7 @@ BuddyPluginViewBetaChat
 					
 					colour = Colors.red;
 				}
-				
-				long time = message.getTimeStamp();
-				
+								
 				String stamp = time_format.format( new Date( time ));
 				
 				ChatMessage	last_message;
@@ -2183,11 +2184,17 @@ BuddyPluginViewBetaChat
 			
 			log.setSelection( log.getText().length());
 			
-			if ( build_complete && new_message_not_ours ){
+			if ( build_complete && last_message_not_ours >= 0 ){
 				
 				if ( ( !log.isVisible()) || log.getDisplay().getFocusControl() == null ){
-										
-					view.betaMessagePending( chat, log, true );
+						
+					if ( last_message_not_ours > last_seen_message ){
+					
+						view.betaMessagePending( chat, log, true );
+					}
+				}else{
+					
+					last_seen_message = last_message_not_ours;
 				}
 			}
 		}

@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import java.applet.Applet;
+import java.io.File;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -36,10 +38,12 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -55,6 +59,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.*;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
 BuddyPluginViewInstance 
@@ -231,9 +236,9 @@ BuddyPluginViewInstance
 
 			// notifications
 		
-		Group noti_area = new Group( main, SWT.NULL );
+		final Group noti_area = new Group( main, SWT.NULL );
 		layout = new GridLayout();
-		layout.numColumns = 3;
+		layout.numColumns = 4;
 		noti_area.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 3;
@@ -241,8 +246,121 @@ BuddyPluginViewInstance
 		
 		noti_area.setText( lu.getLocalisedMessageText( "v3.MainWindow.tab.events" ));
 
+		final Button noti_enable = new Button( noti_area, SWT.CHECK );
+		
+		noti_enable.setText( lu.getLocalisedMessageText( "azbuddy.dchat.noti.sound" ));
+		
+		boolean	sound_enabled = plugin_beta.getSoundEnabled();
+		
+		noti_enable.setSelection( sound_enabled );
+		
+		noti_enable.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						plugin_beta.setSoundEnabled( noti_enable.getSelection());
+					}
+				});	
 		
 		
+		final Text noti_file = new Text( noti_area, SWT.BORDER );
+		grid_data = new GridData();
+		grid_data.widthHint = 400;
+		noti_file.setLayoutData( grid_data );
+		
+		String sound_file = plugin_beta.getSoundFile();
+		
+		if ( sound_file.length() == 0 ){
+			
+			sound_file = "<default>";
+		}
+		
+		noti_file.setText( sound_file );
+		
+		noti_file.addListener(
+			SWT.FocusOut,
+			new Listener() {
+				
+				public void handleEvent(Event event){
+					String val = noti_file.getText().trim();
+					
+					if ( val.length() == 0 || val.startsWith( "<" )){
+						
+						noti_file.setText( "<default>" );
+						
+						val = "";
+					}
+					
+					if ( !val.equals( plugin_beta.getSoundFile())){
+						
+						plugin_beta.setSoundFile( val );
+					}
+				}
+			});
+		
+		final Button noti_browse = new Button(noti_area, SWT.PUSH);
+
+		final ImageLoader imageLoader = ImageLoader.getInstance();
+		
+		final Image imgOpenFolder = imageLoader.getImage( "openFolderButton" );
+
+		noti_area.addDisposeListener(
+			new DisposeListener() {
+				
+				public void widgetDisposed(DisposeEvent e) {
+					imageLoader.releaseImage( "openFolderButton" );
+				}
+			});
+		
+		noti_browse.setImage( imgOpenFolder );
+
+		imgOpenFolder.setBackground(noti_browse.getBackground());
+
+		noti_browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+
+		noti_browse.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				FileDialog dialog = new FileDialog(noti_area.getShell(),
+						SWT.APPLICATION_MODAL);
+				dialog.setFilterExtensions(new String[] {
+					"*.wav"
+				});
+				dialog.setFilterNames(new String[] {
+					"*.wav"
+				});
+
+				dialog.setText(MessageText.getString( "ConfigView.section.interface.wavlocation" ));
+
+				String path = dialog.open();
+
+				if ( path != null ){
+
+					path = path.trim();
+					
+					if ( path.startsWith( "<" )){
+						
+						path = "";
+					}
+					
+					plugin_beta.setSoundFile( path.trim());
+				}
+				
+				view.playSound();
+			}
+		});
+		
+		label = new Label( noti_area, SWT.WRAP );
+		
+		label.setText( MessageText.getString("ConfigView.section.interface.wavlocation.info"));
+		
+		if ( !sound_enabled ){
+			
+			noti_file.setEnabled( false );
+			noti_browse.setEnabled( false );
+		}
 			
 			// create a channel
 		
@@ -464,6 +582,23 @@ BuddyPluginViewInstance
 										private_chat_pinned.setSelection( pc_state == BuddyPluginBeta.PRIVATE_CHAT_PINNED_ONLY );
 										private_chat_pinned.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
 										pc_pinned_only.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+										
+										String str = plugin_beta.getSoundFile();
+										
+										if ( str.length() == 0 ){
+											
+											noti_file.setText("<default>");
+											
+										}else{
+											
+											
+											noti_file.setText( str );
+										}
+										
+										boolean se = plugin_beta.getSoundEnabled();
+										
+										noti_file.setEnabled( se );
+										noti_browse.setEnabled( se );
 									}
 								});
 						}
@@ -616,6 +751,7 @@ BuddyPluginViewInstance
 		buttons.add( create_button );
 		buttons.add( beta_button );
 		buttons.add( beta_i2p_button );
+		buttons.add( import_button );
 		
 		Utils.makeButtonsEqualWidth( buttons );
 	}

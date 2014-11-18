@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -72,8 +73,8 @@ BuddyPluginBeta
 	
 	private AsyncDispatcher		dispatcher = new AsyncDispatcher( "BuddyPluginBeta" );
 	
-	private Map<String,ChatInstance>		chat_instances = new HashMap<String, BuddyPluginBeta.ChatInstance>();
-
+	private Map<String,ChatInstance>		chat_instances_map 	= new HashMap<String, BuddyPluginBeta.ChatInstance>();
+	private CopyOnWriteList<ChatInstance>	chat_instances_list	= new CopyOnWriteList<BuddyPluginBeta.ChatInstance>(); 
 	private PluginInterface azmsgsync_pi;
 
 	private TimerEventPeriodic		timer;
@@ -82,7 +83,9 @@ BuddyPluginBeta
 	private String					shared_anon_nickname;
 	private int						private_chat_state;
 	private boolean					shared_anon_endpoint;
-
+	private boolean					sound_enabled;
+	private String					sound_file;
+	
 	private Map<String,Long>		favourite_map;
 	
 	private CopyOnWriteList<FTUXStateChangeListener>		ftux_listeners = new CopyOnWriteList<FTUXStateChangeListener>();
@@ -107,7 +110,9 @@ BuddyPluginBeta
 		private_chat_state	 	= COConfigurationManager.getIntParameter( "azbuddy.chat.private_chat_state", PRIVATE_CHAT_ENABLED );
 		
 		shared_anon_endpoint	= COConfigurationManager.getBooleanParameter( "azbuddy.chat.share_i2p_endpoint", true );
-		
+		sound_enabled			= COConfigurationManager.getBooleanParameter( "azbuddy.chat.notif.sound.enable", true );
+		sound_file			 	= COConfigurationManager.getStringParameter( "azbuddy.chat.notif.sound.file", "" );
+	
 		favourite_map			= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
 	}
 	
@@ -279,15 +284,52 @@ BuddyPluginBeta
 		}	
 	}
 	
+	public void
+	setSoundEnabled(
+		boolean		b )
+	{
+		if ( b !=  sound_enabled ){
+			
+			sound_enabled	= b;
+		
+			COConfigurationManager.setParameter( "azbuddy.chat.notif.sound.enable", b );
+			
+			plugin.fireUpdated();
+		}	
+	}
+	
+	public boolean
+	getSoundEnabled()
+	{
+		return( sound_enabled );
+	}
+	
+	public String
+	getSoundFile()
+	{
+		return( sound_file );
+	}
+	
+	public void
+	setSoundFile(
+		String		_file )
+	{
+		if ( !_file.equals( sound_file )){
+			
+			sound_file	= _file;
+		
+			COConfigurationManager.setParameter( "azbuddy.chat.notif.sound.file", _file );
+			
+			plugin.fireUpdated();	
+		}	
+	}
+	
 	private void
 	allUpdated()
 	{
-		synchronized( chat_instances ){
-
-			for ( ChatInstance chat: chat_instances.values()){
+		for ( ChatInstance chat: chat_instances_list ){
 			
-				chat.updated();
-			}
+			chat.updated();
 		}
 		
 		plugin.fireUpdated();
@@ -339,11 +381,11 @@ BuddyPluginBeta
 	{
 		if ( pi.getPluginID().equals( "azmsgsync" )){
 			
-			synchronized( chat_instances ){
+			synchronized( chat_instances_map ){
 
 				azmsgsync_pi = pi;
 				
-				Iterator<ChatInstance>	it = chat_instances.values().iterator();
+				Iterator<ChatInstance>	it = chat_instances_map.values().iterator();
 					
 				while( it.hasNext()){
 					
@@ -393,11 +435,11 @@ BuddyPluginBeta
 	{
 		if ( pi.getPluginID().equals( "azmsgsync" )){
 			
-			synchronized( chat_instances ){
+			synchronized( chat_instances_map ){
 
 				azmsgsync_pi = null;
 						
-				Iterator<ChatInstance>	it = chat_instances.values().iterator();
+				Iterator<ChatInstance>	it = chat_instances_map.values().iterator();
 				
 				while( it.hasNext()){
 					
@@ -624,15 +666,17 @@ BuddyPluginBeta
 		
 		String meta_key = network + ":" + key;
 	
-		synchronized( chat_instances ){
+		synchronized( chat_instances_map ){
 			
-			ChatInstance inst = chat_instances.get( meta_key );
+			ChatInstance inst = chat_instances_map.get( meta_key );
 			
 			if ( inst == null ){
 							
 				inst = new ChatInstance( network, key, private_target, is_private_chat );
 			
-				chat_instances.put( meta_key, inst );
+				chat_instances_map.put( meta_key, inst );
+				
+				chat_instances_list.add( inst );
 				
 				if ( azmsgsync_pi != null ){
 					
@@ -641,7 +685,9 @@ BuddyPluginBeta
 						
 					}catch( Throwable e ){
 						
-						chat_instances.remove( meta_key );
+						chat_instances_map.remove( meta_key );
+						
+						chat_instances_list.remove( inst );
 						
 						inst.destroy();
 						
@@ -669,13 +715,10 @@ BuddyPluginBeta
 							public void 
 							perform(
 								TimerEvent event ) 
-							{
-								synchronized( chat_instances ){
-									
-									for ( ChatInstance inst: chat_instances.values()){
+							{									
+								for ( ChatInstance inst: chat_instances_list ){
 										
-										inst.update();
-									}
+									inst.update();
 								}
 							}
 						});
@@ -2180,11 +2223,16 @@ BuddyPluginBeta
 						
 						String meta_key = network + ":" + key;
 
-						synchronized( chat_instances ){
+						synchronized( chat_instances_map ){
 						
-							chat_instances.remove( meta_key );
+							ChatInstance inst = chat_instances_map.remove( meta_key );
 							
-							if ( chat_instances.size() == 0 ){
+							if ( inst != null ){
+								
+								chat_instances_list.remove( inst );
+							}
+							
+							if ( chat_instances_map.size() == 0 ){
 								
 								if ( timer != null ){
 									

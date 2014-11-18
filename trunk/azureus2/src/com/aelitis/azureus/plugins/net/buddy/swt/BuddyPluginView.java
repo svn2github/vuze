@@ -21,6 +21,9 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import java.applet.Applet;
+import java.applet.AudioClip;
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,6 +63,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
+import org.gudy.azureus2.ui.swt.UserAlerts;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -104,7 +108,9 @@ BuddyPluginView
 	private Image iconIDLE;
 	private Image iconIN;
 	private Image iconOUT;
-		
+	
+	private	final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
+
 	public
 	BuddyPluginView(
 		BuddyPlugin		_plugin,
@@ -791,6 +797,41 @@ BuddyPluginView
 	}
 	
 	protected void
+	playSound()
+	{
+		if ( plugin.getBeta().getSoundEnabled()){
+			
+			final String sound_file = plugin.getBeta().getSoundFile();
+					
+			new AEThread2("BuddyPluginSound" ){
+				public void run() {
+					try {
+						AudioClip audio_clip = null;
+						
+						if ( sound_file.length() == 0 ){
+							
+							audio_clip = Applet.newAudioClip(BuddyPluginView.class.getClassLoader().getResource( default_sound ));
+
+						}else{
+							
+							URL	file_url = new File( sound_file ).toURI().toURL();
+
+	    					audio_clip = Applet.newAudioClip( file_url );
+						}
+						
+						audio_clip.play();
+	
+						Thread.sleep(2500);
+	
+					} catch (Throwable e) {
+	
+					}
+				}
+			}.start();
+		}
+	}
+	
+	protected void
 	betaMessagePending(
 		ChatInstance		chat,
 		Control				comp,
@@ -946,6 +987,8 @@ BuddyPluginView
 												}
 															
 												latest_instances = current_instances;
+												
+												playSound();
 											}
 											
 											beta_status.setTooltipText( tt_text );
