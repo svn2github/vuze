@@ -64,6 +64,7 @@ import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 
 /**
@@ -120,6 +121,7 @@ DHTTransportUDPImpl
 	private boolean		bootstrap_node	= false;
 	
 	private byte		generic_flags	= DHTTransportUDP.GF_NONE;
+	private byte		generic_flags2	= VersionCheckClient.getSingleton().getDHTFlags();
 	
 	private static final int CONTACT_HISTORY_MAX 		= 32;
 	private static final int CONTACT_HISTORY_PING_SIZE	= 24;
@@ -457,6 +459,10 @@ DHTTransportUDPImpl
 	updateStats(
 		int	tick_count )
 	{
+			// pick up latest value
+		
+		generic_flags2	= VersionCheckClient.getSingleton().getDHTFlags();
+		
 		long	alien_count	= 0;
 		
 		long[]	aliens = stats.getAliens();
@@ -646,6 +652,12 @@ DHTTransportUDPImpl
 	getGenericFlags()
 	{
 		return( generic_flags );
+	}
+	
+	public byte
+	getGenericFlags2()
+	{
+		return( generic_flags2 );
 	}
 	
 	public void

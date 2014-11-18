@@ -67,6 +67,7 @@ public class VersionCheckClient {
 	public static final String	REASON_UPDATE_CHECK_START		= "us";
 	public static final String	REASON_UPDATE_CHECK_PERIODIC	= "up";
 	public static final String	REASON_CHECK_SWT				= "sw";
+	public static final String	REASON_DHT_FLAGS				= "df";
 	public static final String	REASON_DHT_EXTENDED_ALLOWED		= "dx";
 	public static final String	REASON_DHT_ENABLE_ALLOWED		= "de";
 	public static final String	REASON_EXTERNAL_IP				= "ip";
@@ -686,6 +687,24 @@ public class VersionCheckClient {
 		return res;
 	}
 
+	public byte 
+	getDHTFlags() 
+	{
+		Map map = getMostRecentVersionCheckData();
+
+		if ( map != null ){
+			
+			byte[] b_flags = (byte[])map.get( "dht_flags" );
+			
+			if ( b_flags != null ){
+				
+				return( new Integer(new String( b_flags )).byteValue());
+			}
+		}
+		
+		return( (byte)0xff );
+	}
+	
 	public String[]
 	getRecommendedPlugins()
 	{

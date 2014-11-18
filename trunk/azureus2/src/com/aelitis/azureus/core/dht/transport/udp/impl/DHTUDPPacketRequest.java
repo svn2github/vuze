@@ -49,7 +49,9 @@ DHTUDPPacketRequest
 		4 + 		// network
 		4 +			// instance id
 		8 +			// time
-		DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
+		DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE +
+		1 +			// flags
+		1;			// flags2
 		
 	private DHTTransportUDPImpl	transport;
 	
@@ -62,6 +64,7 @@ DHTUDPPacketRequest
 	private InetSocketAddress	originator_address;
 	private int					originator_instance_id;
 	private byte				flags;
+	private byte				flags2;
 	
 	private long				skew;
 	
@@ -96,6 +99,7 @@ DHTUDPPacketRequest
 		originator_time			= SystemTime.getCurrentTime();
 		
 		flags	= transport.getGenericFlags();
+		flags2	= transport.getGenericFlags2();
 	}
 	
 	protected
@@ -174,6 +178,11 @@ DHTUDPPacketRequest
 			
 			flags	= is.readByte();
 		}
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS2 ){
+			
+			flags2	= is.readByte();
+		}
 	}
 	
 	protected void
@@ -249,6 +258,11 @@ DHTUDPPacketRequest
 
 			os.writeByte( flags );
 		}
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS2 ){
+
+			os.writeByte( flags2 );
+		}
 	}
 	
 	protected void
@@ -308,6 +322,12 @@ DHTUDPPacketRequest
 		return( flags );
 	}
 	
+	public byte
+	getGenericFlags2()
+	{
+		return( flags2 );
+	}
+	
 	protected byte
 	getOriginatorVersion()
 	{
@@ -336,6 +356,6 @@ DHTUDPPacketRequest
 	public String
 	getString()
 	{
-		return( super.getString() + ",[prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network+",ov=" + originator_version + ",fl=" + flags + "]");
+		return( super.getString() + ",[prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network+",ov=" + originator_version + ",fl=" + flags + "/" + flags2 + "]");
 	}
 }

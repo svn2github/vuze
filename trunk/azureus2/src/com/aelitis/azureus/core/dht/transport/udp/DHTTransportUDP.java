@@ -102,7 +102,8 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_PACKET_FLAGS			= 51;	// flags field added to request and reply packets
 
 	public static final byte PROTOCOL_VERSION_ALT_CONTACTS			= 52;
-	
+	public static final byte PROTOCOL_VERSION_PACKET_FLAGS2			= 53;	// flags2 field added to request and reply packets
+
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
@@ -121,8 +122,8 @@ DHTTransportUDP
 		}
 	}
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= Helper.getVersion( PROTOCOL_VERSION_ALT_CONTACTS );
-	public static final byte PROTOCOL_VERSION_CVS					= Helper.getVersion( PROTOCOL_VERSION_ALT_CONTACTS );
+	public static final byte PROTOCOL_VERSION_MAIN					= Helper.getVersion( PROTOCOL_VERSION_PACKET_FLAGS2 );
+	public static final byte PROTOCOL_VERSION_CVS					= Helper.getVersion( PROTOCOL_VERSION_PACKET_FLAGS2 );
 
 	public static final byte PROTOCOL_VERSION_MIN					= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );
 	public static final byte PROTOCOL_VERSION_MIN_CVS				= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );

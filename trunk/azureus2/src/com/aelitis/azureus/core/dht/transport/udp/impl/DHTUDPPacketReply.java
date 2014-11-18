@@ -47,7 +47,8 @@ DHTUDPPacketReply
 		1 +		// ver
 		1 +		// net 
 		4 +		// instance
-		1;		// flags
+		1 + 	// flags
+		1;		// flags2
 	
 	private DHTTransportUDPImpl 	transport;
 	
@@ -57,6 +58,9 @@ DHTUDPPacketReply
 	private int		network;
 	private int		target_instance_id;
 	private byte	flags;
+	private byte	flags2;
+
+	
 	private long	skew;
 		
 	private DHTNetworkPosition[]	network_positions;
@@ -93,6 +97,8 @@ DHTUDPPacketReply
 		skew	= _remote_contact.getClockSkew();
 		
 		flags	= transport.getGenericFlags();
+		
+		flags2	= transport.getGenericFlags2();
 	}
 	
 	protected
@@ -139,6 +145,11 @@ DHTUDPPacketReply
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS ){
 			
 			flags	= is.readByte();
+		}
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS2 ){
+			
+			flags2	= is.readByte();
 		}
 	}
 	
@@ -188,6 +199,12 @@ DHTUDPPacketReply
 	getGenericFlags()
 	{
 		return( flags );
+	}
+	
+	public byte
+	getGenericFlags2()
+	{
+		return( flags2 );
 	}
 	
 	public void
@@ -240,11 +257,16 @@ DHTUDPPacketReply
 
 			os.writeByte( flags );
 		}
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS2 ){
+
+			os.writeByte( flags2 );
+		}
 	}
 	
 	public String
 	getString()
 	{
-		return( super.getString() + ",[con="+connection_id+",prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network + ",fl=" + flags + "]");
+		return( super.getString() + ",[con="+connection_id+",prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network + ",fl=" + flags + "/" + flags2 + "]");
 	}
 }

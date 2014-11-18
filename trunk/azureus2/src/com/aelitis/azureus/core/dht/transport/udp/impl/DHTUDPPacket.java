@@ -30,4 +30,7 @@ DHTUDPPacket
 	
 	public byte
 	getGenericFlags();
+	
+	public byte
+	getGenericFlags2();
 }
