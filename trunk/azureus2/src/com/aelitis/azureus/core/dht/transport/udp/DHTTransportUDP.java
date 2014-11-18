@@ -53,6 +53,9 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_4511					= 50;	// main
 	public static final byte PROTOCOL_VERSION_4600					= 50;	// min -> 50
 	public static final byte PROTOCOL_VERSION_4720					= 50;	
+	public static final byte PROTOCOL_VERSION_4800					= 51;	
+	public static final byte PROTOCOL_VERSION_5400					= 52;	
+	public static final byte PROTOCOL_VERSION_5500					= 52;	// min -> 51
 
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
@@ -121,8 +124,8 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_MAIN					= Helper.getVersion( PROTOCOL_VERSION_ALT_CONTACTS );
 	public static final byte PROTOCOL_VERSION_CVS					= Helper.getVersion( PROTOCOL_VERSION_ALT_CONTACTS );
 
-	public static final byte PROTOCOL_VERSION_MIN					= Helper.getVersion( PROTOCOL_VERSION_RESTRICT_ID3 );
-	public static final byte PROTOCOL_VERSION_MIN_CVS				= Helper.getVersion( PROTOCOL_VERSION_RESTRICT_ID3 );
+	public static final byte PROTOCOL_VERSION_MIN					= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );
+	public static final byte PROTOCOL_VERSION_MIN_CVS				= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );
 	
 
 	
