@@ -136,7 +136,7 @@ public class ConfigSectionInterfaceTables
 				Messages.setLanguageText(label, MSG_PREFIX + "graphicsUpdate");
 				gridData = new GridData();
 				IntParameter graphicUpdate = new IntParameter(cGeneral, "Graphics Update",
-						1, -1);
+						1, Integer.MAX_VALUE );
 				graphicUpdate.setLayoutData(gridData);
 	
 				label = new Label(cGeneral, SWT.NULL);

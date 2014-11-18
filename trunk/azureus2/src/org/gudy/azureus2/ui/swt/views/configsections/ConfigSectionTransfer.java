@@ -101,7 +101,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 		gridData = new GridData();
 		final IntParameter paramMaxUploadSpeed = new IntParameter(cSection,
-				"Max Upload Speed KBs", 0, -1);
+				"Max Upload Speed KBs", 0, Integer.MAX_VALUE );
 		paramMaxUploadSpeed.setLayoutData(gridData);
 
 		//  max upload speed when seeding
@@ -133,7 +133,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 		gridData = new GridData();
 		final IntParameter paramMaxUploadSpeedSeeding = new IntParameter(
-				cMaxUploadSpeedOptionsArea, "Max Upload Speed Seeding KBs", 0, -1);
+				cMaxUploadSpeedOptionsArea, "Max Upload Speed Seeding KBs", 0, Integer.MAX_VALUE );
 		paramMaxUploadSpeedSeeding.setLayoutData(gridData);
 		enable_seeding_rate
 				.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
@@ -174,7 +174,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			Messages.setLanguageText(label, "ConfigView.label.maxuploadswhenbusymin" );
 
 			gridData = new GridData();
-			new IntParameter(cSection, "max.uploads.when.busy.inc.min.secs", 0, -1).setLayoutData(gridData);
+			new IntParameter(cSection, "max.uploads.when.busy.inc.min.secs", 0, Integer.MAX_VALUE ).setLayoutData(gridData);
 		}
 		
 		// max download speed
@@ -185,7 +185,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		
 		gridData = new GridData();
 		final IntParameter paramMaxDownSpeed = new IntParameter(cSection,
-				"Max Download Speed KBs", 0, -1);
+				"Max Download Speed KBs", 0, Integer.MAX_VALUE );
 		paramMaxDownSpeed.setLayoutData(gridData);
 				
 			// max upload/download limit dependencies
@@ -336,7 +336,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			Messages.setLanguageText(label, "ConfigView.label.xfer.bias_slack");
 
 			IntParameter bias_slack = new IntParameter(
-					bias_slack_area, "Bias Upload Slack KBs", 1, -1);
+					bias_slack_area, "Bias Upload Slack KBs", 1, Integer.MAX_VALUE );
 			
 			
 			final Composite bias_unlimited_area = new Composite(cSection, SWT.NULL);
@@ -402,7 +402,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 			gridData = new GridData();
 			IntParameter paramMaxUploads = new IntParameter(auto_group, "Max Uploads",
-					2, -1);
+					2, Integer.MAX_VALUE );
 			paramMaxUploads.setLayoutData(gridData);
 
 				// max uploads when seeding
@@ -431,7 +431,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 			gridData = new GridData();
 			final IntParameter paramMaxUploadsSeeding = new IntParameter(
-					cMaxUploadsOptionsArea, "Max Uploads Seeding", 2, -1);
+					cMaxUploadsOptionsArea, "Max Uploads Seeding", 2, Integer.MAX_VALUE );
 			paramMaxUploadsSeeding.setLayoutData(gridData);
 
 			
@@ -477,7 +477,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 			gridData = new GridData();
 			final IntParameter paramMaxPeersSeeding = new IntParameter(
-					cMaxPeersOptionsArea, "Max.Peer.Connections.Per.Torrent.When.Seeding", 0, -1);
+					cMaxPeersOptionsArea, "Max.Peer.Connections.Per.Torrent.When.Seeding", 0, Integer.MAX_VALUE );
 			paramMaxPeersSeeding.setLayoutData(gridData);	
 			
 			/////

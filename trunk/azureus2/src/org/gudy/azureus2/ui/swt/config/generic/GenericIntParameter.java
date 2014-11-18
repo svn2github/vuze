@@ -69,6 +69,14 @@ public class GenericIntParameter
 	public GenericIntParameter(GenericParameterAdapter adapter,
 			Composite composite, String name, int minValue, int maxValue) {
 		iDefaultValue = adapter.getIntValue(name);
+		
+		if ( maxValue < minValue ){
+			Debug.out( "max < min, not good" );
+				// common mistake to use -1 to indicate no-limit
+
+			maxValue = Integer.MAX_VALUE;
+		}
+		
 		iMinValue = minValue;
 		iMaxValue = maxValue;
 		initialize(adapter, composite, name);

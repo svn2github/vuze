@@ -666,13 +666,13 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		label = new Label(gRefresh, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "inactiveUpdate");
 		gridData = new GridData();
-		IntParameter inactiveUpdate = new IntParameter(gRefresh, "Refresh When Inactive", 1,	-1);
+		IntParameter inactiveUpdate = new IntParameter(gRefresh, "Refresh When Inactive", 1, Integer.MAX_VALUE);
 		inactiveUpdate.setLayoutData(gridData);
 
 		label = new Label(gRefresh, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "graphicsUpdate");
 		gridData = new GridData();
-		IntParameter graphicUpdate = new IntParameter(gRefresh, "Graphics Update", 1,	-1);
+		IntParameter graphicUpdate = new IntParameter(gRefresh, "Graphics Update", 1, Integer.MAX_VALUE);
 		graphicUpdate.setLayoutData(gridData);
 		
 		return cSection;

@@ -3600,7 +3600,7 @@ public class OpenTorrentOptionsWindow
 						}
 					},
 					parent,
-					"torrentoptions.config.uploadspeed", 0, -1);
+					"torrentoptions.config.uploadspeed", 0, Integer.MAX_VALUE );
 			
 			paramMaxUploadSpeed.setLayoutData(gridData);
 
@@ -3621,7 +3621,7 @@ public class OpenTorrentOptionsWindow
 						}
 					},
 					parent,
-					"torrentoptions.config.downloadspeed", 0, -1);
+					"torrentoptions.config.downloadspeed", 0, Integer.MAX_VALUE );
 			
 			paramMaxDownloadSpeed.setLayoutData(gridData);
 		}
