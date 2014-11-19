@@ -1893,8 +1893,9 @@ BuddyPluginViewBetaChat
 		}
 	}
 	
-	private String	previous_says 		= null;
-	private long	last_seen_message	= -1;	
+	private String	previous_says 				= null;
+	private long	last_seen_message			= -1;	
+	private long	last_seen_message_pending	= -1;
 	
 	private void
 	resetChatMessages()
@@ -2190,6 +2191,8 @@ BuddyPluginViewBetaChat
 						
 					if ( last_message_not_ours > last_seen_message ){
 					
+						last_seen_message_pending = last_message_not_ours;
+						
 						view.betaMessagePending( chat, log, true );
 					}
 				}else{
@@ -2203,6 +2206,11 @@ BuddyPluginViewBetaChat
 	public void
 	activate()
 	{
+		if ( last_seen_message_pending > last_seen_message ){
+			
+			last_seen_message = last_seen_message_pending;
+		}
+		
 		view.betaMessagePending( chat, log, false );
 	}
 }
