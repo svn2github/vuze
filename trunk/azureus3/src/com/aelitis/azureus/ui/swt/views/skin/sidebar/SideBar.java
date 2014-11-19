@@ -403,6 +403,10 @@ public class SideBar
 
 		int fontHeight = (Constants.isOSX ? 11 : 12)
 				+ (tree.getItemHeight() > 18 ? tree.getItemHeight() - 18 : 0);
+		
+		if (Constants.isLinux && tree.getItemHeight() >= 38) {
+			fontHeight = 13;
+		}
 
 		fontData[0].setStyle(SWT.BOLD);
 		FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
