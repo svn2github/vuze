@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2014.xx.yy | Vuze 5.4.0.1
+2014.11.19 | Vuze 5.5.0.0
 
 FEATURE: UI   | Added option to use quick-view rather than 'launch' when double-clicking files [Parg]
 FEATURE: UI   | Tag Discoveries [TuxPaper]
@@ -37,6 +37,8 @@ BUGFIX: Core  | Fix meta-data download over LT which was causing first peer to b
 BUGFIX: Core  | Fixed fast-extension exploit that could be used to waste seeding bandwidth [Parg]
 BUGFIX: Core  | Rotating bloom filters weren't being reset correctly [Parg]
 BUGFIX: Core  | Remove some DNS leaks [Parg]
+
+
 
 2014.07.30 | Vuze 5.4.0.0
 
@@ -89,6 +91,7 @@ BUGFIX: Core  | Handle some XML parsing errors better [Parg]
 BUGFIX: Core  | Fix Vuze preventing Windows logoff/shotdown [Parg; Tux]
 BUGFIX: Core  | Async listener thread not always started when needed [Parg]
 BUGFIX: Core  | Handle malformed announce URLs better [Parg]
+
 
 
 2014.02.07 | Vuze 5.3.0.0
