@@ -2185,19 +2185,30 @@ BuddyPluginViewBetaChat
 			
 			log.setSelection( log.getText().length());
 			
-			if ( build_complete && last_message_not_ours >= 0 ){
+			if ( last_message_not_ours >= 0 ){
 				
-				if ( ( !log.isVisible()) || log.getDisplay().getFocusControl() == null ){
+				if ( build_complete ){
+				
+					if ( ( !log.isVisible()) || log.getDisplay().getFocusControl() == null ){
+							
+						if ( last_message_not_ours > last_seen_message ){
 						
-					if ( last_message_not_ours > last_seen_message ){
-					
-						last_seen_message_pending = last_message_not_ours;
+							last_seen_message_pending = last_message_not_ours;
+							
+							view.betaMessagePending( chat, log, true );
+						}
+					}else{
 						
-						view.betaMessagePending( chat, log, true );
+						last_seen_message = last_message_not_ours;
 					}
 				}else{
 					
-					last_seen_message = last_message_not_ours;
+						// assume that during construction the messages will be seen
+					
+					if ( last_message_not_ours > last_seen_message ){
+					
+						last_seen_message = last_message_not_ours;
+					}
 				}
 			}
 		}
