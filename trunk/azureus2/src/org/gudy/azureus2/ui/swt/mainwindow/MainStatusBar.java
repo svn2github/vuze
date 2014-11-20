@@ -1127,7 +1127,7 @@ public class MainStatusBar
 			return;
 		}
 
-			// see if this fixes occasional issue with status bar vanishing when bringing back from tray
+			// see if this fixes occasional issue with status bar vanishing when bringing back from taskbar/tray
 		
 		boolean is_hidden = (!is_visible) || statusBar.getDisplay().getFocusControl() == null;
 		
@@ -1143,6 +1143,11 @@ public class MainStatusBar
 				
 				was_hidden = false;
 			}
+		}
+		
+		if ( !is_visible ){
+			
+			return;
 		}
 		
 		// Plugins.
