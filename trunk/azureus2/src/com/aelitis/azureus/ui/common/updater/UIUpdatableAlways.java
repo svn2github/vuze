@@ -29,4 +29,5 @@ package com.aelitis.azureus.ui.common.updater;
 public interface UIUpdatableAlways
 	extends UIUpdatable
 {
+	public void updateUI( boolean is_visible );
 }

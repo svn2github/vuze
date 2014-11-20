@@ -66,11 +66,11 @@ public class UIUpdaterSWT
 
 	private boolean refreshed = true;
 
-	private ArrayList<UIUpdatable> updateables = new ArrayList<UIUpdatable>();
+	private CopyOnWriteList<UIUpdatable> updateables = new CopyOnWriteList<UIUpdatable>();
 	
 	private Map<UIUpdatable, String> debug_Updateables; 
 
-	private ArrayList<UIUpdatable> alwaysUpdateables = new ArrayList<UIUpdatable>();
+	private CopyOnWriteList<UIUpdatable> alwaysUpdateables = new CopyOnWriteList<UIUpdatable>();
 
 	private AEMonitor updateables_mon = new AEMonitor("updateables");
 
@@ -131,7 +131,7 @@ public class UIUpdaterSWT
 								if (noneVisible) {
 									//System.out.println("nothing visible!");
 									if (alwaysUpdateables.size() > 0) {
-										update(alwaysUpdateables);
+										update(alwaysUpdateables,false);
 									}
 									return;
 								}
@@ -144,7 +144,7 @@ public class UIUpdaterSWT
 								}
 							}
 
-							update(updateables);
+							update(updateables,true);
 						} catch (Exception e) {
 							Logger.log(new LogEvent(LOGID,
 									"Error while trying to update GUI", e));
@@ -240,7 +240,7 @@ public class UIUpdaterSWT
 		COConfigurationManager.removeParameterListener(CFG_REFRESH_INTERVAL, this);
 	}
 
-	private void update(List<UIUpdatable> updateables) {
+	private void update(CopyOnWriteList<UIUpdatable> updateables, boolean is_visible ) {
 		long start = 0;
 		Map mapTimeMap = DEBUG_TIMER ? new HashMap() : null;
 
@@ -249,28 +249,27 @@ public class UIUpdaterSWT
 			return;
 		}
 
-		Object[] updateablesArray = updateables.toArray();
-		for (int i = 0; i < updateablesArray.length; i++) {
-			UIUpdatable updateable = (UIUpdatable) updateablesArray[i];
-			if (updateable == null) {
-				removeUpdater(updateable);
-			}else{
-				try {
-					if (DEBUG_TIMER) {
-						start = SystemTime.getCurrentTime();
-					}
-					updateable.updateUI();
-					if (DEBUG_TIMER) {
-						long diff = SystemTime.getCurrentTime() - start;
-						if (diff > 0) {
-							mapTimeMap.put(updateable, new Long(diff));
-						}
-					}
-				} catch (Throwable t) {
-					Logger.log(new LogEvent(LOGID,
-							"Error while trying to update UI Element "
-									+ updateable.getUpdateUIName(), t));
+		for ( UIUpdatable updateable: updateables ){
+			try {
+				if (DEBUG_TIMER) {
+					start = SystemTime.getCurrentTime();
 				}
+				if ( updateable instanceof UIUpdatableAlways ){
+					((UIUpdatableAlways)updateable).updateUI(is_visible);
+				}else{
+					updateable.updateUI();
+				}
+				
+				if (DEBUG_TIMER) {
+					long diff = SystemTime.getCurrentTime() - start;
+					if (diff > 0) {
+						mapTimeMap.put(updateable, new Long(diff));
+					}
+				}
+			} catch (Throwable t) {
+				Logger.log(new LogEvent(LOGID,
+						"Error while trying to update UI Element "
+								+ updateable.getUpdateUIName(), t));
 			}
 		}
 		if (DEBUG_TIMER) {

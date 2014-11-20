@@ -61,6 +61,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -68,7 +69,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  * Moved from MainWindow and GUIUpdater
  */
 public class MainStatusBar
-	implements IMainStatusBar, UIUpdatable
+	implements IMainStatusBar, UIUpdatableAlways
 {
 	/**
 	 * Warning status icon identifier
@@ -1113,12 +1114,37 @@ public class MainStatusBar
 	}
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
-	public void updateUI() {
+	
+	boolean was_hidden = false;
+	
+	public void updateUI(){
+		updateUI(true);
+	}
+	
+	public void updateUI( boolean is_visible ) {
 		if (statusBar.isDisposed()) {
 			uiFunctions.getUIUpdater().removeUpdater(this);
 			return;
 		}
 
+			// see if this fixes occasional issue with status bar vanishing when bringing back from tray
+		
+		boolean is_hidden = (!is_visible) || statusBar.getDisplay().getFocusControl() == null;
+		
+		if ( is_hidden ){
+			
+			was_hidden = true;
+			
+		}else{
+			
+			if ( was_hidden ){
+				
+				statusBar.layout( true, true );
+				
+				was_hidden = false;
+			}
+		}
+		
 		// Plugins.
 		Control[] plugin_elements = this.plugin_label_composite.getChildren();
 		for (int i = 0; i < plugin_elements.length; i++) {

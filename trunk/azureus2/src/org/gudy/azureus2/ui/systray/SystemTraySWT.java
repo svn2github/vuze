@@ -453,8 +453,12 @@ public class SystemTraySWT
 		}
 	}
 
+	public void updateUI(){
+		updateUI(true);
+	}
+	
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
-	public void updateUI() {
+	public void updateUI(boolean is_visible) {
 		if (interval++ % 10 > 0) {
 			return;
 		}
