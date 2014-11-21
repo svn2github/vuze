@@ -63,7 +63,6 @@ import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
-import org.gudy.azureus2.ui.swt.UserAlerts;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -540,6 +539,7 @@ BuddyPluginView
 	
 	private UISWTStatusEntry	beta_status;
 	private Image				bs_chat_gray;
+	private Image				bs_chat_gray_text;
 	private Image				bs_chat_green;
 	
 	private void
@@ -561,8 +561,9 @@ BuddyPluginView
 				public void runSupport() {
 					ImageLoader imageLoader = ImageLoader.getInstance();
 
-					bs_chat_gray	= imageLoader.getImage( "dchat_gray" );
-					bs_chat_green 	= imageLoader.getImage( "dchat_green" );
+					bs_chat_gray		= imageLoader.getImage( "dchat_gray" );
+					bs_chat_gray_text 	= imageLoader.getImage( "dchat_gray_text" );
+					bs_chat_green 		= imageLoader.getImage( "dchat_green" );
 					
 					beta_status.setImage( bs_chat_gray );
 				}
@@ -993,7 +994,7 @@ BuddyPluginView
 											
 											beta_status.setTooltipText( tt_text );
 										
-											beta_status.setImage( tick_count%2==0?bs_chat_gray:bs_chat_green);
+											beta_status.setImage( tick_count%2==0?bs_chat_gray_text:bs_chat_green);
 										}
 									}
 								}
