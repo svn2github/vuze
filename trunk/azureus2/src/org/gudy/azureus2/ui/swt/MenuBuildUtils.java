@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -37,8 +38,12 @@ import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 
 
 /**
@@ -424,5 +429,86 @@ public class MenuBuildUtils {
 		}	
 			
 		return( result );
+	}
+	
+	private static AtomicBoolean	pub_chat_pending 	= new AtomicBoolean();
+	private static AtomicBoolean	anon_chat_pending 	= new AtomicBoolean();
+
+	public static void
+	addChatMenu(
+		Menu			menu,
+		String			menu_resource_key,
+		final String	chat_key )
+	{
+		if ( BuddyPluginUtils.isBetaChatAvailable()){
+						
+			final Menu chat_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+			
+			final org.eclipse.swt.widgets.MenuItem chat_item = new org.eclipse.swt.widgets.MenuItem(menu, SWT.CASCADE);
+			
+			Messages.setLanguageText( chat_item, menu_resource_key );
+			
+			chat_item.setMenu(chat_menu);
+
+			org.eclipse.swt.widgets.MenuItem chat_pub = new org.eclipse.swt.widgets.MenuItem(chat_menu, SWT.PUSH);
+			
+			Messages.setLanguageText(chat_pub, "label.public");
+			
+			chat_pub.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event){
+					
+					pub_chat_pending.set( true );
+					
+					BuddyPluginUtils.createBetaChat(
+						AENetworkClassifier.AT_PUBLIC, 
+						chat_key,
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								pub_chat_pending.set( false );
+							}
+						});
+				}});
+			
+			if ( pub_chat_pending.get()){
+				
+				chat_pub.setEnabled( false );
+				chat_pub.setText( chat_pub.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
+			}
+			
+			if ( BuddyPluginUtils.isBetaChatAnonAvailable()){
+				
+				org.eclipse.swt.widgets.MenuItem chat_priv = new org.eclipse.swt.widgets.MenuItem(chat_menu, SWT.PUSH);
+				
+				Messages.setLanguageText(chat_priv, "label.anon");
+				
+				chat_priv.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event){
+						
+						anon_chat_pending.set( true );
+						
+						BuddyPluginUtils.createBetaChat( 
+							AENetworkClassifier.AT_I2P, 
+							chat_key,
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									anon_chat_pending.set( false );
+								}
+							});
+					}});
+				
+				if ( anon_chat_pending.get()){
+					
+					chat_priv.setEnabled( false );
+					chat_priv.setText( chat_priv.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
+
+				}
+			}
+		}
 	}
 }

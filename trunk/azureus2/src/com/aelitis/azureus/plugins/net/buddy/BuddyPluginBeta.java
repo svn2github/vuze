@@ -1257,7 +1257,7 @@ BuddyPluginBeta
 					}
 					
 					String arg3 = nodes_local+"/"+nodes_live+"/"+nodes_dying;
-					String arg4 = DisplayFormatters.formatDecimal(req_in_rate,1) + "/" +  DisplayFormatters.formatDecimal(req_out_rate,1);
+					String arg4 = DisplayFormatters.formatDecimal(req_out_rate,1) + "/" +  DisplayFormatters.formatDecimal(req_in_rate,1);
 					
 					String str = 
 						MessageText.getString(

@@ -214,6 +214,8 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_COMMUNITY_FORUMS = "MainWindow.menu.community.forums";
 	
+	public static final String MENU_ID_COMMUNITY_CHAT = "MainWindow.menu.community.chat";
+	
 	public static final String MENU_ID_COMMUNITY_WIKI = "MainWindow.menu.community.wiki";
 
 	public static final String MENU_ID_HELP_SUPPORT = "MainWindow.menu.help.support";

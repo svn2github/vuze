@@ -21,7 +21,6 @@ package com.aelitis.azureus.ui.swt.shells.main;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
@@ -30,6 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -523,36 +523,49 @@ public class MainMenu
 	}
 
 	private void addCommunityMenu() {
-		MenuItem item = MenuFactory.createTopLevelMenuItem(menuBar,
-				MENU_ID_COMMUNITY);
-		Menu communityMenu = item.getMenu();
+		MenuItem item = MenuFactory.createTopLevelMenuItem(menuBar,	MENU_ID_COMMUNITY);
+		
+		final Menu communityMenu = item.getMenu();
 
-		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_FORUMS,
-				new Listener() {
-					public void handleEvent(Event e) {
-						Utils.launch(ContentNetworkUtils.getUrl(
-								ConstantsVuze.getDefaultContentNetwork(),
-								ContentNetwork.SERVICE_FORUMS));
-					}
-				});
+		communityMenu.addListener(
+			SWT.Show, 
+			new Listener() 
+			{
+				public void 
+				handleEvent( Event event) 
+				{
+					Utils.disposeSWTObjects( communityMenu.getItems());
+		
+					MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_FORUMS,
+						new Listener() {
+							public void handleEvent(Event e) {
+								Utils.launch(ContentNetworkUtils.getUrl(
+										ConstantsVuze.getDefaultContentNetwork(),
+										ContentNetwork.SERVICE_FORUMS));
+							}
+						});
 
-		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_WIKI,
-				new Listener() {
-					public void handleEvent(Event e) {
-						Utils.launch(ContentNetworkUtils.getUrl(
-								ConstantsVuze.getDefaultContentNetwork(),
-								ContentNetwork.SERVICE_WIKI));
-					}
-				});
-
-		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_BLOG,
-				new Listener() {
-					public void handleEvent(Event e) {
-						Utils.launch(ContentNetworkUtils.getUrl(
-								ConstantsVuze.getDefaultContentNetwork(),
-								ContentNetwork.SERVICE_BLOG));
-					}
-				});
+					MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_WIKI,
+						new Listener() {
+							public void handleEvent(Event e) {
+								Utils.launch(ContentNetworkUtils.getUrl(
+										ConstantsVuze.getDefaultContentNetwork(),
+										ContentNetwork.SERVICE_WIKI));
+							}
+						});
+			
+					MenuBuildUtils.addChatMenu( communityMenu, MENU_ID_COMMUNITY_CHAT, "General: Help" );
+					
+					MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_BLOG,
+						new Listener() {
+							public void handleEvent(Event e) {
+								Utils.launch(ContentNetworkUtils.getUrl(
+										ConstantsVuze.getDefaultContentNetwork(),
+										ContentNetwork.SERVICE_BLOG));
+							}
+						});
+				}
+			});
 	}
 
 	//====================================
