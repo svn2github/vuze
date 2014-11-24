@@ -1180,6 +1180,11 @@ BuddyPluginViewBetaChat
 		input_area.addKeyListener(
 			new KeyListener()
 			{
+				private LinkedList<String>	history 	= new LinkedList<String>();
+				private int					history_pos	= -1;
+				
+				private String				buffered_message = "";
+				
 				public void 
 				keyPressed(
 					KeyEvent e) 
@@ -1194,7 +1199,88 @@ BuddyPluginViewBetaChat
 							
 							sendMessage(  message );
 							
+							history.addFirst( message );
+							
+							if ( history.size() > 32 ){
+								
+								history.removeLast();
+							}
+							
+							history_pos = -1;
+							
 							input_area.setText( "" );
+						}
+					}else if ( e.keyCode == SWT.ARROW_UP ){
+							
+						history_pos++;
+						
+						if ( history_pos < history.size()){
+						
+							if ( history_pos == 0 ){
+								
+								buffered_message = input_area.getText().trim();
+							}
+
+							String msg = history.get( history_pos );
+							
+							input_area.setText( msg );
+							
+							input_area.setSelection( msg.length());
+							
+						}else{
+							
+							history_pos = history.size() - 1;
+						}
+						
+						e.doit = false;
+						
+					}else if ( e.keyCode == SWT.ARROW_DOWN ){
+
+						history_pos--;
+
+						if ( history_pos >= 0 ){
+													
+							String msg = history.get( history_pos );
+							
+							input_area.setText( msg );
+							
+							input_area.setSelection( msg.length());
+							
+						}else{
+								
+							if ( history_pos == -1 ){
+								
+								input_area.setText( buffered_message );
+								
+								if ( buffered_message.length() > 0 ){
+	
+									input_area.setSelection( buffered_message.length());
+								
+									buffered_message = "";
+								}
+							}else{
+								
+								history_pos = -1;
+							}
+						}
+						
+						e.doit = false;
+						
+					}else{
+						
+						if ( e.stateMask == SWT.MOD1 ){
+
+							int key = e.character;
+							
+							if ( key <= 26 && key > 0 ){
+								
+								key += 'a'-1;
+							}
+
+							if ( key == 'a' ){
+								
+								input_area.selectAll();
+							}
 						}
 					}
 				}
