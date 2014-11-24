@@ -40,6 +40,7 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -104,6 +105,8 @@ BuddyPluginViewBetaChat
 	private Shell 					shell;
 	
 	private StyledText 				log;
+	private StyleRange[]			log_styles = new StyleRange[0];
+	
 	private BufferedLabel			table_header;
 	private Table					buddy_table;
 	private BufferedLabel		 	status;
@@ -927,7 +930,99 @@ BuddyPluginViewBetaChat
 				}
 			});
 		
-		
+		log.addMouseTrackListener(
+			new MouseTrackListener() {
+				
+				private StyleRange		old_range;
+				private StyleRange		temp_range;
+				private int				temp_index;
+				
+				public void mouseHover(MouseEvent e) {
+					
+					boolean active = false;
+
+					try{
+						int offset = log.getOffsetAtLocation( new Point( e.x, e.y ) );
+						
+						for ( int i=0;i<log_styles.length;i++){
+							
+							StyleRange sr = log_styles[i];
+							
+							Object data = sr.data;
+
+							if ( data != null && offset >= sr.start && offset < sr.start + sr.length ){
+									
+								if ( old_range != null  ){
+									
+									if ( 	temp_index < log_styles.length &&
+											log_styles[temp_index] == temp_range ){
+										
+										log_styles[ temp_index ] = old_range;
+																				
+										old_range	= null;
+									}
+								}
+								
+								sr = log_styles[i];
+								
+								log.setToolTipText( MessageText.getString( "label.right.click.for.options" ));
+								
+									
+								StyleRange derp = new StyleRange( sr );
+									
+								derp.start = sr.start;
+								derp.length = sr.length;
+								
+								derp.borderStyle = SWT.BORDER_DASH;
+								
+								old_range	= sr;
+								temp_range	= derp;
+								temp_index	= i;
+								
+								log_styles[i] = derp;
+								
+								log.setStyleRanges( log_styles );
+								
+								active = true;
+									
+								break;
+							}
+						}
+						
+
+					}catch( Throwable f ){
+				
+					}
+					
+					if ( !active ){
+						
+						log.setToolTipText( "" );
+						
+						if ( old_range != null ){
+							
+							if ( 	temp_index < log_styles.length &&
+									log_styles[temp_index] == temp_range ){
+								
+								log_styles[ temp_index ] = old_range;
+								
+								old_range	= null;
+								
+								log.setStyleRanges( log_styles );
+							}
+						}
+					}
+				}
+				
+				public void mouseExit(MouseEvent e) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void mouseEnter(MouseEvent e) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
 
 		
 		
@@ -1207,6 +1302,8 @@ BuddyPluginViewBetaChat
 							}
 							
 							history_pos = -1;
+							
+							buffered_message = "";
 							
 							input_area.setText( "" );
 						}
@@ -2245,8 +2342,16 @@ BuddyPluginViewBetaChat
 				
 				StyleRange[] ranges = all_ranges.toArray( new StyleRange[ all_ranges.size()]);
 				
+				for ( StyleRange sr: ranges ){
+					
+					sr.borderStyle = SWT.NONE;
+				}
+				
 				log.setStyleRanges( ranges );
+				
+				log_styles = ranges;				
 			}
+			
 			
 			Iterator<Integer> it = null;
 			
