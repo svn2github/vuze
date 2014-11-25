@@ -87,6 +87,7 @@ BuddyPluginBeta
 	private String					sound_file;
 	
 	private Map<String,Long>		favourite_map;
+	private Map<String,Long>		save_messages_map;
 	
 	private CopyOnWriteList<FTUXStateChangeListener>		ftux_listeners = new CopyOnWriteList<FTUXStateChangeListener>();
 	
@@ -114,6 +115,7 @@ BuddyPluginBeta
 		sound_file			 	= COConfigurationManager.getStringParameter( "azbuddy.chat.notif.sound.file", "" );
 	
 		favourite_map			= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
+		save_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.savemsgmap", new HashMap<String,Long>());
 	}
 	
 	public boolean 
@@ -202,6 +204,61 @@ BuddyPluginBeta
 			
 			return( result );
 		}
+	}
+	
+	public boolean
+	getSaveMessages(
+		String		net,
+		String		key )
+	{
+		synchronized( save_messages_map ){
+			
+			Long l = save_messages_map.get( net + ":" + key );
+			
+			if ( l == null ){
+				
+				return( false );
+			}
+			
+			return ( l == 1 );
+		}
+	}
+	
+	public void
+	setSaveMessages(
+		String		net,
+		String		key,
+		boolean		b )
+	{
+		synchronized( save_messages_map ){
+			
+			String net_key = net + ":" + key;
+			
+			Long existing = save_messages_map.get( net_key );
+			
+			if ( existing == null && !b ){
+				
+				return;
+			}
+			
+			if ( existing != null && b == ( existing == 1 )){
+				
+				return;
+			}
+			
+			if ( b ){
+				
+				save_messages_map.put( net_key, 1L );
+				
+			}else{
+				
+				save_messages_map.remove( net_key );
+			}
+			
+			COConfigurationManager.setParameter( "azbuddy.dchat.savemsgmap", save_messages_map );	
+		}
+		
+		COConfigurationManager.save();
 	}
 	
 	public String
@@ -417,7 +474,7 @@ BuddyPluginBeta
 								
 								ChatInstance chat = getChat( AENetworkClassifier.AT_PUBLIC, BETA_CHAT_KEY );
 								
-								chat.setPersistent();
+								chat.setKeepAlive();
 							}	
 						}catch( Throwable e ){
 							
@@ -759,7 +816,7 @@ BuddyPluginBeta
 		
 		private CopyOnWriteList<ChatListener>		listeners = new CopyOnWriteList<ChatListener>();
 		
-		private boolean	persistent = false;
+		private boolean	keep_alive = false;
 		
 		private Map<String,Object> 	status;
 		
@@ -769,6 +826,7 @@ BuddyPluginBeta
 		private int			reference_count;
 		
 		private boolean		is_favourite;
+		private boolean		save_messages;
 		private boolean		destroyed;
 		
 		private
@@ -796,7 +854,8 @@ BuddyPluginBeta
 			
 			if ( !is_private_chat ){
 			
-				is_favourite = getFavourite( network, key );
+				is_favourite 	= getFavourite( network, key );
+				save_messages 	= BuddyPluginBeta.this.getSaveMessages( network, key );
 			}
 			
 			addReference();
@@ -896,6 +955,39 @@ BuddyPluginBeta
 		}
 		
 		public boolean
+		getSaveMessages()
+		{
+			return( save_messages );
+		}
+		
+		public void
+		setSaveMessages(
+			boolean		b )
+		{
+			if ( !is_private_chat ){
+				
+				if ( b != save_messages ){
+					
+					save_messages = b;
+					
+					BuddyPluginBeta.this.setSaveMessages( network, key, b );
+					
+					Map<String,Object>	options = new HashMap<String, Object>();
+					
+					options.put( "save_messages", b );
+					
+					try{
+						updateOptions( options );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}
+		
+		public boolean
 		isManaged()
 		{
 			return( managing_public_key != null );
@@ -945,9 +1037,9 @@ BuddyPluginBeta
 		}
 		
 		public void
-		setPersistent()
+		setKeepAlive()
 		{
-			persistent	= true;
+			keep_alive	= true;
 		}
 		
 		public boolean
@@ -1081,6 +1173,11 @@ BuddyPluginBeta
 					
 					options.put( "listener", this );
 							
+					if ( getSaveMessages()){
+						
+						options.put( "save_messages", true );
+					}
+					
 					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "getMessageHandler", new Object[]{ options } );
 					
 					handler = reply.get( "handler" );
@@ -1105,6 +1202,24 @@ BuddyPluginBeta
 					
 					throw( new Exception( e ));
 				}
+			}
+		}
+		
+		private void
+		updateOptions(
+			Map<String,Object>		options )
+			
+			throws Exception
+		{	
+			if ( handler == null || msgsync_pi == null ){
+				
+				Debug.out( "No handler!" );
+				
+			}else{
+				
+				options.put( "handler", handler );
+
+				msgsync_pi.getIPC().invoke( "updateMessageHandler", new Object[]{ options });
 			}
 		}
 		
@@ -2193,7 +2308,7 @@ BuddyPluginBeta
 				}
 			}
 			
-			if ( !persistent ){
+			if ( !keep_alive ){
 				
 				destroyed = true;
 				

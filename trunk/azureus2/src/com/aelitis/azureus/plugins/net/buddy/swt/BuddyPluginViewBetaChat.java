@@ -467,6 +467,25 @@ BuddyPluginViewBetaChat
 							chat.setFavourite( fave_mi.getSelection());
 						}
 					});
+			
+			final Menu advanced_menu = new Menu(status_menu.getShell(), SWT.DROP_DOWN);
+			MenuItem advanced_menu_item = new MenuItem( status_menu, SWT.CASCADE);
+			advanced_menu_item.setMenu(advanced_menu);
+			advanced_menu_item.setText(  MessageText.getString( "MyTorrentsView.menu.advancedmenu" ));
+
+			final MenuItem persist_mi = new MenuItem( advanced_menu, SWT.CHECK );
+			persist_mi.setText( MessageText.getString( "azbuddy.dchat.save.messages" ));
+			persist_mi.setSelection( chat.getSaveMessages());
+			
+			persist_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							chat.setSaveMessages( persist_mi.getSelection());
+						}
+					});
 		}else{
 			
 			final Menu status_priv_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
