@@ -808,7 +808,8 @@ BuddyPluginBeta
 		
 		private AtomicInteger						message_uid_next = new AtomicInteger();
 		
-		private List<ChatMessage>					messages = new ArrayList<ChatMessage>();
+		private List<ChatMessage>					messages	= new ArrayList<ChatMessage>();
+		private ByteArrayHashMap<String>			message_ids = new ByteArrayHashMap<String>();
 		
 		private ByteArrayHashMap<ChatParticipant>	participants = new ByteArrayHashMap<ChatParticipant>();
 		
@@ -1816,6 +1817,17 @@ BuddyPluginBeta
 						
 			synchronized( chat_lock ){
 				
+				byte[] id = msg.getID();
+				
+				if ( message_ids.containsKey( id )){
+					
+						// duplicate, probably from plugin unload, reload and re-bind
+					
+					return;
+				}
+				
+				message_ids.put( id, "" );
+				
 					// best case is that message belongs at the end
 				
 				int old_msgs = messages.size();
@@ -1826,9 +1838,14 @@ BuddyPluginBeta
 					
 					ChatMessage removed = messages.remove(0);
 					
+					old_msgs--;
+					
+					message_ids.remove( removed.getID());
+					
 					removed.getParticipant().removeMessage( removed );
 				}
 				
+
 				byte[] pk = msg.getPublicKey();
 				
 				ChatParticipant participant = participants.get( pk );
