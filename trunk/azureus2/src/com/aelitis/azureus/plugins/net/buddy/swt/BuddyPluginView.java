@@ -26,6 +26,7 @@ import java.applet.AudioClip;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -533,6 +534,8 @@ BuddyPluginView
 		}
 	}
 	
+	private static Object	CHAT_LM_kEY		= new Object();
+	
 	private HashMap<UISWTView,BetaSubViewHolder> beta_subviews = new HashMap<UISWTView,BetaSubViewHolder>();
 	
 	private Map<ChatInstance,Integer>	chat_uis = new HashMap<BuddyPluginBeta.ChatInstance, Integer>();
@@ -568,6 +571,48 @@ BuddyPluginView
 					beta_status.setImage( bs_chat_gray );
 				}
 			});
+			
+			SimpleTimer.addPeriodicEvent(
+				"msgcheck",
+				30*1000,
+				new TimerEventPerformer() 
+				{	
+					public void 
+					perform(
+						TimerEvent event) 
+					{
+						List<ChatInstance>	chats = plugin.getBeta().getChats();
+						
+						synchronized( pending_msg_map ){
+
+							for ( ChatInstance chat: chats ){
+							
+								if ( !chat_uis.containsKey( chat )){
+									
+									if ( chat.isFavourite()){
+										
+										long last_msg = chat.getLastMessageNotMine();
+										
+										if ( last_msg > 0 ){
+											
+											Long last_handled = (Long)chat.getUserData( CHAT_LM_kEY );
+											
+											if ( 	last_handled == null ||
+													last_msg > last_handled ){
+												
+												chat.setUserData( CHAT_LM_kEY, last_msg );
+												
+												betaMessagePending( chat, null, true );
+											}
+										}
+									}
+								}
+							}
+						
+							updateIdleTT();
+						}
+					}
+				});
 		}
 	}
 	
@@ -778,22 +823,69 @@ BuddyPluginView
 		}
 	}
 		
+	private List<ChatInstance>
+	sortChats(
+		Collection<ChatInstance>	chats )
+	{
+		List<ChatInstance>	result = new ArrayList<ChatInstance>(chats);
+		
+		Collections.sort(
+			result,
+			new Comparator<ChatInstance>() 
+			{
+				public int 
+				compare(
+					ChatInstance o1, 
+					ChatInstance o2) 
+				{
+					int res = o1.getNetAndKey().compareTo( o2.getNetAndKey());
+					
+					return( res );
+				}	
+			});
+		
+		return( result );
+	}
+	
 	private void
 	updateIdleTT()
 	{
 		if ( pending_msg_map.size() == 0 ){
 		
-			String text = MessageText.getString( "label.no.messages" );
+			
+			Set<ChatInstance>	instances = new HashSet<BuddyPluginBeta.ChatInstance>();
 			
 			if ( chat_uis.size() > 0 ){
 			
 				for ( ChatInstance chat: chat_uis.keySet()){
 				
-					text += "\n  " + chat.getShortName();
+					instances.add( chat );
 				}
 			}
 			
+			List<ChatInstance>	chats = plugin.getBeta().getChats();
+			
+			for ( ChatInstance chat: chats ){
+				
+				if ( !chat_uis.containsKey( chat )){
+						
+					if ( chat.isFavourite()){
+						
+						instances.add( chat );					
+					}
+				}
+			}
+			
+			String text = MessageText.getString( "label.no.messages" );
+
+			for ( ChatInstance chat: sortChats( instances )){
+				
+				text += "\n  " + chat.getShortName();
+			}
+			
 			beta_status.setTooltipText( text );
+			
+			buildMenu( instances );
 		}
 	}
 	
@@ -835,7 +927,7 @@ BuddyPluginView
 	protected void
 	betaMessagePending(
 		ChatInstance		chat,
-		Control				comp,
+		Control				comp_maybe_null,
 		boolean				is_pending )
 	{
 		synchronized( pending_msg_map ){
@@ -857,7 +949,14 @@ BuddyPluginView
 					entry[0] = ((Integer)entry[0]) + 1;
 				}
 				
-				((HashSet<Control>)entry[1]).add( comp );
+				HashSet<Control> controls = (HashSet<Control>)entry[1];
+				
+				if ( controls.contains( comp_maybe_null )){
+					
+					return;
+				}
+				
+				controls.add( comp_maybe_null );
 				
 				if ( pending_msg_event == null ){
 					
@@ -868,11 +967,7 @@ BuddyPluginView
 							new TimerEventPerformer()
 							{	
 								private int	tick_count = 0;
-								
-								private Set<ChatInstance>	latest_instances = new HashSet<ChatInstance>();
-								
-								private List<MenuItem>		menu_items = new ArrayList<MenuItem>();
-								
+																								
 								public void 
 								perform(
 									TimerEvent event )
@@ -881,12 +976,11 @@ BuddyPluginView
 									
 									synchronized( pending_msg_map ){
 										
-										Set<ChatInstance>	current_instances = new HashSet<BuddyPluginBeta.ChatInstance>();
+										Set<ChatInstance>			current_instances 	= new HashSet<ChatInstance>();
+										Map<ChatInstance,Object>	instance_map 		= new HashMap<ChatInstance, Object>();
 										
 										Iterator<Map.Entry<String,Object[]>> it = pending_msg_map.entrySet().iterator();
-										
-										String tt_text = "";
-										
+																				
 										while( it.hasNext()){
 											
 											Map.Entry<String,Object[]> map_entry = it.next();
@@ -909,7 +1003,7 @@ BuddyPluginView
 													
 													Control c = control_it.next();
 													
-													if ( c.isDisposed()){
+													if ( c != null && c.isDisposed()){
 														
 														it.remove();
 													}
@@ -922,10 +1016,8 @@ BuddyPluginView
 												}else{
 												
 													current_instances.add( chat );
-	
-													String short_name = chat.getShortName();
-
-													tt_text += (tt_text.length()==0?"":"\n") + entry[0] + " - " + short_name;
+													
+													instance_map.put( chat, entry[0] );
 												}
 											}
 										}
@@ -944,51 +1036,19 @@ BuddyPluginView
 											
 											beta_status.setImage( bs_chat_gray );
 											
-											for ( MenuItem mi: menu_items ){
-												
-												mi.remove();
-											}
 										}else{
 											
-											if ( !latest_instances.equals( current_instances )){
-											
-												for ( MenuItem mi: menu_items ){
-													
-													mi.remove();
-												}
-												
-												menu_items.clear();
-												
-												MenuManager menu_manager = plugin.getPluginInterface().getUIManager().getMenuManager();
+											String tt_text = "";
 
-												MenuContext mc = beta_status.getMenuContext();
-																	
-												for ( final ChatInstance chat: current_instances ){
+											for ( ChatInstance chat: sortChats( current_instances )){
 												
-													String	short_name = chat.getShortName();
-																										
-													MenuItem mi = menu_manager.addMenuItem( mc, "!" + short_name + "!" );
-													
-													mi.addListener(
-														new MenuItemListener() {
-															
-															public void selected(MenuItem menu, Object target) {
-															
-																try{
-																	openChat( chat.getClone());
-																	
-																}catch( Throwable e ){
-																	
-																	Debug.out( e );
-																}
-															}
-														});
-													
-													menu_items.add( mi );
-												}
-															
-												latest_instances = current_instances;
-												
+												String short_name = chat.getShortName();
+
+												tt_text += (tt_text.length()==0?"":"\n") + instance_map.get( chat ) + " - " + short_name;
+											}
+											
+											if ( buildMenu( current_instances )){
+														
 												playSound();
 											}
 											
@@ -1001,7 +1061,9 @@ BuddyPluginView
 							});
 				}
 			}else{
-				
+
+				chat.setUserData( CHAT_LM_kEY, chat.getLastMessageNotMine());
+
 				if ( entry != null ){
 					
 					pending_msg_map.remove( key );
@@ -1012,6 +1074,60 @@ BuddyPluginView
 					}
 				}
 			}
+		}
+	}
+	
+	private List<MenuItem>		menu_items = new ArrayList<MenuItem>();
+	private Set<ChatInstance>	menu_latest_instances = new HashSet<ChatInstance>();
+
+	private boolean
+	buildMenu(
+		Set<ChatInstance>	current_instances )
+	{
+		if ( !menu_latest_instances.equals( current_instances )){
+
+			for ( MenuItem mi: menu_items ){
+				
+				mi.remove();
+			}
+			
+			menu_items.clear();
+			
+			MenuManager menu_manager = plugin.getPluginInterface().getUIManager().getMenuManager();
+	
+			MenuContext mc = beta_status.getMenuContext();
+								
+			for ( final ChatInstance chat: sortChats( current_instances )){
+			
+				String	short_name = chat.getShortName();
+																	
+				MenuItem mi = menu_manager.addMenuItem( mc, "!" + short_name + "!" );
+				
+				mi.addListener(
+					new MenuItemListener() {
+						
+						public void selected(MenuItem menu, Object target) {
+						
+							try{
+								openChat( chat.getClone());
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					});
+				
+				menu_items.add( mi );
+			}
+			
+			menu_latest_instances = current_instances;
+			
+			return( true );
+			
+		}else{
+			
+			return( false );
 		}
 	}
 	

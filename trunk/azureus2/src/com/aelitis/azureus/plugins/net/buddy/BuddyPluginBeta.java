@@ -116,6 +116,19 @@ BuddyPluginBeta
 	
 		favourite_map			= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
 		save_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.savemsgmap", new HashMap<String,Long>());
+		
+		SimpleTimer.addPeriodicEvent(
+			"BPB:checkfave",
+			30*1000,
+			new TimerEventPerformer() 
+			{		
+				public void 
+				perform(
+					TimerEvent event ) 
+				{
+					checkFavourites();
+				}
+			});
 	}
 	
 	public boolean 
@@ -177,6 +190,8 @@ BuddyPluginBeta
 		}
 		
 		COConfigurationManager.save();
+		
+		checkFavourites();
 	}
 	
 	public List<String[]>
@@ -204,6 +219,73 @@ BuddyPluginBeta
 			
 			return( result );
 		}
+	}
+	
+	private void
+	checkFavourites()
+	{
+		dispatcher.dispatch(
+			new AERunnable() 
+			{	
+				@Override
+				public void 
+				runSupport() 
+				{
+					List<String[]>	faves = getFavourites();
+					
+					Set<String>	set = new HashSet<String>();
+					
+					for ( String[] fave: faves ){
+						
+						String	net = fave[0];
+						String	key	= fave[1];
+						
+						set.add( net + ":" + key );
+						
+						ChatInstance chat = peekChat( net, key );
+
+						if ( chat == null || !chat.getKeepAlive()){
+						
+								// get a reference to the chat
+							
+							try{
+								chat = getChat( net, key );
+							
+								chat.setKeepAlive( true );
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}
+					
+					for ( ChatInstance chat: chat_instances_list ){
+						
+						if ( chat.getKeepAlive()){
+							
+							String	net = chat.getNetwork();
+							String	key = chat.getKey();
+							
+							if ( !set.contains( net + ":" + key )){
+								
+								if ( 	net == AENetworkClassifier.AT_PUBLIC &&
+										key.equals(BETA_CHAT_KEY)){
+									
+									// leave
+									
+								}else{
+									
+										// release our reference
+									
+									chat.setKeepAlive( false );
+									
+									chat.destroy();
+								}
+							}
+						}
+					}
+				}
+			});
 	}
 	
 	public boolean
@@ -474,7 +556,7 @@ BuddyPluginBeta
 								
 								ChatInstance chat = getChat( AENetworkClassifier.AT_PUBLIC, BETA_CHAT_KEY );
 								
-								chat.setKeepAlive();
+								chat.setKeepAlive( true );
 							}	
 						}catch( Throwable e ){
 							
@@ -785,6 +867,27 @@ BuddyPluginBeta
 		}
 	}
 	
+	private ChatInstance
+	peekChat(
+		String				network,
+		String				key )
+	{
+		String meta_key = network + ":" + key;
+	
+		synchronized( chat_instances_map ){
+			
+			ChatInstance inst = chat_instances_map.get( meta_key );
+			
+			return( inst );
+		}
+	}
+	
+	public List<ChatInstance>
+	getChats()
+	{
+		return( chat_instances_list.getList());
+	}
+	
 	public class
 	ChatInstance
 	{
@@ -817,7 +920,9 @@ BuddyPluginBeta
 		
 		private CopyOnWriteList<ChatListener>		listeners = new CopyOnWriteList<ChatListener>();
 		
-		private boolean	keep_alive = false;
+		private Map<Object,Object>					user_data = new HashMap<Object, Object>();
+		
+		private boolean		keep_alive;
 		
 		private Map<String,Object> 	status;
 		
@@ -825,6 +930,8 @@ BuddyPluginBeta
 		private String		instance_nick;
 		
 		private int			reference_count;
+		
+		private long		last_message_not_mine;
 		
 		private boolean		is_favourite;
 		private boolean		save_messages;
@@ -1038,9 +1145,16 @@ BuddyPluginBeta
 		}
 		
 		public void
-		setKeepAlive()
+		setKeepAlive(
+			boolean		b )
 		{
-			keep_alive	= true;
+			keep_alive	= b;
+		}
+		
+		public boolean
+		getKeepAlive()
+		{
+			return( keep_alive );
 		}
 		
 		public boolean
@@ -1862,7 +1976,12 @@ BuddyPluginBeta
 										
 					participant.addMessage( msg );										
 				}
-								
+					
+				if ( !participant.isMe()){
+					
+					last_message_not_mine = msg.getTimeStamp();
+				}
+				
 				if ( sort_event != null ){
 					
 					sort_outstanding = true;
@@ -2290,6 +2409,33 @@ BuddyPluginBeta
 					}
 				}
 			}
+		}
+		
+		public long
+		getLastMessageNotMine()
+		{
+			return( last_message_not_mine );
+		}
+		
+		public void
+		setUserData(
+			Object		key,
+			Object		value )
+		{
+			synchronized( user_data ){
+				
+				user_data.put( key, value );
+			}
+		}
+		
+		public Object
+		getUserData(
+			Object		key )
+		{
+			synchronized( user_data ){
+				
+				return( user_data.get( key ));
+			}	
 		}
 		
 		public void
