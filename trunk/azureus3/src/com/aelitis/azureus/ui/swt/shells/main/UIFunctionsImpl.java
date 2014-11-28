@@ -1097,7 +1097,7 @@ public class UIFunctionsImpl
 		
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		
-		new FileDownloadWindow( uiFunctions.getMainShell(), str, null, null, true );
+		new FileDownloadWindow( uiFunctions.getMainShell(), hit, null, null, true );
 			
 		return( true );
 	}
