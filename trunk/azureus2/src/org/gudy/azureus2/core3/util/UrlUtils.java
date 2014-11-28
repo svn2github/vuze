@@ -351,6 +351,11 @@ public class UrlUtils
 			return( text );
 		}
 		
+		if ( text.startsWith( "chat:" )){
+			
+			return( "azplug:?id=azbuddy&arg=" + UrlUtils.encode( text ));
+		}
+		
 		String href = parseHTMLforURL(text);
 		if (href != null) {
 			return href;
