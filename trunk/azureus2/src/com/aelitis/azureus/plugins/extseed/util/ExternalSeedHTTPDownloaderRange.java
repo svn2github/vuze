@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.URL;
 import java.util.HashSet;
@@ -39,9 +40,13 @@ import javax.net.ssl.SSLSession;
 
 import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public class 
@@ -51,8 +56,8 @@ ExternalSeedHTTPDownloaderRange
 	public static final String	NL = "\r\n";
 	
 
-	private URL			original_url;
-	private String		user_agent;
+	private final URL		very_original_url;
+	private String			user_agent;
 	
 	private URL			redirected_url;
 	private int			consec_redirect_fails;
@@ -65,14 +70,14 @@ ExternalSeedHTTPDownloaderRange
 		URL		_url,
 		String	_user_agent )
 	{
-		original_url	= _url;
-		user_agent		= _user_agent;
+		very_original_url	= _url;
+		user_agent			= _user_agent;
 	}
 	
 	public URL
 	getURL()
 	{
-		return( original_url );
+		return( very_original_url );
 	}
 	
 	public void
@@ -117,6 +122,10 @@ ExternalSeedHTTPDownloaderRange
 				
 		String	outcome = "";
 		
+		PluginProxy		plugin_proxy	= null;
+		
+		boolean proxy_ok = false;
+		
 		try{
 			SESecurityManager.setThreadPasswordHandler( this );
 			
@@ -131,16 +140,45 @@ ExternalSeedHTTPDownloaderRange
 			int					response;
 			
 			Set<String>	redirect_urls = new HashSet<String>();
-						
+							
 redirect_loop:
 			while( true ){
+
+				URL	original_url 	= redirected_url==null?very_original_url:redirected_url;
+				URL current_url		= original_url;
 				
-				URL	target = redirected_url==null?original_url:redirected_url;
+				if ( plugin_proxy != null ){
+					
+					plugin_proxy.setOK( true );
+					
+					plugin_proxy = null;
+				}
+				
+				Proxy	current_proxy = null;
+				
+				if ( AENetworkClassifier.categoriseAddress( original_url.getHost()) != AENetworkClassifier.AT_PUBLIC ){
+					
+					plugin_proxy = AEProxyFactory.getPluginProxy( "webseed", original_url );
+					
+					if ( plugin_proxy != null ){
+						
+						current_url		= plugin_proxy.getURL();
+				
+						current_proxy	= plugin_proxy.getProxy();
+					}
+				}
 				
 				for ( int ssl_loop=0; ssl_loop<2; ssl_loop++ ){
 					
 					try{
-						connection = (HttpURLConnection)target.openConnection();
+						if ( current_proxy == null ){
+							
+							connection = (HttpURLConnection)current_url.openConnection();
+							
+						}else{
+							
+							connection = (HttpURLConnection)current_url.openConnection( current_proxy );
+						}
 						
 						if ( connection instanceof HttpsURLConnection ){
 							
@@ -169,6 +207,11 @@ redirect_loop:
 							connection.setRequestProperty( prop_names[i], prop_values[i] );
 						}
 						
+						if ( plugin_proxy != null ){
+							
+							connection.setRequestProperty( "HOST", plugin_proxy.getURLHostRewrite() + (original_url.getPort()==-1?"":(":" + original_url.getPort())));
+						}
+
 						int	time_remaining	= listener.getPermittedTime();
 						
 						if ( time_remaining > 0 ){
@@ -239,7 +282,7 @@ redirect_loop:
 						
 						if ( ssl_loop == 0 ){
 							
-							if ( SESecurityManager.installServerCertificates( target ) != null ){
+							if ( SESecurityManager.installServerCertificates( current_url ) != null ){
 								
 									// certificate has been installed
 								
@@ -258,7 +301,7 @@ redirect_loop:
 			
 			URL final_url = connection.getURL();
 			
-			if ( consec_redirect_fails < 10 && !original_url.toExternalForm().equals( final_url.toExternalForm())){
+			if ( consec_redirect_fails < 10 && !very_original_url.toExternalForm().equals( final_url.toExternalForm())){
 				
 				redirected_url = final_url;
 			}
@@ -290,6 +333,8 @@ redirect_loop:
             
 			is = connection.getInputStream();
 			
+			proxy_ok = true;
+
 			if ( 	response == HttpURLConnection.HTTP_ACCEPTED || 
 					response == HttpURLConnection.HTTP_OK ||
 					response == HttpURLConnection.HTTP_PARTIAL ){
@@ -435,6 +480,11 @@ redirect_loop:
 					
 				}
 			}
+						
+			if ( plugin_proxy != null ){
+				
+				plugin_proxy.setOK( proxy_ok );
+			}
 		}
 	}
 	
@@ -463,10 +513,13 @@ redirect_loop:
 		
 		boolean	connected = false;
 		
-		try{				
+		PluginProxy		plugin_proxy 	= null;
+		boolean			proxy_ok		= false;
+		
+		try{			
 			String	output_header = 
-				"GET " + original_url.getPath() + "?" + original_url.getQuery() + " HTTP/1.1" + NL +
-				"Host: " + original_url.getHost() + (original_url.getPort()==-1?"":( ":" + original_url.getPort())) + NL +
+				"GET " + very_original_url.getPath() + "?" + very_original_url.getQuery() + " HTTP/1.1" + NL +
+				"Host: " + very_original_url.getHost() + (very_original_url.getPort()==-1?"":( ":" + very_original_url.getPort())) + NL +
 				"Accept: */*" + NL +
 				"Connection: Close" + NL +	// if we want to support keep-alive we'll need to implement a socket cache etc.
 				"User-Agent: " + user_agent + NL;
@@ -480,18 +533,53 @@ redirect_loop:
 			
 			int	time_remaining	= listener.getPermittedTime();
 			
+			URL	original_url 	= very_original_url;
+			URL current_url		= original_url;	
+	
+			Proxy	current_proxy = null;
+			
+			if ( AENetworkClassifier.categoriseAddress( very_original_url.getHost()) != AENetworkClassifier.AT_PUBLIC ){
+				
+				plugin_proxy = AEProxyFactory.getPluginProxy( "webseed", original_url );
+				
+				if ( plugin_proxy != null ){
+					
+					current_url		= plugin_proxy.getURL();
+			
+					current_proxy	= plugin_proxy.getProxy();
+				}
+			}
+		
 			if ( time_remaining > 0 ){
 				
-				socket = new Socket();
+				if ( current_proxy == null ){
 				
-				socket.connect( new InetSocketAddress( original_url.getHost(), original_url.getPort()==-1?original_url.getDefaultPort():original_url.getPort()), time_remaining );
+					socket = new Socket();
+					
+				}else{
+					
+					socket = new Socket( current_proxy );
+				}
+				
+				socket.connect( new InetSocketAddress( current_url.getHost(), current_url.getPort()==-1?current_url.getDefaultPort():current_url.getPort()), time_remaining );
 				
 			}else{
 		
-				socket = new Socket(  original_url.getHost(), original_url.getPort()==-1?original_url.getDefaultPort():original_url.getPort());
+				if ( current_proxy == null ){
+				
+					socket = new Socket(  current_url.getHost(), current_url.getPort()==-1?current_url.getDefaultPort():current_url.getPort());
+					
+				}else{
+					
+					socket = new Socket( current_proxy );
+
+					socket.connect( new InetSocketAddress( current_url.getHost(), current_url.getPort()==-1?current_url.getDefaultPort():current_url.getPort()));
+				}
 			}
 			
 			connected	= true;
+			
+			proxy_ok = true;
 			
 			time_remaining	= listener.getPermittedTime();
 
@@ -703,6 +791,11 @@ redirect_loop:
 					
 				}catch( Throwable e ){
 				}
+			}
+			
+			if ( plugin_proxy != null ){
+				
+				plugin_proxy.setOK( proxy_ok );
 			}
 		}
 	}

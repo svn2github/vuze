@@ -28,25 +28,29 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public class 
 ExternalSeedHTTPDownloaderLinear 
 	implements ExternalSeedHTTPDownloader
 {
-	private URL			original_url;
-	private String		user_agent;
+	final private URL		very_original_url;
+	final private String	user_agent;
 	
 	private int			last_response;
 	private int			last_response_retry_after_secs;
@@ -60,8 +64,8 @@ ExternalSeedHTTPDownloaderLinear
 		URL		_url,
 		String	_user_agent )
 	{
-		original_url	= _url;
-		user_agent		= _user_agent;
+		very_original_url	= _url;
+		user_agent			= _user_agent;
 	}
 	
 	
@@ -206,7 +210,28 @@ ExternalSeedHTTPDownloaderLinear
 			boolean	connected 	= false;
 			String	outcome		= "";
 			
+			PluginProxy		plugin_proxy	= null;
+			
+			boolean proxy_ok = false;
+
 			try{
+				URL	original_url 	= very_original_url;
+				URL current_url		= original_url;
+				
+				Proxy	current_proxy = null;
+				
+				if ( AENetworkClassifier.categoriseAddress( original_url.getHost()) != AENetworkClassifier.AT_PUBLIC ){
+					
+					plugin_proxy = AEProxyFactory.getPluginProxy( "webseed", original_url );
+					
+					if ( plugin_proxy != null ){
+						
+						current_url		= plugin_proxy.getURL();
+				
+						current_proxy	= plugin_proxy.getProxy();
+					}
+				}
+				
 				InputStream			is				= null;
 				
 				try{
@@ -228,14 +253,24 @@ ExternalSeedHTTPDownloaderLinear
 
 						raf = new RandomAccessFile( scratch_file, "rw" );
 					}
-						
+					
+					
 					// System.out.println( "Connecting to " + url + ": " + Thread.currentThread().getId());
 	
 					HttpURLConnection	connection;
 					int					response;
-										
-					connection = (HttpURLConnection)original_url.openConnection();
+							
+					if ( current_proxy == null ){
 						
+						connection = (HttpURLConnection)current_url.openConnection();
+						
+					}else{
+						
+						connection = (HttpURLConnection)current_url.openConnection( current_proxy );
+						
+						connection.setRequestProperty( "HOST", plugin_proxy.getURLHostRewrite() + (original_url.getPort()==-1?"":(":" + original_url.getPort())));
+					}
+					
 					connection.setRequestProperty( "Connection", "Keep-Alive" );
 					connection.setRequestProperty( "User-Agent", user_agent );
 						
@@ -248,6 +283,8 @@ ExternalSeedHTTPDownloaderLinear
 								
 					connection.connect();
 				
+					proxy_ok = true;
+					
 					time_remaining	= listener.getPermittedTime();
 										
 					if ( time_remaining < 0 ){
@@ -420,6 +457,13 @@ ExternalSeedHTTPDownloaderLinear
 				}
 				
 				destroy( e );
+				
+			}finally{
+				
+				if ( plugin_proxy != null ){
+					
+					plugin_proxy.setOK( proxy_ok );
+				}
 			}
 			
 				// on successful completion we kill the read thread but leave things 'running' so we continue to service
