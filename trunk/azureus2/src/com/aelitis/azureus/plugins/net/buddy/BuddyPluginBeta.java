@@ -2819,14 +2819,13 @@ BuddyPluginBeta
 		private final int						uid;
 		private final Map<String,Object>		map;
 		
+		private final byte[]					message_id;
+		private final long						timestamp;
+
 		private ChatParticipant					participant;
 
-		private final byte[]					message_id;
-		
 		private byte[]							previous_id;
-		
-		private long							timestamp;
-		
+				
 		private boolean							is_ignored;
 		private boolean							is_nick_clash;
 		
@@ -2840,7 +2839,7 @@ BuddyPluginBeta
 			
 			message_id = (byte[])map.get( "id" );
 			
-			timestamp = SystemTime.getCurrentTime() - getAge()*1000;
+			timestamp = SystemTime.getCurrentTime() - getAge()*1000L;
 
 			Map<String,Object> payload = getPayload();
 			
