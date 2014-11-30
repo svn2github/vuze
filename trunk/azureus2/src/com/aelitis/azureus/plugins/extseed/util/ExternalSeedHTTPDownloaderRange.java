@@ -299,11 +299,14 @@ redirect_loop:
 				}
 			}
 			
-			URL final_url = connection.getURL();
-			
-			if ( consec_redirect_fails < 10 && !very_original_url.toExternalForm().equals( final_url.toExternalForm())){
+			if ( plugin_proxy == null ){
 				
-				redirected_url = final_url;
+				URL final_url = connection.getURL();
+				
+				if ( consec_redirect_fails < 10 && !very_original_url.toExternalForm().equals( final_url.toExternalForm())){
+					
+					redirected_url = final_url;
+				}
 			}
 			
 			last_response	= response;
