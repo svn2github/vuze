@@ -3735,11 +3735,45 @@ public class OpenTorrentOptionsWindow
 				return;
 			}
 	
-			try {
+			try{
 				bSkipDataDirModify = true;
 	
-				cmbDataDir.setText( torrentOptions==null?"":torrentOptions.getParentDir());
-			} finally {
+				if ( torrentOptions == null ){
+					
+					String prev_parent = null;
+					
+					boolean not_same = false;
+					
+					for ( TorrentOpenOptions to: torrentOptionsMulti ){
+						
+						String parent = to.getParentDir();
+						
+						if ( prev_parent != null && !prev_parent.equals( parent )){
+							
+							not_same = true;
+							
+							break;
+						}
+						
+						prev_parent = parent;
+						
+					}
+					
+					if ( not_same ){
+											
+						cmbDataDir.setText( COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH));
+						
+					}else{
+						
+						cmbDataDir.setText( prev_parent );
+					}
+				}else{
+					
+					cmbDataDir.setText( torrentOptions.getParentDir());
+				}
+				
+			}finally{
+				
 				bSkipDataDirModify = false;
 			}
 		}
