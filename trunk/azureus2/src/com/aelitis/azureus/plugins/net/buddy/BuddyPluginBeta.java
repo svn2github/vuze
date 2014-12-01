@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -900,12 +901,16 @@ BuddyPluginBeta
 		
 		private final ChatParticipant		private_target;
 		
+		private Object		binding_lock = new Object();
+		private AESemaphore	binding_sem;
+		
 		private volatile PluginInterface		msgsync_pi;
 		private volatile Object					handler;
 		
 		private byte[]							my_public_key;
 		private byte[]							managing_public_key;
 		private boolean							read_only;
+		private int								ipc_version;
 		
 		private Object	chat_lock = this;
 		
@@ -1231,91 +1236,112 @@ BuddyPluginBeta
 		
 			throws Exception
 		{	
-			msgsync_pi = _msgsync_pi;
-
-			if ( _handler != null ){
-				
-				handler		= _handler;
-				
-				try{
-					Map<String,Object>		options = new HashMap<String, Object>();
-							
-					options.put( "handler", _handler );
-					
-					options.put( "addlistener", this );
-							
-					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "updateMessageHandler", new Object[]{ options } );
-						
-					my_public_key 		= (byte[])reply.get( "pk" );
-					managing_public_key = (byte[])reply.get( "mpk" );
-					Boolean ro 			= (Boolean)reply.get( "ro" );
-
-					read_only = ro != null && ro;
-					
-					for ( ChatListener l: listeners ){
-						
-						try{
-							l.stateChanged( true );
-							
-						}catch( Throwable e ){
-							
-							Debug.out( e );
-						}
-					}
-				}catch( Throwable e ){
-					
-					throw( new Exception( e ));
-				}
-			}else{
+			boolean	inform_avail = false;
 			
+			synchronized( binding_lock ){
+				
+				binding_sem = new AESemaphore( "bpb:bind" );
+				
 				try{
-					Map<String,Object>		options = new HashMap<String, Object>();
-					
-					options.put( "network", network );
-					options.put( "key", key.getBytes( "UTF-8" ));
+			
+					msgsync_pi = _msgsync_pi;
+		
+					if ( _handler != null ){
 						
-					if ( private_target != null ){
-					
-						options.put( "parent_handler", private_target.getChat().getHandler());
-						options.put( "target_pk", private_target.getPublicKey());
-						options.put( "target_contact", private_target.getContact());
-					}
-					
-					if ( network != AENetworkClassifier.AT_PUBLIC ){
-						
-						options.put( "server_id", getSharedAnonEndpoint()?"dchat_shared":"dchat" );
-					}
-					
-					options.put( "listener", this );
-							
-					if ( getSaveMessages()){
-						
-						options.put( "save_messages", true );
-					}
-					
-					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "getMessageHandler", new Object[]{ options } );
-					
-					handler = reply.get( "handler" );
-					
-					my_public_key = (byte[])reply.get( "pk" );
-					managing_public_key = (byte[])reply.get( "mpk" );
-					Boolean ro 			= (Boolean)reply.get( "ro" );
-
-					read_only = ro != null && ro;
-					
-					for ( ChatListener l: listeners ){
+						handler		= _handler;
 						
 						try{
-							l.stateChanged( true );
+							Map<String,Object>		options = new HashMap<String, Object>();
+									
+							options.put( "handler", _handler );
+							
+							options.put( "addlistener", this );
+									
+							Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "updateMessageHandler", new Object[]{ options } );
+								
+							my_public_key 		= (byte[])reply.get( "pk" );
+							managing_public_key = (byte[])reply.get( "mpk" );
+							Boolean ro 			= (Boolean)reply.get( "ro" );
+		
+							read_only = ro != null && ro;
+							
+							Number ipc_v = (Number)reply.get( "ipc_version" );
+							
+							ipc_version = ipc_v ==null?1:ipc_v.intValue();
+		
+							inform_avail = true;
+
+						}catch( Throwable e ){
+							
+							throw( new Exception( e ));
+						}
+					}else{
+					
+						try{
+							Map<String,Object>		options = new HashMap<String, Object>();
+							
+							options.put( "network", network );
+							options.put( "key", key.getBytes( "UTF-8" ));
+								
+							if ( private_target != null ){
+							
+								options.put( "parent_handler", private_target.getChat().getHandler());
+								options.put( "target_pk", private_target.getPublicKey());
+								options.put( "target_contact", private_target.getContact());
+							}
+							
+							if ( network != AENetworkClassifier.AT_PUBLIC ){
+								
+								options.put( "server_id", getSharedAnonEndpoint()?"dchat_shared":"dchat" );
+							}
+							
+							options.put( "listener", this );
+									
+							if ( getSaveMessages()){
+								
+								options.put( "save_messages", true );
+							}
+							
+							Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "getMessageHandler", new Object[]{ options } );
+							
+							handler = reply.get( "handler" );
+							
+							my_public_key = (byte[])reply.get( "pk" );
+							managing_public_key = (byte[])reply.get( "mpk" );
+							Boolean ro 			= (Boolean)reply.get( "ro" );
+		
+							read_only = ro != null && ro;
+							
+							Number ipc_v = (Number)reply.get( "ipc_version" );
+							
+							ipc_version = ipc_v ==null?1:ipc_v.intValue();
+							
+							inform_avail = true;
 							
 						}catch( Throwable e ){
 							
-							Debug.out( e );
+							throw( new Exception( e ));
 						}
 					}
-				}catch( Throwable e ){
+				}finally{
 					
-					throw( new Exception( e ));
+					binding_sem.releaseForever();
+
+					binding_sem = null;
+				}
+			}
+			
+			if ( inform_avail ){
+					
+				for ( ChatListener l: listeners ){
+					
+					try{
+						l.stateChanged( true );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
 				}
 			}
 		}
@@ -1921,6 +1947,18 @@ BuddyPluginBeta
 			
 			throws IPCException
 		{
+			AESemaphore sem;
+			
+			synchronized( binding_lock ){
+				
+				sem = binding_sem;
+			}
+			
+			if ( sem != null ){
+				
+				sem.reserve();
+			}
+			
 			ChatMessage msg = new ChatMessage( message_uid_next.incrementAndGet(), message_map );
 						
 			ChatParticipant	new_participant = null;
@@ -2030,6 +2068,18 @@ BuddyPluginBeta
 			
 			throws IPCException
 		{
+			AESemaphore sem;
+			
+			synchronized( binding_lock ){
+				
+				sem = binding_sem;
+			}
+			
+			if ( sem != null ){
+				
+				sem.reserve();
+			}
+			
 			if ( private_chat_state == PRIVATE_CHAT_DISABLED ){
 				
 				throw( new IPCException( "Private chat disabled by recipient" ));
@@ -2095,7 +2145,8 @@ BuddyPluginBeta
 		
 		public void 
 		sendMessage(
-			final String		message )
+			final String					message,
+			final Map<String,Object>		options )
 		{
 			dispatcher.dispatch(
 				new AERunnable()
@@ -2105,15 +2156,56 @@ BuddyPluginBeta
 					public void 
 					runSupport() 
 					{
-						sendMessageSupport( message, null );
+						sendMessageSupport( message, null, options );
+					}
+				});
+		}
+		
+		public void 
+		sendLocalMessage(
+			final String		message,
+			final String[]		args,
+			final int			message_type )
+		{
+			if ( ipc_version < 2 ){
+				
+				return;
+			}
+			
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					
+					@Override
+					public void 
+					runSupport() 
+					{
+						Map<String,Object>		options = new HashMap<String, Object>();
+						
+						String raw_message;
+						
+						if ( message.startsWith( "!") && message.endsWith( "!" )){
+
+							raw_message = message.substring( 1, message.length() - 1 );
+			
+						}else{
+							
+							raw_message = MessageText.getString( message, args );
+						}
+						options.put( "is_local", true );
+						options.put( "message", raw_message );
+						options.put( "message_type", message_type );
+						
+						sendMessageSupport( "", null, options );
 					}
 				});
 		}
 		
 		private void 
 		sendMessageSupport(
-			String		message,
-			Map			flags )
+			String					message,
+			Map						flags,
+			Map<String,Object>		options )
 		{
 			if ( handler == null || msgsync_pi == null ){
 				
@@ -2154,7 +2246,23 @@ BuddyPluginBeta
 					boolean	ok = false;
 					
 					try{
-						if ( command.equals( "/join" )){
+						if ( command.equals( "/help" )){
+							
+							String link = MessageText.getString( "azbuddy.dchat.link.url" );
+							
+							sendLocalMessage( "label.see.x.for.help", new String[]{ link }, ChatMessage.MT_INFO );
+
+							ok = true;
+							
+						}else if ( command.equals( "/join" )){
+							
+							if ( bits.length > 1 ){
+								
+								getAndShowChat( getNetwork(), bits[1] );
+								
+								ok = true;
+							}
+						}else if ( command.equals( "/pjoin" )){
 							
 							if ( bits.length > 1 ){
 								
@@ -2193,7 +2301,7 @@ BuddyPluginBeta
 								
 								if ( pm.length() > 0 ){
 								
-									ci.sendMessage( pm );
+									ci.sendMessage( pm, new HashMap<String, Object>());
 								}
 								
 								showChat( ci );
@@ -2234,11 +2342,11 @@ BuddyPluginBeta
 						
 						if ( !ok ){
 							
-							Debug.outNoStack( "Unhandled command: " + message );
+							throw( new Exception( "Unhandled command: " + message ));
 						}
 					}catch( Throwable e ){
 						
-						Debug.out( e );
+						sendLocalMessage( "!" + Debug.getNestedExceptionMessage( e ) + "!", null, ChatMessage.MT_ERROR );
 					}
 					
 					return;
@@ -2255,7 +2363,10 @@ BuddyPluginBeta
 						}
 					}
 					
-					Map<String,Object>		options = new HashMap<String, Object>();
+					if ( options == null ){
+						
+						options = new HashMap<String, Object>();
+					}
 					
 					options.put( "handler", handler );
 					
@@ -2483,7 +2594,7 @@ BuddyPluginBeta
 						
 						flags.put( "s", MSG_STATUS_CHAT_QUIT );
 						
-						sendMessageSupport( "", flags );
+						sendMessageSupport( "", flags, new HashMap<String, Object>());
 					}
 					
 					try{
@@ -2601,7 +2712,7 @@ BuddyPluginBeta
 				is_me = Arrays.equals( pk, chat_key );
 			}
 			
-			return( is_me );
+			return( is_me==null?false:is_me );
 		}
 		
 		public String

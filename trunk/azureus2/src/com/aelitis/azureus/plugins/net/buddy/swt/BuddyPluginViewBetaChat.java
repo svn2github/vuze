@@ -69,6 +69,7 @@ import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -2037,7 +2038,7 @@ BuddyPluginViewBetaChat
 	{
 		//logChatMessage( plugin.getNickname(), Colors.green, text );
 		
-		chat.sendMessage( text );
+		chat.sendMessage( text, new HashMap<String, Object>());
 	}
 	
 	public void
@@ -2096,6 +2097,7 @@ BuddyPluginViewBetaChat
 	}
 	
 	private String	previous_says 				= null;
+	private int		previous_says_mt			= -1;
 	private long	last_seen_message			= -1;	
 	private long	last_seen_message_pending	= -1;
 	
@@ -2216,9 +2218,10 @@ BuddyPluginViewBetaChat
 				
 				says += message_type == ChatMessage.MT_NORMAL?"\n":" ";
 				
-				if ( previous_says == null || !previous_says.equals( says )){
+				if ( previous_says == null || previous_says_mt != message_type || !previous_says.equals( says )){
 					
-					previous_says = says;
+					previous_says 		= says;
+					previous_says_mt	= message_type;
 					
 					int	start = existing_length + appended.length();
 							
@@ -2233,6 +2236,7 @@ BuddyPluginViewBetaChat
 						styleRange.data = participant;
 						
 						if ( participant.isMe()){
+							
 							styleRange.font = italic_font;
 						}
 						
@@ -2240,20 +2244,11 @@ BuddyPluginViewBetaChat
 					}
 				}
 				
-				int start = existing_length + appended.length();
+				final int start = existing_length + appended.length();
 				
-				appended.append( msg ); 
-
-				if ( message_type ==  ChatMessage.MT_INFO ){
+				{	
+					int	next_style_start = start;
 					
-					StyleRange styleRange = new StyleRange();
-					styleRange.start = start;
-					styleRange.length = msg.length();
-					styleRange.foreground = Colors.grey;
-					
-					new_ranges.add( styleRange);
-					
-				}else{
 					int	pos = 0;
 					
 					while( pos < msg.length()){
@@ -2294,6 +2289,8 @@ BuddyPluginViewBetaChat
 							}
 													
 							try{
+								int	url_start = pos - protocol.length();
+								
 								String url_str = protocol + msg.substring( pos, end );
 						
 								if ( protocol.equalsIgnoreCase( "chat" )){
@@ -2310,11 +2307,36 @@ BuddyPluginViewBetaChat
 									URL	url = new URL( url_str );
 								}
 								
-								StyleRange styleRange = new StyleRange();
-								styleRange.start = start+pos-protocol.length();
-								styleRange.length = url_str.length();
-								styleRange.foreground = Colors.blue;
-								styleRange.underline = true;
+								String decoded_url = UrlUtils.decode( url_str );
+								
+								if ( !decoded_url.equals( url_str )){
+									
+									msg = msg.substring( 0, url_start ) + decoded_url + msg.substring( end );
+								}
+								
+								int	this_style_start 	= start + url_start;
+								int this_style_length	= decoded_url.length();
+								
+								if ( this_style_start > next_style_start ){
+									
+									if ( message_type ==  ChatMessage.MT_INFO ){
+										
+										StyleRange styleRange 	= new StyleRange();
+										styleRange.start 		= next_style_start;
+										styleRange.length 		= this_style_start - next_style_start;
+										styleRange.foreground 	= Colors.grey;
+										
+										new_ranges.add( styleRange);
+										
+										next_style_start = this_style_start + this_style_length;
+									}
+								}
+								
+								StyleRange styleRange 	= new StyleRange();
+								styleRange.start 		= this_style_start;
+								styleRange.length 		= this_style_length;
+								styleRange.foreground 	= Colors.blue;
+								styleRange.underline 	= true;
 								
 									// DON'T store the URL object because in their wisdom SWT invokes the .equals method
 									// on data objects when trying to find 'similar' ones, and for URLs this causes
@@ -2335,8 +2357,23 @@ BuddyPluginViewBetaChat
 							pos = pos+1;
 						}		
 					}
+				
+					if ( next_style_start < start + msg.length() ){
+						
+						if ( message_type ==  ChatMessage.MT_INFO ){
+							
+							StyleRange styleRange 	= new StyleRange();
+							styleRange.start 		= next_style_start;
+							styleRange.length 		= start + msg.length() - next_style_start;
+							styleRange.foreground 	= Colors.grey;
+							
+							new_ranges.add( styleRange);
+						}
+					}
 				}
 				
+				appended.append( msg ); 
+
 				appended.append( "\n" ); 
 				
 				int	actual_length = appended.length() - overall_start;
