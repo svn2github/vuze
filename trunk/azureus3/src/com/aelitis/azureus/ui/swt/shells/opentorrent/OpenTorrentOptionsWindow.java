@@ -3765,7 +3765,9 @@ public class OpenTorrentOptionsWindow
 						
 					}else{
 						
-						cmbDataDir.setText( prev_parent );
+							// prev_parent can be null when we're tearing down the dialog...
+						
+						cmbDataDir.setText( prev_parent==null?"":prev_parent );
 					}
 				}else{
 					
