@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;

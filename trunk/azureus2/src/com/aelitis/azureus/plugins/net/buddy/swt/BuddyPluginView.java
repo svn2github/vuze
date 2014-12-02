@@ -967,7 +967,9 @@ BuddyPluginView
 							new TimerEventPerformer()
 							{	
 								private int	tick_count = 0;
-																								
+									
+								private Set<ChatInstance>	prev_instances = new HashSet<ChatInstance>();
+								
 								public void 
 								perform(
 									TimerEvent event )
@@ -980,7 +982,9 @@ BuddyPluginView
 										Map<ChatInstance,Object>	instance_map 		= new HashMap<ChatInstance, Object>();
 										
 										Iterator<Map.Entry<String,Object[]>> it = pending_msg_map.entrySet().iterator();
-																				
+											
+										boolean	has_new = false;
+										
 										while( it.hasNext()){
 											
 											Map.Entry<String,Object[]> map_entry = it.next();
@@ -1017,6 +1021,11 @@ BuddyPluginView
 												
 													current_instances.add( chat );
 													
+													if ( !prev_instances.contains( chat )){
+														
+														has_new = true;
+													}
+													
 													instance_map.put( chat, entry[0] );
 												}
 											}
@@ -1047,8 +1056,10 @@ BuddyPluginView
 												tt_text += (tt_text.length()==0?"":"\n") + instance_map.get( chat ) + " - " + short_name;
 											}
 											
-											if ( buildMenu( current_instances )){
-														
+											buildMenu( current_instances );														
+											
+											if ( has_new ){
+												
 												playSound();
 											}
 											
@@ -1056,6 +1067,8 @@ BuddyPluginView
 										
 											beta_status.setImage( tick_count%2==0?bs_chat_gray_text:bs_chat_green);
 										}
+										
+										prev_instances = current_instances;
 									}
 								}
 							});
@@ -1080,9 +1093,9 @@ BuddyPluginView
 	private List<MenuItem>		menu_items = new ArrayList<MenuItem>();
 	private Set<ChatInstance>	menu_latest_instances = new HashSet<ChatInstance>();
 
-	private boolean
+	private void
 	buildMenu(
-		Set<ChatInstance>	current_instances )
+		final Set<ChatInstance>	current_instances )
 	{
 		if ( !menu_latest_instances.equals( current_instances )){
 
@@ -1121,13 +1134,38 @@ BuddyPluginView
 				menu_items.add( mi );
 			}
 			
+			if ( current_instances.size() > 1 ){
+				
+				MenuItem mi = menu_manager.addMenuItem( mc, "" );
+				
+				mi.setStyle( MenuItem.STYLE_SEPARATOR );
+				
+				menu_items.add( mi );
+				
+				mi = menu_manager.addMenuItem( mc, "label.open.all" );
+				
+				mi.addListener(
+					new MenuItemListener() {
+						
+						public void selected(MenuItem menu, Object target) {
+						
+							for ( ChatInstance chat: current_instances ){
+								
+								try{
+									openChat( chat.getClone());
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+					});
+				
+				menu_items.add( mi );
+			}
+			
 			menu_latest_instances = current_instances;
-			
-			return( true );
-			
-		}else{
-			
-			return( false );
 		}
 	}
 	
