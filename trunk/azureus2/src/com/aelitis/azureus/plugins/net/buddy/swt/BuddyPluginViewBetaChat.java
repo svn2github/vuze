@@ -2384,53 +2384,61 @@ BuddyPluginViewBetaChat
 
 		if ( appended.length() > 0 ){
 		
-			log.append( appended.toString());
-			
-			if ( new_ranges.size() > 0 ){
-			
-				List<StyleRange> existing_ranges = Arrays.asList( log.getStyleRanges());
+			try{
+				log.setVisible( false );
 				
-				List<StyleRange> all_ranges = new ArrayList<StyleRange>( existing_ranges.size() + new_ranges.size());
+				log.append( appended.toString());
 				
-				all_ranges.addAll( existing_ranges );
+				if ( new_ranges.size() > 0 ){
 				
-				all_ranges.addAll( new_ranges );
-				
-				StyleRange[] ranges = all_ranges.toArray( new StyleRange[ all_ranges.size()]);
-				
-				for ( StyleRange sr: ranges ){
+					List<StyleRange> existing_ranges = Arrays.asList( log.getStyleRanges());
 					
-					sr.borderStyle = SWT.NONE;
+					List<StyleRange> all_ranges = new ArrayList<StyleRange>( existing_ranges.size() + new_ranges.size());
+					
+					all_ranges.addAll( existing_ranges );
+					
+					all_ranges.addAll( new_ranges );
+					
+					StyleRange[] ranges = all_ranges.toArray( new StyleRange[ all_ranges.size()]);
+					
+					for ( StyleRange sr: ranges ){
+						
+						sr.borderStyle = SWT.NONE;
+					}
+					
+					log.setStyleRanges( ranges );
+					
+					log_styles = ranges;				
 				}
 				
-				log.setStyleRanges( ranges );
 				
-				log_styles = ranges;				
+				Iterator<Integer> it = null;
+				
+				while ( messages.size() > MAX_LOG_LINES || log.getText().length() > MAX_LOG_CHARS ){
+					
+					if ( it == null ){
+						
+						it = messages.values().iterator();
+					}
+					
+					if ( !it.hasNext()){
+						
+						break;
+					}
+					
+					int to_remove = it.next();
+					
+					it.remove();
+					
+					log.replaceTextRange( 0,  to_remove, "" );
+				}
+				
+				log.setSelection( log.getText().length());
+				
+			}finally{
+			
+				log.setVisible( true );
 			}
-			
-			
-			Iterator<Integer> it = null;
-			
-			while ( messages.size() > MAX_LOG_LINES || log.getText().length() > MAX_LOG_CHARS ){
-				
-				if ( it == null ){
-					
-					it = messages.values().iterator();
-				}
-				
-				if ( !it.hasNext()){
-					
-					break;
-				}
-				
-				int to_remove = it.next();
-				
-				it.remove();
-				
-				log.replaceTextRange( 0,  to_remove, "" );
-			}
-			
-			log.setSelection( log.getText().length());
 			
 			if ( last_message_not_ours >= 0 ){
 				
