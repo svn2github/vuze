@@ -91,7 +91,7 @@ BuddyPluginViewBetaChat
 	implements ChatListener
 {
 	private static final boolean TEST_LOOPBACK_CHAT = System.getProperty( "az.chat.loopback.enable", "0" ).equals( "1" );
-	private static final boolean DEBUG_ENABLED		= System.getProperty( "az.chat.buddy.debug", "0" ).equals( "1" );
+	private static final boolean DEBUG_ENABLED		= BuddyPluginBeta.DEBUG_ENABLED;
 
 	private static final int 	MAX_LOG_LINES	= 250;
 	private static final int	MAX_LOG_CHARS	= 10*1024;

@@ -57,6 +57,8 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 public class
 BuddyPluginBeta 
 {
+	public static final boolean DEBUG_ENABLED		= System.getProperty( "az.chat.buddy.debug", "0" ).equals( "1" );
+
 	public static final String	BETA_CHAT_KEY = 	"test:beta:chat";
 	
 	public static final int PRIVATE_CHAT_DISABLED			= 1;
@@ -2229,6 +2231,26 @@ BuddyPluginBeta
 					
 					return;
 					
+				}else if ( message.equals( "!flood!" )){
+					
+					if ( DEBUG_ENABLED ){
+					
+						SimpleTimer.addPeriodicEvent(
+							"flooder",
+							1500,
+							new TimerEventPerformer() {
+								
+								public void perform(TimerEvent event) {
+								
+									sendMessage( "flood - " + SystemTime.getCurrentTime(), null );
+									
+								}
+							});
+					}
+					
+					return;
+					
+	
 				}else if ( message.equals( "!ftux!" )){
 					
 					plugin.getBeta().setFTUXAccepted( false );
