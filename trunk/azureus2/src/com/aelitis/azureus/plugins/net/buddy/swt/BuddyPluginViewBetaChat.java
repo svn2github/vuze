@@ -48,6 +48,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -95,6 +96,8 @@ BuddyPluginViewBetaChat
 
 	private static final int 	MAX_LOG_LINES	= 250;
 	private static final int	MAX_LOG_CHARS	= 10*1024;
+
+	private static final Set<BuddyPluginViewBetaChat>	active_windows = new HashSet<BuddyPluginViewBetaChat>();
 	
 	private final BuddyPluginView		view;
 	private final BuddyPlugin			plugin;
@@ -135,7 +138,6 @@ BuddyPluginViewBetaChat
 	
 	private boolean	ftux_ok;
 	private boolean	build_complete;
-	private boolean	pending_marked;
 	
 	protected
 	BuddyPluginViewBetaChat(
@@ -167,25 +169,68 @@ BuddyPluginViewBetaChat
 		build( shell );
 		
 		shell.addListener(
-				SWT.Traverse, 
-				new Listener() 
-				{	
-					public void 
-					handleEvent(
-						Event e ) 
-					{
-						if ( e.character == SWT.ESC){
-						
-							close();
-					}
+			SWT.Traverse, 
+			new Listener() 
+			{	
+				public void 
+				handleEvent(
+					Event e ) 
+				{
+					if ( e.character == SWT.ESC){
+					
+						close();
 				}
+			}
 			});
 		
 	    shell.setSize( 500, 500 );
 	    
 	    Utils.createURLDropTarget(shell, input_area);
-	    Utils.centreWindow(shell);
+	    
+		if ( active_windows.size() > 0 ){
+			
+			int	max_x = 0;
+			int max_y = 0;
+			
+			for ( BuddyPluginViewBetaChat window: active_windows ){
+				
+				if ( !window.shell.isDisposed()){
+					
+					Rectangle rect = window.shell.getBounds();
+					
+					max_x = Math.max( max_x, rect.x );
+					max_y = Math.max( max_y, rect.y );
+				}
+			}
+				
+			Rectangle rect = shell.getBounds();
+							
+			rect.x = max_x + 16;
+			rect.y = max_y + 16;
+			
+			shell.setBounds( rect );
+									
+			Utils.verifyShellRect( shell, true );
+			
+		}else{
+  
+			Utils.centreWindow(shell);
+		}
+		
+	    active_windows.add( this );
+
+	    shell.addDisposeListener(
+	    	new DisposeListener(){
+				public void 
+				widgetDisposed(DisposeEvent e)
+				{
+					active_windows.remove( BuddyPluginViewBetaChat.this );
+				}
+			});
+	    
 	    shell.open();
+	    
+	    shell.forceActive();
 	}
 	
 	protected

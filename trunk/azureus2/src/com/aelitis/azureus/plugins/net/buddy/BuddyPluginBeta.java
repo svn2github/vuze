@@ -2202,6 +2202,33 @@ BuddyPluginBeta
 				});
 		}
 		
+		public void 
+		sendControlMessage(
+			final String		cmd )
+		{
+			if ( ipc_version < 3 ){
+				
+				return;
+			}
+			
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					
+					@Override
+					public void 
+					runSupport() 
+					{
+						Map<String,Object>		options = new HashMap<String, Object>();
+						
+						options.put( "is_control", true );
+						options.put( "cmd", cmd );
+						
+						sendMessageSupport( "", null, options );
+					}
+				});
+		}
+		
 		private void 
 		sendMessageSupport(
 			String					message,
@@ -2358,6 +2385,24 @@ BuddyPluginBeta
 								updated( p );
 								
 								ok = true;
+							}
+							
+						}else if ( command.equals( "/control" )){
+							
+							if ( ipc_version >= 3 ){
+								
+								String[] bits2 = message.split( "[\\s]+", 2 );
+	
+								if ( bits2.length > 1 ){
+									
+									sendControlMessage( bits2[1] );
+									
+									ok = true;
+									
+								}else{
+									
+									throw( new Exception( "Invalid command: " + message ));
+								}
 							}
 						}
 						
