@@ -2489,7 +2489,9 @@ BuddyPluginViewBetaChat
 				
 				if ( build_complete ){
 				
-					if ( ( !log.isVisible()) || log.getDisplay().getFocusControl() == null ){
+					if ( 	( !log.isVisible()) || 
+							( shell != null && shell.getMinimized()) ||
+							log.getDisplay().getFocusControl() == null ){
 							
 						if ( last_message_not_ours > last_seen_message ){
 						
