@@ -2352,15 +2352,33 @@ BuddyPluginViewBetaChat
 									URL	url = new URL( url_str );
 								}
 								
-								String decoded_url = UrlUtils.decode( url_str );
+									// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
 								
-								if ( !decoded_url.equals( url_str )){
+								String display_url = UrlUtils.decode( url_str );
+								
+								int hack_pos = display_url.lastIndexOf( "[[" );
+								
+								if ( hack_pos > 0 && display_url.endsWith( "]]" )){
 									
-									msg = msg.substring( 0, url_start ) + decoded_url + msg.substring( end );
+									String temp = display_url.substring( hack_pos + 2, display_url.length() - 2  ).trim();
+									
+									if ( temp.length() > 0 ){
+										
+										display_url = temp;
+										
+										hack_pos = url_str.lastIndexOf( "[[" );
+										
+										url_str = url_str.substring( 0, hack_pos );
+									}
+								}
+								
+								if ( !display_url.equals( url_str )){
+									
+									msg = msg.substring( 0, url_start ) + display_url + msg.substring( end );
 								}
 								
 								int	this_style_start 	= start + url_start;
-								int this_style_length	= decoded_url.length();
+								int this_style_length	= display_url.length();
 								
 								if ( this_style_start > next_style_start ){
 									
@@ -2476,6 +2494,8 @@ BuddyPluginViewBetaChat
 					it.remove();
 					
 					log.replaceTextRange( 0,  to_remove, "" );
+					
+					log_styles = log.getStyleRanges();
 				}
 				
 				log.setSelection( log.getText().length());
