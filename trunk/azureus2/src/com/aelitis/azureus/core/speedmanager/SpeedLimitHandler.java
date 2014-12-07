@@ -3050,7 +3050,7 @@ SpeedLimitHandler
 				    	int	tag_up_limit	 	= rl.getTagUploadLimit();
 				    	int	tag_down_limit 		= rl.getTagDownloadLimit();
 				    	
-				    	if ( tag_up_limit > 0 || tag_down_limit > 0 ){
+				    	if ( tag_up_limit != 0 || tag_down_limit != 0 ){
 				    	
 				    		tag_limits.put( 
 				    			tag_type.getTagType() + "." + tag.getTagID(),
@@ -3425,6 +3425,9 @@ SpeedLimitHandler
 		    int	total_tag_limits_up 	= 0;
 		    int	total_tag_limits_down 	= 0;
 
+		    boolean some_up_disabled 	= false;
+		    boolean some_down_disabled	= false;
+		    
 		    TagManager tm = TagManagerFactory.getTagManager();
 		    
 			for ( Map.Entry<String,int[]> entry: tag_limits.entrySet()){
@@ -3460,8 +3463,17 @@ SpeedLimitHandler
 		    		int	up 		= limits[0];
 		    		int	down 	= limits[1];
 		    		
-		    		total_tag_limits_up 	+= up;
-		    		total_tag_limits_down 	+= down;
+		    		if ( up > 0 ){
+		    			total_tag_limits_up 	+= up;
+		    		}else if ( up < 0 ){
+		    			some_up_disabled = true;
+		    		}
+		    		
+		    		if ( down > 0 ){
+		    			total_tag_limits_down 	+= down;
+		    		}else if ( down < 0 ){
+		    			some_down_disabled = true;
+		    		}
 		    		
 		    		result.add( "    " + tag_name + ": " + formatUp( up ) + ", " + formatDown( down ));
 
@@ -3470,15 +3482,33 @@ SpeedLimitHandler
 		    	}
 		    }
 		    
+			String dis_str = "";
+			
+			if ( some_up_disabled ){
+			
+				dis_str = "up";
+			}
+			
+			if ( some_down_disabled ){
+				
+				dis_str += (dis_str.length()==0?"":"&") + "down";
+				
+			}
+			
+			if (dis_str.length() > 0 ){
+				
+				dis_str = " (some " + dis_str + " disabled)";
+			}
+			
 		    if ( total_tag_limits == 0 ){
 		    	
-		    	result.add( "    None" );
+		    	result.add( "    None" + dis_str );
 		    	
 		    }else{
 		    	
 		    	result.add( "    ----" );
 		    	
-		    	result.add( "    Total=" + total_tag_limits + " - Compounded limits: " + formatUp( total_tag_limits_up ) + ", " + formatDown( total_tag_limits_down ));
+		    	result.add( "    Total=" + total_tag_limits + " - Compounded limits: " + formatUp( total_tag_limits_up ) + ", " + formatDown( total_tag_limits_down ) + dis_str );
 
 		    }
 		    
