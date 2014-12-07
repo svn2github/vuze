@@ -657,7 +657,7 @@ public class TagUIUtils
 	
 				Map<String,Object> menu_properties = new HashMap<String,Object>();
 				
-				if ( tag_type.getTagType() == TagType.TT_PEER_IPSET ){
+				if ( tag_type.getTagType() == TagType.TT_PEER_IPSET || tag_type.getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
 				
 					if ( has_up ){
 						menu_properties.put( ViewUtils.SM_PROP_PERMIT_UPLOAD_DISABLE, true );
