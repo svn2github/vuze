@@ -861,12 +861,15 @@ BuddyPluginViewBetaChat
 						
 						StyleRange sr = log.getStyleRangeAtOffset(  offset );
 						
-						if ( sr != null ){
+						
+						for ( MenuItem mi: log_menu.getItems()){
 							
-							for ( MenuItem mi: log_menu.getItems()){
-								
-								mi.dispose();
-							}
+							mi.dispose();
+						}
+
+						boolean	handled = false;
+						
+						if ( sr != null ){
 
 							Object data = sr.data;
 							
@@ -880,8 +883,8 @@ BuddyPluginViewBetaChat
 								
 								buildParticipantMenu( log_menu, cps );
 								
-								e.doit = true;
-								
+								handled = true;
+																
 							}else if ( data instanceof String ){
 								
 								String url_str = (String)sr.data;
@@ -986,8 +989,39 @@ BuddyPluginViewBetaChat
 								
 								mi_copy_clip.setData( url_str );
 								
-								e.doit = true;
+								handled = true;
 							}
+						}
+						
+						if ( !handled ){
+							
+							final String text = log.getSelectionText();
+							
+							if ( text != null && text.length() > 0 ){
+								
+								MenuItem   item = new MenuItem( log_menu, SWT.NONE );
+
+								item.setText( MessageText.getString( "ConfigView.copy.to.clipboard.tooltip"));
+
+								item.addSelectionListener(
+									new SelectionAdapter()
+									{
+										@Override
+										public void 
+										widgetSelected(
+											SelectionEvent e ) 
+										{
+											ClipboardCopy.copyToClipBoard( text );
+										}
+									});
+								
+								handled = true;
+							}
+						}
+						
+						if ( handled ){
+							
+							e.doit = true;
 						}
 					}catch( Throwable f ){
 						
