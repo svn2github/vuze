@@ -70,6 +70,7 @@ import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
@@ -2200,11 +2201,38 @@ BuddyPluginViewBetaChat
 		logChatMessages( new ChatMessage[]{ message } );
 	}
 	
+	private final SimpleDateFormat time_format1 	= new SimpleDateFormat( "HH:mm" );
+	private final SimpleDateFormat time_format2a 	= new SimpleDateFormat( "EE h" );
+	private final SimpleDateFormat time_format2b 	= new SimpleDateFormat( "a" );
+	private final SimpleDateFormat time_format3 	= new SimpleDateFormat( "dd/MM" );
+
+	private String
+	getChatTimestamp(
+		long		now,
+		long		time )
+	{
+		long 	age 	= now - time;
+		Date	date	= new Date( time );
+		
+		if ( age < 24*60*60*1000L ){
+			
+			return( time_format1.format( date ));
+			
+		}else if ( age < 7*24*60*60*1000L ){
+			
+			return( time_format2a.format( date ) + time_format2b.format( date ).toLowerCase());
+
+		}else{
+			
+			return( time_format3.format( date ));
+		}
+	}
+	
 	private void
 	logChatMessages(
 		ChatMessage[]		all_messages )
 	{	
-		SimpleDateFormat time_format = new SimpleDateFormat( "HH:mm" );
+		long	now = SystemTime.getCurrentTime();
 		
 		int	existing_length = log.getText().length();
 		
@@ -2261,7 +2289,7 @@ BuddyPluginViewBetaChat
 					colour = Colors.red;
 				}
 								
-				String stamp = time_format.format( new Date( time ));
+				String stamp = getChatTimestamp( now, time );
 				
 				ChatMessage	last_message;
 				
@@ -2272,16 +2300,21 @@ BuddyPluginViewBetaChat
 					participant_last_message_map.put( participant, message );
 				}
 
-				String says;
+				String 	says;
+				int		stamp_len;
 				
 				if ( message_type != ChatMessage.MT_NORMAL ){
 					
 					says = "[" + stamp + "]";
 					
+					stamp_len = says.length();
+					
 				}else{
 					
-					says = stamp + " " + (nick.length()>20?(nick.substring(0,16) + "..."):nick);
+					says = "[" + stamp + "] " + (nick.length()>20?(nick.substring(0,16) + "..."):nick);
 			
+					stamp_len = stamp.length() + 3;
+					
 					if ( last_message != null ){
 						
 						String last_nick = last_message.getNickName();
@@ -2302,15 +2335,13 @@ BuddyPluginViewBetaChat
 					
 					int	start = existing_length + appended.length();
 							
-					appended.append( says ); 
+					appended.append( says );
 					
-					if ( colour != Colors.black ){
-						
+					{
 						StyleRange styleRange = new StyleRange();
 						styleRange.start = start;
-						styleRange.length = says.length();
-						styleRange.foreground = colour;
-						styleRange.data = participant;
+						styleRange.length = stamp_len;
+						styleRange.foreground = Colors.grey;
 						
 						if ( participant.isMe()){
 							
@@ -2318,6 +2349,26 @@ BuddyPluginViewBetaChat
 						}
 						
 						new_ranges.add( styleRange);
+					}
+					
+					if ( colour != Colors.black ){
+						
+						int rem = says.length() - stamp_len;
+						
+						if ( rem > 0 ){
+							StyleRange styleRange = new StyleRange();
+							styleRange.start = start + stamp_len;
+							styleRange.length = rem;
+							styleRange.foreground = colour;
+							styleRange.data = participant;
+							
+							if ( participant.isMe()){
+								
+								styleRange.font = italic_font;
+							}
+							
+							new_ranges.add( styleRange);
+						}
 					}
 				}
 				
