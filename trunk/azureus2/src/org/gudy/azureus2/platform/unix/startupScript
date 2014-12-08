@@ -21,13 +21,13 @@ MSG_LOADING="Loading Azureus:"
 MSG_STARTING="Starting Azureus..."
 MSG2="Java exec found in "
 MSG3="OOPS, your java version is too old "
-MSG4="You need to upgrade to JRE 1.4.x or newer from http://java.sun.com"
+MSG4="You need to upgrade to JRE 1.5.x or newer from http://java.sun.com"
 MSG5="Suitable java version found "
 MSG6="Configuring environment..."
 MSG7="OOPS, you don't seem to have a valid JRE "
 MSG8="OOPS, unable to locate java exec in "
 MSG9=" hierarchy"
-MSG10="Java exec not found in PATH, starting auto-search..."
+MSG_JAVASEARCH="Java exec not found in PATH, starting auto-search..."
 MSG11="Java exec found in PATH. Verifying..."
 MSG_AZEXIT="Exit from Azureus complete"
 MSG_TERMINATED="Azureus TERMINATED."
@@ -39,6 +39,7 @@ SKIP_GCJ=1
 
 look_for_java()
 {
+  # check if java is in path.  If it is, we do not need to search
 	if command -v java &>/dev/null; then
 		if check_version ; then
 			echo $MSG11
@@ -46,7 +47,7 @@ look_for_java()
 		fi
 	fi
 
-	echo $MSG10
+	echo $MSG_JAVASEARCH
 
 
 	JAVA_CHECK_DIRS="/usr/java/latest /usr/java /usr/lib/jvm/latest /usr/lib/jvm"
@@ -60,8 +61,6 @@ look_for_java()
 				echo $MSG2 $JAVA_PROGRAM_DIR
 				if check_version ; then
 					return 0
-				else
-					return 1
 				fi
 			fi
 		done
@@ -93,22 +92,19 @@ check_version()
 
 	JAVA_HEADER=`"${JAVA_PROGRAM_DIR}java" -version 2>&1 | head -n 1`
 	JAVA_IMPL=`echo ${JAVA_HEADER} | cut -f1 -d' '`
-	if [ "$JAVA_IMPL" = "java" ] ; then
-		VERSION=`echo ${JAVA_HEADER} | sed "s/java version \"\(.*\)\"/\1/"`
-		if echo $VERSION | grep "^1.[0-3]" ; then
+  if [ "$JAVA_IMPL" = "#" ] ; then
+    echo $MSG_JAVABORK
+    ${JAVA_PROGRAM_DIR}java -version 2>&1
+    exit 1
+	else
+		VERSION=`echo ${JAVA_HEADER} | sed "s/^.* version \"\(.*\)\"/\1/"`
+		if echo $VERSION | grep "^1.[0-4]" ; then
 			echo $MSG3 "[${JAVA_PROGRAM_DIR}java = ${VERSION}]" ; echo $MSG4
 			return 1
 		else
-			echo $MSG5 "[${JAVA_PROGRAM_DIR}java = ${VERSION}]" ; echo $MSG6
+			echo $MSG5 "[${JAVA_PROGRAM_DIR}java = ${JAVA_IMPL} ${VERSION}]" ; echo $MSG6
 			return 0
 		fi
-	elif [ "$JAVA_IMPL" = "#" ] ; then
-		echo $MSG_JAVABORK
-		${JAVA_PROGRAM_DIR}java -version 2>&1
-		exit 1
-	else	
-		echo $MSG7 "[${JAVA_PROGRAM_DIR}java = ${JAVA_IMPL}]" ; echo $MSG4
-		return 1
 	fi
 }
 
