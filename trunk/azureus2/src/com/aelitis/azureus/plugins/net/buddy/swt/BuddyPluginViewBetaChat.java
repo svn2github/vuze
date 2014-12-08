@@ -854,21 +854,20 @@ BuddyPluginViewBetaChat
 				{
 					e.doit = false;
 					
+					boolean	handled = false;
+					
+					for ( MenuItem mi: log_menu.getItems()){
+						
+						mi.dispose();
+					}
+
 					try{
 						Point mapped = log.getDisplay().map( null, log, new Point( e.x, e.y ));
 						
 						int offset = log.getOffsetAtLocation( mapped );
 						
 						StyleRange sr = log.getStyleRangeAtOffset(  offset );
-						
-						
-						for ( MenuItem mi: log_menu.getItems()){
-							
-							mi.dispose();
-						}
-
-						boolean	handled = false;
-						
+												
 						if ( sr != null ){
 
 							Object data = sr.data;
@@ -992,39 +991,38 @@ BuddyPluginViewBetaChat
 								handled = true;
 							}
 						}
-						
-						if ( !handled ){
-							
-							final String text = log.getSelectionText();
-							
-							if ( text != null && text.length() > 0 ){
-								
-								MenuItem   item = new MenuItem( log_menu, SWT.NONE );
-
-								item.setText( MessageText.getString( "ConfigView.copy.to.clipboard.tooltip"));
-
-								item.addSelectionListener(
-									new SelectionAdapter()
-									{
-										@Override
-										public void 
-										widgetSelected(
-											SelectionEvent e ) 
-										{
-											ClipboardCopy.copyToClipBoard( text );
-										}
-									});
-								
-								handled = true;
-							}
-						}
-						
-						if ( handled ){
-							
-							e.doit = true;
-						}
 					}catch( Throwable f ){
+					}
+					
+					if ( !handled ){
 						
+						final String text = log.getSelectionText();
+						
+						if ( text != null && text.length() > 0 ){
+							
+							MenuItem   item = new MenuItem( log_menu, SWT.NONE );
+
+							item.setText( MessageText.getString( "ConfigView.copy.to.clipboard.tooltip"));
+
+							item.addSelectionListener(
+								new SelectionAdapter()
+								{
+									@Override
+									public void 
+									widgetSelected(
+										SelectionEvent e ) 
+									{
+										ClipboardCopy.copyToClipBoard( text );
+									}
+								});
+							
+							handled = true;
+						}
+					}
+					
+					if ( handled ){
+						
+						e.doit = true;
 					}
 				}
 			});
