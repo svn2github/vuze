@@ -125,7 +125,9 @@ DHTTransferHandler
 		DHTTransportTransferHandler	handler,
 		Map<String,Object>			options )
 	{
-		logger.log( "Transfer handler (" + handler.getName() + ") registered for key '" + ByteFormatter.encodeString( handler_key ));
+		if ( XFER_TRACE ){
+			logger.log( "Transfer handler (" + handler.getName() + ") registered for key '" + ByteFormatter.encodeString( handler_key ));
+		}
 		
 		transfer_handlers.put( 
 			new HashWrapper( handler_key ), 
@@ -138,7 +140,9 @@ DHTTransferHandler
 		byte[]						handler_key,
 		DHTTransportTransferHandler	handler )
 	{
-		logger.log( "Transfer handler (" + handler.getName() + ") unregistered for key '" + ByteFormatter.encodeString( handler_key ));
+		if ( XFER_TRACE ){
+			logger.log( "Transfer handler (" + handler.getName() + ") unregistered for key '" + ByteFormatter.encodeString( handler_key ));
+		}
 		
 		transfer_handlers.remove( new HashWrapper( handler_key )); 
 	}
