@@ -411,12 +411,60 @@ PluginInstallerImpl
   		}
   	}
 	
+	private File
+	extractFromVuzeFile(
+		File				file )
+		
+		throws PluginException
+	{
+		VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile(file);
+	
+		VuzeFileComponent[] comps = vf.getComponents();
+		
+		for (int j=0;j<comps.length;j++){
+			
+			VuzeFileComponent comp = comps[j];
+			
+			if ( comp.getType() == VuzeFileComponent.COMP_TYPE_PLUGIN ){
+				
+				try{
+					Map	content = comp.getContent();
+					
+					String	id 		= new String((byte[])content.get( "id" ), "UTF-8" );
+					String	version = new String((byte[])content.get( "version" ), "UTF-8" );
+					String	suffix	= ((Long)content.get( "is_jar" )).longValue()==1?"jar":"zip";
+					
+					byte[]	plugin_file = (byte[])content.get( "file" );
+					
+					File temp_dir = AETemporaryFileHandler.createTempDir();
+					
+					File temp_file = new File( temp_dir, id + "_" + version + "." + suffix );
+					
+					FileUtil.copyFile( new ByteArrayInputStream( plugin_file ), temp_file );
+					
+					return( temp_file );
+					
+				}catch( Throwable e ){
+					
+					throw( new PluginException( "Not a valid Vuze file", e ));
+				}
+			}
+		}
+	
+		return( file );
+	}
+	
 	public FilePluginInstaller
 	installFromFile(
 		File				file )
 	
 		throws PluginException
 	{			
+		if ( file.getName().toLowerCase( Locale.US ).endsWith( ".vuze" )){
+			
+			file = extractFromVuzeFile( file );
+		}
+		
 		return( new FilePluginInstallerImpl(this,file));
 	}
 	

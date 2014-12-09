@@ -90,7 +90,7 @@ public class IPWFilePanel extends AbstractWizardPanel<InstallPluginWizard> {
 	btnBrowse.addListener(SWT.Selection,new Listener() {
 	  public void handleEvent(Event event) {
 	    FileDialog fd = new FileDialog(wizard.getWizardWindow());
-	    fd.setFilterExtensions(new String[] {"*.zip;*.jar"});
+	    fd.setFilterExtensions(new String[] {"*.zip;*.jar;*.vuze"});
 	    fd.setFilterNames(new String[] {"Azureus Plugins"});
 	    String fileName = fd.open();
 	    if(fileName != null) txtFile.setText(fileName);	    
@@ -104,13 +104,11 @@ public class IPWFilePanel extends AbstractWizardPanel<InstallPluginWizard> {
 		String error_message = null;
 		try {
 			File f = new File(fileName);
-			if (f.isFile()
-					&& (f.getName().endsWith(".jar") || f.getName().endsWith(".zip"))) {
+			if (f.isFile() && (f.getName().endsWith(".jar") || f.getName().endsWith(".zip") || f.getName().endsWith(".vuze"))) {
 				wizard.setErrorMessage("");
 				wizard.setNextEnabled(true);
 				List<InstallablePlugin> list = new ArrayList<InstallablePlugin>();
-				InstallablePlugin plugin = core.getPluginManager().getPluginInstaller().installFromFile(
-						f);
+				InstallablePlugin plugin = core.getPluginManager().getPluginInstaller().installFromFile(f);
 				list.add(plugin);
 				wizard.plugins = list;
 				valid = true;
