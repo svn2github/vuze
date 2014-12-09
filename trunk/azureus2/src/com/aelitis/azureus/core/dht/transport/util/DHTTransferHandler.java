@@ -129,10 +129,19 @@ DHTTransferHandler
 			logger.log( "Transfer handler (" + handler.getName() + ") registered for key '" + ByteFormatter.encodeString( handler_key ));
 		}
 		
-		transfer_handlers.put( 
-			new HashWrapper( handler_key ), 
-			new transferHandlerInterceptor(
-					handler, options ));
+		synchronized( transfer_handlers ){
+			
+			transferHandlerInterceptor existing = 
+				transfer_handlers.put( 
+					new HashWrapper( handler_key ), 
+					new transferHandlerInterceptor(
+							handler, options ));
+			
+			if ( existing != null ){
+				
+				Debug.out( "Duplicate transfer handler: existing=" + existing.getName() + ", new=" + handler.getName());
+			}
+		}
 	}
 	
 	public void
@@ -144,7 +153,10 @@ DHTTransferHandler
 			logger.log( "Transfer handler (" + handler.getName() + ") unregistered for key '" + ByteFormatter.encodeString( handler_key ));
 		}
 		
-		transfer_handlers.remove( new HashWrapper( handler_key )); 
+		synchronized( transfer_handlers ){
+			
+			transfer_handlers.remove( new HashWrapper( handler_key ));
+		}
 	}
 	
 	protected int
@@ -161,7 +173,12 @@ DHTTransferHandler
 	
 		throws DHTTransportException
 	{
-		transferHandlerInterceptor	handler = transfer_handlers.get(new HashWrapper( transfer_key ));
+		transferHandlerInterceptor	handler; 
+		
+		synchronized( transfer_handlers ){
+		
+			handler = transfer_handlers.get(new HashWrapper( transfer_key ));
+		}
 		
 		if ( handler == null ){
 			
@@ -361,7 +378,12 @@ DHTTransferHandler
 					
 				}else{
 				
-					final transferHandlerInterceptor	handler = transfer_handlers.get(new HashWrapper( transfer_key ));
+					final transferHandlerInterceptor	handler;
+					
+					synchronized( transfer_handlers ){
+						
+						handler = transfer_handlers.get(new HashWrapper( transfer_key ));
+					}
 					
 					if ( handler == null ){
 						
@@ -1079,7 +1101,12 @@ DHTTransferHandler
 	
 		throws DHTTransportException
 	{
-		transferHandlerInterceptor	handler = transfer_handlers.get(new HashWrapper( transfer_key ));
+		transferHandlerInterceptor	handler;
+		
+		synchronized( transfer_handlers ){
+			
+			handler = transfer_handlers.get(new HashWrapper( transfer_key ));
+		}
 
 		if ( handler == null ){
 			
