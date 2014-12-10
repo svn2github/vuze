@@ -40,9 +40,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -1604,24 +1609,123 @@ BuddyPluginView
 					middle.setVisible( true );				
 					middle.setText( MessageText.getString( "azbuddy.dchat.fave.chats" ));
 					
+					List<String[]>	list = plugin.getBeta().getFavourites();
+
+					int	num_faves = list.size();
+					
+					boolean	use_scroll = num_faves > 4;
+					
 					GridLayout layout = new GridLayout();
-					layout.horizontalSpacing = 1;
-					layout.verticalSpacing = 1;
+					layout.horizontalSpacing 	= use_scroll?1:1;
+					layout.verticalSpacing 		= use_scroll?1:1;
 					
 					layout.numColumns = 1;
 					middle.setLayout(layout);
 					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
 					middle.setLayoutData(grid_data);
 
-					List<String[]>	list = plugin.getBeta().getFavourites();
-
-					if ( list.size() == 0 ){
+				
+					if ( num_faves == 0 ){
 						
 						Label label = new Label( middle, SWT.NULL );
 						label.setText( MessageText.getString( "label.none.assigned" ));
 						label.setEnabled( false );
 											
 					}else{
+						
+						Composite	fave_area;
+						
+						if ( use_scroll ){
+							
+							final ScrolledComposite scrollable = 
+								new ScrolledComposite(middle, SWT.V_SCROLL)
+								{
+								    private final Point 	bar_size;  
+								    private int				x_adjust;
+								    private boolean			hacking;
+								    
+								    {
+								        Composite composite = new Composite(middle, SWT.H_SCROLL | SWT.V_SCROLL);
+								        
+								        composite.setSize(1, 1);
+								        
+								        bar_size = composite.computeSize(0, 0);
+								        
+								        composite.dispose();
+								    }
+	
+								    public Point 
+								    computeSize(
+								    	int 		wHint, 
+								    	int 		hHint, 
+								    	boolean 	changed )
+								    {
+								        Point point = super.computeSize(wHint, hHint, changed);
+								       
+								        if ( !hacking ){
+								        	
+									        final boolean was_visible = getVerticalBar().isVisible();
+									        
+									        Utils.execSWTThreadLater(
+									        	0,
+									        	new Runnable()
+									        	{
+									        		public void 
+									        		run()
+									        		{
+									        			 boolean is_visible = getVerticalBar().isVisible();
+									        			 
+									        			 if ( was_visible != is_visible ){
+									        				 
+									        				 x_adjust = is_visible?0:-bar_size.x;
+									        				 
+									        				 try{
+									        					 hacking = true;
+									        				 
+									        					 middle.getParent().layout( true, true );
+									        					 
+									        				 }finally{
+									        					 
+									        					 hacking = false;
+									        				 }
+									        			 }
+									        		};	
+									        	});
+								        }
+								        
+								        point.x += x_adjust;
+								        
+								        return point;
+								    }
+								};
+							
+							scrollable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	
+							final Composite scrollChild = new Composite(scrollable, SWT.NONE);
+	
+							GridLayout gLayoutChild = new GridLayout();
+							gLayoutChild.marginHeight = 0;
+							gLayoutChild.marginWidth = 0;
+							layout.horizontalSpacing = 1;
+							layout.verticalSpacing = 1;
+							scrollChild.setLayout(gLayoutChild);
+							scrollable.setContent(scrollChild);
+							scrollable.setExpandVertical(true);
+							scrollable.setExpandHorizontal(true);	
+							scrollable.setAlwaysShowScrollBars( false );
+							
+							scrollable.addControlListener(new ControlAdapter() {
+								public void controlResized(ControlEvent e) {
+									Rectangle r = scrollable.getClientArea();
+									scrollable.setMinSize(scrollChild.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+								}
+							});
+							
+							fave_area = scrollChild;
+						}else{
+							
+							fave_area = middle;
+						}
 						
 						final List<Button>	buttons = new ArrayList<Button>();
 						
@@ -1649,7 +1753,7 @@ BuddyPluginView
 							final	String net = entry[0];
 							final	String key = entry[1];
 							
-							Button button = new Button( middle, SWT.TOGGLE );
+							Button button = new Button( fave_area, SWT.TOGGLE );
 							
 							String	short_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public.short":"label.anon.short" ) + ")";
 							

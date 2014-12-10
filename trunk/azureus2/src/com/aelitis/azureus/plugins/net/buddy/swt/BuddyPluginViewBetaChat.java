@@ -1028,6 +1028,65 @@ BuddyPluginViewBetaChat
 				}
 			});
 		
+		log.addListener(
+			SWT.MouseDoubleClick,
+			new Listener()
+			{
+				public void 
+				handleEvent(
+					Event e )
+				{
+					try{
+						int offset = log.getOffsetAtLocation( new Point( e.x, e.y ) );
+						
+						for ( int i=0;i<log_styles.length;i++){
+							
+							StyleRange sr = log_styles[i];
+							
+							Object data = sr.data;
+
+							if ( data != null && offset >= sr.start && offset < sr.start + sr.length ){
+								
+								if ( data instanceof String ){
+									
+									String	url_str = (String)data;
+									
+									String lc_url_str = url_str.toLowerCase( Locale.US );
+									
+									if ( lc_url_str.startsWith( "chat:" )){
+										
+										try{
+											beta.handleURI( url_str );
+											
+										}catch( Throwable f ){
+											
+											Debug.out( f );
+										}
+									}else{
+										
+										if ( 	lc_url_str.contains( ".torrent" ) || 
+												UrlUtils.parseTextForMagnets( url_str ) != null ){
+											
+											TorrentOpener.openTorrent( url_str );
+											
+										}else{
+											
+											Utils.launch( url_str );
+										}
+									}
+									
+									log.setSelection( offset );
+									
+									e.doit = false;
+								}
+							}
+						}
+					}catch( Throwable f ){
+						
+					}
+				}
+			});
+
 		log.addMouseTrackListener(
 			new MouseTrackListener() {
 				
@@ -1086,8 +1145,6 @@ BuddyPluginViewBetaChat
 								break;
 							}
 						}
-						
-
 					}catch( Throwable f ){
 				
 					}

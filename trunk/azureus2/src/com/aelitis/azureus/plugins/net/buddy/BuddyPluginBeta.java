@@ -76,7 +76,8 @@ BuddyPluginBeta
 	private AsyncDispatcher		dispatcher = new AsyncDispatcher( "BuddyPluginBeta" );
 	
 	private Map<String,ChatInstance>		chat_instances_map 	= new HashMap<String, BuddyPluginBeta.ChatInstance>();
-	private CopyOnWriteList<ChatInstance>	chat_instances_list	= new CopyOnWriteList<BuddyPluginBeta.ChatInstance>(); 
+	private CopyOnWriteList<ChatInstance>	chat_instances_list	= new CopyOnWriteList<BuddyPluginBeta.ChatInstance>();
+	
 	private PluginInterface azmsgsync_pi;
 
 	private TimerEventPeriodic		timer;
@@ -244,7 +245,7 @@ BuddyPluginBeta
 						
 						set.add( net + ":" + key );
 						
-						ChatInstance chat = peekChat( net, key );
+						ChatInstance chat = peekChatInstance( net, key );
 
 						if ( chat == null || !chat.getKeepAlive()){
 						
@@ -870,7 +871,7 @@ BuddyPluginBeta
 	}
 	
 	private ChatInstance
-	peekChat(
+	peekChatInstance(
 		String				network,
 		String				key )
 	{
@@ -882,6 +883,40 @@ BuddyPluginBeta
 			
 			return( inst );
 		}
+	}
+	
+	private Map<String,Object>
+	peekChat(
+		String				network,
+		String				key )
+	{
+		Map<String,Object>		reply = new HashMap<String, Object>();
+		try{
+			PluginInterface pi;
+		
+			synchronized( chat_instances_map ){
+
+				pi = azmsgsync_pi;
+			}
+			
+			if ( pi != null ){
+				
+				Map<String,Object>		options = new HashMap<String, Object>();
+				
+				options.put( "network", network );
+				options.put( "key", key.getBytes( "UTF-8" ));
+
+				options.put( "timeout", 60*1000 );
+				
+				reply = (Map<String,Object>)pi.getIPC().invoke( "peekMessageHandler", new Object[]{ options } );
+			}
+				
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( reply );
 	}
 	
 	public List<ChatInstance>
@@ -2404,6 +2439,22 @@ BuddyPluginBeta
 									throw( new Exception( "Invalid command: " + message ));
 								}
 							}
+							
+						}else if ( command.equals( "/peek" )){
+							
+							if ( bits.length > 1 ){
+								
+								Map<String,Object> result = peekChat( getNetwork(), bits[1] );
+								
+								sendLocalMessage( "!" + result + "!", null, ChatMessage.MT_INFO );
+								
+								ok = true;
+							}
+						}else if ( command.equals( "/clone" )){
+							
+							getAndShowChat( getNetwork(), getKey());
+							
+							ok = true;
 						}
 						
 						if ( !ok ){
