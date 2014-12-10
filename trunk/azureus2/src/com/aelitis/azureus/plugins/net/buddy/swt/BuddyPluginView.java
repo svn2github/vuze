@@ -1616,8 +1616,8 @@ BuddyPluginView
 					boolean	use_scroll = num_faves > 4;
 					
 					GridLayout layout = new GridLayout();
-					layout.horizontalSpacing 	= use_scroll?1:1;
-					layout.verticalSpacing 		= use_scroll?1:1;
+					layout.horizontalSpacing 	= 1;
+					layout.verticalSpacing 		= 1;
 					
 					layout.numColumns = 1;
 					middle.setLayout(layout);
@@ -1640,8 +1640,11 @@ BuddyPluginView
 							final ScrolledComposite scrollable = 
 								new ScrolledComposite(middle, SWT.V_SCROLL)
 								{
+										// this code required to show/hide scroll bar when visible or not
+								
 								    private final Point 	bar_size;  
 								    private int				x_adjust;
+								    private boolean			first_time	= true;
 								    private boolean			hacking;
 								    
 								    {
@@ -1675,7 +1678,7 @@ BuddyPluginView
 									        		{
 									        			 boolean is_visible = getVerticalBar().isVisible();
 									        			 
-									        			 if ( was_visible != is_visible ){
+									        			 if ( first_time || was_visible != is_visible ){
 									        				 
 									        				 x_adjust = is_visible?0:-bar_size.x;
 									        				 
@@ -1699,20 +1702,24 @@ BuddyPluginView
 								    }
 								};
 							
-							scrollable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+							scrollable.setLayoutData( new GridData(GridData.FILL_VERTICAL ));
 	
-							final Composite scrollChild = new Composite(scrollable, SWT.NONE);
+							final Composite scrollChild = new Composite( scrollable, SWT.NONE );
 	
 							GridLayout gLayoutChild = new GridLayout();
-							gLayoutChild.marginHeight = 0;
-							gLayoutChild.marginWidth = 0;
-							layout.horizontalSpacing = 1;
-							layout.verticalSpacing = 1;
+							gLayoutChild.numColumns = 1;
+							
+							gLayoutChild.horizontalSpacing = 1;
+							gLayoutChild.verticalSpacing = 1;
 							scrollChild.setLayout(gLayoutChild);
+							scrollChild.setLayoutData( new GridData(GridData.FILL_VERTICAL ));
+
 							scrollable.setContent(scrollChild);
 							scrollable.setExpandVertical(true);
 							scrollable.setExpandHorizontal(true);	
 							scrollable.setAlwaysShowScrollBars( false );
+							
+							scrollable.setMinSize(scrollChild.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 							
 							scrollable.addControlListener(new ControlAdapter() {
 								public void controlResized(ControlEvent e) {
