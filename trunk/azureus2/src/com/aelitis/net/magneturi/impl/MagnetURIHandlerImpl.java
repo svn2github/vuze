@@ -385,7 +385,7 @@ MagnetURIHandlerImpl
 						String	lhs 	= arg.substring( 0, pos ).trim();
 						String	lc_lhs 	= lhs.toLowerCase( MessageText.LOCALE_ENGLISH );
 									
-						String	rhs = URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING);
+						String	rhs = UrlUtils.decode( arg.substring( pos+1 ).trim());
 
 						if ( lc_lhs.equals( "xt" )){
 							
@@ -418,7 +418,7 @@ MagnetURIHandlerImpl
 								source_params.add( rhs );
 							}
 						}
-					}catch( UnsupportedEncodingException e ){
+					}catch( Throwable e ){
 						
 						Debug.printStackTrace( e );
 					}

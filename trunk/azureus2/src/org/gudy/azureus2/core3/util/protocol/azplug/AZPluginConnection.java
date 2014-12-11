@@ -26,8 +26,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 
-
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
@@ -85,7 +85,7 @@ AZPluginConnection
 			if ( x.length == 2 ){
 				
 				String	lhs = x[0];
-				String	rhs = URLDecoder.decode(x[1], "UTF-8" );
+				String	rhs = UrlUtils.decode(x[1] );
 				
 				args.put( lhs.toLowerCase(), rhs );
 			}

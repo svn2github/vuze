@@ -22,11 +22,18 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -34,6 +41,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
@@ -41,15 +49,21 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.ipc.IPCException;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -247,7 +261,7 @@ BuddyPluginBeta
 						
 						set.add( net + ":" + key );
 						
-						ChatInstance chat = peekChatInstance( net, key );
+						ChatInstance chat = peekChatInstance( net, key, false );
 
 						if ( chat == null || !chat.getKeepAlive()){
 						
@@ -606,31 +620,76 @@ BuddyPluginBeta
 		return( AEPluginProxyHandler.hasPluginProxyForNetwork( AENetworkClassifier.AT_I2P, false ));
 	}
 	
-	public void
+	public InputStream
 	handleURI(
-		String		url_str )
+		String		url_str,
+		boolean		open_only )
 		
 		throws Exception
 	{
-		BuddyPluginViewInterface ui = plugin.getSWTUI();
 		
-		if ( ui == null ){
-			
-			throw( new Exception( "UI unavailable" ));
-		}
+			// url_str will be something like chat:anon?Test%20Me[&a=b]...
+			// should really be chat:anon?key=Test%20Me but we'll support the shorthand
 		
+			// azplug:?id=azbuddy&arg=chat%3A%3FTest%2520Me%26format%3Drss
+			// azplug:?id=azbuddy&arg=chat%3A%3Fkey%3DTest%2520Me%26format%3Drss
+				
 		int	pos = url_str.indexOf( '?' );
 		
-		String key = "";
+		String protocol;
+		String key 		= null;
+		String format	= null;
 		
 		if ( pos != -1 ){
 			
-			key = UrlUtils.decode( url_str.substring( pos+1 ));
+			protocol = url_str.substring( 0, pos ).toLowerCase( Locale.US );
+			
+			String args = url_str.substring( pos+1 );
+			
+			String[] bits = args.split( "&" );
+			
+			for ( String bit: bits ){
+				
+				String[] temp = bit.split( "=" );
+				
+				if ( temp.length == 1 ){
+					
+					key = UrlUtils.decode( temp[0] );
+					
+				}else{
+					
+					String lhs = temp[0].toLowerCase( Locale.US );
+					String rhs = UrlUtils.decode( temp[1] );
+					
+					if ( lhs.equals( "key" )){
+						
+						key = rhs;
+						
+					}else if ( lhs.equals( "format" )){
+						
+						format	= rhs;
+					}
+				}
+			}
+					
+		}else{
+			
+			throw( new Exception( "Malformed request" ));
+		}
+		
+		if ( key == null ){
+			
+			throw( new Exception( "Key missing" ));
+		}
+		
+		if ( open_only ){
+			
+			format = null;
 		}
 		
 		String network;
 		
-		if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
+		if ( protocol.equals( "chat:anon" )){
 				
 			if ( !isI2PAvailable()){
 				
@@ -644,9 +703,273 @@ BuddyPluginBeta
 			network = AENetworkClassifier.AT_PUBLIC;
 		}
 		
-		ChatInstance chat = getChat(network, key);
+		if ( format == null || !format.equalsIgnoreCase( "rss" )){
+		
+			BuddyPluginViewInterface ui = plugin.getSWTUI();
+
+			if ( ui == null ){
+				
+				throw( new Exception( "UI unavailable" ));
+			}
+		
+			ChatInstance chat = getChat( network, key);
+
+			ui.openChat( chat );
+		
+			return( null );
 			
-		ui.openChat( chat );
+		}else{
+			
+			ChatInstance chat = peekChatInstance( network, key, true );
+			
+			if ( chat == null ){
+				
+				throw( new Exception( "Chat unavailable" ));
+			}
+			
+				// we need this chat to hang around
+			
+			if ( !chat.isFavourite()){
+				
+				chat.setFavourite( true );
+				
+				chat.setKeepAlive( true );
+			}
+			
+			if ( !chat.getSaveMessages()){
+				
+				chat.setSaveMessages( true );
+			}
+			
+			List<ChatMessage> messages = chat.getMessages();
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream( 10*1024 );
+			
+			PrintWriter pw = new PrintWriter( new OutputStreamWriter( baos, "UTF-8" ));
+			
+			pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
+			
+			pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );
+			
+			pw.println( "<channel>" );
+			
+			pw.println( "<title>" + escape( chat.getName()) + "</title>" );
+					
+			long	last_modified;
+			
+			if ( messages.size() == 0 ){
+				
+				last_modified = SystemTime.getCurrentTime();
+				
+			}else{
+				
+				last_modified = messages.get( messages.size()-1).getTimeStamp();
+			}
+										
+			pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( last_modified ) + "</pubDate>" );
+		
+			for ( ChatMessage message: messages ){
+								
+				List<Map<String,Object>>	magnets = extractMagnets( message.getMessage());
+				
+				if ( magnets.size() == 0 ){
+					
+					continue;
+				}
+				
+				String item_date = TimeFormatter.getHTTPDate( message.getTimeStamp());
+
+				for ( Map<String,Object> magnet: magnets ){
+					
+					String	hash 	= (String)magnet.get( "hash" );
+					
+					if ( hash == null ){
+						
+						continue;
+					}
+					
+					String	title 	= (String)magnet.get( "title" );
+					
+					if ( title == null ){
+						
+						title = hash;
+					}
+				
+					String	link	= (String)magnet.get( "link" );
+					
+					if ( link == null ){
+						
+						link = (String)magnet.get( "magnet" );
+					}
+					
+					pw.println( "<item>" );
+				
+					pw.println( "<title>" + escape( title ) + "</title>" );
+				
+					pw.println( "<guid>" + hash + "</guid>" );
+				
+					Long	size = (Long)magnet.get( "size" );
+
+					String enclosure = 
+							"<enclosure " + 
+								"type=\"application/x-bittorrent\" " +
+								"url=\"" + escape( link ) + "\"";
+					
+					if ( size != null ){
+						
+						enclosure += " length=\"" + size + "\"";
+					}
+					
+					enclosure += " />";
+					
+					pw.println( enclosure );
+								
+					pw.println(	"<pubDate>" + item_date + "</pubDate>" );
+				
+					
+					if ( size != null ){
+						
+						pw.println(	"<vuze:size>" + size + "</vuze:size>" );
+					}
+					
+					pw.println(	"<vuze:assethash>" + hash + "</vuze:assethash>" );
+												
+					pw.println( "<vuze:downloadurl>" + escape( link ) + "</vuze:downloadurl>" );
+				
+					pw.println( "</item>" );
+				}
+			}
+			
+			pw.println( "</channel>" );
+			
+			pw.println( "</rss>" );
+			
+			pw.flush();
+			
+			return( new ByteArrayInputStream( baos.toByteArray()));
+		}
+	}
+	
+	private List<Map<String,Object>>
+	extractMagnets(
+		String		str )
+	{
+		List<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
+		
+		int	len = str.length();
+		
+		String	lc_str = str.toLowerCase( Locale.US );
+		
+		int	pos = 0;
+		
+		while( pos < len ){
+			
+			pos = lc_str.indexOf( "magnet:", pos );
+			
+			if ( pos == -1 ){
+				
+				break;
+			}
+			
+			int	start = pos;
+			
+			while( pos < len ){
+				
+				if ( Character.isWhitespace( str.charAt( pos ))){
+					
+					break;
+					
+				}else{
+					
+					pos++;
+				}
+			}
+			
+			String magnet = str.substring( start, pos );
+			
+			int x = magnet.indexOf( '?' );
+			
+			if ( x != -1 ){
+			
+				Map<String,Object> map = new HashMap<String,Object>();
+				
+					// remove any trailing ui name hack
+				
+				int	p1 = magnet.lastIndexOf( "[[" );
+				
+				if ( p1 != -1 && magnet.endsWith( "]]" )){
+					
+					magnet = magnet.substring( 0, p1 );
+				}
+				
+				map.put( "magnet", magnet );
+				
+				List<String>	trackers = new ArrayList<String>();
+				
+				map.put( "trackers", trackers );
+				
+				String[] bits = magnet.substring( x+1 ).split( "&" );
+				
+				for ( String bit: bits ){
+					
+					String[] temp = bit.split( "=" );
+					
+					if ( temp.length == 2 ){
+						
+						String	lhs = temp[0].toLowerCase( Locale.US );
+						String	rhs = UrlUtils.decode( temp[1] );
+						
+						if ( lhs.equals( "xt" )){
+							
+							String lc_rhs = rhs.toLowerCase( Locale.US );
+							
+							int p = lc_rhs.indexOf( "btih:" );
+							
+							if ( p >= 0 ){
+								
+								map.put( "hash", lc_rhs.substring( p+5 ).toUpperCase( Locale.US ));
+							}
+							
+						}else if ( lhs.equals( "dn" )){
+							
+							map.put( "title", rhs );
+							
+						}else if ( lhs.equals( "tr" )){
+							
+							trackers.add( rhs );
+							
+						}else if ( lhs.equals( "fl" )){
+							
+							map.put( "link", rhs );
+							
+						}else if ( lhs.equals( "xl" )){
+							
+							try{
+								long size = Long.parseLong( rhs );
+								
+								map.put( "size", size );
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}
+				}
+			
+				System.out.println( magnet + " -> " + map );
+				
+				result.add( map );
+			}
+		}
+		
+		return( result );
+	}
+	
+	private String
+	escape(
+		String	str )
+	{
+		return( XUXmlWriter.escapeXML(str));
 	}
 	
 	public boolean
@@ -894,16 +1217,33 @@ BuddyPluginBeta
 		return( result );
 	}
 	
+	/**
+	 * returns existing chat if found without adding a reference to it. If create_if_missing supplied
+	 * then this will create a new chat (and add a reference to it) so use this parameter with
+	 * caution
+	 */
+	
 	private ChatInstance
 	peekChatInstance(
 		String				network,
-		String				key )
+		String				key,
+		boolean				create_if_missing )
 	{
 		String meta_key = network + ":" + key;
 	
 		synchronized( chat_instances_map ){
 			
 			ChatInstance inst = chat_instances_map.get( meta_key );
+			
+			if ( inst == null && create_if_missing ){
+				
+				try{
+					inst = getChat( network, key );
+					
+				}catch( Throwable e ){
+					
+				}
+			}
 			
 			return( inst );
 		}
@@ -915,6 +1255,7 @@ BuddyPluginBeta
 		String				key )
 	{
 		Map<String,Object>		reply = new HashMap<String, Object>();
+		
 		try{
 			PluginInterface pi;
 		
@@ -1226,6 +1567,12 @@ BuddyPluginBeta
 		isPrivateChat()
 		{
 			return( is_private_chat );
+		}
+		
+		public boolean
+		isAnonymous()
+		{
+			return( network != AENetworkClassifier.AT_PUBLIC );
 		}
 		
 		public String
@@ -2607,6 +2954,15 @@ BuddyPluginBeta
 				Debug.out( e );
 				
 				return( "" );
+			}
+		}
+		
+		public List<ChatMessage>
+		getMessages()
+		{
+			synchronized( chat_lock ){
+
+				return( new ArrayList<ChatMessage>( messages ));
 			}
 		}
 		

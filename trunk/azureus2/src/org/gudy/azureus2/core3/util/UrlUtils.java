@@ -639,7 +639,22 @@ public class UrlUtils
 			return "";
 		}
 		try {
-			return( URLDecoder.decode(s, "UTF-8"));
+			try{
+				return( URLDecoder.decode(s, "UTF-8"));
+				
+			}catch( IllegalArgumentException e ){
+				
+					// handle truncated encodings somewhat gracefully
+				
+				int pos = s.lastIndexOf( "%" );
+				
+				if ( pos >= s.length()-2 ){
+					
+					return( URLDecoder.decode(s.substring( 0, pos ), "UTF-8"));
+				}
+				
+				throw( e );
+			}
 		} catch (UnsupportedEncodingException e) {
 			return( URLDecoder.decode(s));
 		}

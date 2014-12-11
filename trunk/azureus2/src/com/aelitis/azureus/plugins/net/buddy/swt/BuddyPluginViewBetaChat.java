@@ -398,6 +398,19 @@ BuddyPluginViewBetaChat
 					});
 			
 			status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
+			status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.rss.url" ));
+			
+			status_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							ClipboardCopy.copyToClipBoard( "azplug:?id=azbuddy&arg=" + UrlUtils.encode( chat.getURL() + "&format=rss" ));
+						}
+					});
+			
+			status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
 			status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.pk" ));
 			
 			status_mi.addSelectionListener(
@@ -916,7 +929,7 @@ BuddyPluginViewBetaChat
 												if ( lc_url_str.startsWith( "chat:" )){
 													
 													try{
-														beta.handleURI( url_str );
+														beta.handleURI( url_str, true );
 														
 													}catch( Throwable f ){
 														
@@ -1047,6 +1060,8 @@ BuddyPluginViewBetaChat
 
 							if ( data != null && offset >= sr.start && offset < sr.start + sr.length ){
 								
+								boolean anon_chat = chat.isAnonymous();
+								
 								if ( data instanceof String ){
 									
 									String	url_str = (String)data;
@@ -1055,14 +1070,39 @@ BuddyPluginViewBetaChat
 									
 									if ( lc_url_str.startsWith( "chat:" )){
 										
+											// no double-click support for anon->public chats
+										
+										if ( anon_chat && !lc_url_str.startsWith( "chat:anon:" )){
+											
+											return;
+										}
+										
 										try{
-											beta.handleURI( url_str );
+											beta.handleURI( url_str, true );
 											
 										}catch( Throwable f ){
 											
 											Debug.out( f );
 										}
 									}else{
+										
+											// no double-click support for anon->public urls
+										
+										if ( anon_chat ){
+											
+											try{
+												String host = new URL( lc_url_str ).getHost();
+												
+												if ( AENetworkClassifier.categoriseAddress( host ) == AENetworkClassifier.AT_PUBLIC ){
+		
+													return;
+	
+												}
+											}catch( Throwable f ){
+												
+												return;
+											}
+										}
 										
 										if ( 	lc_url_str.contains( ".torrent" ) || 
 												UrlUtils.parseTextForMagnets( url_str ) != null ){
@@ -2492,6 +2532,8 @@ BuddyPluginViewBetaChat
 									URL	url = new URL( url_str );
 								}
 								
+								String original_url_str = url_str;
+								
 									// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
 								
 								String display_url = UrlUtils.decode( url_str );
@@ -2503,16 +2545,26 @@ BuddyPluginViewBetaChat
 									String temp = display_url.substring( hack_pos + 2, display_url.length() - 2  ).trim();
 									
 									if ( temp.length() > 0 ){
-										
-										display_url = temp;
-										
+																				
 										hack_pos = url_str.lastIndexOf( "[[" );
 										
 										url_str = url_str.substring( 0, hack_pos );
+																		
+											// prevent anything that looks like a URL from being used as the display
+											// text to avoid 'confusion'
+
+										if ( UrlUtils.parseTextForURL( temp, true ) == null ){
+											
+											display_url = temp;
+											
+										}else{
+											
+											display_url = url_str;
+										}
 									}
 								}
 								
-								if ( !display_url.equals( url_str )){
+								if ( !display_url.equals( original_url_str )){
 									
 									msg = msg.substring( 0, url_start ) + display_url + msg.substring( end );
 								}
@@ -2551,6 +2603,7 @@ BuddyPluginViewBetaChat
 								
 							}catch( Throwable e ){
 								
+								e.printStackTrace();
 							}
 							
 							pos = end;

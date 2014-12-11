@@ -3479,7 +3479,12 @@ BuddyPlugin
 			}
 				
 			try{
-				beta_plugin.handleURI( arg_str );
+				InputStream result = beta_plugin.handleURI( arg_str, false );
+				
+				if ( result != null ){
+					
+					return( result );
+				}
 				
 					// return an empty .vuze file to keep things happy...
 				
@@ -3491,6 +3496,7 @@ BuddyPlugin
 			}	
 						
 		}else{
+			
 			String[]	args = arg_str.split( "&" );
 			
 			String		pk 				= null;
