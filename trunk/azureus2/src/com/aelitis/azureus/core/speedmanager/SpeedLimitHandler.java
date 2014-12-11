@@ -1222,10 +1222,18 @@ SpeedLimitHandler
 							String	ext_cmd 	= temp[0];
 							String	ext_param	= temp[1];
 							
-							if ( ext_cmd.equals( "start_tag" ) || ext_cmd.equals( "stop_tag" )){
+							if ( 	ext_cmd.equals( "start_tag" ) || 
+									ext_cmd.equals( "stop_tag" )  ||
+									ext_cmd.equals( "pause_tag" ) ||
+									ext_cmd.equals( "resume_tag" )){
 								
 								TagDownload tag = (TagDownload)TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTag( ext_param, true );
 								
+								if ( tag == null ){
+									
+									tag = (TagDownload)TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_STATE ).getTag( ext_param, true );
+
+								}
 								if ( tag == null ){
 									
 									extra = ", tag '" + ext_param + "' not found";
@@ -1237,10 +1245,26 @@ SpeedLimitHandler
 										extensions = new ArrayList<SpeedLimitHandler.ScheduleRuleExtensions>( bits.size()-6 );
 									}
 									
-									extensions.add( 
-										new ScheduleRuleExtensions( 
-											ext_cmd.equals( "start_tag" )?ScheduleRuleExtensions.ET_START_TAG:ScheduleRuleExtensions.ET_STOP_TAG , 
-											tag ));
+									int	et;
+									
+									if ( ext_cmd.equals( "start_tag" )){
+										
+										et = ScheduleRuleExtensions.ET_START_TAG;
+										
+									}else if ( ext_cmd.equals( "stop_tag" )){
+										
+										et = ScheduleRuleExtensions.ET_STOP_TAG;
+										
+									}else if ( ext_cmd.equals( "pause_tag" )){
+										
+										et = ScheduleRuleExtensions.ET_PAUSE_TAG;
+										
+									}else{
+										
+										et = ScheduleRuleExtensions.ET_RESUME_TAG;
+									}									
+									
+									extensions.add( new ScheduleRuleExtensions( et, tag ));
 									
 									ok = true;
 								}
@@ -2412,7 +2436,7 @@ SpeedLimitHandler
 		result.add( "#        frequency: daily|weekdays|weekends|<day_of_week>" );
 		result.add( "#            day_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
-		result.add( "#        extension: (start_tag|stop_tag):<tag_name>" );
+		result.add( "#        extension: (start_tag|stop_tag|pause_tag|resume_tag):<tag_name>" );
 		result.add( "#    peer_set <set_name>=[<CIDR_specs...>|CC list|Network List|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [,cat=<cat names>] [,tag=<tag names>]" );
 		result.add( "#    net_limit (daily|weekly|monthly)[:<profile>] [total=<limit>] [up=<limit>] [down=<limit>]");
 		result.add( "#" );
@@ -3833,11 +3857,13 @@ SpeedLimitHandler
 		}
 	}
 	
-	private static class
+	private class
 	ScheduleRuleExtensions
 	{
 		private static final int ET_START_TAG 	= 1;
 		private static final int ET_STOP_TAG 	= 2;
+		private static final int ET_PAUSE_TAG 	= 3;
+		private static final int ET_RESUME_TAG 	= 4;
 		
 		private int				extension_type;
 		private TagDownload		tag;
@@ -3857,10 +3883,20 @@ SpeedLimitHandler
 			Set<DownloadManager> downloads = tag.getTaggedDownloads();
 			
 			for ( DownloadManager download: downloads ){
-				
-					// don't touch these
-				
+								
 				if ( download.isPaused()){
+				
+					if ( extension_type == ET_RESUME_TAG ){
+						
+						if ( rule_pause_all_active || net_limit_pause_all_active ){
+						
+								// things are going to get messy if we do this
+							
+						}else{
+						
+							download.resume();
+						}
+					}
 					
 					continue;
 				}
@@ -3875,11 +3911,20 @@ SpeedLimitHandler
 					}
 				}else{
 					
-					if ( 	state != Download.ST_ERROR &&
-							state != Download.ST_STOPPED &&
-							state != Download.ST_STOPPING ){
+					if ( extension_type == ET_PAUSE_TAG ){
 						
-						download.stopIt( DownloadManager.STATE_STOPPED, false, false );
+						if ( !download.isPaused()){
+							
+							download.pause();
+						}
+					}else if ( extension_type == ET_STOP_TAG ){
+						
+						if ( 	state != Download.ST_ERROR &&
+								state != Download.ST_STOPPED &&
+								state != Download.ST_STOPPING ){
+							
+							download.stopIt( DownloadManager.STATE_STOPPED, false, false );
+						}
 					}
 				}
 			}
@@ -3901,9 +3946,17 @@ SpeedLimitHandler
 				
 				str = "start_tag";
 				
-			}else{
+			}else if ( extension_type == ET_STOP_TAG ){
 				
 				str = "stop_tag";
+				
+			}else if ( extension_type == ET_RESUME_TAG ){
+
+				str = "resume_tag";
+				
+			}else{
+				
+				str = "pause_tag";
 			}
 			
 			str += ":" + tag.getTagName( true );

@@ -205,7 +205,7 @@ public class MainMDISetup
 								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
 								MultipleDocumentInterface.SIDEBAR_SECTION_CHAT, "chatsview",
 								"{mdi.entry.chatsoverview}", null, null, true, null);
-						entry.setImageLeftID("image.sidebar.chats-overview");
+						entry.setImageLeftID("image.sidebar.chat-overview");
 						return entry;
 					}
 				});
