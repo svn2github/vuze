@@ -21,10 +21,10 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
 
-public class ColumnChatUserCount
+public class ColumnChatMessageCount
 	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
-	public static String COLUMN_ID = "chat.user.count";
+	public static String COLUMN_ID = "chat.msg.count";
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
@@ -34,8 +34,8 @@ public class ColumnChatUserCount
 	}
 
 	/** Default Constructor */
-	public ColumnChatUserCount(TableColumn column) {
-		column.setWidth(40);
+	public ColumnChatMessageCount(TableColumn column) {
+		column.setWidth(60);
 		column.setAlignment( TableColumn.ALIGN_CENTER );
 		column.setRefreshInterval( TableColumn.INTERVAL_LIVE );
 		column.addListeners(this);
@@ -45,7 +45,7 @@ public class ColumnChatUserCount
 		ChatInstance chat = (ChatInstance) cell.getDataSource();
 		int num = -1;
 		if (chat != null) {
-			num = chat.getEstimatedNodes();
+			num = chat.getMessageCount( true );
 		}
 		
 		if (!cell.setSortValue(num) && cell.isValid()) {

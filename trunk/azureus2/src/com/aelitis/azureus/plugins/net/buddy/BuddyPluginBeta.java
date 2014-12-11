@@ -1001,6 +1001,7 @@ BuddyPluginBeta
 		
 		private List<ChatMessage>					messages	= new ArrayList<ChatMessage>();
 		private ByteArrayHashMap<String>			message_ids = new ByteArrayHashMap<String>();
+		private int									messages_not_mine_count;
 		
 		private ByteArrayHashMap<ChatParticipant>	participants = new ByteArrayHashMap<ChatParticipant>();
 		
@@ -1531,6 +1532,20 @@ BuddyPluginBeta
 			}
 			
 			return(((Number)map.get( "node_est" )).intValue());
+		}
+		
+		public int
+		getMessageCount(
+			boolean	not_mine )
+		{
+			if ( not_mine ){
+				
+				return( messages_not_mine_count );
+				
+			}else{
+			
+				return( messages.size());
+			}
 		}
 		
 		public String
@@ -2078,7 +2093,14 @@ BuddyPluginBeta
 					
 					message_ids.remove( removed.getID());
 					
-					removed.getParticipant().removeMessage( removed );
+					ChatParticipant rem_part = removed.getParticipant();
+					
+					rem_part.removeMessage( removed );
+					
+					if ( !rem_part.isMe()){
+						
+						messages_not_mine_count--;
+					}
 				}
 				
 
@@ -2102,6 +2124,8 @@ BuddyPluginBeta
 				if ( !participant.isMe()){
 					
 					last_message_not_mine = msg.getTimeStamp();
+					
+					messages_not_mine_count++;
 				}
 				
 				if ( sort_event != null ){
@@ -2844,7 +2868,7 @@ BuddyPluginBeta
 		private boolean				is_pinned;
 		private boolean				nick_clash;
 		
-		private List<ChatMessage>	messages	= new ArrayList<ChatMessage>();
+		private List<ChatMessage>	participant_messages	= new ArrayList<ChatMessage>();
 		
 		private Boolean				is_me;
 		
@@ -2880,7 +2904,7 @@ BuddyPluginBeta
 		{
 			synchronized( chat.chat_lock ){
 			
-				return( messages.get( messages.size()-1).getContact());
+				return( participant_messages.get( participant_messages.size()-1).getContact());
 			}
 		}
 		
@@ -2889,7 +2913,7 @@ BuddyPluginBeta
 		{
 			synchronized( chat.chat_lock ){
 			
-				return( messages.get( messages.size()-1).getAddress());
+				return( participant_messages.get( participant_messages.size()-1).getAddress());
 			}
 		}
 		
@@ -2941,7 +2965,7 @@ BuddyPluginBeta
 		addMessage(
 			ChatMessage		message )
 		{
-			messages.add( message );
+			participant_messages.add( message );
 			
 			message.setParticipant( this );
 			
@@ -2969,7 +2993,7 @@ BuddyPluginBeta
 		replayMessage(
 			ChatMessage		message )
 		{
-			messages.add( message );
+			participant_messages.add( message );
 						
 			message.setIgnored( is_ignored );
 
@@ -2997,7 +3021,7 @@ BuddyPluginBeta
 		removeMessage(
 			ChatMessage		message )
 		{
-			messages.remove( message );
+			participant_messages.remove( message );
 		}
 		
 		private void
@@ -3012,7 +3036,7 @@ BuddyPluginBeta
 				nickname = new_nickname;
 			}
 			
-			messages.clear();
+			participant_messages.clear();
 		}
 		
 		public List<ChatMessage>
@@ -3020,7 +3044,7 @@ BuddyPluginBeta
 		{
 			synchronized( chat.chat_lock ){
 				
-				return( new ArrayList<ChatMessage>( messages ));
+				return( new ArrayList<ChatMessage>( participant_messages ));
 			}
 		}
 		
@@ -3040,7 +3064,7 @@ BuddyPluginBeta
 				
 				synchronized( chat.chat_lock ){
 
-					for ( ChatMessage message: messages ){
+					for ( ChatMessage message: participant_messages ){
 						
 						message.setIgnored( b );
 					}

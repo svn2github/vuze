@@ -175,6 +175,13 @@ public class SBC_ChatOverview
 					}
 				});
 
+		tableManager.registerColumn(ChatInstance.class, ColumnChatMessageCount.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnChatMessageCount(column);
+					}
+				});
+		
 		tableManager.registerColumn(ChatInstance.class, ColumnChatUserCount.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
@@ -210,6 +217,7 @@ public class SBC_ChatOverview
 			new String[] {
 				
 				ColumnChatName.COLUMN_ID,
+				ColumnChatMessageCount.COLUMN_ID,
 				ColumnChatUserCount.COLUMN_ID,
 				ColumnChatFavorite.COLUMN_ID,
 				ColumnChatMsgOutstanding.COLUMN_ID,
