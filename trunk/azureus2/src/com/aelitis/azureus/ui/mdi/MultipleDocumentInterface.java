@@ -59,6 +59,8 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_TAG_DISCOVERY = "TagDiscovery";
 
+	public static final String SIDEBAR_SECTION_CHAT = "ChatOverview";
+
 	public static final String SIDEBAR_SECTION_LIBRARY_UNOPENED = "LibraryUnopened";
 	
 	public static final String SIDEBAR_TORRENT_DETAILS_PREFIX = "DMDetails_";

@@ -96,6 +96,8 @@ BuddyPluginBeta
 	
 	private boolean	ftux_accepted = false;
 	
+	private CopyOnWriteList<ChatManagerListener>		listeners = new CopyOnWriteList<ChatManagerListener>();
+	
 	protected
 	BuddyPluginBeta(
 		PluginInterface		_pi,
@@ -808,30 +810,38 @@ BuddyPluginBeta
 		
 		String meta_key = network + ":" + key;
 	
+		ChatInstance 	result;
+		
+		ChatInstance	added = null;
+		
 		synchronized( chat_instances_map ){
 			
-			ChatInstance inst = chat_instances_map.get( meta_key );
+			result = chat_instances_map.get( meta_key );
 			
-			if ( inst == null ){
+			if ( result == null ){
 							
-				inst = new ChatInstance( network, key, private_target, is_private_chat );
+				result = new ChatInstance( network, key, private_target, is_private_chat );
 			
-				chat_instances_map.put( meta_key, inst );
+				chat_instances_map.put( meta_key, result );
 				
-				chat_instances_list.add( inst );
+				chat_instances_list.add( result );
+				
+				added = result;
 				
 				if ( azmsgsync_pi != null ){
 					
 					try{
-						inst.bind( azmsgsync_pi, handler );
+						result.bind( azmsgsync_pi, handler );
 						
 					}catch( Throwable e ){
 						
 						chat_instances_map.remove( meta_key );
 						
-						chat_instances_list.remove( inst );
+						chat_instances_list.remove( result );
 						
-						inst.destroy();
+						added = null;
+						
+						result.destroy();
 						
 						if ( e instanceof Exception ){
 							
@@ -843,7 +853,7 @@ BuddyPluginBeta
 				}
 			}else{
 				
-				inst.addReference();
+				result.addReference();
 			}
 			
 			if ( timer == null ){
@@ -864,10 +874,24 @@ BuddyPluginBeta
 								}
 							}
 						});
-			}
-			
-			return( inst );
+			}			
 		}
+		
+		if ( added != null ){
+			
+			for ( ChatManagerListener l: BuddyPluginBeta.this.listeners ){
+				
+				try{
+					l.chatAdded( added );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );;
+				}
+			}
+		}
+		
+		return( result );
 	}
 	
 	private ChatInstance
@@ -925,6 +949,29 @@ BuddyPluginBeta
 		return( chat_instances_list.getList());
 	}
 	
+	public void
+	addListener(
+		ChatManagerListener		l,
+		boolean					fire_for_existing )
+	{
+		listeners.add( l );
+		
+		if ( fire_for_existing ){
+			
+			for ( ChatInstance inst: chat_instances_list ){
+				
+				l.chatAdded( inst );
+			}
+		}
+	}
+	
+	public void
+	removeListener(
+		ChatManagerListener		l )
+	{
+		listeners.remove( l );
+	}
+	
 	public class
 	ChatInstance
 	{
@@ -973,6 +1020,7 @@ BuddyPluginBeta
 		private int			reference_count;
 		
 		private long		last_message_not_mine;
+		private boolean		message_outstanding;
 		
 		private boolean		is_favourite;
 		private boolean		save_messages;
@@ -2666,6 +2714,19 @@ BuddyPluginBeta
 			}	
 		}
 		
+		public boolean
+		getMessageOutstanding()
+		{
+			return( message_outstanding );
+		}
+		
+		public void
+		setMessageOutstanding( 
+			boolean		b )
+		{
+			message_outstanding = b;
+		}
+		
 		public void
 		addListener(
 			ChatListener		listener )
@@ -2729,11 +2790,15 @@ BuddyPluginBeta
 						
 						String meta_key = network + ":" + key;
 
+						ChatInstance	removed = null;
+						
 						synchronized( chat_instances_map ){
 						
 							ChatInstance inst = chat_instances_map.remove( meta_key );
 							
 							if ( inst != null ){
+								
+								removed = inst;
 								
 								chat_instances_list.remove( inst );
 							}
@@ -2745,6 +2810,20 @@ BuddyPluginBeta
 									timer.cancel();
 									
 									timer = null;
+								}
+							}
+						}
+						
+						if ( removed != null ){
+							
+							for ( ChatManagerListener l: BuddyPluginBeta.this.listeners ){
+								
+								try{
+									l.chatRemoved( removed );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );;
 								}
 							}
 						}
@@ -3328,6 +3407,18 @@ BuddyPluginBeta
 			
 			return( pkToString( getPublicKey()));
 		}
+	}
+	
+	public interface
+	ChatManagerListener
+	{
+		public void
+		chatAdded(
+			ChatInstance	inst );
+		
+		public void
+		chatRemoved(
+			ChatInstance	inst );
 	}
 	
 	public interface

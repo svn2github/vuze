@@ -44,6 +44,24 @@ BuddyPluginUtils
 		return( null );
 	}
 	
+	public static BuddyPluginBeta
+	getBetaPlugin()
+	{
+		BuddyPlugin bp = getPlugin();
+		
+		if ( bp != null && bp.isBetaEnabled()){
+			
+			BuddyPluginBeta beta = bp.getBeta();
+			
+			if ( beta.isAvailable()){
+				
+				return( beta );
+			}
+		}
+		
+		return( null );
+	}
+	
 	public static boolean
 	isBetaChatAvailable()
 	{

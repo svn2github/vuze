@@ -197,6 +197,19 @@ public class MainMDISetup
 						return entry;
 					}
 				});
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_CHAT,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								MultipleDocumentInterface.SIDEBAR_SECTION_CHAT, "chatsview",
+								"{mdi.entry.chatsoverview}", null, null, true, null);
+						entry.setImageLeftID("image.sidebar.chats-overview");
+						return entry;
+					}
+				});
+		
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		if (pi != null) {
 			UIManager uim = pi.getUIManager();
@@ -219,6 +232,14 @@ public class MainMDISetup
 					}
 				});
 
+				menuItem = uim.getMenuManager().addMenuItem(
+						MenuManager.MENU_MENUBAR, "chats.view.heading");
+				menuItem.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+						UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_CHAT);
+					}
+				});
 			}
 		}
 

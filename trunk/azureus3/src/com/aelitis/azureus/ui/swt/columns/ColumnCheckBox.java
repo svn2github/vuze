@@ -43,12 +43,16 @@ ColumnCheckBox
 	implements TableCellRefreshListener, TableColumnExtraInfoListener, TableCellMouseListener
 {	
 	private static final UISWTGraphic tick_icon;
+	private static final UISWTGraphic tick_ro_icon;
 	private static final UISWTGraphic cross_icon;
 	
 	static {
-		tick_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("check_yes"));
-		cross_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("check_no"));
+		tick_icon 		= new UISWTGraphicImpl(ImageLoader.getInstance().getImage("check_yes"));
+		tick_ro_icon 	= new UISWTGraphicImpl(ImageLoader.getInstance().getImage("check_ro_yes"));
+		cross_icon 		= new UISWTGraphicImpl(ImageLoader.getInstance().getImage("check_no"));
 	}
+	
+	private boolean	read_only;
 	
 	public void 
 	fillTableColumnInfo(
@@ -64,18 +68,33 @@ ColumnCheckBox
 	public 
 	ColumnCheckBox(
 		TableColumn column,
-		int width ) 
+		int 		width,
+		boolean		read_only )
 	{
+		this.read_only = read_only;
+		
 		column.setWidth(width);
 		column.setType( TableColumn.TYPE_GRAPHIC );
 		column.addListeners(this);
+		
+		if ( read_only ){
+			column.removeCellMouseListener( this );
+		}
 	}
 
 	public 
 	ColumnCheckBox(
 		TableColumn column ) 
 	{
-		this(column, 40);
+		this(column, 40,false);
+	}
+	
+	public 
+	ColumnCheckBox(
+		TableColumn column,
+		int 		width )
+	{
+		this( column, width,false );
 	}
 	
 	protected abstract Boolean
@@ -142,12 +161,12 @@ ColumnCheckBox
 			if ( state ){
 				
 				sortVal = 2;
-				icon 	= tick_icon;
+				icon 	= read_only?tick_ro_icon:tick_icon;
 				
 			}else{
 				
 				sortVal = 1;
-				icon 	= cross_icon;
+				icon 	= read_only?null:cross_icon;
 			}
 		}
 		

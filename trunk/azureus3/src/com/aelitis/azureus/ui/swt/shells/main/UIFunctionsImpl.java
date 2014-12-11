@@ -550,6 +550,17 @@ public class UIFunctionsImpl
 				
 				break;
 			}
+			case VIEW_CHAT_OVERVIEW:{
+				
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				
+				if ( mdi != null ){
+
+					mdi.showEntryByID( MultipleDocumentInterface.SIDEBAR_SECTION_CHAT );
+				}
+				
+				break;
+			}
 			case VIEW_TAG: {
 				
 				if ( data instanceof Tag ){

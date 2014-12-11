@@ -943,6 +943,8 @@ BuddyPluginView
 			
 			if ( is_pending ){
 				
+				chat.setMessageOutstanding( true );
+				
 				if ( entry == null ){
 					
 					entry = new Object[]{ 1, new HashSet<Control>(), chat };
@@ -1082,6 +1084,8 @@ BuddyPluginView
 
 				chat.setUserData( CHAT_LM_kEY, chat.getLastMessageNotMine());
 
+				chat.setMessageOutstanding( false );
+				
 				if ( entry != null ){
 					
 					pending_msg_map.remove( key );
