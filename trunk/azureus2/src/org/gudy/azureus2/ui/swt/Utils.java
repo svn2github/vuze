@@ -2398,10 +2398,51 @@ public class Utils
 		try {
   		Browser browser = new Browser(parent, Utils.getInitialBrowserStyle(style));
   		browser.addDisposeListener(new DisposeListener() {
-  			public void widgetDisposed(DisposeEvent e) {
+  			public void widgetDisposed(DisposeEvent e)
+  			{
+  					/*
+  					 * Intent here seems to be to run all pending events through the queue to ensure
+  					 * that the 'setUrl' and 'setVisible' actions are complete before disposal in an
+  					 * attempt to ensure memory released. This is old code and the new 4508 SWT introduced
+  					 * in Dec 2014 causes the 'readAndDispatch' loop to bever exit.
+  					 * So added code to queue an async event and hope that by the time this runs
+  					 * any housekeeping is complete
+  					 * Meh, tested and the injected code doesn't run until, say, you move the window containing
+  					 * the browser. So added timeout
+  					 */
+  				
   				((Browser)e.widget).setUrl("about:blank");
+  				
   				((Browser)e.widget).setVisible(false);
-  				while (!e.display.isDisposed() && e.display.readAndDispatch());
+  				
+  				final boolean[]	done = {false};
+  				
+  				final long start = SystemTime.getMonotonousTime();
+  				
+  				execSWTThreadLater(
+  					250,
+  					new Runnable()
+  					{
+  						public void 
+  						run() 
+  						{
+  							synchronized( done ){
+  								
+  								done[0] = true;
+  							}
+  						}
+  					});
+  				
+  				while(!e.display.isDisposed() && e.display.readAndDispatch()){
+  					
+  					synchronized( done ){
+  						
+  						if ( done[0] || SystemTime.getMonotonousTime() - start > 500 ){
+  						
+  							break;
+  						}
+  					}
+  				}
   			}
   		});
   		return browser;
