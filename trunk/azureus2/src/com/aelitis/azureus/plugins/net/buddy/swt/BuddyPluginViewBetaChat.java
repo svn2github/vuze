@@ -1692,6 +1692,9 @@ BuddyPluginViewBetaChat
 		boolean	can_pin		= false;
 		boolean	can_unpin	= false;
 		
+		boolean	can_spam	= false;
+		boolean	can_unspam	= false;
+				
 		for ( ChatParticipant participant: participants ){
 						
 			if ( DEBUG_ENABLED ){
@@ -1723,6 +1726,15 @@ BuddyPluginViewBetaChat
 				
 				can_pin = true;
 			}
+			
+			if ( participant.isSpammer()){
+				
+				can_unspam = true;
+				
+			}else{
+				
+				can_spam |= participant.canSpammer();
+			}
 		}
 		
 		final MenuItem ignore_item = new MenuItem(menu, SWT.PUSH);
@@ -1736,6 +1748,8 @@ BuddyPluginViewBetaChat
 				widgetSelected(
 					SelectionEvent e) 
 				{
+					boolean	changed = false;
+					
 					for ( ChatParticipant participant: participants ){
 						
 						if ( !participant.isIgnored()){
@@ -1744,8 +1758,13 @@ BuddyPluginViewBetaChat
 							
 							setProperties( participant );
 							
-							messagesChanged();
+							changed = true;
 						}
+					}
+					
+					if ( changed ){
+						
+						messagesChanged();
 					}
 				};
 			});
@@ -1763,6 +1782,8 @@ BuddyPluginViewBetaChat
 				widgetSelected(
 					SelectionEvent e) 
 				{
+					boolean	changed = false;
+					
 					for ( ChatParticipant participant: participants ){
 						
 						if ( participant.isIgnored()){
@@ -1771,13 +1792,90 @@ BuddyPluginViewBetaChat
 							
 							setProperties( participant );
 							
-							messagesChanged();
+							changed = true;
 						}
+					}
+					
+					if ( changed ){
+						
+						messagesChanged();
 					}
 				};
 			});
 		
 		listen_item.setEnabled( can_listen );
+		
+			// spam
+		
+		final MenuItem spam_item = new MenuItem(menu, SWT.PUSH);
+		
+		spam_item.setText(lu.getLocalisedMessageText( "label.spam" ) );
+
+		spam_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					boolean	changed = false;
+					
+					for ( ChatParticipant participant: participants ){
+						
+						if ( participant.canSpammer()){
+							
+							participant.setSpammer( true );
+							
+							setProperties( participant );
+							
+							changed = true;
+						}
+					}
+					
+					if ( changed ){
+						
+						messagesChanged();
+					}
+				};
+			});
+		
+		spam_item.setEnabled( can_spam );
+		
+		final MenuItem unspam_item = new MenuItem(menu, SWT.PUSH);
+		
+		unspam_item.setText(lu.getLocalisedMessageText( "label.not.spam" ) );
+
+		unspam_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					boolean	changed = false;
+					
+					for ( ChatParticipant participant: participants ){
+						
+						if ( participant.isSpammer()){
+							
+							participant.setSpammer( false );
+							
+							setProperties( participant );
+							
+							changed = true;
+						}
+					}
+					
+					if ( changed ){
+						
+						messagesChanged();
+					}
+				};
+			});
+		
+		unspam_item.setEnabled( can_unspam );
+		
+			// pin
 		
 		new MenuItem(menu, SWT.SEPARATOR );
 		
@@ -1901,7 +1999,7 @@ BuddyPluginViewBetaChat
 		TableItem			item,
 		ChatParticipant		p )
 	{
-		if ( p.isIgnored()){
+		if ( p.isIgnored() || p.isSpammer()){
 		
 			item.setForeground( 0, Colors.grey );
 			

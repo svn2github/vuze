@@ -1564,6 +1564,25 @@ BuddyPluginBeta
 			}
 		}
 		
+		private void
+		setSpammer(
+			ChatParticipant		participant,
+			boolean				is_spammer )
+		{
+			Map<String,Object>	options = new HashMap<String, Object>();
+			
+			options.put( "pk", participant.getPublicKey());
+			options.put( "spammer", is_spammer );
+			
+			try{
+				updateOptions( options );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
 		public boolean
 		isManaged()
 		{
@@ -3259,6 +3278,7 @@ BuddyPluginBeta
 		
 		private String				nickname;
 		private boolean				is_ignored;
+		private boolean				is_spammer;
 		private boolean				is_pinned;
 		private boolean				nick_clash;
 		
@@ -3363,7 +3383,7 @@ BuddyPluginBeta
 			
 			message.setParticipant( this );
 			
-			message.setIgnored( is_ignored );
+			message.setIgnored( is_ignored || is_spammer );
 			
 			String new_nickname = message.getNickName();
 			
@@ -3389,7 +3409,7 @@ BuddyPluginBeta
 		{
 			participant_messages.add( message );
 						
-			message.setIgnored( is_ignored );
+			message.setIgnored( is_ignored || is_spammer );
 
 			String new_nickname = message.getNickName();
 			
@@ -3460,7 +3480,39 @@ BuddyPluginBeta
 
 					for ( ChatMessage message: participant_messages ){
 						
-						message.setIgnored( b );
+						message.setIgnored( b || is_spammer);
+					}
+				}
+			}
+		}
+		
+		public boolean
+		isSpammer()
+		{
+			return( is_spammer );
+		}
+		
+		public boolean
+		canSpammer()
+		{
+			return( participant_messages.size() >= 5 && !is_spammer );
+		}
+		
+		public void
+		setSpammer(
+			boolean		b )
+		{
+			if ( b != is_spammer ){
+				
+				is_spammer = b;
+				
+				chat.setSpammer( this, b );
+
+				synchronized( chat.chat_lock ){
+
+					for ( ChatMessage message: participant_messages ){
+						
+						message.setIgnored( b || is_ignored );
 					}
 				}
 			}

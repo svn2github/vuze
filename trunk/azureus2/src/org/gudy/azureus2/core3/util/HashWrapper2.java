@@ -71,6 +71,24 @@ HashWrapper2
 		hash_code = hc;
 	}
 
+	public byte[]
+	getBytes()
+	{
+		return( hash );
+	}
+	
+	public short
+	getOffset()
+	{
+		return( offset );
+	}
+	
+	public short
+	getLength()
+	{
+		return( length );
+	}
+	
 	public final boolean 
 	equals(
 		Object o) 
