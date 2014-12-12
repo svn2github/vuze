@@ -1465,7 +1465,7 @@ BuddyPluginViewBetaChat
 		grid_data.horizontalIndent = 4;
 		input_area.setLayoutData(grid_data);
 			
-		input_area.setTextLimit( 256 );
+		input_area.setTextLimit( 400 );
 		
 		input_area.addKeyListener(
 			new KeyListener()
