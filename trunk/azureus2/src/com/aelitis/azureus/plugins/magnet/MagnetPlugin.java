@@ -887,6 +887,8 @@ MagnetPlugin
 	{
 		boolean	md_enabled;
 		
+		final boolean	dummy_hash = Arrays.equals( hash, new byte[20] );
+		
 		if ((flags & FL_DISABLE_MD_LOOKUP) != 0 ){
 			
 			md_enabled = false;
@@ -983,6 +985,10 @@ MagnetPlugin
 			
 			if ( fl_args.size() > 0 ){
 				
+				final AESemaphore fl_sem = new AESemaphore( "fl_sem" );
+				
+				int	fl_run = 0;
+				
 				for ( int i=0;i<fl_args.size() && i < 3; i++ ){
 					
 					final URL fl_url = fl_args.get( i );
@@ -997,11 +1003,11 @@ MagnetPlugin
 							run() 
 							{
 								try{
-									TOTorrent torrent = TorrentUtils.download( fl_url );
+									TOTorrent torrent = TorrentUtils.download( fl_url, timeout );
 									
 									if ( torrent != null ){
 										
-										if ( Arrays.equals( torrent.getHash(), hash )){
+										if ( dummy_hash || Arrays.equals( torrent.getHash(), hash )){
 											
 											synchronized( result_holder ){
 												
@@ -1012,10 +1018,41 @@ MagnetPlugin
 								}catch( Throwable e ){
 									
 									Debug.out( e );
+									
+								}finally{
+									
+									fl_sem.release();
 								}
 							}
 						}.start();
+						
+						fl_run++;
 					}
+				}
+			
+				if ( dummy_hash ){
+						
+					long	remaining = timeout;
+					
+					for ( int i=0; i<fl_run && remaining>0; i++ ){
+					
+						long	start = SystemTime.getMonotonousTime();
+						
+						if ( !fl_sem.reserve( remaining )){
+							
+							break;
+						}
+					
+						remaining -= (SystemTime.getMonotonousTime() - start );
+						
+						synchronized( result_holder ){
+						
+							if ( result_holder[0] != null ){
+							
+								return( new DownloadResult( result_holder[0], networks_enabled, additional_networks ));
+							}
+						}
+					}	
 				}
 			}
 		}else{
@@ -1026,6 +1063,11 @@ MagnetPlugin
 									
 				networks_enabled.add( AENetworkClassifier.AT_PUBLIC );
 			}
+		}
+		
+		if ( dummy_hash ){
+		
+			return( null );
 		}
 		
 			// networks-enabled has either the networks inferrable from the magnet set up

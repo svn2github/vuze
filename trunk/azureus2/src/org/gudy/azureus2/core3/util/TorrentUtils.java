@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 
@@ -3409,8 +3410,26 @@ TorrentUtils
 	
 		throws IOException
 	{
+		return( download( url, 0 ));
+	}
+	
+	public static TOTorrent
+	download(
+		URL		url,
+		long	timeout )
+	
+		throws IOException
+	{
 		try{
-			byte[] bytes = FileUtil.readInputStreamAsByteArray( new ResourceDownloaderFactoryImpl().create( url ).download(), BDecoder.MAX_BYTE_ARRAY_SIZE );
+			ResourceDownloader rd = new ResourceDownloaderFactoryImpl().create( url );
+			
+			if ( timeout > 0 ){
+			
+				rd.setProperty( "URL_Connect_Timeout", timeout );
+				rd.setProperty( "URL_Read_Timeout", timeout );
+			}
+			
+			byte[] bytes = FileUtil.readInputStreamAsByteArray( rd.download(), BDecoder.MAX_BYTE_ARRAY_SIZE );
 			
 			return( TOTorrentFactory.deserialiseFromBEncodedByteArray( bytes ));
 			

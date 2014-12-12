@@ -2512,98 +2512,115 @@ BuddyPluginViewBetaChat
 									break;
 								}
 							}
+								
+							if ( end > pos+1 ){
+								
+								try{
+									int	url_start = pos - protocol.length();
+									
+									String url_str = protocol + msg.substring( pos, end );
+							
+									if ( protocol.equalsIgnoreCase( "chat" )){
+										
+										if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
+											
+											if ( !beta.isI2PAvailable()){
+												
+												throw( new Exception( "Anonymous chat unavailable" ));
+											}
+										}
+									}else{
+									
+										URL	url = new URL( url_str );
+									}
+									
+									String original_url_str = url_str;
+									
+										// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
+									
+									String display_url = UrlUtils.decode( url_str );
+									
+									int hack_pos = display_url.lastIndexOf( "[[" );
+									
+									if ( hack_pos > 0 && display_url.endsWith( "]]" )){
+										
+										String temp = display_url.substring( hack_pos + 2, display_url.length() - 2  ).trim();
+										
+										if ( temp.length() > 0 ){
+										
+											if ( temp.contains( "$dn" )){
+												
+												int dn1 = original_url_str.indexOf( "&dn=" );
+												
+												if ( dn1 != -1 ){
 													
-							try{
-								int	url_start = pos - protocol.length();
-								
-								String url_str = protocol + msg.substring( pos, end );
-						
-								if ( protocol.equalsIgnoreCase( "chat" )){
-									
-									if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
-										
-										if ( !beta.isI2PAvailable()){
+													int dn2 = original_url_str.indexOf( "&", dn1+1 );
+															
+													String dn = original_url_str.substring( dn1+4, dn2==-1?original_url_str.length():dn2 );
+													
+													dn = UrlUtils.decode( dn);
+													
+													temp = temp.replaceAll( "\\$dn", dn );
+												}
+											}
 											
-											throw( new Exception( "Anonymous chat unavailable" ));
+											hack_pos = url_str.lastIndexOf( "[[" );
+											
+											url_str = url_str.substring( 0, hack_pos );
+																			
+												// prevent anything that looks like a URL from being used as the display
+												// text to avoid 'confusion'
+	
+											if ( UrlUtils.parseTextForURL( temp, true ) == null ){
+												
+												display_url = temp;
+												
+											}else{
+												
+												display_url = url_str;
+											}
 										}
 									}
-								}else{
-								
-									URL	url = new URL( url_str );
-								}
-								
-								String original_url_str = url_str;
-								
-									// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
-								
-								String display_url = UrlUtils.decode( url_str );
-								
-								int hack_pos = display_url.lastIndexOf( "[[" );
-								
-								if ( hack_pos > 0 && display_url.endsWith( "]]" )){
 									
-									String temp = display_url.substring( hack_pos + 2, display_url.length() - 2  ).trim();
-									
-									if ( temp.length() > 0 ){
-																				
-										hack_pos = url_str.lastIndexOf( "[[" );
+									if ( !display_url.equals( original_url_str )){
 										
-										url_str = url_str.substring( 0, hack_pos );
-																		
-											// prevent anything that looks like a URL from being used as the display
-											// text to avoid 'confusion'
-
-										if ( UrlUtils.parseTextForURL( temp, true ) == null ){
+										msg = msg.substring( 0, url_start ) + display_url + msg.substring( end );
+									}
+									
+									int	this_style_start 	= start + url_start;
+									int this_style_length	= display_url.length();
+									
+									if ( this_style_start > next_style_start ){
+										
+										if ( message_type ==  ChatMessage.MT_INFO ){
 											
-											display_url = temp;
+											StyleRange styleRange 	= new StyleRange();
+											styleRange.start 		= next_style_start;
+											styleRange.length 		= this_style_start - next_style_start;
+											styleRange.foreground 	= Colors.grey;
 											
-										}else{
+											new_ranges.add( styleRange);
 											
-											display_url = url_str;
+											next_style_start = this_style_start + this_style_length;
 										}
 									}
-								}
-								
-								if ( !display_url.equals( original_url_str )){
 									
-									msg = msg.substring( 0, url_start ) + display_url + msg.substring( end );
-								}
-								
-								int	this_style_start 	= start + url_start;
-								int this_style_length	= display_url.length();
-								
-								if ( this_style_start > next_style_start ){
+									StyleRange styleRange 	= new StyleRange();
+									styleRange.start 		= this_style_start;
+									styleRange.length 		= this_style_length;
+									styleRange.foreground 	= Colors.blue;
+									styleRange.underline 	= true;
 									
-									if ( message_type ==  ChatMessage.MT_INFO ){
-										
-										StyleRange styleRange 	= new StyleRange();
-										styleRange.start 		= next_style_start;
-										styleRange.length 		= this_style_start - next_style_start;
-										styleRange.foreground 	= Colors.grey;
-										
-										new_ranges.add( styleRange);
-										
-										next_style_start = this_style_start + this_style_length;
-									}
+										// DON'T store the URL object because in their wisdom SWT invokes the .equals method
+										// on data objects when trying to find 'similar' ones, and for URLs this causes
+										// a name service lookup...
+									
+									styleRange.data = url_str;
+									
+									new_ranges.add( styleRange);
+									
+								}catch( Throwable e ){
 								}
-								
-								StyleRange styleRange 	= new StyleRange();
-								styleRange.start 		= this_style_start;
-								styleRange.length 		= this_style_length;
-								styleRange.foreground 	= Colors.blue;
-								styleRange.underline 	= true;
-								
-									// DON'T store the URL object because in their wisdom SWT invokes the .equals method
-									// on data objects when trying to find 'similar' ones, and for URLs this causes
-									// a name service lookup...
-								
-								styleRange.data = url_str;
-								
-								new_ranges.add( styleRange);
-								
-							}catch( Throwable e ){
-								
-								e.printStackTrace();
 							}
 							
 							pos = end;

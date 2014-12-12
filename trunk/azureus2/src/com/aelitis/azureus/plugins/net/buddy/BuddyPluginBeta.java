@@ -808,7 +808,9 @@ BuddyPluginBeta
 				
 					pw.println( "<guid>" + hash + "</guid>" );
 				
-					Long	size = (Long)magnet.get( "size" );
+					Long	size 		= (Long)magnet.get( "size" );
+					Long	seeds 		= (Long)magnet.get( "seeds" );
+					Long	leechers 	= (Long)magnet.get( "leechers" );
 
 					String enclosure = 
 							"<enclosure " + 
@@ -830,6 +832,16 @@ BuddyPluginBeta
 					if ( size != null ){
 						
 						pw.println(	"<vuze:size>" + size + "</vuze:size>" );
+					}
+					
+					if ( seeds != null ){
+						
+						pw.println(	"<vuze:seeds>" + seeds + "</vuze:seeds>" );
+					}
+					
+					if ( leechers != null ){
+						
+						pw.println(	"<vuze:peers>" + leechers + "</vuze:peers>" );
 					}
 					
 					pw.println(	"<vuze:assethash>" + hash + "</vuze:assethash>" );
@@ -916,43 +928,56 @@ BuddyPluginBeta
 					
 					if ( temp.length == 2 ){
 						
-						String	lhs = temp[0].toLowerCase( Locale.US );
-						String	rhs = UrlUtils.decode( temp[1] );
-						
-						if ( lhs.equals( "xt" )){
+						try{
+
+							String	lhs = temp[0].toLowerCase( Locale.US );
+							String	rhs = UrlUtils.decode( temp[1] );
 							
-							String lc_rhs = rhs.toLowerCase( Locale.US );
-							
-							int p = lc_rhs.indexOf( "btih:" );
-							
-							if ( p >= 0 ){
+							if ( lhs.equals( "xt" )){
 								
-								map.put( "hash", lc_rhs.substring( p+5 ).toUpperCase( Locale.US ));
-							}
-							
-						}else if ( lhs.equals( "dn" )){
-							
-							map.put( "title", rhs );
-							
-						}else if ( lhs.equals( "tr" )){
-							
-							trackers.add( rhs );
-							
-						}else if ( lhs.equals( "fl" )){
-							
-							map.put( "link", rhs );
-							
-						}else if ( lhs.equals( "xl" )){
-							
-							try{
+								String lc_rhs = rhs.toLowerCase( Locale.US );
+								
+								int p = lc_rhs.indexOf( "btih:" );
+								
+								if ( p >= 0 ){
+									
+									map.put( "hash", lc_rhs.substring( p+5 ).toUpperCase( Locale.US ));
+								}
+								
+							}else if ( lhs.equals( "dn" )){
+								
+								map.put( "title", rhs );
+								
+							}else if ( lhs.equals( "tr" )){
+								
+								trackers.add( rhs );
+								
+							}else if ( lhs.equals( "fl" )){
+								
+								map.put( "link", rhs );
+								
+							}else if ( lhs.equals( "xl" )){
+								
 								long size = Long.parseLong( rhs );
 								
 								map.put( "size", size );
 								
-							}catch( Throwable e ){
+							}else if ( lhs.equals( "_s" )){
 								
+								long size = Long.parseLong( rhs );
+								
+								map.put( "seeds", size );
+								
+							}else if ( lhs.equals( "_l" )){
+								
+								long size = Long.parseLong( rhs );
+								
+								map.put( "leechers", size );
 							}
+						}catch( Throwable e ){
+							
 						}
+
 					}
 				}
 			
@@ -1433,11 +1458,24 @@ BuddyPluginBeta
 		{
 			String str = key;
 			
-			int pos = str.indexOf( '[' );
+			int pos = str.lastIndexOf( '[' );
 			
-			if ( pos != -1 ){
+			if ( pos != -1 && str.endsWith( "]")){
 				
-				str = str.substring( 0, pos );
+				String temp = str.substring( pos+1, str.length()-1 );
+				
+				if ( temp.contains( "pk=" )){
+					
+					str = str.substring( 0, pos );
+					
+					if ( temp.contains( "ro=1" )){
+				
+						str += "[R]";
+					}else{
+						
+						str += "[M]";
+					}
+				}
 			}
 			
 			return( 

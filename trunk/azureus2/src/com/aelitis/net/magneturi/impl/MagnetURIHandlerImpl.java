@@ -630,12 +630,16 @@ MagnetURIHandlerImpl
 					Logger.log(new LogEvent(LOGID, "MagnetURIHandler: download of '"
 							+ encoded + "' starts (initial sources=" + s.length + ")"));
 
-				final byte[] sha1 = UrlUtils.decodeSHA1Hash( encoded );
+				byte[] _sha1 = UrlUtils.decodeSHA1Hash( encoded );
 					
-				if ( sha1 == null ){
+				if ( _sha1 == null ){
 					
-					throw( new Exception( "Invalid info hash '" + encoded + "'" ));
+					_sha1 = new byte[20];	// dummy to still allow &fl links to work...
+					
+					//throw( new Exception( "Invalid info hash '" + encoded + "'" ));
 				}
+				
+				final byte[] sha1 = _sha1;
 				
 				byte[] data = null;
 				
