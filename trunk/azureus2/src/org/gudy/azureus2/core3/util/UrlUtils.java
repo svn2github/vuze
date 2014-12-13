@@ -363,7 +363,7 @@ public class UrlUtils
 
 		try {
 			text = text.trim();
-			text = URLDecoder.decode(text);
+			text = decodeIfNeeded(text);
 		} catch (Exception e) {
 			// sometimes fires a IllegalArgumentException
 			// catch everything and ignore.
@@ -569,7 +569,7 @@ public class UrlUtils
 		if (m.find()) {
 			String sURL = m.group(1);
 			try {
-				sURL = URLDecoder.decode(sURL);
+				sURL = decodeIfNeeded(sURL);
 			} catch (Exception e) {
 				// sometimes fires a IllegalArgumentException
 				// catch everything and ignore.
@@ -580,43 +580,7 @@ public class UrlUtils
 		return null;
 	}
 
-	public static void main(String[] args) {
-		
-		MagnetURIHandler.getSingleton();
-		byte[] infohash = ByteFormatter.decodeString("1234567890123456789012345678901234567890");
-		String[] test = {
-				"http://moo.com",
-				"http%3A%2F/moo%2Ecom",
-				"magnet:?moo",
-				"magnet%3A%3Fxt=urn:btih:26",
-				"magnet%3A//%3Fmooo",
-				"magnet:?xt=urn:btih:" + Base32.encode(infohash),
-				"aaaaaaaaaabbbbbbbbbbccccccccccdddddddddd",
-				"magnet:?dn=OpenOffice.org_2.0.3_Win32Intel_install.exe&xt=urn:sha1:PEMIGLKMNFI4HZ4CCHZNPKZJNMAAORKN&xt=urn:tree:tiger:JMIJVWHCQUX47YYH7O4XIBCORNU2KYKHBBC6DHA&xt=urn:ed2k:1c0804541f34b6583a383bb8f2cec682&xl=96793015&xs=http://mirror.switch.ch/ftp/mirror/OpenOffice/stable/2.0.3/OOo_2.0.3_Win32Intel_install.exe",
-				};
-		for (int i = 0; i < test.length; i++) {
-			System.out.println("URLDecoder.decode: " + test[i] + " -> " + URLDecoder.decode(test[i]));
-			System.out.println("decode: " + test[i] + " -> " + decode(test[i]));
-			System.out.println("isURL: " + test[i] + " -> " + isURL(test[i]));
-			System.out.println("parse: " + test[i] + " -> " + parseTextForURL(test[i], true));
-		}
 
-		String[] testEncode = {
-			"a b"
-		};
-		for (int i = 0; i < testEncode.length; i++) {
-			String txt = testEncode[i];
-			try {
-				System.out.println("URLEncoder.encode: " + txt + " -> "
-						+ URLEncoder.encode(txt, "UTF8"));
-			} catch (UnsupportedEncodingException e) {
-			}
-			System.out.println("URLEncoder.encode: " + txt + " -> "
-					+ URLEncoder.encode(txt));
-			System.out.println("encode: " + txt + " -> " + encode(txt));
-		}
-
-	}
 
 	/**
 	 * Like URLEncoder.encode, except translates spaces into %20 instead of +
@@ -656,7 +620,48 @@ public class UrlUtils
 				throw( e );
 			}
 		} catch (UnsupportedEncodingException e) {
+			
 			return( URLDecoder.decode(s));
+		}
+	}
+	
+	/**
+	 * Unfortunately we have code that mindlessly decoded URLs (FileDownloadWindow) which borked (in the case I discovered) magnet uris with encoded 
+	 * parameters (e.g. the &tr= parameter) - doing so screws stuff up later if, for example, the parameter included an encoded '&'
+	 * @param s
+	 * @return
+	 */
+	
+	public static String 
+	decodeIfNeeded(
+		String s ) 
+	{
+		if ( s == null ){
+			
+			return( "" );
+		}
+		
+		try{
+				// of course someone prolly added the blind URLDecode for a reason so try and just deal with the borkage
+				// which means looking for &a=b elements and ensure we don't URLDecode the 'b'
+			
+				// only have issues if there's a naked '?' there
+			
+			int	q_pos = s.indexOf( '?' );
+			int a_pos = s.indexOf( '&' );
+			
+			if ( q_pos == -1 && a_pos == -1 ){
+				
+				return( decode( s ));
+			}
+			
+			int start = Math.min( q_pos, a_pos );
+			
+			return( decode( s.substring( 0, start )) + s.substring( start ));
+			
+		}catch( Throwable e ){
+			
+			return( s );
 		}
 	}
 	
@@ -1232,5 +1237,50 @@ public class UrlUtils
 		}
 		
 		return( res );
+	}
+	
+	
+	
+	public static void main(String[] args) {
+		
+		//MagnetURIHandler.getSingleton();
+		
+		System.out.println( URLEncoder.encode( "http://a.b.c/fred?a=10&b=20"));
+		
+		byte[] infohash = ByteFormatter.decodeString("1234567890123456789012345678901234567890");
+		String[] test = {
+				"http://moo.com",
+				"http%3A%2F/moo%2Ecom",
+				"magnet:?moo",
+				"magnet%3A%3Fxt=urn:btih:26",
+				"magnet%3A//%3Fmooo",
+				"magnet:?xt=urn:btih:" + Base32.encode(infohash),
+				"aaaaaaaaaabbbbbbbbbbccccccccccdddddddddd",
+				"magnet:?dn=OpenOffice.org_2.0.3_Win32Intel_install.exe&xt=urn:sha1:PEMIGLKMNFI4HZ4CCHZNPKZJNMAAORKN&xt=urn:tree:tiger:JMIJVWHCQUX47YYH7O4XIBCORNU2KYKHBBC6DHA&xt=urn:ed2k:1c0804541f34b6583a383bb8f2cec682&xl=96793015&xs=http://mirror.switch.ch/ftp/mirror/OpenOffice/stable/2.0.3/OOo_2.0.3_Win32Intel_install.exe%3Fa%3D10%26b%3D20",
+				};
+		for (int i = 0; i < test.length; i++) {
+			System.out.println( test[i] );
+			System.out.println("URLDecoder.decode: -> " + URLDecoder.decode(test[i]));
+			System.out.println("decode:            -> " + decode(test[i]));
+			System.out.println("decodeIf:          -> " + decodeIfNeeded(test[i]));
+			System.out.println("isURL:             -> " + isURL(test[i]));
+			System.out.println("parse:             -> " + parseTextForURL(test[i], true));
+		}
+
+		String[] testEncode = {
+			"a b"
+		};
+		for (int i = 0; i < testEncode.length; i++) {
+			String txt = testEncode[i];
+			try {
+				System.out.println("URLEncoder.encode: " + txt + " -> "
+						+ URLEncoder.encode(txt, "UTF8"));
+			} catch (UnsupportedEncodingException e) {
+			}
+			System.out.println("URLEncoder.encode: " + txt + " -> "
+					+ URLEncoder.encode(txt));
+			System.out.println("encode: " + txt + " -> " + encode(txt));
+		}
+
 	}
 }

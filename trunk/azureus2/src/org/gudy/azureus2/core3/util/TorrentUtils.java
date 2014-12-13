@@ -35,6 +35,8 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.DNSUtils;
 
@@ -3421,18 +3423,44 @@ TorrentUtils
 		throws IOException
 	{
 		try{
-			ResourceDownloader rd = new ResourceDownloaderFactoryImpl().create( url );
-			
-			if ( timeout > 0 ){
-			
-				rd.setProperty( "URL_Connect_Timeout", timeout );
-				rd.setProperty( "URL_Read_Timeout", timeout );
+			PluginProxy	plugin_proxy = null;
+
+			try{
+				if ( AENetworkClassifier.categoriseAddress( url.getHost()) != AENetworkClassifier.AT_PUBLIC ){
+					
+					plugin_proxy = AEProxyFactory.getPluginProxy( "torrent download", url );
+				}
+				
+				ResourceDownloader rd;
+				
+				if ( plugin_proxy == null ){
+				
+					rd = new ResourceDownloaderFactoryImpl().create( url );
+					
+				}else{
+					
+					rd = new ResourceDownloaderFactoryImpl().create( plugin_proxy.getURL(), plugin_proxy.getProxy());
+					
+					rd.setProperty( "URL_HOST", url.getHost());
+				}
+				
+				if ( timeout > 0 ){
+				
+					rd.setProperty( "URL_Connect_Timeout", timeout );
+					rd.setProperty( "URL_Read_Timeout", timeout );
+				}
+				
+				byte[] bytes = FileUtil.readInputStreamAsByteArray( rd.download(), BDecoder.MAX_BYTE_ARRAY_SIZE );
+				
+				return( TOTorrentFactory.deserialiseFromBEncodedByteArray( bytes ));
+				
+			}finally{
+				
+				if (plugin_proxy != null ){
+					
+					plugin_proxy.setOK( true );
+				}
 			}
-			
-			byte[] bytes = FileUtil.readInputStreamAsByteArray( rd.download(), BDecoder.MAX_BYTE_ARRAY_SIZE );
-			
-			return( TOTorrentFactory.deserialiseFromBEncodedByteArray( bytes ));
-			
 		}catch( IOException e ){
 			
 			throw((IOException)e);

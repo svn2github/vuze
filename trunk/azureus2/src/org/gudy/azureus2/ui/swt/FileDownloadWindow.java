@@ -23,7 +23,6 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
-import java.net.URLDecoder;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +40,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.progress.*;
 
@@ -117,12 +117,8 @@ public class FileDownloadWindow
 		this.listener = listener;
 		this.request_properties = request_properties;
 
-		try {
-			decoded_url = URLDecoder.decode(original_url, "UTF8");
-		} catch (Throwable e) {
-			decoded_url = original_url;
-
-		}
+		decoded_url = UrlUtils.decodeIfNeeded( original_url );
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				init();
@@ -140,12 +136,8 @@ public class FileDownloadWindow
 		this.force_dialog = force_dialog;
 		this.request_properties = request_properties;
 
-		try {
-			decoded_url = URLDecoder.decode(original_url, "UTF8");
-		} catch (Throwable e) {
-			decoded_url = original_url;
-
-		}
+		decoded_url = UrlUtils.decodeIfNeeded( original_url );
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				init();
