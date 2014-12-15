@@ -62,6 +62,12 @@ ButtonParameter
     button.setLayoutData(layoutData);
   }
 
+  public Button
+  getButton()
+  {
+	  return( button );
+  }
+  
   public Control getControl() 
   {
 	 return button;

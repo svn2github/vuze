@@ -35,6 +35,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -165,6 +166,8 @@ BasicPluginConfigImpl
 		BasicPluginConfigModel	model = model_ref.get();
 
 		org.gudy.azureus2.plugins.ui.config.Parameter[] parameters = model.getParameters();
+		
+		List<Button>	buttons = new ArrayList<Button>();
 		
 		for (int i=0;i<parameters.length;i++){
 			
@@ -494,8 +497,11 @@ BasicPluginConfigImpl
 				
 				if ( _param.getStyle() == ActionParameter.STYLE_BUTTON ){
 				
-					swt_param = new ButtonParameter( current_composite, _param.getActionResource());
+					ButtonParameter bp = new ButtonParameter( current_composite, _param.getActionResource());
+					
+					swt_param = bp;
 				
+					buttons.add( bp.getButton());
 				}else{
 					
 					swt_param = new LinkParameter( current_composite, _param.getActionResource());					
@@ -593,6 +599,11 @@ BasicPluginConfigImpl
 					
 				comp_map.put( param, moo );
 			}
+		}
+		
+		if ( buttons.size() > 1 ){
+			
+			Utils.makeButtonsEqualWidth( buttons );
 		}
 		
 		// Only need one instance
