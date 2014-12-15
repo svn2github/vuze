@@ -107,7 +107,10 @@ SubscriptionViewExternal
 			
 			String mode = xmweb_ui.getUtilities().getFeatureManager().isFeatureInstalled( "core" )?"plus":"trial";
 				
-			String query = "Subscription: " + subs.getName() + " ("+subs.getID() + ")";
+				// gotta escape the name on top of overall escaping below as unfortunately it gets un-escaped somewhere and then can confuse parsing of the URL in
+				// the remote search plugin
+			
+			String query = "Subscription: " + UrlUtils.encode(subs.getName()) + " ("+subs.getID() + ")";
 			
 			String search_url = 
 					test_url.substring( 0, pos+1 ) + 
