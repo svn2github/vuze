@@ -702,7 +702,7 @@ BuddyPluginBeta
 		
 		String network;
 		
-		if ( protocol.equals( "chat:anon" )){
+		if ( protocol.startsWith( "chat:anon" )){
 				
 			if ( !isI2PAvailable()){
 				
@@ -711,9 +711,13 @@ BuddyPluginBeta
 			
 			network = AENetworkClassifier.AT_I2P;
 			
-		}else{
+		}else if ( protocol.startsWith( "chat" )){
 			
 			network = AENetworkClassifier.AT_PUBLIC;
+			
+		}else{
+		
+			throw( new Exception( "Invalid protocol: " + protocol ));
 		}
 		
 		if ( format == null || !format.equalsIgnoreCase( "rss" )){
