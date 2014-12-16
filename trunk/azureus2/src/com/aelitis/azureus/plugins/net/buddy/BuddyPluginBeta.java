@@ -112,6 +112,8 @@ BuddyPluginBeta
 	
 	private CopyOnWriteList<ChatManagerListener>		listeners = new CopyOnWriteList<ChatManagerListener>();
 	
+	private AESemaphore	init_complete = new AESemaphore( "bpb:init" );
+	
 	protected
 	BuddyPluginBeta(
 		PluginInterface		_pi,
@@ -154,6 +156,12 @@ BuddyPluginBeta
 	isAvailable()
 	{
 		return( plugin_interface.getPluginManager().getPluginInterfaceByID( "azmsgsync", true ) != null );
+	}
+	
+	public boolean
+	isInitialised()
+	{
+		return( init_complete.isReleasedForever());
 	}
 	
 	public boolean
@@ -250,58 +258,63 @@ BuddyPluginBeta
 				public void 
 				runSupport() 
 				{
-					List<String[]>	faves = getFavourites();
-					
-					Set<String>	set = new HashSet<String>();
-					
-					for ( String[] fave: faves ){
+					try{
+						List<String[]>	faves = getFavourites();
 						
-						String	net = fave[0];
-						String	key	= fave[1];
+						Set<String>	set = new HashSet<String>();
 						
-						set.add( net + ":" + key );
-						
-						ChatInstance chat = peekChatInstance( net, key, false );
-
-						if ( chat == null || !chat.getKeepAlive()){
-						
-								// get a reference to the chat
+						for ( String[] fave: faves ){
 							
-							try{
-								chat = getChat( net, key );
+							String	net = fave[0];
+							String	key	= fave[1];
 							
-								chat.setKeepAlive( true );
+							set.add( net + ":" + key );
+							
+							ChatInstance chat = peekChatInstance( net, key, false );
+	
+							if ( chat == null || !chat.getKeepAlive()){
+							
+									// get a reference to the chat
 								
-							}catch( Throwable e ){
+								try{
+									chat = getChat( net, key );
 								
-							}
-						}
-					}
-					
-					for ( ChatInstance chat: chat_instances_list ){
-						
-						if ( chat.getKeepAlive()){
-							
-							String	net = chat.getNetwork();
-							String	key = chat.getKey();
-							
-							if ( !set.contains( net + ":" + key )){
-								
-								if ( 	net == AENetworkClassifier.AT_PUBLIC &&
-										key.equals(BETA_CHAT_KEY)){
+									chat.setKeepAlive( true );
 									
-									// leave
+								}catch( Throwable e ){
 									
-								}else{
-									
-										// release our reference
-									
-									chat.setKeepAlive( false );
-									
-									chat.destroy();
 								}
 							}
 						}
+						
+						for ( ChatInstance chat: chat_instances_list ){
+							
+							if ( chat.getKeepAlive()){
+								
+								String	net = chat.getNetwork();
+								String	key = chat.getKey();
+								
+								if ( !set.contains( net + ":" + key )){
+									
+									if ( 	net == AENetworkClassifier.AT_PUBLIC &&
+											key.equals(BETA_CHAT_KEY)){
+										
+										// leave
+										
+									}else{
+										
+											// release our reference
+										
+										chat.setKeepAlive( false );
+										
+										chat.destroy();
+									}
+								}
+							}
+						}
+					}finally{
+						
+						init_complete.releaseForever();
 					}
 				}
 			});
@@ -811,6 +824,7 @@ BuddyPluginBeta
 					Long	size 		= (Long)magnet.get( "size" );
 					Long	seeds 		= (Long)magnet.get( "seeds" );
 					Long	leechers 	= (Long)magnet.get( "leechers" );
+					Long	date	 	= (Long)magnet.get( "date" );
 
 					String enclosure = 
 							"<enclosure " + 
@@ -825,8 +839,10 @@ BuddyPluginBeta
 					enclosure += " />";
 					
 					pw.println( enclosure );
-								
-					pw.println(	"<pubDate>" + item_date + "</pubDate>" );
+							
+					String date_str = (date==null||date<=0)?item_date:TimeFormatter.getHTTPDate( date );
+					
+					pw.println(	"<pubDate>" + date_str + "</pubDate>" );
 				
 					
 					if ( size != null ){
@@ -962,17 +978,23 @@ BuddyPluginBeta
 								
 								map.put( "size", size );
 								
+							}else if ( lhs.equals( "_d" )){
+								
+								long date = Long.parseLong( rhs );
+								
+								map.put( "date", date );
+
 							}else if ( lhs.equals( "_s" )){
 								
-								long size = Long.parseLong( rhs );
+								long seeds = Long.parseLong( rhs );
 								
-								map.put( "seeds", size );
+								map.put( "seeds", seeds );
 								
 							}else if ( lhs.equals( "_l" )){
 								
-								long size = Long.parseLong( rhs );
+								long leechers = Long.parseLong( rhs );
 								
-								map.put( "leechers", size );
+								map.put( "leechers", leechers );
 							}
 						}catch( Throwable e ){
 							
@@ -981,7 +1003,7 @@ BuddyPluginBeta
 					}
 				}
 			
-				System.out.println( magnet + " -> " + map );
+				//System.out.println( magnet + " -> " + map );
 				
 				result.add( map );
 			}
@@ -1593,6 +1615,66 @@ BuddyPluginBeta
 		amManager()
 		{
 			return( managing_public_key != null && Arrays.equals( my_public_key, managing_public_key ));
+		}
+		
+		public boolean
+		isManagedFor(
+			String		network,
+			String		key )
+		{
+			if ( getNetwork() != network ){
+				
+				return( false );
+			}
+			
+			return( getKey().equals( key + "[pk=" + Base32.encode( getPublicKey()) + "]" ));
+		}
+		
+		public ChatInstance
+		getManagedChannel()
+		
+			throws Exception
+		{
+			if ( isManaged()){
+				
+				throw( new Exception( "Channel is already managed" ));
+			}
+			
+			String new_key = getKey() + "[pk=" + Base32.encode( getPublicKey()) + "]";
+			
+			ChatInstance inst = getChat( getNetwork(), new_key );
+			
+			return( inst );
+		}
+		
+		public boolean
+		isReadOnlyFor(
+			String		network,
+			String		key )
+		{
+			if ( getNetwork() != network ){
+				
+				return( false );
+			}
+			
+			return( getKey().equals( key + "[pk=" + Base32.encode( getPublicKey()) + "&ro=1]" ));
+		}
+		
+		public ChatInstance
+		getReadOnlyChannel()
+		
+			throws Exception
+		{
+			if ( isManaged()){
+				
+				throw( new Exception( "Channel is already managed" ));
+			}
+			
+			String new_key = getKey() + "[pk=" + Base32.encode( getPublicKey()) + "&ro=1]";
+			
+			ChatInstance inst = getChat( getNetwork(), new_key );
+			
+			return( inst );
 		}
 		
 		public boolean

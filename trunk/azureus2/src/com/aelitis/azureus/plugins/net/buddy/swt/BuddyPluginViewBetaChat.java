@@ -452,11 +452,9 @@ BuddyPluginViewBetaChat
 							public void 
 							widgetSelected(
 								SelectionEvent event ) 
-							{
-								String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "]";
-								
+							{								
 								try{
-									ChatInstance inst = beta.getChat( chat.getNetwork(), new_key );
+									ChatInstance inst = chat.getManagedChannel();
 									
 									new BuddyPluginViewBetaChat( view, plugin, inst );
 									
@@ -476,10 +474,8 @@ BuddyPluginViewBetaChat
 							widgetSelected(
 								SelectionEvent event ) 
 							{
-								String new_key = chat.getKey() + "[pk=" + Base32.encode( chat.getPublicKey()) + "&ro=1]";
-								
 								try{
-									ChatInstance inst = beta.getChat( chat.getNetwork(), new_key );
+									ChatInstance inst = chat.getReadOnlyChannel();
 									
 									new BuddyPluginViewBetaChat( view, plugin, inst );
 									
@@ -2612,7 +2608,7 @@ BuddyPluginViewBetaChat
 								}
 							}
 								
-							if ( end > pos+1 ){
+							if ( end > pos+1 && Character.isLetter( protocol.charAt(0))){
 								
 								try{
 									int	url_start = pos - protocol.length();
@@ -2720,7 +2716,7 @@ BuddyPluginViewBetaChat
 									
 								}catch( Throwable e ){
 									
-									e.printStackTrace();
+									//e.printStackTrace();
 								}
 							}
 							
