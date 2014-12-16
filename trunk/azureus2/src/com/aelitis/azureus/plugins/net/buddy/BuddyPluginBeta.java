@@ -2903,7 +2903,15 @@ BuddyPluginBeta
 							
 							if ( bits.length > 1 ){
 								
-								getAndShowChat( getNetwork(), bits[1] );
+								bits = message.split( "[\\s]+", 2 );
+								
+								String key = bits[1];
+								
+								if ( key.startsWith( "\"" ) && key.endsWith( "\"" )){
+									key = key.substring(1,key.length()-1);
+								}
+								
+								getAndShowChat( getNetwork(), key );
 								
 								ok = true;
 							}
@@ -2911,7 +2919,15 @@ BuddyPluginBeta
 							
 							if ( bits.length > 1 ){
 								
-								getAndShowChat( AENetworkClassifier.AT_PUBLIC, bits[1] );
+								bits = message.split( "[\\s]+", 2 );
+								
+								String key = bits[1];
+								
+								if ( key.startsWith( "\"" ) && key.endsWith( "\"" )){
+									key = key.substring(1,key.length()-1);
+								}
+								
+								getAndShowChat( AENetworkClassifier.AT_PUBLIC, key );
 								
 								ok = true;
 							}
@@ -2919,7 +2935,15 @@ BuddyPluginBeta
 							
 							if ( bits.length > 1 && isI2PAvailable()){
 								
-								getAndShowChat( AENetworkClassifier.AT_I2P, bits[1] );
+								bits = message.split( "[\\s]+", 2 );
+								
+								String key = bits[1];
+								
+								if ( key.startsWith( "\"" ) && key.endsWith( "\"" )){
+									key = key.substring(1,key.length()-1);
+								}
+								
+								getAndShowChat( AENetworkClassifier.AT_I2P, key );
 								
 								ok = true;
 							}
