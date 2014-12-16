@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -75,6 +76,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -94,6 +96,8 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
@@ -573,7 +577,62 @@ UtilitiesImpl
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException
 	{
-		return( getRSSFeed( getResourceDownloaderFactory().create( feed_location )));
+		String	feed_str	= feed_location.toExternalForm();
+	
+		String	lc_feed_str = feed_str.toLowerCase( Locale.US );
+	
+		ResourceDownloader	rd;
+		
+		PluginProxy plugin_proxy	= null;
+		
+		try{
+			if ( lc_feed_str.startsWith( "tor:" )){
+			
+				String target_resource = feed_str.substring( 4 );
+	
+				try{
+					feed_location = new URL( target_resource );
+					
+				}catch( MalformedURLException e ){
+					
+					throw( new ResourceDownloaderException( e ));
+				}
+				
+				Map<String,Object>	options = new HashMap<String,Object>();
+			
+				options.put( AEProxyFactory.PO_PEER_NETWORKS, new String[]{ AENetworkClassifier.AT_TOR });
+			
+				plugin_proxy = 
+					AEProxyFactory.getPluginProxy( 
+						"RSS Feed download of '" + target_resource + "'",
+						feed_location,
+						options,
+						true );
+	
+				if ( plugin_proxy == null ){
+					
+					throw( new ResourceDownloaderException( "No Tor plugin proxy available for '" + feed_str + "'" ));
+				}
+		
+			
+				rd = getResourceDownloaderFactory().create( plugin_proxy.getURL(), plugin_proxy.getProxy());		
+	
+				rd.setProperty( "URL_HOST", plugin_proxy.getURLHostRewrite() + (feed_location.getPort()==-1?"":(":" + feed_location.getPort())));
+	
+			}else{
+				
+				rd = getResourceDownloaderFactory().create( feed_location );
+			}
+			
+			return( getRSSFeed( feed_location, rd));
+			
+		}finally{
+			
+			if ( plugin_proxy != null ){
+				
+				plugin_proxy.setOK( true );
+			}
+		}
 	}
 	
 	public RSSFeed

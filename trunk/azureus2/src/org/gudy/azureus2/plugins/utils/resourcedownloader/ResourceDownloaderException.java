@@ -29,6 +29,20 @@ ResourceDownloaderException
 {
 	public
 	ResourceDownloaderException(
+		String				str )
+	{
+		super( str);
+	}
+	
+	public
+	ResourceDownloaderException(
+		Throwable				cause )
+	{
+		super( cause);
+	}
+	
+	public
+	ResourceDownloaderException(
 		ResourceDownloader	rd,
 		String				str )
 	{
