@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.net.buddy.swt;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -2658,7 +2659,7 @@ BuddyPluginViewBetaChat
 													
 													dn = UrlUtils.decode( dn);
 													
-													temp = temp.replaceAll( "\\$dn", dn );
+													temp = temp.replaceAll( "\\$dn", Matcher.quoteReplacement( dn ));
 												}
 											}
 											
@@ -2718,6 +2719,8 @@ BuddyPluginViewBetaChat
 									new_ranges.add( styleRange);
 									
 								}catch( Throwable e ){
+									
+									e.printStackTrace();
 								}
 							}
 							
