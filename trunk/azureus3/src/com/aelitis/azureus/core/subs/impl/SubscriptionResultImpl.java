@@ -331,6 +331,12 @@ SubscriptionResultImpl
 			result.put( SearchResult.PR_DOWNLOAD_LINK, link );
 		}
 		
+		String	cdp_link = (String)map.get( "cdp" );
+
+		if ( cdp_link != null ){
+			result.put( SearchResult.PR_DETAILS_LINK, cdp_link );
+		}
+		
 		String	hash = (String)map.get( "h" );
 		if ( hash != null ){
 			result.put( SearchResult.PR_HASH, Base32.decode( hash ));

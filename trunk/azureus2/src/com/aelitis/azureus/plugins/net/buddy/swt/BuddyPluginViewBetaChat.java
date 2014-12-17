@@ -2596,24 +2596,24 @@ BuddyPluginViewBetaChat
 						
 						if ( protocol.length() > 0 ){
 							
-							int	end = msg.length();
+							int	url_end = msg.length();
 							
-							for ( int i=pos+1;i<msg.length();i++){
+							for ( int i=pos+1;i<url_end;i++){
 								
 								if ( Character.isWhitespace( msg.charAt(i))){
 									
-									end = i;
+									url_end = i;
 									
 									break;
 								}
 							}
 								
-							if ( end > pos+1 && Character.isLetter( protocol.charAt(0))){
+							if ( url_end > pos+1 && Character.isLetter( protocol.charAt(0))){
 								
 								try{
 									int	url_start = pos - protocol.length();
 									
-									String url_str = protocol + msg.substring( pos, end );
+									String url_str = protocol + msg.substring( pos, url_end );
 							
 									if ( protocol.equalsIgnoreCase( "chat" )){
 										
@@ -2679,7 +2679,13 @@ BuddyPluginViewBetaChat
 									
 									if ( !display_url.equals( original_url_str )){
 										
-										msg = msg.substring( 0, url_start ) + display_url + msg.substring( end );
+										int	old_len = msg.length();
+										
+										msg = msg.substring( 0, url_start ) + display_url + msg.substring( url_end );
+										
+											// msg has probably changed length, update the end-pointer accordingly
+										
+										url_end += (msg.length() - old_len );
 									}
 									
 									int	this_style_start 	= start + url_start;
@@ -2720,7 +2726,7 @@ BuddyPluginViewBetaChat
 								}
 							}
 							
-							pos = end;
+							pos = url_end;
 	
 						}else{
 							
