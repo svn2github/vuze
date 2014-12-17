@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -34,6 +35,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -558,6 +560,62 @@ WebEngine
 	{
 		String searchURL = searchURLFormat;
 
+		if ( searchURL.toLowerCase( Locale.US ).startsWith( "tor:" )){
+			
+			String target_resource = searchURLFormat.substring( 4 );
+			
+			URL location;
+			
+			try{
+
+				location = new URL( target_resource );
+				
+			}catch( MalformedURLException e ){
+				
+				throw( new SearchException( e ));
+			}
+			
+			Map<String,Object>	options = new HashMap<String,Object>();
+		
+			options.put( AEProxyFactory.PO_PEER_NETWORKS, new String[]{ AENetworkClassifier.AT_TOR });
+		
+			PluginProxy plugin_proxy = 
+				AEProxyFactory.getPluginProxy( 
+					"Web engine download of '" + target_resource + "'",
+					location,
+					options,
+					true );
+
+			if ( plugin_proxy == null ){
+				
+				throw( new SearchException( "No Tor plugin proxy available for '" + target_resource + "'" ));
+			}
+
+			URL 	url		= plugin_proxy.getURL();
+			Proxy 	proxy	= plugin_proxy.getProxy();
+
+			boolean	ok = false;
+			
+			try{
+				String proxy_host = location.getHost() + (location.getPort()==-1?"":(":" + location.getPort()));
+				
+				pageDetails	details = getWebPageContentSupport( proxy, proxy_host, url.toExternalForm(), searchParameters, searchContext, headers, only_if_modified );
+			
+				if ( verifier != null ){
+					
+					verifier.verify( details );;
+				}
+				
+				ok = true;
+				
+				return( details );
+				
+			}finally{
+				
+				plugin_proxy.setOK( ok );
+			}
+		}
+		
 		try{
 			pageDetails	details = getWebPageContentSupport( null, null, searchURL, searchParameters, searchContext, headers, only_if_modified );
 		
