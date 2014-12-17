@@ -32,8 +32,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -58,12 +56,8 @@ import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.ipc.IPCException;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -825,6 +819,13 @@ BuddyPluginBeta
 				
 					pw.println( "<guid>" + hash + "</guid>" );
 				
+					String	cdp	= (String)magnet.get( "cdp" );
+
+					if ( cdp != null ){
+						
+						pw.println( "<link>" + escape( cdp ) + "</link>" );
+					}
+					
 					Long	size 		= (Long)magnet.get( "size" );
 					Long	seeds 		= (Long)magnet.get( "seeds" );
 					Long	leechers 	= (Long)magnet.get( "leechers" );
@@ -999,6 +1000,10 @@ BuddyPluginBeta
 								long leechers = Long.parseLong( rhs );
 								
 								map.put( "leechers", leechers );
+								
+							}else if ( lhs.equals( "_c" )){
+							
+								map.put( "cdp", rhs );
 							}
 						}catch( Throwable e ){
 							

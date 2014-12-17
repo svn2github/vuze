@@ -2311,6 +2311,71 @@ BuddyPluginViewBetaChat
 		chat.sendMessage( text, new HashMap<String, Object>());
 	}
 	
+	private String
+	expand(
+		Map<String,String>	params,
+		String				str,
+		boolean				url_decode )
+	{
+		int	pos = 0;
+		
+		String result = "";
+		
+		while( true ){
+			
+			int new_pos = str.indexOf('$', pos );
+			
+			if ( new_pos == -1 ){
+				
+				result += str.substring( pos );
+				
+				break;
+			}
+			
+			result += str.substring( pos, new_pos );
+			
+			int end_pos = str.length();
+			
+			for ( int i=new_pos+1;i<end_pos;i++){
+				
+				char c = str.charAt( i );
+				
+				if ( !( Character.isLetterOrDigit(c) || c == '_' )){
+					
+					end_pos = i;
+					
+					break;
+				}
+			}
+			
+			String param = str.substring( new_pos+1, end_pos );
+			
+			String value = params.get( param );
+			
+			if ( value == null ){
+		
+				pos = new_pos + 1;
+				
+				result += "$";
+				
+			}else{
+				
+				if ( url_decode ){
+					
+					result += UrlUtils.decode( value );
+					
+				}else{
+					
+					result += value;
+				}
+				
+				pos = end_pos;
+			}
+		}
+		
+		return( result );
+	}
+	
 	public void
 	messageReceived(
 		final ChatMessage	message )
@@ -2441,9 +2506,9 @@ BuddyPluginViewBetaChat
 				continue;
 			}
 						
-			String	msg		= message.getMessage();
+			String	original_msg		= message.getMessage();
 
-			if ( !message.isIgnored() && msg.length() > 0 ){
+			if ( !message.isIgnored() && original_msg.length() > 0 ){
 				
 				long time = message.getTimeStamp();
 
@@ -2566,186 +2631,399 @@ BuddyPluginViewBetaChat
 				
 				final int start = existing_length + appended.length();
 				
-				{	
-					int	next_style_start = start;
-					
-					int	pos = 0;
-					
-					while( pos < msg.length()){
+				String	msg = original_msg;
+				
+				try{
+					{
+						List<Object>		segments = new ArrayList<Object>();
 						
-						pos = msg.indexOf( ':', pos );
+						int	pos = 0;
 						
-						if ( pos == -1 ){
+						while( true ){
 							
-							break;
-						}
-						
-						String	protocol = "";
-						
-						for (int i=pos-1; i>=0; i-- ){
+							int old_pos = pos;
 							
-							char c = msg.charAt(i);
+							pos = original_msg.indexOf( ':', old_pos );
 							
-							if ( Character.isWhitespace( c )){
+							if ( pos == -1 ){
+								
+								String tail = original_msg.substring( old_pos );
+								
+								if ( tail.length() > 0 ){
+									
+									segments.add( tail );
+								}
 								
 								break;
 							}
 							
-							protocol = c + protocol;
-						}
-						
-						if ( protocol.length() > 0 ){
+							boolean	was_url = false;
 							
-							int	url_end = msg.length();
+							String	protocol = "";
 							
-							for ( int i=pos+1;i<url_end;i++){
+							for (int i=pos-1; i>=0; i-- ){
 								
-								if ( Character.isWhitespace( msg.charAt(i))){
-									
-									url_end = i;
+								char c = original_msg.charAt(i);
+								
+								if ( Character.isWhitespace( c )){
 									
 									break;
 								}
+								
+								protocol = c + protocol;
 							}
-								
-							if ( url_end > pos+1 && Character.isLetter( protocol.charAt(0))){
-								
-								try{
-									int	url_start = pos - protocol.length();
-									
-									String url_str = protocol + msg.substring( pos, url_end );
 							
-									if ( protocol.equalsIgnoreCase( "chat" )){
-										
-										if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
-											
-											if ( !beta.isI2PAvailable()){
-												
-												throw( new Exception( "Anonymous chat unavailable" ));
-											}
-										}
-									}else{
+							if ( protocol.length() > 0 ){
+								
+								char term_char = ' ';
+								
+								if ( protocol.startsWith( "\"" )){
 									
+									term_char = '"';
+								}
+								
+								int	url_start 	= pos - protocol.length();
+								int	url_end 	= original_msg.length();
+								
+								for ( int i=pos+1;i<url_end;i++){
+									
+									char c = original_msg.charAt( i );
+									
+									if ( c == term_char || ( term_char == ' ' && Character.isWhitespace( c ))){
+										
+										url_end = term_char==' '?i:(i+1);
+										
+										break;
+									}
+								}
+									
+								if ( url_end > pos+1 && !Character.isDigit( protocol.charAt(0))){
+									
+									try{									
+										String url_str = protocol + original_msg.substring( pos, url_end );
+								
+										if ( url_str.startsWith( "\"" ) && url_str.endsWith( "\"" )){
+											
+											url_str = url_str.substring( 1, url_str.length()-1 );
+										}
+										
 										URL	url = new URL( url_str );
-									}
-									
-									String original_url_str = url_str;
-									
-										// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
-									
-									String display_url = UrlUtils.decode( url_str );
-									
-									int hack_pos = display_url.lastIndexOf( "[[" );
-									
-									if ( hack_pos > 0 && display_url.endsWith( "]]" )){
 										
-										String temp = display_url.substring( hack_pos + 2, display_url.length() - 2  ).trim();
-										
-										if ( temp.length() > 0 ){
-										
-											if ( temp.contains( "$dn" )){
-												
-												int dn1 = original_url_str.indexOf( "&dn=" );
-												
-												if ( dn1 != -1 ){
-													
-													int dn2 = original_url_str.indexOf( "&", dn1+1 );
-															
-													String dn = original_url_str.substring( dn1+4, dn2==-1?original_url_str.length():dn2 );
-													
-													dn = UrlUtils.decode( dn);
-													
-													temp = temp.replaceAll( "\\$dn", Matcher.quoteReplacement( dn ));
-												}
-											}
+										if ( url_start > old_pos ){
 											
-											hack_pos = url_str.lastIndexOf( "[[" );
-											
-											url_str = url_str.substring( 0, hack_pos );
-																			
-												// prevent anything that looks like a URL from being used as the display
-												// text to avoid 'confusion'
-	
-											if ( UrlUtils.parseTextForURL( temp, true ) == null ){
-												
-												display_url = temp;
-												
-											}else{
-												
-												display_url = url_str;
-											}
+											segments.add( original_msg.substring( old_pos, url_start ));
 										}
+										
+										segments.add( url );
+										
+										was_url = true;
+										
+										pos	= url_end;
+										
+									}catch( Throwable e ){
+										
 									}
-									
-									if ( !display_url.equals( original_url_str )){
-										
-										int	old_len = msg.length();
-										
-										msg = msg.substring( 0, url_start ) + display_url + msg.substring( url_end );
-										
-											// msg has probably changed length, update the end-pointer accordingly
-										
-										url_end += (msg.length() - old_len );
-									}
-									
-									int	this_style_start 	= start + url_start;
-									int this_style_length	= display_url.length();
-									
-									if ( this_style_start > next_style_start ){
-										
-										if ( message_type ==  ChatMessage.MT_INFO ){
-											
-											StyleRange styleRange 	= new StyleRange();
-											styleRange.start 		= next_style_start;
-											styleRange.length 		= this_style_start - next_style_start;
-											styleRange.foreground 	= Colors.grey;
-											
-											new_ranges.add( styleRange);
-											
-											next_style_start = this_style_start + this_style_length;
-										}
-									}
-									
-									StyleRange styleRange 	= new StyleRange();
-									styleRange.start 		= this_style_start;
-									styleRange.length 		= this_style_length;
-									styleRange.foreground 	= Colors.blue;
-									styleRange.underline 	= true;
-									
-										// DON'T store the URL object because in their wisdom SWT invokes the .equals method
-										// on data objects when trying to find 'similar' ones, and for URLs this causes
-										// a name service lookup...
-									
-									styleRange.data = url_str;
-									
-									new_ranges.add( styleRange);
-									
-								}catch( Throwable e ){
-									
-									//e.printStackTrace();
 								}
 							}
 							
-							pos = url_end;
-	
-						}else{
-							
-							pos = pos+1;
-						}		
-					}
-				
-					if ( next_style_start < start + msg.length() ){
+							if ( !was_url ){
+								
+								pos++;
+								
+								segments.add( original_msg.substring( old_pos, pos ) );
+							}
+						}
 						
-						if ( message_type ==  ChatMessage.MT_INFO ){
+						if ( segments.size() > 1 ){
 							
-							StyleRange styleRange 	= new StyleRange();
-							styleRange.start 		= next_style_start;
-							styleRange.length 		= start + msg.length() - next_style_start;
-							styleRange.foreground 	= Colors.grey;
+							List<Object>	temp = new ArrayList<Object>( segments.size());
+						
+							String	str = "";
 							
-							new_ranges.add( styleRange);
+							for ( Object obj: segments ){
+								
+								if ( obj instanceof String ){
+							
+									str += obj;
+									
+								}else{
+									
+									if ( str.length() > 0 ){
+										
+										temp.add( str );
+									}
+									
+									str = "";
+									
+									temp.add( obj );
+								}
+							}
+						
+							if ( str.length() > 0 ){
+								
+								temp.add( str );
+							}
+							
+							segments = temp;
+						}
+											
+						Map<String,String>	params = new HashMap<String,String>();
+						
+						for ( int i=0;i<segments.size(); i++ ){
+							
+							Object obj = segments.get(i);
+						
+							if ( obj instanceof URL ){
+								
+								params.clear();
+								
+								String str = ((URL)obj).toExternalForm();
+								
+								int	qpos = str.indexOf( '?' );
+								
+								if ( qpos > 0 ){
+									
+									int	hpos = str.lastIndexOf( "[[" );
+	
+									String[]	bits = str.substring( qpos+1, hpos==-1?str.length():hpos ).split( "&" );
+									
+									for ( String bit: bits ){
+										
+										String[] temp = bit.split( "=", 2 );
+										
+										if ( temp.length == 2 ){
+											
+											params.put( temp[0], temp[1] );
+										}
+									}
+																
+									if ( hpos > 0 && str.endsWith( "]]" )){
+										
+										str = 	str.substring( 0, hpos ) + 
+												"[[" +
+												expand( params, str.substring( hpos+2, str.length()-2 ), false ) +
+												"]]";
+										
+										try{
+											segments.set( i, new URL( str ));
+											
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
+									}
+								}
+							}else{
+								
+								String str = (String)obj;
+								
+								if ( params.size() > 0 ){
+									
+									segments.set( i, expand( params, str, true ));
+								}
+							}
+						}
+							
+						StringBuffer sb = new StringBuffer( 1024 );
+						
+						for ( Object obj: segments ){
+							
+							if ( obj instanceof URL ){
+							
+								sb.append(((URL)obj).toExternalForm());
+							}else{
+								
+								sb.append((String)obj);
+							}
+						}
+						
+						msg = sb.toString();
+	
+					}
+					
+					{	
+							// should rewrite this one day to use the segments above directly... We'd need to handle URLs in expansions though
+						
+						int	next_style_start = start;
+						
+						int	pos = 0;
+						
+						while( pos < msg.length()){
+							
+							pos = msg.indexOf( ':', pos );
+							
+							if ( pos == -1 ){
+								
+								break;
+							}
+							
+							String	protocol = "";
+							
+							for (int i=pos-1; i>=0; i-- ){
+								
+								char c = msg.charAt(i);
+								
+								if ( Character.isWhitespace( c )){
+									
+									break;
+								}
+								
+								protocol = c + protocol;
+							}
+							
+							if ( protocol.length() > 0 ){
+								
+								char term_char = ' ';
+								
+								if ( protocol.startsWith( "\"" )){
+									
+									term_char = '"';
+								}
+								
+								int	url_start 	= pos - protocol.length();
+								int	url_end 	= msg.length();
+								
+								for ( int i=pos+1;i<url_end;i++){
+									
+									char c = msg.charAt( i );
+									
+									if ( c == term_char || ( term_char == ' ' && Character.isWhitespace( c ))){
+										
+										url_end = term_char==' '?i:(i+1);
+										
+										break;
+									}
+								}
+									
+								if ( url_end > pos+1 && !Character.isDigit( protocol.charAt(0))){
+									
+									try{									
+										String url_str = protocol + msg.substring( pos, url_end );
+								
+										if ( url_str.startsWith( "\"" ) && url_str.endsWith( "\"" )){
+											
+											url_str = url_str.substring( 1, url_str.length()-1 );
+										}
+	
+										if ( protocol.equalsIgnoreCase( "chat" )){
+											
+											if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
+												
+												if ( !beta.isI2PAvailable()){
+													
+													throw( new Exception( "Anonymous chat unavailable" ));
+												}
+											}
+										}else{
+										
+											URL	url = new URL( url_str );
+										}
+										
+										String original_url_str = url_str;
+										
+											// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
+										
+										String display_url = UrlUtils.decode( url_str );
+										
+										int hack_pos = display_url.lastIndexOf( "[[" );
+										
+										if ( hack_pos > 0 && display_url.endsWith( "]]" )){
+											
+											String temp = display_url.substring( hack_pos + 2, display_url.length() - 2  ).trim();
+											
+											if ( temp.length() > 0 ){
+																						
+												hack_pos = url_str.lastIndexOf( "[[" );
+												
+												url_str = url_str.substring( 0, hack_pos );
+																				
+													// prevent anything that looks like a URL from being used as the display
+													// text to avoid 'confusion'
+		
+												if ( UrlUtils.parseTextForURL( temp, true ) == null ){
+													
+													display_url = temp;
+													
+												}else{
+													
+													display_url = url_str;
+												}
+											}
+										}
+										
+										if ( !display_url.equals( original_url_str )){
+											
+											int	old_len = msg.length();
+											
+											msg = msg.substring( 0, url_start ) + display_url + msg.substring( url_end );
+											
+												// msg has probably changed length, update the end-pointer accordingly
+											
+											url_end += (msg.length() - old_len );
+										}
+										
+										int	this_style_start 	= start + url_start;
+										int this_style_length	= display_url.length();
+										
+										if ( this_style_start > next_style_start ){
+											
+											if ( message_type ==  ChatMessage.MT_INFO ){
+												
+												StyleRange styleRange 	= new StyleRange();
+												styleRange.start 		= next_style_start;
+												styleRange.length 		= this_style_start - next_style_start;
+												styleRange.foreground 	= Colors.grey;
+												
+												new_ranges.add( styleRange);
+												
+												next_style_start = this_style_start + this_style_length;
+											}
+										}
+										
+										StyleRange styleRange 	= new StyleRange();
+										styleRange.start 		= this_style_start;
+										styleRange.length 		= this_style_length;
+										styleRange.foreground 	= Colors.blue;
+										styleRange.underline 	= true;
+										
+											// DON'T store the URL object because in their wisdom SWT invokes the .equals method
+											// on data objects when trying to find 'similar' ones, and for URLs this causes
+											// a name service lookup...
+										
+										styleRange.data = url_str;
+										
+										new_ranges.add( styleRange);
+										
+									}catch( Throwable e ){
+										
+										//e.printStackTrace();
+									}
+								}
+								
+								pos = url_end;
+		
+							}else{
+								
+								pos = pos+1;
+							}		
+						}
+					
+						if ( next_style_start < start + msg.length() ){
+							
+							if ( message_type ==  ChatMessage.MT_INFO ){
+								
+								StyleRange styleRange 	= new StyleRange();
+								styleRange.start 		= next_style_start;
+								styleRange.length 		= start + msg.length() - next_style_start;
+								styleRange.foreground 	= Colors.grey;
+								
+								new_ranges.add( styleRange);
+							}
 						}
 					}
+				}catch( Throwable e ){
+					
+					Debug.out( e );
 				}
 				
 				appended.append( msg ); 
