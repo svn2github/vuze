@@ -21,8 +21,6 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
-import java.applet.Applet;
-import java.io.File;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.*;
