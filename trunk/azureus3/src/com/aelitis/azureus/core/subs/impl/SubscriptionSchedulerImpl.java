@@ -177,7 +177,7 @@ SubscriptionSchedulerImpl
 		}.start();
 	}
 	
-	public void 
+	public boolean 
 	download(
 		Subscription 	subs,
 		boolean			is_auto )
@@ -225,7 +225,14 @@ SubscriptionSchedulerImpl
 										
 										if ( last != null && now - last < mins*60*1000 ){
 											
-											throw( new SubscriptionException( "Rate limiting prevents download from " + host ));
+											if ( is_auto ){
+											
+												return( false );
+											
+											}else{
+											
+												throw( new SubscriptionException( "Rate limiting prevents download from " + host ));
+											}
 										}
 										
 										rate_limit_map.put( host, now );
@@ -275,6 +282,9 @@ SubscriptionSchedulerImpl
 				
 				sem.reserve();
 			}
+			
+			return( true );
+			
 		}finally{
 			
 			boolean	was_auto;
@@ -511,6 +521,8 @@ SubscriptionSchedulerImpl
 			
 			long	next_ready_time = Long.MAX_VALUE;
 			
+			Subscription	next_ready_subs = null;
+			
 			for (int i=0;i<subs.length;i++){
 				
 				Subscription sub = subs[i];
@@ -529,6 +541,8 @@ SubscriptionSchedulerImpl
 				if ( next_scan < next_ready_time ){
 					
 					next_ready_time = next_scan;
+					
+					next_ready_subs = sub;
 				}
 			}
 		
@@ -563,7 +577,8 @@ SubscriptionSchedulerImpl
 				
 				log( "Calculate : " + 
 						"old_time=" + new SimpleDateFormat().format(new Date(old_when)) +
-						", new_time=" + new SimpleDateFormat().format(new Date(next_ready_time)));
+						", new_time=" + new SimpleDateFormat().format(new Date(next_ready_time)) +
+						", next_sub=" + next_ready_subs.getName());
 						
 				schedule_event = SimpleTimer.addEvent(
 					"SS:Scheduler",
@@ -652,23 +667,27 @@ SubscriptionSchedulerImpl
 			
 			long	last_scan = history.getLastScanTime();
 
-			try{
-					
-				download( sub, true );
+			boolean	download_attempted = true;
+			
+			try{	
+				download_attempted = download( sub, true );
 				
 			}catch( Throwable e ){
-				
+								
 			}finally{
 				
-				long	new_last_scan = history.getLastScanTime();
-
-				if ( new_last_scan == last_scan ){
+				if ( download_attempted ){
 					
-					scanFailed( sub );
-					
-				}else{
-					
-					scanSuccess( sub );
+					long	new_last_scan = history.getLastScanTime();
+	
+					if ( new_last_scan == last_scan ){
+						
+						scanFailed( sub );
+						
+					}else{
+						
+						scanSuccess( sub );
+					}
 				}
 			}
 		}

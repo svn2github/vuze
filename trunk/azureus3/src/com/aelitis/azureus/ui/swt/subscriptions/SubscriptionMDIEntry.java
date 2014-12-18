@@ -422,6 +422,105 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 			Debug.out( e );
 		}
 		
+			// public
+		
+		menuItem = menuManager.addMenuItem("sidebar." + key, "subs.prop.is_public");
+		menuItem.setStyle( MenuItem.STYLE_CHECK );
+		
+		menuItem.addFillListener( new MenuItemFillListener(){
+			public void menuWillBeShown( MenuItem menu, Object data ){
+				menu.setData( subs.isPublic());
+			}});
+	
+		menuItem.addListener(new SubsMenuItemListener() {
+			public void selected(MdiEntry info, Subscription _subs) {
+				try{
+					subs.setPublic( !subs.isPublic());
+				}catch( Throwable e ){
+					Debug.out(e);
+				}
+			}
+		});
+		
+		if ( subs.isAutoDownloadSupported()){
+			
+				// auto-dl
+			
+			menuItem = menuManager.addMenuItem("sidebar." + key, "subs.prop.is_auto");
+			menuItem.setStyle( MenuItem.STYLE_CHECK );
+			
+			menuItem.addFillListener( new MenuItemFillListener(){
+				public void menuWillBeShown( MenuItem menu, Object data ){
+					menu.setData( subs.getHistory().isAutoDownload());
+				}});
+			
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected(MdiEntry info, Subscription _subs) {
+					try{
+						subs.getHistory().setAutoDownload(!subs.getHistory().isAutoDownload());
+					}catch( Throwable e ){
+						Debug.out(e);
+					}
+				}
+			});
+		}
+		
+			// refresh period
+			
+		menuItem = menuManager.addMenuItem("sidebar." + key, "subs.prop.update_period" );
+		
+		menuItem.addFillListener( new MenuItemFillListener(){
+			public void menuWillBeShown( MenuItem menu, Object data ){
+				int check_freq = subs.getHistory().getCheckFrequencyMins();
+				
+				String text = MessageText.getString( "subs.prop.update_period" );
+				
+				if ( check_freq!=Integer.MAX_VALUE ){
+					
+					text += " (" +  check_freq + " " + MessageText.getString( "ConfigView.text.minutes") + ")";
+				}
+				
+				menu.setText( text + "..." );
+			}});
+		
+		
+		menuItem.addListener(new SubsMenuItemListener() {
+			public void selected(MdiEntry info, final Subscription subs) {
+				UISWTInputReceiver entry = new SimpleTextEntryWindow();
+				entry.maintainWhitespace(false);
+				entry.allowEmptyInput( false );
+				
+				int check_freq = subs.getHistory().getCheckFrequencyMins();
+				
+				entry.setPreenteredText( check_freq==Integer.MAX_VALUE?"":String.valueOf( check_freq ), false );
+				
+				entry.maintainWhitespace(false);
+				
+				entry.allowEmptyInput( false );
+				
+				entry.setLocalisedTitle(MessageText.getString("subscriptions.enter.freq"));
+		
+				entry.prompt(new UIInputReceiverListener() {
+					public void UIInputReceiverClosed(UIInputReceiver entry) {
+						if (!entry.hasSubmittedInput()) {
+							return;
+						}
+						String input = entry.getSubmittedInput().trim();
+						
+						if ( input.length() > 0 ){
+							
+							try{
+								subs.getHistory().setCheckFrequencyMins( Integer.parseInt( input ));
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}
+				});
+			}
+		});
+		
 			// rename
 		
 		menuItem = menuManager.addMenuItem("sidebar." + key, "MyTorrentsView.menu.rename" );

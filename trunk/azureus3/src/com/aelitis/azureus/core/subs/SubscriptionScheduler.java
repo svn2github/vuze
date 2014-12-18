@@ -24,7 +24,7 @@ package com.aelitis.azureus.core.subs;
 public interface 
 SubscriptionScheduler 
 {
-	public void
+	public boolean
 	download(
 		Subscription		subs,
 		boolean				is_auto )
