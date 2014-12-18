@@ -148,7 +148,18 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    	if (text_entry_text != null) {
 		    	text_entry_text.setText(this.preentered_text);
 		    	if (this.select_preentered_text) {
-		    		text_entry_text.selectAll();
+		    		
+		    		int[] range = this.select_preentered_text_range;
+		    		
+		    		if ( range == null || range.length != 2 ){
+		    			text_entry_text.selectAll();
+		    		}else{
+		    			try{
+		    				text_entry_text.setSelection( range[0], range[1] );
+		    			}catch( Throwable e ){
+		    				text_entry_text.selectAll();
+		    			}
+		    		}
 		    	}
 	    	}
 	    	else if (text_entry_combo != null ){

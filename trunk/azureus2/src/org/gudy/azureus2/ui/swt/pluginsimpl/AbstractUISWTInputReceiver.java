@@ -27,10 +27,17 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 public abstract class AbstractUISWTInputReceiver extends AbstractUIInputReceiver 
 	implements UISWTInputReceiver {
 
-	protected boolean select_preentered_text = true;
+	protected boolean 	select_preentered_text 			= true;
+	protected int[]		select_preentered_text_range 	= null;
+	
 	public void selectPreenteredText(boolean select) {
 		this.assertPrePrompt();
 		this.select_preentered_text = select;
+	}
+	
+	public void selectPreenteredTextRange(int[] range) {
+		this.assertPrePrompt();
+		this.select_preentered_text_range = range;
 	}
 	
 	protected int line_height = -1;

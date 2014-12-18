@@ -164,6 +164,13 @@ SubscriptionManager
 	getRSSLink();
 	
 	public void
+	setRateLimits(
+		String		limits );
+	
+	public String
+	getRateLimits();
+	
+	public void
 	addListener(
 		SubscriptionManagerListener	listener );
 	

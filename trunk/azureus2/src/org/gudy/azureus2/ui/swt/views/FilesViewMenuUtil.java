@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -661,7 +662,31 @@ public class FilesViewMenuUtil
 	private static String askForRenameFilename(DiskManagerFileInfo fileInfo) {
 		SimpleTextEntryWindow dialog = new SimpleTextEntryWindow(
 				"FilesView.rename.filename.title", "FilesView.rename.filename.text");
-		dialog.setPreenteredText(fileInfo.getFile(true).getName(), false); // false -> it's not "suggested", it's a previous value
+		String file_name = fileInfo.getFile(true).getName();
+		dialog.setPreenteredText(file_name, false); // false -> it's not "suggested", it's a previous value
+		
+		int pos = file_name.lastIndexOf( '.' );
+		
+		if ( pos > 0 ){
+			
+			String suffix = fileInfo.getDownloadManager().getDownloadState().getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+			
+			if ( suffix != null && file_name.substring( pos ).equals( suffix )){
+				
+				pos--;
+				
+				while( pos > 0 && file_name.charAt( pos ) != '.' ){
+					
+					pos--;
+				}
+			}
+			
+			if ( pos > 0 ){
+			
+				dialog.selectPreenteredTextRange( new int[]{ 0, pos });
+			}
+		}
+		
 		dialog.allowEmptyInput(false);
 		dialog.prompt();
 		if (!dialog.hasSubmittedInput()) {

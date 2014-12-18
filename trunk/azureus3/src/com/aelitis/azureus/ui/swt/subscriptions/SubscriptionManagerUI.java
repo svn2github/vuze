@@ -470,6 +470,25 @@ SubscriptionManagerUI
 				}
 			});
 		
+		
+			// rate limits
+		
+		final StringParameter rate_limits = configModel.addStringParameter2(
+				"subscriptions.config.ratelimits",
+				"subscriptions.config.ratelimits",
+				subs_man.getRateLimits());
+		
+		rate_limits.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param )
+				{
+					subs_man.setRateLimits(rate_limits.getValue());
+				}
+			});
+
 			// auto
 		
 		final BooleanParameter auto_start = configModel.addBooleanParameter2(

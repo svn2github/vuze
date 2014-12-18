@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -80,6 +81,8 @@ SubscriptionSchedulerImpl
 	
 	private Map	active_subscription_downloaders = new HashMap();
 	private boolean active_subs_download_is_auto;
+	
+	private Map<String,Long>	rate_limit_map = new HashMap<String, Long>();
 	
 	private Set	active_result_downloaders		= new HashSet();
 	
@@ -185,7 +188,61 @@ SubscriptionSchedulerImpl
 		
 		AESemaphore	sem = null;
 		
+		String rate_limits = manager.getRateLimits().trim();
+
 		synchronized( active_subscription_downloaders ){
+			
+			if ( rate_limits.length() > 0 ){
+				
+				try{
+					Engine engine = subs.getEngine();
+					
+					if ( engine instanceof WebEngine ){
+						
+						String url_str = ((WebEngine)engine).getSearchUrl( true );
+						
+						String host = new URL( url_str ).getHost();
+						
+						String[] bits = rate_limits.split( "," );
+						
+						for ( String bit: bits ){
+							
+							String[] temp = bit.trim().split( "=" );
+							
+							if ( temp.length == 2 ){
+								
+								String 	lhs = temp[0].trim();
+								
+								if ( lhs.equals( host )){
+									
+									int mins = Integer.parseInt( temp[1].trim());
+									
+									if ( mins > 0 ){
+										
+										long	now = SystemTime.getMonotonousTime();
+										
+										Long last = rate_limit_map.get( host );
+										
+										if ( last != null && now - last < mins*60*1000 ){
+											
+											throw( new SubscriptionException( "Rate limiting prevents download from " + host ));
+										}
+										
+										rate_limit_map.put( host, now );
+									}
+								}
+							}
+						}
+					}	
+				}catch( SubscriptionException e ){
+					
+					throw( e );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
 			
 			List	waiting = (List)active_subscription_downloaders.get( subs );
 			

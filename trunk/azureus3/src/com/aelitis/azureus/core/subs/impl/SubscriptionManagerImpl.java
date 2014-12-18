@@ -108,6 +108,7 @@ SubscriptionManagerImpl
 	private static final String	CONFIG_HIDE_SEARCH_TEMPLATES	= "subscriptions.config.hide_search_templates";
 	
 	private static final String	CONFIG_DL_SUBS_ENABLE		= "subscriptions.config.dl_subs_enable";
+	private static final String	CONFIG_DL_RATE_LIMITS		= "subscriptions.config.rate_limits";
 
 	private static final int DELETE_UNUSED_AFTER_MILLIS = 2*7*24*60*60*1000;
 	
@@ -1282,6 +1283,20 @@ SubscriptionManagerImpl
 		boolean		enabled )
 	{
 		COConfigurationManager.setParameter( CONFIG_DL_SUBS_ENABLE, enabled );
+	}
+	
+	public void
+	setRateLimits(
+		String		limits )
+	{
+		COConfigurationManager.setParameter( CONFIG_DL_RATE_LIMITS, limits );
+
+	}
+	
+	public String
+	getRateLimits()
+	{
+		return( COConfigurationManager.getStringParameter( CONFIG_DL_RATE_LIMITS, "" ));
 	}
 	
 	public String
