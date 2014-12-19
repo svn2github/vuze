@@ -366,8 +366,13 @@ public class FileDownloadWindow
 			for (String toMatch : titles) {
 				Matcher matcher = Pattern.compile("[?&]" + toMatch + "=([^&]*)",
 						Pattern.CASE_INSENSITIVE).matcher(url);
-				if (matcher.find()) {
-					return matcher.group(1);
+				if (matcher.find()){
+					
+					String file_name = matcher.group(1);
+					
+					file_name = UrlUtils.decode( file_name );
+					
+					return( file_name );
 				}
 			}
 			
