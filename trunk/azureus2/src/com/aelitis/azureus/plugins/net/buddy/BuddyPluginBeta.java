@@ -65,7 +65,8 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 public class
 BuddyPluginBeta 
 {
-	public static final boolean DEBUG_ENABLED		= System.getProperty( "az.chat.buddy.debug", "0" ).equals( "1" );
+	public static final boolean DEBUG_ENABLED			= System.getProperty( "az.chat.buddy.debug", "0" ).equals( "1" );
+	public static final boolean BETA_CHAN_ENABLED		= System.getProperty( "az.chat.buddy.beta.chan", "1" ).equals( "1" );
 
 	public static final String	BETA_CHAT_KEY = 	"test:beta:chat";
 	
@@ -577,12 +578,13 @@ BuddyPluginBeta
 					{
 						try{
 							if ( Constants.isCVSVersion() && enabled.getValue()){
-							
-								//Debug.out( "PUB CHAT DISABLED!!!!" );
 								
-								ChatInstance chat = getChat( AENetworkClassifier.AT_PUBLIC, BETA_CHAT_KEY );
+								if ( BETA_CHAN_ENABLED ){
 								
-								chat.setKeepAlive( true );
+									ChatInstance chat = getChat( AENetworkClassifier.AT_PUBLIC, BETA_CHAT_KEY );
+								
+									chat.setKeepAlive( true );
+								}
 							}	
 						}catch( Throwable e ){
 							

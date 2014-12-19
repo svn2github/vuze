@@ -2182,7 +2182,17 @@ DHTNATPuncherImpl
 		DHTTransportUDPContact	target = (DHTTransportUDPContact)_target;
 		
 		try{
-			DHTTransportContact rendezvous = getRendezvous( reason, target );
+			DHTTransportContact rendezvous = null;
+			
+			if ( rendezvous_used != null && rendezvous_used.length > 0 ){
+				
+				rendezvous = rendezvous_used[0];
+			}
+			
+			if ( rendezvous == null ){
+				
+				rendezvous = getRendezvous( reason, target );
+			}
 			
 			if ( rendezvous_used != null && rendezvous_used.length > 0 ){
 				

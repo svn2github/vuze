@@ -145,6 +145,44 @@ DHTPluginContactImpl
 		return( puncher.punch( "Tunnel", contact, null, null ));
 	}
 
+	public Map
+	openTunnel(
+		DHTPluginContact[]	rendezvous,
+		Map					client_data )
+	{
+		DHTNATPuncher puncher = plugin.getDHT().getNATPuncher();
+		
+		if ( puncher == null ){
+			
+			return( null );
+		}
+		
+		if ( rendezvous == null || rendezvous.length == 0 ){
+		
+			return( puncher.punch( "Tunnel", contact, null, client_data ));
+			
+		}else{
+			
+			DHTTransportContact[] r = new DHTTransportContact[rendezvous.length];
+			
+			for ( int i=0;i<r.length;i++){
+				
+				r[0] = ((DHTPluginContactImpl)rendezvous[i]).contact;
+			}
+			
+			Map result = puncher.punch( "Tunnel", contact, r, client_data );
+			
+			DHTTransportContact used = r[0];
+			
+			if ( used != null ){
+				
+				rendezvous[0] = new DHTPluginContactImpl( plugin, used );
+			}
+			
+			return( result );
+		}
+	}
+
 	public byte[]
     read(
     	DHTPluginProgressListener	listener,
