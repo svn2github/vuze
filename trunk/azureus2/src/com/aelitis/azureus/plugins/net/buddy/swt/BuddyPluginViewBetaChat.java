@@ -2678,7 +2678,12 @@ BuddyPluginViewBetaChat
 								
 								char c = original_msg.charAt(i);
 								
-								if ( Character.isWhitespace( c )){
+								if ( !Character.isLetterOrDigit( c )){
+									
+									if ( c == '"' ){
+										
+										protocol = c + protocol;
+									}
 									
 									break;
 								}
@@ -2876,7 +2881,12 @@ BuddyPluginViewBetaChat
 								
 								char c = msg.charAt(i);
 								
-								if ( Character.isWhitespace( c )){
+								if ( !Character.isLetterOrDigit( c )){
+									
+									if ( c == '"' ){
+										
+										protocol = c + protocol;
+									}
 									
 									break;
 								}

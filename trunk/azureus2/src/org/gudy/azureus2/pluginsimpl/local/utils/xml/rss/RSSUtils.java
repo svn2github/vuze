@@ -44,6 +44,13 @@ RSSUtils
 	parseRSSDate(
 		String	date_str )
 	{
+		date_str = date_str.trim();
+		
+		if ( date_str.length() == 0 ){
+			
+			return( null );
+		}
+		
 		try{
 			// see rfc822 [EEE,] dd MMM yyyy HH:mm::ss z
 			// assume 4 digit year
@@ -102,6 +109,13 @@ RSSUtils
 	parseAtomDate(
 		String	date_str )
 	{
+		date_str = date_str.trim();
+		
+		if ( date_str.length() == 0 ){
+			
+			return( null );
+		}
+		
 			// full-time from http://tools.ietf.org/html/rfc3339 with T and Z
 		
 		final String[]	formats = {

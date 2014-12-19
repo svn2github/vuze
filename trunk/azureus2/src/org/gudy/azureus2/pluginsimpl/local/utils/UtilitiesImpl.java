@@ -621,7 +621,28 @@ UtilitiesImpl
 	
 			}else{
 				
-				rd = getResourceDownloaderFactory().create( feed_location );
+				if ( AENetworkClassifier.categoriseAddress( feed_location.getHost()) != AENetworkClassifier.AT_PUBLIC ){
+					
+					plugin_proxy = 
+							AEProxyFactory.getPluginProxy( 
+								"RSS Feed download of '" + feed_location + "'",
+								feed_location,
+								true );
+			
+					if ( plugin_proxy == null ){
+							
+						throw( new ResourceDownloaderException( "No Plugin proxy available for '" + feed_str + "'" ));
+					}
+				
+					
+					rd = getResourceDownloaderFactory().create( plugin_proxy.getURL(), plugin_proxy.getProxy());		
+			
+					rd.setProperty( "URL_HOST", plugin_proxy.getURLHostRewrite() + (feed_location.getPort()==-1?"":(":" + feed_location.getPort())));
+
+				}else{
+				
+					rd = getResourceDownloaderFactory().create( feed_location );
+				}
 			}
 			
 			return( getRSSFeed( feed_location, rd));
