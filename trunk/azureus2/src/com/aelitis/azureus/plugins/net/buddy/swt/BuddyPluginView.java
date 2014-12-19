@@ -1680,22 +1680,27 @@ BuddyPluginView
 									        		public void 
 									        		run()
 									        		{
-									        			 boolean is_visible = getVerticalBar().isVisible();
-									        			 
-									        			 if ( first_time || was_visible != is_visible ){
-									        				 
-									        				 x_adjust = is_visible?0:-bar_size.x;
-									        				 
-									        				 try{
-									        					 hacking = true;
-									        				 
-									        					 middle.getParent().layout( true, true );
-									        					 
-									        				 }finally{
-									        					 
-									        					 hacking = false;
-									        				 }
-									        			 }
+									        			if ( isDisposed()){
+									        				
+									        				return;
+									        			}
+									        			
+									        			boolean is_visible = getVerticalBar().isVisible();
+
+									        			if ( first_time || was_visible != is_visible ){
+
+									        				x_adjust = is_visible?0:-bar_size.x;
+
+									        				try{
+									        					hacking = true;
+
+									        					middle.getParent().layout( true, true );
+
+									        				}finally{
+
+									        					hacking = false;
+									        				}
+									        			}
 									        		};	
 									        	});
 								        }

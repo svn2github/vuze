@@ -24,7 +24,6 @@ package com.aelitis.azureus.plugins.net.buddy.swt;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -100,6 +99,8 @@ BuddyPluginViewBetaChat
 	private static final int	MAX_LOG_CHARS	= 10*1024;
 
 	private static final Set<BuddyPluginViewBetaChat>	active_windows = new HashSet<BuddyPluginViewBetaChat>();
+	
+	private static boolean auto_ftux_popout_done	= false;
 	
 	private final BuddyPluginView		view;
 	private final BuddyPlugin			plugin;
@@ -1677,6 +1678,18 @@ BuddyPluginViewBetaChat
 		chat.addListener( this );
 		
 		build_complete	= true;
+		
+		if ( can_popout && !ftux_ok && !auto_ftux_popout_done ){
+			
+			auto_ftux_popout_done = true;
+			
+			try{
+				new BuddyPluginViewBetaChat( view, plugin, chat.getClone());
+				
+			}catch( Throwable e ){
+				
+			}
+		}
 	}
 	
 	private void
