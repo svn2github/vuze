@@ -634,7 +634,55 @@ SubscriptionSchedulerImpl
 		Subscription[]	subs = manager.getSubscriptions( true );
 		
 		long now = SystemTime.getCurrentTime();
-			
+		
+		subs = subs.clone();
+		
+		synchronized( this ){
+
+			Arrays.sort(
+				subs,
+				new Comparator<Subscription>()
+				{
+					public int 
+					compare(
+						Subscription s1, 
+						Subscription s2) 
+					{
+						Long	l1 = (Long)s1.getUserData( SCHEDULER_NEXT_SCAN_KEY );
+						Long	l2 = (Long)s2.getUserData( SCHEDULER_NEXT_SCAN_KEY );
+
+						if ( l1 == l2 ){
+							
+							return( 0 );
+							
+						}else if ( l1 == null ){
+							
+							return( 1 );
+							
+						}else if ( l2 == null ){
+							
+							return( -1 );
+							
+						}else{
+							
+							long diff = l1 - l2;
+							
+							if ( diff < 0 ){
+								
+								return( -1 )
+										;
+							}else if ( diff < 0 ){
+								
+								return( 1 );
+							}else{
+								
+								return( 0 );
+							}
+						}
+					}		
+				});
+		}
+		
 		for (int i=0;i<subs.length;i++){
 			
 			Subscription sub = subs[i];
