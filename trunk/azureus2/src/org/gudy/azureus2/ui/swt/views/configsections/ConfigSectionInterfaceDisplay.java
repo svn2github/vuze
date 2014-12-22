@@ -263,7 +263,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		
 			// external browser
 			
-		if( userMode > 0 ) {
+		if( userMode > 0 ){
+			
 			Group gExternalBrowser = new Group(cSection, SWT.NULL);
 			layout = new GridLayout();
 			layout.numColumns = 1;
@@ -291,12 +292,18 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 						"launchURL", 
 						new Class[]{ URL.class, boolean.class, Runnable.class });
 			
+			String pi_names = "";
+			
 			for ( PluginInterface pi: pis ){
 				
-				browser_choices.add( 
-						new String[]{ "plugin:" + pi.getPluginID(),  pi.getPluginName() });
+				String pi_name = pi.getPluginName();
 				
+				pi_names += ( pi_names.length()==0?"":"/") + pi_name;
+				
+				browser_choices.add( 
+						new String[]{ "plugin:" + pi.getPluginID(),  pi_name });			
 			}
+			
 			final Composite cEBArea = new Composite(gExternalBrowser, SWT.WRAP);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
 			cEBArea.setLayoutData(gridData);
@@ -396,6 +403,20 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				
 				b.addListener( SWT.Selection, radioListener );
 			}
+			
+				// always use plugin for non-pub
+			
+			Composite nonPubArea = new Composite(gExternalBrowser,SWT.NULL);
+			layout = new GridLayout(2,false);
+			layout.marginHeight = 0;
+			nonPubArea.setLayout(layout);
+			nonPubArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+			String temp = MessageText.getString( "config.external.browser.non.pub", new String[]{ pi_names });
+			
+			BooleanParameter non_pub = new BooleanParameter( nonPubArea, "browser.external.non.pub", true, "!" + temp + "!" );
+
+			non_pub.setEnabled( pis.size() > 0 );
 			
 				// test launch
 			

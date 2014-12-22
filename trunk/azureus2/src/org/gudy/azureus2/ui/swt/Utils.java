@@ -1087,9 +1087,24 @@ public class Utils
 		String lc_sFile = sFile.toLowerCase( Locale.US );
 		
 		if ( lc_sFile.startsWith( "http:" ) || lc_sFile.startsWith( "https:" )){
+
+			boolean	non_public = false;
+			
+			boolean	use_plugins = COConfigurationManager.getBooleanParameter( "browser.external.non.pub", true );
+			try{
+				non_public = AENetworkClassifier.categoriseAddress( new URL( sFile ).getHost()) != AENetworkClassifier.AT_PUBLIC;
+				
+			}catch( Throwable e ){
+				
+			}
 			
 			String eb_choice = COConfigurationManager.getStringParameter( "browser.external.id", "system" );
 
+			if ( non_public && use_plugins ){
+				
+				eb_choice = "plugin";
+			}
+			
 			if ( eb_choice.equals( "system" )){
 				
 			}else if ( eb_choice.equals( "manual" )){
@@ -1127,7 +1142,7 @@ public class Utils
 					
 					String id = "plugin:" + pi.getPluginID();
 					
-					if ( id.equals( eb_choice )){
+					if ( eb_choice.equals( "plugin" ) || id.equals( eb_choice )){
 						
 						found = true;
 						
