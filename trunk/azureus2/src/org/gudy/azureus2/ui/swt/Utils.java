@@ -1222,7 +1222,7 @@ public class Utils
 				
 				if ( !found ){
 					
-					if ( non_public && use_plugins ){
+					if ( non_public && use_plugins && ( Constants.isWindows || Constants.isOSX )){
 						
 						boolean	try_it;
 						
