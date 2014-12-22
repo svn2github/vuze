@@ -22,10 +22,7 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -42,6 +39,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -64,7 +62,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.table.*;
+import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
+import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -1262,7 +1261,7 @@ public class Utils
 											
 											prompter.setRemember( 
 												"aznettorbrowser.install", 
-												true,
+												false,
 												MessageText.getString("MessageBoxWindow.nomoreprompting"));
 											
 											prompter.setAutoCloseInMS(0);
