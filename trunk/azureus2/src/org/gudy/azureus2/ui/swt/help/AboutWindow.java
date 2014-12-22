@@ -69,8 +69,7 @@ public class AboutWindow {
     
     paintColorTo = 0;
 
-    final Shell window = ShellFactory.createMainShell((Constants.isOSX)
-				? SWT.DIALOG_TRIM : (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
+    final Shell window = ShellFactory.createMainShell(SWT.DIALOG_TRIM);
     Utils.setShellIcon(window);
     final Display display = window.getDisplay();
 
@@ -171,6 +170,7 @@ public class AboutWindow {
 				"bugreports",
 				"forumdiscussion",
 				"wiki",
+				"!Vuze Wiki eepsite",
 				"contributors",
 				"!EULA",
 				"!Privacy Policy"
@@ -181,6 +181,7 @@ public class AboutWindow {
 				"http://forum.vuze.com/forum.jspa?forumID=124",
 				"http://forum.vuze.com",
 				Constants.AZUREUS_WIKI,
+				"http://que23xpe7o3lzq6auv6stb4bha7ddavrlgqdv2cuhgd36fgfmp6q.b32.i2p/",
 				Constants.AZUREUS_WIKI + "Contributors",
 				"http://www.vuze.com/corp/terms.php",
 				"http://www.vuze.com/corp/privacy.php"
