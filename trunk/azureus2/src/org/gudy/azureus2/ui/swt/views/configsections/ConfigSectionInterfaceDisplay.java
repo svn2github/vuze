@@ -406,22 +406,23 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			
 				// always use plugin for non-pub
 			
-			Composite nonPubArea = new Composite(gExternalBrowser,SWT.NULL);
-			layout = new GridLayout(2,false);
-			layout.marginHeight = 0;
-			nonPubArea.setLayout(layout);
-			nonPubArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-			String temp = MessageText.getString( "config.external.browser.non.pub", new String[]{ pi_names });
-			
-			BooleanParameter non_pub = new BooleanParameter( nonPubArea, "browser.external.non.pub", true, "!" + temp + "!" );
-
-			non_pub.setEnabled( pis.size() > 0 );
+			if ( pis.size() > 0 ){
+				
+				Composite nonPubArea = new Composite(gExternalBrowser,SWT.NULL);
+				layout = new GridLayout(2,false);
+				layout.marginHeight = 0;
+				nonPubArea.setLayout(layout);
+				nonPubArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	
+				String temp = MessageText.getString( "config.external.browser.non.pub", new String[]{ pi_names });
+				
+				BooleanParameter non_pub = new BooleanParameter( nonPubArea, "browser.external.non.pub", true, "!" + temp + "!" );
+			}
 			
 				// test launch
 			
 			Composite testArea = new Composite(gExternalBrowser,SWT.NULL);
-			layout = new GridLayout(3,false);
+			layout = new GridLayout(4,false);
 			layout.marginHeight = 0;
 			testArea.setLayout(layout);
 			testArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -433,6 +434,12 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		    
 		    Messages.setLanguageText(test_button, "configureWizard.nat.test");
 
+		    final Text test_url = new Text( testArea, SWT.BORDER );
+		    
+		    test_url.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		    test_url.setText( "http://www.vuze.com/" );
+		    
 		    test_button.addListener(SWT.Selection, 
 		    		new Listener() 
 					{
@@ -441,13 +448,15 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				        {
 				        	test_button.setEnabled( false );
 				        	
+				        	final String url_str = test_url.getText().trim();
+				        	
 				        	new AEThread2( "async" )
 				        	{
 				        		public void
 				        		run()
 				        		{
 				        			try{
-				        				Utils.launch( "http://www.vuze.com/", true );
+				        				Utils.launch( url_str, true );
 				        				
 				        			}finally{
 				        				

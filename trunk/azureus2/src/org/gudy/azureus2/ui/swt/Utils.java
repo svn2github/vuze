@@ -70,6 +70,9 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -1027,12 +1030,15 @@ public class Utils
 	
 	private static Set<String>		pending_ext_urls 	= new HashSet<String>();
 	private static AsyncDispatcher	ext_url_dispatcher 	= new AsyncDispatcher( "Ext Urls" );
+	private static boolean			install_active		= false;
 	
 	public static void 
 	launch(
-		String 	sFile,
-		boolean	sync )
+		final String 	_sFile,
+		final boolean	sync )
 	{
+		String sFile = _sFile;
+		
 		if (sFile == null || sFile.trim().length() == 0) {
 			return;
 		}
@@ -1091,6 +1097,7 @@ public class Utils
 			boolean	non_public = false;
 			
 			boolean	use_plugins = COConfigurationManager.getBooleanParameter( "browser.external.non.pub", true );
+			
 			try{
 				non_public = AENetworkClassifier.categoriseAddress( new URL( sFile ).getHost()) != AENetworkClassifier.AT_PUBLIC;
 				
@@ -1102,7 +1109,7 @@ public class Utils
 
 			if ( non_public && use_plugins ){
 				
-				eb_choice = "plugin";
+				eb_choice = "plugin";	// hack to force to that code leg
 			}
 			
 			if ( eb_choice.equals( "system" )){
@@ -1215,7 +1222,115 @@ public class Utils
 				
 				if ( !found ){
 					
-					Debug.out( "Failed to find external URL launcher plugin with id '" + eb_choice + "'" );
+					if ( non_public && use_plugins ){
+						
+						boolean	try_it;
+						
+						synchronized( pending_ext_urls ){
+
+							try_it = !install_active;
+							
+							install_active = true;
+						}
+						
+						if ( try_it ){
+							
+							ext_url_dispatcher.dispatch(
+								new AERunnable()
+								{	
+									public void 
+									runSupport() 
+									{
+										boolean installing = false;
+										
+										try{
+											UIFunctions uif = UIFunctionsManager.getUIFunctions();
+											
+											if ( uif == null ){
+												
+												throw( new Exception( "UIFunctions unavailable - can't install plugin" ));
+											}
+											
+											String title = MessageText.getString("aznettorbrowser.install");
+											
+											String text = MessageText.getString("aznettorbrowser.install.text" );
+											
+											UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
+												MessageText.getString("Button.yes"),
+												MessageText.getString("Button.no")
+											}, 0);
+											
+											prompter.setRemember( 
+												"aznettorbrowser.install", 
+												true,
+												MessageText.getString("MessageBoxWindow.nomoreprompting"));
+											
+											prompter.setAutoCloseInMS(0);
+											
+											prompter.open(null);
+											
+											boolean	install = prompter.waitUntilClosed() == 0;
+											
+											if ( install ){
+													
+												installing = true;
+												
+												uif.installPlugin(
+														"aznettorbrowser",
+														"aznettorbrowser.install",
+														new UIFunctions.actionListener()
+														{
+															public void
+															actionComplete(
+																Object		result )
+															{
+																try{
+																	if ( result instanceof Boolean ){
+																			
+																		if ((Boolean)result){
+																			
+																			Utils.launch( _sFile, sync );
+																		}
+																	}
+																}finally{
+																	
+																	synchronized( pending_ext_urls ){
+																		
+																		install_active = false;
+																	}
+																}
+															}
+														});
+											}else{
+												
+												Debug.out( "Install declined (either user reply or auto-remembered" );
+											}
+										}catch( Throwable e ){
+										
+											Debug.out( e );
+											
+										}finally{
+											
+											if ( !installing ){
+												
+												synchronized( pending_ext_urls ){
+													
+													install_active = false;
+												}
+											}
+										}
+									}
+								});
+						}else{
+							
+							Debug.out( "Installation already active" );
+						}
+					}
+					
+					if ( !eb_choice.equals( "plugin" )){
+						
+						Debug.out( "Failed to find external URL launcher plugin with id '" + eb_choice + "'" );
+					}
 				}
 				
 				return;
