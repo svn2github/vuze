@@ -97,6 +97,8 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTrackerListener;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 
@@ -106,6 +108,7 @@ BuddyPluginView
 {
 	private BuddyPlugin		plugin;
 	private UISWTInstance	ui_instance;
+	private String			VIEW_ID;
 	
 	private BuddyPluginViewInstance		current_instance;
 	
@@ -120,10 +123,11 @@ BuddyPluginView
 	BuddyPluginView(
 		BuddyPlugin		_plugin,
 		UIInstance		_ui_instance,
-		String			VIEW_ID )
+		String			_VIEW_ID )
 	{
 		plugin			= _plugin;
 		ui_instance		= (UISWTInstance)_ui_instance;
+		VIEW_ID			= _VIEW_ID;
 		
 		plugin.getAZ2Handler().addListener(
 			new BuddyPluginAZ2Listener()
@@ -1106,7 +1110,7 @@ BuddyPluginView
 	buildMenu(
 		final Set<ChatInstance>	current_instances )
 	{
-		if ( !menu_latest_instances.equals( current_instances )){
+		if ( menu_items.size() == 0 || !menu_latest_instances.equals( current_instances )){
 
 			for ( MenuItem mi: menu_items ){
 				
@@ -1145,7 +1149,7 @@ BuddyPluginView
 			
 			if ( current_instances.size() > 1 ){
 				
-				MenuItem mi = menu_manager.addMenuItem( mc, "" );
+				MenuItem mi = menu_manager.addMenuItem( mc, "sep1" );
 				
 				mi.setStyle( MenuItem.STYLE_SEPARATOR );
 				
@@ -1173,6 +1177,49 @@ BuddyPluginView
 				
 				menu_items.add( mi );
 			}
+			
+			MenuItem mi = menu_manager.addMenuItem( mc, "sep2" );
+			
+			mi.setStyle( MenuItem.STYLE_SEPARATOR );
+			
+			menu_items.add( mi );
+			
+			mi = menu_manager.addMenuItem( mc, "MainWindow.menu.view.configuration" );
+
+			mi.addListener(
+				new MenuItemListener()
+				{
+					public void
+					selected(
+						MenuItem			menu,
+						Object 				target )
+					{
+						ui_instance.openView( UISWTInstance.VIEW_MAIN, VIEW_ID, null );
+					}
+				});
+			
+			menu_items.add( mi );
+			
+			mi = menu_manager.addMenuItem( mc, "!" + MessageText.getString( "chats.view.heading" ) + "...!" );
+
+			mi.addListener(
+				new MenuItemListener()
+				{
+					public void
+					selected(
+						MenuItem			menu,
+						Object 				target )
+					{
+						UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+						if ( uif != null ){
+
+							uif.openView( UIFunctions.VIEW_CHAT_OVERVIEW, null );
+						}
+					}
+				});
+			
+			menu_items.add( mi );
 			
 			menu_latest_instances = current_instances;
 		}

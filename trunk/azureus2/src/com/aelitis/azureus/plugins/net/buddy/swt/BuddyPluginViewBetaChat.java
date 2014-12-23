@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import java.io.File;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -29,6 +30,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
@@ -65,6 +73,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Base32;
@@ -72,9 +81,12 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
@@ -83,6 +95,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
@@ -122,6 +135,8 @@ BuddyPluginViewBetaChat
 	private Text 					nickname;
 	
 	private Text 					input_area;
+	
+	private DropTarget[]			drop_targets;
 	
 	private LinkedHashMap<ChatMessage,Integer>	messages		= new LinkedHashMap<ChatMessage,Integer>();
 	private List<ChatParticipant>				participants 	= new ArrayList<ChatParticipant>();
@@ -188,7 +203,7 @@ BuddyPluginViewBetaChat
 		
 	    shell.setSize( 500, 500 );
 	    
-	    Utils.createURLDropTarget(shell, input_area);
+	    //Utils.createURLDropTarget(shell, input_area);
 	    
 		if ( active_windows.size() > 0 ){
 			
@@ -295,6 +310,14 @@ BuddyPluginViewBetaChat
 							if ( c != null ){
 								
 								c.dispose();
+							}
+						}
+						
+						if ( drop_targets != null ){
+							
+							for ( DropTarget dt: drop_targets ){
+								
+								dt.dispose();
 							}
 						}
 						
@@ -1644,6 +1667,53 @@ BuddyPluginViewBetaChat
 				}
 			});
 
+		drop_targets = new DropTarget[]{
+			new DropTarget(log, DND.DROP_COPY),
+			new DropTarget(input_area, DND.DROP_COPY)
+		};
+		
+		for ( DropTarget drop_target: drop_targets ){
+			
+			drop_target.setTransfer(new Transfer[] {
+				URLTransfer.getInstance(),
+				FileTransfer.getInstance(),
+				TextTransfer.getInstance(),
+			});
+	
+			drop_target.addDropListener(new DropTargetAdapter() {
+				public void dropAccept(DropTargetEvent event) {
+					event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
+							event.currentDataType);
+				}
+	
+				public void dragEnter(DropTargetEvent event) {
+				}
+	
+				public void dragOperationChanged(DropTargetEvent event) {
+				}
+	
+				public void dragOver(DropTargetEvent event) {
+
+					if ((event.operations & DND.DROP_LINK) > 0)
+						event.detail = DND.DROP_LINK;
+					else if ((event.operations & DND.DROP_COPY) > 0)
+						event.detail = DND.DROP_COPY;
+					else if ((event.operations & DND.DROP_DEFAULT) > 0)
+						event.detail = DND.DROP_COPY;
+	
+	
+					event.feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL | DND.FEEDBACK_EXPAND;
+				}
+	
+				public void dragLeave(DropTargetEvent event) {
+				}
+	
+				public void drop(DropTargetEvent event) {
+					handleDrop( event.data );				
+				}
+			});
+		}
+		
 		ftux_init_done[0] = true;
 		
 		Control[] focus_controls = { log, input_area, buddy_table, nickname, shared_nick_button };
@@ -2118,6 +2188,130 @@ BuddyPluginViewBetaChat
 			buddy_table.clearAll();
 			buddy_table.redraw();
 		}
+	}
+	
+	private void
+	handleDrop(
+		Object	payload )
+	{
+		if ( payload instanceof String[]){
+			
+			String[]	files = (String[])payload;
+			
+			for ( String file: files ){
+			
+				File f = new File( file );
+
+				if ( f.exists()){
+				
+					dropFile( f );
+				}
+			}
+		}else if ( payload instanceof String ){
+			
+			String stuff = (String)payload;
+			
+			if ( stuff.startsWith( "DownloadManager\n" ) ||stuff.startsWith( "DiskManagerFileInfo\n" )){
+				
+				String[]	bits =  Constants.PAT_SPLIT_SLASH_N.split(stuff);
+				
+				for (int i=1;i<bits.length;i++){
+					
+					String	hash_str = bits[i];
+					
+					int	pos = hash_str.indexOf(';');
+					
+					try{
+
+						if ( pos == -1 ){
+							
+							byte[]	 hash = Base32.decode( bits[i] );
+			
+							Download download = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload(hash);
+							
+							dropDownload( download );
+										
+						}else{
+							
+							String[] files = hash_str.split(";");
+							
+							byte[]	 hash = Base32.decode( files[0].trim());
+							
+							DiskManagerFileInfo[] dm_files = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload(hash).getDiskManagerFileInfo();
+							
+							for (int j=1;j<files.length;j++){
+								
+								DiskManagerFileInfo dm_file = dm_files[Integer.parseInt(files[j].trim())];
+								
+								dropDownloadFile( dm_file );
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( "Failed to get download for hash " + bits[1] );
+					}
+				}
+			}else if ( stuff.startsWith( "TranscodeFile\n" )){
+				
+				String[]	bits =  Constants.PAT_SPLIT_SLASH_N.split(stuff);
+				
+				for (int i=1;i<bits.length;i++){
+					
+					File f = new File( bits[i] );
+
+					if ( f.isFile()){
+					
+						dropFile( f );
+					}
+				}
+			}else{
+				
+				String lc_stuff = stuff.toLowerCase( Locale.US );
+				
+				if ( 	lc_stuff.startsWith( "http:" ) || 
+						lc_stuff.startsWith( "https:" ) ||
+						lc_stuff.startsWith( "magnet: ")){
+			
+					dropURL( stuff );
+				}
+			}
+		}else if ( payload instanceof URLTransfer.URLType ){
+			
+			String url = ((URLTransfer.URLType)payload).linkURL;
+			
+			if ( url != null ){
+				
+				dropURL( url );
+			}
+		}
+	}
+	
+	private void
+	dropURL(
+		String	str )
+	{
+		input_area.setText( input_area.getText() + str );
+	}
+	
+	private void
+	dropFile(
+		File	file )
+	{
+		
+	}
+	
+	private void
+	dropDownload(
+		Download		download )
+	{
+		
+	}
+	
+	private void
+	dropDownloadFile(
+		DiskManagerFileInfo		file )
+	{
+			
 	}
 	
 	protected void
