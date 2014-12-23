@@ -18,6 +18,7 @@ package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.net.URL;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
@@ -1100,10 +1101,26 @@ public class UIFunctionsImpl
 					}
 				}
 			}catch( Throwable e ){
-				
 			}
 			
 			return( false );
+		}
+		
+		try{
+				// if it is just a trivial URL (no path/query) then most unlikely to refer to
+				// a torrent file so just launch the URL
+			
+			URL url = new URL( hit );
+			
+			String path = url.getPath();
+			
+			if (( path.length() == 0 || path.equals( "/" )) && url.getQuery() == null ){
+				
+				Utils.launch( url.toExternalForm());
+				
+				return( true );
+			}
+		}catch( Throwable e ){
 		}
 		
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
