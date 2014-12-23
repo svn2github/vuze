@@ -34,6 +34,8 @@ public interface
 ShareManager 
 {
 	public static final String	PR_PERSONAL		= "personal";		// "true"/"false"
+	public static final String	PR_NETWORKS		= "networks";		// String of nets, comma separated
+	public static final String	PR_USER_DATA	= "user_data";		// something distinct the 'creator' can recognise
 	
 	public void
 	initialise()

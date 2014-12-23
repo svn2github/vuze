@@ -27,6 +27,7 @@ package com.aelitis.azureus.plugins.sharing.hoster;
  *
  */
 
+import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
@@ -36,9 +37,11 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.download.*;
-
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 
 public class 
 ShareHosterPlugin
@@ -169,7 +172,7 @@ ShareHosterPlugin
 				
 				if ( download == null ){
 					
-					new_download = download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), file_resource.getFile());
+					new_download = addDownload( resource, torrent, item.getTorrentFile(), file_resource.getFile());
 				}
 			}else if ( type == ShareResource.ST_DIR ){
 			
@@ -183,7 +186,7 @@ ShareHosterPlugin
 				
 				if ( download == null ){
 					
-					new_download = download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), dir_resource.getDir());
+					new_download = addDownload( resource, torrent, item.getTorrentFile(), dir_resource.getDir());
 				}
 			}
 			
@@ -280,6 +283,74 @@ ShareHosterPlugin
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
+		}
+	}
+	
+	private Download
+	addDownload(
+		ShareResource		resource,
+		final Torrent		torrent,
+		File				torrent_file,
+		File				data_file )
+		
+		throws DownloadException
+	{
+		Map<String,String>	properties  = resource.getProperties();
+		
+		final List<String>	networks = new ArrayList<String>();
+		
+		if ( properties != null ){
+			
+			String nets = properties.get( ShareManager.PR_NETWORKS );
+			
+			if ( nets != null ){
+				
+				String[] bits = nets.split( "," );
+								
+				for ( String bit: bits ){
+			
+					bit = AENetworkClassifier.internalise( bit );
+					
+					if ( bit != null ){
+						
+						networks.add( bit );
+					}
+				}
+			}
+		}	
+				
+		DownloadWillBeAddedListener dwbal = null; 
+
+		if ( networks.size() > 0 ){
+			
+			dwbal = 
+				new DownloadWillBeAddedListener()
+				{		
+					public void 
+					initialised(
+						Download download )
+					{
+						if ( Arrays.equals( download.getTorrentHash(), torrent.getHash())){ 
+						
+							PluginCoreUtils.unwrap( download ).getDownloadState().setNetworks( networks.toArray( new String[networks.size()]));
+						}
+					}
+				};
+		
+			download_manager.addDownloadWillBeAddedListener( dwbal );
+		}
+		
+		try{
+			Download download = download_manager.addNonPersistentDownload( torrent, torrent_file, data_file );
+
+			return( download );		
+			
+		}finally{
+			
+			if ( dwbal != null ){
+				
+				download_manager.removeDownloadWillBeAddedListener( dwbal );
+			}
 		}
 	}
 	

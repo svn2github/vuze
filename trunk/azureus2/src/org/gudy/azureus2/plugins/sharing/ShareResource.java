@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.sharing;
 
+import java.util.Map;
+
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
 /**
@@ -73,6 +75,9 @@ ShareResource
 	
 	public TorrentAttribute[]
 	getAttributes();
+	
+	public Map<String,String>
+	getProperties();
 	
 	public boolean
 	canBeDeleted()

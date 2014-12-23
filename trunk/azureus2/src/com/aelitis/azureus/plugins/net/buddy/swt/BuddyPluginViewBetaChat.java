@@ -81,9 +81,16 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.plugins.sharing.ShareResource;
+import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
+import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -94,8 +101,12 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
@@ -110,7 +121,8 @@ BuddyPluginViewBetaChat
 
 	private static final int 	MAX_LOG_LINES	= 250;
 	private static final int	MAX_LOG_CHARS	= 10*1024;
-
+	private static final int	MAX_MSG_LENGTH	= 400;
+	
 	private static final Set<BuddyPluginViewBetaChat>	active_windows = new HashSet<BuddyPluginViewBetaChat>();
 	
 	private static boolean auto_ftux_popout_done	= false;
@@ -1486,7 +1498,7 @@ BuddyPluginViewBetaChat
 		grid_data.horizontalIndent = 4;
 		input_area.setLayoutData(grid_data);
 			
-		input_area.setTextLimit( 400 );
+		input_area.setTextLimit( MAX_MSG_LENGTH );
 		
 		input_area.addKeyListener(
 			new KeyListener()
@@ -2297,21 +2309,106 @@ BuddyPluginViewBetaChat
 	dropFile(
 		File	file )
 	{
+		Map<String,String>	properties = new HashMap<String, String>();
 		
+		String[]	networks;
+		
+		if ( chat.isAnonymous()){
+			
+			networks = AENetworkClassifier.AT_NON_PUBLIC;
+			
+		}else{
+			
+			networks = AENetworkClassifier.AT_NETWORKS;
+		}
+		
+		String networks_str = "";
+		
+		for ( String net: networks ){
+			
+			networks_str += (networks_str.length()==0?"":",") + net;
+		}
+		
+		properties.put( ShareManager.PR_PERSONAL, "true" );
+		properties.put( ShareManager.PR_NETWORKS, networks_str );
+		properties.put( ShareManager.PR_USER_DATA, "buddyplugin:share" );
+		
+		try{
+			PluginInterface pi = plugin.getPluginInterface();
+			
+			Torrent 	torrent;
+			
+			if ( file.isFile()){
+			
+				ShareResourceFile srf = pi.getShareManager().addFile( file, properties );
+				
+				torrent = srf.getItem().getTorrent();
+				
+			}else if ( file.isDirectory()){
+				
+				ShareResourceDir srd = pi.getShareManager().addDir( file, properties );
+				
+				torrent = srd.getItem().getTorrent();
+				
+			}else{
+				
+				throw( new Exception( "File '" + file + "' does not exist or is not accessible" ));
+			}
+			
+			Download download = pi.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( torrent.getHash());
+
+			dropDownload( download );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
 	}
 	
 	private void
 	dropDownload(
 		Download		download )
-	{
+	{		
+		String magnet = UrlUtils.getMagnetURI( download, 80 );
 		
+		if ( magnet.length() < MAX_MSG_LENGTH-10 ){
+					
+			magnet += "[[$dn]]";
+		}
+		
+		plugin.getBeta().tagDownload( download );
+		
+		download.setForceStart( true );
+		
+		input_area.setText( input_area.getText() + magnet );
 	}
 	
 	private void
 	dropDownloadFile(
 		DiskManagerFileInfo		file )
 	{
+		try{
+			Download download = file.getDownload();
 			
+			if ( download.getTorrent().isSimpleTorrent()){
+				
+				dropDownload( download );
+				
+				return;
+			}
+			
+			if ( file.getLength() == file.getDownloaded() && file.getFile( true ).exists()){
+				
+				dropFile( file.getFile( true ));
+				
+			}else{
+				
+				Debug.out( "File is incomplete or missing" );
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
 	}
 	
 	protected void

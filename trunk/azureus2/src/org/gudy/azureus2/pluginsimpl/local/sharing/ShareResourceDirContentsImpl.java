@@ -40,9 +40,10 @@ ShareResourceDirContentsImpl
 	extends		ShareResourceImpl
 	implements 	ShareResourceDirContents
 {
-	private final File			root;
-	private final boolean		recursive;
-	private final byte[]		personal_key;
+	private final File					root;
+	private final boolean				recursive;
+	private final Map<String,String>	properties;
+	private final byte[]				personal_key;
 	
 	protected ShareResource[]		children	= new ShareResource[0];
 	
@@ -52,6 +53,7 @@ ShareResourceDirContentsImpl
 		File				_dir,
 		boolean				_recursive,
 		boolean				_personal,
+		Map<String,String>	_properties,
 		boolean				_async_check )
 
 		throws ShareException
@@ -60,7 +62,8 @@ ShareResourceDirContentsImpl
 		
 		root 		= _dir;
 		recursive	= _recursive;
-		
+		properties	= _properties;
+				
 		if ( !root.exists()){
 			
 			throw( new ShareException( "Dir '" + root.getName() + "' not found"));
@@ -130,6 +133,8 @@ ShareResourceDirContentsImpl
 		
 		personal_key = (byte[])_map.get( "per_key" );
 		
+		properties = BDecoder.decodeStrings((Map)_map.get( "props" ));
+
 			// deserialised resource, checkConsistency will be called later to trigger sub-share adding
 	}
 	
@@ -221,7 +226,7 @@ ShareResourceDirContentsImpl
 								
 								if ( res == null ){
 								
-									res = manager.addDir( this, file, personal_key != null );
+									res = manager.addDir( this, file, personal_key != null, properties );
 								}
 								
 								kids.add( res );
@@ -238,7 +243,7 @@ ShareResourceDirContentsImpl
 							
 							if ( res == null ){
 								
-								res = manager.addFile( this, file, personal_key != null );
+								res = manager.addFile( this, file, personal_key != null, properties );
 							}
 							
 							kids.add( res );
@@ -311,6 +316,11 @@ ShareResourceDirContentsImpl
 			
 			map.put( "per_key", personal_key );
 		}
+		
+		if ( properties != null ){
+			
+			map.put( "props", properties );
+		}
 	}
 	
 	protected static ShareResourceImpl
@@ -357,6 +367,12 @@ ShareResourceDirContentsImpl
 	getChildren()
 	{
 		return( children );
+	}
+	
+	public Map<String, String> 
+	getProperties() 
+	{
+		return( properties );
 	}
 	
 	protected class
@@ -502,6 +518,12 @@ ShareResourceDirContentsImpl
 		getChildren()
 		{
 			return( node_children );
+		}
+		
+		public Map<String, String> 
+		getProperties() 
+		{
+			return( null );
 		}
 		
 		public void

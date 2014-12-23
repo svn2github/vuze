@@ -141,7 +141,23 @@ public class UrlUtils
 	
 	public static String
 	getMagnetURI(
+		Download		download,
+		int				max_name_len )
+	{
+		return( getMagnetURI( PluginCoreUtils.unwrap(download), max_name_len ));
+	}
+	
+	public static String
+	getMagnetURI(
 		DownloadManager		dm )
+	{
+		return( getMagnetURI( dm, Integer.MAX_VALUE ));
+	}
+	
+	public static String
+	getMagnetURI(
+		DownloadManager		dm,
+		int					max_name_len )
 	{
 		if ( dm == null ){
 			
@@ -156,6 +172,11 @@ public class UrlUtils
 		}
 		
 		String name = dm.getDisplayName();
+		
+		if ( name.length() > max_name_len ){
+			
+			name = name.substring( 0, max_name_len-3) + "...";
+		}
 		
 		String magnet_uri = getMagnetURI( name, PluginCoreUtils.wrap( to_torrent ));
 		

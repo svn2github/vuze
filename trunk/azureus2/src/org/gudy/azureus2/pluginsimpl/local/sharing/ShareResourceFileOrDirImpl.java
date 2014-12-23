@@ -34,7 +34,6 @@ import java.util.*;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
@@ -46,8 +45,9 @@ public abstract class
 ShareResourceFileOrDirImpl
 	extends		ShareResourceImpl
 {
-	private final File				file;
-	private	final byte[]			personal_key;
+	private final File					file;
+	private	final byte[]				personal_key;
+	private final Map<String,String>	properties;
 	
 	private ShareItemImpl		item;
 	
@@ -73,11 +73,14 @@ ShareResourceFileOrDirImpl
 		ShareResourceDirContentsImpl	_parent,
 		int								_type,
 		File							_file,
-		boolean							_personal )
+		boolean							_personal,
+		Map<String,String>				_properties )
 	
 		throws ShareException
 	{
 		super( _manager, _type );
+		
+		properties	= _properties;
 		
 		if ( getType() == ST_FILE ){
 			
@@ -138,6 +141,8 @@ ShareResourceFileOrDirImpl
 		
 		personal_key = (byte[])_map.get( "per_key" );
 
+		properties = BDecoder.decodeStrings((Map)_map.get( "props" ));
+		
 		item = ShareItemImpl.deserialiseItem( this, _map );
 	}
 	
@@ -272,12 +277,13 @@ ShareResourceFileOrDirImpl
 				
 				TorrentUtils.setDecentralised( to_torrent );
 			}
-						
+			
 			DownloadManagerState	download_manager_state = 
 				DownloadManagerStateFactory.getDownloadState( to_torrent ); 
 
 			TorrentUtils.setResumeDataCompletelyValid( download_manager_state );
 
+			
 			download_manager_state.save();
 			
 			if ( item == null ){
@@ -325,7 +331,7 @@ ShareResourceFileOrDirImpl
 				}
 			}else{
 				
-				manager.addFileOrDir( null, file, getType(), personal_key != null );
+				manager.addFileOrDir( null, file, getType(), personal_key != null, properties );
 			}
 		}catch( Throwable e ){
 							
@@ -379,6 +385,11 @@ ShareResourceFileOrDirImpl
 			map.put( "per_key", personal_key );
 		}
 		
+		if ( properties != null ){
+			
+			map.put( "props", properties );
+		}
+		
 		item.serialiseItem( map );
 	}
 	
@@ -404,5 +415,11 @@ ShareResourceFileOrDirImpl
 	getItem()
 	{
 		return( item );
+	}
+	
+	public Map<String, String> 
+	getProperties() 
+	{
+		return( properties );
 	}
 }

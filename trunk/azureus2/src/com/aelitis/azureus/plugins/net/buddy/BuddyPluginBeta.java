@@ -56,10 +56,21 @@ import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ipc.IPCException;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.plugins.sharing.ShareManagerListener;
+import org.gudy.azureus2.plugins.sharing.ShareResource;
+import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
+import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class
@@ -132,7 +143,7 @@ BuddyPluginBeta
 	
 		favourite_map			= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
 		save_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.savemsgmap", new HashMap<String,Long>());
-		
+				
 		SimpleTimer.addPeriodicEvent(
 			"BPB:checkfave",
 			30*1000,
@@ -513,11 +524,62 @@ BuddyPluginBeta
 				{
 					int	type = ev.getType();
 					
-					if ( type == PluginEvent.PEV_PLUGIN_OPERATIONAL ){
+					if ( type == PluginEvent.PEV_INITIAL_SHARING_COMPLETE ){
+						
+						try{
+							ShareManager share_manager = plugin_interface.getShareManager();
+							
+							share_manager.addListener(
+								new ShareManagerListener() {
+									
+									public void 
+									resourceModified(
+										ShareResource old_resource,
+										ShareResource new_resource ) 
+									{
+										checkTag( new_resource );
+									}
+									
+									public void 
+									resourceDeleted(
+										ShareResource resource ) 
+									{
+									}
+									
+									public void 
+									resourceAdded(
+										ShareResource resource )
+									{
+										checkTag( resource );
+									}
+									
+									public void 
+									reportProgress(
+										int percent_complete )
+									{
+									}
+									
+									public void 
+									reportCurrentTask(
+										String task_description ) 
+									{				}
+								});
+							
+							ShareResource[] existing = share_manager.getShares();
+							
+							for ( ShareResource sr: existing ){
+								
+								checkTag( sr );
+							}
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}else if ( type == PluginEvent.PEV_PLUGIN_OPERATIONAL ){
 						
 						pluginAdded((PluginInterface)ev.getValue());
-					}
-					if ( type == PluginEvent.PEV_PLUGIN_NOT_OPERATIONAL ){
+						
+					}else  if ( type == PluginEvent.PEV_PLUGIN_NOT_OPERATIONAL ){
 						
 						pluginRemoved((PluginInterface)ev.getValue());
 					}
@@ -533,6 +595,73 @@ BuddyPluginBeta
 				pluginAdded( pi );
 			}
 		}
+	}
+	
+	private void
+	checkTag(
+		ShareResource		resource )
+	{
+		Map<String,String>	properties = resource.getProperties();
+		
+		if ( properties != null ){
+			
+			String ud = properties.get( ShareManager.PR_USER_DATA );
+			
+			if ( ud.equals( "buddyplugin:share" )){
+				
+				try{
+
+					Torrent torrent = null;
+				
+					if ( resource instanceof ShareResourceFile ){
+						
+						torrent = ((ShareResourceFile)resource).getItem().getTorrent();
+						
+					}else if ( resource instanceof ShareResourceDir ){
+						
+						torrent = ((ShareResourceDir)resource).getItem().getTorrent();
+					}
+					
+					if ( torrent != null ){
+						
+						Download download = plugin_interface.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( torrent.getHash());
+	
+						if ( download != null ){
+							
+							tagDownload( download );
+						}
+					}
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+	}
+	
+	public void
+	tagDownload(
+		Download	download )
+	{
+		try{
+			TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+			
+			Tag tag = tt.getTag( "tag.azbuddy.dchat.shares", false );
+			
+			if ( tag == null ){
+				
+				tag = tt.createTag( "tag.azbuddy.dchat.shares", true );
+				
+				tag.setCanBePublic( false );
+				
+				tag.setPublic( false );
+			}
+			
+			tag.addTaggable( PluginCoreUtils.unwrap( download ));
+			
+		}catch( Throwable e ){
+		
+			Debug.out( e );
+		}	
 	}
 	
 	protected void

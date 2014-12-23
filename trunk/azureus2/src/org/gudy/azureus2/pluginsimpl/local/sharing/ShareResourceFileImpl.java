@@ -59,11 +59,12 @@ ShareResourceFileImpl
 		ShareManagerImpl				_manager,
 		ShareResourceDirContentsImpl	_parent,
 		File							_file,
-		boolean							_personal )
+		boolean							_personal,
+		Map<String,String>				_properties )
 	
 		throws ShareException
 	{
-		super( _manager, _parent, ST_FILE, _file, _personal );
+		super( _manager, _parent, ST_FILE, _file, _personal,_properties );
 	}
 	
 	protected
