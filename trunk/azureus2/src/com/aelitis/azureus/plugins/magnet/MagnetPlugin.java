@@ -1096,7 +1096,7 @@ MagnetPlugin
 									return;
 								}
 								
-								md_downloader[0] = mdd = new MagnetPluginMDDownloader( plugin_interface, hash, networks_enabled, args );
+								md_downloader[0] = mdd = new MagnetPluginMDDownloader( plugin_interface, hash, networks_enabled, sources, args );
 							}
 							
 							listener.reportActivity( getMessageText( "report.md.starts" ));

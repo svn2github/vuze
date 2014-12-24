@@ -22,6 +22,7 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1679,51 +1680,54 @@ BuddyPluginViewBetaChat
 				}
 			});
 
-		drop_targets = new DropTarget[]{
-			new DropTarget(log, DND.DROP_COPY),
-			new DropTarget(input_area, DND.DROP_COPY)
-		};
-		
-		for ( DropTarget drop_target: drop_targets ){
+		if ( !chat.isReadOnly()){
 			
-			drop_target.setTransfer(new Transfer[] {
-				URLTransfer.getInstance(),
-				FileTransfer.getInstance(),
-				TextTransfer.getInstance(),
-			});
+			drop_targets = new DropTarget[]{
+				new DropTarget(log, DND.DROP_COPY),
+				new DropTarget(input_area, DND.DROP_COPY)
+			};
+			
+			for ( DropTarget drop_target: drop_targets ){
+				
+				drop_target.setTransfer(new Transfer[] {
+					URLTransfer.getInstance(),
+					FileTransfer.getInstance(),
+					TextTransfer.getInstance(),
+				});
+		
+				drop_target.addDropListener(new DropTargetAdapter() {
+					public void dropAccept(DropTargetEvent event) {
+						event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
+								event.currentDataType);
+					}
+		
+					public void dragEnter(DropTargetEvent event) {
+					}
+		
+					public void dragOperationChanged(DropTargetEvent event) {
+					}
+		
+					public void dragOver(DropTargetEvent event) {
 	
-			drop_target.addDropListener(new DropTargetAdapter() {
-				public void dropAccept(DropTargetEvent event) {
-					event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
-							event.currentDataType);
-				}
-	
-				public void dragEnter(DropTargetEvent event) {
-				}
-	
-				public void dragOperationChanged(DropTargetEvent event) {
-				}
-	
-				public void dragOver(DropTargetEvent event) {
-
-					if ((event.operations & DND.DROP_LINK) > 0)
-						event.detail = DND.DROP_LINK;
-					else if ((event.operations & DND.DROP_COPY) > 0)
-						event.detail = DND.DROP_COPY;
-					else if ((event.operations & DND.DROP_DEFAULT) > 0)
-						event.detail = DND.DROP_COPY;
-	
-	
-					event.feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL | DND.FEEDBACK_EXPAND;
-				}
-	
-				public void dragLeave(DropTargetEvent event) {
-				}
-	
-				public void drop(DropTargetEvent event) {
-					handleDrop( event.data );				
-				}
-			});
+						if ((event.operations & DND.DROP_LINK) > 0)
+							event.detail = DND.DROP_LINK;
+						else if ((event.operations & DND.DROP_COPY) > 0)
+							event.detail = DND.DROP_COPY;
+						else if ((event.operations & DND.DROP_DEFAULT) > 0)
+							event.detail = DND.DROP_COPY;
+		
+		
+						event.feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL | DND.FEEDBACK_EXPAND;
+					}
+		
+					public void dragLeave(DropTargetEvent event) {
+					}
+		
+					public void drop(DropTargetEvent event) {
+						handleDrop( event.data );				
+					}
+				});
+			}
 		}
 		
 		ftux_init_done[0] = true;
@@ -2370,6 +2374,20 @@ BuddyPluginViewBetaChat
 		Download		download )
 	{		
 		String magnet = UrlUtils.getMagnetURI( download, 80 );
+		
+		InetSocketAddress address = chat.getMyAddress();
+		
+		if ( address != null ){
+			
+			String address_str = String.valueOf( address );
+			
+			String arg = "&xsource=" + UrlUtils.encode( address_str );
+			
+			if ( magnet.length() + arg.length() < MAX_MSG_LENGTH ){
+				
+				magnet += arg;
+			}
+		}
 		
 		if ( magnet.length() < MAX_MSG_LENGTH-10 ){
 					

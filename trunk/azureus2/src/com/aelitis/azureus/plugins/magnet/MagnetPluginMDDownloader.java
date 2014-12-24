@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.magnet;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.RandomAccessFile;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
 
@@ -40,12 +41,14 @@ import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
@@ -77,6 +80,7 @@ MagnetPluginMDDownloader
 	private PluginInterface		plugin_interface;
 	private byte[]				hash;
 	private Set<String>			networks;
+	private InetSocketAddress[]	addresses;
 	private String				args;
 	
 	private volatile boolean		started;
@@ -93,11 +97,13 @@ MagnetPluginMDDownloader
 		PluginInterface		_plugin_interface,
 		byte[]				_hash,
 		Set<String>			_networks,
+		InetSocketAddress[]	_addresses,
 		String				_args )
 	{
 		plugin_interface	= _plugin_interface;
 		hash				= _hash;
 		networks			= _networks;
+		addresses			= _addresses;
 		args				= _args;
 	}
 	
@@ -373,6 +379,30 @@ MagnetPluginMDDownloader
 				state.setNetworkEnabled( AENetworkClassifier.AT_PUBLIC, false );
 			}
 
+			final List<InetSocketAddress>	peers_to_inject = new ArrayList<InetSocketAddress>();
+			
+			if ( addresses != null && addresses.length > 0 ){
+				
+				String[] enabled_nets = state.getNetworks();
+				
+				for ( InetSocketAddress address: addresses ){
+					
+					String host = AddressUtils.getHostAddress( address );
+					
+					String net = AENetworkClassifier.categoriseAddress( host );
+					
+					for ( String n: enabled_nets ){
+						
+						if ( n == net ){
+							
+							peers_to_inject.add( address );
+							
+							break;
+						}
+					}
+				}
+			}
+			
 			final Set<String> peer_networks = new HashSet<String>();
 			
 			final List<Map<String,Object>> peers_for_cache = new ArrayList<Map<String,Object>>();
@@ -636,30 +666,64 @@ MagnetPluginMDDownloader
 							
 							synchronized( lock ){
 								
-								if ( !removed && timer_event == null ){
+								if ( !removed ){
+									
+									if ( timer_event == null ){
 								
-									timer_event = 
-										SimpleTimer.addPeriodicEvent(
-											"announcer",
-											60*1000,
-											new TimerEventPerformer() {
-												
-												public void 
-												perform(
-													TimerEvent event) 
-												{
-													synchronized( lock ){
-														
-														if ( removed ){
+										timer_event = 
+											SimpleTimer.addPeriodicEvent(
+												"announcer",
+												30*1000,
+												new TimerEventPerformer()
+												{	
+													public void 
+													perform(
+														TimerEvent event) 
+													{
+														synchronized( lock ){
 															
-															return;
+															if ( removed ){
+																
+																return;
+															}
 														}
+														
+														download.requestTrackerAnnounce( true );
+	
+														injectPeers( download );
 													}
-													
-													download.requestTrackerAnnounce( true );
+												});
+									}
+									
+									if ( peers_to_inject.size() > 0 ){
+										
+										SimpleTimer.addEvent(
+											"injecter",
+											SystemTime.getOffsetTime( 5*1000 ),
+											new TimerEventPerformer(){
+												public void perform( TimerEvent event ){
+													injectPeers( download );
 												}
 											});
+									}
 								}
+							}
+						}
+					}
+					
+					private void
+					injectPeers(
+						Download	download )
+					{					
+						PeerManager pm = download.getPeerManager();
+
+						if ( pm != null ){
+							
+							for ( InetSocketAddress address: peers_to_inject ){
+																				
+								download.getPeerManager().addPeer(
+									AddressUtils.getHostAddress( address ),
+									address.getPort());
 							}
 						}
 					}
@@ -692,7 +756,7 @@ MagnetPluginMDDownloader
 					}
 				};
 				
-			download_manager.addListener( dl_listener, false );
+			download_manager.addListener( dl_listener, true );
 
 			try{			
 				download.moveTo(1);		

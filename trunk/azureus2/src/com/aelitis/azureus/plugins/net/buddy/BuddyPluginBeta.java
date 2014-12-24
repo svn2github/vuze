@@ -1523,6 +1523,8 @@ BuddyPluginBeta
 		private boolean							read_only;
 		private int								ipc_version;
 		
+		private InetSocketAddress				my_address;
+		
 		private Object	chat_lock = this;
 		
 		private AtomicInteger						message_uid_next = new AtomicInteger();
@@ -2747,7 +2749,15 @@ BuddyPluginBeta
 					participant.addMessage( msg );										
 				}
 					
-				if ( !participant.isMe()){
+				if ( participant.isMe()){
+					
+					InetSocketAddress address = msg.getAddress();
+					
+					if ( address != null ){
+						
+						my_address = address;
+					}
+				}else{
 					
 					last_message_not_mine = msg.getTimeStamp();
 					
@@ -3408,6 +3418,12 @@ BuddyPluginBeta
 			boolean		b )
 		{
 			message_outstanding = b;
+		}
+		
+		public InetSocketAddress
+		getMyAddress()
+		{
+			return( my_address );
 		}
 		
 		public void
