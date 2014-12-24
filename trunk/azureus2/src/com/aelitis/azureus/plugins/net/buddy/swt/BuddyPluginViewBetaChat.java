@@ -77,6 +77,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -90,7 +91,10 @@ import org.gudy.azureus2.plugins.sharing.ShareResource;
 import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
 import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -2311,61 +2315,91 @@ BuddyPluginViewBetaChat
 	
 	private void
 	dropFile(
-		File	file )
+		final File	file )
 	{
-		Map<String,String>	properties = new HashMap<String, String>();
-		
-		String[]	networks;
-		
-		if ( chat.isAnonymous()){
-			
-			networks = AENetworkClassifier.AT_NON_PUBLIC;
-			
-		}else{
-			
-			networks = AENetworkClassifier.AT_NETWORKS;
-		}
-		
-		String networks_str = "";
-		
-		for ( String net: networks ){
-			
-			networks_str += (networks_str.length()==0?"":",") + net;
-		}
-		
-		properties.put( ShareManager.PR_PERSONAL, "true" );
-		properties.put( ShareManager.PR_NETWORKS, networks_str );
-		properties.put( ShareManager.PR_USER_DATA, "buddyplugin:share" );
-		
-		try{
-			PluginInterface pi = plugin.getPluginInterface();
-			
-			Torrent 	torrent;
-			
-			if ( file.isFile()){
-			
-				ShareResourceFile srf = pi.getShareManager().addFile( file, properties );
+		try{			
+			if ( file.exists() && file.canRead()){
 				
-				torrent = srf.getItem().getTorrent();
-				
-			}else if ( file.isDirectory()){
-				
-				ShareResourceDir srd = pi.getShareManager().addDir( file, properties );
-				
-				torrent = srd.getItem().getTorrent();
-				
+				new AEThread2( "share async" )
+				{
+					public void
+					run()
+					{
+						PluginInterface pi = plugin.getPluginInterface();
+						
+						Map<String,String>	properties = new HashMap<String, String>();
+						
+						String[]	networks;
+						
+						if ( chat.isAnonymous()){
+							
+							networks = AENetworkClassifier.AT_NON_PUBLIC;
+							
+						}else{
+							
+							networks = AENetworkClassifier.AT_NETWORKS;
+						}
+						
+						String networks_str = "";
+						
+						for ( String net: networks ){
+							
+							networks_str += (networks_str.length()==0?"":",") + net;
+						}
+						
+						properties.put( ShareManager.PR_PERSONAL, "true" );
+						properties.put( ShareManager.PR_NETWORKS, networks_str );
+						properties.put( ShareManager.PR_USER_DATA, "buddyplugin:share" );
+						
+						Torrent 	torrent;
+
+						try{
+							if ( file.isFile()){
+								
+								ShareResourceFile srf = pi.getShareManager().addFile( file, properties );
+								
+								torrent = srf.getItem().getTorrent();
+								
+							}else{
+								
+								ShareResourceDir srd = pi.getShareManager().addDir( file, properties );
+								
+								torrent = srd.getItem().getTorrent();
+							}	
+													
+							final Download download = pi.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( torrent.getHash());
+	
+							if ( download == null ){
+								
+								throw( new Exception( "Download no longer exists" ));
+								
+							}
+							Utils.execSWTThread(
+								new Runnable() {
+									
+									public void 
+									run()
+									{
+										dropDownload( download );
+
+									}
+								});
+							
+						}catch( Throwable e ){
+							
+							dropFailed( file.getName(), e );
+						}
+					}
+				}.start();
+	
 			}else{
 				
 				throw( new Exception( "File '" + file + "' does not exist or is not accessible" ));
 			}
 			
-			Download download = pi.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( torrent.getHash());
-
-			dropDownload( download );
-			
 		}catch( Throwable e ){
 			
-			Debug.out( e );
+			dropFailed( file.getName(), e );
 		}
 	}
 	
@@ -2417,18 +2451,38 @@ BuddyPluginViewBetaChat
 			
 			File target = file.getFile( true );
 			
-			if ( target.exists() && target.length() == file.getLength()){
+			if (	 target.exists() && 
+					( file.getDownloaded() == file.getLength() ||
+					( download.isComplete() && !file.isSkipped()))){	// just in case cached file completion is borked
 				
 				dropFile( target );
 				
 			}else{
 				
-				Debug.out( "File is incomplete or missing" );
+				throw( new Exception( "File is incomplete or missing" ));
 			}
 		}catch( Throwable e ){
 			
-			Debug.out( e );
+			dropFailed( file.getFile(true).getName(), e );
 		}
+	}
+	
+	private void
+	dropFailed(
+		String		content,
+		Throwable 	e )
+	{
+		UIManager ui_manager = plugin.getPluginInterface().getUIManager();
+				
+		String details = 
+			MessageText.getString( 
+				"azbuddy.dchat.share.fail.msg",
+				new String[]{ content, Debug.getNestedExceptionMessage( e ) });
+			
+		ui_manager.showMessageBox(
+				"azbuddy.dchat.share.fail.title",
+				"!" + details + "!",
+				UIManagerEvent.MT_OK );
 	}
 	
 	protected void

@@ -118,6 +118,8 @@ BuddyPluginBeta
 	
 	private CopyOnWriteList<ChatManagerListener>		listeners = new CopyOnWriteList<ChatManagerListener>();
 	
+	private AtomicInteger		private_chat_id = new AtomicInteger();
+	
 	private AESemaphore	init_complete = new AESemaphore( "bpb:init" );
 	
 	protected
@@ -1286,7 +1288,7 @@ BuddyPluginBeta
 		
 		throws Exception
 	{
-		String key = participant.getChat().getKey() + " - " + participant.getName() + " (outgoing)";
+		String key = participant.getChat().getKey() + " - " + participant.getName() + " (outgoing)[" + private_chat_id.getAndIncrement() + "]";
 		
 		return( getChat( participant.getChat().getNetwork(), key, participant, null, true ));
 	}
@@ -1298,7 +1300,7 @@ BuddyPluginBeta
 		
 		throws Exception
 	{
-		String key = parent_participant.getChat().getKey() + " - " + parent_participant.getName() + " (incoming)";
+		String key = parent_participant.getChat().getKey() + " - " + parent_participant.getName() + " (incoming)[" + private_chat_id.getAndIncrement() + "]";
 
 		return( getChat( parent_participant.getChat().getNetwork(), key, null, handler, true ));
 	}
@@ -1639,6 +1641,9 @@ BuddyPluginBeta
 						
 						str += "[M]";
 					}
+				}else{
+					
+					str = str.substring( 0, pos );
 				}
 			}
 			

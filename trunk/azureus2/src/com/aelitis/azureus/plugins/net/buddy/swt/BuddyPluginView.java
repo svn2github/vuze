@@ -1147,9 +1147,13 @@ BuddyPluginView
 				menu_items.add( mi );
 			}
 			
+			boolean	need_sep = true;
+			
 			if ( current_instances.size() > 1 ){
 				
 				MenuItem mi = menu_manager.addMenuItem( mc, "sep1" );
+				
+				need_sep = false;
 				
 				mi.setStyle( MenuItem.STYLE_SEPARATOR );
 				
@@ -1178,29 +1182,16 @@ BuddyPluginView
 				menu_items.add( mi );
 			}
 			
-			MenuItem mi = menu_manager.addMenuItem( mc, "sep2" );
+			if ( need_sep ){
+				
+				MenuItem mi = menu_manager.addMenuItem( mc, "sep2" );
+				
+				mi.setStyle( MenuItem.STYLE_SEPARATOR );
+				
+				menu_items.add( mi );
+			}
 			
-			mi.setStyle( MenuItem.STYLE_SEPARATOR );
-			
-			menu_items.add( mi );
-			
-			mi = menu_manager.addMenuItem( mc, "MainWindow.menu.view.configuration" );
-
-			mi.addListener(
-				new MenuItemListener()
-				{
-					public void
-					selected(
-						MenuItem			menu,
-						Object 				target )
-					{
-						ui_instance.openView( UISWTInstance.VIEW_MAIN, VIEW_ID, null );
-					}
-				});
-			
-			menu_items.add( mi );
-			
-			mi = menu_manager.addMenuItem( mc, "!" + MessageText.getString( "chats.view.heading" ) + "...!" );
+			MenuItem mi = menu_manager.addMenuItem( mc, "!" + MessageText.getString( "chats.view.heading" ) + "...!" );
 
 			mi.addListener(
 				new MenuItemListener()
@@ -1221,6 +1212,30 @@ BuddyPluginView
 			
 			menu_items.add( mi );
 			
+			mi = menu_manager.addMenuItem( mc, "sep3" );
+			
+			mi.setStyle( MenuItem.STYLE_SEPARATOR );
+			
+			menu_items.add( mi );
+
+			
+			mi = menu_manager.addMenuItem( mc, "MainWindow.menu.view.configuration" );
+
+			mi.addListener(
+				new MenuItemListener()
+				{
+					public void
+					selected(
+						MenuItem			menu,
+						Object 				target )
+					{
+						ui_instance.openView( UISWTInstance.VIEW_MAIN, VIEW_ID, null );
+					}
+				});
+			
+			menu_items.add( mi );
+			
+
 			menu_latest_instances = current_instances;
 		}
 	}
