@@ -2397,9 +2397,11 @@ BuddyPluginViewBetaChat
 				return;
 			}
 			
-			if ( file.getLength() == file.getDownloaded() && file.getFile( true ).exists()){
+			File target = file.getFile( true );
+			
+			if ( target.exists() && target.length() == file.getLength()){
 				
-				dropFile( file.getFile( true ));
+				dropFile( target );
 				
 			}else{
 				
