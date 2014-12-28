@@ -78,6 +78,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -2413,7 +2414,7 @@ BuddyPluginViewBetaChat
 		
 		if ( address != null ){
 			
-			String address_str = String.valueOf( address );
+			String address_str = AddressUtils.getHostAddress(address) + ":" + address.getPort();
 			
 			String arg = "&xsource=" + UrlUtils.encode( address_str );
 			

@@ -613,7 +613,17 @@ MagnetURIHandlerImpl
 					if ( p != -1 ){
 						
 						try{
-							InetSocketAddress	sa = new InetSocketAddress( source.substring(0,p), Integer.parseInt( source.substring(p+1)));
+							String 	host 	= source.substring(0,p);
+							int		port 	= Integer.parseInt( source.substring(p+1));
+							
+								// deal with somwe borked "/ip-address;:port strings
+							
+							if ( host.startsWith( "/" )){
+								
+								host = host.substring(1);
+							}
+							
+							InetSocketAddress	sa = new InetSocketAddress( host, port );
 							
 							sources.add( sa );
 							
