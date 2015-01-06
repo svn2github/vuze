@@ -22,11 +22,17 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 
 public class 
 BuddyPluginUtils 
@@ -114,5 +120,68 @@ BuddyPluginUtils
 				}
 			}
 		}.start();
+	}
+	
+	public static Map<String,Object>
+	peekChat(
+		String		net,
+		String		key )
+	{
+		BuddyPlugin bp = getPlugin();
+		
+		if ( bp != null && bp.isBetaEnabled()){
+			
+			return( bp.getBeta().peekChat( net, key ));
+		}
+		
+		return( null );
+	}
+	
+	public static Map<String,Object>
+	peekChat(
+		Download		download )
+	{
+		BuddyPlugin bp = getPlugin();
+		
+		if ( bp != null && bp.isBetaEnabled()){
+			
+			return( bp.getBeta().peekChat( download ));
+		}
+		
+		return( null );
+	}
+	
+	public static ChatInstance
+	getChat(
+		String		net,
+		String		key )
+	{
+		BuddyPlugin bp = getPlugin();
+		
+		if ( bp != null && bp.isBetaEnabled()){
+			
+			try{
+				return( bp.getBeta().getChat( net, key ));
+				
+			}catch( Throwable e ){
+				
+			}
+		}
+		
+		return( null );
+	}
+	
+	public static ChatInstance
+	getChat(
+		Download		download )
+	{
+		BuddyPlugin bp = getPlugin();
+		
+		if ( bp != null && bp.isBetaEnabled()){
+			
+			return( bp.getBeta().getChat( download ));
+		}
+		
+		return( null );
 	}
 }

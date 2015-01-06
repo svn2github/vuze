@@ -1980,7 +1980,7 @@ BuddyPluginView
 					
 				}else{
 
-					key = "Download: " + download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
+					key = plugin.getBeta().getDownloadKey( download );
 				}
 			}else if ( chat_mode == CHAT_TAG ){
 				

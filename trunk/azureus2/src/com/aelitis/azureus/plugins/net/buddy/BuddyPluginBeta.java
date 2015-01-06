@@ -85,8 +85,13 @@ BuddyPluginBeta
 	public static final int PRIVATE_CHAT_PINNED_ONLY		= 2;
 	public static final int PRIVATE_CHAT_ENABLED			= 3;
 	
-	private static final int MSG_STATUS_CHAT_NONE	= 0;
-	private static final int MSG_STATUS_CHAT_QUIT	= 1;
+	private static final String	FLAGS_MSG_STATUS_KEY		= "s";
+	private static final int 	FLAGS_MSG_STATUS_CHAT_NONE	= 0;		// def
+	private static final int 	FLAGS_MSG_STATUS_CHAT_QUIT	= 1;
+	
+	public static final String 	FLAGS_MSG_ORIGIN_KEY 		= "o";
+	public static final int 	FLAGS_MSG_ORIGIN_USER 		= 0;		// def
+	public static final int 	FLAGS_MSG_ORIGIN_RATINGS 	= 1;
 	
 	
 	private BuddyPlugin			plugin;
@@ -1272,6 +1277,68 @@ BuddyPluginBeta
 		return( getChat( network, key, null, handler, false ));
 	}
 
+	public String
+	getDownloadKey(
+		Download		download )
+	{
+		Torrent torrent = download.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return( null );
+		}
+		
+		String key = "Download: " + download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
+
+		return( key );
+	}
+	
+	public ChatInstance
+	getChat(
+		Download		download )
+	{
+		String	key = getDownloadKey( download );
+
+		if ( key != null ){
+			
+			String[] networks = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+			
+			boolean	has_i2p = false;
+			
+			for ( String net: networks ){
+				
+				if ( net == AENetworkClassifier.AT_PUBLIC ){
+					
+					try{
+						ChatInstance inst = getChat( net, key );
+						
+						return( inst );
+						
+					}catch( Throwable e ){
+						
+					}
+				}else if ( net == AENetworkClassifier.AT_I2P ){
+					
+					has_i2p = true;
+				}
+			}
+			
+			if ( has_i2p ){
+				
+				try{
+					ChatInstance inst = getChat( AENetworkClassifier.AT_I2P, key );
+					
+					return( inst );
+										
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	public ChatInstance
 	getChat(
 		String			network,
@@ -1438,7 +1505,49 @@ BuddyPluginBeta
 		}
 	}
 	
-	private Map<String,Object>
+	public Map<String,Object>
+	peekChat(
+		Download		download )
+	{
+		String	key = getDownloadKey( download );
+
+		if ( key != null ){
+			
+			String[] networks = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+			
+			boolean	has_i2p = false;
+			
+			for ( String net: networks ){
+				
+				if ( net == AENetworkClassifier.AT_PUBLIC ){
+					
+					try{
+						return( peekChat( net, key ));
+												
+					}catch( Throwable e ){
+						
+					}
+				}else if ( net == AENetworkClassifier.AT_I2P ){
+					
+					has_i2p = true;
+				}
+			}
+			
+			if ( has_i2p ){
+				
+				try{
+					return( peekChat( AENetworkClassifier.AT_I2P, key ));
+															
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
+	public Map<String,Object>
 	peekChat(
 		String				network,
 		String				key )
@@ -2897,6 +3006,15 @@ BuddyPluginBeta
 			final String					message,
 			final Map<String,Object>		options )
 		{
+			sendMessage( message, null, options );
+		}
+		
+		public void 
+		sendMessage(
+			final String					message,
+			final Map<String,Object>		flags,
+			final Map<String,Object>		options )
+		{
 			dispatcher.dispatch(
 				new AERunnable()
 				{
@@ -2905,7 +3023,7 @@ BuddyPluginBeta
 					public void 
 					runSupport() 
 					{
-						sendMessageSupport( message, null, options );
+						sendMessageSupport( message, flags, options );
 					}
 				});
 		}
@@ -2980,7 +3098,7 @@ BuddyPluginBeta
 		private void 
 		sendMessageSupport(
 			String					message,
-			Map						flags,
+			Map<String,Object>		flags,
 			Map<String,Object>		options )
 		{
 			if ( handler == null || msgsync_pi == null ){
@@ -3474,7 +3592,7 @@ BuddyPluginBeta
 						
 						Map<String,Object>		flags = new HashMap<String, Object>();
 						
-						flags.put( "s", MSG_STATUS_CHAT_QUIT );
+						flags.put( FLAGS_MSG_STATUS_KEY, FLAGS_MSG_STATUS_CHAT_QUIT );
 						
 						sendMessageSupport( "", flags, new HashMap<String, Object>());
 					}
@@ -3958,7 +4076,7 @@ BuddyPluginBeta
 				}
 			}
 			
-			return( MSG_STATUS_CHAT_NONE );
+			return( FLAGS_MSG_STATUS_CHAT_NONE );
 		}
 		
 		public String
@@ -3977,7 +4095,7 @@ BuddyPluginBeta
 					return( report );
 				}
 				
-				if ( getMessageStatus() == MSG_STATUS_CHAT_QUIT ){
+				if ( getMessageStatus() == FLAGS_MSG_STATUS_CHAT_QUIT ){
 					
 					return( participant.getName() + " has quit" );
 				}
@@ -4015,7 +4133,7 @@ BuddyPluginBeta
 			
 			if ( report == null ){
 				
-				if ( getMessageStatus() == MSG_STATUS_CHAT_QUIT ){
+				if ( getMessageStatus() == FLAGS_MSG_STATUS_CHAT_QUIT ){
 					
 					return( MT_INFO );
 				}
