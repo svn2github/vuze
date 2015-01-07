@@ -508,6 +508,24 @@ public class MenuBuildUtils {
 					chat_priv.setText( chat_priv.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
 
 				}
+			}else{
+				
+				org.eclipse.swt.widgets.MenuItem chat_priv = new org.eclipse.swt.widgets.MenuItem(chat_menu, SWT.PUSH);
+				
+				chat_priv.setText( MessageText.getString("label.anon") + "..." );
+				
+				chat_priv.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event){
+						
+						Utils.installI2PHelper( null, null, null );
+					}});
+				
+				if ( Utils.isInstallingI2PHelper()){
+					
+					chat_priv.setEnabled( false );
+					chat_priv.setText( chat_priv.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
+
+				}
 			}
 		}
 	}

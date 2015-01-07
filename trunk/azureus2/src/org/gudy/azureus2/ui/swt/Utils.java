@@ -26,6 +26,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -1029,8 +1030,9 @@ public class Utils
 	
 	private static Set<String>		pending_ext_urls 		= new HashSet<String>();
 	private static AsyncDispatcher	ext_url_dispatcher 		= new AsyncDispatcher( "Ext Urls" );
-	private static boolean			i2p_install_active		= false;
-	private static boolean			browser_install_active	= false;
+	
+	private static boolean			i2p_install_active_for_url		= false;
+	private static boolean			browser_install_active_for_url	= false;
 	
 	public static void 
 	launch(
@@ -1179,9 +1181,9 @@ public class Utils
 				
 				synchronized( pending_ext_urls ){
 
-					try_it = !i2p_install_active;
+					try_it = !i2p_install_active_for_url;
 					
-					i2p_install_active = true;
+					i2p_install_active_for_url = true;
 				}
 				
 				if ( try_it ){
@@ -1195,77 +1197,39 @@ public class Utils
 								boolean installing = false;
 								
 								try{
-									UIFunctions uif = UIFunctionsManager.getUIFunctions();
+									final boolean[]	install_outcome = { false };
 									
-									if ( uif == null ){
-										
-										throw( new Exception( "UIFunctions unavailable - can't install plugin" ));
-									}
-									
-									String title = MessageText.getString("azneti2phelper.install");
-									
-									String text = MessageText.getString("azneti2phelper.install.text" );
-									
-									UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
-										MessageText.getString("Button.yes"),
-										MessageText.getString("Button.no")
-									}, 0);
-									
-									prompter.setRemember( 
-										"azneti2phelper.install", 
-										false,
-										MessageText.getString("MessageBoxWindow.nomoreprompting"));
-									
-									prompter.setAutoCloseInMS(0);
-									
-									prompter.open(null);
-									
-									boolean	install = prompter.waitUntilClosed() == 0;
-									
-									if ( install ){
-				
-										uif.installPlugin(
-												"azneti2phelper",
-												"azneti2phelper.install",
-												new UIFunctions.actionListener()
+									installing = 
+										installI2PHelper( 
+											"azneti2phelper.install",
+											install_outcome,
+											new Runnable()
+											{
+												public void
+												run()
 												{
-													public void
-													actionComplete(
-														Object		result )
-													{
-														try{
-															if ( result instanceof Boolean ){
-																	
-																if ((Boolean)result){
-																	
-																	Utils.launch( sFileOriginal, sync );
-																}
-															}
-														}finally{
+													try{
+														if ( install_outcome[0] ){
+										
+															Utils.launch( sFileOriginal, sync );
+														}
+													}finally{
+														
+														synchronized( pending_ext_urls ){
 															
-															synchronized( pending_ext_urls ){
-																
-																i2p_install_active = false;
-															}
+															i2p_install_active_for_url = false;
 														}
 													}
-												});
-									
-									}else{
-										
-										Debug.out( "Install declined I2P install(either user reply or auto-remembered)" );
-									}
-								}catch( Throwable e ){
-								
-									Debug.out( e );
-									
+												}
+											});
+	
 								}finally{
 									
 									if ( !installing ){
 										
 										synchronized( pending_ext_urls ){
 											
-											i2p_install_active = false;
+											i2p_install_active_for_url = false;
 										}
 									
 									}
@@ -1371,9 +1335,9 @@ public class Utils
 				
 				synchronized( pending_ext_urls ){
 
-					try_it = !browser_install_active;
+					try_it = !browser_install_active_for_url;
 					
-					browser_install_active = true;
+					browser_install_active_for_url = true;
 				}
 				
 				if ( try_it ){
@@ -1387,67 +1351,32 @@ public class Utils
 								boolean installing = false;
 								
 								try{
-									UIFunctions uif = UIFunctionsManager.getUIFunctions();
+									final boolean[]	install_outcome = { false };
 									
-									if ( uif == null ){
-										
-										throw( new Exception( "UIFunctions unavailable - can't install plugin" ));
-									}
-									
-									String title = MessageText.getString("aznettorbrowser.install");
-									
-									String text = MessageText.getString("aznettorbrowser.install.text" );
-									
-									UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
-										MessageText.getString("Button.yes"),
-										MessageText.getString("Button.no")
-									}, 0);
-									
-									prompter.setRemember( 
-										"aznettorbrowser.install", 
-										false,
-										MessageText.getString("MessageBoxWindow.nomoreprompting"));
-									
-									prompter.setAutoCloseInMS(0);
-									
-									prompter.open(null);
-									
-									boolean	install = prompter.waitUntilClosed() == 0;
-									
-									if ( install ){
-											
-										installing = true;
-										
-										uif.installPlugin(
-												"aznettorbrowser",
-												"aznettorbrowser.install",
-												new UIFunctions.actionListener()
+									installing = 
+										installTorBrowser( 
+											"aznettorbrowser.install",
+											install_outcome,
+											new Runnable()
+											{
+												public void
+												run()
 												{
-													public void
-													actionComplete(
-														Object		result )
-													{
-														try{
-															if ( result instanceof Boolean ){
-																	
-																if ((Boolean)result){
-																	
-																	Utils.launch( sFileOriginal, sync );
-																}
-															}
-														}finally{
-															
-															synchronized( pending_ext_urls ){
+													try{
+														if ( install_outcome[0] ){
 																
-																browser_install_active = false;
-															}
+															Utils.launch( sFileOriginal, sync );
+														}
+													}finally{
+														
+														synchronized( pending_ext_urls ){
+															
+															browser_install_active_for_url = false;
 														}
 													}
-												});
-									}else{
-										
-										Debug.out( "Install declined (either user reply or auto-remembered)" );
-									}
+												}
+											});
+									
 								}catch( Throwable e ){
 								
 									Debug.out( e );
@@ -1458,7 +1387,7 @@ public class Utils
 										
 										synchronized( pending_ext_urls ){
 											
-											browser_install_active = false;
+											browser_install_active_for_url = false;
 										}
 									}
 								}
@@ -1479,6 +1408,238 @@ public class Utils
 		}
 		
 		return;
+	}
+	
+	private static boolean i2p_installing = false;
+	
+	public static boolean
+	isInstallingI2PHelper()
+	{
+		synchronized( pending_ext_urls ){
+			
+			return( i2p_installing );
+		}
+	}
+	
+	public static boolean
+	installI2PHelper(
+		String				remember_id,
+		final boolean[]		install_outcome,
+		final Runnable		callback )
+	{
+		synchronized( pending_ext_urls ){
+			
+			if ( i2p_installing ){
+				
+				Debug.out( "I2P Helper already installing" );
+				
+				return( false );
+			}
+			
+			i2p_installing = true;
+		}
+		
+		boolean	installing = false;
+		
+		try{
+			UIFunctions uif = UIFunctionsManager.getUIFunctions();
+			
+			if ( uif == null ){
+				
+				Debug.out( "UIFunctions unavailable - can't install plugin" );
+				
+				return( false );
+			}
+			
+			String title = MessageText.getString("azneti2phelper.install");
+			
+			String text = MessageText.getString("azneti2phelper.install.text" );
+			
+			UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
+				MessageText.getString("Button.yes"),
+				MessageText.getString("Button.no")
+			}, 0);
+			
+			if ( remember_id != null ){
+
+				prompter.setRemember( 
+					remember_id, 
+					false,
+					MessageText.getString("MessageBoxWindow.nomoreprompting"));
+			}
+			
+			prompter.setAutoCloseInMS(0);
+			
+			prompter.open(null);
+			
+			boolean	install = prompter.waitUntilClosed() == 0;
+			
+			if ( install ){
+	
+				installing = true;
+				
+				uif.installPlugin(
+						"azneti2phelper",
+						"azneti2phelper.install",
+						new UIFunctions.actionListener()
+						{
+							public void
+							actionComplete(
+								Object		result )
+							{
+								try{
+									if ( callback != null ){
+										
+										if ( result instanceof Boolean ){
+											
+											install_outcome[0] = (Boolean)result;
+										}
+										
+										callback.run();
+									}
+								}finally{
+																		
+									synchronized( pending_ext_urls ){
+											
+										i2p_installing = false;
+									}
+								}	
+							}
+						});
+			
+			}else{
+				
+				Debug.out( "I2P Helper install declined (either user reply or auto-remembered)" );
+			}
+			
+			return( install );
+			
+		}finally{
+			
+			if ( !installing ){
+			
+				synchronized( pending_ext_urls ){
+					
+					i2p_installing = false;
+				}
+			}
+		}
+	}
+	
+	private static boolean tb_installing = false;
+	
+	public static boolean
+	isInstallingTorBrowser()
+	{
+		synchronized( pending_ext_urls ){
+			
+			return( tb_installing );
+		}
+	}
+	
+	public static boolean
+	installTorBrowser(
+		String				remember_id,
+		final boolean[]		install_outcome,
+		final Runnable		callback )
+	{
+		synchronized( pending_ext_urls ){
+			
+			if ( tb_installing ){
+				
+				Debug.out( "Tor Browser already installing" );
+				
+				return( false );
+			}
+			
+			tb_installing = true;
+		}
+		
+		boolean	installing = false;
+		
+		try{
+			UIFunctions uif = UIFunctionsManager.getUIFunctions();
+			
+			if ( uif == null ){
+				
+				Debug.out( "UIFunctions unavailable - can't install plugin" );
+				
+				return( false );
+			}
+			
+			String title = MessageText.getString("aznettorbrowser.install");
+			
+			String text = MessageText.getString("aznettorbrowser.install.text" );
+			
+			UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
+				MessageText.getString("Button.yes"),
+				MessageText.getString("Button.no")
+			}, 0);
+			
+			if ( remember_id != null ){
+				
+				prompter.setRemember( 
+					remember_id, 
+					false,
+					MessageText.getString("MessageBoxWindow.nomoreprompting"));
+			}
+			
+			prompter.setAutoCloseInMS(0);
+			
+			prompter.open(null);
+			
+			boolean	install = prompter.waitUntilClosed() == 0;
+			
+			if ( install ){
+								
+				uif.installPlugin(
+					"aznettorbrowser",
+					"aznettorbrowser.install",
+					new UIFunctions.actionListener()
+					{
+						public void
+						actionComplete(
+							Object		result )
+						{
+							try{
+								if ( callback != null ){
+									
+									if ( result instanceof Boolean ){
+										
+										install_outcome[0] = (Boolean)result;
+									}
+									
+									callback.run();
+								}
+							}finally{
+																	
+								synchronized( pending_ext_urls ){
+										
+									tb_installing = false;
+								}
+							}
+						}
+					});
+				
+				installing = true;
+				
+			}else{
+				
+				Debug.out( "Tor Browser install declined (either user reply or auto-remembered)" );
+			}
+			
+			return( install );
+			
+		}finally{
+			
+			if ( !installing ){
+			
+				synchronized( pending_ext_urls ){
+					
+					tb_installing = false;
+				}
+			}
+		}
 	}
 	
 	private static String
