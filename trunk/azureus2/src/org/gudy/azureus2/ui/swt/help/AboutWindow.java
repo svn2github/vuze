@@ -170,7 +170,7 @@ public class AboutWindow {
 				"bugreports",
 				"forumdiscussion",
 				"wiki",
-				"!Vuze Wiki eepsite",
+				"!Vuze Wiki Hidden Service (I2P)",
 				"contributors",
 				"!EULA",
 				"!Privacy Policy"

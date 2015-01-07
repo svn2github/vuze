@@ -39,7 +39,6 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -53,6 +52,7 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
@@ -1027,49 +1027,50 @@ public class Utils
 		launch( sFile, false );
 	}
 	
-	private static Set<String>		pending_ext_urls 	= new HashSet<String>();
-	private static AsyncDispatcher	ext_url_dispatcher 	= new AsyncDispatcher( "Ext Urls" );
-	private static boolean			install_active		= false;
+	private static Set<String>		pending_ext_urls 		= new HashSet<String>();
+	private static AsyncDispatcher	ext_url_dispatcher 		= new AsyncDispatcher( "Ext Urls" );
+	private static boolean			i2p_install_active		= false;
+	private static boolean			browser_install_active	= false;
 	
 	public static void 
 	launch(
-		final String 	_sFile,
-		final boolean	sync )
+		String 		sFileOriginal,
+		boolean		sync )
 	{
-		String sFile = _sFile;
+		String sFileModified = sFileOriginal;
 		
-		if (sFile == null || sFile.trim().length() == 0) {
+		if (sFileModified == null || sFileModified.trim().length() == 0) {
 			return;
 		}
 		
-		if (!Constants.isWindows && new File(sFile).isDirectory()) {
+		if (!Constants.isWindows && new File(sFileModified).isDirectory()) {
 			PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
 			if (mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
 				try {
-					PlatformManagerFactory.getPlatformManager().showFile(sFile);
+					PlatformManagerFactory.getPlatformManager().showFile(sFileModified);
 					return;
 				} catch (PlatformManagerException e) {
 				}
 			}
 		}
 
-		sFile = sFile.replaceAll( "&vzemb=1", "" );
+		sFileModified = sFileModified.replaceAll( "&vzemb=1", "" );
 
-		String exe = getExplicitLauncher( sFile );
+		String exe = getExplicitLauncher( sFileModified );
 		
 		if ( exe != null ){
 			
-			File	file = new File( sFile );
+			File	file = new File( sFileModified );
 										
 			try{
-				System.out.println( "Launching " + sFile + " with " + exe );
+				System.out.println( "Launching " + sFileModified + " with " + exe );
 				
 				if ( Constants.isWindows ){
 					
 						// need to use createProcess as we want to force the process to decouple correctly (otherwise Vuze won't close until the child closes)
 					
 					try{
-						PlatformManagerFactory.getPlatformManager().createProcess( exe + " \"" + sFile + "\"", false );
+						PlatformManagerFactory.getPlatformManager().createProcess( exe + " \"" + sFileModified + "\"", false );
 					
 						return;
 						
@@ -1089,16 +1090,16 @@ public class Utils
 			}
 		}
 			
-		String lc_sFile = sFile.toLowerCase( Locale.US );
+		String lc_sFile = sFileModified.toLowerCase( Locale.US );
 		
 		if ( lc_sFile.startsWith( "http:" ) || lc_sFile.startsWith( "https:" )){
 
-			boolean	non_public = false;
+			String net_type = AENetworkClassifier.AT_PUBLIC;
 			
 			boolean	use_plugins = COConfigurationManager.getBooleanParameter( "browser.external.non.pub", true );
 			
 			try{
-				non_public = AENetworkClassifier.categoriseAddress( new URL( sFile ).getHost()) != AENetworkClassifier.AT_PUBLIC;
+				net_type = AENetworkClassifier.categoriseAddress( new URL( sFileModified ).getHost());
 				
 			}catch( Throwable e ){
 				
@@ -1106,7 +1107,7 @@ public class Utils
 			
 			String eb_choice = COConfigurationManager.getStringParameter( "browser.external.id", "system" );
 
-			if ( non_public && use_plugins ){
+			if ( net_type != AENetworkClassifier.AT_PUBLIC && use_plugins ){
 				
 				eb_choice = "plugin";	// hack to force to that code leg
 			}
@@ -1122,7 +1123,7 @@ public class Utils
 				if ( bf.exists()){
 					
 					try{
-						Process proc = Runtime.getRuntime().exec( new String[]{ bf.getAbsolutePath(), sFile });
+						Process proc = Runtime.getRuntime().exec( new String[]{ bf.getAbsolutePath(), sFileModified });
 						
 					}catch( Throwable e ){
 						
@@ -1130,226 +1131,356 @@ public class Utils
 					}
 				}else{
 					
-					Debug.out( "Can't launch '" + sFile + "' as manual browser '" + bf + " ' doesn't exist" );
+					Debug.out( "Can't launch '" + sFileModified + "' as manual browser '" + bf + " ' doesn't exist" );
 				}
 				
 				return;
 				
 			}else{
 				
-				java.util.List<PluginInterface> pis = 
-						AzureusCoreFactory.getSingleton().getPluginManager().getPluginsWithMethod(
-							"launchURL", 
-							new Class[]{ URL.class, boolean.class, Runnable.class });
+				handlePluginLaunch( eb_choice, net_type, use_plugins, sFileOriginal, sFileModified, sync );
 				
-				boolean found = false;
+				return;
+			}
+		}
+		
+		boolean launched = Program.launch(sFileModified);
+		
+		if (!launched && Constants.isUnix) {
+			
+			sFileModified = sFileModified.replaceAll( " ", "\\ " );
+			
+			if (!Program.launch("xdg-open " + sFileModified)) {
 				
-				for ( final PluginInterface pi: pis ){
+				if ( !Program.launch("htmlview " + sFileModified)){
 					
-					String id = "plugin:" + pi.getPluginID();
+					Debug.out( "Failed to launch '" + sFileModified + "'" );
+				}
+			}
+		}
+	}
+
+	private static void
+	handlePluginLaunch(
+		String				eb_choice,
+		String				net_type,
+		boolean				use_plugins,
+		final String		sFileOriginal,
+		final String		sFileModified,
+		final boolean		sync )
+	{
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		
+		if ( net_type == AENetworkClassifier.AT_I2P ){
+			
+			if ( pm.getPluginInterfaceByID( "azneti2phelper" ) == null ){
+				
+				boolean	try_it;
+				
+				synchronized( pending_ext_urls ){
+
+					try_it = !i2p_install_active;
 					
-					if ( eb_choice.equals( "plugin" ) || id.equals( eb_choice )){
-						
-						found = true;
-						
-						final String f_sFile = sFile;
-						
-						synchronized( pending_ext_urls ){
-							
-							if ( pending_ext_urls.contains( f_sFile )){
-								
-								Debug.outNoStack( "Already queued browser request for '" + f_sFile + "' - ignoring" );
-								
-								return;
-							}
-							
-							pending_ext_urls.add( f_sFile );
-						}
-						
-						AERunnable launch = 
-							new AERunnable()
-							{
-								public void 
-								runSupport() 
-								{
-									try{
-										final AESemaphore sem = new AESemaphore( "wait" );
-	
-										pi.getIPC().invoke( 
-											"launchURL", 
-											new Object[]{ 
-												new URL( f_sFile ), 
-												false, 
-												new Runnable()
-												{
-													public void
-													run()
-													{
-														sem.release();
-													}
-												}});
-										
-										if ( !sem.reserve( 30*1000 )){
-											
-											Debug.out( "Timeout waiting for external url launch" );
-										}
-										
-									}catch( Throwable e ){
-										
-										Debug.out( e );
-										
-									}finally{
-																				
-										synchronized( pending_ext_urls ){
-											
-											pending_ext_urls.remove( f_sFile );
-										}
-									}
-								}
-							};
-														
-						if ( sync ){
-								
-							launch.runSupport();
-								
-						}else{
-								
-							ext_url_dispatcher.dispatch( launch );
-						}
-					}
+					i2p_install_active = true;
 				}
 				
-				if ( !found ){
+				if ( try_it ){
 					
-					if ( non_public && use_plugins && ( Constants.isWindows || Constants.isOSX )){
-						
-						boolean	try_it;
-						
-						synchronized( pending_ext_urls ){
-
-							try_it = !install_active;
-							
-							install_active = true;
-						}
-						
-						if ( try_it ){
-							
-							ext_url_dispatcher.dispatch(
-								new AERunnable()
-								{	
-									public void 
-									runSupport() 
-									{
-										boolean installing = false;
+					ext_url_dispatcher.dispatch(
+						new AERunnable()
+						{	
+							public void 
+							runSupport() 
+							{
+								boolean installing = false;
+								
+								try{
+									UIFunctions uif = UIFunctionsManager.getUIFunctions();
+									
+									if ( uif == null ){
 										
-										try{
-											UIFunctions uif = UIFunctionsManager.getUIFunctions();
-											
-											if ( uif == null ){
-												
-												throw( new Exception( "UIFunctions unavailable - can't install plugin" ));
-											}
-											
-											String title = MessageText.getString("aznettorbrowser.install");
-											
-											String text = MessageText.getString("aznettorbrowser.install.text" );
-											
-											UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
-												MessageText.getString("Button.yes"),
-												MessageText.getString("Button.no")
-											}, 0);
-											
-											prompter.setRemember( 
-												"aznettorbrowser.install", 
-												false,
-												MessageText.getString("MessageBoxWindow.nomoreprompting"));
-											
-											prompter.setAutoCloseInMS(0);
-											
-											prompter.open(null);
-											
-											boolean	install = prompter.waitUntilClosed() == 0;
-											
-											if ( install ){
-													
-												installing = true;
-												
-												uif.installPlugin(
-														"aznettorbrowser",
-														"aznettorbrowser.install",
-														new UIFunctions.actionListener()
-														{
-															public void
-															actionComplete(
-																Object		result )
-															{
-																try{
-																	if ( result instanceof Boolean ){
-																			
-																		if ((Boolean)result){
-																			
-																			Utils.launch( _sFile, sync );
-																		}
-																	}
-																}finally{
+										throw( new Exception( "UIFunctions unavailable - can't install plugin" ));
+									}
+									
+									String title = MessageText.getString("azneti2phelper.install");
+									
+									String text = MessageText.getString("azneti2phelper.install.text" );
+									
+									UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
+										MessageText.getString("Button.yes"),
+										MessageText.getString("Button.no")
+									}, 0);
+									
+									prompter.setRemember( 
+										"azneti2phelper.install", 
+										false,
+										MessageText.getString("MessageBoxWindow.nomoreprompting"));
+									
+									prompter.setAutoCloseInMS(0);
+									
+									prompter.open(null);
+									
+									boolean	install = prompter.waitUntilClosed() == 0;
+									
+									if ( install ){
+				
+										uif.installPlugin(
+												"azneti2phelper",
+												"azneti2phelper.install",
+												new UIFunctions.actionListener()
+												{
+													public void
+													actionComplete(
+														Object		result )
+													{
+														try{
+															if ( result instanceof Boolean ){
 																	
-																	synchronized( pending_ext_urls ){
-																		
-																		install_active = false;
-																	}
+																if ((Boolean)result){
+																	
+																	Utils.launch( sFileOriginal, sync );
 																}
 															}
-														});
-											}else{
-												
-												Debug.out( "Install declined (either user reply or auto-remembered" );
-											}
-										}catch( Throwable e ){
+														}finally{
+															
+															synchronized( pending_ext_urls ){
+																
+																i2p_install_active = false;
+															}
+														}
+													}
+												});
+									
+									}else{
 										
-											Debug.out( e );
-											
-										}finally{
-											
-											if ( !installing ){
-												
-												synchronized( pending_ext_urls ){
-													
-													install_active = false;
-												}
-											}
-										}
+										Debug.out( "Install declined I2P install(either user reply or auto-remembered)" );
 									}
-								});
-						}else{
-							
-							Debug.out( "Installation already active" );
-						}
-					}
+								}catch( Throwable e ){
+								
+									Debug.out( e );
+									
+								}finally{
+									
+									if ( !installing ){
+										
+										synchronized( pending_ext_urls ){
+											
+											i2p_install_active = false;
+										}
+									
+									}
+								}
+							}
+						});
+				}else{
 					
-					if ( !eb_choice.equals( "plugin" )){
-						
-						Debug.out( "Failed to find external URL launcher plugin with id '" + eb_choice + "'" );
-					}
+					Debug.out( "I2P installation already active" );
 				}
 				
 				return;
 			}
 		}
 		
-		boolean launched = Program.launch(sFile);
-		if (!launched && Constants.isUnix) {
+		java.util.List<PluginInterface> pis = 
+				pm.getPluginsWithMethod(
+					"launchURL", 
+					new Class[]{ URL.class, boolean.class, Runnable.class });
+		
+		boolean found = false;
+		
+		for ( final PluginInterface pi: pis ){
 			
-			sFile = sFile.replaceAll( " ", "\\ " );
+			String id = "plugin:" + pi.getPluginID();
 			
-			if (!Program.launch("xdg-open " + sFile)) {
-				if ( !Program.launch("htmlview " + sFile)){
+			if ( eb_choice.equals( "plugin" ) || id.equals( eb_choice )){
+				
+				found = true;
+								
+				synchronized( pending_ext_urls ){
 					
-					Debug.out( "Failed to launch '" + sFile + "'" );
+					if ( pending_ext_urls.contains( sFileModified )){
+						
+						Debug.outNoStack( "Already queued browser request for '" + sFileModified + "' - ignoring" );
+						
+						return;
+					}
+					
+					pending_ext_urls.add( sFileModified );
+				}
+				
+				AERunnable launch = 
+					new AERunnable()
+					{
+						public void 
+						runSupport() 
+						{
+							try{
+								final AESemaphore sem = new AESemaphore( "wait" );
+
+								pi.getIPC().invoke( 
+									"launchURL", 
+									new Object[]{ 
+										new URL( sFileModified ), 
+										false, 
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												sem.release();
+											}
+										}});
+								
+								if ( !sem.reserve( 30*1000 )){
+									
+									Debug.out( "Timeout waiting for external url launch" );
+								}
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+								
+							}finally{
+																		
+								synchronized( pending_ext_urls ){
+									
+									pending_ext_urls.remove( sFileModified );
+								}
+							}
+						}
+					};
+												
+				if ( sync ){
+						
+					launch.runSupport();
+						
+				}else{
+						
+					ext_url_dispatcher.dispatch( launch );
 				}
 			}
 		}
-	}
+		
+		if ( !found ){
+			
+			if (  	net_type != AENetworkClassifier.AT_PUBLIC && 
+					use_plugins && 
+					( Constants.isWindows || Constants.isOSX )){
+				
+				boolean	try_it;
+				
+				synchronized( pending_ext_urls ){
 
+					try_it = !browser_install_active;
+					
+					browser_install_active = true;
+				}
+				
+				if ( try_it ){
+					
+					ext_url_dispatcher.dispatch(
+						new AERunnable()
+						{	
+							public void 
+							runSupport() 
+							{
+								boolean installing = false;
+								
+								try{
+									UIFunctions uif = UIFunctionsManager.getUIFunctions();
+									
+									if ( uif == null ){
+										
+										throw( new Exception( "UIFunctions unavailable - can't install plugin" ));
+									}
+									
+									String title = MessageText.getString("aznettorbrowser.install");
+									
+									String text = MessageText.getString("aznettorbrowser.install.text" );
+									
+									UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
+										MessageText.getString("Button.yes"),
+										MessageText.getString("Button.no")
+									}, 0);
+									
+									prompter.setRemember( 
+										"aznettorbrowser.install", 
+										false,
+										MessageText.getString("MessageBoxWindow.nomoreprompting"));
+									
+									prompter.setAutoCloseInMS(0);
+									
+									prompter.open(null);
+									
+									boolean	install = prompter.waitUntilClosed() == 0;
+									
+									if ( install ){
+											
+										installing = true;
+										
+										uif.installPlugin(
+												"aznettorbrowser",
+												"aznettorbrowser.install",
+												new UIFunctions.actionListener()
+												{
+													public void
+													actionComplete(
+														Object		result )
+													{
+														try{
+															if ( result instanceof Boolean ){
+																	
+																if ((Boolean)result){
+																	
+																	Utils.launch( sFileOriginal, sync );
+																}
+															}
+														}finally{
+															
+															synchronized( pending_ext_urls ){
+																
+																browser_install_active = false;
+															}
+														}
+													}
+												});
+									}else{
+										
+										Debug.out( "Install declined (either user reply or auto-remembered)" );
+									}
+								}catch( Throwable e ){
+								
+									Debug.out( e );
+									
+								}finally{
+									
+									if ( !installing ){
+										
+										synchronized( pending_ext_urls ){
+											
+											browser_install_active = false;
+										}
+									}
+								}
+							}
+						});
+				}else{
+					
+					Debug.out( "Browser installation already active" );
+				}
+				
+				return;
+			}
+		}
+		
+		if ( !eb_choice.equals( "plugin" )){
+				
+			Debug.out( "Failed to find external URL launcher plugin with id '" + eb_choice + "'" );
+		}
+		
+		return;
+	}
+	
 	private static String
 	getExplicitLauncher(
 		String	file )
