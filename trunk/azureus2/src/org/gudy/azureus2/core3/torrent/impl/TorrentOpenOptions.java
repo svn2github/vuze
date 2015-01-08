@@ -425,8 +425,29 @@ public class TorrentOpenOptions
 		if (files == null && torrent != null) {
 			TOTorrentFile[] tfiles = torrent.getFiles();
 			files = new TorrentOpenFileOptions[tfiles.length];
+			
+			Set<String>	skip_extensons = TorrentUtils.getSkipExtensionsSet();
 			for (int i = 0; i < files.length; i++) {
-				files[i] = new TorrentOpenFileOptions(this, tfiles[i], i);
+				TOTorrentFile	torrentFile = tfiles[i];
+				
+				String 	orgFullName = torrentFile.getRelativePath(); // translated to locale
+				String	orgFileName = new File(orgFullName).getName();
+
+				boolean	wanted = true;
+				
+				if ( skip_extensons.size() > 0 ){
+					
+					int	pos = orgFileName.lastIndexOf( '.' );
+					
+					if ( pos != -1 ){
+						
+						String	ext = orgFileName.substring( pos+1 );
+						
+						wanted = !skip_extensons.contains( ext );
+					}
+				}
+				
+				files[i] = new TorrentOpenFileOptions( this, i, orgFullName, orgFileName, torrentFile.getLength(), wanted );
 			}
 		}
 

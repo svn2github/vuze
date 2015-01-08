@@ -140,7 +140,8 @@ TorrentUtils
 			}
 		};
 		
-	private static volatile Set<String>		ignore_set;
+	private static volatile Set<String>		ignore_files_set;
+	private static volatile Set<String>		skip_extensions_set;
 	
 	private static boolean bSaveTorrentBackup;
 	
@@ -2151,23 +2152,107 @@ TorrentUtils
 		}
 	}
 	
+		// skip extensions
+	
+	
+	public static Set<String>
+	getSkipExtensionsSet()
+	{
+		return(getSkipExtensionsSetSupport(false));
+	}
+	
+	private static synchronized Set<String>
+	getSkipExtensionsSetSupport(
+		boolean	force )
+	{
+		if ( skip_extensions_set == null || force ){
+			
+			Set<String>		new_skip_set	= new HashSet<String>();
+		    
+			String	skip_list = COConfigurationManager.getStringParameter( "File.Torrent.AutoSkipExtensions" );
+			
+			skip_list = skip_list.replace( ',', ';' );
+			
+			if ( skip_extensions_set == null ){
+				
+					// first time - add the listener
+				
+				COConfigurationManager.addParameterListener(
+					"File.Torrent.AutoSkipExtensions",
+					new ParameterListener()
+					{
+						public void 
+						parameterChanged(
+							String parameterName)
+						{
+							getSkipExtensionsSetSupport( true );
+						}
+					});
+			}
+			
+			int	pos = 0;
+			
+			while( true ){
+				
+				int	p1 = skip_list.indexOf( ";", pos );
+				
+				String	bit;
+				
+				if ( p1 == -1 ){
+					
+					bit = skip_list.substring(pos);
+					
+				}else{
+					
+					bit	= skip_list.substring( pos, p1 );
+					
+					pos	= p1+1;
+				}
+				
+				String ext = bit.trim().toLowerCase(); 	// use default locale as we're dealing with local file names
+				
+				if ( ext.startsWith(".")){
+					
+					ext = ext.substring(1);
+				}
+				
+				if ( ext.length() > 0 ){
+				
+					new_skip_set.add( ext );
+				}
+				
+				if ( p1 == -1 ){
+					
+					break;
+				}
+			}
+			
+			skip_extensions_set = new_skip_set;
+		}
+		
+		return( skip_extensions_set );
+	}
+	
+	
+		// ignore files
+	
 	public static Set<String>
 	getIgnoreSet()
 	{
 		return(getIgnoreSetSupport(false));
 	}
 	
-	public static synchronized Set<String>
+	private static synchronized Set<String>
 	getIgnoreSetSupport(
 		boolean	force )
 	{
-		if ( ignore_set == null || force ){
+		if ( ignore_files_set == null || force ){
 			
 			Set<String>		new_ignore_set	= new HashSet<String>();
 		    
 			String	ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
 			
-			if ( ignore_set == null ){
+			if ( ignore_files_set == null ){
 				
 					// first time - add the listener
 				
@@ -2203,7 +2288,7 @@ TorrentUtils
 					pos	= p1+1;
 				}
 				
-				new_ignore_set.add(bit.trim().toLowerCase());
+				new_ignore_set.add(bit.trim().toLowerCase());	// use default locale as we're dealing with local file names
 				
 				if ( p1 == -1 ){
 					
@@ -2211,10 +2296,10 @@ TorrentUtils
 				}
 			}
 			
-			ignore_set = new_ignore_set;
+			ignore_files_set = new_ignore_set;
 		}
 		
-		return( ignore_set );
+		return( ignore_files_set );
 	}
 	
 	

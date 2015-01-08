@@ -65,16 +65,25 @@ public class TorrentOpenFileOptions
 	 * @param torrentFile
 	 * @param iIndex
 	 */
-	public TorrentOpenFileOptions(TorrentOpenOptions parent, TOTorrentFile torrentFile,
-			int iIndex) {
-		this.parent = parent;
-		lSize = torrentFile.getLength();
-		this.iIndex = iIndex;
-		setToDownload(true);
-		isValid = true;
+	public 
+	TorrentOpenFileOptions(
+		TorrentOpenOptions 	parent, 
+		int 				iIndex,
+		String				orgFullName,
+		String				orgFileName,
+		long				lSize,
+		boolean				wanted )
+	{
+		this.parent 		= parent;
+		this.iIndex 		= iIndex;
+		this.orgFullName	= orgFullName;
+		this.orgFileName	= orgFileName;
 		
-		orgFullName = torrentFile.getRelativePath(); // translated to locale
-		orgFileName = new File(orgFullName).getName();
+		this.lSize 	= lSize;
+		
+		setToDownload( wanted );
+		
+		isValid = true;
 	}
 	
 	public int

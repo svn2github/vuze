@@ -660,6 +660,14 @@ public class ConfigSectionFile
 					subfolder_name.getControls(), false);
 			enable_subfolder.setAdditionalActionPerformer(subfolderAP);
 			
+				// torrent add auto-skip file types
+			
+			Label lSkipFiles = new Label(gFile, SWT.NULL);
+			Messages.setLanguageText(lSkipFiles,
+					"ConfigView.section.file.torrent.autoskipfiles");
+
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			new StringParameter(gFile, "File.Torrent.AutoSkipExtensions").setLayoutData(gridData);
 			
 				// torrent create/delete ignore files 
 			
@@ -673,6 +681,8 @@ public class ConfigSectionFile
 
 		}
 
+			// File Deletetion Group
+		
 		Group gDeletion = new Group(gFile, SWT.NONE);
 		Messages.setLanguageText(gDeletion,
 				"ConfigView.section.file.deletion.section");
