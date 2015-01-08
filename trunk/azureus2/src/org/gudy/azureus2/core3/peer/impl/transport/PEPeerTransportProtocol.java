@@ -1581,34 +1581,48 @@ implements PEPeerTransport
 	 */
 	public void checkInterested()
 	{
-		if (closing ||peerHavePieces ==null ||peerHavePieces.nbSet ==0)
+		if ( closing || peerHavePieces ==null || peerHavePieces.nbSet == 0 ){
+			
 			return;
-
-		boolean is_interesting = !is_download_disabled;
+		}
 		
-		if ( is_interesting ){
-			if (piecePicker.hasDownloadablePiece())
-			{   // there is a piece worth being interested in
-				if (!isSeed() && !isRelativeSeed())
-				{   // check individually if don't have all
-					for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++ )
-					{
-						if (peerHavePieces.flags[i] && diskManager.isInteresting(i))
-						{
+		boolean is_interesting = false;
+		
+		if ( !is_download_disabled ){
+			
+			if ( piecePicker.hasDownloadablePiece()){
+				
+					// there is a piece worth being interested in
+				
+				if (!isSeed() && !isRelativeSeed()){
+					
+						// check individually if don't have all
+					
+					for (int i = peerHavePieces.start; i <= peerHavePieces.end; i++ ){
+						
+						if ( peerHavePieces.flags[i] && diskManager.isInteresting(i)){
+							
 							is_interesting = true;
+							
 							break;
 						}
 					}
-				} else
-					is_interesting =true;
+				}else{
+					
+					is_interesting = true;
+				}
 			}
 		}
 		
-		if (is_interesting &&!interested_in_other_peer)
+		if ( is_interesting && !interested_in_other_peer ){
+			
 			connection.getOutgoingMessageQueue().addMessage(new BTInterested(other_peer_interested_version), false);
-		else if (!is_interesting &&interested_in_other_peer)
+			
+		}else if ( !is_interesting && interested_in_other_peer ){
+			
 			connection.getOutgoingMessageQueue().addMessage(new BTUninterested(other_peer_uninterested_version), false);
-
+		}
+		
 		interested_in_other_peer = is_interesting;
 	}
 
