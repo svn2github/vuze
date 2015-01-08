@@ -45,6 +45,7 @@ import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -1415,9 +1416,8 @@ BuddyPluginView
 				// anon
 
 			Composite anon_composite = null;
-			
-			if ( plugin.getBeta().isI2PAvailable()){
-								
+											
+			{
 				anon_item = new CTabItem(tab_folder, SWT.NULL);
 	
 				anon_item.setText( MessageText.getString( "label.anon.chat" ));
@@ -2054,12 +2054,10 @@ BuddyPluginView
 							}
 						
 							try{
-								final ChatInstance chat = plugin.getBeta().getChat( network, key );
+								final ChatInstance chat = (network == AENetworkClassifier.AT_I2P && !plugin.getBeta().isI2PAvailable())?null:plugin.getBeta().getChat( network, key );
 						
 								counter.incrementAndGet();
-								
-									// TODO: maintain list of chats
-								
+																
 								Utils.execSWTThread(
 									new Runnable()
 									{
@@ -2076,15 +2074,121 @@ BuddyPluginView
 												c.dispose();
 											}
 											
-											BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( BuddyPluginView.this, plugin, chat, chat_composite );
-											
-											((CTabItem)chat_composite.getData("tabitem")).setToolTipText( key );
-											
-											chat_composite.layout( true, true );
-											
-											chat_composite.setData( comp_key );
-											
-											chat_composite.setData( "viewitem", view );
+											if ( chat == null ){
+												
+												GridLayout layout = new GridLayout();
+												//layout.horizontalSpacing = 1;
+												//layout.verticalSpacing = 1;
+												layout.numColumns = 3;
+										
+												chat_composite.setLayout( layout );
+												
+												Label label = new Label( chat_composite, SWT.NULL );
+												
+												label.setText( MessageText.getString( "azbuddy.dchat.not.installed" ));
+												
+												final Button install_button = new Button( chat_composite, SWT.NULL );
+												
+												install_button.setText( MessageText.getString( "UpdateWindow.columns.install" ));
+												
+												install_button.addSelectionListener(
+													new SelectionAdapter() {
+														
+														public void widgetSelected(SelectionEvent e) {
+															
+															final boolean[] result = { false };
+																														
+															Utils.installI2PHelper(
+																null, result,
+																new Runnable() {
+																	
+																	private long				start = SystemTime.getMonotonousTime();
+																	private TimerEventPeriodic 	timer;
+
+																	public void 
+																	run() 
+																	{
+																		if ( result[0] ){																		
+																		
+																			Utils.execSWTThread(
+																					new Runnable()
+																					{
+																						public void
+																						run() 
+																						{
+																							install_button.setEnabled( false );
+																						}
+																					});
+																			
+																			timer = 
+																				SimpleTimer.addPeriodicEvent(
+																					"install-waiter",
+																					1000,
+																					new TimerEventPerformer() 
+																					{	
+																						public void 
+																						perform(
+																							TimerEvent event) 
+																						{																							
+																							if ( plugin.getBeta().isI2PAvailable()){
+																								
+																								timer.cancel();
+																								
+																								Utils.execSWTThread(
+																									new Runnable()
+																									{
+																										public void
+																										run() 
+																										{
+																											String existing_comp_key = (String)chat_composite.getData();
+			
+																											if ( existing_comp_key == null || existing_comp_key.equals( comp_key )){
+																												
+																												counter.set( 0 );
+																												
+																												chat_composite.setData( null );
+																												
+																												activateChat( network, key, true );
+																											}
+																										}
+																									});
+																							}else{
+																								
+																								if ( SystemTime.getMonotonousTime() - start > 5*60*1000 ){
+																									
+																									timer.cancel();
+																								}
+																							}
+																							
+																						}
+																					});
+																			
+																		}
+																	}
+																});
+														}
+													});
+												
+												List<Button> buttons = new ArrayList<Button>();
+												
+												buttons.add( install_button );
+												
+												Utils.makeButtonsEqualWidth( buttons );
+												
+												chat_composite.layout( true, true );
+												
+											}else{
+												
+												BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( BuddyPluginView.this, plugin, chat, chat_composite );
+												
+												((CTabItem)chat_composite.getData("tabitem")).setToolTipText( key );
+												
+												chat_composite.layout( true, true );
+												
+												chat_composite.setData( comp_key );
+												
+												chat_composite.setData( "viewitem", view );
+											}
 										}
 									});
 								
