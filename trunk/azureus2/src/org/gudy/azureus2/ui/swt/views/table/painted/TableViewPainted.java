@@ -1907,6 +1907,14 @@ public class TableViewPainted
 		refilter();
 	}
 	
+	public Text 
+	getFilterControl()
+	{
+		TableViewSWTFilter<?> filter = getSWTFilter();
+		
+		return( filter==null?null:filter.widget );
+	}
+	
 	public void disableFilterCheck() {
 		TableViewSWTFilter<?> filter = getSWTFilter();
 		if ( filter == null ){

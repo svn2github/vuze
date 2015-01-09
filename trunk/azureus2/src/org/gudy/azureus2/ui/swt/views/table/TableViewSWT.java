@@ -131,6 +131,8 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 */
 	void enableFilterCheck(Text txtFilter, com.aelitis.azureus.ui.common.table.TableViewFilterCheck<DATASOURCETYPE> filterCheck);
 
+	Text getFilterControl();
+	
 	/**
 	 * @since 4.7.0.1
 	 */

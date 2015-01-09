@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -85,7 +86,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 public class FilesView
 	extends TableViewTab<DiskManagerFileInfo>
 	implements TableDataSourceChangedListener, TableSelectionListener,
-	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateAttributeListener,
+	TableViewSWTMenuFillListener, TableRefreshListener, 
+	DownloadManagerStateAttributeListener, DownloadManagerListener,
 	TableLifeCycleListener, TableViewFilterCheck<DiskManagerFileInfo>, KeyListener
 {
 	private static boolean registeredCoreSubViews = false;
@@ -131,6 +133,7 @@ public class FilesView
   private boolean	enable_tabs = true;
   
   public static boolean show_full_path;
+  public static boolean hide_dnd_files;
 
   static{
 	  COConfigurationManager.addAndFireParameterListener(
@@ -175,6 +178,11 @@ public class FilesView
 		if (allowTabViews) {
 	  		tv.setEnableTabViews(enable_tabs,true,null);
 		}
+		
+			// default filter to support meta-filter operations (e.g. hide dnd files)
+		
+		tv.enableFilterCheck( null, this );
+		
   		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
   		if (uiFunctions != null) {
   			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
@@ -235,9 +243,13 @@ public class FilesView
 		
 		if (old_manager != null) {
 			old_manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
+			
+			old_manager.removeListener( this );
 		}
 		if (manager != null) {
 			manager.getDownloadState().addListener(this, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
+			
+			manager.addListener( this );
 		}
 
 		if ( !tv.isDisposed()){
@@ -259,15 +271,59 @@ public class FilesView
 		updateSelectedContent();
 	}
 
+	public void
+	stateChanged(
+		DownloadManager manager,
+		int		state )
+	{
+	}
+
+	public void
+	downloadComplete(DownloadManager manager)
+	{
+	}
+
+	public void
+	completionChanged(DownloadManager manager, boolean bCompleted)
+	{
+	}
+
+	public void
+	positionChanged(DownloadManager download, int oldPosition, int newPosition)
+	{
+	}
+
+	public void
+	filePriorityChanged( DownloadManager download, DiskManagerFileInfo file )
+	{
+		if ( hide_dnd_files ){
+			
+			tv.refilter();
+		}
+	}
+  
 	public boolean 
 	filterCheck(
 		DiskManagerFileInfo ds, String filter, boolean regex )
 	{
+		if ( hide_dnd_files && ds.isSkipped()){
+			
+			return( false );
+		}
+		
 		if ( filter == null || filter.length() == 0 ){
 			
 			return( true );
 		}
 
+		if ( tv.getFilterControl() == null ){
+		
+				// view has no visible filter control so ignore any current filter as the
+				// user's going to get confused...
+			
+			return( true );
+		}
+		
 		try {
 			File file = ds.getFile(true);
 
@@ -488,6 +544,18 @@ public class FilesView
             COConfigurationManager.setParameter( "mtv.eta.show_absolute", MyTorrentsView.eta_absolute );
           }
         });
+    }else if (sColumnName.equals("priority")) {
+        final MenuItem item = new MenuItem(menuThisColumn, SWT.CHECK );
+        Messages.setLanguageText(item, "FilesView.hide.dnd");
+        item.setSelection( hide_dnd_files );
+                
+        item.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+        	  hide_dnd_files = item.getSelection();
+        	  COConfigurationManager.setParameter( "FilesView.hide.dnd", hide_dnd_files );
+        	  tv.refilter();
+          }
+        });
     }
   }
   
@@ -535,6 +603,8 @@ public class FilesView
 
   	if (manager != null) {
 		  manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
+		  
+		  manager.removeListener( this );
 	  }
   }
 
