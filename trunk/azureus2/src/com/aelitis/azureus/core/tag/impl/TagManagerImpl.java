@@ -136,11 +136,55 @@ TagManagerImpl
 				
 				String path = url.getPath();
 				
+				String	query = url.getQuery();
+				
+				if ( query != null ){
+					
+					path += "?" + query;
+				}
+				
 				int	pos = path.indexOf( '?' );
 				
 				if ( pos != -1 ){
 					
+					String args = path.substring( pos+1 );
+
 					path = path.substring(0,pos);
+					
+					if ( path.endsWith( "GetTorrent" )){
+						
+						String[] bits = args.split( "&" );
+						
+						for ( String bit: bits ){
+							
+							String[] temp = bit.split( "=" );
+							
+							if ( temp.length == 2 ){
+								
+								if ( temp[0].equals( "hash" )){
+									
+									try{
+										Download download = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload( Base32.decode( temp[1] ));
+										
+										Torrent torrent = download.getTorrent();
+										
+										response.getOutputStream().write( torrent.writeToBEncodedData());
+										
+										response.setContentType( "application/x-bittorrent" );
+										
+										return( true );
+										
+									}catch( Throwable e ){
+										
+									}
+								}
+							}
+						}
+						
+						response.setReplyStatus( 404 );
+						
+						return( true );	
+					}
 				}
 				
 				path = path.substring( RSS_PROVIDER.length()+1);
@@ -406,9 +450,43 @@ TagManagerImpl
 							
 							pw.println( "<guid>" + hash_str + "</guid>" );
 							
-							String magnet_url = escape( UrlUtils.getMagnetURI( download ));
+							String magnet_uri = UrlUtils.getMagnetURI( download );
+							
+							String obtained_from = TorrentUtils.getObtainedFrom( core_download.getTorrent());
+							
+							boolean	added_fl = false;
+							
+							if ( obtained_from != null ){
+								
+								try{
+									URL ou = new URL( obtained_from );
+									
+									if ( ou.getProtocol().toLowerCase( Locale.US ).startsWith( "http" )){
+										
+										magnet_uri += "&fl=" + UrlUtils.encode( ou.toExternalForm());
+										
+										added_fl = true;
+									}
+								}catch( Throwable e ){
+									
+								}
+							}
+							
+							if ( !added_fl ){
+							
+								String host = (String)request.getHeaders().get( "host" );
+								
+								if ( host != null ){
+									
+									String local_fl = url.getProtocol() + "://" + host + "/" + RSS_PROVIDER + "/GetTorrent?hash=" + Base32.encode( torrent.getHash());
+																	
+									magnet_uri += "&fl=" + UrlUtils.encode( local_fl );
+								}
+							}
+																			
+							magnet_uri = escape( magnet_uri );
 	
-							pw.println( "<link>" + magnet_url + "</link>" );
+							pw.println( "<link>" + magnet_uri + "</link>" );
 							
 							long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
 							
@@ -417,7 +495,7 @@ TagManagerImpl
 							pw.println(	"<vuze:size>" + torrent.getSize()+ "</vuze:size>" );
 							pw.println(	"<vuze:assethash>" + hash_str + "</vuze:assethash>" );
 															
-							pw.println( "<vuze:downloadurl>" + magnet_url + "</vuze:downloadurl>" );
+							pw.println( "<vuze:downloadurl>" + magnet_uri + "</vuze:downloadurl>" );
 					
 							DownloadScrapeResult scrape = download.getLastScrapeResult();
 							
