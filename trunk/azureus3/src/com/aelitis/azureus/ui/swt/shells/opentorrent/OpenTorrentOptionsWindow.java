@@ -1726,10 +1726,12 @@ public class OpenTorrentOptionsWindow
 
 			String[] enabled_networks = AENetworkClassifier.AT_NETWORKS;
 			
-			if ( torrentOptions.enabledNetworks != null ){
+			Map<String,Boolean> enabledNetworks = torrentOptions.getEnabledNetworks();
+			
+			if ( enabledNetworks != null ){
 				List<String>	temp = new ArrayList<String>(Arrays.asList(enabled_networks));
-				for (String net : torrentOptions.enabledNetworks.keySet()) {
-					boolean enable = torrentOptions.enabledNetworks.get(net);
+				for (String net : enabledNetworks.keySet()) {
+					boolean enable = enabledNetworks.get(net);
 					if ( !enable ){
 						temp.remove( net );
 					}
@@ -3715,11 +3717,13 @@ public class OpenTorrentOptionsWindow
 					Button button = new Button(network_group, SWT.CHECK);
 					Messages.setLanguageText(button, msg_text);
 		
-					button.setSelection(torrentOptions.enabledNetworks.get( nn ));
+					Map<String,Boolean> enabledNetworks = torrentOptions.getEnabledNetworks();
+
+					button.setSelection(enabledNetworks.get( nn ));
 					
 					button.addSelectionListener(new SelectionAdapter() {
 						public void widgetSelected(SelectionEvent e) {
-							torrentOptions.enabledNetworks.put(nn, ((Button)e.widget).getSelection());
+							torrentOptions.setNetworkEnabled(nn, ((Button)e.widget).getSelection());
 						}
 					});
 		

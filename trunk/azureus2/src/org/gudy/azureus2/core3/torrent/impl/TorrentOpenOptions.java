@@ -31,10 +31,12 @@ import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 
 
 /**
@@ -107,7 +109,8 @@ public class TorrentOpenOptions
 	private CopyOnWriteList<FileListener> fileListeners = new CopyOnWriteList<FileListener>(1);
 
 	public Map<String, Boolean> peerSource 		= new HashMap<String, Boolean>();
-	public Map<String, Boolean> enabledNetworks = new HashMap<String, Boolean>();
+	
+	private Map<String, Boolean> enabledNetworks = new HashMap<String, Boolean>();
 	
 	private List<Tag>	initialTags = new ArrayList<Tag>();
 
@@ -241,6 +244,20 @@ public class TorrentOpenOptions
 	isSimpleTorrent()
 	{
 		return( torrent.isSimpleTorrent());
+	}
+	
+	public Map<String, Boolean>
+	getEnabledNetworks()
+	{
+		return( new HashMap<String, Boolean>( enabledNetworks ));
+	}
+	
+	public void
+	setNetworkEnabled(
+		String		net,
+		boolean		enabled )
+	{
+		enabledNetworks.put( net, enabled );
 	}
 	
 	public String getDataDir() {
@@ -616,7 +633,7 @@ public class TorrentOpenOptions
 
 			Set<String> tracker_hosts = TorrentUtils.getUniqueTrackerHosts( torrent );
 			
-			Set<String>	networks = new HashSet<String>();
+			final Set<String>	networks = new HashSet<String>();
 				
 			boolean	decentralised = false;
 			
@@ -678,6 +695,39 @@ public class TorrentOpenOptions
 						
 						enabledNetworks.put( AENetworkClassifier.AT_PUBLIC, false );
 					}					
+				}else{
+					
+					final boolean[]	install_outcome = { false };
+
+					if ( BuddyPluginUtils.installI2PHelper(
+							"azneti2phelper.install.open.torrent",
+							install_outcome,
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									if ( !install_outcome[0] ){
+									
+										// could try and revert settings but can't
+										// be bothered atm as it needs additional stuff to
+										// update the UI check boxes...
+										
+									}
+								}
+							})){
+						
+							// here installation has at least started so assume it'll complete
+						
+						enabledNetworks.put( AENetworkClassifier.AT_I2P, true );
+						
+							// disable public if purely i2p
+					
+						if ( networks.contains( AENetworkClassifier.AT_I2P ) && networks.size() == 1 ){
+							
+							enabledNetworks.put( AENetworkClassifier.AT_PUBLIC, false );
+						}	
+					};
 				}
 			}
 			

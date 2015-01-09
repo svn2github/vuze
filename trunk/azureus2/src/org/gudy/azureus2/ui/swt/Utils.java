@@ -70,6 +70,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -1200,7 +1201,7 @@ public class Utils
 									final boolean[]	install_outcome = { false };
 									
 									installing = 
-										installI2PHelper( 
+											BuddyPluginUtils.installI2PHelper( 
 											"azneti2phelper.install",
 											install_outcome,
 											new Runnable()
@@ -1410,121 +1411,7 @@ public class Utils
 		return;
 	}
 	
-	private static boolean i2p_installing = false;
-	
-	public static boolean
-	isInstallingI2PHelper()
-	{
-		synchronized( pending_ext_urls ){
-			
-			return( i2p_installing );
-		}
-	}
-	
-	public static boolean
-	installI2PHelper(
-		String				remember_id,
-		final boolean[]		install_outcome,
-		final Runnable		callback )
-	{
-		synchronized( pending_ext_urls ){
-			
-			if ( i2p_installing ){
-				
-				Debug.out( "I2P Helper already installing" );
-				
-				return( false );
-			}
-			
-			i2p_installing = true;
-		}
-		
-		boolean	installing = false;
-		
-		try{
-			UIFunctions uif = UIFunctionsManager.getUIFunctions();
-			
-			if ( uif == null ){
-				
-				Debug.out( "UIFunctions unavailable - can't install plugin" );
-				
-				return( false );
-			}
-			
-			String title = MessageText.getString("azneti2phelper.install");
-			
-			String text = MessageText.getString("azneti2phelper.install.text" );
-			
-			UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
-				MessageText.getString("Button.yes"),
-				MessageText.getString("Button.no")
-			}, 0);
-			
-			if ( remember_id != null ){
 
-				prompter.setRemember( 
-					remember_id, 
-					false,
-					MessageText.getString("MessageBoxWindow.nomoreprompting"));
-			}
-			
-			prompter.setAutoCloseInMS(0);
-			
-			prompter.open(null);
-			
-			boolean	install = prompter.waitUntilClosed() == 0;
-			
-			if ( install ){
-	
-				installing = true;
-				
-				uif.installPlugin(
-						"azneti2phelper",
-						"azneti2phelper.install",
-						new UIFunctions.actionListener()
-						{
-							public void
-							actionComplete(
-								Object		result )
-							{
-								try{
-									if ( callback != null ){
-										
-										if ( result instanceof Boolean ){
-											
-											install_outcome[0] = (Boolean)result;
-										}
-										
-										callback.run();
-									}
-								}finally{
-																		
-									synchronized( pending_ext_urls ){
-											
-										i2p_installing = false;
-									}
-								}	
-							}
-						});
-			
-			}else{
-				
-				Debug.out( "I2P Helper install declined (either user reply or auto-remembered)" );
-			}
-			
-			return( install );
-			
-		}finally{
-			
-			if ( !installing ){
-			
-				synchronized( pending_ext_urls ){
-					
-					i2p_installing = false;
-				}
-			}
-		}
-	}
 	
 	private static boolean tb_installing = false;
 	

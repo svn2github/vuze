@@ -94,6 +94,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAdapter;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
@@ -2098,7 +2099,7 @@ BuddyPluginView
 															
 															final boolean[] result = { false };
 																														
-															Utils.installI2PHelper(
+															BuddyPluginUtils.installI2PHelper(
 																null, result,
 																new Runnable() {
 																	
