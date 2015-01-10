@@ -434,6 +434,16 @@ public class PeersView
 			}
 		}
 
+		final MenuItem kick_item = new MenuItem(menu, SWT.PUSH);
+
+		Messages.setLanguageText(kick_item, "PeersView.menu.kick");
+		kick_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+			public void run(TableRowCore row) {
+				PEPeer peer = (PEPeer) row.getDataSource(true);
+				peer.getManager().removePeer(peer);
+			}
+		});
+		
 		final MenuItem ban_item = new MenuItem(menu, SWT.PUSH);
 
 		Messages.setLanguageText(ban_item, "PeersView.menu.kickandban");
