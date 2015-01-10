@@ -27,6 +27,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -573,9 +574,11 @@ public class TorrentOpener {
 							}
 						}
 
-						if ( torrentOptions.enabledNetworks != null ){
-							for (String net : torrentOptions.enabledNetworks.keySet()) {
-								boolean enable = torrentOptions.enabledNetworks.get(net);
+						Map<String,Boolean> enabledNetworks = torrentOptions.getEnabledNetworks();
+
+						if ( enabledNetworks != null ){
+							for (String net : enabledNetworks.keySet()) {
+								boolean enable = enabledNetworks.get(net);
 								dm.getDownloadState().setNetworkEnabled(net, enable);
 							}
 						}
