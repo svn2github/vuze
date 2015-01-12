@@ -1171,7 +1171,10 @@ public class TrackerStatus {
 			Properties	http_properties = new Properties();
 
 			http_properties.put( ClientIDGenerator.PR_URL, reqUrl );
-
+			if ( proxy != null ){
+				http_properties.put( ClientIDGenerator.PR_PROXY, proxy );
+			}
+			
 			try{
 				ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
 

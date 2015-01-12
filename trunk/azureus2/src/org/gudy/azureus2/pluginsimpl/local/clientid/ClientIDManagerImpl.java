@@ -294,12 +294,40 @@ ClientIDManagerImpl
 	
 		throws ClientIDException
 	{
-		if ( use_filter ){
+		boolean	filter_it = use_filter;
+		
+		if ( filter_it ){
+			
+			URL		url 	= (URL)properties.get( ClientIDGenerator.PR_URL );
+			
+			String host = url.getHost();
+			
+			if ( host.equals( "127.0.0.1" ) || AENetworkClassifier.categoriseAddress( host ) != AENetworkClassifier.AT_PUBLIC ){
+				
+				filter_it = false;
+				
+			}else{
+				
+				Proxy	proxy 	= (Proxy)properties.get( ClientIDGenerator.PR_PROXY );
+
+				if ( proxy != null && proxy.type() == Proxy.Type.SOCKS ){
+					
+					InetSocketAddress address = (InetSocketAddress)proxy.address();
+					
+					if ( address.getAddress().isLoopbackAddress()){
+						
+						filter_it = false;
+					}
+				}
+			}
+		}
+		
+		if ( filter_it ){
 		
 				// to support SSL here we would need to substitute the https url with an https one
 				// and then drive the SSL in the filter appropriately
 			
-			URL	url = (URL)properties.get( ClientIDGenerator.PR_URL );
+			URL		url 	= (URL)properties.get( ClientIDGenerator.PR_URL );
 			
 			boolean	is_ssl = url.getProtocol().toLowerCase().equals( "https" );
 			
