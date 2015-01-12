@@ -273,6 +273,12 @@ PeerForeignDelegate
 		return( foreign.getExpiredRequests());
 	}
   		
+	public long
+	getLastMessageSentTime()
+	{
+		return( 0 );
+	}
+	
 	public int
 	getMaxNbRequests()
 	{

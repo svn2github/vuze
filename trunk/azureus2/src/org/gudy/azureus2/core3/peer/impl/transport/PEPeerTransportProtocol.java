@@ -163,11 +163,11 @@ implements PEPeerTransport
 	//Spread time (0 secs , fake default)
 	private int spreadTimeHint = 0 * 1000;
 
-	protected long last_message_sent_time = 0;
-	protected long last_message_received_time = 0;
-	protected long last_data_message_received_time = -1;
-	protected long last_good_data_time =-1;			// time data written to disk was recieved
-	protected long last_data_message_sent_time = -1;
+	private long last_message_sent_time = 0;
+	private long last_message_received_time = 0;
+	private long last_data_message_received_time = -1;
+	private long last_good_data_time =-1;			// time data written to disk was recieved
+	private long last_data_message_sent_time = -1;
 
 	private long connection_established_time = 0;
 
@@ -5191,6 +5191,12 @@ implements PEPeerTransport
 		return( connection.getOutgoingMessageQueue().getPercentDoneOfCurrentMessage());
 	}
 
+	public long
+	getLastMessageSentTime()
+	{
+		return( last_message_sent_time );
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
 	 */

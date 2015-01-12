@@ -127,6 +127,9 @@ PEPeerTransport
 	public boolean
 	transferAvailable();
 	
+	public long
+	getLastMessageSentTime();
+	
 	public List
 	getExpiredRequests();
   	

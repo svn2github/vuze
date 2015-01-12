@@ -177,7 +177,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private volatile boolean	is_running 		= false;  
 	private volatile boolean	is_destroyed 	= false;  
 
-	private volatile ArrayList<PEPeer>	peer_transports_cow = new ArrayList<PEPeer>();	// Copy on write!
+	private volatile ArrayList<PEPeerTransport>	peer_transports_cow = new ArrayList<PEPeerTransport>();	// Copy on write!
 	private final AEMonitor     peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
 
 	protected final PEPeerManagerAdapter	adapter;
@@ -258,7 +258,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private int	connections_unchoked;
 	
 
-	private List<PEPeer> sweepList = Collections.emptyList();
+	private List<PEPeerTransport> sweepList = Collections.emptyList();
 	private int nextPEXSweepIndex = 0;
 
 
@@ -268,7 +268,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 
 		public ArrayList<PEPeer> getAllPeers() {
-			return( peer_transports_cow );
+			return( (ArrayList)peer_transports_cow );
 		}		
 
 		public boolean isSeeding() {
@@ -746,7 +746,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	public List<PEPeer>
 	getPeers()
 	{
-		return( peer_transports_cow );
+		return( (List)peer_transports_cow );
 	}
 
 	public List<PEPeer>
@@ -755,11 +755,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 	{		
 		List<PEPeer>	result = new ArrayList<PEPeer>();
 
-		Iterator<PEPeer>	it = peer_transports_cow.iterator();
+		Iterator<PEPeerTransport>	it = peer_transports_cow.iterator();
 
 		while( it.hasNext()){
 
-			PEPeerTransport	peer = (PEPeerTransport)it.next();
+			PEPeerTransport	peer = it.next();
 
 			if ( peer.getIp().equals( address )){
 
@@ -791,7 +791,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public void
 	addPeer(
-			PEPeer		_transport )
+		PEPeer		_transport )
 	{
 		if ( !( _transport instanceof PEPeerTransport )){
 
@@ -802,7 +802,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		if (!ip_filter.isInRange(transport.getIp(), getDisplayName(), getTorrentHash())) {
 
-			final ArrayList peer_transports = peer_transports_cow;
+			final ArrayList<PEPeerTransport> peer_transports = peer_transports_cow;
 
 			if ( !peer_transports.contains(transport)){
 
@@ -886,21 +886,21 @@ DiskManagerCheckRequestListener, IPFilterListener
 	}
 
 	private void closeAndRemoveAllPeers( String reason, boolean reconnect ) {
-		ArrayList peer_transports;
+		List<PEPeerTransport> peer_transports;
 
 		try{
 			peer_transports_mon.enter();
 
 			peer_transports = peer_transports_cow;
 
-			peer_transports_cow = new ArrayList( 0 );  
+			peer_transports_cow = new ArrayList<PEPeerTransport>( 0 );  
 		}
 		finally{
 			peer_transports_mon.exit();
 		}
 
 		for( int i=0; i < peer_transports.size(); i++ ) {
-			final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+			final PEPeerTransport peer = peer_transports.get( i );
 
 			try{
 
@@ -925,7 +925,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		if( reconnect ) {
 			for( int i=0; i < peer_transports.size(); i++ ) {
-				final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+				final PEPeerTransport peer = peer_transports.get( i );
 
 				PEPeerTransport	reconnected_peer = peer.reconnect(false, false);
 			}
@@ -982,7 +982,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	{
 		if ( peer_database != null ){
 
-			final ArrayList<PEPeer> peer_transports = peer_transports_cow;
+			final ArrayList<PEPeerTransport> peer_transports = peer_transports_cow;
 
 			for( int x=0; x < peer_transports.size(); x++ ){
 				
@@ -1028,12 +1028,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		for (int i = 0; i < peers.length; i++){
 			final TRTrackerAnnouncerResponsePeer	peer = peers[i];
 
-			final ArrayList peer_transports = peer_transports_cow;
+			final List<PEPeerTransport> peer_transports = peer_transports_cow;
 
 			boolean already_connected = false;
 
 			for( int x=0; x < peer_transports.size(); x++ ) {
-				final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( x );
+				final PEPeerTransport transport = peer_transports.get( x );
 
 				// allow loopback connects for co-located proxy-based connections and testing
 
@@ -1413,11 +1413,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		lastNeededUndonePieceChange =piecePicker.getNeededUndonePieceChange();
 
-		final ArrayList peer_transports = peer_transports_cow;
+		final List<PEPeerTransport> peer_transports = peer_transports_cow;
 		int cntPeersSnubbed =0;	// recount # snubbed peers while we're at it
 		for (int i =0; i <peer_transports.size(); i++)
 		{
-			final PEPeerTransport peer =(PEPeerTransport)peer_transports.get(i);
+			final PEPeerTransport peer =peer_transports.get(i);
 			peer.checkInterested();
 			if (peer.isSnubbed())
 				cntPeersSnubbed++;
@@ -1734,12 +1734,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 				adapter.setStateFinishing();
 
 			_timeFinished = SystemTime.getCurrentTime();
-			final ArrayList peer_transports = peer_transports_cow;
+			final List<PEPeerTransport> peer_transports = peer_transports_cow;
 
 			//remove previous snubbing
 			for (int i =0; i <peer_transports.size(); i++ )
 			{
-				final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+				final PEPeerTransport pc = peer_transports.get(i);
 				pc.setSnubbed(false);
 			}
 			setNbPeersSnubbed(0);
@@ -1873,10 +1873,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 		final long now =SystemTime.getCurrentTime();
 
 		//for every connection
-		final ArrayList peer_transports = peer_transports_cow;
+		final List<PEPeerTransport> peer_transports = peer_transports_cow;
 		for (int i =peer_transports.size() -1; i >=0 ; i--)
 		{
-			final PEPeerTransport pc =(PEPeerTransport)peer_transports.get(i);
+			final PEPeerTransport pc = peer_transports.get(i);
 			if (pc.getPeerState() ==PEPeer.TRANSFERING)
 			{
 				final List expired = pc.getExpiredRequests();
@@ -2147,9 +2147,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 	addFastUnchokes(
 		ArrayList	peers_to_unchoke )
 	{
-		for( Iterator it=peer_transports_cow.iterator();it.hasNext();) {
+		for( Iterator<PEPeerTransport> it=peer_transports_cow.iterator();it.hasNext();) {
 
-			PEPeerTransport peer = (PEPeerTransport)it.next();
+			PEPeerTransport peer = it.next();
 
 			if ( 	peer.getConnectionState() != PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ||
 					!UnchokerUtil.isUnchokable( peer, true ) ||
@@ -2175,11 +2175,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 //	send the have requests out
 	private void sendHave(int pieceNumber) {
 		//fo
-		final ArrayList peer_transports = peer_transports_cow;
+		final List<PEPeerTransport> peer_transports = peer_transports_cow;
 
 		for (int i = 0; i < peer_transports.size(); i++) {
 			//get a peer connection
-			final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+			final PEPeerTransport pc = peer_transports.get(i);
 			//send the have message
 			pc.sendHave(pieceNumber);
 		}
@@ -2196,11 +2196,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 			return;
 		}
 
-		ArrayList to_close = null;
+		List<PEPeerTransport> to_close = null;
 
-		final ArrayList peer_transports = peer_transports_cow;
+		final List<PEPeerTransport> peer_transports = peer_transports_cow;
 		for (int i = 0; i < peer_transports.size(); i++) {
-			final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+			final PEPeerTransport pc = peer_transports.get(i);
 
 			if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && ((isSeeding() && pc.isSeed()) || pc.isRelativeSeed())) {
 				if( to_close == null )  to_close = new ArrayList();
@@ -2210,7 +2210,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		if( to_close != null ) {		
 			for( int i=0; i < to_close.size(); i++ ) {  			
-				closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "disconnect other seed when seeding", false );
+				closeAndRemovePeer( to_close.get(i), "disconnect other seed when seeding", false );
 			}
 		}
 	}
@@ -2227,7 +2227,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		stats_tick_count++;
 		
 		//calculate seeds vs peers
-		final ArrayList<PEPeer> peer_transports = peer_transports_cow;
+		final ArrayList<PEPeerTransport> peer_transports = peer_transports_cow;
 
 		int	new_pending_tcp_connections 	= 0;
 		int new_connecting_tcp_connections	= 0;
@@ -2243,9 +2243,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 		int con_blocked		= 0;
 		int con_unchoked	= 0;
 		
-		for ( Iterator<PEPeer> it=peer_transports.iterator();it.hasNext();){
+		for ( Iterator<PEPeerTransport> it=peer_transports.iterator();it.hasNext();){
 			
-			final PEPeerTransport pc = (PEPeerTransport) it.next();
+			final PEPeerTransport pc = it.next();
 			
 			if ( pc.getPeerState() == PEPeer.TRANSFERING) {
 				
@@ -2515,10 +2515,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 		if (cancel ||piecePicker.isInEndGameMode())
 		{   // cancel any matching outstanding download requests
 			//For all connections cancel the request
-			final ArrayList peer_transports = peer_transports_cow;
+			final List<PEPeerTransport> peer_transports = peer_transports_cow;
 			for (int i=0;i<peer_transports.size();i++)
 			{
-				final PEPeerTransport connection =(PEPeerTransport) peer_transports.get(i);
+				final PEPeerTransport connection = peer_transports.get(i);
 				final DiskManagerReadRequest dmr =disk_mgr.createReadRequest(pieceNumber, offset, dmPiece.getBlockSize(blockNumber));
 				connection.sendCancel( dmr );
 			}
@@ -2633,10 +2633,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 				return;
 			//for all peers
 
-			final ArrayList peer_transports = peer_transports_cow;
+			final List<PEPeerTransport> peer_transports = peer_transports_cow;
 
 			for (int i = peer_transports.size() - 1; i >= 0; i--) {
-				final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+				final PEPeerTransport pc = peer_transports.get(i);
 				if (pc !=pcOrigin &&pc.getPeerState() ==PEPeer.TRANSFERING &&pc.isPieceAvailable(pieceNumber))
 					((PEPeerStatsImpl)pc.getStats()).statisticalSentPiece(pieceLength / availability);
 			}
@@ -2688,11 +2688,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 	{
 		int	res = 0;
 
-		Iterator it = peer_transports_cow.iterator();
+		Iterator<PEPeerTransport> it = peer_transports_cow.iterator();
 
 		while( it.hasNext()){
 
-			PEPeerTransport transport = (PEPeerTransport)it.next();
+			PEPeerTransport transport = it.next();
 
 			if ( transport.isStalledPendingLoad()){
 
@@ -2863,7 +2863,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		LimitedRateGroup	group,
 		boolean				upload )
 	{
-		List<PEPeer>	transports;
+		List<PEPeerTransport>	transports;
 
 		try{
 			peer_transports_mon.enter();
@@ -2897,7 +2897,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		LimitedRateGroup	group,
 		boolean				upload )
 	{
-		List	transports;
+		List<PEPeerTransport>	transports;
 
 		try{
 			peer_transports_mon.enter();
@@ -2935,7 +2935,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		for (int i=0;i<transports.size();i++){
 
-			((PEPeerTransport)transports.get(i)).removeRateLimiter( group, upload );
+			transports.get(i).removeRateLimiter( group, upload );
 		}	
 	}
 
@@ -3734,13 +3734,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 			int				offset,
 			int				length )
 	{
-		ArrayList peer_transports = peer_transports_cow;
+		List<PEPeerTransport> peer_transports = peer_transports_cow;
 
 		DiskManagerReadRequest	request = null;
 
 		for (int i=0; i < peer_transports.size(); i++) {
 
-			PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
+			PEPeerTransport conn = peer_transports.get( i );
 
 			if ( conn.getIp().equals( peer_ip )){
 
@@ -3901,15 +3901,15 @@ DiskManagerCheckRequestListener, IPFilterListener
 	checkForBannedConnections()
 	{
 		if ( ip_filter.isEnabled()){  //if ipfiltering is enabled, remove any existing filtered connections    	
-			ArrayList to_close = null;
+			List<PEPeerTransport> to_close = null;
 
-			final ArrayList	peer_transports = peer_transports_cow;
+			final List<PEPeerTransport>	peer_transports = peer_transports_cow;
 
 			String name 	= getDisplayName();
 			byte[]	hash	= getTorrentHash();
 
 			for (int i=0; i < peer_transports.size(); i++) {
-				final PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
+				final PEPeerTransport conn = peer_transports.get( i );
 
 				if ( ip_filter.isInRange( conn.getIp(), name, hash )) {        	
 					if( to_close == null )  to_close = new ArrayList();
@@ -3919,7 +3919,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			if( to_close != null ) {		
 				for( int i=0; i < to_close.size(); i++ ) {  			
-					closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "IPFilter banned IP address", true );
+					closeAndRemovePeer( to_close.get(i), "IPFilter banned IP address", true );
 				}
 			}
 		}
@@ -4002,11 +4002,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 			// turning on/off super-seeding, gotta kick all connected peers so they get the
 			// "right" bitfield
 
-			ArrayList peer_transports = peer_transports_cow;
+			List<PEPeerTransport> peer_transports = peer_transports_cow;
 
 			for (int i=0; i < peer_transports.size(); i++) {
 
-				PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
+				PEPeerTransport conn = peer_transports.get( i );
 
 				closeAndRemovePeer( conn, "Turning on super-seeding", false );
 			}
@@ -4039,21 +4039,21 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 
 		//Find an available Peer
-		PEPeer selectedPeer = null;
-		List sortedPeers = null;
+		PEPeerTransport selectedPeer = null;
+		List<SuperSeedPeer> sortedPeers = null;
 
-		final ArrayList	peer_transports = peer_transports_cow;
+		final List<PEPeerTransport>	peer_transports = peer_transports_cow;
 
-		sortedPeers = new ArrayList(peer_transports.size());
-		Iterator iter = peer_transports.iterator();
-		while(iter.hasNext()) {
-			sortedPeers.add(new SuperSeedPeer((PEPeer)iter.next()));
+		sortedPeers = new ArrayList<SuperSeedPeer>(peer_transports.size());
+		Iterator<PEPeerTransport> iter1 = peer_transports.iterator();
+		while(iter1.hasNext()) {
+			sortedPeers.add(new SuperSeedPeer(iter1.next()));
 		}      
 
 		Collections.sort(sortedPeers);
-		iter = sortedPeers.iterator();
-		while(iter.hasNext()) {
-			final PEPeer peer = ((SuperSeedPeer)iter.next()).peer;
+		Iterator<SuperSeedPeer> iter2 = sortedPeers.iterator();
+		while(iter2.hasNext()) {
+			final PEPeerTransport peer = ((SuperSeedPeer)iter2.next()).peer;
 			if((peer.getUniqueAnnounce() == -1) && (peer.getPeerState() == PEPeer.TRANSFERING)) {
 				selectedPeer = peer;
 				break;
@@ -4110,7 +4110,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		selectedPeer.setUniqueAnnounce(piece.getPieceNumber());
 		superSeedModeNumberOfAnnounces++;
 		piece.pieceRevealedToPeer();
-		((PEPeerTransport)selectedPeer).sendHave(piece.getPieceNumber());		
+		selectedPeer.sendHave(piece.getPieceNumber());		
 	}
 
 	public void updateSuperSeedPiece(PEPeer peer,int pieceNumber) {
@@ -4273,14 +4273,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 	{
 		//every 1 second
 		if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ){
-			final ArrayList peer_transports = peer_transports_cow;
+			final List<PEPeerTransport> peer_transports = peer_transports_cow;
 
 			int num_waiting_establishments = 0;
 
 			int udp_connections = 0;
 
 			for( int i=0; i < peer_transports.size(); i++ ) {
-				final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
+				final PEPeerTransport transport = peer_transports.get( i );
 
 				//update waiting count
 				final int state = transport.getConnectionState();
@@ -4308,7 +4308,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 					for( int i=peer_transports.size()-1; i >= 0 && to_disconnect > 0; i-- ){
 
-						final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
+						final PEPeerTransport transport = peer_transports.get( i );
 
 						if ( transport.isSeed()){
 
@@ -4427,10 +4427,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		//every 5 seconds
 		if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL == 0 ) {
-			final ArrayList peer_transports = peer_transports_cow;
+			final List<PEPeerTransport> peer_transports = peer_transports_cow;
 
 			for( int i=0; i < peer_transports.size(); i++ ) {
-				final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
+				final PEPeerTransport transport = peer_transports.get( i );
 
 				//check for timeouts
 				if( transport.doTimeoutChecks() )  continue;
@@ -4477,18 +4477,91 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 		for( int i=nextPEXSweepIndex; i < goal && i < sweepList.size(); i++) {
 			//System.out.println(mainloop_loop_count+" %:"+percentage+" start:"+nextPEXSweepIndex+" current:"+i+" <"+goal+"/"+sweepList.size());
-			final PEPeerTransport peer = (PEPeerTransport)sweepList.get( i );
+			final PEPeerTransport peer = sweepList.get( i );
 			peer.updatePeerExchange();
 		}
 
 		nextPEXSweepIndex = goal;
+		
+			// kick duplicate outbound connections - some users experience increasing numbers of connections to the same IP address sitting there in a 'connecting' state
+			// not sure of the exact cause unfortunately so adding this as a stop gap measure (parg, 2015/01/11)
+			// I have a suspicion this is caused by an outbound connection failing (possibly with TCP+uTP dual connects) and not resulting in overall disconnect
+			// as the user has a bunch of 'bind' exceptions in their log
+		
+		if ( mainloop_loop_count % MAINLOOP_SIXTY_SECOND_INTERVAL == 0 ){
+			
+			List<PEPeerTransport> peer_transports = peer_transports_cow;
+			
+			if ( peer_transports.size() > 1 ){
+				
+				Map<String,List<PEPeerTransport>>	peer_map = new HashMap<String, List<PEPeerTransport>>();
+				
+				for ( PEPeerTransport peer: peer_transports ){
+					
+					if ( peer.isIncoming()){
+						
+						continue;
+					}
+					
+					if ( 	peer.getPeerState() == PEPeer.CONNECTING &&
+							peer.getConnectionState() == PEPeerTransport.CONNECTION_CONNECTING &&
+							peer.getLastMessageSentTime() != 0 ){
+						
+						String key = peer.getIp() + ":" + peer.getPort();
+						
+						List<PEPeerTransport> list = peer_map.get( key );
+						
+						if ( list == null ){
+							
+							list = new ArrayList<PEPeerTransport>(1);
+							
+							peer_map.put( key, list );
+						}
+						
+						list.add( peer );
+					}
+				}
+				
+				for ( List<PEPeerTransport> list: peer_map.values()){
+					
+					if ( list.size() >= 2 ){
+						
+						long			newest_time = Long.MIN_VALUE;
+						PEPeerTransport	newest_peer	= null;
+						
+						for ( PEPeerTransport peer: list ){
+							
+							long	last_sent = peer.getLastMessageSentTime();
+							
+							if ( last_sent > newest_time ){
+								
+								newest_time = last_sent;
+								newest_peer	= peer;
+							}
+						}
+						
+						for ( PEPeerTransport peer: list ){
+							
+							if ( peer != newest_peer ){
+								
+								if ( 	peer.getPeerState() == PEPeer.CONNECTING &&
+										peer.getConnectionState() == PEPeerTransport.CONNECTION_CONNECTING ){
+								
+									peer.closeConnection( "Removing old duplicate connection" );
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	private void
 	doUDPConnectionChecks(
 		int		number )
 	{
-		List	new_connections = null;
+		List<PEPeerTransport>	new_connections = null;
 		
 		try{
 			peer_transports_mon.enter();
@@ -4499,9 +4572,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 				
 				last_udp_reconnect = now;
 				
-				Iterator it = udp_reconnects.values().iterator();
-				
-				PEPeerTransport	peer = (PEPeerTransport)it.next();
+				Iterator<PEPeerTransport> it = udp_reconnects.values().iterator();
+				 
+				PEPeerTransport	peer = it.next();
 
 				it.remove();
 
@@ -4511,7 +4584,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				if ( new_connections == null ){
 					
-					new_connections = new ArrayList();
+					new_connections = new ArrayList<PEPeerTransport>();
 				}
 				
 				new_connections.add( peer );
@@ -4556,11 +4629,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			int	to_do = Math.min( number, avail );
 
-			Iterator	it = pending_nat_traversals.values().iterator();
+			Iterator<PEPeerTransport>	it = pending_nat_traversals.values().iterator();
 
 			while( to_do > 0 && it.hasNext()){
 
-				final PEPeerTransport	peer = (PEPeerTransport)it.next();
+				final PEPeerTransport	peer = it.next();
 
 				it.remove();
 
@@ -4629,7 +4702,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 				
 				for (int i=0;i<new_connections.size();i++){
 			
-					PEPeerTransport	peer_item = (PEPeerTransport)new_connections.get(i);
+					PEPeerTransport	peer_item = new_connections.get(i);
 
 						// don't call when holding monitor - deadlock potential
 					peer_item.reconnect(true, false);
@@ -4645,7 +4718,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	public boolean doOptimisticDisconnect( boolean	pending_lan_local_peer, boolean force )
 	{
 		
-		final ArrayList peer_transports = peer_transports_cow;
+		final List<PEPeerTransport> peer_transports = peer_transports_cow;
 		PEPeerTransport max_transport = null;
 		PEPeerTransport max_seed_transport		= null;
 		PEPeerTransport max_non_lan_transport 	= null;
@@ -4660,7 +4733,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		int	lan_peer_count	= 0;
 
 		for( int i=0; i < peer_transports.size(); i++ ) {
-			final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+			final PEPeerTransport peer = peer_transports.get( i );
 
 			if( peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
 
@@ -4826,7 +4899,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			
 			if ( peer_transports.size() > 0 ){
 				
-				PEPeerTransport pt = (PEPeerTransport)peer_transports.get( new Random().nextInt( peer_transports.size()));
+				PEPeerTransport pt = peer_transports.get( new Random().nextInt( peer_transports.size()));
 				
 				closeAndRemovePeer( pt, "force removal of random peer in doOptimisticDisconnect()", true );
 				
@@ -4864,9 +4937,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 
 	private boolean isAlreadyConnected( PeerItem peer_id ) {
-		final ArrayList peer_transports = peer_transports_cow;
+		final List<PEPeerTransport> peer_transports = peer_transports_cow;
 		for( int i=0; i < peer_transports.size(); i++ ) {
-			final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+			final PEPeerTransport peer = peer_transports.get( i );
 			if( peer.getPeerItemIdentity().equals( peer_id ) )  return true;
 		}
 		return false;
@@ -4907,14 +4980,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 	}
 	
 	public void IPBlockedListChanged(IpFilter filter) {
-		Iterator	it = peer_transports_cow.iterator();
+		Iterator<PEPeerTransport>	it = peer_transports_cow.iterator();
 		
 		String	name 	= getDisplayName();
 		byte[]	hash	= getTorrentHash();
 		
 		while( it.hasNext()){
 			try {
-  			PEPeerTransport	peer = (PEPeerTransport)it.next();
+  			PEPeerTransport	peer = it.next();
   			
   			if (filter.isInRange(peer.getIp(), name, hash )) {
   				peer.closeConnection( "IP address blocked by filters" );
@@ -5035,9 +5108,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 
 	public PEPeerTransport getTransportFromIdentity( byte[] peer_id ) {
-		final ArrayList	peer_transports = peer_transports_cow;      	
+		final List<PEPeerTransport>	peer_transports = peer_transports_cow;      	
 		for( int i=0; i < peer_transports.size(); i++ ) {
-			final PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );			
+			final PEPeerTransport conn = peer_transports.get( i );			
 			if( Arrays.equals( peer_id, conn.getId() ) )   return conn;
 		}
 		return null;
@@ -5060,10 +5133,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public PEPeerTransport getTransportFromAddress(String peer)
 	{
-		final ArrayList peer_transports =peer_transports_cow;
+		final List<PEPeerTransport> peer_transports =peer_transports_cow;
 		for (int i =0; i <peer_transports.size(); i++)
 		{
-			final PEPeerTransport pt =(PEPeerTransport) peer_transports.get(i);
+			final PEPeerTransport pt = peer_transports.get(i);
 			if (peer.equals(pt.getIp()))
 				return pt;
 		}
@@ -5189,11 +5262,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 		try{
 			peer_transports_mon.enter();
 
-			Iterator	it = pending_nat_traversals.values().iterator();
+			Iterator<PEPeerTransport>	it = pending_nat_traversals.values().iterator();
 			
 			while( it.hasNext()){
 			
-				PEPeerTransport peer = (PEPeerTransport)it.next();
+				PEPeerTransport peer = it.next();
 			
 				pending_udp += (pending_udp.length()==0?"":",") + peer.getPeerItemIdentity().getAddressString() + ":" + peer.getPeerItemIdentity().getUDPPort();
 			}
@@ -5211,11 +5284,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 		String	active_udp = "";
 		
-		Iterator it = traversals.iterator();
+		Iterator it1 = traversals.iterator();
 		
-		while( it.hasNext()){
+		while( it1.hasNext()){
 			
-			InetSocketAddress ad = (InetSocketAddress)it.next();
+			InetSocketAddress ad = (InetSocketAddress)it1.next();
 			
 			active_udp += (active_udp.length()==0?"":",") + AddressUtils.getHostAddress( ad ) + ":" + ad.getPort();
 		}
@@ -5320,11 +5393,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 			try{
 				writer.indent();
 
-				it = peer_transports_cow.iterator();
+				Iterator<PEPeerTransport> it2 = peer_transports_cow.iterator();
 
-				while( it.hasNext()){
+				while( it2.hasNext()){
 
-					PEPeerTransport	peer = (PEPeerTransport)it.next();
+					PEPeerTransport	peer = it2.next();
 
 					peer.generateEvidence( writer );
 				}

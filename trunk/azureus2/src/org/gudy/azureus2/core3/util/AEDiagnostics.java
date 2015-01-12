@@ -34,6 +34,8 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
  */
 
 
+
+
 import java.io.*;
 import java.util.*;
 
@@ -459,7 +461,7 @@ AEDiagnostics
 			fdirs_to_check.add( new File( SystemProperties.getApplicationPath()));
 			
 			try{
-				File temp_file = File.createTempFile( "AZ", "tmp" );
+				File temp_file = File.createTempFile( "AZU", "tmp" );
 				
 				fdirs_to_check.add( temp_file.getParentFile());
 				
@@ -476,21 +478,28 @@ AEDiagnostics
 			
 				if ( dir.canRead()){
 					
-					File[]	files = dir.listFiles();
+					File[]	files = dir.listFiles(
+							new FilenameFilter() {
+								
+								public boolean 
+								accept(
+									File dir, 
+									String name) 
+								{
+									return( name.startsWith( "hs_err_pid" ) && name.endsWith( ".log" ));
+								}
+							});
 					
-					
-					long	now = SystemTime.getCurrentTime();
-					
-					long	one_week_ago = now - 7*24*60*60*1000;
-					
-					for (int i=0;i<files.length;i++){
+					if ( files != null ){
 						
-						File	f = files[i];
+						long	now = SystemTime.getCurrentTime();
 						
-						String	name = f.getName();
+						long	one_week_ago = now - 7*24*60*60*1000;
 						
-						if ( name.startsWith( "hs_err_pid" )){
+						for (int i=0;i<files.length;i++){
 							
+							File	f = files[i];
+																						
 							long	last_mod = f.lastModified();
 							
 							if ( last_mod > most_recent_time && last_mod > one_week_ago){
