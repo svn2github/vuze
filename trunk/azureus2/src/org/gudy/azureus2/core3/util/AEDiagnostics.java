@@ -33,6 +33,7 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
  *
  */
 
+
 import java.io.*;
 import java.util.*;
 
@@ -453,48 +454,65 @@ AEDiagnostics
 				}
 			}
 			
-			File app_dir = new File( SystemProperties.getApplicationPath());
+			List<File>	fdirs_to_check = new ArrayList<File>();
 			
-			if ( app_dir.canRead()){
+			fdirs_to_check.add( new File( SystemProperties.getApplicationPath()));
+			
+			try{
+				File temp_file = File.createTempFile( "AZ", "tmp" );
 				
-				File[]	files = app_dir.listFiles();
+				fdirs_to_check.add( temp_file.getParentFile());
 				
-				File	most_recent_dump 	= null;
-				long	most_recent_time	= 0;
+				temp_file.delete();
 				
-				long	now = SystemTime.getCurrentTime();
+			}catch( Throwable e ){
 				
-				long	one_week_ago = now - 7*24*60*60*1000;
-				
-				for (int i=0;i<files.length;i++){
+			}
+			
+			File	most_recent_dump 	= null;
+			long	most_recent_time	= 0;
+
+			for ( File dir: fdirs_to_check ){
+			
+				if ( dir.canRead()){
 					
-					File	f = files[i];
+					File[]	files = dir.listFiles();
 					
-					String	name = f.getName();
 					
-					if ( name.startsWith( "hs_err_pid" )){
+					long	now = SystemTime.getCurrentTime();
+					
+					long	one_week_ago = now - 7*24*60*60*1000;
+					
+					for (int i=0;i<files.length;i++){
 						
-						long	last_mod = f.lastModified();
+						File	f = files[i];
 						
-						if ( last_mod > most_recent_time && last_mod > one_week_ago){
+						String	name = f.getName();
+						
+						if ( name.startsWith( "hs_err_pid" )){
 							
-							most_recent_dump 	= f;
-							most_recent_time	= last_mod;
+							long	last_mod = f.lastModified();
+							
+							if ( last_mod > most_recent_time && last_mod > one_week_ago){
+								
+								most_recent_dump 	= f;
+								most_recent_time	= last_mod;
+							}
 						}
 					}
 				}
+			}
+		
+			if ( most_recent_dump!= null ){
 				
-				if ( most_recent_dump!= null ){
+				long	last_done = 
+					COConfigurationManager.getLongParameter( "diagnostics.dump.lasttime", 0 ); 
+				
+				if ( last_done < most_recent_time ){
 					
-					long	last_done = 
-						COConfigurationManager.getLongParameter( "diagnostics.dump.lasttime", 0 ); 
+					COConfigurationManager.setParameter( "diagnostics.dump.lasttime", most_recent_time );
 					
-					if ( last_done < most_recent_time ){
-						
-						COConfigurationManager.setParameter( "diagnostics.dump.lasttime", most_recent_time );
-						
-						analyseDump( most_recent_dump );
-					}
+					analyseDump( most_recent_dump );
 				}
 			}
 		}catch( Throwable e ){
