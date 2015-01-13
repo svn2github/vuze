@@ -4547,7 +4547,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 								if ( 	peer.getPeerState() == PEPeer.CONNECTING &&
 										peer.getConnectionState() == PEPeerTransport.CONNECTION_CONNECTING ){
 								
-									peer.closeConnection( "Removing old duplicate connection" );
+									closeAndRemovePeer( peer, "Removing old duplicate connection", false );
 								}
 							}
 						}
