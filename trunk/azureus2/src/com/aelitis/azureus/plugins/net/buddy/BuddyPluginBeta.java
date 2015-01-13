@@ -116,6 +116,7 @@ BuddyPluginBeta
 	
 	private Map<String,Long>		favourite_map;
 	private Map<String,Long>		save_messages_map;
+	private Map<String,byte[]>		lmi_map;
 	
 	private CopyOnWriteList<FTUXStateChangeListener>		ftux_listeners = new CopyOnWriteList<FTUXStateChangeListener>();
 	
@@ -150,6 +151,7 @@ BuddyPluginBeta
 	
 		favourite_map			= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
 		save_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.savemsgmap", new HashMap<String,Long>());
+		lmi_map					= COConfigurationManager.getMapParameter( "azbuddy.dchat.lmimap", new HashMap<String,byte[]>());
 				
 		SimpleTimer.addPeriodicEvent(
 			"BPB:checkfave",
@@ -387,6 +389,52 @@ BuddyPluginBeta
 		
 		COConfigurationManager.save();
 	}
+	
+	public String
+	getLastMessageInfo(
+		String		net,
+		String		key )
+	{
+		synchronized( lmi_map ){
+			
+			byte[] info = lmi_map.get( net + ":" + key );
+			
+			if ( info != null ){
+							
+				try{
+					return( new String( info, "UTF-8" ));
+				
+				}catch( Throwable e ){
+				}
+			}
+			
+			return( null );
+		}
+	}
+	
+	public void
+	setLastMessageInfo(
+		String		net,
+		String		key,
+		String		info )
+	{
+		synchronized( lmi_map ){
+			
+			String net_key = net + ":" + key;
+			
+			try{
+				lmi_map.put( net_key, info.getBytes( "UTF-8" ));
+			
+				COConfigurationManager.setParameter( "azbuddy.dchat.lmimap", lmi_map );
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		COConfigurationManager.setDirty();
+	}
+	
+	
 	
 	public String
 	getSharedPublicNickname()
@@ -1661,8 +1709,8 @@ BuddyPluginBeta
 		
 		private int			reference_count;
 		
-		private long		last_message_not_mine;
-		private boolean		message_outstanding;
+		private ChatMessage		last_message_not_mine;
+		private boolean			message_outstanding;
 		
 		private boolean		is_favourite;
 		private boolean		save_messages;
@@ -2873,7 +2921,7 @@ BuddyPluginBeta
 					}
 				}else{
 					
-					last_message_not_mine = msg.getTimeStamp();
+					last_message_not_mine = msg;
 					
 					messages_not_mine_count++;
 				}
@@ -3503,7 +3551,7 @@ BuddyPluginBeta
 			}
 		}
 		
-		public long
+		public ChatMessage
 		getLastMessageNotMine()
 		{
 			return( last_message_not_mine );
@@ -3533,14 +3581,109 @@ BuddyPluginBeta
 		public boolean
 		getMessageOutstanding()
 		{
-			return( message_outstanding );
+			synchronized( chat_lock ){
+			
+				return( message_outstanding );
+			}
 		}
 		
 		public void
 		setMessageOutstanding( 
 			boolean		b )
 		{
-			message_outstanding = b;
+			synchronized( chat_lock ){
+			
+				if ( message_outstanding == b ){
+					
+					return;
+				}
+				
+				message_outstanding = b;
+				
+				if ( !b ){
+					
+					if ( messages.size() > 0 ){
+						
+						ChatMessage	last_read_msg = messages.get( messages.size()-1 );
+						
+						long last_read_time = last_read_msg.getTimeStamp();
+						
+						String last_info = (SystemTime.getCurrentTime()/1000) + "/" + (last_read_time/1000) + "/" + Base32.encode( last_read_msg.getID());
+						
+						BuddyPluginBeta.this.setLastMessageInfo( network, key, last_info );
+					}
+				}
+			}
+		}
+		
+		public boolean
+		isOldOutstandingMessage(
+			ChatMessage			msg )
+		{
+			synchronized( chat_lock ){
+				
+				String info = BuddyPluginBeta.this.getLastMessageInfo( network, key );
+				
+				if ( info != null ){
+					
+					String[] bits = info.split( "/" );
+					
+					try{
+						long	old_time_secs 	= Long.parseLong( bits[0] );
+						long	old_msg_secs 	= Long.parseLong( bits[1] );
+						byte[]	old_id			= Base32.decode( bits[2] );
+						
+						long	msg_secs	= msg.getTimeStamp()/1000;
+						byte[]	id			= msg.getID();
+						
+						if ( Arrays.equals( id, old_id )){
+							
+							return( true );
+						}
+						
+						long	old_cuttoff = old_time_secs - 5*60;
+						
+						if ( old_msg_secs > old_cuttoff ){
+							
+							old_cuttoff = old_msg_secs;
+						}
+						
+						if ( msg_secs <= old_cuttoff ){
+							
+							return( true );
+						}
+						
+						if ( message_ids.containsKey( old_id ) && message_ids.containsKey( id )){
+							
+							int	msg_index 		= -1;
+							int old_msg_index 	= -1;
+							
+							for ( int i=0;i<messages.size();i++){
+								
+								ChatMessage m = messages.get(i);
+								
+								if ( m == msg ){
+									
+									msg_index = i;
+									
+								}else if ( Arrays.equals( m.getID(), old_id )){
+									
+									old_msg_index = i;
+								}
+							}
+							
+							if ( msg_index <= old_msg_index ){
+								
+								return( true );
+							}
+						}
+					}catch( Throwable e ){
+						
+					}
+				}
+			}
+			
+			return( false );
 		}
 		
 		public InetSocketAddress

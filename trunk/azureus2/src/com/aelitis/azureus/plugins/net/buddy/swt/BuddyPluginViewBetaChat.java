@@ -2876,7 +2876,7 @@ BuddyPluginViewBetaChat
 		
 		List<StyleRange>	new_ranges = new ArrayList<StyleRange>();
 		
-		long last_message_not_ours = -1;
+		ChatMessage	last_message_not_ours 		= null;
 		
 		for ( ChatMessage message: all_messages ){
 			
@@ -2897,7 +2897,7 @@ BuddyPluginViewBetaChat
 				
 				if ( !is_me ){
 					
-					last_message_not_ours = time;
+					last_message_not_ours		= message;
 				}
 				
 				int	overall_start = appended.length();
@@ -3485,7 +3485,9 @@ BuddyPluginViewBetaChat
 				log.setVisible( true );
 			}
 			
-			if ( last_message_not_ours >= 0 ){
+			if ( last_message_not_ours != null ){
+				
+				long last_message_not_ours_time = last_message_not_ours.getTimeStamp();
 				
 				if ( build_complete ){
 				
@@ -3493,23 +3495,23 @@ BuddyPluginViewBetaChat
 							( shell != null && shell.getMinimized()) ||
 							log.getDisplay().getFocusControl() == null ){
 							
-						if ( last_message_not_ours > last_seen_message ){
+						if ( last_message_not_ours_time > last_seen_message ){
 						
-							last_seen_message_pending = last_message_not_ours;
+							last_seen_message_pending = last_message_not_ours_time;
 							
-							view.betaMessagePending( chat, log, true );
+							view.betaMessagePending( chat, log, last_message_not_ours );
 						}
 					}else{
 						
-						last_seen_message = last_message_not_ours;
+						last_seen_message = last_message_not_ours_time;
 					}
 				}else{
 					
 						// assume that during construction the messages will be seen
 					
-					if ( last_message_not_ours > last_seen_message ){
+					if ( last_message_not_ours_time > last_seen_message ){
 					
-						last_seen_message = last_message_not_ours;
+						last_seen_message = last_message_not_ours_time;
 					}
 				}
 			}
@@ -3524,6 +3526,6 @@ BuddyPluginViewBetaChat
 			last_seen_message = last_seen_message_pending;
 		}
 		
-		view.betaMessagePending( chat, log, false );
+		view.betaMessagePending( chat, log, null );
 	}
 }

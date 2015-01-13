@@ -93,6 +93,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAdapter;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatMessage;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
@@ -545,7 +546,7 @@ BuddyPluginView
 		}
 	}
 	
-	private static Object	CHAT_LM_kEY		= new Object();
+	private static Object	CHAT_LM_KEY		= new Object();
 	
 	private HashMap<UISWTView,BetaSubViewHolder> beta_subviews = new HashMap<UISWTView,BetaSubViewHolder>();
 	
@@ -602,18 +603,20 @@ BuddyPluginView
 									
 									if ( chat.isFavourite()){
 										
-										long last_msg = chat.getLastMessageNotMine();
+										ChatMessage last_msg = chat.getLastMessageNotMine();
 										
-										if ( last_msg > 0 ){
+										if ( last_msg != null ){
 											
-											Long last_handled = (Long)chat.getUserData( CHAT_LM_kEY );
+											ChatMessage last_handled = (ChatMessage)chat.getUserData( CHAT_LM_KEY );
+											
+											long last_msg_time = last_msg.getTimeStamp();
 											
 											if ( 	last_handled == null ||
-													last_msg > last_handled ){
+													last_msg_time > last_handled.getTimeStamp()){
 												
-												chat.setUserData( CHAT_LM_kEY, last_msg );
+												chat.setUserData( CHAT_LM_KEY, last_msg );
 												
-												betaMessagePending( chat, null, true );
+												betaMessagePending( chat, null, last_msg );
 											}
 										}
 									}
@@ -939,7 +942,7 @@ BuddyPluginView
 	betaMessagePending(
 		ChatInstance		chat,
 		Control				comp_maybe_null,
-		boolean				is_pending )
+		ChatMessage			pending_message )
 	{
 		synchronized( pending_msg_map ){
 			
@@ -947,7 +950,12 @@ BuddyPluginView
 			
 			Object[] entry = pending_msg_map.get( key );
 			
-			if ( is_pending ){
+			if ( pending_message != null ){
+			
+				if ( chat.isOldOutstandingMessage( pending_message )){
+					
+					return;
+				}
 				
 				chat.setMessageOutstanding( true );
 				
@@ -1088,7 +1096,7 @@ BuddyPluginView
 				}
 			}else{
 
-				chat.setUserData( CHAT_LM_kEY, chat.getLastMessageNotMine());
+				chat.setUserData( CHAT_LM_KEY, chat.getLastMessageNotMine());
 
 				chat.setMessageOutstanding( false );
 				
