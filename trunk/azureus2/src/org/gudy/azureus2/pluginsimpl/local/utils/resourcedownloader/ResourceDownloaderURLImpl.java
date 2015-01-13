@@ -1345,7 +1345,23 @@ redirect_label:
 					
 				}else{
 					
-					con.setRequestProperty(key,(String)value);
+					String nice_key = "";
+					
+					boolean	upper = true;
+					
+					for ( char c: key.toCharArray()){
+					
+						if ( upper ){
+							c = Character.toUpperCase(c);
+							upper = false;
+						}else if ( c == '-' ){
+							upper = true;
+						}
+						
+						nice_key += c;
+					}
+					
+					con.setRequestProperty(nice_key,(String)value);
 				}
 			}
 		}
