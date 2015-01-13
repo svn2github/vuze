@@ -413,7 +413,7 @@ public class SBC_ChatOverview
 				if ( beta != null) {
 					
 					try{
-						beta.showChat( chat );
+						beta.showChat( chat.getClone());
 						
 					}catch( Throwable e ){
 						

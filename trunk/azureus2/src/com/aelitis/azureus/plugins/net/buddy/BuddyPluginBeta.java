@@ -1713,6 +1713,8 @@ BuddyPluginBeta
 		private boolean			message_outstanding;
 		
 		private boolean		is_favourite;
+		private boolean		auto_notify;
+		
 		private boolean		save_messages;
 		private boolean		destroyed;
 		
@@ -1840,6 +1842,19 @@ BuddyPluginBeta
 		isFavourite()
 		{
 			return( is_favourite );
+		}
+		
+		public void
+		setAutoNotify(
+			boolean		b )
+		{
+			auto_notify	= b;
+		}
+		
+		public boolean
+		isAutoNotify()
+		{
+			return( auto_notify );
 		}
 		
 		public void

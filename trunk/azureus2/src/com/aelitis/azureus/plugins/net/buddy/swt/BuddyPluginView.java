@@ -601,7 +601,7 @@ BuddyPluginView
 							
 								if ( !chat_uis.containsKey( chat )){
 									
-									if ( chat.isFavourite()){
+									if ( chat.isFavourite() || chat.isAutoNotify()){
 										
 										ChatMessage last_msg = chat.getLastMessageNotMine();
 										
