@@ -584,6 +584,31 @@ BuddyPluginView
 				}
 			});
 			
+			beta_status.setListener(
+				new UISWTStatusEntryListener() {
+					
+					public void 
+					entryClicked(
+						UISWTStatusEntry entry )
+					{
+						Set<ChatInstance> current_instances = menu_latest_instances;
+						
+						for ( ChatInstance chat: current_instances ){
+							
+							if ( chat.getMessageOutstanding()){
+
+								try{
+									openChat( chat.getClone());
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+					}
+				});
+			
 			SimpleTimer.addPeriodicEvent(
 				"msgcheck",
 				30*1000,
@@ -601,7 +626,7 @@ BuddyPluginView
 							
 								if ( !chat_uis.containsKey( chat )){
 									
-									if ( chat.isFavourite() || chat.isAutoNotify()){
+									if ( chat.isFavourite() || chat.isAutoNotify() || chat.isInteresting()){
 										
 										ChatMessage last_msg = chat.getLastMessageNotMine();
 										
@@ -1178,12 +1203,15 @@ BuddyPluginView
 						
 							for ( ChatInstance chat: current_instances ){
 								
-								try{
-									openChat( chat.getClone());
+								if ( chat.getMessageOutstanding()){
 									
-								}catch( Throwable e ){
-									
-									Debug.out( e );
+									try{
+										openChat( chat.getClone());
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
 								}
 							}
 						}

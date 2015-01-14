@@ -1882,6 +1882,12 @@ BuddyPluginBeta
 			return( auto_notify );
 		}
 		
+		public boolean
+		isInteresting()
+		{
+			return( have_interest );
+		}
+		
 		public void
 		setFavourite(
 			boolean		b )
