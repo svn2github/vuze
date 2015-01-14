@@ -1725,6 +1725,7 @@ BuddyPluginBeta
 		private Map<Object,Object>					user_data = new HashMap<Object, Object>();
 		
 		private boolean		keep_alive;
+		private boolean		have_interest;
 		
 		private Map<String,Object> 	status;
 		
@@ -3452,10 +3453,8 @@ BuddyPluginBeta
 						// once we participate in a chat then we want to keep it around to ensure
 						// or at least try and ensure message delivery
 					
-					if ( !( keep_alive || is_private_chat )){
-						
-						setKeepAlive( true );
-					}
+					have_interest = true;
+					
 				}catch( Throwable e ){
 					
 					Debug.out( e );
@@ -3771,7 +3770,7 @@ BuddyPluginBeta
 				}
 			}
 			
-			if ( !keep_alive ){
+			if ( !( keep_alive || (have_interest && !is_private_chat ))){
 				
 				destroyed = true;
 				
