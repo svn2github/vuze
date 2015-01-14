@@ -3449,6 +3449,13 @@ BuddyPluginBeta
 												
 					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "sendMessage", new Object[]{ options } );
 					
+						// once we participate in a chat then we want to keep it around to ensure
+						// or at least try and ensure message delivery
+					
+					if ( !( keep_alive || is_private_chat )){
+						
+						setKeepAlive( true );
+					}
 				}catch( Throwable e ){
 					
 					Debug.out( e );
