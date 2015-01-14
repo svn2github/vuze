@@ -1336,7 +1336,9 @@ BuddyPluginBeta
 			return( null );
 		}
 		
-		String key = "Download: " + download.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
+			// use torrent name here to canonicalize things in case user has renamed download display name
+		
+		String key = "Download: " + torrent.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
 
 		return( key );
 	}
