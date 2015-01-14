@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -1337,8 +1338,29 @@ BuddyPluginBeta
 		}
 		
 			// use torrent name here to canonicalize things in case user has renamed download display name
+			// also it is more important to get a consistent string rather than something correctly localised
 		
-		String key = "Download: " + torrent.getName() + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
+		String	torrent_name = null;
+		
+		try{
+			TOTorrent to_torrent = PluginCoreUtils.unwrap( torrent );
+			
+			torrent_name = to_torrent.getUTF8Name();
+			
+			if ( torrent_name == null ){
+				
+				torrent_name = new String( to_torrent.getName(), "UTF-8" );
+			}
+		}catch( Throwable e ){
+			
+		}
+		
+		if ( torrent_name == null ){
+			
+			torrent_name = torrent.getName();
+		}
+		
+		String key = "Download: " + torrent_name + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
 
 		return( key );
 	}
