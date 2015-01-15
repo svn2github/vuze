@@ -2081,13 +2081,65 @@ public class OpenTorrentOptionsWindow
 		}
 	
 		private void setupFileAreaButtons(SWTSkinObjectContainer so) {
-			Composite cButtons = so.getComposite();
 			
-			cButtons.setLayout(new GridLayout(8,false));
+			PluginInterface	swarm_pi = null;
+			
+			try{
+				if (COConfigurationManager.getBooleanParameter("rcm.overall.enabled",
+						true) && AzureusCoreFactory.isCoreRunning()) {
+					final PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+							"aercm");
 	
+					if (pi != null && pi.getPluginState().isOperational()
+							&& pi.getIPC().canInvoke("lookupBySize", new Object[] {
+								new Long(0)
+							})){
+						
+						swarm_pi = pi;
+					}
+				}
+			}catch( Throwable e ){
+					
+			}
+			
+			Composite cButtonsArea = so.getComposite();
+			GridLayout layout = new GridLayout(1,false);
+			layout.marginWidth = layout.marginHeight = layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+			cButtonsArea.setLayout(layout);
+
+			Composite cButtonsTop = new Composite(cButtonsArea, SWT.NULL);
+			layout = new GridLayout(swarm_pi==null?6:7,false);
+			layout.marginWidth = layout.marginHeight = layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+			cButtonsTop.setLayout(layout);
+			GridData gridData = new GridData( GridData.FILL_HORIZONTAL);
+			cButtonsTop.setLayoutData( gridData );
+
+			
+			Canvas line = new Canvas(cButtonsArea,SWT.NO_BACKGROUND);
+			line.addListener(SWT.Paint, new Listener() {
+				public void handleEvent(Event e) {
+					Rectangle clientArea = ((Canvas) e.widget).getClientArea();
+					e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+					e.gc.drawRectangle(clientArea);
+					clientArea.y++;
+					e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW));
+					e.gc.drawRectangle(clientArea);
+				}
+			});
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.heightHint = 2;
+			line.setLayoutData(gridData);
+
+			Composite cButtonsBottom = new Composite(cButtonsArea, SWT.NULL);
+			layout = new GridLayout(3,false);
+			layout.marginWidth = layout.marginHeight = layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+			cButtonsBottom.setLayout(layout);
+			gridData = new GridData( GridData.FILL_HORIZONTAL);
+			cButtonsBottom.setLayoutData( gridData );
+			
 			List<Button>	buttons = new ArrayList<Button>();
 			
-			btnSelectAll = new Button(cButtons, SWT.PUSH);
+			btnSelectAll = new Button(cButtonsTop, SWT.PUSH);
 			buttons.add( btnSelectAll );
 			Messages.setLanguageText(btnSelectAll, "Button.selectAll");
 			btnSelectAll.addListener(SWT.Selection, new Listener() {
@@ -2096,7 +2148,7 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 			
-			btnMarkSelected = new Button(cButtons, SWT.PUSH);
+			btnMarkSelected = new Button(cButtonsTop, SWT.PUSH);
 			buttons.add( btnMarkSelected );
 			Messages.setLanguageText(btnMarkSelected, "Button.mark");
 			btnMarkSelected.addListener(SWT.Selection, new Listener() {
@@ -2106,7 +2158,7 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 			
-			btnUnmarkSelected = new Button(cButtons, SWT.PUSH);
+			btnUnmarkSelected = new Button(cButtonsTop, SWT.PUSH);
 			buttons.add( btnUnmarkSelected );
 			Messages.setLanguageText(btnUnmarkSelected, "Button.unmark");
 			btnUnmarkSelected.addListener(SWT.Selection, new Listener() {
@@ -2117,7 +2169,7 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 			
-			btnRename = new Button(cButtons, SWT.PUSH);
+			btnRename = new Button(cButtonsTop, SWT.PUSH);
 			buttons.add( btnRename );
 			Messages.setLanguageText(btnRename, "Button.rename");
 			btnRename.addListener(SWT.Selection, new Listener() {
@@ -2128,7 +2180,7 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 	
-			btnRetarget = new Button(cButtons, SWT.PUSH);
+			btnRetarget = new Button(cButtonsTop, SWT.PUSH);
 			buttons.add( btnRetarget );
 			Messages.setLanguageText(btnRetarget, "Button.retarget");
 			btnRetarget.addListener(SWT.Selection, new Listener() {
@@ -2139,11 +2191,56 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 			
-			Label pad = new Label(cButtons, SWT.NONE);
-			GridData gridData = new GridData( GridData.FILL_HORIZONTAL);
-			pad.setLayoutData( gridData );
+			Label pad1 = new Label(cButtonsTop, SWT.NONE);
+			gridData = new GridData( GridData.FILL_HORIZONTAL);
+			pad1.setLayoutData( gridData );
 			
-			btnCheckAvailability = new Button(cButtons, SWT.PUSH);
+			// swarm-it button
+			
+			if ( swarm_pi != null ){
+				final PluginInterface f_pi = swarm_pi;
+				
+				btnSwarmIt = new Button(cButtonsTop, SWT.PUSH);
+				buttons.add( btnSwarmIt );
+				Messages.setLanguageText(btnSwarmIt, "Button.swarmit");
+	
+				btnSwarmIt.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						List<Object> selectedDataSources = tvFiles.getSelectedDataSources();
+						for (Object ds : selectedDataSources) {
+							TorrentOpenFileOptions file = (TorrentOpenFileOptions) ds;
+	
+							try {
+								f_pi.getIPC().invoke("lookupBySize", new Object[] {
+									new Long(file.lSize)
+								});
+	
+							} catch (Throwable e) {
+	
+								Debug.out(e);
+							}
+							break;
+						}
+					}
+				});
+	
+				btnSwarmIt.setEnabled(false);
+			}
+		
+			
+			Label pad2 = new Label(cButtonsBottom, SWT.NONE);
+			gridData = new GridData( GridData.FILL_HORIZONTAL);
+			pad2.setLayoutData( gridData );
+
+				// ratings etc
+			
+			Button btnRatings = new Button(cButtonsBottom, SWT.PUSH);
+			buttons.add( btnRatings );
+			Messages.setLanguageText(btnRatings, "label.comments");
+			
+				// availability button
+			
+			btnCheckAvailability = new Button(cButtonsBottom, SWT.PUSH);
 			buttons.add( btnCheckAvailability );
 			Messages.setLanguageText(btnCheckAvailability, "label.check.avail");
 
@@ -2154,47 +2251,7 @@ public class OpenTorrentOptionsWindow
 			});
 			
 			
-			try {
-				if (COConfigurationManager.getBooleanParameter("rcm.overall.enabled",
-						true) && AzureusCoreFactory.isCoreRunning()) {
-					final PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-							"aercm");
-	
-					if (pi != null && pi.getPluginState().isOperational()
-							&& pi.getIPC().canInvoke("lookupBySize", new Object[] {
-								new Long(0)
-							})) {
-						
-						btnSwarmIt = new Button(cButtons, SWT.PUSH);
-						buttons.add( btnSwarmIt );
-						Messages.setLanguageText(btnSwarmIt, "Button.swarmit");
-	
-						btnSwarmIt.addListener(SWT.Selection, new Listener() {
-							public void handleEvent(Event event) {
-								List<Object> selectedDataSources = tvFiles.getSelectedDataSources();
-								for (Object ds : selectedDataSources) {
-									TorrentOpenFileOptions file = (TorrentOpenFileOptions) ds;
-	
-									try {
-										pi.getIPC().invoke("lookupBySize", new Object[] {
-											new Long(file.lSize)
-										});
-	
-									} catch (Throwable e) {
-	
-										Debug.out(e);
-									}
-									break;
-								}
-							}
-						});
-	
-						btnSwarmIt.setEnabled(false);
-					}
-				}
-			} catch (Throwable e) {
-	
-			}
+
 	
 			Utils.makeButtonsEqualWidth( buttons );
 			
