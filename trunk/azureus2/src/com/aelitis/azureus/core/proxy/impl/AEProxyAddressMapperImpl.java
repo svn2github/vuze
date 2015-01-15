@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.proxy.AEProxyAddressMapper;
 
 /**
@@ -271,22 +272,30 @@ AEProxyAddressMapperImpl
 		int				port )
 	{
 		InetSocketAddress result;
+					
+		PortMappingImpl mapping;
 		
-		if ( address.isLoopbackAddress()){
+		synchronized( port_mappings ){
 			
-			PortMappingImpl mapping;
+			mapping = port_mappings.get( port );
+		}
+		
+		if ( mapping == null ){
+		
+			result = new InetSocketAddress( address, port );
+		
+		}else{
+
+			InetAddress bind_ip = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 			
-			synchronized( port_mappings ){
+			if ( bind_ip == null || bind_ip.isAnyLocalAddress()){
 				
-				mapping = port_mappings.get( port );
+				bind_ip = null;
 			}
 			
-			if ( mapping == null ){
-			
-				result = new InetSocketAddress( address, port );
-			
-			}else{
-				
+			if (	bind_ip == null && address.isLoopbackAddress() ||
+					bind_ip != null && bind_ip.equals( address )){
+
 				String ip = mapping.getIP();
 				
 				if ( AENetworkClassifier.categoriseAddress( ip ) == AENetworkClassifier.AT_PUBLIC ){
@@ -300,10 +309,10 @@ AEProxyAddressMapperImpl
 					
 					result = InetSocketAddress.createUnresolved( ip, 6881 );
 				}
+			}else{
+				
+				result = new InetSocketAddress( address, port );
 			}
-		}else{
-			
-			result = new InetSocketAddress( address, port );
 		}
 		
 		//System.out.println( "Applying mapping: " + address + "/" + port + " -> " + result );
