@@ -2332,7 +2332,7 @@ BuddyPluginBeta
 					options.put( "handler", current_handler );
 	
 					status = (Map<String,Object>)current_pi.getIPC().invoke( "getStatus", new Object[]{ options } );
-					
+										
 				}catch( Throwable e ){
 					
 					Debug.out( e );
@@ -2362,7 +2362,7 @@ BuddyPluginBeta
 		{
 			Map<String,Object> map = status;
 			
-			if ( status == null ){
+			if ( map == null ){
 				
 				return( -1 );
 			}
@@ -2382,6 +2382,50 @@ BuddyPluginBeta
 			
 				return( messages.size());
 			}
+		}
+		
+			/**
+			 * -ve -> state unknown
+			 * 0 - synced
+			 * +ve - number of messages pending
+			 * @return
+			 */
+		
+		public int
+		getIncomingSyncState()
+		{
+			Map<String,Object> map = status;
+			
+			if ( map == null ){
+				
+				return( -3 );
+			}
+			
+			Number	in_pending = (Number)map.get( "msg_in_pending" );
+			
+			return( in_pending==null?-2:in_pending.intValue());
+		}
+		
+		/**
+		 * -ve -> state unknown
+		 * 0 - synced
+		 * +ve - number of messages pending
+		 * @return
+		 */
+		
+		public int
+		getOutgoingSyncState()
+		{
+			Map<String,Object> map = status;
+			
+			if ( map == null ){
+				
+				return( -3 );
+			}
+			
+			Number	out_pending = (Number)map.get( "msg_out_pending" );
+			
+			return( out_pending==null?-2:out_pending.intValue());
 		}
 		
 		public String
