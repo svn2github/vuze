@@ -1325,51 +1325,12 @@ BuddyPluginBeta
 		
 		return( getChat( network, key, null, handler, false ));
 	}
-
-	public String
-	getDownloadKey(
-		Download		download )
-	{
-		Torrent torrent = download.getTorrent();
-		
-		if ( torrent == null ){
-			
-			return( null );
-		}
-		
-			// use torrent name here to canonicalize things in case user has renamed download display name
-			// also it is more important to get a consistent string rather than something correctly localised
-		
-		String	torrent_name = null;
-		
-		try{
-			TOTorrent to_torrent = PluginCoreUtils.unwrap( torrent );
-			
-			torrent_name = to_torrent.getUTF8Name();
-			
-			if ( torrent_name == null ){
-				
-				torrent_name = new String( to_torrent.getName(), "UTF-8" );
-			}
-		}catch( Throwable e ){
-			
-		}
-		
-		if ( torrent_name == null ){
-			
-			torrent_name = torrent.getName();
-		}
-		
-		String key = "Download: " + torrent_name + " {" + ByteFormatter.encodeString( download.getTorrentHash()) + "}";
-
-		return( key );
-	}
 	
 	public ChatInstance
 	getChat(
 		Download		download )
 	{
-		String	key = getDownloadKey( download );
+		String	key = BuddyPluginUtils.getChatKey( download );
 
 		if ( key != null ){
 			
@@ -1581,7 +1542,7 @@ BuddyPluginBeta
 	peekChat(
 		Download		download )
 	{
-		String	key = getDownloadKey( download );
+		String	key = BuddyPluginUtils.getChatKey( download );
 
 		if ( key != null ){
 			

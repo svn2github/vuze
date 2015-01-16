@@ -27,13 +27,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface.ViewListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -187,6 +192,82 @@ BuddyPluginUtils
 		}
 		
 		return( null );
+	}
+	
+	public static BuddyPluginViewInterface.View
+	buildChatView(
+		Map<String,Object>	properties,
+		ViewListener		listener )
+	{
+		BuddyPlugin bp = getPlugin();
+		
+		if ( bp != null && bp.isBetaEnabled()){
+			
+			BuddyPluginViewInterface ui = bp.getSWTUI();
+			
+			if ( ui != null ){
+				
+				return( ui.buildView( properties, listener ));
+			}
+		}
+
+		return( null );
+	}
+	
+	public static String
+	getChatKey(
+		TOTorrent		torrent )
+	{
+		if ( torrent == null ){
+			
+			return( null );
+		}
+		
+		return( getChatKey( PluginCoreUtils.wrap( torrent )));
+	}
+	
+	public static String
+	getChatKey(
+		Download		download )
+	{
+		return( getChatKey( download.getTorrent()));
+	}
+	
+	public static String
+	getChatKey(
+		Torrent		torrent )
+	{		
+		if ( torrent == null ){
+			
+			return( null );
+		}
+		
+			// use torrent name here to canonicalize things in case user has renamed download display name
+			// also it is more important to get a consistent string rather than something correctly localised
+		
+		String	torrent_name = null;
+		
+		try{
+			TOTorrent to_torrent = PluginCoreUtils.unwrap( torrent );
+			
+			torrent_name = to_torrent.getUTF8Name();
+			
+			if ( torrent_name == null ){
+				
+				torrent_name = new String( to_torrent.getName(), "UTF-8" );
+			}
+		}catch( Throwable e ){
+			
+		}
+		
+		if ( torrent_name == null ){
+			
+			torrent_name = torrent.getName();
+		}
+		
+		String key = "Download: " + torrent_name + " {" + ByteFormatter.encodeString( torrent.getHash()) + "}";
+
+		return( key );
 	}
 	
 	private static final Object i2p_install_lock = new Object();

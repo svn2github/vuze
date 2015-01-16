@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerAvailability;
 import org.gudy.azureus2.core3.download.DownloadManagerFactory;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
@@ -82,6 +83,9 @@ import com.aelitis.azureus.core.tag.TagTypeListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -1964,7 +1968,7 @@ public class OpenTorrentOptionsWindow
 			
 			Utils.verifyShellRect(comments_shell, true);
 
-			TOTorrent t = torrentOptions.getTorrent();
+			TOTorrent torrent = torrentOptions.getTorrent();
 			
 			String[] enabled_networks = AENetworkClassifier.AT_NETWORKS;
 			
@@ -2034,10 +2038,11 @@ public class OpenTorrentOptionsWindow
 			
 			ratingComp.setText( "Rating Plugin" );
 			
-			final Label ratingText = new Label( ratingComp, SWT.NULL );
+			final Label ratingText = new Label( ratingComp, SWT.WRAP | SWT.BORDER );
 			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			gridData.heightHint=ratingText.getFont().getFontData()[0].getHeight() * 2 + 16;
 			ratingText.setLayoutData(gridData);
-			
+			ratingText.setBackground( Colors.white );
 			
 			final boolean[]	az_rating_in_progress = { false };
 			
@@ -2092,7 +2097,18 @@ public class OpenTorrentOptionsWindow
 												{
 													if ( !ratingText.isDisposed()){
 														
-														ratingText.setText( f_result.toString());
+														String text;
+														
+														if ( f_result == null ){
+															
+															text = MessageText.getString( "PeersView.uniquepiece.none" );
+															
+														}else{
+															
+															text = f_result.toString();
+														}
+														
+														ratingText.setText( text );
 													}
 												}
 											});
@@ -2122,6 +2138,65 @@ public class OpenTorrentOptionsWindow
 			chatComp.setLayoutData(gridData);
 			
 			chatComp.setText( "Chat Plugin" );
+			
+			Map<String,Object>	chat_properties = new HashMap<String, Object>();
+			
+			chat_properties.put( BuddyPluginViewInterface.VP_SWT_COMPOSITE, chatComp );
+			
+			final String[]f_enabled_networks = enabled_networks;
+			
+			final String  chat_key = BuddyPluginUtils.getChatKey( torrent );
+			
+			BuddyPluginViewInterface.DownloadAdapter 
+				adapter = new BuddyPluginViewInterface.DownloadAdapter(){
+					
+					public String[] 
+					getNetworks() 
+					{
+						return( f_enabled_networks );
+					}
+					
+					public DownloadManager 
+					getCoreDownload() 
+					{
+						return( null );
+					}
+					
+					public String 
+					getChatKey() 
+					{
+						return( chat_key );
+					}
+				};
+				
+			chat_properties.put( BuddyPluginViewInterface.VP_DOWNLOAD, adapter );
+
+			final Set<ChatInstance>	activated_chats = new HashSet<ChatInstance>();
+			
+			final BuddyPluginViewInterface.View chat_view = 
+				BuddyPluginUtils.buildChatView( 
+					chat_properties,
+					new BuddyPluginViewInterface.ViewListener() {
+						
+						public void 
+						chatActivated(
+							ChatInstance chat) 
+						{
+							synchronized( az_rating_in_progress ){
+								
+								activated_chats.add( chat );
+							}
+						}
+					});
+				
+			if ( chat_view == null ){
+				
+				Label chatText = new Label( chatComp, SWT.NULL );
+				gridData = new GridData( GridData.FILL_HORIZONTAL );
+				chatText.setLayoutData(gridData);
+
+				chatText.setText( "Plugin not enabled or available" );
+			}
 			
 				// progress
 			
@@ -2182,6 +2257,14 @@ public class OpenTorrentOptionsWindow
 							if ( az_rating_in_progress[0] ){
 								
 								in_progress = true;
+							}
+							
+							for ( ChatInstance inst: activated_chats ){
+								
+								if ( inst.getIncomingSyncState() != 0 ){
+									
+									in_progress = true;
+								}
 							}
 						}
 						
@@ -2270,6 +2353,11 @@ public class OpenTorrentOptionsWindow
 						
 							btnCheckComments.setEnabled( true );
 						}
+						
+						if ( chat_view != null ){
+							
+							chat_view.destroy();
+						}
 					}finally{
 						
 						
@@ -2279,16 +2367,16 @@ public class OpenTorrentOptionsWindow
 
 			btnCheckComments.setEnabled( false );
 			
-			comments_shell.setSize( 800, 400 );
+			comments_shell.setSize( 600, 500 );
 			comments_shell.layout(true, true);
 			
 			Utils.centerWindowRelativeTo(comments_shell,shell);
 			
 			String title = torrentOptions.getTorrentName();
 						
-			if ( t != null ){
+			if ( torrent != null ){
 			
-				String str = PlatformTorrentUtils.getContentTitle( t );
+				String str = PlatformTorrentUtils.getContentTitle( torrent );
 				
 				if ( str != null && str.length() > 0 ){
 					

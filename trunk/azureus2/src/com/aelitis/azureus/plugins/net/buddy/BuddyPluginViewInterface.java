@@ -22,6 +22,10 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.util.Map;
+
+import org.gudy.azureus2.core3.download.DownloadManager;
+
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 
 public interface 
@@ -30,4 +34,40 @@ BuddyPluginViewInterface
 	public void
 	openChat(
 		ChatInstance		chat );
+	
+	public static final String	VP_SWT_COMPOSITE	= "swt_comp";
+	public static final String	VP_DOWNLOAD			= "download";		// DownloadAdapter
+	
+	public View
+	buildView(
+		Map<String,Object>	properties,
+		ViewListener		listener );
+	
+	public interface
+	DownloadAdapter
+	{
+		public DownloadManager
+		getCoreDownload();
+		
+		public String[]
+		getNetworks();
+		
+		public String
+		getChatKey();
+	}
+	
+	public interface
+	View
+	{
+		public void
+		destroy();
+	}
+	
+	public interface
+	ViewListener
+	{
+		public void
+		chatActivated(
+			ChatInstance		chat );
+	}
 }

@@ -98,6 +98,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface.View;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTrackerListener;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -1284,13 +1285,85 @@ BuddyPluginView
 	private static AtomicInteger	public_done = new AtomicInteger();
 	private static AtomicInteger	anon_done 	= new AtomicInteger();
 	
+	
+	private static final Object	adapter_key = new Object();
+	
+	public DownloadAdapter
+	getDownloadAdapter(
+		final Download			download )
+	{
+		synchronized( adapter_key ){
+			
+			DownloadAdapter adapter = (DownloadAdapter)download.getUserData( adapter_key );
+			
+			if ( adapter == null ){
+				
+				adapter = 
+					new DownloadAdapter()
+					{
+						public DownloadManager
+						getCoreDownload()
+						{
+							return( PluginCoreUtils.unwrap( download ));
+						}
+						
+						public String[] 
+						getNetworks() 
+						{
+							DownloadManager dm = getCoreDownload();
+							
+							if ( dm == null ){
+								
+								return( new String[0]);
+								
+							}else{
+							
+								return( dm.getDownloadState().getNetworks());
+							}
+						}
+						
+						public String
+						getChatKey()
+						{
+							return( BuddyPluginUtils.getChatKey( download ));
+						}
+					};
+				
+				download.setUserData( adapter_key,adapter );
+			}
+			
+			return( adapter );
+		}
+	}
+	
+	public View
+	buildView(
+		Map<String,Object>		properties,
+		ViewListener			listener )
+	{
+		BetaSubViewHolder view = new BetaSubViewHolder();
+		
+		Composite	swt_composite = (Composite)properties.get( BuddyPluginViewInterface.VP_SWT_COMPOSITE );
+		
+		DownloadAdapter	download = (DownloadAdapter)properties.get( BuddyPluginViewInterface.VP_DOWNLOAD );
+		
+		view.initialise( swt_composite, download, listener );
+		
+		return( view );
+	}
+	
 	private class
 	BetaSubViewHolder
+		implements View
 	{
 		private int CHAT_DOWNLOAD 		= 0;
 		private int CHAT_TAG	 		= 1;
 		private int CHAT_GENERAL		= 2;
 		private int CHAT_FAVOURITES		= 3;
+		
+		private boolean			download_only_mode;
+		
+		private ViewListener	view_listener;
 		
 		private Composite[]		chat_composites;
 		
@@ -1305,9 +1378,9 @@ BuddyPluginView
 		private int				last_build_chat_mode	= -1;
 		private int				chat_mode				= CHAT_DOWNLOAD;
 		
-		private Download		current_download;
-		private Tag				current_tag;
-		private String			current_general;
+		private DownloadAdapter		current_download;
+		private Tag					current_tag;
+		private String				current_general;
 		
 		private String			current_favourite_net;
 		private String			current_favourite_key;
@@ -1320,6 +1393,38 @@ BuddyPluginView
 		private
 		BetaSubViewHolder()
 		{
+		}
+		
+		private void
+		initialise(
+			Composite			parent,
+			DownloadAdapter		download,
+			ViewListener		listener )
+		{
+			view_listener 		= listener;
+			current_download	= download;
+			download_only_mode	= true;
+			
+			initialiseSupport( parent );
+			
+			String[] nets = current_download.getNetworks();
+			
+			if ( nets.length > 0 ){
+				
+				String	net_to_activate = nets[0];
+				
+				for ( String net: nets ){
+					
+					if ( net == AENetworkClassifier.AT_PUBLIC ){
+						
+						net_to_activate = net;
+						
+						break;
+					}
+				}
+				
+				activateNetwork( net_to_activate, true );
+			}
 		}
 		
 		private void
@@ -1339,10 +1444,17 @@ BuddyPluginView
 				}
 			}
 			
+			initialiseSupport( parent );
+		}
+		
+		private void
+		initialiseSupport(
+			Composite		parent )
+		{
 			final Composite composite	= parent;
 			
 			GridLayout layout = new GridLayout();
-			layout.numColumns = 3;
+			layout.numColumns = download_only_mode?1:3;
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
 			layout.marginTop = 4;
@@ -1352,80 +1464,88 @@ BuddyPluginView
 			GridData grid_data = new GridData(GridData.FILL_BOTH );
 			composite.setLayoutData(grid_data);
 
+			if ( !download_only_mode ){
+				
 				// left
 			
-			Group lhs = new Group( composite, SWT.NULL );
-			lhs.setText( MessageText.getString( "label.chat.type" ));
-			layout = new GridLayout();
-			layout.numColumns = 1;
-			layout.horizontalSpacing = 1;
-			layout.verticalSpacing = 1;
-			lhs.setLayout(layout);
-			grid_data = new GridData(GridData.FILL_VERTICAL );
-			//grid_data.widthHint = 200;
-			lhs.setLayoutData(grid_data);
-			
-			Button downloads = new Button( lhs, SWT.TOGGLE );		
-			downloads.setText( MessageText.getString( "v3.MainWindow.button.download" ));
-			downloads.setData( CHAT_DOWNLOAD );
-			
-			Button tags = new Button( lhs, SWT.TOGGLE );			
-			tags.setText( MessageText.getString( "label.tags" ));
-			tags.setData( CHAT_TAG );
-			
-			Button general = new Button( lhs, SWT.TOGGLE );			
-			general.setText( MessageText.getString( "ConfigView.section.global" ));
-			general.setData( CHAT_GENERAL );
-			
-			Button favourites = new Button( lhs, SWT.TOGGLE );
-			favourites.setText( MessageText.getString( "label.favorites" ));
-			favourites.setData( CHAT_FAVOURITES );
-			
-				// middle
-			
-			middle = new Group( composite, SWT.NULL );
-			layout = new GridLayout();
-			layout.numColumns = 1;
-			middle.setLayout(layout);
-			grid_data = new GridData(GridData.FILL_VERTICAL );
-			grid_data.widthHint = 0;
-			middle.setLayoutData(grid_data);
-
-			middle.setText( "" );
-			
-			middle.setVisible( false );
-			
-			downloads.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					buildChatMode( CHAT_DOWNLOAD, true );
-				}});
-			
-			tags.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
+				Group lhs = new Group( composite, SWT.NULL );
+				lhs.setText( MessageText.getString( "label.chat.type" ));
+				layout = new GridLayout();
+				layout.numColumns = 1;
+				layout.horizontalSpacing = 1;
+				layout.verticalSpacing = 1;
+				lhs.setLayout(layout);
+				grid_data = new GridData(GridData.FILL_VERTICAL );
+				//grid_data.widthHint = 200;
+				lhs.setLayoutData(grid_data);
+				
+				Button downloads = new Button( lhs, SWT.TOGGLE );		
+				downloads.setText( MessageText.getString( "v3.MainWindow.button.download" ));
+				downloads.setData( CHAT_DOWNLOAD );
+				
+				Button tags = new Button( lhs, SWT.TOGGLE );			
+				tags.setText( MessageText.getString( "label.tags" ));
+				tags.setData( CHAT_TAG );
+				
+				Button general = new Button( lhs, SWT.TOGGLE );			
+				general.setText( MessageText.getString( "ConfigView.section.global" ));
+				general.setData( CHAT_GENERAL );
+				
+				Button favourites = new Button( lhs, SWT.TOGGLE );
+				favourites.setText( MessageText.getString( "label.favorites" ));
+				favourites.setData( CHAT_FAVOURITES );
+				
+				if ( download_only_mode ){
 					
-					buildChatMode( CHAT_TAG, true );
-				}});	
+					lhs.setVisible( false );
+				}
+				
+					// middle
+				
+				middle = new Group( composite, SWT.NULL );
+				layout = new GridLayout();
+				layout.numColumns = 1;
+				middle.setLayout(layout);
+				grid_data = new GridData(GridData.FILL_VERTICAL );
+				grid_data.widthHint = 0;
+				middle.setLayoutData(grid_data);
+	
+				middle.setText( "" );
+				
+				middle.setVisible( false );
 			
-			general.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					
-					buildChatMode( CHAT_GENERAL, true );
-				}});
-			
-			favourites.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					
-					buildChatMode( CHAT_FAVOURITES, true );
-				}});
-			
-			downloads.setSelection( true );
-			
-			mode_buttons.add( downloads );
-			mode_buttons.add( tags );
-			mode_buttons.add( general );
-			mode_buttons.add( favourites );
-			
-			setupButtonGroup( mode_buttons );
+				downloads.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						buildChatMode( CHAT_DOWNLOAD, true );
+					}});
+				
+				tags.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						
+						buildChatMode( CHAT_TAG, true );
+					}});	
+				
+				general.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						
+						buildChatMode( CHAT_GENERAL, true );
+					}});
+				
+				favourites.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						
+						buildChatMode( CHAT_FAVOURITES, true );
+					}});
+				
+				downloads.setSelection( true );
+				
+				mode_buttons.add( downloads );
+				mode_buttons.add( tags );
+				mode_buttons.add( general );
+				mode_buttons.add( favourites );
+				
+				setupButtonGroup( mode_buttons );
+			}
 			
 				// chat tab area
 			
@@ -1486,7 +1606,7 @@ BuddyPluginView
 		tagsUpdated(
 			DownloadManager	dm )
 		{
-			Download download = current_download;
+			DownloadAdapter download = current_download;
 			
 			if ( download == null ){
 				
@@ -1495,7 +1615,7 @@ BuddyPluginView
 			
 			if ( chat_mode == CHAT_TAG ){
 			
-				if ( dm == PluginCoreUtils.unwrap( download )){
+				if ( dm == download.getCoreDownload()){
 				
 					Utils.execSWTThread(
 						new Runnable() 
@@ -1579,7 +1699,7 @@ BuddyPluginView
 			int				mode,
 			boolean			activate )		
 		{
-			Download	download = current_download;
+			DownloadAdapter	download = current_download;
 			
 			chat_mode = mode;
 			
@@ -1588,311 +1708,133 @@ BuddyPluginView
 					// doesn't change so no rebuild required
 			}else{
 				
-				for ( Control c: middle.getChildren()){
+				if ( !download_only_mode ){
 					
-					c.dispose();
-				}
-				
-				if ( mode == CHAT_DOWNLOAD ||(  mode == CHAT_TAG &&  download == null && current_ds_tag == null )){
-					
-					middle.setVisible( false );
-					middle.setText( "" );
-					
-					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
-					grid_data.widthHint = 0;
-					middle.setLayoutData(grid_data);
-											
-				}else if ( mode == CHAT_TAG ){
+					for ( Control c: middle.getChildren()){
 						
-					middle.setVisible( true );				
-					middle.setText( MessageText.getString( "label.tag.selection" ));
-					
-					List<Tag> tags = current_download==null?new ArrayList<Tag>():TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( current_download ));
-					
-					if ( current_ds_tag != null && !tags.contains( current_ds_tag )){
-						
-						tags.add( current_ds_tag );
+						c.dispose();
 					}
 					
-					GridLayout layout = new GridLayout();
-					layout.horizontalSpacing = 1;
-					layout.verticalSpacing = 1;
-					
-					layout.numColumns = 1;
-					middle.setLayout(layout);
-					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
-					middle.setLayoutData(grid_data);
-
-					if ( tags.size() == 0 ){
+					if ( mode == CHAT_DOWNLOAD ||(  mode == CHAT_TAG &&  download == null && current_ds_tag == null )){
 						
-						current_tag = null;
-						Label label = new Label( middle, SWT.NULL );
-						label.setText( MessageText.getString( "label.none.assigned" ));
-						label.setEnabled( false );
-
-					}else{
+						middle.setVisible( false );
+						middle.setText( "" );
 						
-						tags = TagUIUtils.sortTags( tags );
-						
-						current_tag = tags.get(0);
+						GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+						grid_data.widthHint = 0;
+						middle.setLayoutData(grid_data);
+												
+					}else if ( mode == CHAT_TAG ){
 							
-						final List<Button>	buttons = new ArrayList<Button>();
-	
-						for ( final Tag tag: tags ){
+						middle.setVisible( true );				
+						middle.setText( MessageText.getString( "label.tag.selection" ));
+						
+						List<Tag> tags;
+						
+						if ( current_download == null ){
 							
-							Button button = new Button( middle, SWT.TOGGLE );
+							tags = new ArrayList<Tag>();
 							
-							button.setText( tag.getTagName( true ));
-	
-							button.addSelectionListener(new SelectionAdapter() {
-								public void widgetSelected(SelectionEvent e) {
-									current_tag = tag;
-									activate();
-								}});
-							buttons.add( button );
-						}
-						
-						buttons.get(0).setSelection( true );
-						
-						setupButtonGroup( buttons );
-					}
-				}else if ( mode == CHAT_GENERAL ){
-					
-					middle.setVisible( true );				
-					middle.setText( MessageText.getString( "azbuddy.dchat.general.chats" ));
-	
-					GridLayout layout = new GridLayout();
-					layout.horizontalSpacing = 1;
-					layout.verticalSpacing = 1;
-					
-					layout.numColumns = 1;
-					middle.setLayout(layout);
-					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
-					middle.setLayoutData(grid_data);
-					
-					final List<Button>	buttons = new ArrayList<Button>();
-						
-					String[][] general_data = {
-							{ "label.help", 		"General: Help" },
-							{ "label.announce", 	"General: Announce" },
-							{ "label.beta",			BuddyPluginBeta.BETA_CHAT_KEY },
-					};
-					
-					for ( String[] entry: general_data ){
-											
-						final	String key = entry[1];
-						
-						if ( key == BuddyPluginBeta.BETA_CHAT_KEY && !Constants.isCVSVersion()){
-							
-							continue;
-						}
-						
-						Button button = new Button( middle, SWT.TOGGLE );
-							
-						button.setText( MessageText.getString( entry[0] ) );
-						button.setData( key );
-						
-						button.addSelectionListener(new SelectionAdapter() {
-							public void widgetSelected(SelectionEvent e) {
-								current_general = key;;
-								activate();
-							}});
-						
-						buttons.add( button );
-					}
-					
-					setupButtonGroup( buttons );
-					
-					if ( current_general != null ){
-						
-						selectButtonGroup( buttons, current_general );
-					}
-				}else{
-					
-					middle.setVisible( true );				
-					middle.setText( MessageText.getString( "azbuddy.dchat.fave.chats" ));
-					
-					List<String[]>	list = plugin.getBeta().getFavourites();
-
-					int	num_faves = list.size();
-					
-					boolean	use_scroll = num_faves > 4;
-					
-					GridLayout layout = new GridLayout();
-					layout.horizontalSpacing 	= 1;
-					layout.verticalSpacing 		= 1;
-					
-					layout.numColumns = 1;
-					middle.setLayout(layout);
-					GridData grid_data = new GridData(GridData.FILL_VERTICAL );
-					middle.setLayoutData(grid_data);
-
-				
-					if ( num_faves == 0 ){
-						
-						Label label = new Label( middle, SWT.NULL );
-						label.setText( MessageText.getString( "label.none.assigned" ));
-						label.setEnabled( false );
-											
-					}else{
-						
-						Composite	fave_area;
-						
-						if ( use_scroll ){
-							
-							final ScrolledComposite scrollable = 
-								new ScrolledComposite(middle, SWT.V_SCROLL)
-								{
-										// this code required to show/hide scroll bar when visible or not
-								
-								    private final Point 	bar_size;  
-								    private int				x_adjust;
-								    private boolean			first_time	= true;
-								    private boolean			hacking;
-								    
-								    {
-								        Composite composite = new Composite(middle, SWT.H_SCROLL | SWT.V_SCROLL);
-								        
-								        composite.setSize(1, 1);
-								        
-								        bar_size = composite.computeSize(0, 0);
-								        
-								        composite.dispose();
-								    }
-	
-								    public Point 
-								    computeSize(
-								    	int 		wHint, 
-								    	int 		hHint, 
-								    	boolean 	changed )
-								    {
-								        Point point = super.computeSize(wHint, hHint, changed);
-								       
-								        if ( !hacking ){
-								        	
-									        final boolean was_visible = getVerticalBar().isVisible();
-									        
-									        Utils.execSWTThreadLater(
-									        	0,
-									        	new Runnable()
-									        	{
-									        		public void 
-									        		run()
-									        		{
-									        			if ( isDisposed()){
-									        				
-									        				return;
-									        			}
-									        			
-									        			boolean is_visible = getVerticalBar().isVisible();
-
-									        			if ( first_time || was_visible != is_visible ){
-
-									        				x_adjust = is_visible?0:-bar_size.x;
-
-									        				try{
-									        					hacking = true;
-
-									        					middle.getParent().layout( true, true );
-
-									        				}finally{
-
-									        					hacking = false;
-									        				}
-									        			}
-									        		};	
-									        	});
-								        }
-								        
-								        point.x += x_adjust;
-								        
-								        return point;
-								    }
-								};
-							
-							scrollable.setLayoutData( new GridData(GridData.FILL_VERTICAL ));
-	
-							final Composite scrollChild = new Composite( scrollable, SWT.NONE );
-	
-							GridLayout gLayoutChild = new GridLayout();
-							gLayoutChild.numColumns = 1;
-							
-							gLayoutChild.horizontalSpacing = 1;
-							gLayoutChild.verticalSpacing = 1;
-							scrollChild.setLayout(gLayoutChild);
-							scrollChild.setLayoutData( new GridData(GridData.FILL_VERTICAL ));
-
-							scrollable.setContent(scrollChild);
-							scrollable.setExpandVertical(true);
-							scrollable.setExpandHorizontal(true);	
-							scrollable.setAlwaysShowScrollBars( false );
-							
-							scrollable.setMinSize(scrollChild.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-							
-							scrollable.addControlListener(new ControlAdapter() {
-								public void controlResized(ControlEvent e) {
-									Rectangle r = scrollable.getClientArea();
-									scrollable.setMinSize(scrollChild.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-								}
-							});
-							
-							fave_area = scrollChild;
 						}else{
 							
-							fave_area = middle;
+							DownloadManager core_dm = current_download.getCoreDownload();
+							
+							if ( core_dm == null ){
+								
+								tags = new ArrayList<Tag>();
+								
+							}else{
+							
+								tags = TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, core_dm );
+							}
 						}
 						
-						final List<Button>	buttons = new ArrayList<Button>();
+						if ( current_ds_tag != null && !tags.contains( current_ds_tag )){
+							
+							tags.add( current_ds_tag );
+						}
 						
-						Collections.sort(
-							list,
-							new Comparator<String[]>()
-							{
-								Comparator<String> c = new FormattersImpl().getAlphanumericComparator( true );
+						GridLayout layout = new GridLayout();
+						layout.horizontalSpacing = 1;
+						layout.verticalSpacing = 1;
+						
+						layout.numColumns = 1;
+						middle.setLayout(layout);
+						GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+						middle.setLayoutData(grid_data);
+	
+						if ( tags.size() == 0 ){
+							
+							current_tag = null;
+							Label label = new Label( middle, SWT.NULL );
+							label.setText( MessageText.getString( "label.none.assigned" ));
+							label.setEnabled( false );
+	
+						}else{
+							
+							tags = TagUIUtils.sortTags( tags );
+							
+							current_tag = tags.get(0);
 								
-								public int compare(String[] o1, String[] o2) {
-									
-									int result = o1[0].compareTo( o2[0] );
-						
-									if ( result == 0 ){
-										
-										result = c.compare( o1[1], o2[1] );
-									}
-									
-									return( result );
-								}
-							});
-						
-						for ( String[] entry: list ){
-							
-							final	String net = entry[0];
-							final	String key = entry[1];
-							
-							Button button = new Button( fave_area, SWT.TOGGLE );
-							
-							String	short_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public.short":"label.anon.short" ) + ")";
-							
-							short_name += " " + key;
-							
-							if ( short_name.length() > 30 ){
+							final List<Button>	buttons = new ArrayList<Button>();
+		
+							for ( final Tag tag: tags ){
 								
-								short_name = short_name.substring( 0, 30 ) + "...";
+								Button button = new Button( middle, SWT.TOGGLE );
+								
+								button.setText( tag.getTagName( true ));
+		
+								button.addSelectionListener(new SelectionAdapter() {
+									public void widgetSelected(SelectionEvent e) {
+										current_tag = tag;
+										activate();
+									}});
+								buttons.add( button );
 							}
 							
-							String	long_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon" ) + ")";
+							buttons.get(0).setSelection( true );
 							
-							long_name += " " + key;
-	
-							button.setText( short_name );
-							button.setAlignment( SWT.LEFT );
-							button.setToolTipText( long_name );
+							setupButtonGroup( buttons );
+						}
+					}else if ( mode == CHAT_GENERAL ){
+						
+						middle.setVisible( true );				
+						middle.setText( MessageText.getString( "azbuddy.dchat.general.chats" ));
+		
+						GridLayout layout = new GridLayout();
+						layout.horizontalSpacing = 1;
+						layout.verticalSpacing = 1;
+						
+						layout.numColumns = 1;
+						middle.setLayout(layout);
+						GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+						middle.setLayoutData(grid_data);
+						
+						final List<Button>	buttons = new ArrayList<Button>();
 							
-							button.setData( net + ":" + key );
+						String[][] general_data = {
+								{ "label.help", 		"General: Help" },
+								{ "label.announce", 	"General: Announce" },
+								{ "label.beta",			BuddyPluginBeta.BETA_CHAT_KEY },
+						};
+						
+						for ( String[] entry: general_data ){
+												
+							final	String key = entry[1];
+							
+							if ( key == BuddyPluginBeta.BETA_CHAT_KEY && !Constants.isCVSVersion()){
+								
+								continue;
+							}
+							
+							Button button = new Button( middle, SWT.TOGGLE );
+								
+							button.setText( MessageText.getString( entry[0] ) );
+							button.setData( key );
 							
 							button.addSelectionListener(new SelectionAdapter() {
 								public void widgetSelected(SelectionEvent e) {
-									current_favourite_net = net;
-									current_favourite_key = key;
+									current_general = key;;
 									activate();
 								}});
 							
@@ -1901,14 +1843,214 @@ BuddyPluginView
 						
 						setupButtonGroup( buttons );
 						
-						if ( current_favourite_key != null ){
+						if ( current_general != null ){
 							
-							selectButtonGroup( buttons, current_favourite_net + ":" + current_favourite_key );
+							selectButtonGroup( buttons, current_general );
+						}
+					}else{
+						
+						middle.setVisible( true );				
+						middle.setText( MessageText.getString( "azbuddy.dchat.fave.chats" ));
+						
+						List<String[]>	list = plugin.getBeta().getFavourites();
+	
+						int	num_faves = list.size();
+						
+						boolean	use_scroll = num_faves > 4;
+						
+						GridLayout layout = new GridLayout();
+						layout.horizontalSpacing 	= 1;
+						layout.verticalSpacing 		= 1;
+						
+						layout.numColumns = 1;
+						middle.setLayout(layout);
+						GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+						middle.setLayoutData(grid_data);
+	
+					
+						if ( num_faves == 0 ){
+							
+							Label label = new Label( middle, SWT.NULL );
+							label.setText( MessageText.getString( "label.none.assigned" ));
+							label.setEnabled( false );
+												
+						}else{
+							
+							Composite	fave_area;
+							
+							if ( use_scroll ){
+								
+								final ScrolledComposite scrollable = 
+									new ScrolledComposite(middle, SWT.V_SCROLL)
+									{
+											// this code required to show/hide scroll bar when visible or not
+									
+									    private final Point 	bar_size;  
+									    private int				x_adjust;
+									    private boolean			first_time	= true;
+									    private boolean			hacking;
+									    
+									    {
+									        Composite composite = new Composite(middle, SWT.H_SCROLL | SWT.V_SCROLL);
+									        
+									        composite.setSize(1, 1);
+									        
+									        bar_size = composite.computeSize(0, 0);
+									        
+									        composite.dispose();
+									    }
+		
+									    public Point 
+									    computeSize(
+									    	int 		wHint, 
+									    	int 		hHint, 
+									    	boolean 	changed )
+									    {
+									        Point point = super.computeSize(wHint, hHint, changed);
+									       
+									        if ( !hacking ){
+									        	
+										        final boolean was_visible = getVerticalBar().isVisible();
+										        
+										        Utils.execSWTThreadLater(
+										        	0,
+										        	new Runnable()
+										        	{
+										        		public void 
+										        		run()
+										        		{
+										        			if ( isDisposed()){
+										        				
+										        				return;
+										        			}
+										        			
+										        			boolean is_visible = getVerticalBar().isVisible();
+	
+										        			if ( first_time || was_visible != is_visible ){
+	
+										        				x_adjust = is_visible?0:-bar_size.x;
+	
+										        				try{
+										        					hacking = true;
+	
+										        					middle.getParent().layout( true, true );
+	
+										        				}finally{
+	
+										        					hacking = false;
+										        				}
+										        			}
+										        		};	
+										        	});
+									        }
+									        
+									        point.x += x_adjust;
+									        
+									        return point;
+									    }
+									};
+								
+								scrollable.setLayoutData( new GridData(GridData.FILL_VERTICAL ));
+		
+								final Composite scrollChild = new Composite( scrollable, SWT.NONE );
+		
+								GridLayout gLayoutChild = new GridLayout();
+								gLayoutChild.numColumns = 1;
+								
+								gLayoutChild.horizontalSpacing = 1;
+								gLayoutChild.verticalSpacing = 1;
+								scrollChild.setLayout(gLayoutChild);
+								scrollChild.setLayoutData( new GridData(GridData.FILL_VERTICAL ));
+	
+								scrollable.setContent(scrollChild);
+								scrollable.setExpandVertical(true);
+								scrollable.setExpandHorizontal(true);	
+								scrollable.setAlwaysShowScrollBars( false );
+								
+								scrollable.setMinSize(scrollChild.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+								
+								scrollable.addControlListener(new ControlAdapter() {
+									public void controlResized(ControlEvent e) {
+										Rectangle r = scrollable.getClientArea();
+										scrollable.setMinSize(scrollChild.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+									}
+								});
+								
+								fave_area = scrollChild;
+								
+							}else{
+								
+								fave_area = middle;
+							}
+							
+							final List<Button>	buttons = new ArrayList<Button>();
+							
+							Collections.sort(
+								list,
+								new Comparator<String[]>()
+								{
+									Comparator<String> c = new FormattersImpl().getAlphanumericComparator( true );
+									
+									public int compare(String[] o1, String[] o2) {
+										
+										int result = o1[0].compareTo( o2[0] );
+							
+										if ( result == 0 ){
+											
+											result = c.compare( o1[1], o2[1] );
+										}
+										
+										return( result );
+									}
+								});
+							
+							for ( String[] entry: list ){
+								
+								final	String net = entry[0];
+								final	String key = entry[1];
+								
+								Button button = new Button( fave_area, SWT.TOGGLE );
+								
+								String	short_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public.short":"label.anon.short" ) + ")";
+								
+								short_name += " " + key;
+								
+								if ( short_name.length() > 30 ){
+									
+									short_name = short_name.substring( 0, 30 ) + "...";
+								}
+								
+								String	long_name = "(" + MessageText.getString( net==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon" ) + ")";
+								
+								long_name += " " + key;
+		
+								button.setText( short_name );
+								button.setAlignment( SWT.LEFT );
+								button.setToolTipText( long_name );
+								
+								button.setData( net + ":" + key );
+								
+								button.addSelectionListener(new SelectionAdapter() {
+									public void widgetSelected(SelectionEvent e) {
+										current_favourite_net = net;
+										current_favourite_key = key;
+										activate();
+									}});
+								
+								buttons.add( button );
+							}
+							
+							setupButtonGroup( buttons );
+							
+							if ( current_favourite_key != null ){
+								
+								selectButtonGroup( buttons, current_favourite_net + ":" + current_favourite_key );
+							}
 						}
 					}
+					
+					middle.getParent().layout( true, true );
 				}
-				
-				middle.getParent().layout( true, true );
 				
 				last_build_chat_mode	= mode;
 			}
@@ -1960,7 +2102,7 @@ BuddyPluginView
 	
 				}else{
 					
-					Download	download 	= current_download;
+					DownloadAdapter	download 	= current_download;
 					
 					if ( download == null ){
 						
@@ -1970,7 +2112,7 @@ BuddyPluginView
 						
 					}else{
 																			
-						String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+						String[] nets = download.getNetworks();
 						
 						boolean	pub 	= false;
 						boolean	anon	= false;
@@ -2009,7 +2151,7 @@ BuddyPluginView
 		
 			if ( chat_mode == CHAT_DOWNLOAD ){
 			
-				Download	download 	= current_download;
+				DownloadAdapter	download 	= current_download;
 				
 				if ( download == null ){
 					
@@ -2017,7 +2159,7 @@ BuddyPluginView
 					
 				}else{
 
-					key = plugin.getBeta().getDownloadKey( download );
+					key = download.getChatKey();
 				}
 			}else if ( chat_mode == CHAT_TAG ){
 				
@@ -2225,6 +2367,17 @@ BuddyPluginView
 												chat_composite.setData( comp_key );
 												
 												chat_composite.setData( "viewitem", view );
+												
+												if ( view_listener != null ){
+													
+													try{
+														view_listener.chatActivated(chat);
+														
+													}catch( Throwable e){
+														
+														Debug.out( e );
+													}
+												}
 											}
 										}
 									});
@@ -2324,7 +2477,7 @@ BuddyPluginView
 					return;
 				}
 				
-				current_download 	= dl;
+				current_download 	= getDownloadAdapter( dl );
 				current_ds_tag		= tag;
 				
 				rebuild_outstanding = true;
@@ -2356,7 +2509,7 @@ BuddyPluginView
 			}
 		}
 		
-		private void
+		public void
 		destroy()
 		{			
 			//System.out.println( "Destroyed" );
