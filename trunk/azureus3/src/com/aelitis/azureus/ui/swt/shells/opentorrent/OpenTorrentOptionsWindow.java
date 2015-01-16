@@ -102,6 +102,7 @@ import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 @SuppressWarnings({
 	"unchecked",
@@ -2020,7 +2021,7 @@ public class OpenTorrentOptionsWindow
 			}
 			
 			Label info_label = new Label( topComp, SWT.WRAP );
-			info_label.setText( "Comments and ratings are retrieved from other users that have downloaded this torrent.\n\nThis can take some time, especially if you have just started Vuze, so please be patient.\n\nActive networks: [" + active_networks_str + "] - change this via the 'Connection Options' settings.");
+			info_label.setText( MessageText.getString( "torrent.comments.info", new String[]{active_networks_str}));
 			gridData = new GridData( GridData.FILL_HORIZONTAL );
 			gridData.horizontalIndent = 8;
 			gridData.verticalIndent = 8;
@@ -2038,7 +2039,17 @@ public class OpenTorrentOptionsWindow
 			
 			ratingComp.setText( "Rating Plugin" );
 			
-			final Label ratingText = new Label( ratingComp, SWT.WRAP | SWT.BORDER );
+			Composite ratingComp2 = new Composite( ratingComp, SWT.BORDER );
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginWidth = 4;
+			layout.marginHeight = 4;
+			ratingComp2.setLayout(layout);
+			gridData = new GridData( GridData.FILL_BOTH );
+			ratingComp2.setLayoutData(gridData);
+			ratingComp2.setBackground( Colors.white );
+			
+			final Label ratingText = new Label( ratingComp2, SWT.WRAP );
 			gridData = new GridData( GridData.FILL_HORIZONTAL );
 			gridData.heightHint=ratingText.getFont().getFontData()[0].getHeight() * 2 + 16;
 			ratingText.setLayoutData(gridData);
@@ -2061,7 +2072,7 @@ public class OpenTorrentOptionsWindow
 						
 						az_rating_in_progress[0] = true;
 						
-						ratingText.setText( "Searching..." );
+						ratingText.setText( MessageText.getString( "label.searching" ));
 								
 						new AEThread2( "oto:rat" )
 						{
@@ -2071,8 +2082,8 @@ public class OpenTorrentOptionsWindow
 							
 								try{
 									result = (Map)ipc.invoke( "lookupRatingByHash", new Object[]{ f_enabled_networks, hash.getBytes() });
-									
-									System.out.println( "azrating: " + result );
+										
+									System.out.println( result );
 									
 								}catch( Throwable e ){
 									
@@ -2097,18 +2108,89 @@ public class OpenTorrentOptionsWindow
 												{
 													if ( !ratingText.isDisposed()){
 														
-														String text;
+														String text 	= "";
+														String	tooltip = "";
 														
-														if ( f_result == null ){
+														if ( f_result != null ){
+															
+															List<Map> ratings = (List<Map>)f_result.get( "ratings" );
+															
+															if ( ratings != null ){
+																
+																String 			scores_str = "";
+																List<String>	comments = new ArrayList<String>();
+																
+																double	total_score = 0;
+																int		score_num	= 0;
+																
+																for ( Map map: ratings ){
+																	
+																	try{
+																		int 	score	= ((Number)map.get( "score" )).intValue();
+																		
+																		total_score += score;
+																		score_num++;
+																		
+																		scores_str += (scores_str.length()==0?"":", ") + score;
+																		
+																		String comment 	= ImportExportUtils.importString(map, "comment" );
+																		
+																		if ( comment != null ){
+																			
+																			comment = comment.trim();
+																			
+																			if ( comment.length() > 0 ){
+																				
+																				comments.add( comment );
+																			}
+																		}
+																	}catch( Throwable e ){
+																		
+																	}
+																}
+																
+																if ( score_num > 0 ){
+																	
+																	double average = total_score/score_num;
+																	
+																	text = MessageText.getString( 
+																				"torrent.comment.rat1", 
+																				new String[]{
+																					DisplayFormatters.formatDecimal(average,1),
+																					scores_str
+																				});
+																	
+																	int num_comments = comments.size();
+																	
+																	if ( num_comments > 0 ){
+																		
+																		text += "\n    " + MessageText.getString( 
+																				"torrent.comment.rat2", 
+																				new String[]{
+																					comments.get(0) + (num_comments==1?"":"..." )
+																				});
+																		
+																		if ( num_comments > 1 ){
+																			
+																			for ( String comment: comments ){
+																				
+																				tooltip += (tooltip.length()==0?"":"\n") + comment;
+																			}
+																		}
+																	}
+																}
+															}
+															
+															
+														}
+														
+														if ( text.length()==0 ){
 															
 															text = MessageText.getString( "PeersView.uniquepiece.none" );
-															
-														}else{
-															
-															text = f_result.toString();
 														}
 														
 														ratingText.setText( text );
+														ratingText.setToolTipText( tooltip );
 													}
 												}
 											});
@@ -2367,7 +2449,7 @@ public class OpenTorrentOptionsWindow
 
 			btnCheckComments.setEnabled( false );
 			
-			comments_shell.setSize( 600, 500 );
+			comments_shell.setSize( 600, 600 );
 			comments_shell.layout(true, true);
 			
 			Utils.centerWindowRelativeTo(comments_shell,shell);
