@@ -201,7 +201,7 @@ BuddyPluginUtils
 	{
 		BuddyPlugin bp = getPlugin();
 		
-		if ( bp != null && bp.isBetaEnabled()){
+		if ( bp != null && bp.isBetaEnabled() && bp.getBeta().isAvailable()){
 			
 			BuddyPluginViewInterface ui = bp.getSWTUI();
 			

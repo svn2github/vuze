@@ -2082,9 +2082,7 @@ public class OpenTorrentOptionsWindow
 							
 								try{
 									result = (Map)ipc.invoke( "lookupRatingByHash", new Object[]{ f_enabled_networks, hash.getBytes() });
-										
-									System.out.println( result );
-									
+																			
 								}catch( Throwable e ){
 									
 									e.printStackTrace();
@@ -2169,13 +2167,10 @@ public class OpenTorrentOptionsWindow
 																				new String[]{
 																					comments.get(0) + (num_comments==1?"":"..." )
 																				});
-																		
-																		if ( num_comments > 1 ){
-																			
-																			for ( String comment: comments ){
+																																					
+																		for ( String comment: comments ){
 																				
-																				tooltip += (tooltip.length()==0?"":"\n") + comment;
-																			}
+																			tooltip += (tooltip.length()==0?"":"\n") + comment;
 																		}
 																	}
 																}
@@ -2200,14 +2195,14 @@ public class OpenTorrentOptionsWindow
 						}.start();
 					}else{
 						
-						ratingText.setText( "Plugin needs updating" );
+						ratingText.setText( "Rating Plugin needs updating" );
 					}
 				}else{
-					ratingText.setText( "Plugin not installed" );
+					ratingText.setText( "Rating Plugin is not installed" );
 				}
 			}catch( Throwable e ){
 				
-				ratingText.setText( "Plugin failed: " + Debug.getNestedExceptionMessage(e));
+				ratingText.setText( "Rating Plugin failed: " + Debug.getNestedExceptionMessage(e));
 			}
 			
 				// chat
@@ -2273,11 +2268,23 @@ public class OpenTorrentOptionsWindow
 				
 			if ( chat_view == null ){
 				
-				Label chatText = new Label( chatComp, SWT.NULL );
+				Composite chatComp2 = new Composite( chatComp, SWT.BORDER );
+				layout = new GridLayout();
+				layout.numColumns = 1;
+				layout.marginWidth = 4;
+				layout.marginHeight = 4;
+				chatComp2.setLayout(layout);
+				gridData = new GridData( GridData.FILL_BOTH );
+				chatComp2.setLayoutData(gridData);
+				chatComp2.setBackground( Colors.white );
+				
+				final Label chatText = new Label( chatComp2, SWT.WRAP );
 				gridData = new GridData( GridData.FILL_HORIZONTAL );
+				gridData.heightHint=ratingText.getFont().getFontData()[0].getHeight() * 2 + 16;
 				chatText.setLayoutData(gridData);
+				chatText.setBackground( Colors.white );
 
-				chatText.setText( "Plugin not enabled or available" );
+				chatText.setText( "Message Sync Plugin is not installed or chat is disabled" );
 			}
 			
 				// progress
