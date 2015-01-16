@@ -49,6 +49,8 @@ import org.gudy.azureus2.core3.torrent.impl.TorrentOpenFileOptions;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -79,6 +81,7 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.RegExUtil;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -1435,6 +1438,7 @@ public class OpenTorrentOptionsWindow
 		/* prevents loop of modifications */
 		protected boolean bSkipDataDirModify = false;
 
+		private Button btnCheckComments;
 		private Button btnCheckAvailability;
 		private Button btnSwarmIt;
 
@@ -1945,6 +1949,361 @@ public class OpenTorrentOptionsWindow
 			avail_shell.open();
 		}
 		
+		private void
+		showComments()
+		{
+			final Shell comments_shell = ShellFactory.createShell( shell, SWT.DIALOG_TRIM | SWT.RESIZE );
+
+			Utils.setShellIcon(comments_shell);
+			 
+			GridLayout layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			comments_shell.setLayout(layout);
+			
+			Utils.verifyShellRect(comments_shell, true);
+
+			TOTorrent t = torrentOptions.getTorrent();
+			
+			String[] enabled_networks = AENetworkClassifier.AT_NETWORKS;
+			
+			Map<String,Boolean> enabledNetworks = torrentOptions.getEnabledNetworks();
+			
+			if ( enabledNetworks != null ){
+				List<String>	temp = new ArrayList<String>(Arrays.asList(enabled_networks));
+				for (String net : enabledNetworks.keySet()) {
+					boolean enable = enabledNetworks.get(net);
+					if ( !enable ){
+						temp.remove( net );
+					}
+				}
+				enabled_networks = temp.toArray( new String[temp.size()]);
+			}
+					
+			Composite comp = new Composite( comments_shell, SWT.NULL );
+			
+			GridData gridData = new GridData( GridData.FILL_BOTH );
+			comp.setLayoutData(gridData);
+			
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			comp.setLayout(layout);
+			
+			Composite topComp = new Composite( comp, SWT.NULL );
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			topComp.setLayout(layout);
+			gridData = new GridData( GridData.FILL_BOTH );
+			topComp.setLayoutData(gridData);
+			
+			String active_networks_str = "";
+			
+			for ( String net: enabled_networks ){
+				
+				active_networks_str += 
+						(active_networks_str.length()==0?"":", ") + 
+						MessageText.getString( "ConfigView.section.connection.networks." + net );
+			}
+			
+			if ( active_networks_str.length() == 0 ){
+				
+				active_networks_str = MessageText.getString( "PeersView.uniquepiece.none" );
+			}
+			
+			Label info_label = new Label( topComp, SWT.WRAP );
+			info_label.setText( "Comments and ratings are retrieved from other users that have downloaded this torrent.\n\nThis can take some time, especially if you have just started Vuze, so please be patient.\n\nActive networks: [" + active_networks_str + "] - change this via the 'Connection Options' settings.");
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			gridData.horizontalIndent = 8;
+			gridData.verticalIndent = 8;
+			info_label.setLayoutData(gridData);
+			
+				// azrating plugin
+			
+			Group ratingComp = new Group( topComp, SWT.NULL );
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			
+			ratingComp.setLayout(layout);
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			ratingComp.setLayoutData(gridData);
+			
+			ratingComp.setText( "Rating Plugin" );
+			
+			final Label ratingText = new Label( ratingComp, SWT.NULL );
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			ratingText.setLayoutData(gridData);
+			
+			
+			final boolean[]	az_rating_in_progress = { false };
+			
+			try{
+				PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+				
+				PluginInterface rating_pi = pm.getPluginInterfaceByID( "azrating" );
+					
+				if ( rating_pi != null ){
+					
+					final IPCInterface ipc = rating_pi.getIPC();
+					
+					if ( ipc.canInvoke( "lookupRatingByHash", new Object[]{ new String[0], new byte[0] })){
+							
+						final String[] f_enabled_networks = enabled_networks;
+						
+						az_rating_in_progress[0] = true;
+						
+						ratingText.setText( "Searching..." );
+								
+						new AEThread2( "oto:rat" )
+						{
+							public void
+							run()
+							{	Map result = null;
+							
+								try{
+									result = (Map)ipc.invoke( "lookupRatingByHash", new Object[]{ f_enabled_networks, hash.getBytes() });
+									
+									System.out.println( "azrating: " + result );
+									
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+									
+								}finally{
+									
+									synchronized( az_rating_in_progress ){
+									
+										az_rating_in_progress[0] = false;
+									}
+									
+									if ( !ratingText.isDisposed()){
+									
+										final Map f_result = result;
+										
+										Utils.execSWTThread(
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													if ( !ratingText.isDisposed()){
+														
+														ratingText.setText( f_result.toString());
+													}
+												}
+											});
+									}
+								}
+							}
+						}.start();
+					}else{
+						
+						ratingText.setText( "Plugin needs updating" );
+					}
+				}else{
+					ratingText.setText( "Plugin not installed" );
+				}
+			}catch( Throwable e ){
+				
+				ratingText.setText( "Plugin failed: " + Debug.getNestedExceptionMessage(e));
+			}
+			
+				// chat
+			
+			Group chatComp = new Group( topComp, SWT.NULL );
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			chatComp.setLayout(layout);
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			chatComp.setLayoutData(gridData);
+			
+			chatComp.setText( "Chat Plugin" );
+			
+				// progress
+			
+			Composite progressComp = new Composite( comp, SWT.NULL );
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			progressComp.setLayoutData(gridData);
+			
+			layout = new GridLayout();
+			layout.numColumns = 3;
+			progressComp.setLayout(layout);
+			
+			Label progLabel = new Label(progressComp,SWT.NULL);
+			progLabel.setText( MessageText.getString("label.checking.comments"));
+			
+			final Composite progBarComp = new Composite( progressComp, SWT.NULL );
+			gridData = new GridData();
+			gridData.widthHint = 400;
+			progBarComp.setLayoutData(gridData);
+			
+			Label padLabel = new Label(progressComp,SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			padLabel.setLayoutData(gridData);
+			
+			final StackLayout	progStackLayout = new StackLayout();
+			
+			progBarComp.setLayout( progStackLayout);
+			
+			final ProgressBar progBarIndeterminate = new ProgressBar(progBarComp, SWT.HORIZONTAL | SWT.INDETERMINATE);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			progBarIndeterminate.setLayoutData(gridData);
+			
+			final ProgressBar progBarComplete = new ProgressBar(progBarComp, SWT.HORIZONTAL );
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			progBarComplete.setLayoutData(gridData);
+			progBarComplete.setMaximum( 1 );
+			progBarComplete.setSelection( 1 );
+			
+			progStackLayout.topControl = progBarIndeterminate;
+			
+			new AEThread2( "ProgChecker" )
+			{
+				public void
+				run()
+				{
+					boolean	currently_updating = true;
+					
+					while( true ){
+						
+						if ( comments_shell.isDisposed()){
+							
+							return;
+						}
+						
+						boolean in_progress = false;
+						
+						synchronized( az_rating_in_progress ){
+						
+							if ( az_rating_in_progress[0] ){
+								
+								in_progress = true;
+							}
+						}
+						
+						final boolean	updating = in_progress;
+						
+						if ( updating != currently_updating ){
+							
+							currently_updating = updating;
+							
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										if ( !comments_shell.isDisposed()){
+										
+											progStackLayout.topControl = updating?progBarIndeterminate:progBarComplete;
+										
+											progBarComp.layout();
+										}
+									}
+								});
+						}
+						
+						try{
+							Thread.sleep(500);
+							
+						}catch( Throwable e ){
+							
+						}
+					}
+				}
+			}.start();
+			
+				// line
+			
+			Label labelSeparator = new Label( comp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			labelSeparator.setLayoutData(gridData);
+			
+				// buttons
+			
+			Composite buttonComp = new Composite( comp, SWT.NULL );
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			buttonComp.setLayoutData(gridData);
+			
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			buttonComp.setLayout(layout);
+			
+			new Label(buttonComp,SWT.NULL);
+			
+			Composite buttonArea = new Composite(buttonComp,SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+			gridData.grabExcessHorizontalSpace = true;
+			buttonArea.setLayoutData(gridData);
+			GridLayout layoutButtons = new GridLayout();
+			layoutButtons.numColumns = 1;
+			buttonArea.setLayout(layoutButtons);
+			
+			List<Button>	buttons = new ArrayList<Button>();
+			
+			Button bOK = new Button(buttonArea,SWT.PUSH);
+			buttons.add( bOK );
+			
+			bOK.setText(MessageText.getString("Button.ok"));
+			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+			gridData.grabExcessHorizontalSpace = true;
+			gridData.widthHint = 70;
+			bOK.setLayoutData(gridData);
+			bOK.addListener(SWT.Selection,new Listener() {
+				public void handleEvent(Event e) {
+					comments_shell.dispose();
+				}
+			});
+			
+			Utils.makeButtonsEqualWidth( buttons );
+			
+			comments_shell.setDefaultButton( bOK );
+			
+			comments_shell.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					try{
+						if ( !btnCheckComments.isDisposed()){
+						
+							btnCheckComments.setEnabled( true );
+						}
+					}finally{
+						
+						
+					}
+				}
+			});
+
+			btnCheckComments.setEnabled( false );
+			
+			comments_shell.setSize( 800, 400 );
+			comments_shell.layout(true, true);
+			
+			Utils.centerWindowRelativeTo(comments_shell,shell);
+			
+			String title = torrentOptions.getTorrentName();
+						
+			if ( t != null ){
+			
+				String str = PlatformTorrentUtils.getContentTitle( t );
+				
+				if ( str != null && str.length() > 0 ){
+					
+					title = str;
+				}
+			}
+			
+			Messages.setLanguageText( comments_shell, "torrent.comments.title", new String[]{ title });
+
+			comments_shell.open();
+		}
+		
+		
+		
+		
 		private void checkSeedingMode() {
 			if ( torrentOptions == null ){
 				return;
@@ -2234,10 +2593,15 @@ public class OpenTorrentOptionsWindow
 
 				// ratings etc
 			
-			Button btnRatings = new Button(cButtonsBottom, SWT.PUSH);
-			buttons.add( btnRatings );
-			Messages.setLanguageText(btnRatings, "label.comments");
+			btnCheckComments = new Button(cButtonsBottom, SWT.PUSH);
+			buttons.add( btnCheckComments );
+			Messages.setLanguageText(btnCheckComments, "label.comments");
 			
+			btnCheckComments.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					showComments();
+				}
+			});
 				// availability button
 			
 			btnCheckAvailability = new Button(cButtonsBottom, SWT.PUSH);
