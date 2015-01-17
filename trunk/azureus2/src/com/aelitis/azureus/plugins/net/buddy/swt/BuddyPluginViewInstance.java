@@ -44,9 +44,13 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -57,6 +61,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
@@ -80,6 +86,8 @@ BuddyPluginViewInstance
 	
 	private List	buddies = new ArrayList();
 
+	private Button	plugin_install_button;
+	
 	private boolean	init_complete;
 		
 	protected
@@ -166,6 +174,74 @@ BuddyPluginViewInstance
 		new LinkLabel(info_area, "ConfigView.label.please.visit.here", lu.getLocalisedMessageText( "azbuddy.dchat.link.url" ));
 		
 		label = new Label( info_area, SWT.NULL );
+		
+			// install plugin
+		
+		label = new Label( info_area, SWT.NULL );
+
+		label.setText(  MessageText.getString( "azmsgsync.install.text" ));
+		
+		plugin_install_button = new Button( info_area, SWT.NULL );
+				
+		plugin_install_button.setText( MessageText.getString( "UpdateWindow.columns.install" ));
+		
+		plugin_install_button.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void 
+				widgetSelected(SelectionEvent e) 
+				{
+					plugin_install_button.setEnabled( false );
+					
+					new AEThread2( "installer" )
+					{
+						public void
+						run()
+						{
+							boolean	ok = false;
+							
+							String	msg;
+							
+							try{
+								installMsgSyncPlugin();
+								
+								msg = MessageText.getString( "azmsgsync.install.ok.msg" );
+								
+								ok = true;
+								
+							}catch( Throwable e ){
+								
+								msg = MessageText.getString( 
+											"azmsgsync.install.fail.msg",
+											new String[]{ Debug.getNestedExceptionMessage( e )});
+								
+							}finally{
+								
+								if ( !checkMsgSyncPlugin()){
+									
+									if ( ok ){
+									
+											// something weird happened
+										
+										ok = false;
+										
+										msg = MessageText.getString(
+												"azmsgsync.install.fail.msg",
+												new String[]{ "Unexpected error, check logs" });
+									}
+								}
+							}
+							
+							plugin.getPluginInterface().getUIManager().showMessageBox(
+								ok?"aztorplugin.browser.install.ok":"aztorplugin.browser.install.fail",
+								"!" + msg + "!",
+								UIManagerEvent.MT_OK );
+						}
+					}.start();
+				}
+			});
+		
+		checkMsgSyncPlugin();
 		
 			// shared public nick
 		
@@ -754,6 +830,85 @@ BuddyPluginViewInstance
 		Utils.makeButtonsEqualWidth( buttons );
 	}
 
+	private boolean
+	isMsgSyncPluginInstalled()
+	{
+		PluginInterface pi = plugin.getPluginInterface().getPluginManager().getPluginInterfaceByID( "azmsgsync" );
+		
+		return( pi != null ); // && pi.getPluginState().isOperational());
+	}
+	
+	private boolean
+	checkMsgSyncPlugin()
+	{
+		if ( plugin_install_button == null ){
+			
+			return( false );
+		}
+		
+		final boolean installed = isMsgSyncPluginInstalled();
+			
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					plugin_install_button.setEnabled( !installed );
+				}
+			});
+		
+		return( installed );
+	}
+	
+	private void
+	installMsgSyncPlugin()
+	
+		throws Throwable
+	{
+		UIFunctions uif = UIFunctionsManager.getUIFunctions();
+		
+		if ( uif == null ){
+			
+			throw( new Exception( "UIFunctions unavailable - can't install plugin" ));
+		}
+		
+		
+		final AESemaphore sem = new AESemaphore( "installer_wait" );
+		
+		final Throwable[] error = { null };
+		
+		uif.installPlugin(
+				"azmsgsync",
+				"azmsgsync.install",
+				new UIFunctions.actionListener()
+				{
+					public void
+					actionComplete(
+						Object		result )
+					{
+						try{
+							if ( result instanceof Boolean ){
+								
+							}else{
+								
+								error[0] = (Throwable)result;
+							}
+						}finally{
+							
+							sem.release();
+						}
+					}
+				});
+		
+		sem.reserve();
+		
+		if ( error[0] instanceof Throwable ){
+			
+			throw((Throwable)error[0] );
+		}
+	}
+	
 	private void
 	setupButton(
 		final Button			button,

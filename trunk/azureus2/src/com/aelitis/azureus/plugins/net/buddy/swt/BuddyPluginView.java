@@ -193,7 +193,7 @@ BuddyPluginView
 		
 		ui_instance.addView(	UISWTInstance.VIEW_MAIN, VIEW_ID, this );
 					
-		initBeta();
+		checkBetaInit();
 	}
 	
 	public boolean 
@@ -547,6 +547,8 @@ BuddyPluginView
 		}
 	}
 	
+	private boolean	beta_init_done;
+	
 	private static Object	CHAT_LM_KEY		= new Object();
 	
 	private HashMap<UISWTView,BetaSubViewHolder> beta_subviews = new HashMap<UISWTView,BetaSubViewHolder>();
@@ -559,10 +561,20 @@ BuddyPluginView
 	private Image				bs_chat_green;
 	
 	private void
-	initBeta()
+	checkBetaInit()
 	{
 		if ( plugin.isBetaEnabled() && plugin.getBeta().isAvailable()){
 
+			synchronized( this ){
+				
+				if ( beta_init_done ){
+					
+					return;
+				}
+				
+				beta_init_done = true;
+			}
+			
 			addBetaSubviews( true );
 			
 			beta_status	= ui_instance.createStatusEntry();
@@ -923,7 +935,10 @@ BuddyPluginView
 				text += "\n  " + chat.getShortName();
 			}
 			
-			beta_status.setTooltipText( text );
+			if ( beta_status != null ){
+			
+				beta_status.setTooltipText( text );
+			}
 			
 			buildMenu( instances );
 		}
@@ -1393,6 +1408,7 @@ BuddyPluginView
 		private
 		BetaSubViewHolder()
 		{
+			checkBetaInit();
 		}
 		
 		private void
@@ -2477,7 +2493,7 @@ BuddyPluginView
 					return;
 				}
 				
-				current_download 	= getDownloadAdapter( dl );
+				current_download 	= dl==null?null:getDownloadAdapter( dl );
 				current_ds_tag		= tag;
 				
 				rebuild_outstanding = true;

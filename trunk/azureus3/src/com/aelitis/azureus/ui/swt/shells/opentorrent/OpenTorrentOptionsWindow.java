@@ -2193,12 +2193,14 @@ public class OpenTorrentOptionsWindow
 								}
 							}
 						}.start();
+						
 					}else{
 						
 						ratingText.setText( "Rating Plugin needs updating" );
 					}
 				}else{
-					ratingText.setText( "Rating Plugin is not installed" );
+					
+					ratingText.setText( MessageText.getString( "torrent.comment.azrating.install" ));
 				}
 			}catch( Throwable e ){
 				
@@ -2284,7 +2286,7 @@ public class OpenTorrentOptionsWindow
 				chatText.setLayoutData(gridData);
 				chatText.setBackground( Colors.white );
 
-				chatText.setText( "Message Sync Plugin is not installed or chat is disabled" );
+				chatText.setText( MessageText.getString( "torrent.comment.azmsgsync.install" ));
 			}
 			
 				// progress
