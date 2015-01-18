@@ -24,12 +24,10 @@ import java.io.InputStream;
 import java.net.NoRouteToHostException;
 import java.net.Proxy;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.net.InetSocketAddress;
@@ -86,9 +84,13 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.net.magneturi.*;
@@ -191,6 +193,19 @@ MagnetPlugin
 				  
 					
 					String cb_data = download==null?UrlUtils.getMagnetURI( name, torrent ):UrlUtils.getMagnetURI( download);
+					
+					if ( download != null ){
+						
+						List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( download ));
+						
+						for ( Tag tag: tags ){
+							
+							if ( tag.isPublic()){
+								
+								cb_data += "&tag=" + UrlUtils.encode( tag.getTagName( true ));
+							}
+						}
+					}
 					
 					// removed this as well - nothing wrong with allowing magnet copy
 					// for private torrents - they still can't be tracked if you don't
