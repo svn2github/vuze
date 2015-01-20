@@ -117,9 +117,10 @@ TorrentUtils
 	private static final String		TORRENT_AZ_PROP_PLUGINS					= "plugins";
 	
 	public static final String		TORRENT_AZ_PROP_OBTAINED_FROM			= "obtained_from";
-	public static final String		TORRENT_AZ_PROP_NETWORK_CACHE			= "network_cache";
-	public static final String		TORRENT_AZ_PROP_PEER_CACHE				= "peer_cache";
-	public static final String		TORRENT_AZ_PROP_PEER_CACHE_VALID		= "peer_cache_valid";
+	private static final String		TORRENT_AZ_PROP_NETWORK_CACHE			= "network_cache";
+	private static final String		TORRENT_AZ_PROP_TAG_CACHE				= "tag_cache";
+	private static final String		TORRENT_AZ_PROP_PEER_CACHE				= "peer_cache";
+	private static final String		TORRENT_AZ_PROP_PEER_CACHE_VALID		= "peer_cache_valid";
 	public static final String		TORRENT_AZ_PROP_INITIAL_LINKAGE			= "initial_linkage";
 	public static final String		TORRENT_AZ_PROP_INITIAL_LINKAGE2		= "initial_linkage2";
 	
@@ -1788,6 +1789,57 @@ TorrentUtils
 								break;
 							}
 						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		return( result );
+	}
+	
+	public static void
+	setTagCache(
+		TOTorrent		torrent,
+		List<String>	networks )
+	{
+		Map	m = getAzureusPrivateProperties( torrent );
+			
+		try{
+			m.put( TORRENT_AZ_PROP_TAG_CACHE, networks );
+						
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public static List<String>
+	getTagCache(
+		TOTorrent		torrent )
+	{
+		List<String>	result = new ArrayList<String>();
+		
+		Map	m = getAzureusPrivateProperties( torrent );
+			
+		try{
+			List l = (List)m.get( TORRENT_AZ_PROP_TAG_CACHE );
+				
+			if ( l != null ){
+				
+				for (Object o: l ){
+					
+					if ( o instanceof String ){
+						
+						result.add((String)o);
+						
+					}else if ( o instanceof byte[] ){
+						
+						String s = new String((byte[])o, "UTF-8" );
+						
+						result.add( s );
 					}
 				}
 			}

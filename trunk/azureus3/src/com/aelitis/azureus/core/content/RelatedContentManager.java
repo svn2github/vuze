@@ -1672,6 +1672,36 @@ RelatedContentManager
 									
 									Debug.out( e );
 								}
+								
+								ContentCache	content_cache = loadRelatedContent();
+
+								List<DownloadInfo> infos = content_cache.related_content_map.get( from_hash );
+								
+								if ( infos != null ){
+									
+									for ( DownloadInfo info: infos ){
+										
+										String[] l_tags = info.getTags();
+										
+										if ( l_tags != null ){
+											
+											for ( String tag: l_tags ){
+												
+												synchronized( tags ){
+													
+													if ( tags.contains( tag )){
+														
+														continue;
+													}
+													
+													tags.add( tag );
+												}
+												
+												listener.tagFound( tag, dht_plugin_network );
+											}
+										}
+									}
+								}
 							}
 						}
 						

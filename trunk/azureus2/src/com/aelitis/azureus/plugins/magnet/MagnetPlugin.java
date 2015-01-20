@@ -632,6 +632,8 @@ MagnetPlugin
 		List<String>	new_web_seeds 	= new ArrayList<String>();
 		List<String>	new_trackers 	= new ArrayList<String>();
 
+		Set<String>	tags			= new HashSet<String>();
+		
 		if ( args != null ){
 			
 			String[] bits = args.split( "&" );
@@ -659,6 +661,9 @@ MagnetPlugin
 							
 						}catch( Throwable e ){							
 						}
+					}else if ( lhs.equals( "tag" )){
+						
+						tags.add( x[1] );
 					}
 				}
 			}
@@ -770,6 +775,13 @@ MagnetPlugin
 				if ( networks.size() > 0 ){
 						
 					TorrentUtils.setNetworkCache( torrent, new ArrayList<String>( networks ));
+
+					update_torrent = true;
+				}
+				
+				if ( tags.size() > 0 ){
+					
+					TorrentUtils.setTagCache( torrent, new ArrayList<String>( tags ));
 
 					update_torrent = true;
 				}
