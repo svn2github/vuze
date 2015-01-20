@@ -74,7 +74,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -88,15 +87,12 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
-import org.gudy.azureus2.plugins.sharing.ShareResource;
 import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
 import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -107,12 +103,8 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.tag.TagManagerFactory;
-import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
@@ -555,7 +547,6 @@ BuddyPluginViewBetaChat
 							
 			final MenuItem fave_mi = new MenuItem( status_menu, SWT.CHECK );
 			fave_mi.setText( MessageText.getString( "label.fave" ));
-			fave_mi.setSelection( chat.isFavourite());
 			
 			fave_mi.addSelectionListener(
 					new SelectionAdapter() {				
@@ -574,7 +565,6 @@ BuddyPluginViewBetaChat
 
 			final MenuItem persist_mi = new MenuItem( advanced_menu, SWT.CHECK );
 			persist_mi.setText( MessageText.getString( "azbuddy.dchat.save.messages" ));
-			persist_mi.setSelection( chat.getSaveMessages());
 			
 			persist_mi.addSelectionListener(
 					new SelectionAdapter() {				
@@ -583,6 +573,18 @@ BuddyPluginViewBetaChat
 							SelectionEvent e ) 
 						{
 							chat.setSaveMessages( persist_mi.getSelection());
+						}
+					});
+			
+			status_menu.addMenuListener(
+					new MenuAdapter() 
+					{
+						public void 
+						menuShown(
+							MenuEvent e ) 
+						{
+							fave_mi.setSelection( chat.isFavourite());
+							persist_mi.setSelection( chat.getSaveMessages());
 						}
 					});
 		}else{
@@ -637,6 +639,48 @@ BuddyPluginViewBetaChat
 						}
 					}
 				});
+			
+			final MenuItem fave_mi = new MenuItem( status_menu, SWT.CHECK );
+			fave_mi.setText( MessageText.getString( "label.keep.alive" ));
+			
+			status_menu.addMenuListener(
+				new MenuAdapter() 
+				{
+					public void 
+					menuShown(
+						MenuEvent e ) 
+					{
+						fave_mi.setSelection( chat.getUserData( "AC:KeepAlive" ) != null );
+					}
+				});
+			
+			fave_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							ChatInstance clone = (ChatInstance)chat.getUserData( "AC:KeepAlive" );
+							
+							if ( clone != null ){
+								
+								clone.destroy();
+								
+								clone = null;
+								
+							}else{
+								
+								try{
+									clone = chat.getClone();
+									
+								}catch( Throwable f ){
+									
+								}
+							}
+							
+							chat.setUserData( "AC:KeepAlive", clone );
+						}
+					});
 		}
 		
 		
@@ -948,40 +992,53 @@ BuddyPluginViewBetaChat
 									str = str.substring( 0, 50 ) + "...";
 								}
 								
-								str = lu.getLocalisedMessageText( "azbuddy.dchat.open.in.vuze" ) + ": " + str;
-																	
-								final MenuItem mi_open_vuze = new MenuItem( log_menu, SWT.PUSH );
+									// magnet special case for anon chat
 								
-								mi_open_vuze.addSelectionListener(
-									new SelectionAdapter() {
-										
-										public void 
-										widgetSelected(
-											SelectionEvent e ) 
-										{
-											String url_str = (String)mi_open_vuze.getData();
+								if ( chat.isAnonymous() && url_str.toLowerCase( Locale.US ).startsWith( "magnet:" )){
+									
+									// TODO
+									
+								}else{
+								
+								
+									str = lu.getLocalisedMessageText( "azbuddy.dchat.open.in.vuze" ) + ": " + str;
+																		
+									final MenuItem mi_open_vuze = new MenuItem( log_menu, SWT.PUSH );
+									
+									mi_open_vuze.setText( str);
+									mi_open_vuze.setData( url_str );
+
+									mi_open_vuze.addSelectionListener(
+										new SelectionAdapter() {
 											
-											if ( url_str != null ){
+											public void 
+											widgetSelected(
+												SelectionEvent e ) 
+											{
+												String url_str = (String)mi_open_vuze.getData();
 												
-												String lc_url_str = url_str.toLowerCase( Locale.US );
-												
-												if ( lc_url_str.startsWith( "chat:" )){
+												if ( url_str != null ){
 													
-													try{
-														beta.handleURI( url_str, true );
+													String lc_url_str = url_str.toLowerCase( Locale.US );
+													
+													if ( lc_url_str.startsWith( "chat:" )){
 														
-													}catch( Throwable f ){
+														try{
+															beta.handleURI( url_str, true );
+															
+														}catch( Throwable f ){
+															
+															Debug.out( f );
+														}
 														
-														Debug.out( f );
+													}else{
+													
+														TorrentOpener.openTorrent( url_str );
 													}
-													
-												}else{
-												
-													TorrentOpener.openTorrent( url_str );
 												}
 											}
-										}
-									});
+										});
+								}
 								
 								final MenuItem mi_open_ext = new MenuItem( log_menu, SWT.PUSH );
 								
@@ -1002,32 +1059,37 @@ BuddyPluginViewBetaChat
 								
 								new MenuItem( log_menu, SWT.SEPARATOR );
 								
-								final MenuItem mi_copy_clip = new MenuItem( log_menu, SWT.PUSH );
-								
-								mi_copy_clip.setText( lu.getLocalisedMessageText( "ConfigView.copy.to.clipboard.tooltip" ));
-								
-								mi_copy_clip.addSelectionListener(
-										new SelectionAdapter() {
-											
-											public void 
-											widgetSelected(
-												SelectionEvent e ) 
-											{
-												String url_str = (String)mi_copy_clip.getData();
+								if ( chat.isAnonymous() && url_str.toLowerCase( Locale.US ).startsWith( "magnet:" )){
+
+									// TODO
+									
+								}else{
+									
+									final MenuItem mi_copy_clip = new MenuItem( log_menu, SWT.PUSH );
+									
+									mi_copy_clip.setText( lu.getLocalisedMessageText( "ConfigView.copy.to.clipboard.tooltip" ));
+									
+									mi_copy_clip.setData( url_str );
+
+									mi_copy_clip.addSelectionListener(
+											new SelectionAdapter() {
 												
-												if ( url_str != null ){
+												public void 
+												widgetSelected(
+													SelectionEvent e ) 
+												{
+													String url_str = (String)mi_copy_clip.getData();
 													
-													ClipboardCopy.copyToClipBoard( url_str );
+													if ( url_str != null ){
+														
+														ClipboardCopy.copyToClipBoard( url_str );
+													}
 												}
-											}
-										});
+											});
+								}	
 								
 								
-								
-								
-								mi_open_vuze.setText( str);
-								mi_open_vuze.setData( url_str );
-								
+																
 								if ( url_str.toLowerCase().startsWith( "http" )){
 									
 									mi_open_ext.setData( url_str );
@@ -1038,9 +1100,7 @@ BuddyPluginViewBetaChat
 									
 									mi_open_ext.setEnabled( false );
 								}
-								
-								mi_copy_clip.setData( url_str );
-								
+																
 								handled = true;
 							}
 						}
@@ -1131,6 +1191,8 @@ BuddyPluginViewBetaChat
 											
 											try{
 												String host = new URL( lc_url_str ).getHost();
+												
+													// note that magnet-uris are always decoded here as public, which is what we want mostly
 												
 												if ( AENetworkClassifier.categoriseAddress( host ) == AENetworkClassifier.AT_PUBLIC ){
 		
@@ -1356,7 +1418,8 @@ BuddyPluginViewBetaChat
 
 		label = new Label( nick_area, SWT.NULL );
 		label.setText( lu.getLocalisedMessageText( "label.shared" ));
-
+		label.setToolTipText( lu.getLocalisedMessageText( "azbuddy.dchat.shared.tooltip" ));
+		
 		shared_nick_button = new Button( nick_area, SWT.CHECK );
 		
 		shared_nick_button.setSelection( chat.isSharedNickname());

@@ -921,7 +921,7 @@ BuddyPluginView
 				
 				if ( !chat_uis.containsKey( chat )){
 						
-					if ( chat.isFavourite()){
+					if ( chat.isFavourite() || chat.isPrivateChat()){
 						
 						instances.add( chat );					
 					}
