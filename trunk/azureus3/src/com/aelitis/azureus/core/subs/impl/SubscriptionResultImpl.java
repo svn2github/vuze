@@ -276,7 +276,24 @@ SubscriptionResultImpl
 	{
 		Map map = toJSONMap();
 		
+			// meh, for magnet URIs we might well have a decent magnet stored against the "dl" and a
+			// link constructed from the hash only as "dlb" - check WebResult.java. So ignore the
+			// default one when a better one is available
+		
 		String	link = (String)map.get( "dbl" );
+		
+		if ( link != null ){
+			
+			if ( link.toLowerCase( Locale.US ).startsWith( "magnet:" )){
+				
+				String dl_link = (String)map.get( "dl" );
+				
+				if ( dl_link != null && dl_link.toLowerCase( Locale.US ).startsWith( "magnet:" )){
+					
+					link = dl_link;
+				}
+			}
+		}
 		
 		if ( link == null ){
 			
