@@ -1697,7 +1697,13 @@ RelatedContentManager
 													tags.add( tag );
 												}
 												
-												listener.tagFound( tag, dht_plugin_network );
+												try{
+													listener.tagFound( tag, dht_plugin_network );
+													
+												}catch( Throwable e ){
+													
+													Debug.out( e );
+												}
 											}
 										}
 									}
@@ -1735,7 +1741,13 @@ RelatedContentManager
 											tags.add( tag );
 										}
 										
-										listener.tagFound( tag, dht_plugin_network );
+										try{
+											listener.tagFound( tag, dht_plugin_network );
+											
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
 									}
 								}
 								
