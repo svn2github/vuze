@@ -11,6 +11,7 @@
 
 package org.gudy.azureus2.ui.console;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -73,7 +75,7 @@ public class ConsoleInput extends Thread {
 
 	private static final String ALIASES_CONFIG_FILE = "console.aliases.properties";
 	public final AzureusCore azureus_core;
-	public final PrintStream out;
+	public volatile PrintStream out;
 	public final List torrents = new ArrayList();
 	public File[] adds = null;
 	
@@ -587,7 +589,7 @@ public class ConsoleInput extends Thread {
 	}
 
 	public void run() {
-		List comargs;
+		List<String> comargs;
 		running = true;
 		while (running) {
 			try {
@@ -599,6 +601,34 @@ public class ConsoleInput extends Thread {
 				break;
 			}
 			if (!comargs.isEmpty()) {
+				
+				int	argNum = comargs.size();
+				
+				File 	outputFile 			= null;
+				boolean outputFileAppend	= false;
+				
+				if ( argNum >= 3 ){
+					
+					String temp = comargs.get( argNum-2 );
+					
+					if ( temp.equals( ">" ) || temp.equals( ">>" )){
+						
+						File file = new File( comargs.get( argNum-1 ));
+						
+						if ( !file.getParentFile().canWrite()){
+							
+							out.println("> Invalid output file '" + file + "'" );
+							
+							continue;
+						}
+						
+						outputFile 			= file;
+						outputFileAppend	= temp.equals( ">>" );
+						
+						comargs = comargs.subList( 0, argNum-2 );
+					}
+				}
+				
 				String command = ((String) comargs.get(0)).toLowerCase();
 				if( ".".equals(command) )
 				{
@@ -614,7 +644,17 @@ public class ConsoleInput extends Thread {
 				oldcommand.addAll(comargs);
 				comargs.remove(0);
 				
+				PrintStream	 base_os 	= null;
+				
 				try {
+					if ( outputFile != null ){
+						
+						PrintStream temp = new PrintStream( new BufferedOutputStream( new FileOutputStream( outputFile, outputFileAppend ), 128 ));
+						
+						base_os = out;
+						out		= temp;
+					}
+					
 					if (!invokeCommand(command, comargs)) {
 						out.println("> Command '" + command + "' unknown (or . used without prior command)");
 					}
@@ -622,6 +662,23 @@ public class ConsoleInput extends Thread {
 				{
 					out.println("Exception occurred when executing command: '" + command + "'");
 					e.printStackTrace(out);
+				}finally{
+					
+					if ( base_os != null ){
+						
+						try{
+							PrintStream temp = out;
+							
+							out = base_os;
+							
+							temp.close();
+							
+						}catch( Throwable e ){
+							
+							out.println("Exception occurred when closing output file" );
+							e.printStackTrace(out);
+						}
+					}
 				}
 			}
 		}
