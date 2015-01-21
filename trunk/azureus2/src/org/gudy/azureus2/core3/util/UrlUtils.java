@@ -22,9 +22,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -130,6 +132,62 @@ public class UrlUtils
 		}
 		
 		return( net_str );
+	}
+	
+	public static Set<String>
+	extractNetworks(
+		String[]		magnet_uri )
+	{
+		String magnet_uri_in = magnet_uri[0];
+		
+		Set<String>	result = new HashSet<String>();
+		
+		int	pos = magnet_uri_in.indexOf( '?' );
+		
+		if ( pos != -1 ){
+		
+			String magnet_uri_out = magnet_uri_in.substring( 0, pos+1 );
+
+			String[] bits = magnet_uri_in.substring( pos+1 ).split( "&" );
+			
+			for ( String bit: bits ){
+				
+				String[] temp = bit.split( "=", 2 );
+				
+				boolean	remove = false;
+				
+				if ( temp.length == 2 ){
+					
+					String	lhs = temp[0];
+					
+					if ( lhs.equalsIgnoreCase( "net" )){
+					
+						String	rhs = decode( temp[1] );
+					
+						result.add( AENetworkClassifier.internalise( rhs ));
+						
+						remove = true;
+					}
+				}
+				
+				if ( !remove ){
+					
+					if ( !magnet_uri_out.endsWith( "?" )){
+						
+						magnet_uri_out += "&";
+					}
+					
+					magnet_uri_out += bit;		
+				}
+			}
+			
+			if ( result.size() > 0 ){
+			
+				magnet_uri[0] = magnet_uri_out;
+			}
+		}
+		
+		return( result );
 	}
 	
 	public static String

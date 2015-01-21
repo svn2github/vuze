@@ -996,8 +996,71 @@ BuddyPluginViewBetaChat
 								
 								if ( chat.isAnonymous() && url_str.toLowerCase( Locale.US ).startsWith( "magnet:" )){
 									
-									// TODO
+									String[] magnet_uri = { url_str };
 									
+									Set<String> networks = UrlUtils.extractNetworks( magnet_uri );
+									
+									String i2p_only_uri = magnet_uri[0] + "&net=" + UrlUtils.encode( AENetworkClassifier.AT_I2P );
+										
+									String i2p_only_str = i2p_only_uri;
+									
+									if ( i2p_only_str.length() > 50 ){
+										
+										i2p_only_str = i2p_only_str.substring( 0, 50 ) + "...";
+									}
+									
+									i2p_only_str = lu.getLocalisedMessageText( "azbuddy.dchat.open.i2p.magnet" ) + ": " + i2p_only_str;
+									
+									final MenuItem mi_open_i2p_vuze = new MenuItem( log_menu, SWT.PUSH );
+									
+									mi_open_i2p_vuze.setText( i2p_only_str);
+									mi_open_i2p_vuze.setData( i2p_only_uri );
+
+									mi_open_i2p_vuze.addSelectionListener(
+										new SelectionAdapter() {
+											
+											public void 
+											widgetSelected(
+												SelectionEvent e ) 
+											{
+												String url_str = (String)mi_open_i2p_vuze.getData();
+												
+												if ( url_str != null ){
+													
+													TorrentOpener.openTorrent( url_str );
+												}
+											}
+										});
+									
+									if ( networks.size() == 1 && networks.iterator().next() == AENetworkClassifier.AT_I2P ){
+										
+										// already done above
+										
+									}else{
+										
+										str = lu.getLocalisedMessageText( "azbuddy.dchat.open.magnet" ) + ": " + str;
+										
+										final MenuItem mi_open_vuze = new MenuItem( log_menu, SWT.PUSH );
+										
+										mi_open_vuze.setText( str);
+										mi_open_vuze.setData( url_str );
+
+										mi_open_vuze.addSelectionListener(
+											new SelectionAdapter() {
+												
+												public void 
+												widgetSelected(
+													SelectionEvent e ) 
+												{
+													String url_str = (String)mi_open_vuze.getData();
+													
+													if ( url_str != null ){
+														
+														TorrentOpener.openTorrent( url_str );
+													}
+												}
+											});
+									}
 								}else{
 								
 								
@@ -1061,14 +1124,66 @@ BuddyPluginViewBetaChat
 								
 								if ( chat.isAnonymous() && url_str.toLowerCase( Locale.US ).startsWith( "magnet:" )){
 
-									// TODO
+									String[] magnet_uri = { url_str };
 									
+									Set<String> networks = UrlUtils.extractNetworks( magnet_uri );
+									
+									String i2p_only_uri = magnet_uri[0] + "&net=" + UrlUtils.encode( AENetworkClassifier.AT_I2P );
+
+									final MenuItem mi_copy_i2p_clip = new MenuItem( log_menu, SWT.PUSH );
+									
+									mi_copy_i2p_clip.setText( lu.getLocalisedMessageText( "azbuddy.dchat.copy.i2p.magnet" ));
+									mi_copy_i2p_clip.setData( i2p_only_uri );
+
+									mi_copy_i2p_clip.addSelectionListener(
+											new SelectionAdapter() {
+												
+												public void 
+												widgetSelected(
+													SelectionEvent e ) 
+												{
+													String url_str = (String)mi_copy_i2p_clip.getData();
+													
+													if ( url_str != null ){
+														
+														ClipboardCopy.copyToClipBoard( url_str );
+													}
+												}
+											});
+									
+									if ( networks.size() == 1 && networks.iterator().next() == AENetworkClassifier.AT_I2P ){
+										
+										// already done above
+										
+									}else{
+										
+										final MenuItem mi_copy_clip = new MenuItem( log_menu, SWT.PUSH );
+										
+										mi_copy_clip.setText( lu.getLocalisedMessageText( "azbuddy.dchat.copy.magnet" ));
+										mi_copy_clip.setData( url_str );
+
+										mi_copy_clip.addSelectionListener(
+												new SelectionAdapter() {
+													
+													public void 
+													widgetSelected(
+														SelectionEvent e ) 
+													{
+														String url_str = (String)mi_copy_clip.getData();
+														
+														if ( url_str != null ){
+															
+															ClipboardCopy.copyToClipBoard( url_str );
+														}
+													}
+												});
+										
+									}
 								}else{
 									
 									final MenuItem mi_copy_clip = new MenuItem( log_menu, SWT.PUSH );
 									
 									mi_copy_clip.setText( lu.getLocalisedMessageText( "ConfigView.copy.to.clipboard.tooltip" ));
-									
 									mi_copy_clip.setData( url_str );
 
 									mi_copy_clip.addSelectionListener(
@@ -1086,9 +1201,7 @@ BuddyPluginViewBetaChat
 													}
 												}
 											});
-								}	
-								
-								
+								}				
 																
 								if ( url_str.toLowerCase().startsWith( "http" )){
 									
