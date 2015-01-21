@@ -473,120 +473,8 @@ BuddyPluginViewInstance
 			noti_file.setEnabled( false );
 			noti_browse.setEnabled( false );
 		}
-			
-			// create a channel
-		
-		Group create_area = new Group( main, SWT.NULL );
-		layout = new GridLayout();
-		layout.numColumns = 4;
-		//layout.marginHeight = 0;
-		//layout.marginWidth = 0;
-		create_area.setLayout(layout);
-		grid_data = new GridData(GridData.FILL_HORIZONTAL );
-		grid_data.horizontalSpan = 3;
-		create_area.setLayoutData(grid_data);
-		
-		create_area.setText( lu.getLocalisedMessageText( "azbuddy.dchat.custom" ));
-
-		label = new Label( create_area, SWT.NULL );
-		
-		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.create.join.key" ));
-		
-		final Text channel_key = new Text( create_area, SWT.BORDER );
-		grid_data = new GridData();
-		grid_data.widthHint = 200;
-		channel_key.setLayoutData( grid_data );
-		
-		final Button create_i2p_button = new Button( create_area, SWT.CHECK );
-		
-		create_i2p_button.setText( lu.getLocalisedMessageText( "label.anon.i2p" ));
-		
-		create_i2p_button.setEnabled( i2p_enabled );
-
-		final Button create_button = new Button( create_area, SWT.NULL );
-
-		create_button.setText( lu.getLocalisedMessageText( "Button.open" ));
-		
-		create_button.addSelectionListener(
-				new SelectionAdapter() 
-				{
-					public void 
-					widgetSelected(
-						SelectionEvent ev )
-					{
-						create_button.setEnabled( false );
-						
-						final Display display = composite.getDisplay();
-						
-						final String network 	= create_i2p_button.getSelection()?AENetworkClassifier.AT_I2P:AENetworkClassifier.AT_PUBLIC;
-						final String key		= channel_key.getText().trim();
-						
-						new AEThread2( "async" )
-						{
-							public void
-							run()
-							{
-								if ( display.isDisposed()){
-									
-									return;
-								}
-								
-								try{
-									final BuddyPluginBeta.ChatInstance inst = plugin_beta.getChat( network, key );
-									
-									display.asyncExec(
-										new Runnable()
-										{
-											public void
-											run()
-											{
-												if ( !display.isDisposed()){
-																								
-													BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( view, plugin, inst );
-														
-													create_button.setEnabled( true );
-													
-													chat.addDisposeListener(
-														new DisposeListener()
-														{
-															public void 
-															widgetDisposed(
-																DisposeEvent e) 
-															{
-																if ( !create_button.isDisposed()){
-																
-																	create_button.setEnabled( true );
-																}
-															}
-														});
-												}
-											}
-										});
-										
-								}catch( Throwable e){
-									
-									display.asyncExec(
-										new Runnable()
-										{
-											public void
-											run()
-											{
-												if ( !create_button.isDisposed()){
-												
-													create_button.setEnabled( true );
-												}
-											}
-										});
-									
-									Debug.out( e );
-								}
-							}
-						}.start();
-					}
-				});
-		
-		
-		// private chats
+				
+			// private chats
 		
 		Group private_chat_area = new Group( main, SWT.NULL );
 		layout = new GridLayout();
@@ -798,7 +686,7 @@ BuddyPluginViewInstance
 		Group test_area = new Group( main, SWT.NULL );
 		test_area.setText( lu.getLocalisedMessageText( "br.test" ));
 		layout = new GridLayout();
-		layout.numColumns = 3;
+		layout.numColumns = 4;
 		test_area.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 3;
@@ -808,7 +696,6 @@ BuddyPluginViewInstance
 			// public beta channel
 			
 		label = new Label( test_area, SWT.NULL );
-		
 		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.public.beta" ));
 		
 		Button beta_button = new Button( test_area, SWT.NULL );
@@ -816,6 +703,9 @@ BuddyPluginViewInstance
 		setupButton( beta_button, lu.getLocalisedMessageText( "Button.open" ), AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
 		
 		label = new Label( test_area, SWT.NULL );
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 2;
+		label.setLayoutData(grid_data);
 		
 			// anonymous beta channel
 			
@@ -830,7 +720,110 @@ BuddyPluginViewInstance
 		beta_i2p_button.setEnabled( i2p_enabled );
 		
 		label = new Label( test_area, SWT.NULL );
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 2;
+		label.setLayoutData(grid_data);
+		
+			// create custom channel
+		
+		label = new Label( test_area, SWT.NULL );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.create.join.key" ));
+		
+		final Text channel_key = new Text( test_area, SWT.BORDER );
+		grid_data = new GridData();
+		grid_data.widthHint = 200;
+		channel_key.setLayoutData( grid_data );
+		
+		final Button create_i2p_button = new Button( test_area, SWT.CHECK );
+		
+		create_i2p_button.setText( lu.getLocalisedMessageText( "label.anon.i2p" ));
+		
+		create_i2p_button.setEnabled( i2p_enabled );
 
+		final Button create_button = new Button( test_area, SWT.NULL );
+
+		create_button.setText( lu.getLocalisedMessageText( "Button.open" ));
+		
+		create_button.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						create_button.setEnabled( false );
+						
+						final Display display = composite.getDisplay();
+						
+						final String network 	= create_i2p_button.getSelection()?AENetworkClassifier.AT_I2P:AENetworkClassifier.AT_PUBLIC;
+						final String key		= channel_key.getText().trim();
+						
+						new AEThread2( "async" )
+						{
+							public void
+							run()
+							{
+								if ( display.isDisposed()){
+									
+									return;
+								}
+								
+								try{
+									final BuddyPluginBeta.ChatInstance inst = plugin_beta.getChat( network, key );
+									
+									display.asyncExec(
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												if ( !display.isDisposed()){
+																								
+													BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( view, plugin, inst );
+														
+													create_button.setEnabled( true );
+													
+													chat.addDisposeListener(
+														new DisposeListener()
+														{
+															public void 
+															widgetDisposed(
+																DisposeEvent e) 
+															{
+																if ( !create_button.isDisposed()){
+																
+																	create_button.setEnabled( true );
+																}
+															}
+														});
+												}
+											}
+										});
+										
+								}catch( Throwable e){
+									
+									display.asyncExec(
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												if ( !create_button.isDisposed()){
+												
+													create_button.setEnabled( true );
+												}
+											}
+										});
+									
+									Debug.out( e );
+								}
+							}
+						}.start();
+					}
+				});
+		
+		
+			// end of UI
 		
 		List<Button>	buttons = new ArrayList<Button>();
 		
