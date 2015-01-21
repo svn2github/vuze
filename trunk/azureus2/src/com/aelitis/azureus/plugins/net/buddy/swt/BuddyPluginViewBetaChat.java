@@ -81,6 +81,7 @@ import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -402,7 +403,7 @@ BuddyPluginViewBetaChat
 			Menu status_clip_menu = new Menu(lhs.getShell(), SWT.DROP_DOWN);
 			MenuItem status_clip_item = new MenuItem( status_menu, SWT.CASCADE);
 			status_clip_item.setMenu(status_clip_menu);
-			status_clip_item.setText(  MessageText.getString( "ConfigView.copy.to.clipboard.tooltip" ));
+			status_clip_item.setText(  MessageText.getString( "label.copy.to.clipboard" ));
 			
 			MenuItem status_mi = new MenuItem( status_clip_menu, SWT.PUSH );
 			status_mi.setText( MessageText.getString( "azbuddy.dchat.copy.channel.key" ));
@@ -476,6 +477,8 @@ BuddyPluginViewBetaChat
 				status_channel_item.setMenu(status_channel_menu);
 				status_channel_item.setText(  MessageText.getString( "azbuddy.dchat.rchans" ));
 		
+					// Managed channel
+				
 				status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
 				status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.managed" ));
 		
@@ -496,6 +499,8 @@ BuddyPluginViewBetaChat
 								}
 							}
 						});
+				
+					// RO channel
 				
 				status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
 				status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.ro" ));
@@ -518,6 +523,32 @@ BuddyPluginViewBetaChat
 							}
 						});
 				
+					// Random sub-channel
+				
+				status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
+				status_mi.setText( MessageText.getString( "azbuddy.dchat.rchans.rand" ));
+		
+				status_mi.addSelectionListener(
+						new SelectionAdapter() {				
+							public void 
+							widgetSelected(
+								SelectionEvent event ) 
+							{
+								try{
+									byte[]	rand = new byte[20];
+									
+									RandomUtils.nextSecureBytes( rand );
+									
+									ChatInstance inst = beta.getChat( chat.getNetwork(), chat.getKey() + " {" + Base32.encode( rand ) + "}" );
+									
+									new BuddyPluginViewBetaChat( view, plugin, inst );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}						
+							}
+						});
 				if ( beta.isI2PAvailable()){
 					
 					status_mi = new MenuItem( status_channel_menu, SWT.PUSH );
