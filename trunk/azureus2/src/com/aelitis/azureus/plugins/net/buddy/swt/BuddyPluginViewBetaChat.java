@@ -117,8 +117,6 @@ BuddyPluginViewBetaChat
 	private static final boolean TEST_LOOPBACK_CHAT = System.getProperty( "az.chat.loopback.enable", "0" ).equals( "1" );
 	private static final boolean DEBUG_ENABLED		= BuddyPluginBeta.DEBUG_ENABLED;
 
-	private static final int 	MAX_LOG_LINES	= 250;
-	private static final int	MAX_LOG_CHARS	= 10*1024;
 	private static final int	MAX_MSG_LENGTH	= 400;
 	
 	private static final Set<BuddyPluginViewBetaChat>	active_windows = new HashSet<BuddyPluginViewBetaChat>();
@@ -576,6 +574,19 @@ BuddyPluginViewBetaChat
 						}
 					});
 			
+			final MenuItem log_mi = new MenuItem( advanced_menu, SWT.CHECK );
+			log_mi.setText( MessageText.getString( "azbuddy.dchat.log.messages" ));
+			
+			log_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							chat.setLogMessages( log_mi.getSelection());
+						}
+					});		
+			
 			status_menu.addMenuListener(
 					new MenuAdapter() 
 					{
@@ -585,6 +596,7 @@ BuddyPluginViewBetaChat
 						{
 							fave_mi.setSelection( chat.isFavourite());
 							persist_mi.setSelection( chat.getSaveMessages());
+							log_mi.setSelection( chat.getLogMessages());
 						}
 					});
 		}else{
@@ -3633,7 +3645,10 @@ BuddyPluginViewBetaChat
 				
 				Iterator<Integer> it = null;
 				
-				while ( messages.size() > MAX_LOG_LINES || log.getText().length() > MAX_LOG_CHARS ){
+				int max_lines 	= beta.getMaxUILines();
+				int max_chars	= beta.getMaxUICharsKB() * 1024;
+				
+				while ( messages.size() > max_lines || log.getText().length() > max_chars ){
 					
 					if ( it == null ){
 						

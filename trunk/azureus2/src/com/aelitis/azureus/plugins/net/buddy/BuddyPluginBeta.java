@@ -24,16 +24,19 @@ package com.aelitis.azureus.plugins.net.buddy;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -46,6 +49,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
@@ -110,6 +114,9 @@ BuddyPluginBeta
 	
 	private String					shared_public_nickname;
 	private String					shared_anon_nickname;
+	private int						max_chat_ui_lines;
+	private int						max_chat_ui_kb;
+	
 	private int						private_chat_state;
 	private boolean					shared_anon_endpoint;
 	private boolean					sound_enabled;
@@ -117,6 +124,7 @@ BuddyPluginBeta
 	
 	private Map<String,Long>		favourite_map;
 	private Map<String,Long>		save_messages_map;
+	private Map<String,Long>		log_messages_map;
 	private Map<String,byte[]>		lmi_map;
 	
 	private CopyOnWriteList<FTUXStateChangeListener>		ftux_listeners = new CopyOnWriteList<FTUXStateChangeListener>();
@@ -152,8 +160,13 @@ BuddyPluginBeta
 	
 		favourite_map			= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
 		save_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.savemsgmap", new HashMap<String,Long>());
+		log_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.logmsgmap", new HashMap<String,Long>());
 		lmi_map					= COConfigurationManager.getMapParameter( "azbuddy.dchat.lmimap", new HashMap<String,byte[]>());
-				
+			
+		max_chat_ui_lines		= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.lines", 250 );
+		max_chat_ui_kb			= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.char.kb", 10 );
+
+		
 		SimpleTimer.addPeriodicEvent(
 			"BPB:checkfave",
 			30*1000,
@@ -178,6 +191,40 @@ BuddyPluginBeta
 	isInitialised()
 	{
 		return( init_complete.isReleasedForever());
+	}
+	
+	public int
+	getMaxUILines()
+	{
+		return( max_chat_ui_lines );
+	}
+	
+	public void
+	setMaxUILines(
+		int		num )
+	{
+		max_chat_ui_lines		= num;
+		
+		COConfigurationManager.setParameter( "azbuddy.dchat.ui.max.lines", num );
+
+		COConfigurationManager.setDirty();
+	}
+	
+	public int
+	getMaxUICharsKB()
+	{
+		return( max_chat_ui_kb );
+	}
+	
+	public void
+	setMaxUICharsKB(
+		int		num )
+	{
+		max_chat_ui_kb			= num;
+		
+		COConfigurationManager.setParameter( "azbuddy.dchat.ui.max.char.kb", num );
+
+		COConfigurationManager.setDirty();
 	}
 	
 	public boolean
@@ -232,7 +279,7 @@ BuddyPluginBeta
 			COConfigurationManager.setParameter( "azbuddy.dchat.favemap", favourite_map );	
 		}
 		
-		COConfigurationManager.save();
+		COConfigurationManager.setDirty();
 		
 		checkFavourites();
 	}
@@ -336,6 +383,8 @@ BuddyPluginBeta
 			});
 	}
 	
+		// save messages
+	
 	public boolean
 	getSaveMessages(
 		String		net,
@@ -388,8 +437,66 @@ BuddyPluginBeta
 			COConfigurationManager.setParameter( "azbuddy.dchat.savemsgmap", save_messages_map );	
 		}
 		
-		COConfigurationManager.save();
+		COConfigurationManager.setDirty();
 	}
+
+		// log messages
+	
+	public boolean
+	getLogMessages(
+		String		net,
+		String		key )
+	{
+		synchronized( log_messages_map ){
+			
+			Long l = log_messages_map.get( net + ":" + key );
+			
+			if ( l == null ){
+				
+				return( false );
+			}
+			
+			return ( l == 1 );
+		}
+	}
+	
+	public void
+	setLogMessages(
+		String		net,
+		String		key,
+		boolean		b )
+	{
+		synchronized( log_messages_map ){
+			
+			String net_key = net + ":" + key;
+			
+			Long existing = log_messages_map.get( net_key );
+			
+			if ( existing == null && !b ){
+				
+				return;
+			}
+			
+			if ( existing != null && b == ( existing == 1 )){
+				
+				return;
+			}
+			
+			if ( b ){
+				
+				log_messages_map.put( net_key, 1L );
+				
+			}else{
+				
+				log_messages_map.remove( net_key );
+			}
+			
+			COConfigurationManager.setParameter( "azbuddy.dchat.logmsgmap", log_messages_map );	
+		}
+		
+		COConfigurationManager.setDirty();
+	}
+	
 	
 	public String
 	getLastMessageInfo(
@@ -453,6 +560,8 @@ BuddyPluginBeta
 		
 			COConfigurationManager.setParameter( "azbuddy.chat.shared_nick", _nick );
 			
+			COConfigurationManager.setDirty();
+
 			allUpdated();		
 		}	
 	}
@@ -473,6 +582,8 @@ BuddyPluginBeta
 		
 			COConfigurationManager.setParameter( "azbuddy.chat.shared_anon_nick", _nick );
 			
+			COConfigurationManager.setDirty();
+
 			allUpdated();		
 		}	
 	}
@@ -493,6 +604,8 @@ BuddyPluginBeta
 		
 			COConfigurationManager.setParameter( "azbuddy.chat.private_chat_state", state );
 			
+			COConfigurationManager.setDirty();
+
 			plugin.fireUpdated();
 		}	
 	}
@@ -513,6 +626,8 @@ BuddyPluginBeta
 		
 			COConfigurationManager.setParameter( "azbuddy.chat.share_i2p_endpoint", b );
 			
+			COConfigurationManager.setDirty();
+
 			plugin.fireUpdated();
 		}	
 	}
@@ -526,6 +641,8 @@ BuddyPluginBeta
 			sound_enabled	= b;
 		
 			COConfigurationManager.setParameter( "azbuddy.chat.notif.sound.enable", b );
+			
+			COConfigurationManager.setDirty();
 			
 			plugin.fireUpdated();
 		}	
@@ -552,6 +669,8 @@ BuddyPluginBeta
 			sound_file	= _file;
 		
 			COConfigurationManager.setParameter( "azbuddy.chat.notif.sound.file", _file );
+			
+			COConfigurationManager.setDirty();
 			
 			plugin.fireUpdated();	
 		}	
@@ -1253,6 +1372,47 @@ BuddyPluginBeta
 		ftux_listeners.remove( listener );
 	}
 	
+	private void
+	logMessage(
+		ChatInstance		chat,
+		ChatMessage			message )
+	{
+		File log_dir = AEDiagnostics.getLogDir();
+		
+		log_dir = new File( log_dir, "chat" );
+		
+		if ( !log_dir.exists()){
+			
+			log_dir.mkdir();
+		}
+		
+		File log_file = new File( log_dir, FileUtil.convertOSSpecificChars( chat.getName(), false ) + ".log" );
+		
+		PrintWriter	pw = null;
+		
+		try{
+			
+			pw = new PrintWriter( new OutputStreamWriter( new FileOutputStream( log_file, true ), "UTF-8" ));
+						
+			SimpleDateFormat time_format 	= new SimpleDateFormat( "yyyy/MM/dd HH:mm" );
+
+			String msg = "[" + time_format.format( new Date( message.getTimeStamp())) + "]";
+							
+			msg += " <" + message.getParticipant().getName( true ) + "> " + message.getMessage();
+
+			pw.println( msg );
+			
+		}catch( Throwable e ){
+			
+		}finally{
+			
+			if ( pw != null ){
+				
+				pw.close();
+			}
+		}
+	}
+	
 	public void
 	getAndShowChat(
 		String		network,
@@ -1702,6 +1862,7 @@ BuddyPluginBeta
 		private boolean		auto_notify;
 		
 		private boolean		save_messages;
+		private boolean		log_messages;
 		private boolean		destroyed;
 		
 		private
@@ -1731,6 +1892,7 @@ BuddyPluginBeta
 			
 				is_favourite 	= getFavourite( network, key );
 				save_messages 	= BuddyPluginBeta.this.getSaveMessages( network, key );
+				log_messages 	= BuddyPluginBeta.this.getLogMessages( network, key );
 			}
 			
 			addReference();
@@ -1893,6 +2055,28 @@ BuddyPluginBeta
 						
 						Debug.out( e );
 					}
+				}
+			}
+		}
+		
+		public boolean
+		getLogMessages()
+		{
+			return( log_messages );
+		}
+		
+		public void
+		setLogMessages(
+			boolean		b )
+		{
+			if ( !is_private_chat ){
+				
+				if ( b != log_messages ){
+					
+					log_messages = b;
+					
+					BuddyPluginBeta.this.setLogMessages( network, key, b );
+					
 				}
 			}
 		}
@@ -2925,7 +3109,7 @@ BuddyPluginBeta
 				int old_msgs = messages.size();
 
 				messages.add( msg );
-		
+						
 				if ( messages.size() > MSG_HISTORY_MAX ){
 					
 					ChatMessage removed = messages.remove(0);
@@ -2962,6 +3146,14 @@ BuddyPluginBeta
 					participant.addMessage( msg );										
 				}
 					
+				if ( log_messages ){
+					
+					if ( !msg.isIgnored()){
+					
+						logMessage( this, msg );
+					}
+				}
+
 				if ( participant.isMe()){
 					
 					InetSocketAddress address = msg.getAddress();

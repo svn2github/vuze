@@ -45,7 +45,6 @@ import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -98,7 +97,6 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface.View;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTrackerListener;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -1219,15 +1217,12 @@ BuddyPluginView
 						
 							for ( ChatInstance chat: current_instances ){
 								
-								if ( chat.getMessageOutstanding()){
+								try{
+									openChat( chat.getClone());
 									
-									try{
-										openChat( chat.getClone());
+								}catch( Throwable e ){
 										
-									}catch( Throwable e ){
-										
-										Debug.out( e );
-									}
+									Debug.out( e );
 								}
 							}
 						}

@@ -53,6 +53,9 @@ import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
+import org.gudy.azureus2.ui.swt.config.IntParameter;
+import org.gudy.azureus2.ui.swt.config.Parameter;
+import org.gudy.azureus2.ui.swt.config.ParameterChangeAdapter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -151,6 +154,8 @@ BuddyPluginViewInstance
 			return;
 		}
 		
+		final BuddyPluginBeta beta = plugin.getBeta();
+		
 		boolean i2p_enabled = plugin_beta.isI2PAvailable();
 
 			// info
@@ -241,12 +246,24 @@ BuddyPluginViewInstance
 		
 		checkMsgSyncPlugin();
 		
+			// UI
+		
+		final Group ui_area = new Group( main, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		ui_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		ui_area.setLayoutData(grid_data);
+		
+		ui_area.setText( lu.getLocalisedMessageText( "ConfigView.section.style" ));
+		
 			// shared public nick
 		
-		label = new Label( main, SWT.NULL );
+		label = new Label( ui_area, SWT.NULL );
 		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.public.nick" ));
 
-		public_nickname = new Text( main, SWT.BORDER );
+		public_nickname = new Text( ui_area, SWT.BORDER );
 		grid_data = new GridData();
 		grid_data.widthHint = 200;
 		public_nickname.setLayoutData( grid_data );
@@ -258,14 +275,14 @@ BuddyPluginViewInstance
 	        }
 	    });
 
-		label = new Label( main, SWT.NULL );
+		label = new Label( ui_area, SWT.NULL );
 		
 			// shared anon nick
 			
-		label = new Label( main, SWT.NULL );
+		label = new Label( ui_area, SWT.NULL );
 		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.anon.nick" ) );
 	
-		anon_nickname = new Text( main, SWT.BORDER );
+		anon_nickname = new Text( ui_area, SWT.BORDER );
 		grid_data = new GridData();
 		grid_data.widthHint = 200;
 		anon_nickname.setLayoutData( grid_data );
@@ -277,35 +294,58 @@ BuddyPluginViewInstance
 	        }
 	    });
 	
-		label = new Label( main, SWT.NULL );
-	
-			// shared endpoint
-		
-		label = new Label( main, SWT.NULL );
-		
-		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.anon.share.endpoint" ));
+		label = new Label( ui_area, SWT.NULL );
 
-		final Button shared_endpoint = new Button( main, SWT.CHECK );
+			// max lines 
+		
+		label = new Label( ui_area, SWT.NULL );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.ui.max.lines" ) );
 
-		shared_endpoint.addSelectionListener(
-				new SelectionAdapter() 
+		final IntParameter max_lines = new IntParameter(ui_area,
+				"azbuddy.chat.temp.ui.max.lines", 128, Integer.MAX_VALUE );
+		
+		max_lines.setValue( beta.getMaxUILines());
+		
+		max_lines.addChangeListener(
+			new ParameterChangeAdapter()
+			{
+				@Override
+				public void 
+				parameterChanged(
+					Parameter 	p,
+					boolean 	caused_internally ) 
 				{
-					public void 
-					widgetSelected(
-						SelectionEvent ev )
-					{
-						plugin_beta.setSharedAnonEndpoint( shared_endpoint.getSelection());
-					}
-				});	
+					beta.setMaxUILines( max_lines.getValue());
+				}
+			});
 		
-		shared_endpoint.setSelection( plugin_beta.getSharedAnonEndpoint());
+		label = new Label( ui_area, SWT.NULL );
+
+		// max chars 
 		
-		label = new Label( main, SWT.NULL );
-		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.anon.share.endpoint.info" ));
+		label = new Label( ui_area, SWT.NULL );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.ui.max.kb" ) );
 
-		grid_data = new GridData(GridData.FILL_HORIZONTAL );
-		label.setLayoutData(grid_data);
-
+		final IntParameter max_chars = new IntParameter(ui_area,
+			"azbuddy.chat.temp.ui.max.chars", 1, 512 );
+	
+		max_chars.setValue( beta.getMaxUICharsKB());
+		
+		max_chars.addChangeListener(
+			new ParameterChangeAdapter()
+			{
+				@Override
+				public void 
+				parameterChanged(
+					Parameter 	p,
+					boolean 	caused_internally ) 
+				{
+					beta.setMaxUICharsKB( max_chars.getValue());
+				}
+			});
+		
+		label = new Label( ui_area, SWT.NULL );
+		
 			// notifications
 		
 		final Group noti_area = new Group( main, SWT.NULL );
@@ -610,73 +650,6 @@ BuddyPluginViewInstance
 		private_chat_pinned.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
 		pc_pinned_only.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
 		
-		plugin.addListener( 
-				new BuddyPluginAdapter()
-				{			
-					public void updated()
-					{
-						if ( public_nickname.isDisposed()){
-							
-							plugin.removeListener( this );
-							
-						}else{
-							
-							public_nickname.getDisplay().asyncExec(
-								new Runnable()
-								{
-									public void
-									run()
-									{
-										if ( public_nickname.isDisposed()){
-											
-											return;
-										}
-										
-										String nick = plugin_beta.getSharedPublicNickname();
-		
-										if ( !public_nickname.getText().equals( nick )){
-											
-											public_nickname.setText( nick );
-										}
-										
-										nick = plugin_beta.getSharedAnonNickname();
-		
-										if ( !anon_nickname.getText().equals( nick )){
-											
-											anon_nickname.setText( nick );
-										}
-										
-										shared_endpoint.setSelection( plugin_beta.getSharedAnonEndpoint());
-										
-										int pc_state = plugin_beta.getPrivateChatState();
-										
-										private_chat_enable.setSelection( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
-										private_chat_pinned.setSelection( pc_state == BuddyPluginBeta.PRIVATE_CHAT_PINNED_ONLY );
-										private_chat_pinned.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
-										pc_pinned_only.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
-										
-										String str = plugin_beta.getSoundFile();
-										
-										if ( str.length() == 0 ){
-											
-											noti_file.setText("<default>");
-											
-										}else{
-											
-											
-											noti_file.setText( str );
-										}
-										
-										boolean se = plugin_beta.getSoundEnabled();
-										
-										noti_file.setEnabled( se );
-										noti_browse.setEnabled( se );
-									}
-								});
-						}
-					}
-				});
-		
 			// import
 			
 		Group import_area = new Group( main, SWT.NULL );
@@ -779,6 +752,47 @@ BuddyPluginViewInstance
 				}
 			});
 	
+			// Advanced
+		
+		Group adv_area = new Group( main, SWT.NULL );
+		adv_area.setText( lu.getLocalisedMessageText( "MyTorrentsView.menu.advancedmenu" ));
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		adv_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		adv_area.setLayoutData(grid_data);
+		
+	
+			// shared endpoint
+		
+		label = new Label( adv_area, SWT.NULL );
+		
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.anon.share.endpoint" ));
+	
+		final Button shared_endpoint = new Button( adv_area, SWT.CHECK );
+	
+		shared_endpoint.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						plugin_beta.setSharedAnonEndpoint( shared_endpoint.getSelection());
+					}
+				});	
+		
+		shared_endpoint.setSelection( plugin_beta.getSharedAnonEndpoint());
+		
+		label = new Label( adv_area, SWT.NULL );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.anon.share.endpoint.info" ));
+	
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		label.setLayoutData(grid_data);
+		
+		
+		
 			// testing
 		
 		Group test_area = new Group( main, SWT.NULL );
@@ -826,6 +840,73 @@ BuddyPluginViewInstance
 		buttons.add( import_button );
 		
 		Utils.makeButtonsEqualWidth( buttons );
+		
+		plugin.addListener( 
+				new BuddyPluginAdapter()
+				{			
+					public void updated()
+					{
+						if ( public_nickname.isDisposed()){
+							
+							plugin.removeListener( this );
+							
+						}else{
+							
+							public_nickname.getDisplay().asyncExec(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										if ( public_nickname.isDisposed()){
+											
+											return;
+										}
+										
+										String nick = plugin_beta.getSharedPublicNickname();
+		
+										if ( !public_nickname.getText().equals( nick )){
+											
+											public_nickname.setText( nick );
+										}
+										
+										nick = plugin_beta.getSharedAnonNickname();
+		
+										if ( !anon_nickname.getText().equals( nick )){
+											
+											anon_nickname.setText( nick );
+										}
+										
+										shared_endpoint.setSelection( plugin_beta.getSharedAnonEndpoint());
+										
+										int pc_state = plugin_beta.getPrivateChatState();
+										
+										private_chat_enable.setSelection( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+										private_chat_pinned.setSelection( pc_state == BuddyPluginBeta.PRIVATE_CHAT_PINNED_ONLY );
+										private_chat_pinned.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+										pc_pinned_only.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+										
+										String str = plugin_beta.getSoundFile();
+										
+										if ( str.length() == 0 ){
+											
+											noti_file.setText("<default>");
+											
+										}else{
+											
+											
+											noti_file.setText( str );
+										}
+										
+										boolean se = plugin_beta.getSoundEnabled();
+										
+										noti_file.setEnabled( se );
+										noti_browse.setEnabled( se );
+									}
+								});
+						}
+					}
+				});
 	}
 
 	private boolean
