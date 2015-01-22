@@ -1491,6 +1491,23 @@ MagnetPlugin
 								}
 							}
 							
+							if ( sl_enabled ){
+								
+									// check before we try another DHT contact
+								
+								try{
+									byte[] torrent = getSecondaryLookupResult( secondary_result );
+									
+									if ( torrent != null ){
+										
+										return( new DownloadResult( torrent, networks_enabled, additional_networks ));
+									}
+								}catch( ResourceDownloaderException e ){
+									
+									sl_failed = true;
+								}
+							}
+							
 							final DistributedDatabaseContact	contact;
 							final boolean						live_contact;
 							
