@@ -1377,249 +1377,253 @@ SubscriptionManagerUI
 		final MenuCreator		menu_creator,
 		final Subscription		subs )
 	{
-		MenuItem menuItem = menu_creator.createMenu( "Subscription.menu.forcecheck" );
-		menuItem.setText(MessageText.getString("Subscription.menu.forcecheck"));
-		menuItem.addListener(new SubsMenuItemListener() {
-			public void selected( Subscription subs) {
-				try {
-					subs.getManager().getScheduler().downloadAsync( subs, true );
-				} catch (SubscriptionException e) {
-					Debug.out(e);
-				}
-			}
-		});
+		boolean is_search_template = subs.isSearchTemplate();
 		
-		menuItem = menu_creator.createMenu( "Subscription.menu.clearall");
-		menuItem.addListener(new SubsMenuItemListener() {
-			public void selected( Subscription subs) {
-				subs.getHistory().markAllResultsRead();
-				menu_creator.refreshView();
-			}
-		});
-		
-		menuItem = menu_creator.createMenu( "Subscription.menu.dirtyall");
-		menuItem.addListener(new SubsMenuItemListener() {
-			public void selected( Subscription subs) {
-				subs.getHistory().markAllResultsUnread();
-				menu_creator.refreshView();
-			}
-		});
-
-		menuItem = menu_creator.createMenu( "Subscription.menu.deleteall");
-		menuItem.addListener(new SubsMenuItemListener() {
-			public void selected( Subscription subs) {
-				subs.getHistory().deleteAllResults();
-				menu_creator.refreshView();
-			}
-		});
-		
-		menuItem = menu_creator.createMenu( "Subscription.menu.reset");
-		menuItem.addListener(new SubsMenuItemListener() {
-			public void selected( Subscription subs) {
-				subs.getHistory().reset();
-				try{
-					subs.getEngine().reset();
-				}catch( Throwable e ){
-					Debug.printStackTrace(e);
-				}
-				try{
-					subs.getManager().getScheduler().downloadAsync(subs, true);
-					
-				}catch( Throwable e ){
-					
-					Debug.out(e);
-				}
-			}
-		});
-
-		try{
-			Engine engine = subs.getEngine();
-				
-			if ( engine instanceof WebEngine ){
-				
-				if (((WebEngine)engine).isNeedsAuth()){
-					
-					menuItem = menu_creator.createMenu( "Subscription.menu.resetauth");
-					menuItem.addListener(new SubsMenuItemListener() {
-						public void selected( Subscription subs) {
-							try{
-								Engine engine = subs.getEngine();
-								
-								if ( engine instanceof WebEngine ){
-									
-									((WebEngine)engine).setCookies( null );
-								}
-							}catch( Throwable e ){
-								
-								Debug.printStackTrace(e);
-							}
-							
-							try{
-								subs.getManager().getScheduler().downloadAsync(subs, true);
-								
-							}catch( Throwable e ){
-								
-								Debug.out(e);
-							}
-						}
-					});
-					
-					menuItem = menu_creator.createMenu( "Subscription.menu.setcookies");
-					menuItem.addListener(new SubsMenuItemListener() {
-						public void selected( final Subscription subs) {
-							try{
-								Engine engine = subs.getEngine();
-								
-								if ( engine instanceof WebEngine ){
-									
-									final WebEngine we = (WebEngine)engine;
-									
-									UISWTInputReceiver entry = new SimpleTextEntryWindow();
-									
-									String[] req = we.getRequiredCookies();
-									
-									String	req_str = "";
-									
-									for ( String r:req ){
-										
-										req_str += (req_str.length()==0?"":";") + r + "=?";
-									}
-									entry.setPreenteredText( req_str, true );
-									entry.maintainWhitespace(false);
-									entry.allowEmptyInput( false );
-									entry.setTitle("general.enter.cookies");
-									entry.prompt(new UIInputReceiverListener() {
-										public void UIInputReceiverClosed(UIInputReceiver entry) {
-											if (!entry.hasSubmittedInput()){
-												
-												return;
-											}
-
-											try {
-		  									String input = entry.getSubmittedInput().trim();
-		  									
-		  									if ( input.length() > 0 ){
-		  										
-		  										we.setCookies( input );
-		  										
-		  										subs.getManager().getScheduler().downloadAsync(subs, true);
-		  									}
-											}catch( Throwable e ){
-												
-												Debug.printStackTrace(e);
-											}
-										}
-									});
-								}
-							}catch( Throwable e ){
-								
-								Debug.printStackTrace(e);
-							}
-						}
-					});
-				}
-			}
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-		}
-		
-			// sep
-		
-		menu_creator.createMenu( "s1").setStyle( MenuItem.STYLE_SEPARATOR );
-
-			// category
-		
-		menuItem = menu_creator.createMenu( "MyTorrentsView.menu.setCategory");
-		menuItem.setStyle( MenuItem.STYLE_MENU );
-		
-		menuItem.addFillListener(
-			new MenuItemFillListener()
-			{
-				public void 
-				menuWillBeShown(
-					MenuItem 	menu, 
-					Object 		data ) 
-				{		
-					addCategorySubMenu( menu_manager, menu, subs );
-				}
-			});
-		
-			// tag
-		
-		menuItem = menu_creator.createMenu(  "label.tag");
-		menuItem.setStyle( MenuItem.STYLE_MENU );
-		
-		menuItem.addFillListener(
-			new MenuItemFillListener()
-			{
-				public void 
-				menuWillBeShown(
-					MenuItem 	menu, 
-					Object 		data ) 
-				{		
-					addTagSubMenu( menu_manager, menu, subs );
-				}
-			});
-		
-		if ( subs.isUpdateable()){
-			
-			menuItem = menu_creator.createMenu( "MyTorrentsView.menu.rename");
+		if ( !is_search_template ){
+			MenuItem menuItem = menu_creator.createMenu( "Subscription.menu.forcecheck" );
+			menuItem.setText(MessageText.getString("Subscription.menu.forcecheck"));
 			menuItem.addListener(new SubsMenuItemListener() {
-				public void selected( final Subscription subs) {
-					UISWTInputReceiver entry = new SimpleTextEntryWindow();
-					entry.setPreenteredText(subs.getName(), false );
-					entry.maintainWhitespace(false);
-					entry.allowEmptyInput( false );
-					entry.setLocalisedTitle(MessageText.getString("label.rename",
-							new String[] {
-								subs.getName()
-							}));
-					entry.prompt(new UIInputReceiverListener() {
-						public void UIInputReceiverClosed(UIInputReceiver entry) {
-							if (!entry.hasSubmittedInput()){
-								
-								return;
-							}
-							
-							String input = entry.getSubmittedInput().trim();
-							
-							if ( input.length() > 0 ){
+				public void selected( Subscription subs) {
+					try {
+						subs.getManager().getScheduler().downloadAsync( subs, true );
+					} catch (SubscriptionException e) {
+						Debug.out(e);
+					}
+				}
+			});
+			
+			menuItem = menu_creator.createMenu( "Subscription.menu.clearall");
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( Subscription subs) {
+					subs.getHistory().markAllResultsRead();
+					menu_creator.refreshView();
+				}
+			});
+			
+			menuItem = menu_creator.createMenu( "Subscription.menu.dirtyall");
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( Subscription subs) {
+					subs.getHistory().markAllResultsUnread();
+					menu_creator.refreshView();
+				}
+			});
+	
+			menuItem = menu_creator.createMenu( "Subscription.menu.deleteall");
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( Subscription subs) {
+					subs.getHistory().deleteAllResults();
+					menu_creator.refreshView();
+				}
+			});
+			
+			menuItem = menu_creator.createMenu( "Subscription.menu.reset");
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( Subscription subs) {
+					subs.getHistory().reset();
+					try{
+						subs.getEngine().reset();
+					}catch( Throwable e ){
+						Debug.printStackTrace(e);
+					}
+					try{
+						subs.getManager().getScheduler().downloadAsync(subs, true);
+						
+					}catch( Throwable e ){
+						
+						Debug.out(e);
+					}
+				}
+			});
+	
+			try{
+				Engine engine = subs.getEngine();
+					
+				if ( engine instanceof WebEngine ){
+					
+					if (((WebEngine)engine).isNeedsAuth()){
+						
+						menuItem = menu_creator.createMenu( "Subscription.menu.resetauth");
+						menuItem.addListener(new SubsMenuItemListener() {
+							public void selected( Subscription subs) {
+								try{
+									Engine engine = subs.getEngine();
+									
+									if ( engine instanceof WebEngine ){
+										
+										((WebEngine)engine).setCookies( null );
+									}
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
 								
 								try{
-									subs.setName( input );
+									subs.getManager().getScheduler().downloadAsync(subs, true);
 									
+								}catch( Throwable e ){
+									
+									Debug.out(e);
+								}
+							}
+						});
+						
+						menuItem = menu_creator.createMenu( "Subscription.menu.setcookies");
+						menuItem.addListener(new SubsMenuItemListener() {
+							public void selected( final Subscription subs) {
+								try{
+									Engine engine = subs.getEngine();
+									
+									if ( engine instanceof WebEngine ){
+										
+										final WebEngine we = (WebEngine)engine;
+										
+										UISWTInputReceiver entry = new SimpleTextEntryWindow();
+										
+										String[] req = we.getRequiredCookies();
+										
+										String	req_str = "";
+										
+										for ( String r:req ){
+											
+											req_str += (req_str.length()==0?"":";") + r + "=?";
+										}
+										entry.setPreenteredText( req_str, true );
+										entry.maintainWhitespace(false);
+										entry.allowEmptyInput( false );
+										entry.setTitle("general.enter.cookies");
+										entry.prompt(new UIInputReceiverListener() {
+											public void UIInputReceiverClosed(UIInputReceiver entry) {
+												if (!entry.hasSubmittedInput()){
+													
+													return;
+												}
+	
+												try {
+			  									String input = entry.getSubmittedInput().trim();
+			  									
+			  									if ( input.length() > 0 ){
+			  										
+			  										we.setCookies( input );
+			  										
+			  										subs.getManager().getScheduler().downloadAsync(subs, true);
+			  									}
+												}catch( Throwable e ){
+													
+													Debug.printStackTrace(e);
+												}
+											}
+										});
+									}
 								}catch( Throwable e ){
 									
 									Debug.printStackTrace(e);
 								}
 							}
-						}
-					});
+						});
+					}
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+			
+				// sep
+			
+			menu_creator.createMenu( "s1").setStyle( MenuItem.STYLE_SEPARATOR );
+
+				// category
+			
+			menuItem = menu_creator.createMenu( "MyTorrentsView.menu.setCategory");
+			menuItem.setStyle( MenuItem.STYLE_MENU );
+			
+			menuItem.addFillListener(
+				new MenuItemFillListener()
+				{
+					public void 
+					menuWillBeShown(
+						MenuItem 	menu, 
+						Object 		data ) 
+					{		
+						addCategorySubMenu( menu_manager, menu, subs );
+					}
+				});
+			
+				// tag
+			
+			menuItem = menu_creator.createMenu(  "label.tag");
+			menuItem.setStyle( MenuItem.STYLE_MENU );
+			
+			menuItem.addFillListener(
+				new MenuItemFillListener()
+				{
+					public void 
+					menuWillBeShown(
+						MenuItem 	menu, 
+						Object 		data ) 
+					{		
+						addTagSubMenu( menu_manager, menu, subs );
+					}
+				});
+			
+			if ( subs.isUpdateable()){
+				
+				menuItem = menu_creator.createMenu( "MyTorrentsView.menu.rename");
+				menuItem.addListener(new SubsMenuItemListener() {
+					public void selected( final Subscription subs) {
+						UISWTInputReceiver entry = new SimpleTextEntryWindow();
+						entry.setPreenteredText(subs.getName(), false );
+						entry.maintainWhitespace(false);
+						entry.allowEmptyInput( false );
+						entry.setLocalisedTitle(MessageText.getString("label.rename",
+								new String[] {
+									subs.getName()
+								}));
+						entry.prompt(new UIInputReceiverListener() {
+							public void UIInputReceiverClosed(UIInputReceiver entry) {
+								if (!entry.hasSubmittedInput()){
+									
+									return;
+								}
+								
+								String input = entry.getSubmittedInput().trim();
+								
+								if ( input.length() > 0 ){
+									
+									try{
+										subs.setName( input );
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
+								}
+							}
+						});
+					}
+				});
+			}
+			
+			menuItem = menu_creator.createMenu( "Subscription.menu.upgrade");
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( Subscription subs) {
+					subs.resetHighestVersion();
 				}
 			});
+				
+			menuItem.addFillListener(
+				new MenuItemFillListener()
+				{
+					public void 
+					menuWillBeShown(
+						MenuItem 	menu, 
+						Object 		data ) 
+					{									
+						menu.setVisible( subs.getHighestVersion() > subs.getVersion());
+					}
+				});
 		}
 		
-		menuItem = menu_creator.createMenu( "Subscription.menu.upgrade");
-		menuItem.addListener(new SubsMenuItemListener() {
-			public void selected( Subscription subs) {
-				subs.resetHighestVersion();
-			}
-		});
-			
-		menuItem.addFillListener(
-			new MenuItemFillListener()
-			{
-				public void 
-				menuWillBeShown(
-					MenuItem 	menu, 
-					Object 		data ) 
-				{									
-					menu.setVisible( subs.getHighestVersion() > subs.getVersion());
-				}
-			});
-		
-		menuItem = menu_creator.createMenu( "Subscription.menu.export");
+		MenuItem menuItem = menu_creator.createMenu( "Subscription.menu.export");
 		menuItem.addListener(new SubsMenuItemListener() {
 			public void selected( Subscription subs) {
 				export( subs );
@@ -1630,200 +1634,202 @@ SubscriptionManagerUI
 		
 		menu_creator.createMenu( "s2").setStyle( MenuItem.STYLE_SEPARATOR );
 		
-			// change url
+		if ( !is_search_template ){
+				// change url
+			
+			try{
+				Engine engine = subs.getEngine();
+							
+				if ( engine instanceof WebEngine ){
+						
+					menuItem = menu_creator.createMenu( "menu.change.url");
+					menuItem.addListener(new SubsMenuItemListener() {
+						public void selected( final Subscription subs) {
+							UISWTInputReceiver entry = new SimpleTextEntryWindow();
+							
+							try{
+								WebEngine web_engine = (WebEngine)subs.getEngine();
 		
-		try{
-			Engine engine = subs.getEngine();
-						
-			if ( engine instanceof WebEngine ){
-					
-				menuItem = menu_creator.createMenu( "menu.change.url");
-				menuItem.addListener(new SubsMenuItemListener() {
-					public void selected( final Subscription subs) {
-						UISWTInputReceiver entry = new SimpleTextEntryWindow();
-						
-						try{
-							WebEngine web_engine = (WebEngine)subs.getEngine();
-	
-							entry.setPreenteredText(web_engine.getSearchUrl( true ), false );
-							entry.maintainWhitespace(false);
-							entry.allowEmptyInput( false );
-							entry.setLocalisedTitle(MessageText.getString("change.url.msg.title",
-									new String[] {
-										subs.getName()
-									}));
-							entry.setMessage( "change.url.msg.desc" );
-							entry.prompt(new UIInputReceiverListener() {
-								public void UIInputReceiverClosed(UIInputReceiver entry) {
-									if (!entry.hasSubmittedInput()){
+								entry.setPreenteredText(web_engine.getSearchUrl( true ), false );
+								entry.maintainWhitespace(false);
+								entry.allowEmptyInput( false );
+								entry.setLocalisedTitle(MessageText.getString("change.url.msg.title",
+										new String[] {
+											subs.getName()
+										}));
+								entry.setMessage( "change.url.msg.desc" );
+								entry.prompt(new UIInputReceiverListener() {
+									public void UIInputReceiverClosed(UIInputReceiver entry) {
+										if (!entry.hasSubmittedInput()){
+											
+											return;
+										}
 										
-										return;
-									}
-									
-									String input = entry.getSubmittedInput().trim();
-									
-									if ( input.length() > 0 ){
+										String input = entry.getSubmittedInput().trim();
 										
-										try{
-											WebEngine web_engine = (WebEngine)subs.getEngine();
+										if ( input.length() > 0 ){
 											
-											web_engine.setSearchUrl( input );
-											
-											subs.cloneWithNewEngine( web_engine );
-											
-										}catch( Throwable e ){
-											
-											Debug.out(e);
+											try{
+												WebEngine web_engine = (WebEngine)subs.getEngine();
+												
+												web_engine.setSearchUrl( input );
+												
+												subs.cloneWithNewEngine( web_engine );
+												
+											}catch( Throwable e ){
+												
+												Debug.out(e);
+											}
 										}
 									}
-								}
-							});
-						}catch( Throwable e ){
-							
-							Debug.out( e );
+								});
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
 						}
-					}
-				});
-				
-			}
-		}catch( Throwable e ){
-			Debug.out( e );
-		}
-		
-			// public
-		
-		menuItem = menu_creator.createMenu( "subs.prop.is_public");
-		menuItem.setStyle( MenuItem.STYLE_CHECK );
-		
-		menuItem.addFillListener( new MenuItemFillListener(){
-			public void menuWillBeShown( MenuItem menu, Object data ){
-				menu.setData( subs.isPublic());
-			}});
-	
-		menuItem.addListener(new SubsMenuItemListener() {
-			public void selected( Subscription subs) {
-				try{
-					subs.setPublic( !subs.isPublic());
-				}catch( Throwable e ){
-					Debug.out(e);
+					});
+					
 				}
+			}catch( Throwable e ){
+				Debug.out( e );
 			}
-		});
-		
-		if ( subs.isAutoDownloadSupported()){
 			
-				// auto-dl
+				// public
 			
-			menuItem = menu_creator.createMenu( "subs.prop.is_auto");
+			menuItem = menu_creator.createMenu( "subs.prop.is_public");
 			menuItem.setStyle( MenuItem.STYLE_CHECK );
 			
 			menuItem.addFillListener( new MenuItemFillListener(){
 				public void menuWillBeShown( MenuItem menu, Object data ){
-					menu.setData( subs.getHistory().isAutoDownload());
+					menu.setData( subs.isPublic());
 				}});
-			
+		
 			menuItem.addListener(new SubsMenuItemListener() {
 				public void selected( Subscription subs) {
 					try{
-						subs.getHistory().setAutoDownload(!subs.getHistory().isAutoDownload());
+						subs.setPublic( !subs.isPublic());
 					}catch( Throwable e ){
 						Debug.out(e);
 					}
 				}
 			});
-		}
-		
-			// refresh period
 			
-		menuItem = menu_creator.createMenu(  "subs.prop.update_period" );
-		
-		menuItem.addFillListener( new MenuItemFillListener(){
-			public void menuWillBeShown( MenuItem menu, Object data ){
-				int check_freq = subs.getHistory().getCheckFrequencyMins();
+			if ( subs.isAutoDownloadSupported()){
 				
-				String text = MessageText.getString( "subs.prop.update_period" );
+					// auto-dl
 				
-				if ( check_freq!=Integer.MAX_VALUE ){
-					
-					text += " (" +  check_freq + " " + MessageText.getString( "ConfigView.text.minutes") + ")";
-				}
+				menuItem = menu_creator.createMenu( "subs.prop.is_auto");
+				menuItem.setStyle( MenuItem.STYLE_CHECK );
 				
-				menu.setText( text + "..." );
-			}});
-		
-		
-		menuItem.addListener(new SubsMenuItemListener() {
-			public void selected( final Subscription subs) {
-				UISWTInputReceiver entry = new SimpleTextEntryWindow();
-				entry.maintainWhitespace(false);
-				entry.allowEmptyInput( false );
+				menuItem.addFillListener( new MenuItemFillListener(){
+					public void menuWillBeShown( MenuItem menu, Object data ){
+						menu.setData( subs.getHistory().isAutoDownload());
+					}});
 				
-				int check_freq = subs.getHistory().getCheckFrequencyMins();
-				
-				entry.setPreenteredText( check_freq==Integer.MAX_VALUE?"":String.valueOf( check_freq ), false );
-				
-				entry.maintainWhitespace(false);
-				
-				entry.allowEmptyInput( false );
-				
-				entry.setLocalisedTitle(MessageText.getString("subscriptions.enter.freq"));
-		
-				entry.prompt(new UIInputReceiverListener() {
-					public void UIInputReceiverClosed(UIInputReceiver entry) {
-						if (!entry.hasSubmittedInput()) {
-							return;
+				menuItem.addListener(new SubsMenuItemListener() {
+					public void selected( Subscription subs) {
+						try{
+							subs.getHistory().setAutoDownload(!subs.getHistory().isAutoDownload());
+						}catch( Throwable e ){
+							Debug.out(e);
 						}
-						String input = entry.getSubmittedInput().trim();
+					}
+				});
+			}
+			
+				// refresh period
+				
+			menuItem = menu_creator.createMenu(  "subs.prop.update_period" );
+			
+			menuItem.addFillListener( new MenuItemFillListener(){
+				public void menuWillBeShown( MenuItem menu, Object data ){
+					int check_freq = subs.getHistory().getCheckFrequencyMins();
+					
+					String text = MessageText.getString( "subs.prop.update_period" );
+					
+					if ( check_freq!=Integer.MAX_VALUE ){
 						
-						if ( input.length() > 0 ){
+						text += " (" +  check_freq + " " + MessageText.getString( "ConfigView.text.minutes") + ")";
+					}
+					
+					menu.setText( text + "..." );
+				}});
+			
+			
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( final Subscription subs) {
+					UISWTInputReceiver entry = new SimpleTextEntryWindow();
+					entry.maintainWhitespace(false);
+					entry.allowEmptyInput( false );
+					
+					int check_freq = subs.getHistory().getCheckFrequencyMins();
+					
+					entry.setPreenteredText( check_freq==Integer.MAX_VALUE?"":String.valueOf( check_freq ), false );
+					
+					entry.maintainWhitespace(false);
+					
+					entry.allowEmptyInput( false );
+					
+					entry.setLocalisedTitle(MessageText.getString("subscriptions.enter.freq"));
+			
+					entry.prompt(new UIInputReceiverListener() {
+						public void UIInputReceiverClosed(UIInputReceiver entry) {
+							if (!entry.hasSubmittedInput()) {
+								return;
+							}
+							String input = entry.getSubmittedInput().trim();
 							
-							try{
-								subs.getHistory().setCheckFrequencyMins( Integer.parseInt( input ));
+							if ( input.length() > 0 ){
 								
-							}catch( Throwable e ){
-								
+								try{
+									subs.getHistory().setCheckFrequencyMins( Integer.parseInt( input ));
+									
+								}catch( Throwable e ){
+									
+								}
 							}
 						}
-					}
-				});
-			}
-		});
+					});
+				}
+			});
 		
-			// rename
-		
-		menuItem = menu_creator.createMenu( "MyTorrentsView.menu.rename" );
-		menuItem.addListener(new SubsMenuItemListener() {
-			public void selected( final Subscription subs) {
-				UISWTInputReceiver entry = new SimpleTextEntryWindow();
-				entry.maintainWhitespace(false);
-				entry.allowEmptyInput( false );
-				
-				entry.setPreenteredText(subs.getName(), false );
-				
-				entry.maintainWhitespace(false);
-				
-				entry.allowEmptyInput( false );
-				
-				entry.setLocalisedTitle(MessageText.getString("label.rename",
-						new String[] {
-						subs.getName()
-				}));
-		
-				entry.prompt(new UIInputReceiverListener() {
-					public void UIInputReceiverClosed(UIInputReceiver entry) {
-						if (!entry.hasSubmittedInput()) {
-							return;
-						}
-						String input = entry.getSubmittedInput().trim();
-						
-						if ( input.length() > 0 ){
+				// rename
+			
+			menuItem = menu_creator.createMenu( "MyTorrentsView.menu.rename" );
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( final Subscription subs) {
+					UISWTInputReceiver entry = new SimpleTextEntryWindow();
+					entry.maintainWhitespace(false);
+					entry.allowEmptyInput( false );
+					
+					entry.setPreenteredText(subs.getName(), false );
+					
+					entry.maintainWhitespace(false);
+					
+					entry.allowEmptyInput( false );
+					
+					entry.setLocalisedTitle(MessageText.getString("label.rename",
+							new String[] {
+							subs.getName()
+					}));
+			
+					entry.prompt(new UIInputReceiverListener() {
+						public void UIInputReceiverClosed(UIInputReceiver entry) {
+							if (!entry.hasSubmittedInput()) {
+								return;
+							}
+							String input = entry.getSubmittedInput().trim();
 							
-							subs.setLocalName( input );
+							if ( input.length() > 0 ){
+								
+								subs.setLocalName( input );
+							}
 						}
-					}
-				});
-			}
-		});
+					});
+				}
+			});
+		}
 		
 		
 		menuItem = menu_creator.createMenu( "Subscription.menu.remove");

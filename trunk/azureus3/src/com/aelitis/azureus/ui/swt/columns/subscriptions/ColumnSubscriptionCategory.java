@@ -51,7 +51,7 @@ public class ColumnSubscriptionCategory
 	}
 
 	public void refresh(TableCell cell) {
-		int nbResults = 0;
+		
 		Subscription sub = (Subscription) cell.getDataSource();
 		String category = null;
 		if (sub != null) {

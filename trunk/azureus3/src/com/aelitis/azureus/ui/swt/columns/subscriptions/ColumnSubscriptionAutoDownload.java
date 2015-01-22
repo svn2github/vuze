@@ -70,7 +70,11 @@ public class ColumnSubscriptionAutoDownload
 			return;
 		}
 		
-		cell.setText( DisplayFormatters.getYesNo( autoDownload ));
+		if ( sub.isAutoDownloadSupported()){
+			cell.setText( DisplayFormatters.getYesNo( autoDownload ));
+		}else{
+			cell.setText( "" );
+		}
 		return;
 		
 	}

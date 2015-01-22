@@ -66,7 +66,11 @@ public class ColumnSubscriptionNbResults
 			return;
 		}
 		
-		cell.setText("" + nbResults);
+		if ( sub.isSearchTemplate()){
+			cell.setText( "" );
+		}else{
+			cell.setText("" + nbResults);
+		}
 		return;
 		
 	}
