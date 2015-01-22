@@ -80,7 +80,11 @@ ColumnSubscriptionLastChecked
 			return;
 		}
 		
-		if ( timestamp <= 0 ){
+		if ( sub.isSearchTemplate()){
+			
+			cell.setText( "" );
+			
+		}else  if ( timestamp <= 0 ){
 		
 			cell.setText( "--" );
 			
