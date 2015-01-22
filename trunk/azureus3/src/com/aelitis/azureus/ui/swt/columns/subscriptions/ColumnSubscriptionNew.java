@@ -53,6 +53,7 @@ public class ColumnSubscriptionNew
 		super(COLUMN_ID, tableID);
 
 		initializeAsGraphic(WIDTH);
+		setRefreshInterval(INTERVAL_LIVE);
 		setMinWidth(WIDTH);
 		setMaxWidth(WIDTH);
 		setVisible(true);

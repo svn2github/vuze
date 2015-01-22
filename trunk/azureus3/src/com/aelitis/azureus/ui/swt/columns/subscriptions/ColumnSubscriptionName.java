@@ -60,6 +60,7 @@ public class ColumnSubscriptionName
 	/** Default Constructor */
 	public ColumnSubscriptionName(String sTableID) {
 		super(COLUMN_ID, POSITION_LAST, 350, sTableID);
+		setRefreshInterval(INTERVAL_LIVE);
 		setMinWidth(300);
 	}
 

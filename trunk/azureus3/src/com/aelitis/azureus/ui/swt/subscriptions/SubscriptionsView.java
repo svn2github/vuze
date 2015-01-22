@@ -19,6 +19,7 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -34,8 +35,15 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -77,6 +85,7 @@ public class SubscriptionsView
 	private UISWTView swtView;
 	
 	public SubscriptionsView() {
+		
 	}
 	
 	
@@ -285,7 +294,38 @@ public class SubscriptionsView
 			}
 		});
 		
+
 		view.addSelectionListener(new TableSelectionAdapter() {
+			
+			PluginInterface pi = PluginInitializer.getDefaultInterface();
+			UIManager uim = pi.getUIManager();
+			
+			MenuManager  menu_manager 	= uim.getMenuManager();
+			TableManager table_manager 	= uim.getTableManager();
+
+			ArrayList<TableContextMenuItem>	menu_items = new ArrayList<TableContextMenuItem>();
+			
+			SubscriptionManagerUI.MenuCreator menu_creator = 
+					new SubscriptionManagerUI.MenuCreator()
+					{
+						public MenuItem
+						createMenu(
+							String 	resource_id )
+						{
+							TableContextMenuItem menu = 
+								table_manager.addContextMenuItem( TABLE_ID, resource_id );
+							
+							menu_items.add( menu );
+							
+							return( menu );
+						}
+						
+						public void refreshView() 
+						{
+							
+						}
+					};
+					
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				if(rows.length == 1) {
 					TableRowCore row = rows[0];
@@ -310,8 +350,22 @@ public class SubscriptionsView
 					sels[i] = new SubscriptionSelectedContent((Subscription)rows[i].getDataSource());
 				}
 				
-				SelectedContentManager.changeCurrentlySelectedContent(view.getTableID(),
-						sels, view);
+				SelectedContentManager.changeCurrentlySelectedContent(view.getTableID(), sels, view);
+				
+				for ( TableContextMenuItem mi: menu_items ){
+					
+					mi.remove();
+				}
+				
+				if ( rows.length == 1 ){
+					
+					Subscription subs = (Subscription) rows[0].getDataSource();
+
+					if ( subs != null ){
+								
+						SubscriptionManagerUI.createMenus( menu_manager, menu_creator, subs );
+					}
+				}				
 			}
 			
 		}, false) ;

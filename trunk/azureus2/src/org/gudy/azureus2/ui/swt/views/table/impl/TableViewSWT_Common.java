@@ -30,10 +30,9 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -908,7 +907,7 @@ public class TableViewSWT_Common
 								return new TableSelectedRowsListener(tv, false) {
 									public boolean run(TableRowCore[] rows) {
 										if (rows.length != 0) {
-											((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
+											((MenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
 										}
 										return true;
 									}
@@ -917,7 +916,7 @@ public class TableViewSWT_Common
 
 							public void notifyFillListeners(
 									org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
-								((TableContextMenuItemImpl) menu_item).invokeMenuWillBeShownListeners(tv.getSelectedRows());
+								((MenuItemImpl)menu_item).invokeMenuWillBeShownListeners(tv.getSelectedRows());
 							}
 						});
 			}
