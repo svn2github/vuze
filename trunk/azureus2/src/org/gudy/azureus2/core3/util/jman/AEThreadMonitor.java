@@ -26,7 +26,13 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.util.average.AverageFactory;
+import com.aelitis.azureus.core.util.average.MovingAverage;
 
 public class 
 AEThreadMonitor 
@@ -152,7 +158,12 @@ AEThreadMonitor
 		
 		Map<Long,Long>	last_times = new HashMap<Long,Long>();
 		
-		long	time_available = 10000;
+		final int	time_available = 10*1000;
+		
+		long	start_mono = SystemTime.getMonotonousTime();
+		
+		MovingAverage 	high_usage_history 	= AverageFactory.MovingAverage(2*60*1000/time_available);
+		boolean			huh_mon_active		= false;
 		
 		while( true ){
 			
@@ -217,6 +228,29 @@ AEThreadMonitor
 			Runtime rt = Runtime.getRuntime();
 			
 			log.log( "Thread state: elapsed=" + elapsed + ",cpu=" + total_diffs + ",max=" + thread_name + "(" + biggest_diff + "/" + percent + "%),mem:max=" + (rt.maxMemory()/1024)+",tot=" + (rt.totalMemory()/1024) +",free=" + (rt.freeMemory()/1024));
+			
+			if ( huh_mon_active ){
+			
+					// ESET version 8 seems to be triggering high CPU in this thread
+				
+				boolean interesting = percent > 5 && thread_name.equals( "PRUDPPacketHandler:sender" );
+						
+				double temp = high_usage_history.update( interesting?1:0 );
+			
+				if ( temp >= 0.5 ){
+					
+					Logger.log(					
+						new LogAlert(
+							false,
+							LogAlert.AT_WARNING,
+							"High CPU usage detected in networking code - see <a href=\"http://wiki.vuze.com/w/High_CPU_Usage\">The Wiki</a> for possible solutions" ));
+
+				}
+				
+			}else{
+				
+				huh_mon_active = SystemTime.getMonotonousTime() - start_mono > 2*60*1000;
+			}
 			
 			if ( biggest_diff > time_available/4 ){
 				
