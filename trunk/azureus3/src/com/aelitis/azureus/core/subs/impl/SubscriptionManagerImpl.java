@@ -1821,9 +1821,11 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher();
+	
 	protected void
 	updatePublicSubscription(
-		SubscriptionImpl		subs )
+		final SubscriptionImpl		subs )
 	{		
 		if ( subs.isSingleton()){
 			
@@ -1832,63 +1834,83 @@ SubscriptionManagerImpl
 			subs.setServerPublished();
 			
 		}else{
+				// the update is blocking on the messenger server and this method can be called
+				// from the UI thread so back things off for the publishing
 			
-			Long	l_last_pub 	= (Long)subs.getUserData( SP_LAST_ATTEMPTED );
-			Long	l_consec_fail = (Long)subs.getUserData( SP_CONSEC_FAIL );
+			final AESemaphore sem = new AESemaphore( "pub:async" );
 			
-			if ( l_last_pub != null && l_consec_fail != null ){
-				
-				long	delay = SERVER_PUB_CHECK_PERIOD;
-				
-				for (int i=0;i<l_consec_fail.longValue();i++){
+			async_dispatcher.dispatch(
+				new AERunnable()
+				{	
+					@Override
+					public void 
+					runSupport() 
+					{
+						try{
+							Long	l_last_pub 	= (Long)subs.getUserData( SP_LAST_ATTEMPTED );
+							Long	l_consec_fail = (Long)subs.getUserData( SP_CONSEC_FAIL );
+							
+							if ( l_last_pub != null && l_consec_fail != null ){
+								
+								long	delay = SERVER_PUB_CHECK_PERIOD;
+								
+								for (int i=0;i<l_consec_fail.longValue();i++){
+									
+									delay <<= 1;
+									
+									if ( delay > 24*60*60*1000 ){
+										
+										break;
+									}
+								}
+								
+								if ( l_last_pub.longValue() + delay > SystemTime.getMonotonousTime()){
+									
+									return;
+								}
+							}
+	
+							try{		
+								File vf = getVuzeFile( subs );
 					
-					delay <<= 1;
+								byte[] bytes = FileUtil.readFileAsByteArray( vf );
+								
+								byte[]	encoded_subs = Base64.encode( bytes );
 					
-					if ( delay > 24*60*60*1000 ){
-						
-						break;
+								PlatformSubscriptionsMessenger.updateSubscription(
+										!subs.getServerPublished(),
+										subs.getName(false),
+										subs.getPublicKey(),
+										subs.getPrivateKey(),
+										subs.getShortID(),
+										subs.getVersion(),
+										new String( encoded_subs ));
+								
+								subs.setUserData( SP_LAST_ATTEMPTED, null );
+								subs.setUserData( SP_CONSEC_FAIL, null );
+				
+								subs.setServerPublished();
+								
+								log( "    Updated public subscription " + subs.getString());
+								
+							}catch( Throwable e ){
+								
+								log( "    Failed to update public subscription " + subs.getString(), e );
+								
+								subs.setUserData( SP_LAST_ATTEMPTED, new Long( SystemTime.getMonotonousTime()));
+								
+								subs.setUserData( SP_CONSEC_FAIL, new Long( l_consec_fail==null?1:(l_consec_fail.longValue()+1)));
+				
+								subs.setServerPublicationOutstanding();
+							}
+						}finally{
+							
+							sem.release();
+						}
 					}
-				}
-				
-				if ( l_last_pub.longValue() + delay > SystemTime.getMonotonousTime()){
-					
-					return;
-				}
-			}
+				});
 			
-			try{		
-				File vf = getVuzeFile( subs );
-	
-				byte[] bytes = FileUtil.readFileAsByteArray( vf );
-				
-				byte[]	encoded_subs = Base64.encode( bytes );
-	
-				PlatformSubscriptionsMessenger.updateSubscription(
-						!subs.getServerPublished(),
-						subs.getName(false),
-						subs.getPublicKey(),
-						subs.getPrivateKey(),
-						subs.getShortID(),
-						subs.getVersion(),
-						new String( encoded_subs ));
-				
-				subs.setUserData( SP_LAST_ATTEMPTED, null );
-				subs.setUserData( SP_CONSEC_FAIL, null );
-
-				subs.setServerPublished();
-				
-				log( "    Updated public subscription " + subs.getString());
-				
-			}catch( Throwable e ){
-				
-				log( "    Failed to update public subscription " + subs.getString(), e );
-				
-				subs.setUserData( SP_LAST_ATTEMPTED, new Long( SystemTime.getMonotonousTime()));
-				
-				subs.setUserData( SP_CONSEC_FAIL, new Long( l_consec_fail==null?1:(l_consec_fail.longValue()+1)));
-
-				subs.setServerPublicationOutstanding();
-			}
+			sem.reserve( 5000 );	// give it a chance to work synchronously
 		}
 	}
 	
