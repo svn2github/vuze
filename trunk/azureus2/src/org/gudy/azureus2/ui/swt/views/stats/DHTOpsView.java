@@ -161,7 +161,7 @@ public class DHTOpsView
 		return( MSGID_PREFIX + ".title.full" );
 	}
 
-	private 
+	public 
 	void delete() 
 	{	
 		if (drawPanel != null) {

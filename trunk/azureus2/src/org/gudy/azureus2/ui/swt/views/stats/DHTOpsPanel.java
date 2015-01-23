@@ -42,7 +42,6 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.control.DHTControlListener;
@@ -313,6 +312,13 @@ DHTOpsPanel
 		int					type )
 	{
 		//System.out.println( activity.getString() + "/" + type + "/" + activity.getCurrentState().getString());
+		
+		if ( activity.isQueued()){
+			
+				// ignore these until they become active
+			
+			return;
+		}
 		
 		synchronized( activity_map ){
 			

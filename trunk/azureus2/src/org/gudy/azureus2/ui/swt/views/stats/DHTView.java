@@ -570,7 +570,7 @@ public class DHTView
   }
   
 
-  private void delete() {
+  public void delete() {
     Utils.disposeComposite(panel);
     if (dht != null) {
       dht.getControl().removeListener(controlListener);
