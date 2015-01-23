@@ -66,7 +66,11 @@ public class ColumnSubscriptionSubscribers
 			return;
 		}
 		
-		cell.setText("" + nbSubsribers);
+		if ( nbSubsribers < 0 ){
+			cell.setText("");
+		}else{
+			cell.setText("" + nbSubsribers);
+		}
 		return;
 		
 	}
