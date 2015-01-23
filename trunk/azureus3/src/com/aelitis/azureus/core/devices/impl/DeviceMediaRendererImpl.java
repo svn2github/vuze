@@ -24,22 +24,47 @@ package com.aelitis.azureus.core.devices.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
+import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.net.upnp.UPnPDevice;
-import com.aelitis.net.upnp.impl.device.UPnPDeviceImpl;
 
 public class 
 DeviceMediaRendererImpl
 	extends DeviceUPnPImpl
 	implements DeviceMediaRenderer
 {
+	private static final int INSTALL_CHECK_PERIOD	= 60*1000;
+	private static final int TAG_SHARE_CHECK_TICKS	= INSTALL_CHECK_PERIOD / DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
+
 	public
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
@@ -186,6 +211,184 @@ DeviceMediaRendererImpl
 	initialise()
 	{
 		super.initialise();
+	}
+	
+	private static TorrentAttribute	share_ta;
+	private static List<Object[]>	share_requests		= new ArrayList<Object[]>();
+	private static AsyncDispatcher	share_dispatcher 	= new AsyncDispatcher();
+	
+	protected void
+	updateStatus(
+		int		tick_count )
+	{
+		super.updateStatus(tick_count);
+		
+		if ( 	tick_count > 0 && 
+				tick_count % TAG_SHARE_CHECK_TICKS == 0 ){
+			
+			long	tag_id = getAutoShareToTagID();
+			
+			if ( tag_id != -1 ){
+				
+				synchronized( DeviceMediaRendererImpl.class ){
+					
+					if ( share_ta == null ){
+						
+						share_ta = PluginInitializer.getDefaultInterface().getTorrentManager().getPluginAttribute( "DeviceMediaRendererImpl:tag_share" );
+					}
+				}
+				
+				TagManager tm = TagManagerFactory.getTagManager();
+				
+				Tag assigned_tag = tm.lookupTagByUID( tag_id );
+
+				if ( assigned_tag != null ){
+							
+					assigned_tag.setPublic( false );	// not going to want this to be public
+
+					synchronized( share_requests ){
+						
+						if ( share_requests.size() == 0 ){
+						
+							Set<Taggable> taggables = assigned_tag.getTagged();
+							
+							Set<String>	done_files = new HashSet<String>();
+							
+							for ( Taggable temp: taggables ){
+								
+								if ( !( temp instanceof DownloadManager )){
+									
+									continue;
+								}
+								
+								DownloadManager dm = (DownloadManager)temp;
+								
+								Download download = PluginCoreUtils.wrap( dm );
+								
+								String attr = download.getAttribute( share_ta );
+								
+								if ( attr != null ){
+									
+									done_files.add( attr );
+								}
+							}
+					
+							TranscodeFileImpl[] files = getFiles();
+							
+							for ( TranscodeFileImpl file: files ){
+								
+								if ( file.isComplete()){
+									
+									try{
+										File target_file = file.getTargetFile().getFile( true );
+										
+										long size = target_file.length();
+										
+										if ( target_file.exists() && size > 0 ){
+											
+											String suffix = " (" + file.getProfileName() + " - " + DisplayFormatters.formatByteCountToKiBEtc( size ) + ")";
+											
+											String share_name	= file.getName() + suffix;
+											String key 			= target_file.getName() + suffix;
+											
+											if ( !done_files.contains( key )){
+												
+												share_requests.add( new Object[]{ key, target_file, share_name, assigned_tag });												
+											}
+										}
+									}catch( Throwable e ){
+										
+									}
+								}
+							}
+							
+							if ( share_requests.size() > 0 ){
+								
+								shareRequestAdded();
+							}
+						}
+					}
+				}
+			}
+		}	
+	}
+	
+	private void
+	shareRequestAdded()
+	{
+		share_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void 
+				runSupport() 
+				{
+					List<Object[]>	to_process;
+					
+					synchronized( share_requests ){
+
+						to_process = new ArrayList<Object[]>( share_requests );
+					}
+					
+					for ( Object[] entry: to_process ){
+						
+						try{
+							String	key 	= (String)entry[0];
+							File	file	= (File)entry[1];
+							String	name 	= (String)entry[2];
+							Tag		tag 	= (Tag)entry[3];
+							
+							log( "Auto sharing " + name + " (" + file + ") to tag " + tag.getTagName( true ));
+							
+							Map<String,String>	properties = new HashMap<String, String>();
+
+							properties.put( ShareManager.PR_USER_DATA, "device:autoshare" );
+							
+								// currently no way for user to explicitly specify the networks to use so use defaults
+							
+							String[] networks = AENetworkClassifier.getDefaultNetworks();
+							
+							String networks_str = "";
+							
+							for ( String net: networks ){
+								
+								networks_str += (networks_str.length()==0?"":",") + net;
+							}
+							
+							properties.put( ShareManager.PR_NETWORKS, networks_str );
+							
+							properties.put( ShareManager.PR_TAGS, String.valueOf( tag.getTagUID()));
+							
+							PluginInterface pi = PluginInitializer.getDefaultInterface();
+							
+							ShareResourceFile srf = pi.getShareManager().addFile( file, properties );
+															
+							Torrent torrent = srf.getItem().getTorrent();								
+													
+							final Download download = pi.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( torrent.getHash());
+	
+							if ( download == null ){
+								
+								throw( new Exception( "Download no longer exists" ));
+							}
+
+							DownloadManager dm = PluginCoreUtils.unwrap( download );
+							
+							dm.getDownloadState().setDisplayName( name );
+														
+							download.setAttribute( share_ta, key );
+							
+						}catch( Throwable e ){
+							
+							log( "Auto sharing failed", e );
+						}
+					}
+					
+					synchronized( share_requests ){
+						
+						share_requests.removeAll( to_process );
+					}
+				}
+			});
 	}
 	
 	@Override

@@ -53,7 +53,6 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -82,6 +81,7 @@ import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -90,10 +90,13 @@ import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
-import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoURL;
 import com.aelitis.azureus.core.download.StreamManager;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -3316,6 +3319,29 @@ DeviceManagerUI
 					
 					rss_menu_item.setEnabled( device_manager.isRSSPublishEnabled());
 				}
+				
+						// auto-share with tag
+				
+				
+				if ( true ){
+					
+					need_sep = true;
+					
+					final MenuItem aswt_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.tagshare");
+					aswt_menu_item.setStyle(MenuItem.STYLE_MENU);				
+					
+					aswt_menu_item.addFillListener(
+						new MenuItemFillListener()
+						{
+							public void 
+							menuWillBeShown(
+								MenuItem 	menu, 
+								Object 		data ) 
+							{		
+								addTagSubMenu( menu_manager, menu, renderer );
+							}
+						});
+				}
 			}
 
 			if ( device instanceof DeviceOfflineDownloader ){
@@ -3537,6 +3563,147 @@ DeviceManagerUI
 		return( id );
 	}
 	
+	private static void 
+	addTagSubMenu(
+		MenuManager						menu_manager,
+		MenuItem						menu,
+		final DeviceMediaRenderer		device )
+	{
+		menu.removeAllChildItems();
+
+		TagManager tm = TagManagerFactory.getTagManager();
+		
+		List<Tag> tags = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTags();
+		
+		tags = TagUIUtils.sortTags( tags );
+					
+		long	tag_id = device.getAutoShareToTagID();
+			
+		Tag assigned_tag = tm.lookupTagByUID( tag_id );
+		
+		MenuItem m = menu_manager.addMenuItem( menu, "label.no.tag" );
+				
+		m.setStyle( MenuItem.STYLE_RADIO );
+							
+		m.setData( new Boolean( assigned_tag == null ));
+				
+		m.addListener(
+			new MenuItemListener() 
+			{
+				public void
+				selected(
+					MenuItem			menu,
+					Object 				target )
+				{
+					device.setAutoShareToTagID( -1 );
+				}
+			});
+				
+
+		m = menu_manager.addMenuItem( menu, "sep1" );
+				
+		m.setStyle( MenuItem.STYLE_SEPARATOR );
+	
+		
+		List<String>	menu_names 		= new ArrayList<String>();
+		Map<String,Tag>	menu_name_map 	= new IdentityHashMap<String, Tag>();
+
+		for ( Tag t: tags ){
+			
+			if ( !t.isTagAuto()){
+				
+				String name = t.getTagName( true );
+				
+				menu_names.add( name );
+				menu_name_map.put( name, t );
+			}
+		}
+			
+		List<Object>	menu_structure = MenuBuildUtils.splitLongMenuListIntoHierarchy( menu_names, TagUIUtils.MAX_TOP_LEVEL_TAGS_IN_MENU );
+		
+		for ( Object obj: menu_structure ){
+
+			List<Tag>	bucket_tags = new ArrayList<Tag>();
+			
+			MenuItem parent_menu;
+			
+			if ( obj instanceof String ){
+				
+				parent_menu = menu;
+				
+				bucket_tags.add( menu_name_map.get((String)obj));
+				
+			}else{
+				
+				Object[]	entry = (Object[])obj;
+				
+				List<String>	tag_names = (List<String>)entry[1];
+				
+				boolean	has_selected = false;
+				
+				for ( String name: tag_names ){
+					
+					Tag tag = menu_name_map.get( name );
+					
+					bucket_tags.add( tag );
+					
+					if ( assigned_tag == tag ){
+						
+						has_selected = true;
+					}
+				}
+				
+				parent_menu = menu_manager.addMenuItem (menu, "!" + (String)entry[0] + (has_selected?" (*)":"") + "!" );
+				
+				parent_menu.setStyle( MenuItem.STYLE_MENU );
+			}
+			
+			for ( final Tag tag: bucket_tags ){
+			
+				m = menu_manager.addMenuItem( parent_menu, tag.getTagName( false ));
+						
+				m.setStyle( MenuItem.STYLE_RADIO );
+											
+				m.setData( new Boolean( assigned_tag == tag ));
+						
+				m.addListener(
+					new MenuItemListener() 
+					{
+						public void
+						selected(
+							MenuItem			menu,
+							Object 				target )
+						{
+							device.setAutoShareToTagID( tag.getTagUID());
+						}
+					});
+			}
+		}
+		
+		m = menu_manager.addMenuItem( menu, "sep2" );
+			
+		m.setStyle( MenuItem.STYLE_SEPARATOR );
+
+		m = menu_manager.addMenuItem( menu, "label.add.tag" );
+		
+		m.addListener(
+			new MenuItemListener() 
+			{
+				public void
+				selected(
+					MenuItem			menu,
+					Object 				target )
+				{
+					Tag new_tag = TagUIUtils.createManualTag();
+					
+					if ( new_tag != null ){
+					
+						device.setAutoShareToTagID( new_tag.getTagUID());
+					}
+				}
+			});
+	}
+
 	protected void
 	showDevice(
 		Device		device )

@@ -187,6 +187,7 @@ DeviceImpl
 	private static final String PP_REND_TRANS_REQ		= "tt_req";
 	private static final String PP_REND_TRANS_CACHE		= "tt_always_cache";
 	private static final String PP_REND_RSS_PUB			= "tt_rss_pub";
+	private static final String PP_REND_TAG_SHARE		= "tt_tag_share";
 	
 	protected static final String PP_REND_SHOW_CAT			= "tt_show_cat";
 	protected static final String PP_REND_CLASSIFICATION	= "tt_rend_class";
@@ -1421,6 +1422,19 @@ DeviceImpl
 		setPersistentBooleanProperty( PP_REND_RSS_PUB, enabled );
 	}
 	
+	public long
+	getAutoShareToTagID()
+	{
+		return( getPersistentLongProperty( PP_REND_TAG_SHARE, -1 ));
+	}
+	
+	public void
+	setAutoShareToTagID(
+		long		id )
+	{
+		setPersistentLongProperty( PP_REND_TAG_SHARE, id );
+	}
+	
 	public String[][] 
 	getDisplayProperties() 
 	{
@@ -1935,6 +1949,22 @@ DeviceImpl
 		boolean		value )
 	{
 		setPersistentStringProperty(prop, value?"true":"false" );
+	}
+	
+	public long
+	getPersistentLongProperty(
+		String		prop,
+		long		def )
+	{
+		return( Long.parseLong( getPersistentStringProperty( prop, String.valueOf(def) )));
+	}
+	
+	public void
+	setPersistentLongProperty(
+		String		prop,
+		long		value )
+	{
+		setPersistentStringProperty(prop, String.valueOf( value ));
 	}
 	
 	public int

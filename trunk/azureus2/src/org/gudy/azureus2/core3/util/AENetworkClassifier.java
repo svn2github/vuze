@@ -117,7 +117,7 @@ AENetworkClassifier
 	{
 			// go through all the announce URL and find all networks
 		
-		List	urls = new ArrayList();
+		List<URL>	urls = new ArrayList();
 		
 		urls.add( torrent.getAnnounceURL());
 		
@@ -133,7 +133,7 @@ AENetworkClassifier
 			}
 		}
 		
-		List	available_networks = new ArrayList();
+		List<String>	available_networks = new ArrayList<String>();
 		
 		for (int i=0;i<urls.size();i++){
 			
@@ -155,7 +155,7 @@ AENetworkClassifier
 		
 		boolean	prompt = COConfigurationManager.getBooleanParameter( "Network Selection Prompt" );
 		
-		List	res = new ArrayList();
+		List<String>	res = new ArrayList<String>();
 
 		if ( prompt && listeners.size() > 0 ){
 
@@ -196,6 +196,26 @@ AENetworkClassifier
 			}
 		}
 		
+		String[]	x = new String[res.size()];
+		
+		res.toArray( x );
+		
+		return( x );
+	}
+	
+	public static String[]
+	getDefaultNetworks()
+	{
+		List<String>	res = new ArrayList<String>();
+
+		for ( String net: AT_NETWORKS ){
+			
+			if ( COConfigurationManager.getBooleanParameter( "Network Selection Default." + net )){
+		
+				res.add( net );
+			}
+		}
+	
 		String[]	x = new String[res.size()];
 		
 		res.toArray( x );

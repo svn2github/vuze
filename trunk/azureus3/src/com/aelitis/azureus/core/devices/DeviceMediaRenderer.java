@@ -138,6 +138,13 @@ DeviceMediaRenderer
 	setRSSPublishEnabled(
 		boolean		enabled );
 	
+	public long
+	getAutoShareToTagID();
+	
+	public void
+	setAutoShareToTagID(
+		long		id );
+	
 	public InetAddress
 	getAddress();
 	

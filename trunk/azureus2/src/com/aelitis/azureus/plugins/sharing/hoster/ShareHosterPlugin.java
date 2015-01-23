@@ -43,6 +43,10 @@ import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+
 public class 
 ShareHosterPlugin
 	implements Plugin, PluginListener, ShareManagerListener
@@ -297,7 +301,8 @@ ShareHosterPlugin
 	{
 		Map<String,String>	properties  = resource.getProperties();
 		
-		final List<String>	networks = new ArrayList<String>();
+		final List<String>	networks 	= new ArrayList<String>();
+		final List<Tag>		tags		= new ArrayList<Tag>();
 		
 		if ( properties != null ){
 			
@@ -309,11 +314,37 @@ ShareHosterPlugin
 								
 				for ( String bit: bits ){
 			
-					bit = AENetworkClassifier.internalise( bit );
+					bit = AENetworkClassifier.internalise( bit.trim());
 					
 					if ( bit != null ){
 						
 						networks.add( bit );
+					}
+				}
+			}
+			
+			String tags_str = properties.get( ShareManager.PR_TAGS );
+			
+			if ( tags_str != null ){
+				
+				String[] bits = tags_str.split( "," );
+						
+				TagManager tm = TagManagerFactory.getTagManager();
+				
+				for ( String bit: bits ){
+			
+					try{
+						long tag_uid = Long.parseLong( bit.trim());
+						
+						Tag tag = tm.lookupTagByUID( tag_uid );
+						
+						if ( tag != null ){
+							
+							tags.add( tag );
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
 					}
 				}
 			}
@@ -343,6 +374,15 @@ ShareHosterPlugin
 		try{
 			Download download = download_manager.addNonPersistentDownload( torrent, torrent_file, data_file );
 
+			if ( tags.size() > 0 ){
+				
+				org.gudy.azureus2.core3.download.DownloadManager dm = PluginCoreUtils.unwrap( download );
+				
+				for ( Tag tag: tags ){
+					
+					tag.addTaggable( dm );
+				}
+			}
 			return( download );		
 			
 		}finally{
