@@ -35,10 +35,12 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -49,6 +51,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrap
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -79,6 +83,8 @@ public class TableViewSWT_TabsCommon
 	private boolean minimized;
 	private UISWTViewCore selectedView;
 
+	private DownloadManager		maximizeTo;
+	
 	public TableViewSWT_TabsCommon(UISWTView parentView, TableViewSWT<?> tv) {
 		this.parentView = parentView;
 		this.tv = tv;
@@ -247,6 +253,21 @@ public class TableViewSWT_TabsCommon
 						
 						return;
 					}
+										
+					if ( ds instanceof Object[]){
+						Object[] temp = (Object[])ds;
+						if ( temp.length==1 ){
+							Object obj = temp[0];
+							
+							if ( obj instanceof DownloadManager ){
+								maximizeTo = (DownloadManager)obj;
+							}else if ( obj instanceof Download ){
+								maximizeTo = PluginCoreUtils.unwrap((Download)obj);
+							}
+						}
+					}
+
+					tabFolder.setMaximizeVisible( maximizeTo != null );
 					
 					if ( comp.isVisible()){
 					
@@ -613,7 +634,18 @@ public class TableViewSWT_TabsCommon
 				ConfigurationManager configMan = ConfigurationManager.getInstance();
 				configMan.setParameter(props_prefix + ".subViews.minimized", true);
 			}
+			public void maximize(CTabFolderEvent event){
+				if ( maximizeTo != null){
 
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+					
+					if ( uiFunctions != null ){					
+				
+						uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, maximizeTo );
+					}
+				}	
+			}
+			
 			public void restore(CTabFolderEvent event_maybe_null ) {
 				minimized = false;
 				tabFolder.setMinimized(false);
