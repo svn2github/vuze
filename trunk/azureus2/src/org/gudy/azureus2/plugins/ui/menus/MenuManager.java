@@ -18,12 +18,15 @@
 package org.gudy.azureus2.plugins.ui.menus;
 
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 
 /**
  * Helper class to allow plugins to register their own menus. If you want to
  * add menus to be available in tables, you should use the <tt>TableManager</tt>
  * class. 
+ * <P>
+ * To get an instance of MenuManager, use {@link UIManager#getMenuManager()}
  *
  * @author amc1
  * @see org.gudy.azureus2.plugins.local.ui.tables.TableManager TableManager
