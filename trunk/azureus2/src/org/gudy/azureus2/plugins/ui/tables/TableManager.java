@@ -17,6 +17,7 @@ package org.gudy.azureus2.plugins.ui.tables;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 
 /** Allows plugins to manage Azureus UI tables.
  *
@@ -62,6 +63,7 @@ public interface TableManager
   public static final String TABLE_ALL_PEERS             = "AllPeers";
 
   /** Creates a column for a UI table.
+   * <p>
    * In order for this object to be displayed in an Azureus UI table, the
    * returned object must be added via the {@link #addColumn(TableColumn)}
    * <p>
@@ -75,7 +77,7 @@ public interface TableManager
    * plus ".column." plus the logical name of your column. 
    * <p>
    * For example, if you are creating a column named "quality" in the table 
-   * TABLE_TORRENT_FILES, youwould have to add the following to your language 
+   * TABLE_TORRENT_FILES, you would have to add the following to your language 
    * file:<br>
    *    <code>Files.column.quality=<i>Column Title</i></code><br>
    * and if you wish to have a short description of the column (visible when
@@ -83,6 +85,10 @@ public interface TableManager
    * plus ".info".  For the example above:<br>
    *    <code>Files.column.quality.info=<i>One line description</i></code>
    *
+   * <p>
+   * <br>
+   * If you wish to add a menu item to tables that show torrents, use 
+   * {@link MenuManager#addMenuItem(String, String)}
    *
    * @param tableID Which table the column will be visible in. See {@link TableManager}.
    * @param cellID The logical name of the column.
