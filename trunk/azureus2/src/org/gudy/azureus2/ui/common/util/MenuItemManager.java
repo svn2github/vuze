@@ -17,14 +17,14 @@
  */
 package org.gudy.azureus2.ui.common.util;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.menus.MenuContext;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuContextImpl;
 
 /**
  * Similar to TableContextMenuManager - this keeps references to created menu
@@ -99,6 +99,10 @@ public class MenuItemManager {
 		if (menu_item_map != null) {menu_item_map.remove(item.getResourceKey());}
 	}
 
+	/**
+	 * See {@link MenuManager} for MENU_ Constants.<BR>
+	 * For {@link MenuContext}, use the hack {@link MenuContextImpl#context}
+	 */
 	public MenuItem[] getAllAsArray(String sMenuID) {
 		if (sMenuID != null) {
 			triggerMenuItemQuery(sMenuID);
@@ -117,6 +121,10 @@ public class MenuItemManager {
 		return l.toArray(new MenuItem[l.size()]);
 	}
 	
+	/**
+	 * See {@link MenuManager} for MENU_ Constants.<BR>
+	 * For {@link MenuContext}, use the hack {@link MenuContextImpl#context}
+	 */
 	public MenuItem[] getAllAsArray(String[] menu_ids) {
 		ArrayList<MenuItem> l  = new ArrayList<MenuItem>();
 		for (int i=0; i<menu_ids.length; i++) {
