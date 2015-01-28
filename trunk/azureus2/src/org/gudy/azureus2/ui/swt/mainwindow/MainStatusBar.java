@@ -1568,8 +1568,11 @@ public class MainStatusBar
 
 		private static final int KEEPWIDTHFOR_MS = 30 * 1000;
 		
-		String text = "";
-
+		String 	text = "";
+		String	tooltip_text;
+		
+		private boolean	hovering;
+		
 		private Image image;
 
 		private Image bgImage;
@@ -1589,8 +1592,49 @@ public class MainStatusBar
 			setForeground(parent.getForeground());
 			
 			addPaintListener(this);
+			
+			addMouseTrackListener(
+				new MouseTrackAdapter()
+				{
+					@Override
+					public void mouseHover(MouseEvent e) {
+						CLabelPadding.super.setToolTipText( tooltip_text );
+						hovering = true;
+					}
+					
+					@Override
+					public void mouseExit(MouseEvent e) {
+						hovering = false;
+					}
+				});
 		}
 
+		public void
+		setToolTipText(
+			String str )
+		{	
+			if ( str == tooltip_text ){
+				return;
+			}
+			if ( str != null && tooltip_text != null && str.equals( tooltip_text )){
+				return;
+			}
+			
+			tooltip_text = str;
+			
+			if ( hovering ){
+				
+				super.setToolTipText( str );
+			}
+		}
+		
+		@Override
+		public String 
+		getToolTipText() 
+		{
+			return( tooltip_text );
+		}
+		
 		public void paintControl(PaintEvent e) {
 			Point size = getSize();
 			e.gc.setAdvanced(true);
