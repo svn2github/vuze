@@ -17,6 +17,9 @@
  */
 package org.gudy.azureus2.plugins.ui.menus;
 
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
+
 /**
  * Helper class to allow plugins to register their own menus. If you want to
  * add menus to be available in tables, you should use the <tt>TableManager</tt>
@@ -69,6 +72,9 @@ public interface MenuManager {
 	/**
 	 * All menus which are Download specific, such as download bars, the Torrent
 	 * menu, torrent tables etc.
+	 * <P>
+	 * data or target parameter in listener triggers will be an array of 
+	 * {@link Download}
 	 * 
 	 * @since 3.0.2
 	 */
@@ -88,6 +94,10 @@ public interface MenuManager {
      * Creates a menu item in a particular context. {@link MenuContext}
      * instances can be retrieved from some plugin objects that support 
      * menu items to be added to it.
+     * <P>
+     * Example: When adding menus to {@link UISWTStatusEntry}, call
+     * {@link UISWTStatusEntry#getMenuContext()} to get the MenuContext, and
+     * then pass it into this function.
      * 
      * @param context The menu context object which represents the place to
      *                add a menu item.
