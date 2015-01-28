@@ -1597,7 +1597,7 @@ public class MainStatusBar
 				new MouseTrackAdapter()
 				{
 					@Override
-					public void mouseHover(MouseEvent e) {
+					public void mouseEnter(MouseEvent e) {
 						CLabelPadding.super.setToolTipText( tooltip_text );
 						hovering = true;
 					}
