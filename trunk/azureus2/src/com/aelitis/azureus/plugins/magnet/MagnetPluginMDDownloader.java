@@ -685,6 +685,22 @@ MagnetPluginMDDownloader
 																
 																return;
 															}
+													
+																// it is possible for the running_sem to be released before
+																// the downloadRemoved event is fired and the listener removed
+																// so the removed event never fires...
+														
+															if ( running_sem.isReleasedForever()){
+															
+																if ( timer_event != null ){
+																	
+																	timer_event.cancel();
+																	
+																	timer_event = null;
+																}
+																
+																return;
+															}
 														}
 														
 														download.requestTrackerAnnounce( true );
@@ -720,7 +736,7 @@ MagnetPluginMDDownloader
 							
 							for ( InetSocketAddress address: peers_to_inject ){
 																				
-								download.getPeerManager().addPeer(
+								pm.addPeer(
 									AddressUtils.getHostAddress( address ),
 									address.getPort());
 							}
