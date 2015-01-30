@@ -699,6 +699,13 @@ public class TableViewSWT_TabsCommon
 					height -= SASH_WIDTH;
 				}
 				
+					// prevent sash from being dragged too far up. In the worst case it ends up 
+					// overlaying the split my-torrents sash and the user can't easily separate the two...
+				
+				if ( area.height - height < 100 ){
+					height = area.height - 100;
+				}
+				
 				if ( height < 0 ){
 					height = 0;
 				}
