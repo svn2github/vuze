@@ -3,14 +3,14 @@
  * Created on Nov 25, 2008
  * 
  * Copyright (C) Azureus Software, Inc, All Rights Reserved.
- *
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
@@ -69,7 +69,8 @@ ContentNetworkVuzeGeneric
 		});
 	}
 
-	private static final String RPC_ADDRESS = System.getProperty( "platform_rpc", "vrpc.vuze.com" );
+	private static final String RPC_ADDRESS = System.getProperty("platform_rpc",
+			"https://vrpc.vuze.com/vzrpc/rpc.php");
 
 	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
 
@@ -212,7 +213,7 @@ ContentNetworkVuzeGeneric
 		
 		addService( SERVICE_SEARCH, 			URL_PREFIX + "search?q=" );
 		addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch/index.php?q=" );
-		addService( SERVICE_RPC, 				"http://" + RPC_ADDRESS + "/vzrpc/rpc.php" );
+		addService( SERVICE_RPC, 				RPC_ADDRESS );
 		addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" );
 		addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" );
 		addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" );
