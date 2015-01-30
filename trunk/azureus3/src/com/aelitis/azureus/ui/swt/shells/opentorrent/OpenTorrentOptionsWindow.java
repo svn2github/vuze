@@ -1791,20 +1791,20 @@ public class OpenTorrentOptionsWindow
 			progressComp.setLayoutData(gridData);
 			
 			layout = new GridLayout();
-			layout.numColumns = 3;
+			layout.numColumns = 2;
 			progressComp.setLayout(layout);
 			
 			Label progLabel = new Label(progressComp,SWT.NULL);
 			progLabel.setText( MessageText.getString("label.checking.sources"));
 			
 			final Composite progBarComp = new Composite( progressComp, SWT.NULL );
-			gridData = new GridData();
-			gridData.widthHint = 400;
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			//gridData.widthHint = 400;
 			progBarComp.setLayoutData(gridData);
 			
-			Label padLabel = new Label(progressComp,SWT.NULL);
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			padLabel.setLayoutData(gridData);
+			//Label padLabel = new Label(progressComp,SWT.NULL);
+			//gridData = new GridData(GridData.FILL_HORIZONTAL);
+			//padLabel.setLayoutData(gridData);
 			
 			final StackLayout	progStackLayout = new StackLayout();
 			
@@ -2296,20 +2296,20 @@ public class OpenTorrentOptionsWindow
 			progressComp.setLayoutData(gridData);
 			
 			layout = new GridLayout();
-			layout.numColumns = 3;
+			layout.numColumns = 2;
 			progressComp.setLayout(layout);
 			
 			Label progLabel = new Label(progressComp,SWT.NULL);
 			progLabel.setText( MessageText.getString("label.checking.comments"));
 			
 			final Composite progBarComp = new Composite( progressComp, SWT.NULL );
-			gridData = new GridData();
-			gridData.widthHint = 400;
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			//gridData.widthHint = 300;
 			progBarComp.setLayoutData(gridData);
 			
-			Label padLabel = new Label(progressComp,SWT.NULL);
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			padLabel.setLayoutData(gridData);
+			//Label padLabel = new Label(progressComp,SWT.NULL);
+			//gridData = new GridData(GridData.FILL_HORIZONTAL);
+			//padLabel.setLayoutData(gridData);
 			
 			final StackLayout	progStackLayout = new StackLayout();
 			
