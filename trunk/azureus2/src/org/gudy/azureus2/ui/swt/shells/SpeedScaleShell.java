@@ -75,6 +75,8 @@ public class SpeedScaleShell
 	private int bigPageIncrement;
 
 	private Shell shell;
+	
+	private Shell parentShell;
 
 	private LinkedHashMap mapOptions = new LinkedHashMap();
 
@@ -119,7 +121,8 @@ public class SpeedScaleShell
 		}
 		cancelled = true;
 
-		shell = new Shell(Utils.findAnyShell(), SWT.DOUBLE_BUFFERED | SWT.ON_TOP);
+		shell = new Shell(parentShell == null ? Utils.findAnyShell() : parentShell,
+				SWT.DOUBLE_BUFFERED | SWT.ON_TOP);
 		shell.setLayout(new FillLayout());
 		final Display display = shell.getDisplay();
 
@@ -623,5 +626,9 @@ public class SpeedScaleShell
 
 	public void setMenuChosen(boolean menuChosen) {
 		this.menuChosen = menuChosen;
+	}
+
+	public void setParentShell(Shell parentShell) {
+		this.parentShell = parentShell;
 	}
 }
