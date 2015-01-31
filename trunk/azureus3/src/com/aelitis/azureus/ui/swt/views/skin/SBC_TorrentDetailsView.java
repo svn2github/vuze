@@ -23,8 +23,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Composite;
@@ -33,6 +32,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Listener;
+
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
@@ -48,8 +48,8 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.*;
@@ -84,7 +84,6 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.DataSourceUtils;
 
 /**
@@ -334,8 +333,12 @@ public class SBC_TorrentDetailsView
 			manager
 		});
 		menu.setData("is_detailed_view", true);
-
-		MenuFactory.buildTorrentMenu(menu);
+		
+		MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuilder() {
+			public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
+				MenuFactory.buildTorrentMenu(root_menu);
+			}
+		});
 
 		folder.setMenu(menu);
 		
