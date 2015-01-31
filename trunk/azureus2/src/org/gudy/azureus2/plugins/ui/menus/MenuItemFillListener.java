@@ -19,17 +19,17 @@
 
 package org.gudy.azureus2.plugins.ui.menus;
 
-public interface 
-MenuItemFillListener 
+import org.gudy.azureus2.plugins.download.Download;
+
+public interface MenuItemFillListener
 {
-		/**
-		 * This is fired before a menu is shown  
-		 * @param data For table context menu items this will be TableRow[]
-		 * of selected rows
-		 */
-	
-	public void
-	menuWillBeShown(
-		MenuItem	menu,
-		Object		data );
+	/**
+	 * This is fired before a menu is shown  
+	 * 
+	 * @param data 
+	 * For table context menu items this will be TableRow[] of selected rows <BR>
+	 * For {@link MenuManager#MENU_DOWNLOAD_CONTEXT} this will be an array of {@link Download} <BR>
+	 */
+
+	public void menuWillBeShown(MenuItem menu, Object data);
 }
