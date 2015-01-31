@@ -35,6 +35,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+
 /** Display Category torrent belongs to.
  *
  * @author TuxPaper
@@ -69,6 +71,9 @@ public class MinSRItem
 					int existing = -1;
 					
 					for (Object object : o) {
+						if (object instanceof TableRowCore) {
+							object = ((TableRowCore) object).getDataSource(true);
+						}
 						if (object instanceof DownloadManager) {
 							int x = ((DownloadManager)object).getDownloadState().getIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO );
 							

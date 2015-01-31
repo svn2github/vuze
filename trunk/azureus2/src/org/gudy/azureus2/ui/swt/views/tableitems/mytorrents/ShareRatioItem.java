@@ -23,6 +23,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.Color;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -38,6 +39,8 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 /**
  *
@@ -94,9 +97,12 @@ public class ShareRatioItem
 					
 					int share_ratio = (int)( Float.parseFloat( str ) * 1000 );
 					
-					for ( Object o: dms ){
+					for ( Object object: dms ){
+						if (object instanceof TableRowCore) {
+							object = ((TableRowCore) object).getDataSource(true);
+						}
 						
-					    DownloadManager dm = (DownloadManager)o;
+					    DownloadManager dm = (DownloadManager)object;
 					    
 					    dm.getStats().setShareRatio( share_ratio );
 					}

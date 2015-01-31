@@ -25,13 +25,14 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
-
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 public class MaxUploadsItem
        extends CoreTableColumnSWT 
@@ -69,6 +70,10 @@ public class MaxUploadsItem
 							if (target instanceof Object[]) {
 								Object[] targets = (Object[]) target;
 								for (Object object : targets) {
+									if (object instanceof TableRowCore) {
+										TableRowCore rowCore = (TableRowCore) object;
+										object = rowCore.getDataSource(true);
+									}
 									DownloadManager dm = (DownloadManager) object;
 									int value = ((Long) item.getData()).intValue();
 									dm.setMaxUploads(value);

@@ -35,6 +35,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+
 /** Display Category torrent belongs to.
  *
  * @author TuxPaper
@@ -69,6 +71,10 @@ public class MaxSRItem
 					int existing = -1;
 					
 					for (Object object : o) {
+						if (object instanceof TableRowCore) {
+							TableRowCore rowCore = (TableRowCore) object;
+							object = rowCore.getDataSource(true);
+						}
 						if (object instanceof DownloadManager) {
 							int x = ((DownloadManager)object).getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO );
 							

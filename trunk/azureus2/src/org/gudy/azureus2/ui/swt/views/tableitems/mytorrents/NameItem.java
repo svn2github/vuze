@@ -41,6 +41,8 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+
 /** Torrent name cell for My Torrents.
  *
  * @author Olivier
@@ -79,6 +81,9 @@ public class NameItem extends CoreTableColumnSWT implements
 				}
 				Object[] o = (Object[]) target;
 				for (Object object : o) {
+					if (object instanceof TableRowCore) {
+						object = ((TableRowCore) object).getDataSource(true);
+					}
 					if (object instanceof DownloadManager) {
 						final DownloadManager dm = (DownloadManager) object;
 						String msg_key_prefix = "MyTorrentsView.menu.rename.displayed.enter.";
