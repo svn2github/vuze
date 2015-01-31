@@ -22,6 +22,7 @@ package org.gudy.azureus2.plugins.ui;
 import java.io.File;
 import java.net.URL;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.model.*;
@@ -30,6 +31,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * Management tools for the user interface.
+ * <P>
+ * To get an UIManager, see {@link PluginInterface#getUIManager()}
  * 
  * @author parg
  */
