@@ -110,6 +110,10 @@ public class ColumnThumbAndName
 				}
 				Object[] o = (Object[]) target;
 				for (Object object : o) {
+					if (object instanceof TableRowCore) {
+						TableRowCore row = (TableRowCore) object;
+						object = row.getDataSource(true);
+					}
 					if (object instanceof DownloadManager) {
 						final DownloadManager dm = (DownloadManager) object;
 						String msg_key_prefix = "MyTorrentsView.menu.rename.displayed.enter.";

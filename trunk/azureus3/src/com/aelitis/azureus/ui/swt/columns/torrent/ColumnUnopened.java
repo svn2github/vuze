@@ -28,6 +28,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -97,7 +98,12 @@ public class ColumnUnopened
 				Object[] dataSources = (Object[])target;
 				
 				for ( Object _ds: dataSources ){
-						
+
+					if (_ds instanceof TableRowCore) {
+						TableRowCore row = (TableRowCore) _ds;
+						_ds = row.getDataSource(true);
+					}
+
 					if ( _ds instanceof DownloadManager ){
 						
 						DownloadManager dm = (DownloadManager)_ds;
