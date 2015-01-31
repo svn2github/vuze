@@ -21,11 +21,13 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.widgets.Event;
@@ -148,7 +150,7 @@ public class DownloadBar extends MiniBar {
 	
 	public String[] getPluginMenuIdentifiers(Object context) {
 		if (context == null) {return null;}
-		return new String[] {"downloadbar", "download_context"};
+		return new String[] {"downloadbar", MenuManager.MENU_DOWNLOAD_CONTEXT};
 	}
 	
 	public Object getPluginMenuContextObject() {
