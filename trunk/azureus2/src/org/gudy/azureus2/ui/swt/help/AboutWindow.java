@@ -119,16 +119,21 @@ public class AboutWindow {
     labelImage.setLayoutData(gridData);
     labelImage.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
-				Rectangle boundsColor = imgSrc.getBounds();
-				int ofs = (labelImage.getSize().x - boundsColor.width) / 2;
-				if (paintColorTo > 0) {
-					e.gc.drawImage(imgSrc, 0, 0, paintColorTo, boundsColor.height, ofs, 10, paintColorTo, boundsColor.height);
-				}
-				Rectangle imgBounds = image.getBounds();
-				if (imgBounds.width - paintColorTo - 1 > 0) {
-					e.gc.drawImage(image, 
-							paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height, 
-							paintColorTo + 1 + ofs, 10, imgBounds.width - paintColorTo - 1, imgBounds.height);
+				try{
+					Rectangle boundsColor = imgSrc.getBounds();
+					int ofs = (labelImage.getSize().x - boundsColor.width) / 2;
+					if (paintColorTo > 0) {
+						e.gc.drawImage(imgSrc, 0, 0, paintColorTo, boundsColor.height, ofs, 10, paintColorTo, boundsColor.height);
+					}
+					Rectangle imgBounds = image.getBounds();
+					if (imgBounds.width - paintColorTo - 1 > 0) {
+						e.gc.drawImage(image, 
+								paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height, 
+								paintColorTo + 1 + ofs, 10, imgBounds.width - paintColorTo - 1, imgBounds.height);
+					}
+				}catch( Throwable f ){
+					// seen some 'argument not valid errors spewed here, couldn't track down
+					// the cause though :( parg.
 				}
 			}
 		});
