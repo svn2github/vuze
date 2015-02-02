@@ -62,11 +62,13 @@ public class UrlFilter
 	}
 
 	public UrlFilter() {
-		listUrlWhitelist.add(DEFAULT_RPC_WHITELIST);
-		listUrlWhitelist.add("https?://[^/]*\\.vuze\\.com:?[0-9]*/.*");
+		addUrlWhitelist(DEFAULT_RPC_WHITELIST);
+		addUrlWhitelist("https?://([^.]+.?)?vuze.com:?[0-9]*/.*");
+		addUrlWhitelist("https?://192\\.168\\.0\\.*:?[0-9]*/.*");
+		addUrlWhitelist("https?://localhost:?[0-9]*/.*");
 		// for +1 button
-		listUrlWhitelist.add("https?://plusone\\.google\\.com/.*");
-		listUrlWhitelist.add("https?://clients[0-9]\\.google\\.com/.*");
+		addUrlWhitelist("https?://plusone\\.google\\.com/.*");
+		addUrlWhitelist("https?://clients[0-9]\\.google\\.com/.*");
 
 		ContentNetworkManager cmn = ContentNetworkManagerFactory.getSingleton();
 		ContentNetwork[] contentNetworks = cmn.getContentNetworks();
@@ -113,7 +115,12 @@ public class UrlFilter
 
 			if ( network.isServiceSupported( service )){
 	
-				addUrlWhitelist( network.getServiceURL( service ) + ".*" );
+				String serviceUrl = network.getServiceURL( service );
+				
+				if (!isWhitelisted(serviceUrl)) {
+				
+					addUrlWhitelist( serviceUrl + ".*" );
+				}
 			}
 		}
 	}

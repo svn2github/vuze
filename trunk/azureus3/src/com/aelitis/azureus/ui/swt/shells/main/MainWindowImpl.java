@@ -584,12 +584,6 @@ public class MainWindowImpl
 				}
 			});
 			
-			try {
-				PlatformDevicesMessenger.setupDeviceSender();
-			} catch (Exception e) {
-				Debug.out("failed to setup device sender ", e);
-			}
-
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
 			skin = SWTSkinFactory.getInstance();

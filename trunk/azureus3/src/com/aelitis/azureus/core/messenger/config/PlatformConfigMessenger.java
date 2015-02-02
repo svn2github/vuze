@@ -45,16 +45,8 @@ public class PlatformConfigMessenger
 	
 	private static final String OP_LOG_PLUGIN = "log-plugin";
 
-	private static boolean allowSendDeviceList = false;
-
-	private static int iRPCVersion = 0;
-
-	private static String playAfterURL = null;
-
 	private static boolean sendStats = true;
 
-	private static boolean doUrlQOS = false;
-	
 	private static boolean platformLoginComplete = false;
 
 	protected static List platformLoginCompleteListeners = Collections.EMPTY_LIST;
@@ -115,20 +107,6 @@ public class PlatformConfigMessenger
 				
 
 				try {
-					List listDomains = (List) MapUtils.getMapObject(reply, "tracker-domains",
-							null, List.class);
-					if (listDomains != null) {
-						for (int i = 0; i < listDomains.size(); i++) {
-							String s = (String) listDomains.get(i);
-							PlatformTorrentUtils.addPlatformHost(s);
-							PlatformMessenger.debug("v3.login: got tracker domain of " + s);
-						}
-					}
-				} catch (Exception e) {
-					Debug.out(e);
-				}
-				
-				try {
 					List list = MapUtils.getMapList(reply, "external-links", Collections.EMPTY_LIST);
 					externalLinks.addAll(list);
 				} catch (Exception e) {
@@ -137,19 +115,9 @@ public class PlatformConfigMessenger
 				
 				try {
 					sendStats = MapUtils.getMapBoolean(reply, "send-stats", false);
-					doUrlQOS = MapUtils.getMapBoolean(reply, "do-url-qos", false);
-					allowSendDeviceList = MapUtils.getMapBoolean(reply, "send-device-list", false);
 				} catch (Exception e) {
 				}
 				
-				
-				try {
-  				iRPCVersion = MapUtils.getMapInt(reply, "rpc-version", 0);
-  				playAfterURL = (String) MapUtils.getMapString(reply,
-  						"play-after-url", null);
-				} catch (Exception e) {
-					Debug.out(e);
-				}
 				
 				platformLoginComplete = true;
 				Object[] listeners = platformLoginCompleteListeners.toArray();
@@ -240,29 +208,10 @@ public class PlatformConfigMessenger
 	}
 
 	
-	/**
-	 * @return the iRPCVersion
-	 */
-	public static int getRPCVersion() {
-		return iRPCVersion;
-	}
-
-	public static String getPlayAfterURL() {
-		return playAfterURL;
-	}
-
 	public static boolean allowSendStats() {
 		return sendStats;
 	}
 
-	/**
-	 * @return
-	 *
-	 * @since 4.0.0.1
-	 */
-	public static boolean doUrlQOS() {
-		return doUrlQOS;
-	}
 	
 	public static void addPlatformLoginCompleteListener(
 			PlatformLoginCompleteListener l) {
@@ -287,11 +236,6 @@ public class PlatformConfigMessenger
 		public void platformLoginComplete();
 	}
 
-
-	public static boolean allowSendDeviceList() {
-		return allowSendDeviceList;
-	}
-	
 	public static boolean areLinksExternal(String url) {
 		for (String regex : externalLinks) {
 			try {
