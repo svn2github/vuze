@@ -236,10 +236,14 @@ public class Debug {
 					break;
 				}
 				// Formatted so it's clickable in eclipse
+				// sbStackTrace.append(st[i].toString());
+				
+				// Shorter version  method(filename.java:1234)
 				sbStackTrace.append(st[i].getMethodName());
+				// the space is needed otherwise Eclipse tries to look up method name
 				sbStackTrace.append(" (");
-				sbStackTrace.append(classname);
-				sbStackTrace.append(".java:");
+				sbStackTrace.append(st[i].getFileName());
+				sbStackTrace.append(':');
 				sbStackTrace.append(st[i].getLineNumber());
 				sbStackTrace.append(')');
 			} else {
