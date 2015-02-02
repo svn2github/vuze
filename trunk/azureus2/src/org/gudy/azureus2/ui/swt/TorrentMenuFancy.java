@@ -224,6 +224,8 @@ public class TorrentMenuFancy
 
 	private Point originalShellLocation;
 
+	private boolean subMenuVisible;
+
 	public TorrentMenuFancy(final TableViewSWT<?> tv,
 			final boolean isSeedingView, Shell parentShell,
 			final DownloadManager[] dms, final String tableID) {
@@ -492,6 +494,9 @@ public class TorrentMenuFancy
 				// Must do later, so clicks go to wherever
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
+						if (subMenuVisible) {
+							return;
+						}
 						if (shell.isDisposed()) {
 							return;
 						}
@@ -1117,6 +1122,16 @@ public class TorrentMenuFancy
 				menu = new Menu(parentShell, SWT.POP_UP);
 				rowInfo.setMenu(menu);
 
+				menu.addMenuListener(new MenuListener() {
+					
+					public void menuShown(MenuEvent arg0) {
+						subMenuVisible = true;
+					}
+					
+					public void menuHidden(MenuEvent arg0) {
+						subMenuVisible = false;
+					}
+				});
 				listener.buildMenu(menu);
 
 				Control cursorControl = event.display.getCursorControl();
