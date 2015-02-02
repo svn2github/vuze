@@ -28,10 +28,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-
+import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 
@@ -68,6 +65,8 @@ public class MenuItemImpl implements MenuItem {
 	private boolean visible = true;
 	
 	private MenuContextImpl menu_context = null;
+
+	private MenuBuilder builder;
 
 	public MenuItemImpl(PluginInterface _pi, String menuID, String key) {
 		pi = _pi;
@@ -130,11 +129,11 @@ public class MenuItemImpl implements MenuItem {
 		return (graphic);
 	}
 
-	public void invokeMenuWillBeShownListeners(Object o) {
+	public void invokeMenuWillBeShownListeners(Object target) {
 		for (Iterator iter = fill_listeners.iterator(); iter.hasNext();) {
 			try {
 				MenuItemFillListener l = (MenuItemFillListener) iter.next();
-				l.menuWillBeShown(this, o);
+				l.menuWillBeShown(this, target);
 			} catch (Throwable e) {
 				Debug.printStackTrace(e);
 			}
@@ -227,11 +226,12 @@ public class MenuItemImpl implements MenuItem {
 		this.display_text = text;
 	}
 
-	protected void invokeListenersOnList(CopyOnWriteList listeners_to_notify, Object o) {
+	protected void invokeListenersOnList(CopyOnWriteList listeners_to_notify,
+			Object target) {
 		for (Iterator iter = listeners_to_notify.iterator(); iter.hasNext();) {
 			try {
 				MenuItemListener l = (MenuItemListener) iter.next();
-				l.selected(this, o);
+				l.selected(this, target);
 			} catch (Throwable e) {
 				Debug.printStackTrace(e);
 			}
@@ -289,4 +289,12 @@ public class MenuItemImpl implements MenuItem {
 		this.menu_context = context;
 	}
 
+	// @see org.gudy.azureus2.plugins.ui.menus.MenuItem#setSubmenuBuilder(org.gudy.azureus2.plugins.ui.menus.MenuBuilder)
+	public void setSubmenuBuilder(MenuBuilder builder) {
+		this.builder = builder;
+	}
+
+	public MenuBuilder getSubmenuBuilder() {
+		return builder;
+	}
 }

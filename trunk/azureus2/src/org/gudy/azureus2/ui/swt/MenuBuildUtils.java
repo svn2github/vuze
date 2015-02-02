@@ -308,6 +308,18 @@ public class MenuBuildUtils {
 			}
 
 			menuItem.setEnabled(enable_items && az_menuitem.isEnabled());
+			
+			org.gudy.azureus2.plugins.ui.menus.MenuBuilder submenuBuilder = az_menuitem.getSubmenuBuilder();
+			if (submenuBuilder != null) {
+				addMaintenanceListenerForMenu(parent, new MenuBuilder() {
+					public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
+						org.gudy.azureus2.plugins.ui.menus.MenuBuilder submenuBuilder = az_menuitem.getSubmenuBuilder();
+						if (submenuBuilder != null) {
+							submenuBuilder.buildSubmenu(az_menuitem);
+						}
+					}
+				});
+			}
 
 		}
 	}

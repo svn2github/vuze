@@ -195,7 +195,27 @@ SpeedLimitHandler
 		
 		loadSchedule();
 	}
+
 	
+	public boolean 
+	hasAnyProfiles() {
+		if (!COConfigurationManager.hasParameter("speed.limit.handler.state",
+				true)) {
+			return false;
+		}
+		
+		Map map = loadConfig();
+		if (map.size() == 0) {
+			return false;
+		}
+		
+		List<Map> list = (List<Map>)map.get( "profiles" );
+		if (list == null || list.size() == 0) {
+			return false;
+		}
+		return true;
+	}
+
 	private synchronized Map
 	loadConfig()
 	{
@@ -206,7 +226,11 @@ SpeedLimitHandler
 	saveConfig(
 		Map		map )
 	{
-		COConfigurationManager.setParameter( "speed.limit.handler.state", map );
+		if (map.isEmpty()) {
+			COConfigurationManager.removeParameter( "speed.limit.handler.state"); 
+		} else {
+			COConfigurationManager.setParameter( "speed.limit.handler.state", map );
+		}
 		
 		COConfigurationManager.save();
 	}

@@ -74,7 +74,7 @@ public class NameItem extends CoreTableColumnSWT implements
 				TableManager.TABLE_TORRENT_FILES);
 		setInplaceEditorListener(this);
 		setType(TableColumn.TYPE_TEXT);
-		menuItem = addContextMenuItem("FilesView.name.fastRename");
+		menuItem = addContextMenuItem("FilesView.name.fastRename", MENU_STYLE_HEADER);
 		
 		menuItem.setStyle(MenuItem.STYLE_CHECK);
 		//menuItem.setText(MessageText.getString("FilesView.name.fastRename")); TODO make this work

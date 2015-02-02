@@ -32,6 +32,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -81,12 +82,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.tag.TagListener;
-import com.aelitis.azureus.core.tag.TagManagerFactory;
-import com.aelitis.azureus.core.tag.TagType;
-import com.aelitis.azureus.core.tag.TagTypeListener;
-import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -254,6 +250,8 @@ public class MyTorrentsView
 	
 	private boolean rebuildListOnFocusGain = false;
 
+	private Menu oldMenu;
+
 	public MyTorrentsView( boolean supportsTabs ) {
 		super("MyTorrentsView");
 		this.supportsTabs = supportsTabs;
@@ -290,7 +288,51 @@ public class MyTorrentsView
   	return tv;
   }
   
-  public void init(AzureusCore _azureus_core, String tableID,
+  // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#tableViewTabInitComplete()
+  public void tableViewTabInitComplete() {
+  	if (COConfigurationManager.getBooleanParameter("Library.showFancyMenu", true)) {
+    	Composite tableComposite = tv.getComposite();
+    	oldMenu = tableComposite.getMenu();
+    	Menu menu = new Menu(tableComposite);
+    	tableComposite.setMenu(menu);
+    	menu.addMenuListener(new MenuListener() {
+  			
+  			public void menuShown(MenuEvent e) {
+  				if (!showMyOwnMenu(e)) {
+  					oldMenu.setVisible(true);
+  				}
+  			}
+  			
+  			public void menuHidden(MenuEvent e) {
+  			}
+  		});
+  	}
+  	super.tableViewTabInitComplete();
+  }
+  
+	protected boolean showMyOwnMenu(MenuEvent e) {
+		Display d = e.widget.getDisplay();
+		if (d == null)
+			return false;
+		
+		Object[] dataSources = tv.getSelectedDataSources(true);
+		final DownloadManager[] dms = getSelectedDownloads();
+
+		boolean hasSelection = (dms.length > 0);
+
+		if (!hasSelection) {
+			return false;
+		}
+		Point pt = e.display.getCursorLocation();
+		pt = tv.getTableComposite().toControl(pt.x, pt.y);
+		TableColumnCore column = tv.getTableColumnByOffset(pt.x);
+
+		new TorrentMenuFancy(tv, isSeedingView, getComposite().getShell(), dms,
+				tv.getTableID()).showMenu(column);
+		return true;
+	}
+
+	public void init(AzureusCore _azureus_core, String tableID,
 			boolean isSeedingView, Class<?> forDataSourceType, TableColumnCore[] basicItems) {
 
   	this.isSeedingView 	= isSeedingView;

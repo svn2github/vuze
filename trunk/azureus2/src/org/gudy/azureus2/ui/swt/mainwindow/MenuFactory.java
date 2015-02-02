@@ -2089,11 +2089,26 @@ public class MenuFactory
 	public static void
 	addAlertsMenu(
 		Menu					menu,
+		boolean	createSubmenu,
 		final DownloadManager[]	dms )
 	{
 		if ( dms.length == 0 ){
 			
 			return;
+		}
+
+		Menu alert_menu;
+
+		if (createSubmenu) {
+  		alert_menu = new Menu( menu.getShell(), SWT.DROP_DOWN );
+  		
+  		MenuItem alerts_item = new MenuItem( menu, SWT.CASCADE);
+  		
+  		Messages.setLanguageText( alerts_item, "ConfigView.section.interface.alerts" );
+  		
+  		alerts_item.setMenu(alert_menu);
+		} else {
+			alert_menu = menu;
 		}
 		
 		String[][] alert_keys =
@@ -2101,14 +2116,6 @@ public class MenuFactory
 				{ "Play Download Finished Announcement", "playdownloadspeech" },
 				{ "Popup Download Finished", "popupdownloadfinished" },
 			};
-				
-		Menu alert_menu = new Menu( menu.getShell(), SWT.DROP_DOWN );
-		
-		MenuItem alerts_item = new MenuItem( menu, SWT.CASCADE);
-		
-		Messages.setLanguageText( alerts_item, "ConfigView.section.interface.alerts" );
-		
-		alerts_item.setMenu(alert_menu);
 		
 		boolean[]	all_enabled = new boolean[ alert_keys.length ];
 		

@@ -90,7 +90,10 @@ FileHashItemBase
 					Object[]	files = (Object[])target;
 					
 					for ( Object _file: files ){
-						
+
+						if (_file instanceof TableRow) {
+							_file = ((TableRow)_file).getDataSource();
+						}
 						DiskManagerFileInfo file = (DiskManagerFileInfo)_file;
 						
 						updateHash( hash_type, file );

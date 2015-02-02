@@ -140,6 +140,14 @@ public interface MenuItem
 	public void	addFillListener(MenuItemFillListener listener);
 	
 	public void	removeFillListener(MenuItemFillListener	listener);
+
+	/**
+	 * For {@link #STYLE_MENU}, builder is called when user wants to see the
+	 * submenu items.  Setting a builder will force clear all submenu items.
+	 * 
+	 * @since 5.5.0.1
+	 */
+	public void setSubmenuBuilder(MenuBuilder builder);
 	
    	/**
    	 * Adds a selection listener for this menu item.
