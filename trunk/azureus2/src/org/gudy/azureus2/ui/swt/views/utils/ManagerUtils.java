@@ -30,46 +30,32 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AERunnableBoolean;
-import org.gudy.azureus2.core3.util.AsyncDispatcher;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
-import org.gudy.azureus2.plugins.sharing.ShareManager;
-import org.gudy.azureus2.plugins.sharing.ShareResource;
-import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
-import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
+import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -323,47 +309,67 @@ public class ManagerUtils {
     return( true );
   }
   
+  /**
+   * Host a DownloadManager on our Tracker.
+   * <P>
+   * Doesn't require SWT Thread
+   */
   public static void 
   host(
   	AzureusCore		azureus_core,
-	DownloadManager dm,
-	Composite 		panel) 
-  {
-    if(dm == null)
-      return;
-    TOTorrent torrent = dm.getTorrent();
-    if (torrent != null) {
-      try {
-      	azureus_core.getTrackerHost().hostTorrent(torrent, true, false );
-      } catch (TRHostException e) {
-        MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
-        mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
-        mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message").concat("\n").concat(e.toString()));
-        mb.open();
-      }
-    }
-  }
+	DownloadManager dm)
+ {
+		if (dm == null) {
+			return;
+		}
+
+		TOTorrent torrent = dm.getTorrent();
+		if (torrent == null) {
+			return;
+		}
+
+		try {
+			azureus_core.getTrackerHost().hostTorrent(torrent, true, false);
+		} catch (TRHostException e) {
+			MessageBoxShell mb = new MessageBoxShell(
+					SWT.ICON_ERROR | SWT.OK,
+					MessageText.getString("MyTorrentsView.menu.host.error.title"),
+					MessageText.getString("MyTorrentsView.menu.host.error.message").concat(
+							"\n").concat(e.toString()));
+			mb.open(null);
+		}
+	}
   
+  /**
+   * Publish a DownloadManager on our Tracker.
+   * <P>
+   * Doesn't require SWT Thread
+   */
   public static void 
   publish(
   		AzureusCore		azureus_core,
-		DownloadManager dm,
-		Composite		 panel) 
-  {
-    if(dm == null)
-     return;
-    TOTorrent torrent = dm.getTorrent();
-    if (torrent != null) {
-      try {
-      	azureus_core.getTrackerHost().publishTorrent(torrent);
-      } catch (TRHostException e) {
-        MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
-        mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
-        mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message").concat("\n").concat(e.toString()));
-        mb.open();
-      }
-    }
-  }
+		DownloadManager dm)
+ {
+		if (dm == null) {
+			return;
+		}
+
+		TOTorrent torrent = dm.getTorrent();
+		if (torrent == null) {
+			return;
+		}
+
+		try {
+			azureus_core.getTrackerHost().publishTorrent(torrent);
+		} catch (TRHostException e) {
+			MessageBoxShell mb = new MessageBoxShell(
+					SWT.ICON_ERROR | SWT.OK,
+					MessageText.getString("MyTorrentsView.menu.host.error.title"),
+					MessageText.getString("MyTorrentsView.menu.host.error.message").concat(
+							"\n").concat(e.toString()));
+			mb.open(null);
+		}
+	}
   
   
   public static void 
