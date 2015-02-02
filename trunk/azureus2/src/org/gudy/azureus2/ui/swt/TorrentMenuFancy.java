@@ -1194,7 +1194,8 @@ public class TorrentMenuFancy
 			String keyImage, boolean triggerOnUp, Listener triggerListener,
 			FancyRowInfo rowInfo) {
 
-		final int id = (int) (keyTitle.hashCode() * Math.random());
+		final int id = keyTitle == null ? (int) (Integer.MAX_VALUE * Math.random())
+				: (int) (keyTitle.hashCode() * Math.random());
 
 		Composite cRow = new Composite(cParent, SWT.NONE);
 		//cRow.setBackground(ColorCache.getRandomColor());
@@ -1277,7 +1278,8 @@ public class TorrentMenuFancy
 	private Control createActionButton(final DownloadManager[] dms,
 			Composite cParent, String keyToolTip, final String keyImage,
 			boolean enable, int style, final Listener listener) {
-		final Canvas item = new Canvas(cParent, SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED);
+		final Canvas item = new Canvas(cParent, SWT.NO_BACKGROUND
+				| SWT.DOUBLE_BUFFERED);
 
 		Listener l = new Listener() {
 			private boolean inWidget;
@@ -1419,8 +1421,9 @@ public class TorrentMenuFancy
 		if (userMode > 0) {
 			// Advanced > Export > Export XML
 			if (dms.length == 1) {
-				// XXX Need better title
-				createRow(detailArea, "MyTorrentsView.menu.export", null,
+				String title = MessageText.getString("MyTorrentsView.menu.exportmenu")
+						+ ": " + MessageText.getString("MyTorrentsView.menu.export");
+				FancyRowInfo row = createRow(detailArea, null, null,
 						new ListenerDMTask(dms) {
 							public void run(DownloadManager dm) {
 								if (dm != null) {
@@ -1428,16 +1431,19 @@ public class TorrentMenuFancy
 								}
 							}
 						});
+				row.getText().setText(title);
 			}
 
 			// Advanced > Export > Export Torrent
-			// XXX Need better title
-			createRow(detailArea, "MyTorrentsView.menu.exporttorrent", null,
+			String title = MessageText.getString("MyTorrentsView.menu.exportmenu")
+					+ ": " + MessageText.getString("MyTorrentsView.menu.exporttorrent");
+			FancyRowInfo row = createRow(detailArea, null, null,
 					new ListenerDMTask(dms) {
 						public void run(DownloadManager[] dms) {
 							TorrentUtil.exportTorrent(dms, parentShell);
 						}
 					});
+			row.getText().setText(title);
 
 			// Advanced > Export > WebSeed URL
 			createRow(detailArea, "MyTorrentsView.menu.exporthttpseeds", null,
