@@ -19,6 +19,8 @@
 
 package org.gudy.azureus2.plugins.ui.menus;
 
+import org.gudy.azureus2.plugins.download.Download;
+
 /** A listener that is triggered when the user selects a menu item
  *
  * @author parg (Original ContextMenuItemListener)
@@ -41,6 +43,9 @@ MenuItemListener
    * @param target What this menu item applies to.  For the default
    *               implementation, target is null.  Implementing classes
    *               may provide an object related to the menu selection.
+   *               <P>
+	 * For table context menu items this will be TableRow[] of selected rows <BR>
+	 * For {@link MenuManager#MENU_DOWNLOAD_CONTEXT} this will be an array of {@link Download} <BR>
    */
 	public void
 	selected(
