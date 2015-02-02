@@ -27,6 +27,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
@@ -2783,7 +2784,14 @@ public class TableViewPainted
 					menu.setData("isHeader", true);
 
 				} else {
-					boolean noRow = getTableRowWithCursor() == null;
+					TableRowCore row = getTableRowWithCursor();
+					boolean noRow = row == null;
+
+					// If shell is not active, right clicking on a row will
+					// result in a MenuDetect, but not a MouseDown or MouseUp
+					if (!isSelected(row)) {
+						setSelectedRows(new TableRowCore[] { row });
+					}
 
 					menu.setData("inBlankArea", noRow);
 					menu.setData("isHeader", false);
