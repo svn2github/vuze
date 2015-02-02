@@ -31,6 +31,8 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
@@ -823,21 +825,18 @@ public class TableViewSWT_Common
 		
 		String tableID = tv.getTableID();
 		String sMenuID = hasLevel1 ? tableID : TableManager.TABLE_TORRENT_FILES;
-		
-		// Add Plugin Context menus..
-		boolean enable_items = selectedRows.length > 0;
-
-		TableContextMenuItem[] items = TableContextMenuManager.getInstance().getAllAsArray(
-				sMenuID);
 
 		// We'll add download-context specific menu items - if the table is download specific.
 		// We need a better way to determine this...
+		boolean isDownloadContext;
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items = null;
-		if ("MySeeders".equals(tableID) || "MyTorrents".equals(tableID)) {
+		if (tv.getDataSourceType().isAssignableFrom(Download.class) && !hasLevel2) {
 			menu_items = MenuItemManager.getInstance().getAllAsArray(
-					"download_context");
+					MenuManager.MENU_DOWNLOAD_CONTEXT);
+			isDownloadContext = true;
 		} else {
 			menu_items = MenuItemManager.getInstance().getAllAsArray((String) null);
+			isDownloadContext = false;
 		}
 		
 		if (columnName == null) {
@@ -888,15 +887,23 @@ public class TableViewSWT_Common
  		});
 		}
 		
+		
+		// Add Plugin Context menus..
+		boolean enable_items = selectedRows.length > 0;
+
+		TableContextMenuItem[] items = TableContextMenuManager.getInstance().getAllAsArray(
+				sMenuID);
+
 		if (items.length > 0 || menu_items.length > 0) {
 			new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
 
 			// Add download context menu items.
 			if (menu_items != null) {
 				// getSelectedDataSources(false) returns us plugin items.
+				Object[] target = isDownloadContext ? tv.getSelectedDataSources(false) : selectedRows;
 				MenuBuildUtils.addPluginMenuItems(tv.getComposite(), menu_items, menu,
 						true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
-								tv.getSelectedDataSources(false)));
+								target));
 			}
 
 			if (items.length > 0) {
@@ -923,28 +930,33 @@ public class TableViewSWT_Common
 		}
 		
 		if (hasLevel1) {
-		// Add Plugin Context menus..
-		if (column != null) {
- 		TableContextMenuItem[] columnItems = column.getContextMenuItems(TableColumnCore.MENU_STYLE_COLUMN_DATA);
- 		if (columnItems.length > 0) {
- 			new MenuItem(menu, SWT.SEPARATOR);
- 
- 			MenuBuildUtils.addPluginMenuItems(tv.getComposite(), columnItems, menu,
- 					true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
- 							tv.getSelectedDataSources(true)));
- 
- 		}
-		}
+			// Add Plugin Context menus..
+			if (column != null) {
+				TableContextMenuItem[] columnItems = column.getContextMenuItems(TableColumnCore.MENU_STYLE_COLUMN_DATA);
+				if (columnItems.length > 0) {
+					new MenuItem(menu, SWT.SEPARATOR);
 
-		if (tv.getSWTFilter() != null) {
- 		final MenuItem itemFilter = new MenuItem(menu, SWT.PUSH);
- 		Messages.setLanguageText(itemFilter, "MyTorrentsView.menu.filter");
- 		itemFilter.addListener(SWT.Selection, new Listener() {
- 			public void handleEvent(Event event) {
- 				tv.openFilterDialog();
- 			}
- 		});
-		}
+					MenuBuildUtils.addPluginMenuItems(
+							tv.getComposite(),
+							columnItems,
+							menu,
+							true,
+							true,
+							new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
+									tv.getSelectedDataSources(true)));
+
+				}
+			}
+
+			if (tv.getSWTFilter() != null) {
+				final MenuItem itemFilter = new MenuItem(menu, SWT.PUSH);
+				Messages.setLanguageText(itemFilter, "MyTorrentsView.menu.filter");
+				itemFilter.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						tv.openFilterDialog();
+					}
+				});
+			}
 		}
 	}
 
