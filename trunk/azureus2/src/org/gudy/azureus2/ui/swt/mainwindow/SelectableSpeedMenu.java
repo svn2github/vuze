@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -417,6 +418,104 @@ public class SelectableSpeedMenu {
 			}
 		}
 	}
-	
+
+	public static void invokeSlider(AzureusCore core, DownloadManager[] dms,
+			boolean isUpSpeed, Shell parentShell) {
+		final String prefix = MessageText.getString(isUpSpeed
+				? "GeneralView.label.maxuploadspeed"
+				: "GeneralView.label.maxdownloadspeed");
+
+		GlobalManager gm = core.getGlobalManager();
+
+		int maxBandwidth = 0;
+		for (DownloadManager dm : dms) {
+			int bandwidth = (isUpSpeed
+					? dm.getStats().getUploadRateLimitBytesPerSecond()
+					: dm.getStats().getDownloadRateLimitBytesPerSecond()) / 1024;
+			if (bandwidth > maxBandwidth || bandwidth == 0) {
+				maxBandwidth = bandwidth;
+			}
+		}
+		boolean unlim = maxBandwidth == 0;
+
+		SpeedScaleShell speedScale = new SpeedScaleShell() {
+			public String getStringValue(int value, String sValue) {
+				if (sValue != null) {
+					return prefix + ": " + sValue;
+				}
+				if (value == 0) {
+					return MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited");
+				}
+				if (value == -1) {
+					return MessageText.getString("ConfigView.auto");
+				}
+				return prefix
+						+ ": "
+						+ DisplayFormatters.formatByteCountToKiBEtcPerSec( getValue() * 1024, true);
+			}
+		};
+		int max = unlim ? (isUpSpeed ? 100 : 800) : maxBandwidth * 5;
+		if (max < 50) {
+			max = 50;
+		}
+		speedScale.setMaxValue(max);
+		speedScale.setMaxTextValue(9999999);
+		speedScale.setParentShell(parentShell);
+
+		final String config_prefix = "config.ui.speed.partitions.manual."
+				+ (isUpSpeed ? "upload" : "download") + ".";
+		int lastValue = COConfigurationManager.getIntParameter(config_prefix
+				+ "last", -10);
+
+		Integer[] speed_limits;
+		if (COConfigurationManager.getBooleanParameter(config_prefix + "enabled",
+				false)) {
+			speed_limits = parseSpeedPartitionString(COConfigurationManager.getStringParameter(
+					config_prefix + "values", ""));
+		} else {
+			speed_limits = getGenericSpeedList(6, maxBandwidth);
+		}
+		if (speed_limits != null) {
+			for (int i = 0; i < speed_limits.length; i++) {
+				int value = speed_limits[i].intValue();
+				if (value > 0) {
+					speedScale.addOption(DisplayFormatters.formatByteCountToKiBEtcPerSec(
+							value * 1024, true), value);
+					if (value == lastValue) {
+						lastValue = -10;
+					}
+				}
+			}
+		}
+		speedScale.addOption(
+				MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"), 0);
+
+		if (lastValue > 0) {
+			speedScale.addOption(DisplayFormatters.formatByteCountToKiBEtcPerSec(
+					lastValue * 1024, true), lastValue);
+		}
+
+		// SWT BUG: on windows/linux, if mouse is down on shell open, all mouse events
+		// will not reflect this
+		if (speedScale.open(maxBandwidth, Constants.isWindows || Constants.isLinux)) {
+			int value = speedScale.getValue();
+
+			if (!speedScale.wasMenuChosen() || lastValue == value) {
+				COConfigurationManager.setParameter(config_prefix + "last",
+						maxBandwidth);
+			}
+
+			if (value >= 0) {
+				for (DownloadManager dm : dms) {
+  				if (isUpSpeed) {
+  					dm.getStats().setUploadRateLimitBytesPerSecond(value * 1024);
+  				} else {
+  					dm.getStats().setDownloadRateLimitBytesPerSecond(value * 1024);
+  				}
+				}
+			}
+		}
+	}
+
 }
  
