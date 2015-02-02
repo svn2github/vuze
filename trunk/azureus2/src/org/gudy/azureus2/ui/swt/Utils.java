@@ -26,11 +26,11 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -563,7 +563,21 @@ public class Utils
 	 * @param repoKey ImageRepository image key
 	 * @see <a href="http://developer.apple.com/documentation/UserExperience/Conceptual/OSXHIGuidelines/XHIGMenus/chapter_7_section_3.html#//apple_ref/doc/uid/TP30000356/TPXREF116">Apple HIG</a>
 	 */
-	public static void setMenuItemImage(final MenuItem item, final String repoKey) {
+  	public static void setMenuItemImage(final MenuItem item, final String repoKey) {
+  		if (Constants.isOSX || repoKey == null) {
+  			return;
+  		}
+  		ImageLoader imageLoader = ImageLoader.getInstance();
+  		item.setImage(imageLoader.getImage(repoKey));
+  		item.addDisposeListener(new DisposeListener() {
+  			public void widgetDisposed(DisposeEvent e) {
+  				ImageLoader imageLoader = ImageLoader.getInstance();
+  				imageLoader.releaseImage(repoKey);
+  			}
+  		});
+  	}
+
+	public static void setMenuItemImage(CLabel item, final String repoKey) {
 		if (Constants.isOSX || repoKey == null) {
 			return;
 		}
@@ -3367,5 +3381,37 @@ public class Utils
 			});
 	    
 	    return( sash );
+	}
+	
+	/**
+	 * Sometimes, Display.getCursorControl doesn't go deep enough..
+	 */
+	public static Control getCursorControl() {
+		Display d = Utils.getDisplay();
+		Point cursorLocation = d.getCursorLocation();
+		Control cursorControl = d.getCursorControl();
+		
+		if (cursorControl instanceof Composite) {
+			return getCursorControl((Composite) cursorControl, cursorLocation);
+		}
+		
+		return cursorControl;
+	}
+
+	public static Control getCursorControl(Composite parent, Point cursorLocation) {
+		for (Control con : parent.getChildren()) {
+			Rectangle bounds = con.getBounds();
+			Point displayLoc = con.toDisplay(0, 0);
+			bounds.x = displayLoc.x;
+			bounds.y = displayLoc.y;
+			boolean found = bounds.contains(cursorLocation);
+			if (found) {
+				if (con instanceof Composite) {
+					return getCursorControl((Composite) con, cursorLocation);
+				}
+				return con;
+			}
+		}
+		return parent;
 	}
 }
