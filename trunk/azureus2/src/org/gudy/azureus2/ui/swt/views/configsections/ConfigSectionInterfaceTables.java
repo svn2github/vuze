@@ -282,6 +282,12 @@ public class ConfigSectionInterfaceTables
 						+ "ShowTabsInTorrentView").setLayoutData(new GridData(SWT.FILL,
 								SWT.LEFT, true, false, 2, 1));
 			}
+			
+			new BooleanParameter(cLibrary, "Library.showFancyMenu", true, MSG_PREFIX
+					+ "ShowFancyMenu").setLayoutData(new GridData(SWT.FILL, SWT.LEFT,
+					true, false, 2, 1));
+
+
 		
 			// double-click
 
@@ -307,7 +313,6 @@ public class ConfigSectionInterfaceTables
 			new StringListParameter(cLibrary, "list.dm.dblclick", dblclickLabels,
 					dblclickValues);
 			
-
 				// Launch helpers
 				
 			Group cLaunch = new Group(cLibrary, SWT.NULL);
