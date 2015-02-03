@@ -39,6 +39,7 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MenuAdapter;
@@ -1476,6 +1477,28 @@ BuddyPluginViewBetaChat
 			});
 
 		
+		log.addKeyListener(
+			new KeyAdapter()
+			{
+				public void 
+				keyPressed(
+					KeyEvent event ) 
+				{
+					int key = event.character;
+					
+					if ( key <= 26 && key > 0 ){
+						
+						key += 'a' - 1;
+					}
+
+					if ( key == 'a' && event.stateMask == SWT.MOD1 ){
+						
+						event.doit = false;
+						
+						log.selectAll();
+					}
+				}
+			});
 		
 		Composite rhs = new Composite(parent, SWT.NONE);
 		layout = new GridLayout();
