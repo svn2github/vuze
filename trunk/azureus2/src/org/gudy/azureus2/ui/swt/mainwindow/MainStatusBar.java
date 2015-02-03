@@ -584,7 +584,7 @@ public class MainStatusBar
 
 					CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 						public void azureusCoreRunning(AzureusCore core) {
-							SelectableSpeedMenu.invokeSlider(core, true);
+							SelectableSpeedMenu.invokeSlider(statusUp, core, true);
 						}
 					});
 				}
@@ -621,7 +621,7 @@ public class MainStatusBar
 
 					CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 						public void azureusCoreRunning(AzureusCore core) {
-							SelectableSpeedMenu.invokeSlider(core, false);
+							SelectableSpeedMenu.invokeSlider(statusDown, core, false);
 						}
 					});
 				}

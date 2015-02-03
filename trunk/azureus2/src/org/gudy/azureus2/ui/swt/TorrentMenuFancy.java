@@ -819,7 +819,8 @@ public class TorrentMenuFancy
 							e.display.post(event);
 
 							AzureusCore core = AzureusCoreFactory.getSingleton();
-							SelectableSpeedMenu.invokeSlider(core, dms, false, shell);
+							SelectableSpeedMenu.invokeSlider((Control) event.widget,
+									core, dms, false, shell);
 							FancyRowInfo rowInfo = findRowInfo(event.widget);
 							if (rowInfo != null) {
 								updateRowSpeed(rowInfo, false);
@@ -844,7 +845,7 @@ public class TorrentMenuFancy
 							e.display.post(event);
 
 							AzureusCore core = AzureusCoreFactory.getSingleton();
-							SelectableSpeedMenu.invokeSlider(core, dms, true, shell);
+							SelectableSpeedMenu.invokeSlider((Control) e.widget, core, dms, true, shell);
 							FancyRowInfo rowInfo = findRowInfo(event.widget);
 							if (rowInfo != null) {
 								updateRowSpeed(rowInfo, true);

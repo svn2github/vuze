@@ -106,6 +106,7 @@ public class SpeedScaleShell
 
 	/**
 	 * Borks with 0 or -1 maxValue
+	 * @param cClickedFrom 
 	 * 
 	 * @param startValue
 	 * @param assumeInitiallyDown 
@@ -113,7 +114,7 @@ public class SpeedScaleShell
 	 *
 	 * @since 3.0.1.7
 	 */
-	public boolean open(final int startValue, boolean _assumeInitiallyDown) {
+	public boolean open(final Control cClickedFrom, final int startValue, boolean _assumeInitiallyDown) {
 		value = startValue;
 		this.assumeInitiallyDown = _assumeInitiallyDown;
 		if (assumeInitiallyDown) {
@@ -169,22 +170,26 @@ public class SpeedScaleShell
 			}
 		});
 
-		composite.addMouseMoveListener(new MouseMoveListener() {
+		final MouseMoveListener mouseMoveListener = new MouseMoveListener() {
 			public void mouseMove(MouseEvent e) {
+				Point ptOnDisplay = ((Control) e.widget).toDisplay(e.x, e.y);
+				Point ptOnComposite = composite.toControl(ptOnDisplay);
 				lastMoveHadMouseDown = false;
 				boolean hasButtonDown = (e.stateMask & SWT.BUTTON_MASK) > 0
 						|| assumeInitiallyDown;
 				if (hasButtonDown) {
-					if (e.y > HEIGHT - SCALER_HEIGHT) {
+					if (ptOnComposite.y > HEIGHT - SCALER_HEIGHT) {
 						lastMoveHadMouseDown = true;
-						setValue(getValueFromMousePos(e.x));
+						setValue(getValueFromMousePos(ptOnComposite.x));
 					}
 					composite.redraw();
 				} else {
 					composite.redraw();
 				}
 			}
-		});
+		};
+		
+		composite.addMouseMoveListener(mouseMoveListener);
 
 		composite.addMouseTrackListener(new MouseTrackListener() {
 			boolean mouseIsOut = false;
@@ -220,10 +225,12 @@ public class SpeedScaleShell
 			}
 		});
 
-		composite.addMouseListener(new MouseListener() {
+		final MouseListener mouseListener = new MouseListener() {
 			boolean bMouseDown = false;
 
 			public void mouseUp(MouseEvent e) {
+				Point ptOnDisplay = ((Control) e.widget).toDisplay(e.x, e.y);
+				Point ptOnComposite = composite.toControl(ptOnDisplay);
 				if (assumeInitiallyDown) {
 					//System.out.println("assumed down");
 					assumeInitiallyDown = false;
@@ -241,14 +248,14 @@ public class SpeedScaleShell
 					bMouseDown = true;
 				}
 				if (bMouseDown) {
-					if (e.y > HEIGHT - SCALER_HEIGHT) {
-						setValue(getValueFromMousePos(e.x));
+					if (ptOnComposite.y > HEIGHT - SCALER_HEIGHT) {
+						setValue(getValueFromMousePos(ptOnComposite.x));
 						setCancelled(false);
 						if (lastMoveHadMouseDown) {
 							shell.dispose();
 						}
-					} else if (e.y > TEXT_HEIGHT) {
-						int idx = (e.y - TEXT_HEIGHT) / OPTION_HEIGHT;
+					} else if (ptOnComposite.y > TEXT_HEIGHT) {
+						int idx = (ptOnComposite.y - TEXT_HEIGHT) / OPTION_HEIGHT;
 						Iterator iterator = mapOptions.keySet().iterator();
 						int newValue;
 						do {
@@ -264,12 +271,14 @@ public class SpeedScaleShell
 			}
 
 			public void mouseDown(MouseEvent e) {
+				Point ptOnDisplay = ((Control) e.widget).toDisplay(e.x, e.y);
+				Point ptOnComposite = composite.toControl(ptOnDisplay);
 				if (e.count > 1) {
 					lastMoveHadMouseDown = true;
 					return;
 				}
 				Point mousePos = display.getCursorLocation();
-				if (e.y > HEIGHT - SCALER_HEIGHT) {
+				if (ptOnComposite.y > HEIGHT - SCALER_HEIGHT) {
 					bMouseDown = true;
 					setValue(getValueFromMousePos(e.x));
 				}
@@ -278,7 +287,18 @@ public class SpeedScaleShell
 			public void mouseDoubleClick(MouseEvent e) {
 			}
 
-		});
+		};
+		composite.addMouseListener(mouseListener);
+		if (cClickedFrom != null) {
+			cClickedFrom.addMouseListener(mouseListener);
+			cClickedFrom.addMouseMoveListener(mouseMoveListener);
+			composite.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent arg0) {
+					cClickedFrom.removeMouseListener(mouseListener);
+					cClickedFrom.removeMouseMoveListener(mouseMoveListener);
+				}
+			});
+		}
 
 		composite.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {

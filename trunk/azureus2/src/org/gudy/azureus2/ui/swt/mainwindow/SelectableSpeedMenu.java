@@ -312,9 +312,10 @@ public class SelectableSpeedMenu {
 	}
 	   
 	/**
+	 * @param cClickedFrom 
 	 * @since 3.0.1.7
 	 */
-	public static void invokeSlider(AzureusCore core, boolean isUpSpeed) {
+	public static void invokeSlider(Control cClickedFrom, AzureusCore core, boolean isUpSpeed) {
 		final String prefix = MessageText.getString(isUpSpeed
 				? "GeneralView.label.maxuploadspeed"
 				: "GeneralView.label.maxdownloadspeed");
@@ -396,7 +397,7 @@ public class SelectableSpeedMenu {
 
 		// SWT BUG: on windows/linux, if mouse is down on shell open, all mouse events
 		// will not reflect this
-		if (speedScale.open(auto ? -1 : maxBandwidth, Constants.isWindows
+		if (speedScale.open(cClickedFrom, auto ? -1 : maxBandwidth, Constants.isWindows
 				|| Constants.isLinux)) {
 			int value = speedScale.getValue();
 
@@ -419,8 +420,8 @@ public class SelectableSpeedMenu {
 		}
 	}
 
-	public static void invokeSlider(AzureusCore core, DownloadManager[] dms,
-			boolean isUpSpeed, Shell parentShell) {
+	public static void invokeSlider(Control cClickedFrom, AzureusCore core, 
+			DownloadManager[] dms, boolean isUpSpeed, Shell parentShell) {
 		final String prefix = MessageText.getString(isUpSpeed
 				? "GeneralView.label.maxuploadspeed"
 				: "GeneralView.label.maxdownloadspeed");
@@ -497,7 +498,7 @@ public class SelectableSpeedMenu {
 
 		// SWT BUG: on windows/linux, if mouse is down on shell open, all mouse events
 		// will not reflect this
-		if (speedScale.open(maxBandwidth, Constants.isWindows || Constants.isLinux)) {
+		if (speedScale.open(cClickedFrom, maxBandwidth, Constants.isWindows || Constants.isLinux)) {
 			int value = speedScale.getValue();
 
 			if (!speedScale.wasMenuChosen() || lastValue == value) {
