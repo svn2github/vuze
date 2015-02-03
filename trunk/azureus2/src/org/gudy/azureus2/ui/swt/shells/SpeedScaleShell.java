@@ -392,9 +392,8 @@ public class SpeedScaleShell
 						e.gc.setAlpha(TYPED_TEXT_ALPHA);
 					} catch (Exception ex) {
 					}
-					e.gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-					e.gc.setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 					//e.gc.drawRectangle(rect);
+					e.gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 
 					GCStringPrinter.printString(e.gc, sValue, new Rectangle(rect.x + 2,
 							rect.y + 2, WIDTH - 5, OPTION_HEIGHT), true, false, SWT.LEFT
@@ -421,6 +420,7 @@ public class SpeedScaleShell
 						gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 					} else {
 						try {
+							gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 							gc.setAlpha(TYPED_TEXT_ALPHA);
 						} catch (Exception e) {
 						}
