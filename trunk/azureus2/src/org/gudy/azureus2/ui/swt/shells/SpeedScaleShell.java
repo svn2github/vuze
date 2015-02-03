@@ -114,7 +114,8 @@ public class SpeedScaleShell
 	 *
 	 * @since 3.0.1.7
 	 */
-	public boolean open(final Control cClickedFrom, final int startValue, boolean _assumeInitiallyDown) {
+	public boolean open(final Control cClickedFrom, final int startValue,
+			boolean _assumeInitiallyDown) {
 		value = startValue;
 		this.assumeInitiallyDown = _assumeInitiallyDown;
 		if (assumeInitiallyDown) {
@@ -200,6 +201,9 @@ public class SpeedScaleShell
 			}
 
 			public void mouseExit(MouseEvent e) {
+				if (composite.equals(Utils.getCursorControl())) {
+					return;
+				}
 				mouseIsOut = true;
 				SimpleTimer.addEvent("close scaler",
 						SystemTime.getOffsetTime(CLOSE_DELAY), new TimerEventPerformer() {
@@ -231,7 +235,7 @@ public class SpeedScaleShell
 			public void mouseUp(MouseEvent e) {
 				Point ptOnDisplay = ((Control) e.widget).toDisplay(e.x, e.y);
 				Point ptOnComposite = composite.toControl(ptOnDisplay);
-				if (assumeInitiallyDown) {
+				if (assumeInitiallyDown && e.widget == composite) {
 					//System.out.println("assumed down");
 					assumeInitiallyDown = false;
 				}

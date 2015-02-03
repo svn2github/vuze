@@ -395,10 +395,7 @@ public class SelectableSpeedMenu {
 					lastValue * 1024, true), lastValue);
 		}
 
-		// SWT BUG: on windows/linux, if mouse is down on shell open, all mouse events
-		// will not reflect this
-		if (speedScale.open(cClickedFrom, auto ? -1 : maxBandwidth, Constants.isWindows
-				|| Constants.isLinux)) {
+		if (speedScale.open(cClickedFrom, auto ? -1 : maxBandwidth, true)) {
 			int value = speedScale.getValue();
 
 			if (!speedScale.wasMenuChosen() || lastValue == value) {
@@ -496,9 +493,7 @@ public class SelectableSpeedMenu {
 					lastValue * 1024, true), lastValue);
 		}
 
-		// SWT BUG: on windows/linux, if mouse is down on shell open, all mouse events
-		// will not reflect this
-		if (speedScale.open(cClickedFrom, maxBandwidth, Constants.isWindows || Constants.isLinux)) {
+		if (speedScale.open(cClickedFrom, maxBandwidth, true)) {
 			int value = speedScale.getValue();
 
 			if (!speedScale.wasMenuChosen() || lastValue == value) {
