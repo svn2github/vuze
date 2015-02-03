@@ -226,6 +226,8 @@ public class TorrentMenuFancy
 
 	private boolean subMenuVisible;
 
+	private PaintListener paintListenerArrow;
+
 	public TorrentMenuFancy(final TableViewSWT<?> tv,
 			final boolean isSeedingView, Shell parentShell,
 			final DownloadManager[] dms, final String tableID) {
@@ -283,6 +285,26 @@ public class TorrentMenuFancy
 				} else {
 					shell.dispose();
 				}
+			}
+		};
+
+		paintListenerArrow = new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				Control c = (Control) e.widget;
+				Point size = c.getSize();
+				int arrowSize = 8;
+				int xStart = size.x - arrowSize;
+				int yStart = size.y - (size.y + arrowSize) / 2;
+				e.gc.setBackground(e.display.getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+				e.gc.setAntialias(SWT.ON);
+				e.gc.fillPolygon(new int[] {
+					xStart,
+					yStart,
+					xStart + arrowSize,
+					yStart + 4,
+					xStart,
+					yStart + 8,
+				});
 			}
 		};
 
@@ -1125,11 +1147,11 @@ public class TorrentMenuFancy
 				rowInfo.setMenu(menu);
 
 				menu.addMenuListener(new MenuListener() {
-					
+
 					public void menuShown(MenuEvent arg0) {
 						subMenuVisible = true;
 					}
-					
+
 					public void menuHidden(MenuEvent arg0) {
 						subMenuVisible = false;
 					}
@@ -1180,7 +1202,11 @@ public class TorrentMenuFancy
 		Utils.addListenerAndChildren(cRow, SWT.MouseHover, showSWTMenuListener);
 
 		row.setKeepMenu(true);
-		row.getRightLabel().setText("\u25B6");
+		//row.getRightLabel().setText("\u25B6");
+		Label rightLabel = row.getRightLabel();
+		GridData gd = new GridData(10, SWT.DEFAULT);
+		rightLabel.setLayoutData(gd);
+		row.getRightLabel().addPaintListener(paintListenerArrow);
 
 		return row;
 	}
@@ -1454,12 +1480,12 @@ public class TorrentMenuFancy
 			// Advanced > Export > Export Torrent
 			String title = MessageText.getString("MyTorrentsView.menu.exportmenu")
 					+ ": " + MessageText.getString("MyTorrentsView.menu.exporttorrent");
-			FancyRowInfo row = createRow(detailArea, null, null,
-					new ListenerDMTask(dms) {
-						public void run(DownloadManager[] dms) {
-							TorrentUtil.exportTorrent(dms, parentShell);
-						}
-					});
+			FancyRowInfo row = createRow(detailArea, null, null, new ListenerDMTask(
+					dms) {
+				public void run(DownloadManager[] dms) {
+					TorrentUtil.exportTorrent(dms, parentShell);
+				}
+			});
 			row.getText().setText(title);
 
 			// Advanced > Export > WebSeed URL
