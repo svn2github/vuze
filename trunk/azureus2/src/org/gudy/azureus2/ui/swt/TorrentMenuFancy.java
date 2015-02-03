@@ -254,6 +254,7 @@ public class TorrentMenuFancy
 			"rcm.contextmenu.lookupsize",
 			"MagnetPlugin.contextmenu.exporturi",
 			"azbuddy.contextmenu",
+			"RatingPlugin.contextmenu.manageRating"
 		};
 		mapMovedPluginMenus.put("Social", ids_social);
 		listMovedPluginIDs.addAll(Arrays.asList(ids_social));
@@ -262,7 +263,8 @@ public class TorrentMenuFancy
 			"upnpmediaserver.contextmenu",
 			"devices.contextmenu.xcode",
 			"antivirus.ui.contextmenu.scan",
-			"vuzexcode.transcode"
+			"vuzexcode.transcode",
+			"burn.menu.addtodvd"
 		};
 		mapMovedPluginMenus.put("Content", ids_content);
 		listMovedPluginIDs.addAll(Arrays.asList(ids_content));
