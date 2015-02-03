@@ -30,6 +30,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
@@ -900,7 +901,14 @@ public class TableViewSWT_Common
 			// Add download context menu items.
 			if (menu_items != null) {
 				// getSelectedDataSources(false) returns us plugin items.
-				Object[] target = isDownloadContext ? tv.getSelectedDataSources(false) : selectedRows;
+				Object[] target;
+				if (isDownloadContext) {
+					Object[] dataSources = tv.getSelectedDataSources(false);
+					target = new Download[dataSources.length];
+					System.arraycopy(dataSources, 0, target, 0, target.length);
+				} else {
+					target = selectedRows;
+				}
 				MenuBuildUtils.addPluginMenuItems(tv.getComposite(), menu_items, menu,
 						true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
 								target));
