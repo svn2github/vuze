@@ -633,8 +633,8 @@ public class TorrentMenuFancy
 		}
 
 		if (activatedHeader != null) {
-			activatedHeader.composite.setBackground(null);
-			activatedHeader.composite.setForeground(null);
+			activatedHeader.composite.setBackground(d.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+			activatedHeader.composite.setForeground(d.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 		}
 
 		activatedHeader = header;
@@ -1756,10 +1756,14 @@ public class TorrentMenuFancy
 
 	private HeaderInfo addHeader(String title, String id, AERunnable runnable) {
 		Composite composite = new Composite(topArea, SWT.NONE);
+		composite.setBackgroundMode(SWT.INHERIT_FORCE);
 		FillLayout fillLayout = new FillLayout();
 		fillLayout.marginWidth = 6;
 		fillLayout.marginHeight = 2;
 		composite.setLayout(fillLayout);
+		Display d = composite.getDisplay();
+		composite.setBackground(d.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+		composite.setForeground(d.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 
 		Label control = new Label(composite, SWT.NONE);
 		control.setText(title);
