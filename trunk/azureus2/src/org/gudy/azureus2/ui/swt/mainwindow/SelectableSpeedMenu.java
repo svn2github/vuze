@@ -42,12 +42,9 @@ import com.aelitis.azureus.core.AzureusCore;
 public class SelectableSpeedMenu {
 
 	private final static int[] increases = {
-		1,
-		1,
-		3,
-		5, // totals 10
+		5,
 		10,
-		40, // totals 50
+		35, // totals 50
 		50, // 100
 		50,
 		50,
