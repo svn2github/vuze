@@ -435,6 +435,7 @@ public class SelectableSpeedMenu {
 			}
 		}
 		boolean unlim = maxBandwidth == 0;
+		final int num_entries = dms.length;
 
 		SpeedScaleShell speedScale = new SpeedScaleShell() {
 			public String getStringValue(int value, String sValue) {
@@ -447,9 +448,21 @@ public class SelectableSpeedMenu {
 				if (value == -1) {
 					return MessageText.getString("ConfigView.auto");
 				}
-				return prefix
-						+ ": "
-						+ DisplayFormatters.formatByteCountToKiBEtcPerSec( getValue() * 1024, true);
+				
+				String speed = DisplayFormatters.formatByteCountToKiBEtcPerSec(
+						value * 1024, true);
+				if (num_entries > 1) {
+					speed = MessageText.getString(
+							"MyTorrentsView.menu.setSpeed.multi",
+							new String[] {
+								DisplayFormatters.formatByteCountToKiBEtcPerSec(value * 1024
+										* num_entries),
+								String.valueOf(num_entries),
+								speed
+							});
+				}
+
+				return prefix + ": " + speed;
 			}
 		};
 		int max = unlim ? (isUpSpeed ? 100 : 800) : maxBandwidth * 5;
@@ -477,8 +490,19 @@ public class SelectableSpeedMenu {
 			for (int i = 0; i < speed_limits.length; i++) {
 				int value = speed_limits[i].intValue();
 				if (value > 0) {
-					speedScale.addOption(DisplayFormatters.formatByteCountToKiBEtcPerSec(
-							value * 1024, true), value);
+					int total = value * num_entries;
+					String speed = DisplayFormatters.formatByteCountToKiBEtcPerSec(
+							total * 1024, true);
+					if (num_entries > 1) {
+						speed = MessageText.getString("MyTorrentsView.menu.setSpeed.multi",
+								new String[] {
+									speed,
+									String.valueOf(num_entries),
+									DisplayFormatters.formatByteCountToKiBEtcPerSec(value * 1024)
+								});
+					}
+
+					speedScale.addOption(speed, value);
 					if (value == lastValue) {
 						lastValue = -10;
 					}
