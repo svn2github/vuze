@@ -144,6 +144,7 @@ public class SpeedScaleShell
 			GCStringPrinter stringPrinter = new GCStringPrinter(gc, s, r, 0, 0);
 			stringPrinter.calculateMetrics();
 			Point size = stringPrinter.getCalculatedSize();
+			size.x *= 1.10;
 			
 			if (WIDTH < size.x) {
 				WIDTH = size.x;
@@ -268,7 +269,6 @@ public class SpeedScaleShell
 						Point mousePos = display.getCursorLocation();
 						//System.out.println("first=" + firstMousePos + ";mouse= " + mousePos);
 						if (mousePos.equals(firstMousePos)) {
-							lastMoveHadMouseDown = false;
 							return;
 						}
 					}
