@@ -399,24 +399,18 @@ ViewUtils
 					mi.addListener(SWT.Selection, itemsUpSpeedListener);
 	
 					int limit = (int)( maxUpload / (10 * num_entries) * (10 - i));
-					StringBuffer speed = new StringBuffer();
-					speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
-							* num_entries));
+					String speed = DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
+							* num_entries);
 					if (num_entries > 1) {
-						speed.append(" ");
-						speed.append(MessageText
-								.getString("MyTorrentsView.menu.setSpeed.in"));
-						speed.append(" ");
-						speed.append(num_entries);
-						speed.append(" ");
-						speed.append(MessageText
-								.getString("MyTorrentsView.menu.setSpeed.slots"));
-						speed.append(" ");
-						speed
-								.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
+						speed = MessageText.getString("MyTorrentsView.menu.setSpeed.multi",
+								new String[] {
+									speed,
+									String.valueOf(num_entries),
+									DisplayFormatters.formatByteCountToKiBEtcPerSec(limit)
+								});
 					}
-	
-					mi.setText(speed.toString());
+
+					mi.setText(speed);
 					mi.setData("maxul", new Integer(limit));
 				}
 			}
@@ -540,23 +534,16 @@ ViewUtils
 		
 					// dms.length has to be > 0 when hasSelection
 					int limit = (int)(maxDownload / (10 * num_entries) * (10 - i));
-					StringBuffer speed = new StringBuffer();
-					speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
-							* num_entries));
+					String speed = DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
+							* num_entries);
 					if (num_entries > 1) {
-						speed.append(" ");
-						speed.append(MessageText
-								.getString("MyTorrentsView.menu.setSpeed.in"));
-						speed.append(" ");
-						speed.append(num_entries);
-						speed.append(" ");
-						speed.append(MessageText
-								.getString("MyTorrentsView.menu.setSpeed.slots"));
-						speed.append(" ");
-						speed
-								.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
+						speed = MessageText.getString("MyTorrentsView.menu.setSpeed.multi", new String[] {
+							speed,
+							String.valueOf(num_entries),
+							DisplayFormatters.formatByteCountToKiBEtcPerSec(limit)
+						});
 					}
-					mi.setText(speed.toString());
+					mi.setText(speed);
 					mi.setData("maxdl", new Integer(limit));
 				}
 			}
