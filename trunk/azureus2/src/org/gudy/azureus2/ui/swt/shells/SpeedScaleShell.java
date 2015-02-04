@@ -48,17 +48,19 @@ public class SpeedScaleShell
 
 	private int HEIGHT = TEXT_HEIGHT + SCALER_HEIGHT;
 
-	private static final int WIDTH = 120;
+	private static final int MIN_WIDTH = 130;
 
 	private static final int PADDING_X0 = 10;
 
 	private static final int PADDING_X1 = 10;
 
-	private static final int WIDTH_NO_PADDING = WIDTH - PADDING_X0 - PADDING_X1;
-
 	private static final int TYPED_TEXT_ALPHA = 80;
 
 	private static final long CLOSE_DELAY = 600;
+
+	private int WIDTH;
+
+	private int WIDTH_NO_PADDING;
 
 	private int value;
 
@@ -130,6 +132,27 @@ public class SpeedScaleShell
 
 		composite = new Composite(shell, SWT.DOUBLE_BUFFERED);
 
+		GC gc = new GC(composite);
+		gc.setAntialias(SWT.ON);
+		WIDTH = MIN_WIDTH;
+		Rectangle r = new Rectangle(0, 0, 9999, 20);
+		for (Iterator iter = mapOptions.keySet().iterator(); iter.hasNext();) {
+			Integer value = (Integer) iter.next();
+			String text = (String) mapOptions.get(value);
+			
+			String s = getStringValue(value, text);
+			GCStringPrinter stringPrinter = new GCStringPrinter(gc, s, r, 0, 0);
+			stringPrinter.calculateMetrics();
+			Point size = stringPrinter.getCalculatedSize();
+			
+			if (WIDTH < size.x) {
+				WIDTH = size.x;
+			}
+		}
+		gc.dispose();
+		WIDTH_NO_PADDING = WIDTH - PADDING_X0 - PADDING_X1;
+		
+		
 		final Point firstMousePos = display.getCursorLocation();
 
 		composite.addTraverseListener(new TraverseListener() {
@@ -364,6 +387,7 @@ public class SpeedScaleShell
 					Integer value = (Integer) iter.next();
 					String text = (String) mapOptions.get(value);
 
+					e.gc.setAntialias(SWT.ON);
 					Rectangle area = new Rectangle(0, y, WIDTH, OPTION_HEIGHT);
 					Color bg;
 					if (area.contains(mousePos)) {
