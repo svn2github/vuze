@@ -60,14 +60,17 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.menus.MenuContext;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -556,7 +559,7 @@ BuddyPluginView
 	private Image				bs_chat_gray;
 	private Image				bs_chat_gray_text;
 	private Image				bs_chat_green;
-	
+		
 	private void
 	checkBetaInit()
 	{
@@ -572,6 +575,10 @@ BuddyPluginView
 				beta_init_done = true;
 			}
 			
+			MenuManager menu_manager = plugin.getPluginInterface().getUIManager().getMenuManager();
+				
+			final MenuItem mi_chat =  MenuBuildUtils.addChatMenu( menu_manager, MenuManager.MENU_DOWNLOAD_CONTEXT, "label.chat" ); 
+						
 			addBetaSubviews( true );
 			
 			beta_status	= ui_instance.createStatusEntry();
@@ -591,6 +598,8 @@ BuddyPluginView
 					bs_chat_green 		= imageLoader.getImage( "dchat_green" );
 					
 					beta_status.setImage( bs_chat_gray );
+					
+					mi_chat.setGraphic( ui_instance.createGraphic( bs_chat_gray ));
 				}
 			});
 			

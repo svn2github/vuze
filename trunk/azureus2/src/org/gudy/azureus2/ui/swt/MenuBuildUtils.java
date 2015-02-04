@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -32,8 +33,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.Menu;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.menus.MenuBuilder;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
@@ -540,5 +546,154 @@ public class MenuBuildUtils {
 				}
 			}
 		}
+	}
+	
+	public static MenuItem
+	addChatMenu(
+		final MenuManager		menu_manager,
+		String			menu_context,
+		String			menu_resource_key )
+	{
+		final MenuItem chat_item = menu_manager.addMenuItem( menu_context, menu_resource_key );
+						 
+		chat_item.setStyle( MenuItem.STYLE_MENU );
+			
+		chat_item.addFillListener(
+			new MenuItemFillListener() 
+			{
+				
+				public void 
+				menuWillBeShown(
+					MenuItem 	menu, 
+					Object 		data) 
+				{
+					menu.removeAllChildItems();
+					
+					{
+						MenuItem chat_pub = menu_manager.addMenuItem(chat_item,  "label.public");
+						
+						chat_pub.addMultiListener(
+								new MenuItemListener() {
+									
+									public void 
+									selected(
+										MenuItem menu, 
+										Object target) 
+									{
+										Download[]	rows = (Download[])target;
+										
+										if ( rows.length > 0 ){
+											
+											final AtomicInteger count = new AtomicInteger( rows.length );
+											
+											pub_chat_pending.set( true );
+	
+											for ( Download download: rows ){
+												
+												
+												BuddyPluginUtils.createBetaChat(
+													AENetworkClassifier.AT_PUBLIC, 
+													BuddyPluginUtils.getChatKey(download),
+													new Runnable()
+													{
+														public void
+														run()
+														{
+															if ( count.decrementAndGet() == 0 ){
+															
+																pub_chat_pending.set( false );
+															}
+														}
+													});
+												
+											}
+										}
+									}
+								});
+						
+						if ( pub_chat_pending.get()){
+							
+							chat_pub.setEnabled( false );
+							chat_pub.setText( chat_pub.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
+						}
+					}
+					
+					if ( BuddyPluginUtils.isBetaChatAnonAvailable()){
+						
+						MenuItem chat_priv = menu_manager.addMenuItem(chat_item,  "label.anon");
+						
+						chat_priv.addMultiListener(
+							new MenuItemListener()
+							{	
+								public void 
+								selected(
+									MenuItem menu, 
+									Object target) 
+								{
+									Download[]	rows = (Download[])target;
+									
+									if ( rows.length > 0 ){
+										
+										final AtomicInteger count = new AtomicInteger( rows.length );
+										
+										anon_chat_pending.set( true );
+
+										for ( Download download: rows ){
+																					
+											BuddyPluginUtils.createBetaChat(
+												AENetworkClassifier.AT_I2P, 
+												BuddyPluginUtils.getChatKey(download),
+												new Runnable()
+												{
+													public void
+													run()
+													{
+														if ( count.decrementAndGet() == 0 ){
+														
+															anon_chat_pending.set( false );
+														}
+													}
+												});	
+										}
+									}
+								}
+							});
+						
+						if ( anon_chat_pending.get()){
+							
+							chat_priv.setEnabled( false );
+							chat_priv.setText( chat_priv.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
+						}
+					
+					}else{
+						
+						MenuItem chat_priv = menu_manager.addMenuItem(chat_item,  "label.anon");
+						
+						chat_priv.setText( MessageText.getString("label.anon") + "..." );
+											
+						chat_priv.addMultiListener(
+							new MenuItemListener()
+							{	
+								public void 
+								selected(
+									MenuItem menu, 
+									Object target) 
+								{
+								
+									BuddyPluginUtils.installI2PHelper( null, null, null );
+								}
+							});
+						
+						if ( BuddyPluginUtils.isInstallingI2PHelper()){
+							
+							chat_priv.setEnabled( false );
+							chat_priv.setText( chat_priv.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
+						}
+					}
+				}
+			});
+	
+		
+		return( chat_item );
 	}
 }

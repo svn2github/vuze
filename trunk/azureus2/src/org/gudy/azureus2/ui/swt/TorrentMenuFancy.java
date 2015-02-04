@@ -256,7 +256,8 @@ public class TorrentMenuFancy
 			"rcm.contextmenu.lookupsize",
 			"MagnetPlugin.contextmenu.exporturi",
 			"azbuddy.contextmenu",
-			"RatingPlugin.contextmenu.manageRating"
+			"RatingPlugin.contextmenu.manageRating",
+			"label.chat",
 		};
 		mapMovedPluginMenus.put("Social", ids_social);
 		listMovedPluginIDs.addAll(Arrays.asList(ids_social));
