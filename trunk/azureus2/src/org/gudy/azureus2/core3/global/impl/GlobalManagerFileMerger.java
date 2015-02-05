@@ -27,15 +27,18 @@ import java.util.*;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
-import org.gudy.azureus2.core3.disk.DiskManagerListener;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
+import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.DelayedEvent;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.plugins.PluginAdapter;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -288,10 +291,10 @@ GlobalManagerFileMerger
 				
 				file_wrappers.add( file_wrapper );
 					
-				DownloadManagerDiskListener	dmdl = 
-					new DownloadManagerDiskListener() {
-							
-						private DiskManager		current_disk_manager;
+				DownloadManagerPeerListener dmpl =
+					new DownloadManagerPeerListener() {
+						
+						private DiskManager	current_disk_manager;
 						
 						final DiskManagerFileInfoListener file_listener =
 							new DiskManagerFileInfoListener() {
@@ -308,7 +311,7 @@ GlobalManagerFileMerger
 										return;
 									}
 									
-									SameSizeFiles.this.dataWritten(  current_disk_manager, file_wrapper, offset, length );
+									SameSizeFiles.this.dataWritten( file_wrapper, offset, length );
 								}
 								
 								public void 
@@ -324,68 +327,68 @@ GlobalManagerFileMerger
 									}
 								}
 							};
-
-							
+								
 						public void 
-						diskManagerAdded(
-							final DiskManager dm ) 
+						peerManagerAdded(
+							PEPeerManager manager ) 
 						{
-							current_disk_manager	= dm;
-
-								// derp, adding the listener triggers callbacks for all existing blocks
+							synchronized( this ){
+								
+								if ( current_disk_manager != null ){
+									
+									file.removeListener( file_listener );
+								}
+								
+								current_disk_manager = manager.getDiskManager();
+								
+								if ( current_disk_manager == null ){
+									
+									return;
+								}
+							}
 							
 							file.addListener( file_listener );
-							
-							/*
-							dm.addListener(
-								new DiskManagerListener() {
+						}
+
+						public void 
+						peerManagerRemoved(
+							PEPeerManager manager) 
+						{
+							synchronized( this ){
+								
+								if ( current_disk_manager != null ){
 									
-									public void 
-									stateChanged(
-										int oldState, int new_state )
-									{
-										if ( new_state == DiskManager.READY ){
-											
-											SameSizeFiles.this.diskManagerAdded( file, f_fbo, dm );
-										}
-									}
+									file.removeListener( file_listener );
 									
-									public void 
-									pieceDoneChanged(
-										DiskManagerPiece piece )
-									{
-									}
-									
-									public void 
-									filePriorityChanged(
-										DiskManagerFileInfo file )
-									{
-									}
-									
-									public void 
-									fileAccessModeChanged(
-										DiskManagerFileInfo 	file, 
-										int 					old_mode,
-										int 					new_mode ) 
-									{
-									}
-								});
-							*/
+									current_disk_manager = null;
+								}
+							}
+						}	
+						
+						public void 
+						peerAdded(
+							PEPeer peer ) 
+						{
 						}
 						
 						public void 
-						diskManagerRemoved(
-							DiskManager dm ) 
+						peerRemoved(
+							PEPeer peer ) 
 						{
-							file.removeListener( file_listener );
-							
-							current_disk_manager = null;
+						}
+						
+						public void 
+						peerManagerWillBeAdded(
+							PEPeerManager manager ) 
+						{
 						}
 					};
+					
+
 						
-				dm.setUserData( this, dmdl );
+				dm.setUserData( this, dmpl );
 				
-				dm.addDiskListener( dmdl );
+				dm.addPeerListener( dmpl );
 			}
 			
 			System.out.println( "created " + getString());
@@ -393,12 +396,19 @@ GlobalManagerFileMerger
 			
 		private void 
 		dataWritten(
-			DiskManager				disk_manager,
 			SameSizeFileWrapper		file,
 			long 					offset, 
 			long 					length ) 
 		{
-			//System.out.println( "written: " + offset + "/" + length );
+			System.out.println( "written: " + offset + "/" + length );
+			
+			DiskManager		disk_manager	= file.getDiskManager();
+			PEPeerManager	peer_manager 	= file.getPeerManager();
+			
+			if ( disk_manager == null || peer_manager == null ){
+				
+				return;
+			}
 			
 			DiskManagerPiece[]	pieces = disk_manager.getPieces();
 						
@@ -406,17 +416,17 @@ GlobalManagerFileMerger
 
 			long file_byte_offset = file.getFileByteOffset();
 			
-			long	written_start 	= file_byte_offset + offset;
-			long	written_end		= written_start + length - 1;
+			long	written_start 				= file_byte_offset + offset;
+			long	written_end_inclusive		= written_start + length - 1;
 			
 			int	first_piece_num = (int)( written_start/piece_length );
-			int	last_piece_num 	= (int)( written_end/piece_length );
+			int	last_piece_num 	= (int)( written_end_inclusive/piece_length );
 			
 			DiskManagerPiece	first_piece 	= pieces[first_piece_num];
 			DiskManagerPiece	last_piece 		= pieces[last_piece_num];
 			
-			int	first_block = (int)( written_start - ( first_piece_num * piece_length ))/DiskManager.BLOCK_SIZE;
-			int	last_block 	= (int)( written_end - ( last_piece_num * piece_length ))/DiskManager.BLOCK_SIZE;
+			int	first_block = (int)( written_start % piece_length )/DiskManager.BLOCK_SIZE;
+			int	last_block 	= (int)( written_end_inclusive % piece_length )/DiskManager.BLOCK_SIZE;
 			
 			if ( first_block > 0 ){
 				boolean[] written = first_piece.getWritten();
@@ -456,10 +466,10 @@ GlobalManagerFileMerger
 				// we've widened the effective write by one block each way where possible to handle block
 				// misalignment across downloads
 			
-			long	avail_start = first_piece_num * piece_length + first_block * DiskManager.BLOCK_SIZE;
-			long	avail_end 	= last_piece_num * piece_length +  last_block * DiskManager.BLOCK_SIZE + pieces[last_piece_num].getBlockSize( last_block );
+			long	avail_start 			= ( first_piece_num * piece_length ) + ( first_block * DiskManager.BLOCK_SIZE );
+			long	avail_end_inclusive 	= ( last_piece_num  * piece_length ) + ( last_block * DiskManager.BLOCK_SIZE ) + pieces[last_piece_num].getBlockSize( last_block ) - 1;
 				
-			System.out.println( first_piece_num + "/" + first_block + " - " + last_piece_num + "/" + last_block  + ": " + avail_start + "-" + avail_end );
+			System.out.println( first_piece_num + "/" + first_block + " - " + last_piece_num + "/" + last_block  + ": " + avail_start + "-" + avail_end_inclusive );
 			
 			for ( SameSizeFileWrapper other_file: file_wrappers ){
 				
@@ -468,9 +478,10 @@ GlobalManagerFileMerger
 					continue;
 				}
 				
-				DiskManager other_disk_manager = other_file.getDiskManager();
+				DiskManager 	other_disk_manager = other_file.getDiskManager();
+				PEPeerManager 	other_peer_manager = other_file.getPeerManager();
 				
-				if ( other_disk_manager == null ){
+				if ( other_disk_manager == null || other_peer_manager == null ){
 					
 					continue;
 				}
@@ -485,7 +496,7 @@ GlobalManagerFileMerger
 					
 						// special case of direct block->block mapping
 					
-					for ( long block_start = avail_start; block_start < avail_end; block_start += DiskManager.BLOCK_SIZE ){
+					for ( long block_start = avail_start; block_start < avail_end_inclusive; block_start += DiskManager.BLOCK_SIZE ){
 
 						int	origin_piece_num 	= (int)( block_start/piece_length );
 						int	origin_block_num	= (int)(( block_start % piece_length ) / DiskManager.BLOCK_SIZE );
@@ -508,50 +519,159 @@ GlobalManagerFileMerger
 							
 							if ( origin_piece.getBlockSize( origin_block_num ) == target_piece.getBlockSize( target_block_num )){
 								
-								System.out.println( "I would read and write here" );
+								DirectByteBuffer buffer = disk_manager.readBlock( origin_piece_num, origin_block_num*DiskManager.BLOCK_SIZE, origin_piece.getBlockSize( origin_block_num ));
+
+								try{
+									other_file.getDownloadManager().getPeerManager().writeBlock( target_piece_num, target_block_num*DiskManager.BLOCK_SIZE, buffer, null, true );
+
+									System.out.println( "Write from " + origin_piece_num + "/" + origin_block_num + " to " + target_piece_num + "/" + target_block_num );
+
+									buffer = null;
+									
+								}finally{
+									
+									if ( buffer != null ){
+										
+										buffer.returnToPool();
+									}
+								}
 							}
 						}
 					}
 				}else{
 						// need two blocks from source to consider writing to target
 					
-					for ( long block_start = avail_start; block_start < avail_end; block_start += DiskManager.BLOCK_SIZE ){
-						
-						long	origin_start 	= block_start;
-												
-						long	origin_end		= block_start + 2*DiskManager.BLOCK_SIZE - 1;
-						
-						if ( origin_end > avail_end ){
+					DirectByteBuffer	prev_block 		= null;
+					int					prev_block_pn	= 0;
+					int					prev_block_bn	= 0;
+					
+					try{
+						for ( long block_start = avail_start; block_start < avail_end_inclusive; block_start += DiskManager.BLOCK_SIZE ){
 							
-							origin_end = avail_end;
-						}
-						
-						long target_offset = origin_start - skew;
-						
-						target_offset =  (( target_offset + DiskManager.BLOCK_SIZE - 1 ) / DiskManager.BLOCK_SIZE ) * DiskManager.BLOCK_SIZE;
-						
-						long origin_offset = target_offset + skew;
-									
-						int	target_piece_num 	= (int)( target_offset/other_piece_length );
-						int	target_block_num	= (int)(( target_offset % other_piece_length ) / DiskManager.BLOCK_SIZE );
-
-						DiskManagerPiece	target_piece = other_pieces[target_piece_num];
-
-						boolean[]	written = target_piece.getWritten();
-
-						if ( target_piece.isDone() || (written != null && written[target_block_num])){
+							long	origin_start 			= block_start;
+							long	origin_end_inclusive	= block_start + 2*DiskManager.BLOCK_SIZE - 1;
 							
-							// already written
-							
-						}else{
-						
-							int target_block_size = target_piece.getBlockSize( target_block_num );
-							
-							if ( 	origin_offset >= file_byte_offset &&
-									origin_offset + target_block_size < avail_end ){
-							
-								System.out.println( "Write from " + origin_offset + "/" + target_block_size + " to " + target_piece_num + "/" + target_block_num );
+							if ( origin_end_inclusive > avail_end_inclusive ){
+								
+								origin_end_inclusive = avail_end_inclusive;
 							}
+							
+							long target_offset = origin_start - skew;
+							
+							target_offset =  (( target_offset + DiskManager.BLOCK_SIZE - 1 ) / DiskManager.BLOCK_SIZE ) * DiskManager.BLOCK_SIZE;
+							
+							long origin_offset = target_offset + skew;
+										
+							int	target_piece_num 	= (int)( target_offset/other_piece_length );
+							int	target_block_num	= (int)(( target_offset % other_piece_length ) / DiskManager.BLOCK_SIZE );
+	
+							DiskManagerPiece	target_piece = other_pieces[target_piece_num];
+	
+							boolean[]	written = target_piece.getWritten();
+	
+							if ( target_piece.isDone() || (written != null && written[target_block_num])){
+								
+								// already written
+								
+							}else{
+							
+								int target_block_size = target_piece.getBlockSize( target_block_num );
+								
+								if ( 	origin_offset >= file_byte_offset &&
+										origin_offset + target_block_size <= avail_end_inclusive + 1){
+								
+									int	origin1_piece_number 	= (int)( origin_start/piece_length );
+									int	origin1_block_num		= (int)(( origin_start % piece_length ) / DiskManager.BLOCK_SIZE );
+	
+									DiskManagerPiece	origin1_piece = pieces[origin1_piece_number];
+									
+									DirectByteBuffer read_block1	= null;
+									DirectByteBuffer read_block2	= null;
+									
+									try{
+										if ( 	prev_block != null &&
+												prev_block_pn == origin1_piece_number &&
+												prev_block_bn == origin1_block_num ){
+											
+											read_block1 = prev_block;
+											prev_block	= null;
+													
+										}else{
+										
+											read_block1 = disk_manager.readBlock( origin1_piece_number , origin1_block_num*DiskManager.BLOCK_SIZE, origin1_piece.getBlockSize( origin1_block_num ));
+										}
+										
+										int	origin2_piece_number 	= origin1_piece_number;
+										int	origin2_block_num		= origin1_block_num + 1;
+										
+										if ( origin2_block_num >= origin1_piece.getNbBlocks()){
+											
+											origin2_piece_number++;
+											
+											origin2_block_num = 0;
+										}
+		
+										DiskManagerPiece	origin2_piece = pieces[origin2_piece_number];
+		
+										read_block2 = disk_manager.readBlock( origin2_piece_number , origin2_block_num*DiskManager.BLOCK_SIZE, origin2_piece.getBlockSize( origin2_block_num ));
+										
+										DirectByteBuffer write_block = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL, target_block_size );
+										
+										final byte SS = DirectByteBuffer.SS_EXTERNAL;
+												
+										int	delta = (int)( origin_offset - origin_start );
+										
+										read_block1.position( SS , delta );
+										
+										write_block.limit( SS, read_block1.remaining( SS ));
+										
+										write_block.put( SS, read_block1 );
+										
+										write_block.limit( SS, target_block_size );
+										
+										read_block2.limit( SS, write_block.remaining( SS ));
+										
+										write_block.put( SS, read_block2 );
+										
+										write_block.flip( SS );
+										
+										read_block1.returnToPool();
+										
+										read_block1 = null;
+										
+										read_block2.position( SS, 0 );
+										read_block2.limit( SS, read_block2.capacity( SS ));
+										
+										prev_block 		= read_block2;
+										prev_block_pn	= origin2_piece_number;
+										prev_block_bn	= origin2_block_num;
+												
+										read_block2	= null;
+										
+										System.out.println( "Write from " + origin_offset + "/" + delta + "/" + target_block_size + " to " + target_piece_num + "/" + target_block_num );
+			
+										other_file.getDownloadManager().getPeerManager().writeBlock( target_piece_num, target_block_num*DiskManager.BLOCK_SIZE, write_block, null, true );
+																				
+									}finally{
+										
+										if ( read_block1 != null ){
+											
+											read_block1.returnToPool();
+										}
+										
+										if ( read_block2 != null ){
+											
+											read_block2.returnToPool();
+										}
+									}
+								}
+							}
+						}
+					}finally{
+						
+						if ( prev_block != null ){
+							
+							prev_block.returnToPool();
 						}
 					}
 				}
@@ -575,11 +695,11 @@ GlobalManagerFileMerger
 				
 				DownloadManager	dm = file.getDownloadManager();
 				
-				DownloadManagerDiskListener dmdl = (DownloadManagerDiskListener)dm.getUserData( this );
+				DownloadManagerPeerListener dmpl = (DownloadManagerPeerListener)dm.getUserData( this );
 				
-				if ( dmdl != null ){
+				if ( dmpl != null ){
 				
-					dm.removeDiskListener( dmdl );
+					dm.removePeerListener( dmpl );
 				}
 			}
 			
@@ -650,6 +770,12 @@ GlobalManagerFileMerger
 		getDiskManager()
 		{
 			return( file.getDiskManager());
+		}
+		
+		private PEPeerManager
+		getPeerManager()
+		{
+			return( download_manager.getPeerManager());
 		}
 		
 		private long
