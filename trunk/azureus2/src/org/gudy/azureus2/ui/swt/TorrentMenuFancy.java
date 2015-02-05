@@ -30,7 +30,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -109,6 +108,7 @@ public class TorrentMenuFancy
 		public Label getRightLabel() {
 			if (lblRight == null) {
 				lblRight = new Label(cRow, SWT.NONE);
+				lblRight.setEnabled(false);
 			}
 			return lblRight;
 		}
@@ -328,11 +328,17 @@ public class TorrentMenuFancy
 				Point cursorLocationRel = ((Control) e.widget).getParent().toControl(
 						cursorLocation);
 				if (!bounds.contains(cursorLocationRel)) {
+					for (Control control : ((Composite) e.widget).getChildren()) {
+						control.setBackground(null);
+						control.setForeground(null);
+					}
 					//System.out.println("bounds=" + bounds + "/" + cursorLocation + "/" + cursorLocationRel + "; clip=" + e.gc.getClipping());
 					return;
 				}
+				Color bg = e.display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 				int arc = bounds.height / 3;
-				e.gc.setForeground(Colors.black);
+				e.gc.setBackground(bg);
+				e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW));
 				e.gc.setAntialias(SWT.ON);
 				//System.out.println("clip=" + e.gc.getClipping());
 				e.gc.fillRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1, arc,
@@ -340,6 +346,13 @@ public class TorrentMenuFancy
 				e.gc.setAlpha(100);
 				e.gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1, arc,
 						arc);
+				
+				Color fg = e.display.getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+				for (Control control : ((Composite) e.widget).getChildren()) {
+					control.setBackground(bg);
+					control.setForeground(fg);
+				}
+
 
 			}
 		};
@@ -1247,15 +1260,15 @@ public class TorrentMenuFancy
 
 		cRow.setData("ID", id);
 		GridLayout gridLayout = new GridLayout(3, false);
-		gridLayout.marginWidth = 2;
+		gridLayout.marginWidth = 3;
 		gridLayout.marginHeight = 3;
-		gridLayout.horizontalSpacing = 0;
+		gridLayout.horizontalSpacing = 5;
 		gridLayout.verticalSpacing = 0;
 		cRow.setLayout(gridLayout);
 
 		Label lblIcon = new Label(cRow, SWT.CENTER | SWT.NONE);
 		GridData gridData = new GridData();
-		gridData.widthHint = 20;
+		gridData.widthHint = 16;
 		lblIcon.setLayoutData(gridData);
 		if (keyImage != null) {
 			ImageLoader.getInstance().setLabelImage(lblIcon, keyImage);
