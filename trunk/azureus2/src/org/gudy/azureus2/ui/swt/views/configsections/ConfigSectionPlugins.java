@@ -85,7 +85,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 	private final static String[] COLUMN_HEADERS = { "loadAtStartup", "type",
 			"name", "version", "directory", "unloadable" };
 
-	private final static int[] COLUMN_SIZES = { 110, 50, 150, 75, 100, 50 };
+	private final static int[] COLUMN_SIZES = { 180, 70, 250, 100, 100, 50 };
 
 	private final static int[] COLUMN_ALIGNS = { SWT.CENTER, SWT.LEFT, SWT.LEFT,
 			SWT.RIGHT, SWT.LEFT, SWT.CENTER};
