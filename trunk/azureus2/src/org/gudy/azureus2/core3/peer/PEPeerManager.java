@@ -300,11 +300,11 @@ PEPeerManager
 	
 	public void 
 	writeBlock(
-		int 		pieceNumber, 
-		int 		offset, 
+		int 				pieceNumber, 
+		int 				offset, 
 		DirectByteBuffer 	data,
-		PEPeer 		sender,
-        boolean     cancel);		
+		Object 				sender,			// either a PEPeer or a String
+        boolean     		cancel);		
   
 //  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender);
   

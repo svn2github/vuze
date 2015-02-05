@@ -28,41 +28,23 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
  * @author parg
  *
  */
-public interface 
-PEPeerManagerListener 
+public class 
+PEPeerManagerListenerAdapter 
+	implements PEPeerManagerListener
 {
+  public void peerAdded( PEPeerManager manager, PEPeer peer ){}
   
-  /**
-   * The given peer has been added to the given manager.
-   * @param manager to which peer belongs
-   * @param peer added
-   */
-  public void peerAdded( PEPeerManager manager, PEPeer peer );
+  public void peerRemoved( PEPeerManager manager, PEPeer peer ){}
   
+  public void pieceAdded( PEPeerManager manager, PEPiece piece, PEPeer for_peer ){}
   
-  /**
-   * The given peer has been removed from the given manager.
-   * @param manager to which peer belongs
-   * @param peer removed
-   */
-  public void peerRemoved( PEPeerManager manager, PEPeer peer );
+  public void pieceRemoved( PEPeerManager manager, PEPiece piece ){}
   
-  /**
-   * piece activated
-   * @param peice
-   * @param for_peer maybe null if not for a particular peer
-   */
+  public void peerDiscovered( PEPeerManager manager, PeerItem peer, PEPeer finder ){}
   
-  public void pieceAdded( PEPeerManager manager, PEPiece piece, PEPeer for_peer );
+  public void peerSentBadData( PEPeerManager manager, PEPeer peer, int piece_number ){}
   
-  public void pieceRemoved( PEPeerManager manager, PEPiece piece );
+  public void pieceCorrupted( PEPeerManager manager, int piece_number ){}
   
-  
-  public void peerDiscovered( PEPeerManager manager, PeerItem peer, PEPeer finder );
-  
-  public void peerSentBadData( PEPeerManager manager, PEPeer peer, int piece_number );
-  
-  public void pieceCorrupted( PEPeerManager manager, int piece_number );
-  
-  public void destroyed();
+  public void destroyed(){}
 }

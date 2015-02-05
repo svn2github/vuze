@@ -2453,9 +2453,26 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			final PEPiece pePiece =pePieces[pieceNumber];
 
-			if (pePiece !=null){
+			if ( pePiece != null ){
 
-				pePiece.setWritten((PEPeer)request.getUserData(), request.getOffset() /DiskManager.BLOCK_SIZE );
+				Object user_data = request.getUserData();
+				
+				String key;
+				
+				if ( user_data instanceof String ){
+					
+					key = (String)user_data;
+					
+				}else if ( user_data instanceof PEPeer ){
+					
+					key = ((PEPeer)user_data).getIp();
+					
+				}else{
+					
+					key = "<none>";
+				}
+				
+				pePiece.setWritten( key, request.getOffset() /DiskManager.BLOCK_SIZE );
 
 			}else{
 
@@ -2490,7 +2507,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	 * @param sender peer that sent this data
 	 * @param cancel if cancels definatly need to be sent to all peers for this request
 	 */
-	public void writeBlock(int pieceNumber, int offset, DirectByteBuffer data, PEPeer sender, boolean cancel)
+	public void writeBlock(int pieceNumber, int offset, DirectByteBuffer data, Object sender, boolean cancel)
 	{
 		final int blockNumber =offset /DiskManager.BLOCK_SIZE;
 		final DiskManagerPiece dmPiece =dm_pieces[pieceNumber];
@@ -3480,6 +3497,19 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 				//    the piece is corrupt
 					
+				Iterator<PEPeerManagerListener> it = peer_manager_listeners_cow.iterator();
+
+				while( it.hasNext()){
+					
+					try{
+						it.next().pieceCorrupted( this, pieceNumber );
+								
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+				
 				if ( pePiece != null ){
 
 					try{
@@ -3596,8 +3626,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 				}else{
 					
 						// no active piece for some reason, clear down DM piece anyway
+						// one reason for getting here is that blocks are being injected directly from another
+						// download with the same file (well, turns out it isn't the same file if getting hash fails);
 					
-					Debug.out(getDisplayName() + "Piece #" +pieceNumber +" failed check and no active piece, resetting..." );
+					// Debug.out(getDisplayName() + ": Piece #" +pieceNumber +" failed check and no active piece, resetting..." );
 
 					dm_pieces[pieceNumber].reset();
 				}

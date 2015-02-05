@@ -213,12 +213,12 @@ public class PEPieceImpl
     }
     
 	/** This marks a given block as having been written by the given peer
-	 * @param peer the PEPeer that sent the data
+	 * @param peer the peer that sent the data
 	 * @param blockNumber the block we're operating on
 	 */
-	public void setWritten(PEPeer peer, int blockNumber)
+	public void setWritten(String peer, int blockNumber)
 	{
-		writers[blockNumber] =peer.getIp();
+		writers[blockNumber] =peer;
 		dmPiece.setWritten(blockNumber);
 	}
 	

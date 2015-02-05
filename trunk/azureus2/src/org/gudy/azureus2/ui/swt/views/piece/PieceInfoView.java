@@ -393,10 +393,12 @@ public class PieceInfoView
 						final PiecePicker picker = peer_manager.getPiecePicker();
 						
 						DiskManagerPiece[] 	dm_pieces = disk_manager.getPieces();
-							
+						PEPiece[]			pe_pieces = peer_manager.getPieces();
+
 						final int piece_number = pn;
 						
-						DiskManagerPiece	dm_piece = dm_pieces[piece_number];
+						final DiskManagerPiece	dm_piece = dm_pieces[piece_number];
+						final PEPiece			pm_piece = pe_pieces[piece_number];
 						
 						final MenuItem force_piece = new MenuItem( menu, SWT.CHECK );
 						
@@ -421,6 +423,30 @@ public class PieceInfoView
 					    			}
 					    		});
 						}
+						
+						final MenuItem reset_piece = new MenuItem( menu, SWT.PUSH );
+						
+						Messages.setLanguageText( reset_piece, "label.reset.piece" );
+							
+						boolean	can_reset = dm_piece.isDone() || dm_piece.getNbWritten() > 0;
+						
+						reset_piece.setEnabled( can_reset );
+													
+						reset_piece.addSelectionListener(
+					    	new SelectionAdapter()
+				    		{
+				    			public void 
+				    			widgetSelected(
+				    				SelectionEvent e) 
+				    			{
+				    				dm_piece.reset();
+				    				
+				    				if ( pm_piece != null ){
+				    					
+				    					pm_piece.reset();
+				    				}
+				    			}
+				    		});
 					}					
 				}
 			});

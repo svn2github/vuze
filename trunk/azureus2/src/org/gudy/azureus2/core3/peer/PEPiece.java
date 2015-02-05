@@ -121,7 +121,7 @@ PEPiece
 	public void			setResumePriority(int p);
 
 	public String[] 	getWriters();
-	public void			setWritten(PEPeer peer, int blockNumber);
+	public void			setWritten(String peer, int blockNumber);
 	public boolean 		isWritten();
 	public boolean 		isWritten( int blockNumber);
 	

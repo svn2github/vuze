@@ -24,6 +24,8 @@ package org.gudy.azureus2.core3.global.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
@@ -32,6 +34,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerListenerAdapter;
@@ -54,6 +58,9 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 public class 
 GlobalManagerFileMerger 
 {
+	private static final boolean	TRACE = false;
+	
+	
 	private static final int MIN_PIECES				= 5;
 	private static final int HASH_FAILS_BEFORE_QUIT	= 3;
 	
@@ -62,6 +69,9 @@ GlobalManagerFileMerger
 	private static final int SYNC_TIMER_TICKS	= SYNC_TIMER_PERIOD/TIMER_PERIOD;
 	
 	private GlobalManagerImpl		gm;
+	
+	private boolean	initialised;
+	private boolean	enabled;
 	
 	private Map<HashWrapper,DownloadManager>		dm_map = new HashMap<HashWrapper, DownloadManager>();
 	
@@ -102,6 +112,23 @@ GlobalManagerFileMerger
 	private void
 	initialise()
 	{
+		COConfigurationManager.addAndFireParameterListener(
+			"Merge Same Size Files",
+			new ParameterListener(){
+				
+				public void 
+				parameterChanged(
+					String name ) 
+				{
+					enabled = COConfigurationManager.getBooleanParameter( name );
+					
+					if ( initialised ){
+						
+						syncFileSets();
+					}
+				}
+			});
+		
 		gm.addListener(
 			new GlobalManagerAdapter()
 			{				
@@ -122,6 +149,8 @@ GlobalManagerFileMerger
 			false );
 		
 		syncFileSets();
+		
+		initialised = true;
 	}
 	
 	private void
@@ -135,41 +164,44 @@ GlobalManagerFileMerger
 
 			Set<HashWrapper>	existing_dm_hashes = new HashSet<HashWrapper>( dm_map.keySet());
 			
-			for ( DownloadManager dm: dms ){
+			if ( enabled ){
 				
-				if ( !dm.isPersistent()){
+				for ( DownloadManager dm: dms ){
 					
-					continue;
-				}
-				
-				DownloadManagerState state = dm.getDownloadState();
-				
-				if ( 	state.getFlag( DownloadManagerState.FLAG_LOW_NOISE ) ||
-						state.getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
+					if ( !dm.isPersistent()){
+						
+						continue;
+					}
 					
-					continue;
-				}
-				
-				if ( !dm.isDownloadComplete( false )){
-				
-					TOTorrent torrent = dm.getTorrent();
+					DownloadManagerState state = dm.getDownloadState();
 					
-					if ( torrent != null ){
-										
-						try{
-							HashWrapper hw = torrent.getHashWrapper();
-							
-							if ( dm_map.containsKey( hw )){
+					if ( 	state.getFlag( DownloadManagerState.FLAG_LOW_NOISE ) ||
+							state.getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
+						
+						continue;
+					}
+					
+					if ( !dm.isDownloadComplete( false )){
+					
+						TOTorrent torrent = dm.getTorrent();
+						
+						if ( torrent != null ){
+											
+							try{
+								HashWrapper hw = torrent.getHashWrapper();
 								
-								existing_dm_hashes.remove( hw );
-								
-							}else{
-								
-								dm_map.put( hw, dm );
-								
-								changed = true;
+								if ( dm_map.containsKey( hw )){
+									
+									existing_dm_hashes.remove( hw );
+									
+								}else{
+									
+									dm_map.put( hw, dm );
+									
+									changed = true;
+								}
+							}catch( Throwable e ){
 							}
-						}catch( Throwable e ){
 						}
 					}
 				}
@@ -541,7 +573,9 @@ GlobalManagerFileMerger
 				dm.addPeerListener( dmpl );
 			}
 			
-			System.out.println( "created " + getString());
+			dl_has_restarted = true;
+			
+			if ( TRACE )System.out.println( "created " + getString());
 		}
 			
 		private void
@@ -620,7 +654,19 @@ GlobalManagerFileMerger
 		{
 			destroy();
 			
-			System.out.println( "abandoned " + getString());
+			String msg = "Abandoned attempt to merge files:\n";
+			
+			for ( SameSizeFileWrapper file: file_wrappers ){
+				
+				msg += file.getDownloadManager().getDisplayName() + " - " + file.getFile().getTorrentFile().getRelativePath() + "\n";
+			}
+			msg += "\nToo many hash fails in " + failed.getDownloadManager().getDisplayName();
+			
+			Logger.log(					
+					new LogAlert(
+						true,
+						LogAlert.AT_INFORMATION,
+						msg ));	
 		}
 		
 		private void
@@ -640,7 +686,7 @@ GlobalManagerFileMerger
 				}
 			}
 			
-			System.out.println( "destroyed " + getString());
+			if ( TRACE )System.out.println( "destroyed " + getString());
 		}
 		
 		private String
@@ -759,7 +805,7 @@ GlobalManagerFileMerger
 				long 						offset, 
 				long 						length ) 
 			{
-				System.out.println( "written: " + offset + "/" + length );
+				if ( TRACE )System.out.println( "written: " + offset + "/" + length );
 				
 				final DiskManager		disk_manager	= getDiskManager();
 				final PEPeerManager	peer_manager 		= getPeerManager();
@@ -826,7 +872,7 @@ GlobalManagerFileMerger
 				final long	avail_start 			= ( first_piece_num * piece_length ) + ( first_block * DiskManager.BLOCK_SIZE );
 				final long	avail_end_inclusive 	= ( last_piece_num  * piece_length ) + ( last_block * DiskManager.BLOCK_SIZE ) + pieces[last_piece_num].getBlockSize( last_block ) - 1;
 					
-				System.out.println( first_piece_num + "/" + first_block + " - " + last_piece_num + "/" + last_block  + ": " + avail_start + "-" + avail_end_inclusive );
+				if ( TRACE )System.out.println( first_piece_num + "/" + first_block + " - " + last_piece_num + "/" + last_block  + ": " + avail_start + "-" + avail_end_inclusive );
 				
 				for ( final SameSizeFileWrapper other_file: file_wrappers ){
 					
@@ -892,7 +938,7 @@ GlobalManagerFileMerger
 												try{
 													boolean completed_piece = target_piece.getNbWritten() == target_piece.getNbBlocks() - 1;
 													
-													System.out.println( "Write from " + origin_piece_num + "/" + origin_block_num + " to " + target_piece_num + "/" + target_block_num );
+													if ( TRACE )System.out.println( "Write from " + origin_piece_num + "/" + origin_block_num + " to " + target_piece_num + "/" + target_block_num );
 
 													if ( other_file.writeBlock( target_piece_num, target_block_num, buffer )){
 									
@@ -1044,7 +1090,7 @@ GlobalManagerFileMerger
 																					
 														boolean completed_piece = target_piece.getNbWritten() == target_piece.getNbBlocks() - 1;
 														
-														System.out.println( "Write from " + origin_offset + "/" + delta + "/" + target_block_size + " to " + target_piece_num + "/" + target_block_num );
+														if ( TRACE )System.out.println( "Write from " + origin_offset + "/" + delta + "/" + target_block_size + " to " + target_piece_num + "/" + target_block_num );
 
 														if ( other_file.writeBlock( target_piece_num, target_block_num, write_block )){
 															

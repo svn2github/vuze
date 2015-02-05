@@ -686,6 +686,8 @@ public class GlobalManagerImpl
     
     	new DownloadStateTagger( this );
     }
+    
+    new GlobalManagerFileMerger( this );
   }
   
   public void loadExistingTorrentsNow(boolean async)

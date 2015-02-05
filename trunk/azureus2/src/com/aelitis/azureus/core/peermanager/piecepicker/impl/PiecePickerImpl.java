@@ -2856,7 +2856,7 @@ implements PiecePicker
 	 * and attach/detach listeners to them
 	 */
 	private class PEPeerManagerListenerImpl
-	implements PEPeerManagerListener
+	extends PEPeerManagerListenerAdapter
 	{
 		public final void peerAdded(final PEPeerManager manager, PEPeer peer )
 		{
@@ -2875,37 +2875,6 @@ implements PiecePicker
 			// remove this listener from list of listeners and from the peer
 			final PEPeerListenerImpl peerListener =(PEPeerListenerImpl)peerListeners.remove(peer);
 			peer.removeListener(peerListener);
-		}
-
-		public void peerDiscovered(PEPeerManager manager, PeerItem peer, PEPeer finder) {
-		}
-		
-		public void 
-		pieceAdded( 
-			PEPeerManager 	manager, 
-			PEPiece 		piece, 
-			PEPeer 			for_peer )
-		{
-		}
-		  
-		public void 
-		pieceRemoved( 
-			PEPeerManager 	manager, 
-			PEPiece 		piece )
-		{
-		}
-		
-		public void 
-		peerSentBadData(
-			PEPeerManager 	manager,
-			PEPeer 			peer, 
-			int 			pieceNumber) 
-		{							
-		}
-		
-		public void
-		destroyed()
-		{		
 		}
 	}
 

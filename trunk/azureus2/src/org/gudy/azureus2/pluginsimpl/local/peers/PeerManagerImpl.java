@@ -106,16 +106,8 @@ PeerManagerImpl
 		pe_pieces	= _manager.getPieces();
 		
 		manager.addListener(
-			new PEPeerManagerListener()
+			new PEPeerManagerListenerAdapter()
 			{
-				 public void
-				 peerAdded(
-					PEPeerManager	manager, 
-					PEPeer 			peer )
-				 {
-					 
-				 }
-				 
 				 public void 
 				 peerRemoved( 
 					PEPeerManager 	manager, 
@@ -127,35 +119,6 @@ PeerManagerImpl
 						 
 						 dele.closed();
 					 }
-				 }
-				 
-				 public void 
-				 peerDiscovered(
-					PEPeerManager manager,
-					PeerItem peer, 
-					PEPeer finder) 
-				 {
-				 }
-				 
-				 public void 
-				 peerSentBadData(
-					PEPeerManager manager, PEPeer peer,	int pieceNumber) 
-				 {
-				 }
-				 
-				 public void 
-				 pieceAdded( 
-					 PEPeerManager 	manager, 
-					 PEPiece 		piece, 
-					 PEPeer 		for_peer )
-				 {
-				 }
-
-				 public void 
-				 pieceRemoved( 
-					 PEPeerManager 	manager, 
-					 PEPiece 		piece )
-				 {
 				 }
 					
 				 public void
@@ -583,7 +546,7 @@ PeerManagerImpl
 
 			final Map	peer_map = new HashMap();
 
-			PEPeerManagerListener core_listener = new PEPeerManagerListener() {
+			PEPeerManagerListener core_listener = new PEPeerManagerListenerAdapter() {
 				public void peerAdded( PEPeerManager manager, PEPeer peer ) {
 					PeerImpl pi = getPeerForPEPeer( peer );
 					peer_map.put( peer, pi );
@@ -601,39 +564,6 @@ PeerManagerImpl
 					else{         
 						l.peerRemoved( PeerManagerImpl.this, pi );
 					}
-				}
-				
-				public void 
-				peerDiscovered(
-					PEPeerManager manager,
-					PeerItem peer, 
-					PEPeer finder) 
-				{
-				}
-				
-				public void 
-				pieceAdded( 
-					PEPeerManager 	manager, 
-					PEPiece 		piece, 
-					PEPeer 			for_peer )
-				{
-				}
-				  
-				public void 
-				pieceRemoved( 
-					PEPeerManager 	manager, 
-					PEPiece 		piece )
-				{
-				}
-				
-				public void 
-				peerSentBadData(PEPeerManager manager, PEPeer peer,	int pieceNumber) 
-				{
-				}
-				
-				public void
-				destroyed()
-				{
 				}
 			};
 
@@ -936,6 +866,13 @@ PeerManagerImpl
 				null,
 				new Integer( pieceNumber ));
 			
+		}
+		
+		public void 
+		pieceCorrupted(
+			PEPeerManager 	manager, 
+			int 			piece_number) 
+		{
 		}
 		
 			// disk manager methods

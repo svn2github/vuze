@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeerManagerListener;
+import org.gudy.azureus2.core3.peer.PEPeerManagerListenerAdapter;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -386,7 +387,7 @@ LightWeightSeed
 								disk_manager );
 	
 				peer_manager.addListener(
-					new PEPeerManagerListener()
+					new PEPeerManagerListenerAdapter()
 					{
 						public void 
 						peerAdded( 
@@ -403,41 +404,6 @@ LightWeightSeed
 							PEPeer 			peer )
 						{
 							last_activity_time = SystemTime.getMonotonousTime();
-						}
-						
-						public void 
-						peerDiscovered(
-							PEPeerManager manager,
-							PeerItem peer, 
-							PEPeer finder) 
-						{
-						}
-						  
-						public void 
-						pieceAdded( 
-							PEPeerManager 	manager, 
-							PEPiece 		peice, 
-							PEPeer 			for_peer )
-						{
-						}
-						  
-						public void 
-						pieceRemoved( 
-							PEPeerManager 	manager, 
-							PEPiece 		peice )
-						{
-						}
-
-						public void 
-						peerSentBadData(
-							PEPeerManager 	manager,
-							PEPeer 			peer, 
-							int 			pieceNumber) 
-						{							
-						}
-						public void
-						destroyed()
-						{
 						}
 					});
 				

@@ -209,6 +209,7 @@ public class ConfigurationDefaults {
     def.put("On Resume Recheck All", FALSE);
     def.put("Save Resume Interval", new Long(5));
     def.put("Check Pieces on Completion", TRUE);
+    def.put("Merge Same Size Files", TRUE );
     def.put("Stop Ratio", new Float(0));
     def.put("Stop Peers Ratio", ZERO);
     def.put("Disconnect Seed", TRUE);

@@ -398,6 +398,8 @@ public class ConfigSectionFile
 					btnZeroNew));
 		}
 
+			// truncate too large
+		
 		sCurConfigID = "File.truncate.if.too.large";
 		allConfigIDs.add(sCurConfigID);
 		if (userMode > 0) {
@@ -409,6 +411,21 @@ public class ConfigSectionFile
 			truncateLarge.setLayoutData(gridData);
 		}
 
+			// merge files of same size
+		
+		sCurConfigID = "Merge Same Size Files";
+		allConfigIDs.add(sCurConfigID);
+		if (userMode > 0) {
+			// truncate too large
+			BooleanParameter mergeSameSize = new BooleanParameter(gFile,
+					sCurConfigID, "ConfigView.section.file.merge.same.size");
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			mergeSameSize.setLayoutData(gridData);
+		}
+		
+			// recheck on complete
+		
 		sCurConfigID = "Check Pieces on Completion";
 		allConfigIDs.add(sCurConfigID);
 		if (userMode > 0) {

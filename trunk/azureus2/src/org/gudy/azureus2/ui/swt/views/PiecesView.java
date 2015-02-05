@@ -251,10 +251,7 @@ public class PiecesView
     				}
     			}
     		});
-		
-		new MenuItem( menu, SWT.SEPARATOR );
-		
-		/*
+				
 		final MenuItem reset_piece = new MenuItem( menu, SWT.PUSH );
 		
 		Messages.setLanguageText( reset_piece, "label.reset.piece" );
@@ -274,7 +271,8 @@ public class PiecesView
     				}
     			}
     		});
-    	*/
+		
+		new MenuItem( menu, SWT.SEPARATOR );
 	}
 	
 	public void 

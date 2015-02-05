@@ -278,8 +278,8 @@ public class FileInfoView
 							
 						final int piece_number = pn;
 						
-						DiskManagerPiece	dm_piece = dm_pieces[piece_number];
-						PEPiece				pe_piece = pe_pieces[piece_number];
+						final DiskManagerPiece	dm_piece = dm_pieces[piece_number];
+						final PEPiece			pe_piece = pe_pieces[piece_number];
 						
 						final MenuItem force_piece = new MenuItem( menu, SWT.CHECK );
 						
@@ -304,6 +304,30 @@ public class FileInfoView
 					    			}
 					    		});
 						}
+						
+						final MenuItem reset_piece = new MenuItem( menu, SWT.PUSH );
+						
+						Messages.setLanguageText( reset_piece, "label.reset.piece" );
+							
+						boolean	can_reset = dm_piece.isDone() || dm_piece.getNbWritten() > 0;
+						
+						reset_piece.setEnabled( can_reset );
+													
+						reset_piece.addSelectionListener(
+					    	new SelectionAdapter()
+				    		{
+				    			public void 
+				    			widgetSelected(
+				    				SelectionEvent e) 
+				    			{
+				    				dm_piece.reset();
+				    				
+				    				if ( pe_piece != null ){
+				    					
+				    					pe_piece.reset();
+				    				}
+				    			}
+				    		});
 					}					
 				}
 			});
