@@ -346,13 +346,12 @@ public class TorrentMenuFancy
 				e.gc.setAlpha(100);
 				e.gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1, arc,
 						arc);
-				
+
 				Color fg = e.display.getSystemColor(SWT.COLOR_LIST_FOREGROUND);
 				for (Control control : ((Composite) e.widget).getChildren()) {
 					control.setBackground(bg);
 					control.setForeground(fg);
 				}
-
 
 			}
 		};
@@ -405,6 +404,7 @@ public class TorrentMenuFancy
 		fd.top = new FormAttachment(topArea, 0, SWT.BOTTOM);
 		FormLayout layoutDetailsArea = new FormLayout();
 		layoutDetailsArea.marginWidth = 2;
+		layoutDetailsArea.marginBottom = 2;
 		detailArea.setLayout(layoutDetailsArea);
 
 		headerListener = new Listener() {
@@ -823,7 +823,8 @@ public class TorrentMenuFancy
 
 		if (hasSelection) {
 			FancyRowInfo rowSpeedDL = createRow(cParent,
-					"MyTorrentsView.menu.downSpeedLimit", "speed", false, new Listener() {
+					"MyTorrentsView.menu.downSpeedLimit", "image.torrentspeed.down",
+					false, new Listener() {
 						public void handleEvent(Event e) {
 							Event event = new Event();
 							event.type = SWT.MouseUp;
@@ -833,8 +834,8 @@ public class TorrentMenuFancy
 							e.display.post(event);
 
 							AzureusCore core = AzureusCoreFactory.getSingleton();
-							SelectableSpeedMenu.invokeSlider((Control) event.widget,
-									core, dms, false, shell);
+							SelectableSpeedMenu.invokeSlider((Control) event.widget, core,
+									dms, false, shell);
 							FancyRowInfo rowInfo = findRowInfo(event.widget);
 							if (rowInfo != null) {
 								updateRowSpeed(rowInfo, false);
@@ -849,7 +850,8 @@ public class TorrentMenuFancy
 
 		if (hasSelection) {
 			FancyRowInfo rowSpeedUL = createRow(cParent,
-					"MyTorrentsView.menu.upSpeedLimit", "speed", false, new Listener() {
+					"MyTorrentsView.menu.upSpeedLimit", "image.torrentspeed.up", false,
+					new Listener() {
 						public void handleEvent(Event e) {
 							Event event = new Event();
 							event.type = SWT.MouseUp;
@@ -859,7 +861,8 @@ public class TorrentMenuFancy
 							e.display.post(event);
 
 							AzureusCore core = AzureusCoreFactory.getSingleton();
-							SelectableSpeedMenu.invokeSlider((Control) e.widget, core, dms, true, shell);
+							SelectableSpeedMenu.invokeSlider((Control) e.widget, core, dms,
+									true, shell);
 							FancyRowInfo rowInfo = findRowInfo(event.widget);
 							if (rowInfo != null) {
 								updateRowSpeed(rowInfo, true);
@@ -1260,15 +1263,15 @@ public class TorrentMenuFancy
 
 		cRow.setData("ID", id);
 		GridLayout gridLayout = new GridLayout(3, false);
-		gridLayout.marginWidth = 3;
+		gridLayout.marginWidth = 5;
 		gridLayout.marginHeight = 3;
-		gridLayout.horizontalSpacing = 5;
+		gridLayout.horizontalSpacing = 4;
 		gridLayout.verticalSpacing = 0;
 		cRow.setLayout(gridLayout);
 
 		Label lblIcon = new Label(cRow, SWT.CENTER | SWT.NONE);
 		GridData gridData = new GridData();
-		gridData.widthHint = 16;
+		gridData.widthHint = 20;
 		lblIcon.setLayoutData(gridData);
 		if (keyImage != null) {
 			ImageLoader.getInstance().setLabelImage(lblIcon, keyImage);
@@ -1402,15 +1405,15 @@ public class TorrentMenuFancy
 			return;
 		}
 
-		createMenuRow(detailArea, "label.tags", null,
+		createMenuRow(detailArea, "label.tags", "image.sidebar.tag-overview",
 				new FancyMenuRowInfoListener() {
 					public void buildMenu(Menu menu) {
 						TagUIUtils.addLibraryViewTagsSubMenu(dms, menu, detailArea);
 					}
 				});
 
-		createMenuRow(detailArea, "MyTorrentsView.menu.setCategory", null,
-				new FancyMenuRowInfoListener() {
+		createMenuRow(detailArea, "MyTorrentsView.menu.setCategory",
+				"image.sidebar.library", new FancyMenuRowInfoListener() {
 					public void buildMenu(Menu menu) {
 						TorrentUtil.addCategorySubMenu(dms, menu, detailArea);
 					}
