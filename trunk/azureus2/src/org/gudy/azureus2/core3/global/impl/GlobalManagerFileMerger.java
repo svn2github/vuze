@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -361,6 +362,8 @@ GlobalManagerFileMerger
 		final private Set<DiskManagerFileInfo>		files;
 		final private Set<SameSizeFileWrapper>		file_wrappers;
 		
+		private boolean	completion_logged;
+		
 		private volatile boolean	dl_has_restarted;
 		
 		private volatile boolean	destroyed;
@@ -639,6 +642,55 @@ GlobalManagerFileMerger
 					}
 				}
 			}
+			
+			if ( !completion_logged ){
+				
+				boolean	all_done 		= true;
+				long	total_merged	= 0;
+				
+				for ( SameSizeFileWrapper ssf: file_wrappers ){
+					
+					if ( ssf.isSkipped()){
+						
+						continue;
+					}
+					
+					total_merged += ssf.getMergedByteCount();
+
+					if ( !ssf.isComplete()){
+					
+						all_done = false;
+					}
+				}
+				
+				if ( all_done ){
+					
+					completion_logged	= true;
+					
+					if ( total_merged > 0 ){
+						
+						String msg = "Successfully merged files:\n";
+						
+						for ( SameSizeFileWrapper file: file_wrappers ){
+							
+							long	merged = file.getMergedByteCount();
+							
+							if ( merged > 0 ){
+								
+								msg += file.getDownloadManager().getDisplayName() + " - " + file.getFile().getTorrentFile().getRelativePath() + ": " + DisplayFormatters.formatByteCountToKiBEtc( merged ) + "\n";
+							}
+						}
+							
+						msg += "\nTotal: " + DisplayFormatters.formatByteCountToKiBEtc( total_merged );
+						
+						Logger.log(					
+								new LogAlert(
+									true,
+									LogAlert.AT_INFORMATION,
+									msg ));	
+					}
+				}
+			}
 		}
 			
 		private boolean
@@ -719,6 +771,8 @@ GlobalManagerFileMerger
 			private final long						file_byte_offset;
 			
 			private final String					id;
+			
+			private long							merged_byte_counnt;
 			
 			private final boolean[]					modified_pieces;
 			
@@ -1229,6 +1283,8 @@ GlobalManagerFileMerger
 				
 				modified_pieces[ piece_number - file.getFirstPieceNumber() ] = true;
 				
+				merged_byte_counnt += buffer.remaining( DirectByteBuffer.SS_EXTERNAL );
+				
 				pm.writeBlock( piece_number, block_number*DiskManager.BLOCK_SIZE, buffer, "block-xfer from " + getID(), true );
 				
 				return( true );
@@ -1252,6 +1308,12 @@ GlobalManagerFileMerger
 						}
 					}
 				}
+			}
+			
+			private long
+			getMergedByteCount()
+			{
+				return( merged_byte_counnt );
 			}
 		}
 	}
