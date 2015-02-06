@@ -770,6 +770,18 @@ GlobalManagerFileMerger
 				return( file );
 			}
 			
+			private boolean
+			isSkipped()
+			{
+				return( file.isSkipped());
+			}
+			
+			private boolean
+			isComplete()
+			{
+				return( file.getLength() == file.getDownloaded());
+			}
+			
 			private DownloadManager
 			getDownloadManager()
 			{
@@ -876,7 +888,7 @@ GlobalManagerFileMerger
 				
 				for ( final SameSizeFileWrapper other_file: file_wrappers ){
 					
-					if ( other_file == this || other_file.getFile().isSkipped()){
+					if ( other_file == this || other_file.isSkipped() || other_file.isComplete()){
 						
 						continue;
 					}
@@ -894,7 +906,12 @@ GlobalManagerFileMerger
 						{
 							public void
 							runSupport()
-							{								
+							{		
+								if ( other_file.isComplete()){
+									
+									return;
+								}
+								
 								DiskManagerPiece[]	other_pieces = other_disk_manager.getPieces();
 								
 								long other_piece_length 	= other_disk_manager.getPieceLength();
@@ -905,7 +922,7 @@ GlobalManagerFileMerger
 									
 										// special case of direct block->block mapping
 									
-									for ( long block_start = avail_start; block_start < avail_end_inclusive; block_start += DiskManager.BLOCK_SIZE ){
+									for ( long block_start = avail_start; block_start <= avail_end_inclusive; block_start += DiskManager.BLOCK_SIZE ){
 				
 										if ( destroyed ){
 											
@@ -935,13 +952,29 @@ GlobalManagerFileMerger
 												
 												DirectByteBuffer buffer = disk_manager.readBlock( origin_piece_num, origin_block_num*DiskManager.BLOCK_SIZE, origin_piece.getBlockSize( origin_block_num ));
 				
+												if ( buffer == null ){
+													
+													continue;
+												}
+												
+
+												written = target_piece.getWritten();
+												
+												if ( target_piece.isDone() || (written != null && written[target_block_num])){
+													
+													continue;
+												}
+											
 												try{
+												
 													boolean completed_piece = target_piece.getNbWritten() == target_piece.getNbBlocks() - 1;
 													
 													if ( TRACE )System.out.println( "Write from " + origin_piece_num + "/" + origin_block_num + " to " + target_piece_num + "/" + target_block_num );
 
 													if ( other_file.writeBlock( target_piece_num, target_block_num, buffer )){
 									
+														buffer = null;
+														
 														if ( completed_piece ){
 															
 															pieces_completed++;
@@ -955,10 +988,7 @@ GlobalManagerFileMerger
 																	
 																}
 															}
-														}
-														
-														buffer = null;
-														
+														}													
 													}else{
 														
 														break;
@@ -975,13 +1005,14 @@ GlobalManagerFileMerger
 									}
 								}else{
 										// need two blocks from source to consider writing to target
+										// unless this is the last block and short enough 
 									
 									DirectByteBuffer	prev_block 		= null;
 									int					prev_block_pn	= 0;
 									int					prev_block_bn	= 0;
 									
-									try{
-										for ( long block_start = avail_start; block_start < avail_end_inclusive; block_start += DiskManager.BLOCK_SIZE ){
+									try{										
+										for ( long block_start=avail_start; block_start <= avail_end_inclusive; block_start += DiskManager.BLOCK_SIZE ){
 											
 											if ( destroyed ){
 												
@@ -989,12 +1020,6 @@ GlobalManagerFileMerger
 											}
 											
 											long	origin_start 			= block_start;
-											long	origin_end_inclusive	= block_start + 2*DiskManager.BLOCK_SIZE - 1;
-											
-											if ( origin_end_inclusive > avail_end_inclusive ){
-												
-												origin_end_inclusive = avail_end_inclusive;
-											}
 											
 											long target_offset = origin_start - skew;
 											
@@ -1007,11 +1032,11 @@ GlobalManagerFileMerger
 					
 											DiskManagerPiece	target_piece = other_pieces[target_piece_num];
 					
-											boolean[]	written = target_piece.getWritten();
-					
-											if ( target_piece.isDone() || (written != null && written[target_block_num])){
+											boolean[]	target_written = target_piece.getWritten();
+															
+											if ( target_piece.isDone() || (target_written != null && ( target_block_num >= target_written.length || target_written[target_block_num]))){
 												
-												// already written
+												// already written or no such block
 												
 											}else{
 											
@@ -1025,8 +1050,14 @@ GlobalManagerFileMerger
 					
 													DiskManagerPiece	origin1_piece = pieces[origin1_piece_number];
 													
+													if ( !origin1_piece.isWritten( origin1_block_num )){
+														
+														continue;	// might have failed
+													}
+													
 													DirectByteBuffer read_block1	= null;
 													DirectByteBuffer read_block2	= null;
+													DirectByteBuffer write_block	= null;
 													
 													try{
 														if ( 	prev_block != null &&
@@ -1039,23 +1070,14 @@ GlobalManagerFileMerger
 														}else{
 														
 															read_block1 = disk_manager.readBlock( origin1_piece_number , origin1_block_num*DiskManager.BLOCK_SIZE, origin1_piece.getBlockSize( origin1_block_num ));
+															
+															if ( read_block1 == null ){
+																
+																continue;
+															}
 														}
 														
-														int	origin2_piece_number 	= origin1_piece_number;
-														int	origin2_block_num		= origin1_block_num + 1;
-														
-														if ( origin2_block_num >= origin1_piece.getNbBlocks()){
-															
-															origin2_piece_number++;
-															
-															origin2_block_num = 0;
-														}
-						
-														DiskManagerPiece	origin2_piece = pieces[origin2_piece_number];
-						
-														read_block2 = disk_manager.readBlock( origin2_piece_number , origin2_block_num*DiskManager.BLOCK_SIZE, origin2_piece.getBlockSize( origin2_block_num ));
-														
-														DirectByteBuffer write_block = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL, target_block_size );
+														write_block = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL, target_block_size );
 														
 														final byte SS = DirectByteBuffer.SS_EXTERNAL;
 																
@@ -1069,48 +1091,95 @@ GlobalManagerFileMerger
 														
 														write_block.limit( SS, target_block_size );
 														
-														read_block2.limit( SS, write_block.remaining( SS ));
-														
-														write_block.put( SS, read_block2 );
-														
-														write_block.flip( SS );
-														
 														read_block1.returnToPool();
 														
 														read_block1 = null;
 														
-														read_block2.position( SS, 0 );
-														read_block2.limit( SS, read_block2.capacity( SS ));
-														
-														prev_block 		= read_block2;
-														prev_block_pn	= origin2_piece_number;
-														prev_block_bn	= origin2_block_num;
-																
-														read_block2	= null;
-																					
-														boolean completed_piece = target_piece.getNbWritten() == target_piece.getNbBlocks() - 1;
-														
-														if ( TRACE )System.out.println( "Write from " + origin_offset + "/" + delta + "/" + target_block_size + " to " + target_piece_num + "/" + target_block_num );
-
-														if ( other_file.writeBlock( target_piece_num, target_block_num, write_block )){
+														if ( write_block.hasRemaining( SS )){
+																												
+															int	origin2_piece_number 	= origin1_piece_number;
+															int	origin2_block_num		= origin1_block_num + 1;
 															
-															if ( completed_piece ){
+															if ( origin2_block_num >= origin1_piece.getNbBlocks()){
 																
-																pieces_completed++;
+																origin2_piece_number++;
 																
-																if ( pieces_completed < 5 ){
-																	
-																	try{
-																		Thread.sleep(500);
-																		
-																	}catch( Throwable e ){
-																		
-																	}
-																}
+																origin2_block_num = 0;
 															}
+							
+															if ( origin2_piece_number < pieces.length ){
+																
+																DiskManagerPiece	origin2_piece = pieces[origin2_piece_number];
+								
+																if ( !origin2_piece.isWritten( origin2_block_num )){
+																	
+																	continue;
+																}
+																
+																read_block2 = disk_manager.readBlock( origin2_piece_number , origin2_block_num*DiskManager.BLOCK_SIZE, origin2_piece.getBlockSize( origin2_block_num ));
+																
+																if ( read_block2 == null ){
+																	
+																	continue;
+																}
+																
+																read_block2.limit( SS, write_block.remaining( SS ));
+																
+																write_block.put( SS, read_block2 );
+																
+																read_block2.position( SS, 0 );
+																read_block2.limit( SS, read_block2.capacity( SS ));
+																
+																prev_block 		= read_block2;
+																prev_block_pn	= origin2_piece_number;
+																prev_block_bn	= origin2_block_num;
+																		
+																read_block2	= null;
+															}
+														}
+														
+														if ( write_block.hasRemaining( SS )){
+															
+															continue;
+															
 														}else{
 															
-															break;
+															write_block.flip( SS );
+																
+															target_written = target_piece.getWritten();
+																														
+															if ( target_piece.isDone() || (target_written != null && target_written[target_block_num])){
+
+																	// seems to have been done in the meantime
+																
+															}else{
+																boolean completed_piece = target_piece.getNbWritten() == target_piece.getNbBlocks() - 1;
+																
+																if ( TRACE )System.out.println( "Write from " + origin_offset + "/" + delta + "/" + target_block_size + " to " + target_piece_num + "/" + target_block_num );
+		
+																if ( other_file.writeBlock( target_piece_num, target_block_num, write_block )){
+																	
+																	write_block = null;
+																			
+																	if ( completed_piece ){
+																		
+																		pieces_completed++;
+																		
+																		if ( pieces_completed < 5 ){
+																			
+																			try{
+																				Thread.sleep(500);
+																				
+																			}catch( Throwable e ){
+																				
+																			}
+																		}
+																	}
+																}else{
+																	
+																	break;
+																}
+															}
 														}
 													}finally{
 														
@@ -1122,6 +1191,11 @@ GlobalManagerFileMerger
 														if ( read_block2 != null ){
 															
 															read_block2.returnToPool();
+														}
+														
+														if ( write_block != null ){
+															
+															write_block.returnToPool();
 														}
 													}
 												}
