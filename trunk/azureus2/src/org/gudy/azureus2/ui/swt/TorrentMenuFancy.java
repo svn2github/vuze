@@ -30,6 +30,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -97,9 +98,13 @@ public class TorrentMenuFancy
 
 		private Label lblIcon;
 
+		private Label lblCheck;
+
 		private Composite cRow;
 
 		private boolean keepMenu;
+
+		private boolean isSelected;
 
 		public void setEnabled(boolean enabled) {
 			cRow.setEnabled(enabled);
@@ -108,6 +113,9 @@ public class TorrentMenuFancy
 		public Label getRightLabel() {
 			if (lblRight == null) {
 				lblRight = new Label(cRow, SWT.NONE);
+				GridData gd = new GridData();
+				gd.horizontalIndent = 10;
+				lblRight.setLayoutData(gd);
 				lblRight.setEnabled(false);
 			}
 			return lblRight;
@@ -131,6 +139,10 @@ public class TorrentMenuFancy
 
 		public void setRightLabel(Label lblRight) {
 			this.lblRight = lblRight;
+		}
+		
+		public void setRightLabelText(String s) {
+			getRightLabel().setText(s);
 		}
 
 		public Label getIconLabel() {
@@ -157,6 +169,19 @@ public class TorrentMenuFancy
 			this.keepMenu = keepMenu;
 		}
 
+		public void setSelection(boolean isSelected) {
+			this.isSelected = isSelected;
+			ImageLoader.getInstance().setLabelImage(lblCheck,
+					isSelected ? "check_yes" : "check_no");
+		}
+		
+		public boolean isSelected() {
+			return isSelected;
+		}
+
+		public void setCheckLabel(Label lblCheck) {
+			this.lblCheck = lblCheck;
+		}
 	}
 
 	private static class FancyMenuRowInfo
@@ -806,7 +831,7 @@ public class TorrentMenuFancy
 
 		// Open Bar
 		if (hasSelection) {
-			createRow(cParent, "MyTorrentsView.menu.showdownloadbar", "downloadBar",
+			FancyRowInfo row = createRow(cParent, "MyTorrentsView.menu.showdownloadbar", "downloadBar",
 					new ListenerDMTask(dms) {
 						public void run(DownloadManager dm) {
 							if (DownloadBar.getManager().isOpen(dm)) {
@@ -816,7 +841,7 @@ public class TorrentMenuFancy
 							}
 						} // run
 					});
-			//itemBar.setSelection(barsOpened);
+			row.setSelection(barsOpened);
 		}
 
 		//////////////////////////////////////
@@ -983,10 +1008,10 @@ public class TorrentMenuFancy
 			for (int j = 0; j < dms.length; j++) {
 				DownloadManager dm = dms[j];
 
-				boolean b = dm.getDownloadState().getFlag(
+				boolean filterDisabled = dm.getDownloadState().getFlag(
 						DownloadManagerState.FLAG_DISABLE_IP_FILTER);
 
-				if (b) {
+				if (filterDisabled) {
 					allEnabled = false;
 				} else {
 					allDisabled = false;
@@ -995,9 +1020,9 @@ public class TorrentMenuFancy
 
 			boolean bChecked;
 
-			if (allDisabled) {
+			if (allEnabled) {
 				bChecked = true;
-			} else if (allEnabled) {
+			} else if (allDisabled) {
 				bChecked = false;
 			} else {
 				bChecked = false;
@@ -1005,7 +1030,7 @@ public class TorrentMenuFancy
 
 			final boolean newDisable = bChecked;
 
-			createRow(cParent, "MyTorrentsView.menu.ipf_enable", null,
+			FancyRowInfo row = createRow(cParent, "MyTorrentsView.menu.ipf_enable", null,
 					new ListenerDMTask(dms) {
 						public void run(DownloadManager dm) {
 							dm.getDownloadState().setFlag(
@@ -1013,7 +1038,7 @@ public class TorrentMenuFancy
 						}
 					});
 
-			//ipf_enable.setSelection(bChecked);
+			row.setSelection(bChecked);
 		}
 
 		// === advanced > networks ===
@@ -1137,7 +1162,7 @@ public class TorrentMenuFancy
 			} else {
 				currentSpeed = DisplayFormatters.formatByteCountToKiBEtcPerSec(dlRate);
 			}
-			row.getRightLabel().setText(currentSpeed);
+			row.setRightLabelText(currentSpeed);
 			row.cRow.layout();
 		}
 	}
@@ -1222,7 +1247,7 @@ public class TorrentMenuFancy
 		row.setKeepMenu(true);
 		//row.getRightLabel().setText("\u25B6");
 		Label rightLabel = row.getRightLabel();
-		GridData gd = new GridData(10, SWT.DEFAULT);
+		GridData gd = new GridData(12, SWT.DEFAULT);
 		rightLabel.setLayoutData(gd);
 		row.getRightLabel().addPaintListener(paintListenerArrow);
 
@@ -1262,15 +1287,18 @@ public class TorrentMenuFancy
 		//cRow.setBackground(ColorCache.getRandomColor());
 
 		cRow.setData("ID", id);
-		GridLayout gridLayout = new GridLayout(3, false);
-		gridLayout.marginWidth = 5;
+		GridLayout gridLayout = new GridLayout(4, false);
+		gridLayout.marginWidth = 1;
 		gridLayout.marginHeight = 3;
-		gridLayout.horizontalSpacing = 4;
+		gridLayout.marginRight = 4;
+		gridLayout.horizontalSpacing = 0;
 		gridLayout.verticalSpacing = 0;
 		cRow.setLayout(gridLayout);
 
+		GridData gridData;
+
 		Label lblIcon = new Label(cRow, SWT.CENTER | SWT.NONE);
-		GridData gridData = new GridData();
+		gridData = new GridData();
 		gridData.widthHint = 20;
 		lblIcon.setLayoutData(gridData);
 		if (keyImage != null) {
@@ -1280,6 +1308,7 @@ public class TorrentMenuFancy
 		Label item = new Label(cRow, SWT.NONE);
 		gridData = new GridData();
 		gridData.grabExcessHorizontalSpace = true;
+		gridData.horizontalIndent = 2;
 		item.setLayoutData(gridData);
 		Messages.setLanguageText(item, keyTitle);
 
@@ -1293,11 +1322,18 @@ public class TorrentMenuFancy
 
 		cRow.addPaintListener(listenerRowPaint);
 
+		Label lblCheck = new Label(cRow, SWT.CENTER | SWT.BORDER);
+		gridData = new GridData();
+		gridData.widthHint = 13;
+		lblCheck.setLayoutData(gridData);
+
+
 		rowInfo.setListener(triggerListener);
 		rowInfo.setRow(cRow);
 		rowInfo.setIconLabel(lblIcon);
 		rowInfo.setText(item);
 		rowInfo.setRightLabel(null);
+		rowInfo.setCheckLabel(lblCheck);
 
 		mapRowInfos.put(id, rowInfo);
 		return rowInfo;
