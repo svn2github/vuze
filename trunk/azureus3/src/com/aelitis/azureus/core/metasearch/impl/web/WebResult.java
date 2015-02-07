@@ -444,6 +444,8 @@ public class WebResult extends Result {
 			
 			if ( 	lc_link.startsWith("http://") || 
 					lc_link.startsWith("https://") ||
+					lc_link.startsWith("tor:http://") || 
+					lc_link.startsWith("tor:https://") || 
 					lc_link.startsWith("azplug:") ||
 					lc_link.startsWith("magnet:") ||
 					lc_link.startsWith("bc:") ||

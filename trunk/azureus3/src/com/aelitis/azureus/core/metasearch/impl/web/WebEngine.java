@@ -70,8 +70,8 @@ WebEngine
 	private static final boolean AUTOMATIC_DATE_PARSER_DEFAULT 	= true;
 	
 	static private final Pattern baseTagPattern = Pattern.compile("(?i)<base.*?href=\"([^\"]+)\".*?>");
-	static private final Pattern rootURLPattern = Pattern.compile("(https?://[^/]+)");
-	static private final Pattern baseURLPattern = Pattern.compile("(https?://.*/)");
+	static private final Pattern rootURLPattern = Pattern.compile("((?:tor:)?https?://[^/]+)");
+	static private final Pattern baseURLPattern = Pattern.compile("((?:tor:)?https?://.*/)");
 		
 	
 	private String 			searchURLFormat;
@@ -561,6 +561,10 @@ WebEngine
 
 		if ( searchURL.toLowerCase( Locale.US ).startsWith( "tor:" )){
 			
+				// strip out any stuff we probably don't want to send
+			
+			searchContext = new HashMap<String, String>();
+			
 			String target_resource = searchURLFormat.substring( 4 );
 			
 			URL location;
@@ -600,9 +604,17 @@ WebEngine
 				
 				pageDetails	details = getWebPageContentSupport( proxy, proxy_host, url.toExternalForm(), searchParameters, searchContext, headers, only_if_modified );
 			
+				String content = details.getContent();
+				
+				content = content.replaceAll( "(?i)http://", "tor:http://" );
+				content = content.replaceAll( "(?i)https://", "tor:https://" );
+				content = content.replaceAll( "(?i)ftp://", "tor:ftp://" );
+				
+				details.setContent( content );
+				
 				if ( verifier != null ){
 					
-					verifier.verify( details );;
+					verifier.verify( details );
 				}
 				
 				ok = true;
@@ -616,6 +628,18 @@ WebEngine
 		}
 		
 		try{
+			try{
+				URL url = new URL( searchURL );
+			
+				if ( AENetworkClassifier.categoriseAddress( url.getHost()) != AENetworkClassifier.AT_PUBLIC ){
+					
+					// strip out any stuff we probably don't want to send
+					
+					searchContext = new HashMap<String, String>();
+				}
+			}catch( Throwable e ){
+			}
+			
 			pageDetails	details = getWebPageContentSupport( null, null, searchURL, searchParameters, searchContext, headers, only_if_modified );
 		
 			if ( verifier != null ){
@@ -1486,6 +1510,13 @@ WebEngine
 		getContent()
 		{
 			return( content );
+		}
+		
+		private void
+		setContent(
+			String		_content )
+		{
+			content	= _content;
 		}
 		
 		public void

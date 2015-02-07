@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,7 +33,6 @@ import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
-import com.aelitis.azureus.core.metasearch.impl.web.WebEngine.pageDetails;
 
 public class 
 RSSEngine 
@@ -293,7 +293,9 @@ RSSEngine
 					
 						String link_url = cdp_link.toExternalForm();
 						
-						if ( link_url.toLowerCase().startsWith( "http" )){
+						String lc_url = link_url.toLowerCase( Locale.US );
+						
+						if ( lc_url.startsWith( "http" ) || lc_url.startsWith( "tor:http" )){
 						
 							result.setCDPLink( link_url );
 							
