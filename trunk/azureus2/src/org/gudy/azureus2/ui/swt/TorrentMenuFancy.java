@@ -1322,7 +1322,7 @@ public class TorrentMenuFancy
 
 		cRow.addPaintListener(listenerRowPaint);
 
-		Label lblCheck = new Label(cRow, SWT.CENTER | SWT.BORDER);
+		Label lblCheck = new Label(cRow, SWT.CENTER);
 		gridData = new GridData();
 		gridData.widthHint = 13;
 		lblCheck.setLayoutData(gridData);
