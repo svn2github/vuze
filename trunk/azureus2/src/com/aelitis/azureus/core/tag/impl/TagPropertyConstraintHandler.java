@@ -1056,6 +1056,7 @@ TagPropertyConstraintHandler
 	private static final int FT_MATCHES		= 10;
 	
 	private static final int FT_HAS_NET		= 11;
+	private static final int FT_IS_COMPLETE	= 12;
 
 	
 	private class
@@ -1102,6 +1103,12 @@ TagPropertyConstraintHandler
 			}else if ( func_name.equals( "isPrivate" )){
 
 				fn_type = FT_IS_PRIVATE;
+
+				params_ok = params.length == 0;
+				
+			}else if ( func_name.equals( "isComplete" )){
+
+				fn_type = FT_IS_COMPLETE;
 
 				params_ok = params.length == 0;
 				
@@ -1207,12 +1214,15 @@ TagPropertyConstraintHandler
 					
 					return( false );
 				}
-
 				case FT_IS_PRIVATE:{
 				
 					TOTorrent t = dm.getTorrent();
 				
 					return( t != null && t.getPrivate());
+				}
+				case FT_IS_COMPLETE:{
+					
+					return( dm.isDownloadComplete( false ));
 				}
 				case FT_GE:
 				case FT_GT:
@@ -1378,8 +1388,18 @@ TagPropertyConstraintHandler
 						
 					}else{
 						
-						return( new Float( dm.getStats().getShareRatio()/1000.0f ));
+						return( new Float( sr/1000.0f ));
 					}
+				}else if ( str.equals( "percent" )){
+					
+					result = null;	// don't cache this!
+					
+						// 0->1000
+					
+					int percent = dm.getStats().getPercentDoneExcludingDND();
+
+					return( new Float( percent/10.0f ));
+					
 				}else{
 					
 					Debug.out( "Invalid constraint numeric: " + str );
