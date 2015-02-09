@@ -1407,86 +1407,94 @@ public class GlobalManagerImpl
    */
   public void 
   stopGlobalManager() {
-  	try{
-  		managers_mon.enter();
-  		
-  		if ( isStopping ){
-  			
-  			return;
-  		}
-  		
-  		isStopping	= true;
-  		
-  	}finally{
-  		
-  		managers_mon.exit();
-  	}
-  		
-  	stats.save();
-  	
-	informDestroyInitiated();
-	
-	if ( host_support != null ){
-		host_support.destroy();
-	}
-  
-  torrent_folder_watcher.destroy();
-	
-		// kick off a non-daemon task. This will ensure that we hang around
-		// for at least LINGER_PERIOD to run other non-daemon tasks such as writing
-		// torrent resume data...
-	
-	try{
-    	NonDaemonTaskRunner.run(
-    			new NonDaemonTask()
-    			{
-    				public Object
-    				run()
-    				{	
-    					return( null );
-    				}
-    				
-    				public String
-    				getName()
-    				{
-    					return( "Stopping global manager" );
-    				}
-    			});
-	}catch( Throwable e ){
-		Debug.printStackTrace( e );
-	}
-	
-  checker.stopIt();
-  
-  if ( COConfigurationManager.getBooleanParameter("Pause Downloads On Exit" )){
-	  
-	  pauseDownloads( true );
-	  
-	  	// do this before save-downloads so paused state gets saved
-	  
-	  stopAllDownloads( true );
-	  
-	  saveDownloads( true );
+	  try{
+		  managers_mon.enter();
 
-  }else{
-  
-	  saveDownloads( true );
-  
-	  stopAllDownloads( true );
-  }
- 
-  if ( stats_writer != null ){
-  	
-  	stats_writer.destroy();
-  }
-  
-  DownloadManagerStateFactory.saveGlobalStateCache();
-  
-  managers_cow	= new ArrayList();
-  
-  manager_map.clear();
-  
-  informDestroyed();
+		  if ( isStopping ){
+
+			  return;
+		  }
+
+		  isStopping	= true;
+
+	  }finally{
+
+		  managers_mon.exit();
+	  }
+
+	  stats.save();
+
+	  informDestroyInitiated();
+
+	  if ( host_support != null ){
+		  host_support.destroy();
+	  }
+
+	  torrent_folder_watcher.destroy();
+
+	  // kick off a non-daemon task. This will ensure that we hang around
+	  // for at least LINGER_PERIOD to run other non-daemon tasks such as writing
+	  // torrent resume data...
+
+	  try{
+		  NonDaemonTaskRunner.run(
+				  new NonDaemonTask()
+				  {
+					  public Object
+					  run()
+					  {	
+						  return( null );
+					  }
+
+					  public String
+					  getName()
+					  {
+						  return( "Stopping global manager" );
+					  }
+				  });
+	  }catch( Throwable e ){
+		  Debug.printStackTrace( e );
+	  }
+
+	  checker.stopIt();
+
+	  if ( COConfigurationManager.getBooleanParameter("Pause Downloads On Exit" )){
+
+		  pauseDownloads( true );
+
+		  // do this before save-downloads so paused state gets saved
+
+		  stopAllDownloads( true );
+
+		  saveDownloads( true );
+
+	  }else{
+
+		  saveDownloads( true );
+
+		  stopAllDownloads( true );
+	  }
+
+	  if ( stats_writer != null ){
+
+		  stats_writer.destroy();
+	  }
+
+	  DownloadManagerStateFactory.saveGlobalStateCache();
+
+	  try{
+		  managers_mon.enter();
+
+		  managers_cow	= new ArrayList<DownloadManager>();
+
+		  manager_map.clear();
+
+	  }finally{  
+
+		  managers_mon.exit();
+	  }
+
+	  informDestroyed();
   }
 
   public void stopAllDownloads() {
