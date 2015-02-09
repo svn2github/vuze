@@ -27,6 +27,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderImpl;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderManager;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -309,12 +310,33 @@ public class TorrentDownloaderFactory {
   								
   								proxy_tried = true;
   								
-  	  							if ( lc_url.startsWith( "http" )){
+  								boolean	tor_hack = lc_url.startsWith( "tor:" );
+  								
+  	  							if ( lc_url.startsWith( "http" ) || tor_hack ){
 
   	  								try{
-  	  									URL original_url = new URL( url );
+  	  									URL original_url;
   	  									
-  	  									plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", original_url );
+  	  									if ( tor_hack ){
+  	  										
+  	  										original_url = new URL( url.substring( 4 ));
+  	  										
+  	  										Map<String,Object>	options = new HashMap<String,Object>();
+  	  								
+  	  										options.put( AEProxyFactory.PO_PEER_NETWORKS, new String[]{ AENetworkClassifier.AT_TOR });
+  	  							
+		  	  								plugin_proxy = 
+		  	  									AEProxyFactory.getPluginProxy( 
+		  	  										"torrent download",
+		  	  										original_url,
+		  	  										options,
+		  	  										true );
+		  	  							}else{
+  	  									
+		  	  								original_url = new URL( url );
+		  	  							}
+  	  									
+  	  									plugin_proxy = AEProxyFactory.getPluginProxy( "torrent download", original_url );
   	  									
   	  									if ( plugin_proxy != null ){
   	  										
