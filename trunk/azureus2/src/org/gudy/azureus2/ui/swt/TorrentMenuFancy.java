@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
@@ -140,7 +141,7 @@ public class TorrentMenuFancy
 		public void setRightLabel(Label lblRight) {
 			this.lblRight = lblRight;
 		}
-		
+
 		public void setRightLabelText(String s) {
 			getRightLabel().setText(s);
 		}
@@ -174,7 +175,7 @@ public class TorrentMenuFancy
 			ImageLoader.getInstance().setLabelImage(lblCheck,
 					isSelected ? "check_yes" : "check_no");
 		}
-		
+
 		public boolean isSelected() {
 			return isSelected;
 		}
@@ -680,7 +681,7 @@ public class TorrentMenuFancy
 
 	public void buildTorrentCustomMenu_Control(final Composite cParent,
 			final DownloadManager[] dms) {
-		int userMode = COConfigurationManager.getIntParameter("User Mode");
+		final int userMode = COConfigurationManager.getIntParameter("User Mode");
 
 		boolean start = false;
 		boolean stop = false;
@@ -831,7 +832,8 @@ public class TorrentMenuFancy
 
 		// Open Bar
 		if (hasSelection) {
-			FancyRowInfo row = createRow(cParent, "MyTorrentsView.menu.showdownloadbar", "downloadBar",
+			FancyRowInfo row = createRow(cParent,
+					"MyTorrentsView.menu.showdownloadbar", "downloadBar",
 					new ListenerDMTask(dms) {
 						public void run(DownloadManager dm) {
 							if (DownloadBar.getManager().isOpen(dm)) {
@@ -1030,8 +1032,8 @@ public class TorrentMenuFancy
 
 			final boolean newDisable = bChecked;
 
-			FancyRowInfo row = createRow(cParent, "MyTorrentsView.menu.ipf_enable", null,
-					new ListenerDMTask(dms) {
+			FancyRowInfo row = createRow(cParent, "MyTorrentsView.menu.ipf_enable",
+					null, new ListenerDMTask(dms) {
 						public void run(DownloadManager dm) {
 							dm.getDownloadState().setFlag(
 									DownloadManagerState.FLAG_DISABLE_IP_FILTER, newDisable);
@@ -1135,6 +1137,69 @@ public class TorrentMenuFancy
 										}
 									});
 							itemFileClearResume.setEnabled(allStopped);
+
+							if (userMode > 1 && isSeedingView) {
+
+								boolean canSetSuperSeed = false;
+								boolean superSeedAllYes = true;
+								boolean superSeedAllNo = true;
+								for (DownloadManager dm : dms) {
+									PEPeerManager pm = dm.getPeerManager();
+
+									if (pm != null) {
+
+										if (pm.canToggleSuperSeedMode()) {
+
+											canSetSuperSeed = true;
+										}
+
+										if (pm.isSuperSeedMode()) {
+
+											superSeedAllYes = false;
+
+										} else {
+
+											superSeedAllNo = false;
+										}
+									} else {
+										superSeedAllYes = false;
+										superSeedAllNo = false;
+									}
+								}
+
+								final MenuItem itemSuperSeed = new MenuItem(menu, SWT.CHECK);
+
+								Messages.setLanguageText(itemSuperSeed,
+										"ManagerItem.superseeding");
+
+								boolean enabled = canSetSuperSeed
+										&& (superSeedAllNo || superSeedAllYes);
+
+								itemSuperSeed.setEnabled(enabled);
+
+								final boolean selected = superSeedAllNo;
+
+								if (enabled) {
+
+									itemSuperSeed.setSelection(selected);
+
+									itemSuperSeed.addListener(SWT.Selection, new ListenerDMTask(
+											dms) {
+										public void run(DownloadManager dm) {
+											PEPeerManager pm = dm.getPeerManager();
+
+											if (pm != null) {
+
+												if (pm.isSuperSeedMode() == selected
+														&& pm.canToggleSuperSeedMode()) {
+
+													pm.setSuperSeedMode(!selected);
+												}
+											}
+										}
+									});
+								}
+							}
 
 						}
 					});
@@ -1326,7 +1391,6 @@ public class TorrentMenuFancy
 		gridData = new GridData();
 		gridData.widthHint = 13;
 		lblCheck.setLayoutData(gridData);
-
 
 		rowInfo.setListener(triggerListener);
 		rowInfo.setRow(cRow);
