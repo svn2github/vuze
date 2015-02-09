@@ -167,6 +167,17 @@ public class HTTPUtils {
 	decodeChunkedEncoding(
 		Socket		socket )
 
+				throws IOException 
+	{
+		return decodeChunkedEncoding(socket, false);
+	}
+
+
+	public static InputStream 
+	decodeChunkedEncoding(
+		Socket		socket,
+		boolean ignoreStatusCode)
+
 		throws IOException 
 	{
 		InputStream	is = socket.getInputStream();
@@ -193,8 +204,8 @@ public class HTTPUtils {
 		int p1 = reply_header.indexOf(NL);
 
 		String first_line = reply_header.substring(0, p1).trim();
-
-		if ( first_line.indexOf( "200" ) == -1 ){
+		
+		if ( !ignoreStatusCode && first_line.indexOf( "200" ) == -1 ){
 
 			String	info = null;
 			
