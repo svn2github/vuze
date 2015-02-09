@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -1399,6 +1400,19 @@ TagPropertyConstraintHandler
 					int percent = dm.getStats().getPercentDoneExcludingDND();
 
 					return( new Float( percent/10.0f ));
+					
+				}else if ( str.equals( "age" )){
+					
+					result = null;	// don't cache this!
+						
+					long added = dm.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+
+					if ( added <= 0 ){
+						
+						return( 0 );
+					}
+					
+					return(( SystemTime.getCurrentTime() - added )/1000 );		// secs
 					
 				}else{
 					
