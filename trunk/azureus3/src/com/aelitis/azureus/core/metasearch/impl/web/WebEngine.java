@@ -1411,6 +1411,8 @@ WebEngine
 		searchURLFormat = str;
 		
 		init();
+		
+		getMetaSearch().configDirty();
 	}
 	
 	public String getLoginPageUrl() {

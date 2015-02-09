@@ -2230,6 +2230,9 @@ SubscriptionManagerUI
 					auth_str = String.valueOf(true) + ": cookies=" + toString( web_engine.getRequiredCookies());
 				}
 			}
+			
+			engine_str +=  ", eid=" + engine.getId();
+			
 		}catch( Throwable e ){
 			
 			engine_str 	= "Unknown";
@@ -2295,7 +2298,7 @@ SubscriptionManagerUI
 				String.valueOf( subs.getVersion()),
 				subs.getHighestVersion() > subs.getVersion()?String.valueOf( subs.getHighestVersion()):null,
 				subs.getCachedPopularity()<=1?null:String.valueOf( subs.getCachedPopularity()),
-				engine_str,
+				engine_str + ", sid=" + subs.getID(),
 				auth_str,
 				category_str,
 				tag_str,

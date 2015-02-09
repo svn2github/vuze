@@ -1253,7 +1253,7 @@ MetaSearchImpl
 		}
 	}
 	
-	protected void
+	public void
 	configDirty()
 	{
 		synchronized( this ){
