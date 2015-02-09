@@ -863,6 +863,12 @@ public class TorrentMenuFancy
 							AzureusCore core = AzureusCoreFactory.getSingleton();
 							SelectableSpeedMenu.invokeSlider((Control) event.widget, core,
 									dms, false, shell);
+							if (e.display.getActiveShell() != shell) {
+								if (!shell.isDisposed()) {
+									shell.dispose();
+								}
+								return;
+							}
 							FancyRowInfo rowInfo = findRowInfo(event.widget);
 							if (rowInfo != null) {
 								updateRowSpeed(rowInfo, false);
@@ -890,6 +896,12 @@ public class TorrentMenuFancy
 							AzureusCore core = AzureusCoreFactory.getSingleton();
 							SelectableSpeedMenu.invokeSlider((Control) e.widget, core, dms,
 									true, shell);
+							if (e.display.getActiveShell() != shell) {
+								if (!shell.isDisposed()) {
+									shell.dispose();
+								}
+								return;
+							}
 							FancyRowInfo rowInfo = findRowInfo(event.widget);
 							if (rowInfo != null) {
 								updateRowSpeed(rowInfo, true);
