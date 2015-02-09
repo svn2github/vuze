@@ -176,8 +176,8 @@ public class GlobalManagerImpl
 				}
 			});
 	
-	private List<DownloadManager> 		managers_cow	= new ArrayList<DownloadManager>();
-	private AEMonitor	managers_mon	= new AEMonitor( "GM:Managers" );
+	private volatile List<DownloadManager> 		managers_cow	= new ArrayList<DownloadManager>();
+	private AEMonitor							managers_mon	= new AEMonitor( "GM:Managers" );
 	
 	private Map		manager_map			= new HashMap();
 		
@@ -198,7 +198,7 @@ public class GlobalManagerImpl
 	private GlobalManagerHostSupport	host_support;
   
 		// for non-persistent downloads
-	private Map<HashWrapper,Map>							saved_download_manager_state	= new HashMap<HashWrapper,Map>();
+	private Map<HashWrapper,Map>		saved_download_manager_state	= new HashMap<HashWrapper,Map>();
 	
 	
 	private int							next_seed_piece_recheck_index;
@@ -2132,14 +2132,21 @@ public class GlobalManagerImpl
   	try{
   		managers_mon.enter();
   		
-	    Collections.sort(managers_cow, new Comparator () {
-        public final int compare (Object a, Object b) {
-        	return ((DownloadManager) a).getPosition()
-							- ((DownloadManager) b).getPosition();
-        }
-      });
+  		List<DownloadManager>	managers_temp = new ArrayList<DownloadManager>( managers_cow );
+
+	    Collections.sort(
+	    	managers_temp, 
+	    	new Comparator () 
+	    	{
+	    		public final int 
+	    		compare(Object a, Object b) {
+	    			return ((DownloadManager) a).getPosition() - ((DownloadManager) b).getPosition();
+	    		}
+	    	});
   	
-      if (Logger.isEnabled())
+	    managers_cow = managers_temp;
+	    
+	    if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "Saving Download List ("
 						+ managers_cow.size() + " items)"));
 	    Map map = new HashMap();
@@ -2586,7 +2593,13 @@ public class GlobalManagerImpl
       
       	int posComplete = 1;
       	int posIncomplete = 1;
-		    Collections.sort(managers_cow, new Comparator () {
+		
+  		List<DownloadManager>	managers_temp = new ArrayList<DownloadManager>( managers_cow );
+
+      	Collections.sort(
+      		managers_temp, 
+      		new Comparator() 
+      		{
 	          public final int compare (Object a, Object b) {
 	            int i = ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
 	            if (i != 0) {
@@ -2603,6 +2616,9 @@ public class GlobalManagerImpl
 	            return 0;
 	          }
 	        } );
+      	
+      	managers_cow = managers_temp;
+      	
         for (int i = 0; i < managers_cow.size(); i++) {
           DownloadManager dm = (DownloadManager) managers_cow.get(i);
           if (dm.isDownloadComplete(false))
