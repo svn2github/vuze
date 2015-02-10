@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
@@ -453,6 +454,8 @@ TagManagerImpl
 							
 							String obtained_from = TorrentUtils.getObtainedFrom( core_download.getTorrent());
 							
+							String[] dl_nets = core_download.getDownloadState().getNetworks();
+							
 							boolean	added_fl = false;
 							
 							if ( obtained_from != null ){
@@ -462,20 +465,57 @@ TagManagerImpl
 									
 									if ( ou.getProtocol().toLowerCase( Locale.US ).startsWith( "http" )){
 										
-										magnet_uri += "&fl=" + UrlUtils.encode( ou.toExternalForm());
+										String host = ou.getHost();
 										
-										added_fl = true;
+											// make sure the originator network is compatible with the ones enabled
+											// for the download
+										
+										String net = AENetworkClassifier.categoriseAddress( host );
+										
+										boolean	net_ok = false;
+										
+										if ( dl_nets == null || dl_nets.length == 0 ){
+										
+											net_ok = true;
+											
+										}else{
+											
+											for ( String dl_net: dl_nets ){
+											
+												if ( dl_net == net ){
+													
+													net_ok = true;
+													
+													break;
+												}
+											}
+										}
+										
+										if ( net_ok ){
+											
+											magnet_uri += "&fl=" + UrlUtils.encode( ou.toExternalForm());
+											
+											added_fl = true;
+										}
 									}
 								}catch( Throwable e ){
 									
 								}
 							}
 							
+								// in theory we could add multiple &fls but it keeps things less confusing
+								// and more efficient to just use one - if an external link is available and
+								// the torrent file is a reasonable size and the rss feed is popular then this
+								// can avoid quite a bit of load - plus it reduces the size of magnet URI
+							
 							if ( !added_fl ){
 							
 								String host = (String)request.getHeaders().get( "host" );
 								
 								if ( host != null ){
+									
+										// don't need to check network here as we are replying with the network
+										// used to contact us
 									
 									String local_fl = url.getProtocol() + "://" + host + "/" + RSS_PROVIDER + "/GetTorrent?hash=" + Base32.encode( torrent.getHash());
 																	
