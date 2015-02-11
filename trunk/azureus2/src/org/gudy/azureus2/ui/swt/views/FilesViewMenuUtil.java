@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -37,9 +38,10 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
@@ -66,7 +68,7 @@ public class FilesViewMenuUtil
 	public static final Object PRIORITY_SKIPPED 		= new Object();
 	public static final Object PRIORITY_DELETE 			= new Object();
 
-	public static void fillMenu(final TableView tv,
+	public static void fillMenu(final TableView<?> tv,
 			final Menu menu, final DownloadManager manager,
 			final Object[] data_sources) {
 		Shell shell = menu.getShell();
@@ -340,6 +342,19 @@ public class FilesViewMenuUtil
 		itemLow.addListener(SWT.Selection, priorityListener);
 		itemSkipped.addListener(SWT.Selection, priorityListener);
 		itemDelete.addListener(SWT.Selection, priorityListener);
+		
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items = MenuItemManager.getInstance().getAllAsArray(
+				MenuManager.MENU_FILE_CONTEXT);
+		if (menu_items.length > 0) {
+			// plugins take org.gudy.azureus2.plugins.disk.DiskManagerFileInfo
+			org.gudy.azureus2.plugins.disk.DiskManagerFileInfo[] fileInfos = new org.gudy.azureus2.plugins.disk.DiskManagerFileInfo[data_sources.length];
+			for (int i = 0; i < data_sources.length; i++) {
+				fileInfos[i] = (org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
+						data_sources[i], false);
+			}
+			MenuBuildUtils.addPluginMenuItems(menu_items, menu, false, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(fileInfos));
+		}
 	}
 
 	public static void rename(final TableView tv, final DownloadManager not_used,

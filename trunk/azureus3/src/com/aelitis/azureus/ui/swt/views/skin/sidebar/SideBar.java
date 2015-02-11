@@ -1112,8 +1112,7 @@ public class SideBar
 
 		menu_items = MenuItemManager.getInstance().getAllAsArray("sidebar");
 
-		MenuBuildUtils.addPluginMenuItems((Composite) soMain.getControl(),
-				menu_items, menuTree, false, true,
+		MenuBuildUtils.addPluginMenuItems(menu_items, menuTree, false, true,
 				new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
 					entry
 				}));
@@ -1172,8 +1171,7 @@ public class SideBar
 				}
 			}
 
-			MenuBuildUtils.addPluginMenuItems((Composite) soMain.getControl(),
-					menu_items, menuTree, false, true,
+			MenuBuildUtils.addPluginMenuItems(menu_items, menuTree, false, true,
 					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
 						entry
 					}));

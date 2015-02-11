@@ -392,7 +392,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 		if (plugin_menu_ids != null) {
 			menu_items = MenuItemManager.getInstance().getAllAsArray(plugin_menu_ids);
 			if (menu_items.length > 0) {
-				MenuBuildUtils.addPluginMenuItems(splash, menu_items, menu, true, true,
+				MenuBuildUtils.addPluginMenuItems(menu_items, menu, true, true,
 						// This will retrieve the plugin download object for associated menus.
 						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(plugin_context_obj_arg)
 				);

@@ -909,14 +909,13 @@ public class TableViewSWT_Common
 				} else {
 					target = selectedRows;
 				}
-				MenuBuildUtils.addPluginMenuItems(tv.getComposite(), menu_items, menu,
-						true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
-								target));
+				MenuBuildUtils.addPluginMenuItems(menu_items, menu, true, true,
+						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(target));
 			}
 
 			if (items.length > 0) {
-				MenuBuildUtils.addPluginMenuItems(tv.getComposite(), items, menu, true,
-						enable_items, new MenuBuildUtils.PluginMenuController() {
+				MenuBuildUtils.addPluginMenuItems(items, menu, true, enable_items,
+						new MenuBuildUtils.PluginMenuController() {
 							public Listener makeSelectionListener(
 									final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
 								return new TableSelectedRowsListener(tv, false) {
@@ -959,7 +958,6 @@ public class TableViewSWT_Common
 					new MenuItem(menu, SWT.SEPARATOR);
 
 					MenuBuildUtils.addPluginMenuItems(
-							tv.getComposite(),
 							columnItems,
 							menu,
 							true,
@@ -1164,8 +1162,8 @@ public class TableViewSWT_Common
 		if (items.length > 0) {
 			new MenuItem(menu, SWT.SEPARATOR);
 
-			MenuBuildUtils.addPluginMenuItems(tv.getComposite(), items, menu,
-					true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
+			MenuBuildUtils.addPluginMenuItems(items, menu, true, true, 
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
 							tv.getSelectedDataSources(true)));
 
 		}

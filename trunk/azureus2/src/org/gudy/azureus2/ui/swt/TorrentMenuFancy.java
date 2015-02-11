@@ -258,7 +258,6 @@ public class TorrentMenuFancy
 
 	private PaintListener paintListenerArrow;
 
-
 	public TorrentMenuFancy(final TableViewSWT<?> tv,
 			final boolean isSeedingView, Shell parentShell,
 			final DownloadManager[] dms, final String tableID) {
@@ -598,7 +597,7 @@ public class TorrentMenuFancy
 		if (header == null || activatedHeader == header) {
 			return;
 		}
-		
+
 		if (currentMenu != null && !currentMenu.isDisposed()) {
 			currentMenu.setVisible(false);
 		}
@@ -1285,7 +1284,7 @@ public class TorrentMenuFancy
 						subMenuVisible = false;
 						currentMenu = null;
 						Utils.execSWTThreadLater(0, new Runnable() {
-							
+
 							public void run() {
 								arg0.widget.dispose();
 							}
@@ -1791,9 +1790,8 @@ public class TorrentMenuFancy
 									}
 								}
 
-								MenuBuildUtils.addPluginMenuItems(parentShell, item.getItems(),
-										menu, false, true,
-										new MenuBuildUtils.PluginMenuController() {
+								MenuBuildUtils.addPluginMenuItems(item.getItems(), menu, false,
+										true, new MenuBuildUtils.PluginMenuController() {
 
 											public Listener makeSelectionListener(
 													final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
@@ -1811,7 +1809,7 @@ public class TorrentMenuFancy
 													org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
 												((MenuItemImpl) menu_item).invokeMenuWillBeShownListeners(getTarget(item));
 											}
-											
+
 											// @see org.gudy.azureus2.ui.swt.MenuBuildUtils.PluginMenuController#buildSubmenu(org.gudy.azureus2.plugins.ui.menus.MenuItem)
 											public void buildSubmenu(
 													org.gudy.azureus2.plugins.ui.menus.MenuItem parent) {

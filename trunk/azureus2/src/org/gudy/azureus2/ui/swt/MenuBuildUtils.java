@@ -226,7 +226,6 @@ public class MenuBuildUtils {
 	 * MenuItemManager or TableContextMenuManager, where plugins will usually
 	 * register menu items they have created.
 	 * 
-	 * @param composite Some composite to get a shell from.
 	 * @param items The list of plugin MenuItem to add
 	 * @param parent The SWT Menu to add to.
 	 * @param prev_was_separator Indicates if the previous item in the menu is
@@ -238,8 +237,8 @@ public class MenuBuildUtils {
 	 * @param controller The callback object used by this method when creating the
 	 *            SWT menus (used for invoking fill and selection listeners).
 	 */
-	public static void addPluginMenuItems(final Composite composite,
-			MenuItem[] items, Menu parent,	boolean prev_was_separator,
+	public static void addPluginMenuItems(MenuItem[] items, Menu parent,
+			boolean prev_was_separator,
 			final boolean enable_items, final PluginMenuController controller) {
 		
 		for (int i = 0; i < items.length; i++) {
@@ -314,13 +313,13 @@ public class MenuBuildUtils {
 			});
 			
 			if (is_container) {
-				Menu this_menu = new Menu(composite.getShell(), SWT.DROP_DOWN);
+				Menu this_menu = new Menu(parent);
 				menuItem.setMenu(this_menu);
 
 				addMaintenanceListenerForMenu(this_menu, new MenuBuilder() {
 					public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
 						controller.buildSubmenu(az_menuitem);
-						addPluginMenuItems(composite, az_menuitem.getItems(), root_menu, false,
+						addPluginMenuItems(az_menuitem.getItems(), root_menu, false,
 								enable_items, controller);
 					}
 				});

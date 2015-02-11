@@ -131,7 +131,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 		}
 	}
 
-	private void update0(final CLabelPadding label) {
+	private void update0(CLabelPadding label) {
 		label.setText(text);
 		label.setToolTipText(tooltip);
 		label.setImage(image_enabled ? image : null);
@@ -148,7 +148,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 			    new MenuBuildUtils.MenuBuilder() {
 					public void buildMenu(Menu menu, MenuEvent menuEvent) {
 						MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(menu_context.context);
-						MenuBuildUtils.addPluginMenuItems(label, items, menu, true, true, 
+						MenuBuildUtils.addPluginMenuItems(items, menu, true, true, 
 							MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
 					}
 				}

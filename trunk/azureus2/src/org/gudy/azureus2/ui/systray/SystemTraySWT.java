@@ -245,7 +245,7 @@ public class SystemTraySWT
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
 		menu_items = MenuItemManager.getInstance().getAllAsArray("systray");
 		if (menu_items.length > 0) {
-			MenuBuildUtils.addPluginMenuItems(uiFunctions.getMainShell(), menu_items, menu, true, true, MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
+			MenuBuildUtils.addPluginMenuItems(menu_items, menu, true, true, MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
 		

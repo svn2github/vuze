@@ -17,6 +17,7 @@
  */
 package org.gudy.azureus2.plugins.ui.menus;
 
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -73,8 +74,8 @@ public interface MenuManager {
 	public static final String MENU_TORRENT_MENU = "torrentmenu";
 	
 	/**
-	 * All menus which are Download specific, such as download bars, the Torrent
-	 * menu, torrent tables etc.
+	 * All menus which are {@link Download} specific, such as download bars, the
+	 * Torrent menu, torrent tables etc.
 	 * <P>
 	 * data or target parameter in listener triggers will be an array of 
 	 * {@link Download}
@@ -82,7 +83,18 @@ public interface MenuManager {
 	 * @since 3.0.2
 	 */
 	public static final String MENU_DOWNLOAD_CONTEXT = "download_context";
-	
+
+	/**
+	 * All menus which are {@link DiskManagerFileInfo} specific, such as the
+	 * Files tab in Torrent Details view, or the file row within the library view
+	 * <P>
+	 * data or target parameter in listener triggers will be an array of 
+	 * {@link DiskManagerFileInfo}
+	 * 
+	 * @since 5.6
+	 */
+	public static final String MENU_FILE_CONTEXT = "file_context";
+
 	/**
 	 * Creates a menu item for the appropriate menu.
 	 * 

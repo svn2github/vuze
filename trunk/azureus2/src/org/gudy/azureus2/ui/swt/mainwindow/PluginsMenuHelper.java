@@ -80,7 +80,7 @@ public class PluginsMenuHelper
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] plugin_items;
 		plugin_items = MenuItemManager.getInstance().getAllAsArray("mainmenu");
 		if (plugin_items.length > 0) {
-			MenuBuildUtils.addPluginMenuItems(parent, plugin_items, viewMenu, true,
+			MenuBuildUtils.addPluginMenuItems(plugin_items, viewMenu, true,
 					true, MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
 		}
 
@@ -119,7 +119,7 @@ public class PluginsMenuHelper
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] plugin_items;
 		plugin_items = MenuItemManager.getInstance().getAllAsArray("mainmenu");
 		if (plugin_items.length > 0) {
-			MenuBuildUtils.addPluginMenuItems(parent, plugin_items, pluginMenu, true,
+			MenuBuildUtils.addPluginMenuItems(plugin_items, pluginMenu, true,
 					true, MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
 			MenuFactory.addSeparatorMenuItem(pluginMenu);
 		}

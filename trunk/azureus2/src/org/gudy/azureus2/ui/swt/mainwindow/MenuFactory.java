@@ -204,10 +204,8 @@ public class MenuFactory
 		if (menu_items.length > 0) {
 			addSeparatorMenuItem(menu);
 
-			MenuBuildUtils.addPluginMenuItems(menu.getShell(),
-					menu_items, menu, true, true,
-					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
-							plugin_dls));
+			MenuBuildUtils.addPluginMenuItems(menu_items, menu, true, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(plugin_dls));
 		}
 
 		menu_items = null;
@@ -244,10 +242,8 @@ public class MenuFactory
 				dls_as_rows[i] = wrapAsRow(plugin_dls[i], table_to_use);
 			}
 
-			MenuBuildUtils.addPluginMenuItems(menu.getShell(),
-					menu_items, menu, true, true,
-					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
-							dls_as_rows));
+			MenuBuildUtils.addPluginMenuItems(menu_items, menu, true, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(dls_as_rows));
 		}
 
 	}
