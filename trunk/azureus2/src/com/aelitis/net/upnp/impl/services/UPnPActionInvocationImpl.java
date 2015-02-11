@@ -27,6 +27,7 @@ package com.aelitis.net.upnp.impl.services;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
 import com.aelitis.net.upnp.*;
@@ -66,6 +67,7 @@ UPnPActionInvocationImpl
 		UPnPService	service = action.getService();
 		
 		String	soap_action = service.getServiceType() + "#" + action.getName();
+		SimpleXMLParserDocument resp_doc = null;
 		
 		try{
 			String	request =
@@ -92,7 +94,7 @@ UPnPActionInvocationImpl
 							
 				// try standard POST
 			
-			SimpleXMLParserDocument resp_doc	= ((UPnPDeviceImpl)action.getService().getDevice()).getUPnP().performSOAPRequest( service, soap_action, request );
+			resp_doc	= ((UPnPDeviceImpl)action.getService().getDevice()).getUPnP().performSOAPRequest( service, soap_action, request );
 						
 			SimpleXMLParserDocumentNode	body = resp_doc.getChild( "Body" );
 			
@@ -100,14 +102,37 @@ UPnPActionInvocationImpl
 			
 			if ( fault != null ){
 				
-				throw( new UPnPException( "Invoke of '" + soap_action + "' failed - fault reported: " + fault.getValue()));
+				String faultValue = fault.getValue();
+				if (faultValue != null && faultValue.length() > 0) {
+  				throw (new UPnPException("Invoke of '" + soap_action
+  						+ "' failed - fault reported: " + faultValue, soap_action,
+  						action, resp_doc, faultValue));
+				}
+				
+				SimpleXMLParserDocumentNode faultDetail = fault.getChild("detail");
+				if (faultDetail != null) {
+					SimpleXMLParserDocumentNode error = faultDetail.getChild("UPnPError");
+					if (error != null) {
+						SimpleXMLParserDocumentNode errDesc = error.getChild("errorDescription");
+						if (errDesc != null) {
+							String errDescValue = errDesc.getValue();
+							if (errDescValue != null && errDescValue.length() > 0) {
+			  				throw (new UPnPException("Invoke of '" + soap_action
+			  						+ "' failed - fault reported: " + errDescValue, soap_action,
+			  						action, resp_doc, errDescValue));
+							}
+						}
+					}
+				}
 			}
 			
 			SimpleXMLParserDocumentNode	resp_node = body.getChild( action.getName() + "Response" );
 			
 			if ( resp_node == null ){
 				
-				throw( new UPnPException( "Invoke of '" + soap_action + "' failed - response missing: " + body.getValue()));
+				throw (new UPnPException("Invoke of '" + soap_action
+						+ "' failed - response missing: " + body.getValue(), soap_action,
+						action, resp_doc, null));
 			}
 			
 			SimpleXMLParserDocumentNode[]	out_nodes = resp_node.getChildren();
@@ -128,7 +153,9 @@ UPnPActionInvocationImpl
 				throw((UPnPException)e);
 			}
 			
-			throw( new UPnPException( "Invoke of '" + soap_action + "' on '" + action.getService().getControlURLs() + "' failed: " + e.getMessage(), e ));	
+			throw new UPnPException("Invoke of '" + soap_action + "' on '"
+					+ action.getService().getControlURLs() + "' failed: "
+					+ e.getMessage(), e, soap_action, action, resp_doc);
 		}
 	}
 	
