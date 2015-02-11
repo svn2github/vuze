@@ -679,7 +679,16 @@ GlobalManagerFileMerger
 							
 							if ( merged > 0 ){
 								
-								msg += file.getDownloadManager().getDisplayName() + " - " + file.getFile().getTorrentFile().getRelativePath() + ": " + DisplayFormatters.formatByteCountToKiBEtc( merged ) + "\n";
+								DownloadManager dm = file.getDownloadManager();
+								
+								msg += dm.getDisplayName();
+								
+								if ( !dm.getTorrent().isSimpleTorrent()){
+																	
+									msg += " - " + file.getFile().getTorrentFile().getRelativePath();
+								}
+								
+								msg +=  ": " + DisplayFormatters.formatByteCountToKiBEtc( merged ) + "\n";
 							}
 						}
 							
