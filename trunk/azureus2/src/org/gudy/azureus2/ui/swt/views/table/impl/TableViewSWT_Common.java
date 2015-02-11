@@ -933,6 +933,20 @@ public class TableViewSWT_Common
 									org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
 								((MenuItemImpl)menu_item).invokeMenuWillBeShownListeners(tv.getSelectedRows());
 							}
+							
+							// @see org.gudy.azureus2.ui.swt.MenuBuildUtils.PluginMenuController#buildSubmenu(org.gudy.azureus2.plugins.ui.menus.MenuItem)
+							public void buildSubmenu(
+									org.gudy.azureus2.plugins.ui.menus.MenuItem parent) {
+								org.gudy.azureus2.plugins.ui.menus.MenuBuilder submenuBuilder = ((MenuItemImpl) parent).getSubmenuBuilder();
+								if (submenuBuilder != null) {
+									try {
+										parent.removeAllChildItems();
+										submenuBuilder.buildSubmenu(parent, tv.getSelectedRows());
+									} catch (Throwable t) {
+										Debug.out(t);
+									}
+								}
+							}
 						});
 			}
 		}

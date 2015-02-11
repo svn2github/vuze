@@ -25,5 +25,5 @@ package org.gudy.azureus2.plugins.ui.menus;
  */
 public interface MenuBuilder
 {
-	public void buildSubmenu(MenuItem parent);
+	public void buildSubmenu(MenuItem parent, Object target);
 }

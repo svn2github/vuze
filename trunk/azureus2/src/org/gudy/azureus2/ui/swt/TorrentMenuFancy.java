@@ -43,6 +43,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.GraphicURI;
+import org.gudy.azureus2.plugins.ui.menus.MenuBuilder;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
@@ -1754,6 +1756,16 @@ public class TorrentMenuFancy
 					new FancyMenuRowInfoListener() {
 						public void buildMenu(Menu menu) {
 							if (dms.length != 0) {
+								MenuBuilder submenuBuilder = ((MenuItemImpl) item).getSubmenuBuilder();
+								if (submenuBuilder != null) {
+									try {
+										item.removeAllChildItems();
+										submenuBuilder.buildSubmenu(item, getTarget(item));
+									} catch (Throwable t) {
+										Debug.out(t);
+									}
+								}
+
 								MenuBuildUtils.addPluginMenuItems(parentShell, item.getItems(),
 										menu, false, true,
 										new MenuBuildUtils.PluginMenuController() {
@@ -1773,6 +1785,20 @@ public class TorrentMenuFancy
 											public void notifyFillListeners(
 													org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
 												((MenuItemImpl) menu_item).invokeMenuWillBeShownListeners(getTarget(item));
+											}
+											
+											// @see org.gudy.azureus2.ui.swt.MenuBuildUtils.PluginMenuController#buildSubmenu(org.gudy.azureus2.plugins.ui.menus.MenuItem)
+											public void buildSubmenu(
+													org.gudy.azureus2.plugins.ui.menus.MenuItem parent) {
+												org.gudy.azureus2.plugins.ui.menus.MenuBuilder submenuBuilder = ((MenuItemImpl) parent).getSubmenuBuilder();
+												if (submenuBuilder != null) {
+													try {
+														parent.removeAllChildItems();
+														submenuBuilder.buildSubmenu(parent, getTarget(item));
+													} catch (Throwable t) {
+														Debug.out(t);
+													}
+												}
 											}
 										});
 							}
@@ -1796,6 +1822,9 @@ public class TorrentMenuFancy
 		row.setEnabled(item.isEnabled());
 		if (graphic instanceof UISWTGraphic) {
 			row.getIconLabel().setImage(((UISWTGraphic) graphic).getImage());
+		} else if (graphic instanceof GraphicURI) {
+			ImageLoader.getInstance().setLabelImage(row.getIconLabel(),
+					((GraphicURI) graphic).getURI().toString());
 		}
 	}
 

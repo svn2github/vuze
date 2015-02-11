@@ -33,8 +33,10 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.Menu;
+
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.GraphicURI;
 import org.gudy.azureus2.plugins.ui.menus.MenuBuilder;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
@@ -45,11 +47,10 @@ import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AENetworkClassifier;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 
 /**
@@ -160,6 +161,8 @@ public class MenuBuildUtils {
 		 * displayed in a menu.
 		 */
 		public void notifyFillListeners(MenuItem menu_item);
+		
+		public void buildSubmenu(MenuItem parent);
 	}
 
 	/**
@@ -192,6 +195,18 @@ public class MenuBuildUtils {
 			((MenuItemImpl) menu_item).invokeMenuWillBeShownListeners(objects);
 		}
 
+		// @see org.gudy.azureus2.ui.swt.MenuBuildUtils.PluginMenuController#buildSubmenu(org.gudy.azureus2.plugins.ui.menus.MenuItem)
+		public void buildSubmenu(MenuItem parent) {
+			org.gudy.azureus2.plugins.ui.menus.MenuBuilder submenuBuilder = ((MenuItemImpl) parent).getSubmenuBuilder();
+			if (submenuBuilder != null) {
+				try {
+					parent.removeAllChildItems();
+					submenuBuilder.buildSubmenu(parent, objects);
+				} catch (Throwable t) {
+					Debug.out(t);
+				}
+			}
+		}
 	}
 
 	/**
@@ -223,9 +238,9 @@ public class MenuBuildUtils {
 	 * @param controller The callback object used by this method when creating the
 	 *            SWT menus (used for invoking fill and selection listeners).
 	 */
-	public static void addPluginMenuItems(Composite composite,
+	public static void addPluginMenuItems(final Composite composite,
 			MenuItem[] items, Menu parent,	boolean prev_was_separator,
-			boolean enable_items, PluginMenuController controller) {
+			final boolean enable_items, final PluginMenuController controller) {
 		
 		for (int i = 0; i < items.length; i++) {
 			final MenuItemImpl az_menuitem = (MenuItemImpl) items[i];
@@ -301,8 +316,14 @@ public class MenuBuildUtils {
 			if (is_container) {
 				Menu this_menu = new Menu(composite.getShell(), SWT.DROP_DOWN);
 				menuItem.setMenu(this_menu);
-				addPluginMenuItems(composite, az_menuitem.getItems(), this_menu, false,
-						enable_items, controller);
+
+				addMaintenanceListenerForMenu(this_menu, new MenuBuilder() {
+					public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
+						controller.buildSubmenu(az_menuitem);
+						addPluginMenuItems(composite, az_menuitem.getItems(), root_menu, false,
+								enable_items, controller);
+					}
+				});
 			}
 			
 			String custom_title = az_menuitem.getText();
@@ -311,22 +332,12 @@ public class MenuBuildUtils {
 			Graphic g = az_menuitem.getGraphic();
 			if (g instanceof UISWTGraphic) {
 				Utils.setMenuItemImage(menuItem, ((UISWTGraphic) g).getImage());
+			} else if (g instanceof GraphicURI) {
+				Utils.setMenuItemImage(menuItem, ((GraphicURI) g).getURI().toString());
 			}
 
 			menuItem.setEnabled(enable_items && az_menuitem.isEnabled());
 			
-			org.gudy.azureus2.plugins.ui.menus.MenuBuilder submenuBuilder = az_menuitem.getSubmenuBuilder();
-			if (submenuBuilder != null) {
-				addMaintenanceListenerForMenu(parent, new MenuBuilder() {
-					public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
-						org.gudy.azureus2.plugins.ui.menus.MenuBuilder submenuBuilder = az_menuitem.getSubmenuBuilder();
-						if (submenuBuilder != null) {
-							submenuBuilder.buildSubmenu(az_menuitem);
-						}
-					}
-				});
-			}
-
 		}
 	}
 	
