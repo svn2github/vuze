@@ -53,7 +53,7 @@ public class TrackerCellUtils
 			}
 		}
 		TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
-		if (response instanceof TRTrackerBTScraperResponseImpl) {
+		if (response.getStatus() == TRTrackerScraperResponse.ST_ONLINE && response instanceof TRTrackerBTScraperResponseImpl) {
 			boolean bMultiHashScrapes = ((TRTrackerBTScraperResponseImpl) response).getTrackerStatus().getSupportsMultipeHashScrapes();
 			Color color = (bMultiHashScrapes) ? null : Colors.grey;
 			cell.setForeground(Utils.colorToIntArray(color));
@@ -73,7 +73,7 @@ public class TrackerCellUtils
 		}
 		String sToolTip = null;
 		TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
-		if (response instanceof TRTrackerBTScraperResponseImpl) {
+		if (response.getStatus() == TRTrackerScraperResponse.ST_ONLINE && response instanceof TRTrackerBTScraperResponseImpl) {
 			String sPrefix = ((TRTrackerBTScraperResponseImpl) response).getTrackerStatus().getSupportsMultipeHashScrapes()
 					? "" : "No";
 			sToolTip = MessageText.getString("Tracker.tooltip." + sPrefix
