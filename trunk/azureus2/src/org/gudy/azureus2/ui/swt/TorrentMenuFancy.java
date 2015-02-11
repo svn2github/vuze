@@ -250,11 +250,14 @@ public class TorrentMenuFancy
 
 	private HeaderInfo activatedHeader;
 
+	private Menu currentMenu;
+
 	private Point originalShellLocation;
 
 	private boolean subMenuVisible;
 
 	private PaintListener paintListenerArrow;
+
 
 	public TorrentMenuFancy(final TableViewSWT<?> tv,
 			final boolean isSeedingView, Shell parentShell,
@@ -445,10 +448,10 @@ public class TorrentMenuFancy
 					e.gc.drawLine(0, y, bounds.width, y);
 				} else if (e.type == SWT.MouseEnter) {
 					Object data = e.widget.getData("ID");
+					HeaderInfo header = mapHeaderRunnables.get(data);
 					if (DEBUG_MENU) {
 						System.out.println("enter : " + data);
 					}
-					HeaderInfo header = mapHeaderRunnables.get(data);
 
 					activateHeader(header);
 				}
@@ -594,6 +597,10 @@ public class TorrentMenuFancy
 	protected void activateHeader(HeaderInfo header) {
 		if (header == null || activatedHeader == header) {
 			return;
+		}
+		
+		if (currentMenu != null && !currentMenu.isDisposed()) {
+			currentMenu.setVisible(false);
 		}
 		Display d = header.composite.getDisplay();
 		header.composite.setBackground(d.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
@@ -1260,25 +1267,32 @@ public class TorrentMenuFancy
 				}
 
 				rowInfo = (FancyMenuRowInfo) findRowInfo;
-				Menu menu = rowInfo.getMenu();
-				if (menu != null && !menu.isDisposed()) {
+				currentMenu = rowInfo.getMenu();
+				if (currentMenu != null && !currentMenu.isDisposed()) {
 					return;
 				}
 
-				menu = new Menu(parentShell, SWT.POP_UP);
-				rowInfo.setMenu(menu);
+				currentMenu = new Menu(parentShell, SWT.POP_UP);
+				rowInfo.setMenu(currentMenu);
 
-				menu.addMenuListener(new MenuListener() {
+				currentMenu.addMenuListener(new MenuListener() {
 
 					public void menuShown(MenuEvent arg0) {
 						subMenuVisible = true;
 					}
 
-					public void menuHidden(MenuEvent arg0) {
+					public void menuHidden(final MenuEvent arg0) {
 						subMenuVisible = false;
+						currentMenu = null;
+						Utils.execSWTThreadLater(0, new Runnable() {
+							
+							public void run() {
+								arg0.widget.dispose();
+							}
+						});
 					}
 				});
-				listener.buildMenu(menu);
+				listener.buildMenu(currentMenu);
 
 				Control cursorControl = event.display.getCursorControl();
 
@@ -1288,31 +1302,42 @@ public class TorrentMenuFancy
 				if (cursorControl != null) {
 					Point size = cursorControl.getSize();
 					Point menuLocation = cursorControl.toDisplay(size.x - 3, -3);
-					menu.setLocation(menuLocation);
+					currentMenu.setLocation(menuLocation);
 				}
-				if (menu.getItemCount() > 0) {
-					menu.setVisible(true);
+				if (currentMenu.getItemCount() > 0) {
+					currentMenu.setVisible(true);
 
-					addMenuItemListener(menu, listenerForTrigger);
+					addMenuItemListener(currentMenu, listenerForTrigger);
 
 					final FancyMenuRowInfo currentRow = rowInfo;
 					// Once the menu is visible, we don't get mouse events (even with addFilter)
 					Utils.execSWTThreadLater(300, new Runnable() {
 						public void run() {
+							Control control = Utils.getCursorControl();
+
+							if (control != null) {
+								Object data = control.getData("ID");
+								HeaderInfo header = mapHeaderRunnables.get(data);
+								if (header != null) {
+									activateHeader(header);
+								}
+							}
+
 							Menu menu = currentRow.getMenu();
 							if (menu == null || menu.isDisposed() || !menu.isVisible()) {
 								return;
 							}
-							Control control = Utils.getCursorControl();
 							FancyRowInfo rowInfo = findRowInfo(control);
 							if (rowInfo != null && rowInfo != currentRow) {
 								menu.setVisible(false);
-								menu.dispose();
 								return;
 							}
 							Utils.execSWTThreadLater(300, this);
 						}
 					});
+				} else {
+					currentMenu.dispose();
+					currentMenu = null;
 				}
 			}
 		};
