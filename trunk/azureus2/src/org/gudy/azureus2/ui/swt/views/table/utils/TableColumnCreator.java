@@ -241,6 +241,7 @@ public class TableColumnCreator
 
 		c.put(SessionUpItem.COLUMN_ID, new cInfo(SessionUpItem.class, SessionUpItem.DATASOURCE_TYPE));
 		c.put(SessionDownItem.COLUMN_ID, new cInfo(SessionDownItem.class, SessionDownItem.DATASOURCE_TYPE));
+		c.put(MergedDataItem.COLUMN_ID, new cInfo(MergedDataItem.class, MergedDataItem.DATASOURCE_TYPE));
 
 		// Core columns are implementors of TableColumn to save one class creation
 		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 

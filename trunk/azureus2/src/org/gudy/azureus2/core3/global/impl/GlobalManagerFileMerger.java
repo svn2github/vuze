@@ -69,6 +69,8 @@ GlobalManagerFileMerger
 	private static final int SYNC_TIMER_PERIOD	= 60*1000;
 	private static final int SYNC_TIMER_TICKS	= SYNC_TIMER_PERIOD/TIMER_PERIOD;
 	
+	private static final Object merged_data_lock = new Object();
+	
 	private GlobalManagerImpl		gm;
 	
 	private boolean	initialised;
@@ -1283,7 +1285,20 @@ GlobalManagerFileMerger
 				
 				modified_pieces[ piece_number - file.getFirstPieceNumber() ] = true;
 				
-				merged_byte_counnt += buffer.remaining( DirectByteBuffer.SS_EXTERNAL );
+				int	length = buffer.remaining( DirectByteBuffer.SS_EXTERNAL );
+				
+				synchronized( merged_data_lock ){
+					
+					DownloadManagerState dms = download_manager.getDownloadState();
+					
+					long merged = dms.getLongAttribute( DownloadManagerState.AT_MERGED_DATA );
+					
+					merged += length;
+					
+					dms.setLongAttribute( DownloadManagerState.AT_MERGED_DATA, merged );
+				}
+				
+				merged_byte_counnt += length;
 				
 				pm.writeBlock( piece_number, block_number*DiskManager.BLOCK_SIZE, buffer, "block-xfer from " + getID(), true );
 				
