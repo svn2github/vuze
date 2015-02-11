@@ -19,6 +19,10 @@
 
 package com.aelitis.net.upnp;
 
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
+
+import com.aelitis.net.upnp.impl.services.UPnPActionImpl;
+
 /**
  * @author parg
  *
@@ -28,6 +32,11 @@ public class
 UPnPException
 	extends Exception
 {
+	public String soap_action;
+	public UPnPActionImpl action;
+	public String fault;
+	public SimpleXMLParserDocument resp_doc;
+
 	public 
 	UPnPException(
 		String		str )
@@ -40,5 +49,33 @@ UPnPException
 		Throwable 	cause )
 	{
 		super( str, cause );
+	}
+
+	public
+	UPnPException(
+			String string, 
+			Throwable e, 
+			String soap_action,
+			UPnPActionImpl action,
+			SimpleXMLParserDocument resp_doc)
+	{
+			super(string, e);
+  		this.soap_action = soap_action;
+  		this.action = action;
+  		this.resp_doc = resp_doc;
+	}
+
+	public UPnPException(
+			String message, 
+			String soap_action,
+			UPnPActionImpl action, 
+			SimpleXMLParserDocument resp_doc, 
+			String fault)
+	{
+		super(message);
+		this.soap_action = soap_action;
+		this.action = action;
+		this.resp_doc = resp_doc;
+		this.fault = fault;
 	}
 }
