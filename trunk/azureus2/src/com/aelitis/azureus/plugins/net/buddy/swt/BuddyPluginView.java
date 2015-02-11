@@ -645,7 +645,9 @@ BuddyPluginView
 							
 								if ( !chat_uis.containsKey( chat )){
 									
-									if ( chat.isFavourite() || chat.isAutoNotify() || chat.isInteresting()){
+									if ( 	chat.isFavourite() || 
+											chat.isAutoNotify() || 
+											( chat.isInteresting() && !chat.isStatistics())){
 										
 										ChatMessage last_msg = chat.getLastMessageNotMine();
 										

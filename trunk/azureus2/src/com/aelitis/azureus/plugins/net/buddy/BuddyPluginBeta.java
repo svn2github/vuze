@@ -2011,6 +2011,12 @@ BuddyPluginBeta
 			return( have_interest );
 		}
 		
+		public boolean
+		isStatistics()
+		{
+			return( key.startsWith( "Statistics:" ));
+		}
+		
 		public void
 		setFavourite(
 			boolean		b )
