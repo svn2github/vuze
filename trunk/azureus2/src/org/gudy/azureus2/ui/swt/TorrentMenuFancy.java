@@ -1579,8 +1579,7 @@ public class TorrentMenuFancy
 				new Listener() {
 					// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 					public void handleEvent(Event event) {
-						TorrentUtil.repositionManual(tv, dms, detailArea.getShell(),
-								isSeedingView);
+						TorrentUtil.repositionManual(tv, dms, parentShell, isSeedingView);
 					}
 				});
 
