@@ -71,6 +71,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -1183,7 +1184,7 @@ BuddyPluginView
 			
 			menu_items.clear();
 			
-			MenuManager menu_manager = plugin.getPluginInterface().getUIManager().getMenuManager();
+			final MenuManager menu_manager = plugin.getPluginInterface().getUIManager().getMenuManager();
 	
 			MenuContext mc = beta_status.getMenuContext();
 								
@@ -1212,6 +1213,8 @@ BuddyPluginView
 			}
 			
 			boolean	need_sep = true;
+			
+				// open all
 			
 			if ( current_instances.size() > 1 ){
 				
@@ -1255,7 +1258,85 @@ BuddyPluginView
 				menu_items.add( mi );
 			}
 			
-			MenuItem mi = menu_manager.addMenuItem( mc, "!" + MessageText.getString( "chats.view.heading" ) + "...!" );
+				// create channel
+			
+			MenuItem mi = menu_manager.addMenuItem( mc, "chat.view.create.chat" );
+	
+			mi.setStyle( MenuItem.STYLE_MENU );
+			
+			menu_items.add( mi );
+			
+			mi.addFillListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener() {
+				public void menuWillBeShown(MenuItem menu, Object data){
+					
+					menu.removeAllChildItems();
+					
+					MenuItem mi = menu_manager.addMenuItem( menu, "!" + MessageText.getString( "label.public" ) + "...!" );
+					
+					mi.addListener(
+						new MenuItemListener()
+						{
+							public void
+							selected(
+								MenuItem			menu,
+								Object 				target )
+							{
+								SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+										"chat.view.enter.key.title", "chat.view.enter.key.msg");
+								
+								entryWindow.prompt();
+								
+								if ( entryWindow.hasSubmittedInput()){
+									
+									String key = entryWindow.getSubmittedInput().trim();
+									
+									BuddyPluginUtils.createBetaChat( AENetworkClassifier.AT_PUBLIC, key, null ); 
+								}
+							}
+						});
+					
+					mi = menu_manager.addMenuItem( menu, "!" + MessageText.getString( "label.anon" ) + "...!" );
+					
+					mi.addListener(
+							new MenuItemListener()
+							{
+								public void
+								selected(
+									MenuItem			menu,
+									Object 				target )
+								{
+									if ( plugin.getBeta().isI2PAvailable()){
+										
+										SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+												"chat.view.enter.key.title", "chat.view.enter.key.msg");
+										
+										entryWindow.prompt();
+										
+										if ( entryWindow.hasSubmittedInput()){
+											
+											String key = entryWindow.getSubmittedInput().trim();
+											
+											BuddyPluginUtils.createBetaChat( AENetworkClassifier.AT_I2P, key, null ); 
+										}
+									}else{
+										
+										BuddyPluginUtils.installI2PHelper( null, null, null );
+									}
+									
+								}
+							});
+	
+					if ( BuddyPluginUtils.isInstallingI2PHelper()){
+						
+						mi.setEnabled( false );
+						mi.setText(  mi.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
+					}
+				}});
+	
+					
+				// chat overview
+			
+			mi = menu_manager.addMenuItem( mc, "!" + MessageText.getString( "chats.view.heading" ) + "...!" );
 
 			mi.addListener(
 				new MenuItemListener()
@@ -1282,6 +1363,7 @@ BuddyPluginView
 			
 			menu_items.add( mi );
 
+				// options
 			
 			mi = menu_manager.addMenuItem( mc, "MainWindow.menu.view.configuration" );
 

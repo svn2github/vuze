@@ -125,7 +125,10 @@ BuddyPluginUtils
 					
 				}finally{
 					
-					callback.run();
+					if ( callback != null ){
+					
+						callback.run();
+					}
 				}
 			}
 		}.start();
