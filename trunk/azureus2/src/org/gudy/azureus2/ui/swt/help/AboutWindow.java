@@ -171,22 +171,22 @@ public class AboutWindow {
 		final String[][] link = {
 			{
 				"homepage",
-				"sourceforge",
 				"bugreports",
 				"forumdiscussion",
 				"wiki",
 				"!Vuze Wiki Hidden Service (I2P)",
+				"!Vuze Wiki Hidden Service (Tor)",
 				"contributors",
 				"!EULA",
 				"!Privacy Policy"
 			},
 			{
 				"http://www.vuze.com",
-				"http://sourceforge.net/projects/azureus",
 				"http://forum.vuze.com/forum.jspa?forumID=124",
 				"http://forum.vuze.com",
 				Constants.AZUREUS_WIKI,
 				"http://que23xpe7o3lzq6auv6stb4bha7ddavrlgqdv2cuhgd36fgfmp6q.b32.i2p/",
+				"http://dr5aamfveql2b34p.onion/",
 				Constants.AZUREUS_WIKI + "Contributors",
 				"http://www.vuze.com/corp/terms.php",
 				"http://www.vuze.com/corp/privacy.php"
