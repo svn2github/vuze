@@ -952,6 +952,8 @@ BuddyPluginView
 			}
 			
 			buildMenu( instances );
+			
+			beta_status.setImage( bs_chat_gray );
 		}
 	}
 	
