@@ -46,6 +46,7 @@ public class BTPeerIDByteDecoderDefinitions {
 	static String VER_AZ_THREE_DIGITS_PLUS_MNEMONIC = "1.2.3 [4]";
 	static String VER_AZ_ONE_MAJ_TWO_MIN_PLUS_MNEMONIC = "1.23 [4]";
 	static String VER_AZ_FOUR_DIGITS = "1.2.3.4";
+	static String VER_AZ_FOUR_ALPHANUMBERIC_DIGITS = "1.2.3.4";
 	static String VER_AZ_TWO_MAJ_TWO_MIN = "12.34";
 	static String VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN = "2.34";
 	static String VER_AZ_KTORRENT_STYLE = "1.2.3=[RD].4";
@@ -251,7 +252,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("CD", "Enhanced CTorrent", VER_AZ_TWO_MAJ_TWO_MIN);      
 		addAzStyle("CT", "CTorrent", "1.2.34");
 		addAzStyle("DP", "Propogate Data Client");
-		addAzStyle("DE", "Deluge", VER_AZ_FOUR_DIGITS);
+		addAzStyle("DE", "Deluge", VER_AZ_FOUR_ALPHANUMBERIC_DIGITS);
 		addAzStyle("EB", "EBit");
 		addAzStyle("ES", "Electric Sheep", VER_AZ_THREE_DIGITS);
 		addAzStyle("FC", "FileCroc");
@@ -282,7 +283,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("PD", "Pando");
 		addAzStyle("PE", "PeerProject");
 		addAzStyle("pX", "pHoeniX");
-		addAzStyle("qB", "qBittorrent", VER_AZ_THREE_DIGITS);
+		addAzStyle("qB", "qBittorrent", VER_AZ_THREE_ALPHANUMERIC_DIGITS);
 		addAzStyle("QD", "qqdownload");
 		addAzStyle("RT", "Retriever");
 		addAzStyle("RZ", "RezTorrent");
