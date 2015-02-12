@@ -647,22 +647,25 @@ BuddyPluginView
 									
 									if ( 	chat.isFavourite() || 
 											chat.isAutoNotify() || 
-											( chat.isInteresting() && !chat.isStatistics())){
+											chat.isInteresting()){
 										
-										ChatMessage last_msg = chat.getLastMessageNotMine();
-										
-										if ( last_msg != null ){
+										if ( !chat.isStatistics()){
 											
-											ChatMessage last_handled = (ChatMessage)chat.getUserData( CHAT_LM_KEY );
+											ChatMessage last_msg = chat.getLastMessageNotMine();
 											
-											long last_msg_time = last_msg.getTimeStamp();
-											
-											if ( 	last_handled == null ||
-													last_msg_time > last_handled.getTimeStamp()){
+											if ( last_msg != null ){
 												
-												chat.setUserData( CHAT_LM_KEY, last_msg );
+												ChatMessage last_handled = (ChatMessage)chat.getUserData( CHAT_LM_KEY );
 												
-												betaMessagePending( chat, null, last_msg );
+												long last_msg_time = last_msg.getTimeStamp();
+												
+												if ( 	last_handled == null ||
+														last_msg_time > last_handled.getTimeStamp()){
+													
+													chat.setUserData( CHAT_LM_KEY, last_msg );
+													
+													betaMessagePending( chat, null, last_msg );
+												}
 											}
 										}
 									}

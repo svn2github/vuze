@@ -4100,6 +4100,11 @@ BuddyPluginBeta
 		{
 			synchronized( chat.chat_lock ){
 			
+				if ( participant_messages.isEmpty()){
+					
+					return( null );
+				}
+
 				return( participant_messages.get( participant_messages.size()-1).getContact());
 			}
 		}
@@ -4109,6 +4114,11 @@ BuddyPluginBeta
 		{
 			synchronized( chat.chat_lock ){
 			
+				if ( participant_messages.isEmpty()){
+					
+					return( null );
+				}
+				
 				return( participant_messages.get( participant_messages.size()-1).getAddress());
 			}
 		}
