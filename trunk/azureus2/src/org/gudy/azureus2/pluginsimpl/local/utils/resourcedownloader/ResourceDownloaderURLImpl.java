@@ -354,7 +354,18 @@ ResourceDownloaderURLImpl
 
 							if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
 								
-								throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+								URL	dest = url;
+								
+								if ( plugin_proxy != null ){
+									
+									try{
+										dest = new URL( plugin_proxy.getTarget());
+										
+									}catch( Throwable e ){
+									}
+								}
+								
+								throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( dest ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 															
 							getRequestProperties( con );
@@ -1481,6 +1492,19 @@ redirect_label:
 	trimForDisplay(
 		URL		url )
 	{
+		if ( force_proxy != null ){
+			
+			PluginProxy pp = AEProxyFactory.getPluginProxy( force_proxy );
+			
+			if ( pp != null ){
+				
+				try{
+					url = new URL( pp.getTarget());
+					
+				}catch( Throwable e ){
+				}
+			}
+		}
 		String str = url.toString();
 		
 		int pos = str.indexOf( '?' );
