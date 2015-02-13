@@ -179,6 +179,9 @@ AEProxyFactory
 	public interface
 	PluginProxy
 	{
+		public String
+		getTarget();
+		
 		public PluginProxy
 		getChildProxy(
 			String		reason,

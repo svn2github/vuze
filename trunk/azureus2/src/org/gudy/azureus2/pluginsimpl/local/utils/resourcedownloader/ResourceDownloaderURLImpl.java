@@ -991,7 +991,18 @@ redirect_label:
 										
 										getRequestProperties( con );
 										
-										throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( current_url ) + "': " + Integer.toString(response) + " " + http_con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
+										URL	dest = current_url;
+										
+										if ( current_plugin_proxy != null ){
+											
+											try{
+												dest = new URL( current_plugin_proxy.getTarget());
+												
+											}catch( Throwable e ){
+											}
+										}
+										
+										throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( dest ) + "': " + Integer.toString(response) + " " + http_con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
 									}
 									
 									getRequestProperties( con );

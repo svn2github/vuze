@@ -284,7 +284,7 @@ AEPluginProxyHandler
 								proxy_details = new Object[]{ proxy_details[0], proxy_details[1], target.getHost()};
 							}
 							
-							return( new PluginProxyImpl( reason, ipc, properties, proxy_details ));
+							return( new PluginProxyImpl( target.toExternalForm(), reason, ipc, properties, proxy_details ));
 						}
 					}catch( Throwable e ){				
 					}
@@ -327,7 +327,7 @@ AEPluginProxyHandler
 					
 					if ( proxy_details != null ){
 						
-						return( new PluginProxyImpl( reason, ipc, properties, proxy_details ));
+						return( new PluginProxyImpl( host + ":" + port, reason, ipc, properties, proxy_details ));
 					}
 				}catch( Throwable e ){	
 				}
@@ -518,6 +518,7 @@ AEPluginProxyHandler
 	{
 		private final long					create_time = SystemTime.getMonotonousTime();
 		
+		private final String				target;
 		private final String				reason;
 		
 		private final IPCInterface			ipc;
@@ -528,11 +529,13 @@ AEPluginProxyHandler
 		
 		private
 		PluginProxyImpl(
+			String				_target,
 			String				_reason,
 			IPCInterface		_ipc,
 			Map<String,Object>	_proxy_options,
 			Object[]			_proxy_details )
 		{
+			target				= _target;
 			reason				= _reason;
 			ipc					= _ipc;
 			proxy_options		= _proxy_options;
@@ -579,6 +582,12 @@ AEPluginProxyHandler
 				
 				pp.setOK( false );
 			}
+		}
+		
+		public String
+		getTarget()
+		{
+			return( target );
 		}
 		
 		public PluginProxy 
