@@ -274,8 +274,8 @@ public class TorrentMenuFancy
 			"StartStopRules.menu.viewDebug",
 			"MyTorrentsView.menu.rename.displayed"
 		};
-		mapMovedPluginMenuUserMode.put("tablemenu.main.item", 3);
-		mapMovedPluginMenuUserMode.put("azpeerinjector.contextmenu.inject", 3);
+		mapMovedPluginMenuUserMode.put("tablemenu.main.item", 2);
+		mapMovedPluginMenuUserMode.put("azpeerinjector.contextmenu.inject", 2);
 
 		mapMovedPluginMenus.put("Control", ids_control);
 		listMovedPluginIDs.addAll(Arrays.asList(ids_control));
@@ -1709,8 +1709,14 @@ public class TorrentMenuFancy
 
 		for (int i = 0; i < onlyIDs.length; i++) {
 			String id = onlyIDs[i];
+			if (DEBUG_MENU) {
+				System.out.println(" addItemsArray " + id);
+			}
 			Integer requiredUserMode = mapMovedPluginMenuUserMode.get(id);
 			if (requiredUserMode != null && userMode < requiredUserMode) {
+				if (DEBUG_MENU) {
+					System.out.println(" skipped, usermode is " + userMode + " but requires " + requiredUserMode);
+				}
 				continue;
 			}
 
@@ -1721,6 +1727,9 @@ public class TorrentMenuFancy
 				}
 
 				addPluginItem(detailArea, item);
+				if (DEBUG_MENU) {
+					System.out.println(" found, added");
+				}
 				break;
 			}
 		}
