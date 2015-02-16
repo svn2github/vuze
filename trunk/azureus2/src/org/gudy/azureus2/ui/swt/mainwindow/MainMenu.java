@@ -330,6 +330,7 @@ public class MainMenu
 		if (false == SystemProperties.isJavaWebStartInstance()) {
 			MenuFactory.addCheckUpdateMenuItem(helpMenu);
 			MenuFactory.addBetaMenuItem(helpMenu);
+			MenuFactory.addVoteMenuItem(helpMenu);
 		}
 		MenuFactory.addDonationMenuItem(helpMenu);
 

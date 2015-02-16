@@ -468,6 +468,7 @@ public class MainMenu
 			MenuFactory.addSeparatorMenuItem(helpMenu);
 			MenuFactory.addCheckUpdateMenuItem(helpMenu);
 			MenuFactory.addBetaMenuItem(helpMenu);
+			MenuFactory.addVoteMenuItem(helpMenu);
 		}
 		
 		if (FeatureManagerUI.enabled) {

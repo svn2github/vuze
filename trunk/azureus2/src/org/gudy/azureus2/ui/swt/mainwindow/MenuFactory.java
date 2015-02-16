@@ -1934,7 +1934,15 @@ public class MenuFactory
 			}
 		});
 	}
-
+	
+	public static MenuItem addVoteMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_VOTE, new Listener() {
+			public void handleEvent(Event e) {
+				Utils.launch(MessageText.getString("vote.vuze.url"));
+			}
+		});
+	}
+	
 	public static MenuItem addReleaseNotesMenuItem(final Menu menu) {
 		return addMenuItem(menu, MENU_ID_RELEASE_NOTES, new Listener() {
 			public void handleEvent(Event e) {
