@@ -345,6 +345,39 @@ public final class KeyBindings
         }
     }
 
+    public static KeyBindingInfo getKeyBindingInfo( String localizationKey)
+    {
+        localizationKey += ".keybinding";
+        final String platformSpecificKey = localizationKey + getPlatformKeySuffix();
+
+        // first, check for platform-specific, localization-specific binding
+        if(MessageText.keyExists(platformSpecificKey))
+        {
+            return( parseKeyBinding(MessageText.getString(platformSpecificKey)));
+        }
+        else if(MessageText.keyExists(localizationKey)) // platform-independent, localization-specific binding
+        {
+        	return( parseKeyBinding(MessageText.getString(localizationKey)));
+        }
+        else if(!MessageText.isCurrentLocale(MessageText.LOCALE_DEFAULT))
+        {
+            // default locale
+
+            // platform-specific first
+            if(MessageText.keyExistsForDefaultLocale(platformSpecificKey))
+            {
+            	return( parseKeyBinding(MessageText.getDefaultLocaleString(platformSpecificKey)));
+            }
+            else if(MessageText.keyExistsForDefaultLocale(localizationKey))
+            {
+                 // default locale, platform-independent
+            	return(  parseKeyBinding(MessageText.getDefaultLocaleString(localizationKey)));
+            }
+        }
+        
+        return( null );
+    }
+    
     /**
      * Helper method to set a keyboard accelerator for a MenuItem. If kbInfo is SWT.NONE, no accelerator will be set.
      * @param menu SWT MenuItem
@@ -391,17 +424,17 @@ public final class KeyBindings
      * level API like JFace or native rendering).
      * </p>
      */
-    private static class KeyBindingInfo
+    public static class KeyBindingInfo
     {
         /**
          * The display name of the accelerator
          */
-        private final String name;
+        public final String name;
 
         /**
          * The SWT keyboard accelerator value
          */
-        private final int accelerator;
+        public final int accelerator;
 
         /**
          * Constructs a new KeyBindingInfo object with the given accelerator name and accelerator value

@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.ui.swt.KeyBindings;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -217,9 +218,24 @@ public class MainMenu
 			viewMenu.addListener(SWT.Show, new Listener() {
 				public void handleEvent(Event event) {
 					Utils.disposeSWTObjects(viewMenu.getItems());
-					buildSimpleViewMenu(viewMenu);
+					buildSimpleViewMenu(viewMenu,-1);
 				}
 			});
+			
+				// hack to handle key binding before menu is actually created...
+			
+			final KeyBindings.KeyBindingInfo binding_info = KeyBindings.getKeyBindingInfo( "v3.MainWindow.menu.view." + SkinConstants.VIEWID_PLUGINBAR );
+			
+			if ( binding_info != null ){
+				Display.getDefault().addFilter(SWT.KeyDown, new Listener() {
+					public void handleEvent(Event event) {
+						if (event.keyCode == binding_info.accelerator ){
+							Utils.disposeSWTObjects(viewMenu.getItems());
+							buildSimpleViewMenu(viewMenu, event.keyCode);
+						}
+					}
+				});
+			}
 		} catch (Exception e) {
 			Debug.out("Error creating View Menu", e);
 		}
@@ -230,7 +246,7 @@ public class MainMenu
 	 *
 	 * @since 4.5.0.3
 	 */
-	protected void buildSimpleViewMenu(final Menu viewMenu) {
+	private void buildSimpleViewMenu(final Menu viewMenu, int accelerator) {
 		try {
 			
 			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3 + ".view.sidebar",
@@ -251,10 +267,25 @@ public class MainMenu
 				
 				if ( plugin_bar != null ){
 				
-					MainMenu.createViewMenuItem(skin, viewMenu,
+					MenuItem mi = 
+						MainMenu.createViewMenuItem(skin, viewMenu,
 							"v3.MainWindow.menu.view." + SkinConstants.VIEWID_PLUGINBAR,
 							SkinConstants.VIEWID_PLUGINBAR + ".visible",
 							SkinConstants.VIEWID_PLUGINBAR, true, -1);
+					
+					if ( accelerator != -1 && mi.getAccelerator() == accelerator ){
+						
+						Listener[] listeners = mi.getListeners( SWT.Selection );
+						
+						for ( Listener l: listeners ){
+							
+							try{
+								l.handleEvent( null );
+								
+							}catch( Throwable e ){
+							}
+						}
+					}
 				}
 			}
 

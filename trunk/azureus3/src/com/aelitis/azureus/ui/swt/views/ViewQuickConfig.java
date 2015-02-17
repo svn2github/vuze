@@ -67,6 +67,15 @@ public class ViewQuickConfig
 		composite.setLayout(layout);
 		
 		ConfigSectionStartShutdown.addDoneDownloadingOption( composite, false );
+			
+		Utils.execSWTThreadLater(
+			100,
+			new Runnable() {
+				
+				public void run() {
+					composite.traverse( SWT.TRAVERSE_TAB_NEXT);
+				}
+			});
 	}
 
 	private void delete() {
@@ -110,6 +119,10 @@ public class ViewQuickConfig
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;
+      case UISWTViewEvent.TYPE_FOCUSGAINED:{
+    	  composite.traverse( SWT.TRAVERSE_TAB_NEXT);
+    	  break;
+      }
     }
 
     return true;

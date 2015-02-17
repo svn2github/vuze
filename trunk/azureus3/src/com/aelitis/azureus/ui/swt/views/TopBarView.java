@@ -30,7 +30,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Transform;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -39,7 +38,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
-//import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -95,8 +93,32 @@ public class TopBarView
 				return null;
 			}
 		});
-		// trigger autobuild
-		skin.getSkinObject("topbar-area-plugin");
+		
+			// trigger autobuild and hook in events
+		
+		skin.getSkinObject("topbar-area-plugin").addListener(
+			new SWTSkinObjectListener() {
+				
+				public Object eventOccured(SWTSkinObject skinObject, int eventType,
+						Object params) {
+					if ( eventType == SWTSkinObjectListener.EVENT_SHOW ){
+						
+						if ( activeTopBar != null ){
+						
+							activeTopBar.triggerEvent( UISWTViewEvent.TYPE_FOCUSGAINED, null );
+						}
+					}else if ( eventType == SWTSkinObjectListener.EVENT_HIDE ){
+						
+						if ( activeTopBar != null ){
+							
+							activeTopBar.triggerEvent( UISWTViewEvent.TYPE_FOCUSLOST, null );
+						}
+					}
+					
+					return( null );
+				}
+			});
+		
 		return null;
 	}
 
@@ -398,6 +420,8 @@ public class TopBarView
 		if (soTitle != null) {
 			soTitle.getControl().redraw();
 		}
+		
+		activeTopBar.triggerEvent( UISWTViewEvent.TYPE_FOCUSGAINED, null );
 	}
 
 	/**
