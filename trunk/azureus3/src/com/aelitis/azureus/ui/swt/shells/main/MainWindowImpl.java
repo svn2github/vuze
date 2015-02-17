@@ -1840,10 +1840,29 @@ public class MainWindowImpl
 			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
 
 			if (COConfigurationManager.getIntParameter("User Mode") > 1) {
-				MainMenu.createViewMenuItem(skin, topbarMenu,
+				MenuItem mi = 
+					MainMenu.createViewMenuItem(skin, topbarMenu,
 						"v3.MainWindow.menu.view." + SkinConstants.VIEWID_PLUGINBAR,
 						SkinConstants.VIEWID_PLUGINBAR + ".visible",
 						SkinConstants.VIEWID_PLUGINBAR, true, -1);
+				
+				if ( Utils.isAZ2UI()){
+					
+						// remove any accelerator as it doesn't work on this menu and we don't have a View menu entry
+					
+					String str = mi.getText();
+					
+					int pos = str.indexOf( "\t" );
+					
+					if ( pos != -1 ){
+						
+						str = str.substring(0,pos).trim();
+						
+						mi.setText( str );
+					}
+					
+					mi.setAccelerator( SWT.NULL );
+				}
 			}
 
 			new MenuItem(topbarMenu, SWT.SEPARATOR);
