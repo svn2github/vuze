@@ -183,7 +183,9 @@ public class SBC_TagDiscovery
 			if (entry != null) {
 				entry.setViewTitleInfo(this);
 				vitalityImage = entry.addVitalityImage(ID_VITALITY_ACTIVE);
-				vitalityImage.setVisible(false);
+				if ( vitalityImage != null ){
+					vitalityImage.setVisible(false);
+				}
 			}
 		}
 
@@ -325,6 +327,9 @@ public class SBC_TagDiscovery
 					List<DownloadManager> dms = gm.getDownloadManagers();
 
 					for (final DownloadManager dm : dms) {
+						if ( tv == null ){
+							return;
+						}
 						TOTorrent torrent = dm.getTorrent();
 						if (torrent == null) {
 							continue;
@@ -355,6 +360,9 @@ public class SBC_TagDiscovery
 												if (DEBUG) {
 													System.out.println("Tag Search: Found Tag " + tag
 															+ " for " + dm.getDisplayName());
+												}
+												if ( tv == null ){
+													return;
 												}
 												String key = Base32.encode(hash) + tag;
 
