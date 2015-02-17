@@ -39,7 +39,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
-import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
+//import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -327,9 +327,13 @@ public class TopBarView
 						new ViewDownSpeedGraph());
 				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewUpSpeedGraph",
 						new ViewUpSpeedGraph());
+				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewQuickConfig",
+						new ViewQuickConfig());
+				/* derp
 				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "VivaldiView",
 						new VivaldiView(false));
-
+				*/
+				
 				registeredCoreSubViews = true;
 			}
 

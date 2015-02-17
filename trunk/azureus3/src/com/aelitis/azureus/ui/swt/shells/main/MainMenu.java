@@ -39,11 +39,10 @@ import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
-import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
@@ -243,6 +242,21 @@ public class MainMenu
 							}
 						}
 					});
+			
+			if (COConfigurationManager.getIntParameter("User Mode") > 1) {
+				
+				SWTSkin skin = SWTSkinFactory.getInstance();
+				
+				SWTSkinObject plugin_bar = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
+				
+				if ( plugin_bar != null ){
+				
+					MainMenu.createViewMenuItem(skin, viewMenu,
+							"v3.MainWindow.menu.view." + SkinConstants.VIEWID_PLUGINBAR,
+							SkinConstants.VIEWID_PLUGINBAR + ".visible",
+							SkinConstants.VIEWID_PLUGINBAR, true, -1);
+				}
+			}
 
 			/////////
 			

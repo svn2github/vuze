@@ -209,109 +209,11 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 
 				// done downloading
 			
-			gridData = new GridData();
-			label = new Label(gStop, SWT.NULL);
-		    Messages.setLanguageText(label, "ConfigView.label.stop.downcomp");
-		    label.setLayoutData( gridData );
-			
-		    int	shutdown_types = platform.getShutdownTypes();
-		    
-			List<String>	l_action_values = new ArrayList<String>();
-			List<String>	l_action_descs 	= new ArrayList<String>();
-
-			l_action_values.add( "Nothing" ); 
-			l_action_values.add( "QuitVuze" );
-			
-			if (( shutdown_types & PlatformManager.SD_SLEEP ) != 0 ){
-				
-				l_action_values.add( "Sleep" );
-			}
-			if (( shutdown_types & PlatformManager.SD_HIBERNATE ) != 0 ){
-				
-				l_action_values.add( "Hibernate" );
-			}
-			if (( shutdown_types & PlatformManager.SD_SHUTDOWN ) != 0 ){
-				
-				l_action_values.add( "Shutdown" );
-			}
-			
-			l_action_values.add( "RunScript" );
-			l_action_values.add( "RunScriptAndClose" );
-
-			String[] action_values = l_action_values.toArray( new String[ l_action_values.size()]);
-					
-			for ( String s: action_values ){
-				
-				l_action_descs.add( MessageText.getString( "ConfigView.label.stop." + s ));
-			}
-			
-			String[] action_descs = l_action_descs.toArray( new String[ l_action_descs.size()]);
-
-			final StringListParameter dc = new StringListParameter(gStop, "On Downloading Complete Do", "Nothing", action_descs, action_values );
-
-			final Label dc_label = new Label(gStop, SWT.NONE);
-			Messages.setLanguageText(dc_label, "label.script.to.run");
-			dc_label.setLayoutData(new GridData());
-
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			final FileParameter dc_script = new FileParameter(gStop, "On Downloading Complete Script", "", new String[0]);
-			dc_script.setLayoutData(gridData);
-	
-			boolean	is_script = dc.getValue().startsWith( "RunScript" );
-			
-			dc_label.setEnabled( is_script );
-			dc_script.setEnabled( is_script );
-			
-			dc.addChangeListener(
-				new ParameterChangeAdapter()
-				{
-					public void
-					parameterChanged(
-						Parameter	p,
-						boolean		caused_internally )
-					{
-						boolean	is_script = dc.getValue().startsWith( "RunScript" );
-						
-						dc_label.setEnabled( is_script );
-						dc_script.setEnabled( is_script );
-					}
-				});
+			addDoneDownloadingOption( gStop, true );
 				
 				// done seeding
 			
-			gridData = new GridData();
-		    label = new Label(gStop, SWT.NULL);
-		    Messages.setLanguageText(label, "ConfigView.label.stop.seedcomp");
-		    label.setLayoutData( gridData );
-					    
-		    final StringListParameter sc = new StringListParameter(gStop, "On Seeding Complete Do", "Nothing", action_descs, action_values );
-			
-			final Label sc_label = new Label(gStop, SWT.NONE);
-			Messages.setLanguageText(sc_label, "label.script.to.run");
-			sc_label.setLayoutData(new GridData());
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			final FileParameter sc_script = new FileParameter(gStop, "On Seeding Complete Script", "", new String[0]);
-			sc_script.setLayoutData(gridData);
-	
-			is_script = sc.getValue().startsWith( "RunScript" );
-			
-			sc_label.setEnabled( is_script );
-			sc_script.setEnabled( is_script );
-			
-			sc.addChangeListener(
-				new ParameterChangeAdapter()
-				{
-					public void
-					parameterChanged(
-						Parameter	p,
-						boolean		caused_internally )
-					{
-						boolean	is_script = sc.getValue().startsWith( "RunScript" );
-						
-						sc_label.setEnabled( is_script );
-						sc_script.setEnabled( is_script );
-					}
-				});
+			addDoneSeedingOption( gStop, true );
 			
 		    	// reset on trigger
 		    
@@ -862,4 +764,135 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		return( value );
 	}
 
+	private static String[][]
+	getActionDetails()
+	{	
+		final PlatformManager platform = PlatformManagerFactory.getPlatformManager();
+
+	    int	shutdown_types = platform.getShutdownTypes();
+	    
+		List<String>	l_action_values = new ArrayList<String>();
+		List<String>	l_action_descs 	= new ArrayList<String>();
+
+		l_action_values.add( "Nothing" ); 
+		l_action_values.add( "QuitVuze" );
+		
+		if (( shutdown_types & PlatformManager.SD_SLEEP ) != 0 ){
+			
+			l_action_values.add( "Sleep" );
+		}
+		if (( shutdown_types & PlatformManager.SD_HIBERNATE ) != 0 ){
+			
+			l_action_values.add( "Hibernate" );
+		}
+		if (( shutdown_types & PlatformManager.SD_SHUTDOWN ) != 0 ){
+			
+			l_action_values.add( "Shutdown" );
+		}
+		
+		l_action_values.add( "RunScript" );
+		l_action_values.add( "RunScriptAndClose" );
+
+		String[] action_values = l_action_values.toArray( new String[ l_action_values.size()]);
+				
+		for ( String s: action_values ){
+			
+			l_action_descs.add( MessageText.getString( "ConfigView.label.stop." + s ));
+		}
+		
+		String[] action_descs = l_action_descs.toArray( new String[ l_action_descs.size()]);
+		
+		return( new String[][]{ action_descs, action_values });
+	}
+	
+	public static void
+	addDoneDownloadingOption(
+		Composite		comp,
+		boolean			include_script_setting )
+	{
+		GridData gridData = new GridData();
+		Label label = new Label(comp, SWT.NULL);
+	    Messages.setLanguageText(label, "ConfigView.label.stop.downcomp");
+	    label.setLayoutData( gridData );
+		
+	    String[][]	action_details = getActionDetails();
+
+		final StringListParameter dc = new StringListParameter(comp, "On Downloading Complete Do", "Nothing", action_details[0], action_details[1] );
+
+		if ( include_script_setting ){
+			
+			final Label dc_label = new Label(comp, SWT.NONE);
+			Messages.setLanguageText(dc_label, "label.script.to.run");
+			dc_label.setLayoutData(new GridData());
+	
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			final FileParameter dc_script = new FileParameter(comp, "On Downloading Complete Script", "", new String[0]);
+			dc_script.setLayoutData(gridData);
+	
+			boolean	is_script = dc.getValue().startsWith( "RunScript" );
+			
+			dc_label.setEnabled( is_script );
+			dc_script.setEnabled( is_script );
+			
+			dc.addChangeListener(
+				new ParameterChangeAdapter()
+				{
+					public void
+					parameterChanged(
+						Parameter	p,
+						boolean		caused_internally )
+					{
+						boolean	is_script = dc.getValue().startsWith( "RunScript" );
+						
+						dc_label.setEnabled( is_script );
+						dc_script.setEnabled( is_script );
+					}
+				});	
+		}
+	}
+	
+	private static void
+	addDoneSeedingOption(
+		Composite		comp,
+		boolean			include_script_setting )
+	{
+		GridData gridData = new GridData();
+		Label label = new Label(comp, SWT.NULL);
+	    Messages.setLanguageText(label, "ConfigView.label.stop.seedcomp");
+	    label.setLayoutData( gridData );
+			
+	    String[][]	action_details = getActionDetails();
+
+	    final StringListParameter sc = new StringListParameter(comp, "On Seeding Complete Do", "Nothing", action_details[0], action_details[1] );
+		
+	    if ( include_script_setting ){
+	    	
+			final Label sc_label = new Label(comp, SWT.NONE);
+			Messages.setLanguageText(sc_label, "label.script.to.run");
+			sc_label.setLayoutData(new GridData());
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			final FileParameter sc_script = new FileParameter(comp, "On Seeding Complete Script", "", new String[0]);
+			sc_script.setLayoutData(gridData);
+		
+			boolean is_script = sc.getValue().startsWith( "RunScript" );
+			
+			sc_label.setEnabled( is_script );
+			sc_script.setEnabled( is_script );
+			
+			sc.addChangeListener(
+				new ParameterChangeAdapter()
+				{
+					public void
+					parameterChanged(
+						Parameter	p,
+						boolean		caused_internally )
+					{
+						boolean	is_script = sc.getValue().startsWith( "RunScript" );
+						
+						sc_label.setEnabled( is_script );
+						sc_script.setEnabled( is_script );
+					}
+				});
+	    }
+	}
 }
