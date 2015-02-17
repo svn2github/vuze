@@ -232,7 +232,7 @@ public class HTTPUtils {
 			
 			throw ( new IOException( error ));
 		}
-
+		
 		String lc_reply_header = reply_header.toLowerCase( Constants.LOCALE_ENGLISH );
 
 		int te_pos = lc_reply_header.indexOf("transfer-encoding");
@@ -319,6 +319,29 @@ public class HTTPUtils {
 				}
 
 				return (new ByteArrayInputStream(baos.toByteArray()));
+			}
+		} else {
+			// if we have a content-length, grab only that many bytes
+			// Some socket connectsions will timeout if you try to read more
+			int cl_pos = lc_reply_header.indexOf("content-length");
+			if (cl_pos == -1) {
+				return is;
+			}
+			String property = lc_reply_header.substring(cl_pos);
+
+			property = property.substring(property.indexOf(':') + 1,
+					property.indexOf(NL)).trim();
+			try {
+  			long length = Long.parseLong(property);
+  			// could be smarter with the buffer here
+  			if (length > 0xFFFF) {
+  				return is;
+  			}
+  			
+  			byte[] buffer = new byte[(int) length];
+  			is.read(buffer);
+  			return new ByteArrayInputStream(buffer);
+			} catch (NumberFormatException ignoreError) {
 			}
 		}
 
