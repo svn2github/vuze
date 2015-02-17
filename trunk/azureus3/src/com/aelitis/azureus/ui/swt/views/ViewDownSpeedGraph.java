@@ -22,10 +22,10 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -118,7 +118,7 @@ public class ViewDownSpeedGraph
 	}
 
 	private String getFullTitle() {
-		return "DL Speed";
+		return( MessageText.getString("TableColumn.header.downspeed"));
 	}
 	
 	
