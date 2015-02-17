@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.config.IntParameter;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
@@ -63,11 +64,24 @@ public class ViewQuickConfig
 		
 		composite.setLayoutData(gridData);
 		
-		GridLayout layout = new GridLayout(5, false);
+		GridLayout layout = new GridLayout(4, false);
+		
 		composite.setLayout(layout);
 		
+			// done downloading - 2
+		
 		ConfigSectionStartShutdown.addDoneDownloadingOption( composite, false );
-			
+		
+			// max simul down - 2 
+		
+		Label label = new Label(composite, SWT.NULL);
+		gridData = new GridData();
+		gridData.horizontalIndent = 8;
+		label.setLayoutData( gridData );
+		Messages.setLanguageText(label, "ConfigView.label.maxdownloads.short");
+		
+		IntParameter maxDLs = new IntParameter( composite, "max downloads" );
+				
 		Utils.execSWTThreadLater(
 			100,
 			new Runnable() {
