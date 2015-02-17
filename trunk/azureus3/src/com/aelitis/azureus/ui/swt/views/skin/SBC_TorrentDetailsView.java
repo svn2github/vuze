@@ -900,6 +900,9 @@ public class SBC_TorrentDetailsView
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		SWTSkinObject soListArea = getSkinObject("torrentdetails-list-area");
+		if (soListArea == null) {
+			return null;
+		}
 		soFilterTextBox = (SWTSkinObjectTextbox) getSkinObject("torrentdetails-filter");
 		soInfoArea = (SWTSkinObjectText) getSkinObject("torrentdetails-info");
 
