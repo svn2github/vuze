@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.devices;
 import java.io.File;
 import java.net.InetAddress;
 
+import com.aelitis.net.upnp.UPnPDevice;
+
 public interface 
 DeviceManager 
 {
@@ -161,4 +163,14 @@ DeviceManager
 		public DeviceTemplate[]
 		getDeviceTemplates();
 	}
+
+	/**
+	 * @param upnpDevice
+	 * @return
+	 *
+	 * @since 5.0.0.1
+	 */
+	Device
+	findDevice(
+			UPnPDevice upnpDevice);
 }

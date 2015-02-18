@@ -1865,6 +1865,20 @@ DeviceManagerImpl
   		listeners.removeListener( listener );
   	}
   	
+  public Device findDevice(UPnPDevice upnpDevice) {
+  	DeviceImpl[] devices = getDevices();
+  	for (DeviceImpl device : devices) {
+			if (device instanceof DeviceUPnPImpl) {
+				DeviceUPnPImpl deviceUPnP = (DeviceUPnPImpl) device;
+				UPnPDevice uPnPDevice2 = deviceUPnP.getUPnPDevice();
+				if (upnpDevice.equals(uPnPDevice2)) {
+					return device;
+				}
+			}
+		}
+  	return null;
+  }
+  	
 	protected AEDiagnosticsLogger
 	getLogger()
 	{
