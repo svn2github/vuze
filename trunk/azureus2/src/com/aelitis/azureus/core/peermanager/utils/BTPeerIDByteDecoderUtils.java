@@ -216,7 +216,8 @@ class BTPeerIDByteDecoderUtils {
 		}
 		
 		if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_FOUR_DIGITS) {
-			return intchar(a) + "." + intchar(b) + "." + intchar(c) + "." + intchar(d);
+			return decodeAlphaNumericChar(a) + "." + decodeAlphaNumericChar(b) + "."
+					+ decodeAlphaNumericChar(c) + "." + decodeAlphaNumericChar(d);
 		}
 		else if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_THREE_DIGITS ||
 				version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_THREE_DIGITS_PLUS_MNEMONIC ||
@@ -244,10 +245,6 @@ class BTPeerIDByteDecoderUtils {
 		}
 		else if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_THREE_ALPHANUMERIC_DIGITS) {
 			return decodeAlphaNumericChar(a) + "." + decodeAlphaNumericChar(b) + "." + decodeAlphaNumericChar(c);
-		}
-		else if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_FOUR_ALPHANUMBERIC_DIGITS) {
-			return decodeAlphaNumericChar(a) + "." + decodeAlphaNumericChar(b) + "."
-					+ decodeAlphaNumericChar(c) + "." + decodeAlphaNumericChar(d);
 		}
 		else if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN) {
 			return intchar(b) + "." + intchar(c) + intchar(d);
