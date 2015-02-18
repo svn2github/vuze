@@ -333,13 +333,23 @@ public class HTTPUtils {
 					property.indexOf(NL)).trim();
 			try {
   			long length = Long.parseLong(property);
+  			
   			// could be smarter with the buffer here
   			if (length > 0xFFFF) {
   				return is;
   			}
-  			
-  			byte[] buffer = new byte[(int) length];
-  			is.read(buffer);
+
+  			int remaining = (int) length;
+  			int pos = 0;
+  			byte[] buffer = new byte[remaining];
+  			while (remaining > 0) {
+  				int read = is.read(buffer, pos, remaining);
+  				if (read < 0) {
+  					break;
+  				}
+  				remaining -= read;
+  				pos += read;
+  			}
   			return new ByteArrayInputStream(buffer);
 			} catch (NumberFormatException ignoreError) {
 			}
