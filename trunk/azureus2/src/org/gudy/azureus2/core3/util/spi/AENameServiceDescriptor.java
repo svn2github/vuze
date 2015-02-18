@@ -21,12 +21,14 @@
 
 package org.gudy.azureus2.core3.util.spi;
 
+import java.io.IOException;
 import java.lang.reflect.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import sun.net.spi.nameservice.*;
@@ -122,6 +124,7 @@ AENameServiceDescriptor
 
 	private static boolean 				config_listener_added;
 	private static volatile boolean 	tracker_dns_disabled;
+	private static volatile boolean		tracker_plugin_proxies_permit;
 	
 	public NameService
 	createNameService() 
@@ -242,9 +245,26 @@ AENameServiceDescriptor
 										    boolean enable_socks	= COConfigurationManager.getBooleanParameter("Enable.SOCKS");
 										    boolean prevent_dns		= COConfigurationManager.getBooleanParameter("Proxy.SOCKS.Tracker.DNS.Disable");
 										    
+											tracker_plugin_proxies_permit = 
+													enable_proxy&&
+													enable_socks&&
+													!COConfigurationManager.getBooleanParameter( "Proxy.SOCKS.disable.plugin.proxies" );
+
 										    tracker_dns_disabled = enable_proxy&&enable_socks&&prevent_dns;
 										}
 									});
+						}
+					}
+					
+					if ( tracker_plugin_proxies_permit ){
+					
+							// in this case we want non-public addresses to be sent to the plugin proxy, not handed
+							// unresolved to a SOCKS proxy, so use a runtime exception to
+							// prevent this (UnknownHostException causes SOCKS usage)
+						
+						if ( AENetworkClassifier.categoriseAddress( host_name ) != AENetworkClassifier.AT_PUBLIC ){
+							
+							throw( new RuntimeException( "Plugin proxies enabled for SOCKS"));
 						}
 					}
 					
