@@ -32,6 +32,8 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -727,7 +729,15 @@ public class TorrentMenuFancy
 					// filesExist is way too slow!
 					bChangeDir = !dm.filesExist(true);
 				} else {
+					DiskManagerFileInfo[] files = dm.getDiskManagerFileInfoSet().getFiles();
 					bChangeDir = false;
+					for (DiskManagerFileInfo info : files) {
+						if (info.isSkipped()) {
+							continue;
+						}
+						bChangeDir = !info.getFile(true).exists();
+						break;
+					}
 				}
 			}
 		}
