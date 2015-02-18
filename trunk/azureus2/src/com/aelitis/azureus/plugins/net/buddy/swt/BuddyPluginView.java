@@ -578,7 +578,21 @@ BuddyPluginView
 			
 			MenuManager menu_manager = plugin.getPluginInterface().getUIManager().getMenuManager();
 				
-			final MenuItem mi_chat =  MenuBuildUtils.addChatMenu( menu_manager, MenuManager.MENU_DOWNLOAD_CONTEXT, "label.chat" ); 
+			MenuItem chat_item = menu_manager.addMenuItem( MenuManager.MENU_DOWNLOAD_CONTEXT, "label.chat" );
+
+			final MenuItem mi_chat =  
+				MenuBuildUtils.addChatMenu( 
+					menu_manager, 
+					chat_item,
+					new MenuBuildUtils.ChatKeyResolver() 
+					{
+						public String 
+						getChatKey(
+							Object object ) 
+						{
+							return( BuddyPluginUtils.getChatKey((Download)object ));
+						}
+					});
 						
 			addBetaSubviews( true );
 			

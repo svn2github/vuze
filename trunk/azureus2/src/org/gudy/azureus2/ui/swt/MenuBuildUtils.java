@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.events.MenuEvent;
@@ -37,7 +36,6 @@ import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.GraphicURI;
-import org.gudy.azureus2.plugins.ui.menus.MenuBuilder;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
@@ -50,7 +48,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 
 /**
@@ -558,14 +555,20 @@ public class MenuBuildUtils {
 		}
 	}
 	
+	public interface
+	ChatKeyResolver
+	{
+		public String
+		getChatKey(
+			Object		object );
+	}
+	
 	public static MenuItem
 	addChatMenu(
 		final MenuManager		menu_manager,
-		String			menu_context,
-		String			menu_resource_key )
+		final MenuItem			chat_item,
+		final ChatKeyResolver	chat_key_resolver )
 	{
-		final MenuItem chat_item = menu_manager.addMenuItem( menu_context, menu_resource_key );
-						 
 		chat_item.setStyle( MenuItem.STYLE_MENU );
 			
 		chat_item.addFillListener(
@@ -587,10 +590,10 @@ public class MenuBuildUtils {
 									
 									public void 
 									selected(
-										MenuItem menu, 
-										Object target) 
+										MenuItem 	menu, 
+										Object 		target) 
 									{
-										Download[]	rows = (Download[])target;
+										Object[]	rows = (Object[])target;
 										
 										if ( rows.length > 0 ){
 											
@@ -598,24 +601,27 @@ public class MenuBuildUtils {
 											
 											pub_chat_pending.set( true );
 	
-											for ( Download download: rows ){
+											for ( Object obj: rows ){
 												
+												String chat_key = chat_key_resolver.getChatKey( obj );
 												
-												BuddyPluginUtils.createBetaChat(
-													AENetworkClassifier.AT_PUBLIC, 
-													BuddyPluginUtils.getChatKey(download),
-													new Runnable()
-													{
-														public void
-														run()
+												if ( chat_key != null ){
+													
+													BuddyPluginUtils.createBetaChat(
+														AENetworkClassifier.AT_PUBLIC, 
+														chat_key,
+														new Runnable()
 														{
-															if ( count.decrementAndGet() == 0 ){
-															
-																pub_chat_pending.set( false );
+															public void
+															run()
+															{
+																if ( count.decrementAndGet() == 0 ){
+																
+																	pub_chat_pending.set( false );
+																}
 															}
-														}
-													});
-												
+														});
+												}
 											}
 										}
 									}
@@ -640,7 +646,7 @@ public class MenuBuildUtils {
 									MenuItem menu, 
 									Object target) 
 								{
-									Download[]	rows = (Download[])target;
+									Object[]	rows = (Object[])target;
 									
 									if ( rows.length > 0 ){
 										
@@ -648,22 +654,27 @@ public class MenuBuildUtils {
 										
 										anon_chat_pending.set( true );
 
-										for ( Download download: rows ){
+										for ( Object obj: rows ){
+											
+											String chat_key = chat_key_resolver.getChatKey( obj );
+											
+											if ( chat_key != null ){
 																					
-											BuddyPluginUtils.createBetaChat(
-												AENetworkClassifier.AT_I2P, 
-												BuddyPluginUtils.getChatKey(download),
-												new Runnable()
-												{
-													public void
-													run()
+												BuddyPluginUtils.createBetaChat(
+													AENetworkClassifier.AT_I2P, 
+													chat_key,
+													new Runnable()
 													{
-														if ( count.decrementAndGet() == 0 ){
-														
-															anon_chat_pending.set( false );
+														public void
+														run()
+														{
+															if ( count.decrementAndGet() == 0 ){
+															
+																anon_chat_pending.set( false );
+															}
 														}
-													}
-												});	
+													});	
+											}
 										}
 									}
 								}

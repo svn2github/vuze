@@ -1379,6 +1379,7 @@ SubscriptionManagerUI
 		boolean is_search_template = subs.isSearchTemplate();
 		
 		if ( !is_search_template ){
+			
 			MenuItem menuItem = menu_creator.createMenu( "Subscription.menu.forcecheck" );
 			menuItem.setText(MessageText.getString("Subscription.menu.forcecheck"));
 			menuItem.addListener(new SubsMenuItemListener() {
@@ -1549,7 +1550,8 @@ SubscriptionManagerUI
 			
 				// tag
 			
-			menuItem = menu_creator.createMenu(  "label.tag");
+			menuItem = menu_creator.createMenu( "label.tag");
+			
 			menuItem.setStyle( MenuItem.STYLE_MENU );
 			
 			menuItem.addFillListener(
@@ -1563,6 +1565,34 @@ SubscriptionManagerUI
 						addTagSubMenu( menu_manager, menu, subs );
 					}
 				});
+			
+				// chat
+			
+			try{
+				Engine engine = subs.getEngine();
+							
+				if ( engine instanceof WebEngine ){
+					
+					WebEngine web_engine = (WebEngine)subs.getEngine();
+					
+					final String url = web_engine.getSearchUrl( true );
+					
+					menuItem = menu_creator.createMenu( "label.chat");
+					
+					MenuBuildUtils.addChatMenu(
+						menu_manager, 
+						menuItem,
+						new MenuBuildUtils.ChatKeyResolver() 
+						{
+							public String getChatKey(Object object) {
+								
+								return( "Subscription: " + url );
+							}
+						});
+				}
+			}catch( Throwable e ){
+				
+			}
 			
 			if ( subs.isUpdateable()){
 				
