@@ -197,11 +197,15 @@ RegexEngine
 		String			resultPattern )
 	{
 		pattern_str 	= resultPattern.trim();
-		patterns = new Pattern[]{
-				
-			Pattern.compile( pattern_str),
-			Pattern.compile( pattern_str, Pattern.DOTALL | Pattern.MULTILINE )
-		};
+		if (pattern_str.length() == 0) {
+			patterns = new Pattern[0];
+		} else {
+  		patterns = new Pattern[]{
+  				
+  			Pattern.compile( pattern_str),
+  			Pattern.compile( pattern_str, Pattern.DOTALL | Pattern.MULTILINE )
+  		};
+		}
 	}
 	
 	protected Result[] 
