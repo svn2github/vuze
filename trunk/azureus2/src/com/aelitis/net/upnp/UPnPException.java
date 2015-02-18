@@ -35,6 +35,8 @@ UPnPException
 	public String soap_action;
 	public UPnPActionImpl action;
 	public String fault;
+	
+	public int fault_code;
 	public SimpleXMLParserDocument resp_doc;
 
 	public 
@@ -70,12 +72,14 @@ UPnPException
 			String soap_action,
 			UPnPActionImpl action, 
 			SimpleXMLParserDocument resp_doc, 
-			String fault)
+			String fault,
+			int fault_code)
 	{
 		super(message);
 		this.soap_action = soap_action;
 		this.action = action;
 		this.resp_doc = resp_doc;
 		this.fault = fault;
+		this.fault_code = fault_code;
 	}
 }

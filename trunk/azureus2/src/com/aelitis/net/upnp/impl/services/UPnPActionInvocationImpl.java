@@ -98,30 +98,44 @@ UPnPActionInvocationImpl
 						
 			SimpleXMLParserDocumentNode	body = resp_doc.getChild( "Body" );
 			
-			SimpleXMLParserDocumentNode fault = body.getChild( "Fault" );
+			SimpleXMLParserDocumentNode faultSection = body.getChild( "Fault" );
 			
-			if ( fault != null ){
+			if ( faultSection != null ){
 				
-				String faultValue = fault.getValue();
+				String faultValue = faultSection.getValue();
 				if (faultValue != null && faultValue.length() > 0) {
   				throw (new UPnPException("Invoke of '" + soap_action
   						+ "' failed - fault reported: " + faultValue, soap_action,
-  						action, resp_doc, faultValue));
+  						action, resp_doc, faultValue, -1));
 				}
 				
-				SimpleXMLParserDocumentNode faultDetail = fault.getChild("detail");
+				SimpleXMLParserDocumentNode faultDetail = faultSection.getChild("detail");
 				if (faultDetail != null) {
 					SimpleXMLParserDocumentNode error = faultDetail.getChild("UPnPError");
 					if (error != null) {
-						SimpleXMLParserDocumentNode errDesc = error.getChild("errorDescription");
-						if (errDesc != null) {
-							String errDescValue = errDesc.getValue();
-							if (errDescValue != null && errDescValue.length() > 0) {
-			  				throw (new UPnPException("Invoke of '" + soap_action
-			  						+ "' failed - fault reported: " + errDescValue, soap_action,
-			  						action, resp_doc, errDescValue));
+						int errCodeNumber = -1;
+						String errDescValue = null;
+						
+						SimpleXMLParserDocumentNode errCode = error.getChild("errorCode");
+						if (errCode != null) {
+							String errCodeValue = errCode.getValue();
+							try {
+								errCodeNumber = Integer.parseInt(errCodeValue);
+							} catch (Throwable t) {
 							}
 						}
+
+						SimpleXMLParserDocumentNode errDesc = error.getChild("errorDescription");
+						if (errDesc != null) {
+							errDescValue = errDesc.getValue();
+							if (errDescValue != null && errDescValue.length() == 0) {
+								errDescValue = null;
+							}
+						}
+								
+	  				throw (new UPnPException("Invoke of '" + soap_action
+	  						+ "' failed - fault reported: " + errDescValue, soap_action,
+	  						action, resp_doc, errDescValue, errCodeNumber));
 					}
 				}
 			}
@@ -132,7 +146,7 @@ UPnPActionInvocationImpl
 				
 				throw (new UPnPException("Invoke of '" + soap_action
 						+ "' failed - response missing: " + body.getValue(), soap_action,
-						action, resp_doc, null));
+						action, resp_doc, null, -1));
 			}
 			
 			SimpleXMLParserDocumentNode[]	out_nodes = resp_node.getChildren();
