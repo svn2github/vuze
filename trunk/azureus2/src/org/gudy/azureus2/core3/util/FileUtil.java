@@ -1865,6 +1865,12 @@ public class FileUtil {
 		return f.mkdirs();
 	}
 	
+	/**
+	 * Gets the extension of a file name, ensuring we don't go into the path
+	 * 
+	 * @param fName  File name
+	 * @return extension, with the '.'
+	 */
 	public static String getExtension(String fName) {
 		final int fileSepIndex = fName.lastIndexOf(File.separator);
 		final int fileDotIndex = fName.lastIndexOf('.');
