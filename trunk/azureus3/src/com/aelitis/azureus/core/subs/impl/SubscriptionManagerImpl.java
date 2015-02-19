@@ -83,6 +83,7 @@ import com.aelitis.azureus.core.vuzefile.*;
 import com.aelitis.azureus.plugins.dht.*;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.util.ImportExportUtils;
 import com.aelitis.azureus.util.UrlFilter;
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -210,6 +211,9 @@ SubscriptionManagerImpl
 	private static final int	ASSOC_CHECK_PERIOD	= 5*60*1000;
 	private static final int	ASSOC_CHECK_TICKS	= ASSOC_CHECK_PERIOD/TIMER_PERIOD;
 	
+	private static final int	CHAT_CHECK_PERIOD	= 3*60*1000;
+	private static final int	CHAT_CHECK_TICKS	= CHAT_CHECK_PERIOD/TIMER_PERIOD;
+
 	private static final int	SERVER_PUB_CHECK_PERIOD	= 10*60*1000;
 	private static final int	SERVER_PUB_CHECK_TICKS	= SERVER_PUB_CHECK_PERIOD/TIMER_PERIOD;
 	
@@ -1972,6 +1976,8 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	private static final Object	SUBS_CHAT_KEY	= new Object();
+	
 	protected void
 	checkStuff(
 		int		ticks )
@@ -2016,6 +2022,71 @@ SubscriptionManagerImpl
 			log( "Removing unsubscribed subscription '" + expired_subs.getName() + "' as expired" );
 					
 			expired_subs.remove();
+		}
+		
+		if ( ticks % CHAT_CHECK_TICKS == 0 ){
+			
+			List<SubscriptionImpl> subs_copy = new ArrayList<SubscriptionImpl>( subs );
+			
+			Collections.shuffle( subs_copy );
+			
+			long mono_now = SystemTime.getMonotonousTime();
+			
+			for ( final SubscriptionImpl sub: subs_copy ){
+				
+				if ( !sub.isSubscribed()){
+					
+					continue;
+				}
+				
+				Long data = (Long)sub.getUserData( SUBS_CHAT_KEY );
+				
+				if ( data != null ){
+					
+					if ( data < 0 || mono_now - data < 4*60*60*1000 ){
+						
+						continue;
+					}
+				}
+				
+				boolean	ok = false;
+				
+				try{
+					Engine engine = sub.getEngine();
+					
+					if ( engine instanceof WebEngine ){
+						
+						String url = ((WebEngine)engine).getSearchUrl( true );
+						
+						ok = true;
+						
+						sub.setUserData( SUBS_CHAT_KEY, -1L );
+						
+						BuddyPluginUtils.peekChatAsync(
+							AENetworkClassifier.AT_PUBLIC,
+							"Subscription: " + url,
+							new Runnable()
+							{
+								public void 
+								run() 
+								{
+									sub.setUserData( SUBS_CHAT_KEY, SystemTime.getMonotonousTime());
+								}
+							});
+							
+							// just fire off one at a time
+						
+						break;
+					}
+				}catch( Throwable e ){
+					
+				}
+
+				if ( !ok ){
+					
+					sub.setUserData( SUBS_CHAT_KEY, -2L );
+				}
+			}
 		}
 		
 		if ( ticks % ASSOC_CHECK_TICKS == 0 ){

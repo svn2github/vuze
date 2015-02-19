@@ -28,7 +28,10 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -161,6 +164,75 @@ BuddyPluginUtils
 		}
 		
 		return( null );
+	}
+	
+	private static AsyncDispatcher peek_dispatcher = new AsyncDispatcher( "peeker" );
+	
+	public static void
+	peekChatAsync(
+		final String		net,
+		final String		key,
+		final Runnable		done )
+	{
+		boolean	async = false;
+		
+		try{
+			if ( isBetaChatAvailable()){
+	
+				if ( net != AENetworkClassifier.AT_PUBLIC && !isBetaChatAnonAvailable()){
+					
+					return;
+				}
+				
+				if ( peek_dispatcher.getQueueSize() > 200 ){
+					
+					return;
+				}
+								
+				peek_dispatcher.dispatch(
+					new AERunnable() {
+						
+						@Override
+						public void 
+						runSupport() 
+						{
+							try{
+								Map<String,Object> peek_data = BuddyPluginUtils.peekChat( net, key );
+									
+								if ( peek_data != null ){
+									
+									Number	message_count 	= (Number)peek_data.get( "m" );
+									Number	node_count 		= (Number)peek_data.get( "n" );
+									
+									if ( message_count != null && node_count != null ){
+										
+										if ( message_count.intValue() > 0 ){
+											
+											BuddyPluginBeta.ChatInstance chat = BuddyPluginUtils.getChat( net, key );
+						
+											if ( chat != null ){
+												
+												chat.setAutoNotify( true );
+											}
+										}
+									}	
+								}
+							}finally{
+								
+								done.run();
+							}
+						}
+					});
+				
+				async = true;
+			}
+		}finally{
+			
+			if ( !async ){
+				
+				done.run();
+			}
+		}
 	}
 	
 	public static ChatInstance
