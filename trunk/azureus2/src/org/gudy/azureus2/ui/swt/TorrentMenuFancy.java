@@ -33,7 +33,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -52,7 +51,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
@@ -68,7 +69,9 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedLimitHandler;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
@@ -78,18 +81,30 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  */
 public class TorrentMenuFancy
 {
+	private static final String HEADER_CONTROL = "Control";
+
+	private static final String HEADER_SOCIAL = "Social";
+
+	private static final String HEADER_ORGANIZE = "Organize";
+
+	private static final String HEADER_MENU = "Other";
+
+	private static final String HEADER_MSG_PREFIX = "FancyMenu.Header.";
+
+	private static final String HEADER_CONTENT = "Content";
+
 	private static class HeaderInfo
 	{
-		Runnable runnable;
+		private Runnable runnable;
 
-		Composite composite;
+		private Composite composite;
 
-		String id;
+		private String id;
 
 		public HeaderInfo(String id, Runnable runnable, Composite composite) {
+			this.id = id;
 			this.runnable = runnable;
 			this.composite = composite;
-			this.id = id;
 		}
 	}
 
@@ -110,6 +125,8 @@ public class TorrentMenuFancy
 		private boolean keepMenu;
 
 		private boolean isSelected;
+
+		private boolean hasSubMenu;
 
 		public void setEnabled(boolean enabled) {
 			cRow.setEnabled(enabled);
@@ -187,6 +204,14 @@ public class TorrentMenuFancy
 		public void setCheckLabel(Label lblCheck) {
 			this.lblCheck = lblCheck;
 		}
+
+		public boolean hasSubMenu() {
+			return hasSubMenu;
+		}
+
+		public void setHasSubMenu(boolean hasSubMenu) {
+			this.hasSubMenu = hasSubMenu;
+		}
 	}
 
 	private static class FancyMenuRowInfo
@@ -212,9 +237,9 @@ public class TorrentMenuFancy
 
 	private static final int SHELL_MARGIN = 1;
 
-	private Map<Object, FancyRowInfo> mapRowInfos = new HashMap<Object, FancyRowInfo>();
+	private List<FancyRowInfo> listRowInfos = new ArrayList<FancyRowInfo>();
 
-	private Map<String, HeaderInfo> mapHeaderRunnables = new HashMap<String, HeaderInfo>();
+	private List<HeaderInfo> listHeaders = new ArrayList<HeaderInfo>();
 
 	private Composite topArea;
 
@@ -254,6 +279,8 @@ public class TorrentMenuFancy
 
 	private Menu currentMenu;
 
+	private FancyRowInfo currentRowInfo;
+
 	private Point originalShellLocation;
 
 	private boolean subMenuVisible;
@@ -279,7 +306,7 @@ public class TorrentMenuFancy
 		mapMovedPluginMenuUserMode.put("tablemenu.main.item", 2);
 		mapMovedPluginMenuUserMode.put("azpeerinjector.contextmenu.inject", 2);
 
-		mapMovedPluginMenus.put("Control", ids_control);
+		mapMovedPluginMenus.put(HEADER_CONTROL, ids_control);
 		listMovedPluginIDs.addAll(Arrays.asList(ids_control));
 
 		String[] ids_social = {
@@ -291,7 +318,7 @@ public class TorrentMenuFancy
 			"RatingPlugin.contextmenu.manageRating",
 			"label.chat",
 		};
-		mapMovedPluginMenus.put("Social", ids_social);
+		mapMovedPluginMenus.put(HEADER_SOCIAL, ids_social);
 		listMovedPluginIDs.addAll(Arrays.asList(ids_social));
 
 		String[] ids_content = {
@@ -301,7 +328,7 @@ public class TorrentMenuFancy
 			"vuzexcode.transcode",
 			"burn.menu.addtodvd"
 		};
-		mapMovedPluginMenus.put("Content", ids_content);
+		mapMovedPluginMenus.put(HEADER_CONTENT, ids_content);
 		listMovedPluginIDs.addAll(Arrays.asList(ids_content));
 
 		listenerForTrigger = new Listener() {
@@ -346,8 +373,11 @@ public class TorrentMenuFancy
 				Composite parent = detailArea;
 				Rectangle bounds = parent.getBounds();
 				if (event.type == SWT.MouseExit) {
+					currentRowInfo = null;
 					parent.redraw(0, 0, bounds.width, bounds.height, true);
 				} else if (event.type == SWT.MouseEnter) {
+					FancyRowInfo rowInfo = findRowInfo(event.widget);
+					currentRowInfo = rowInfo;
 					parent.redraw(0, 0, bounds.width, bounds.height, true);
 				}
 			}
@@ -355,11 +385,14 @@ public class TorrentMenuFancy
 
 		listenerRowPaint = new PaintListener() {
 			public void paintControl(PaintEvent e) {
-				Rectangle bounds = ((Control) e.widget).getBounds();
-				Point cursorLocation = e.display.getCursorLocation();
-				Point cursorLocationRel = ((Control) e.widget).getParent().toControl(
-						cursorLocation);
-				if (!bounds.contains(cursorLocationRel)) {
+				FancyRowInfo rowInfo = findRowInfo(e.widget);
+				if (rowInfo == null) {
+					return;
+				}
+
+				boolean isSelected = currentRowInfo == rowInfo;
+
+				if (!isSelected) {
 					for (Control control : ((Composite) e.widget).getChildren()) {
 						control.setBackground(null);
 						control.setForeground(null);
@@ -367,6 +400,8 @@ public class TorrentMenuFancy
 					//System.out.println("bounds=" + bounds + "/" + cursorLocation + "/" + cursorLocationRel + "; clip=" + e.gc.getClipping());
 					return;
 				}
+				Rectangle bounds = ((Control) e.widget).getBounds();
+
 				Color bg = e.display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 				int arc = bounds.height / 3;
 				e.gc.setBackground(bg);
@@ -449,36 +484,43 @@ public class TorrentMenuFancy
 					e.gc.drawLine(0, y, bounds.width, y);
 				} else if (e.type == SWT.MouseEnter) {
 					Object data = e.widget.getData("ID");
-					HeaderInfo header = mapHeaderRunnables.get(data);
-					if (DEBUG_MENU) {
-						System.out.println("enter : " + data);
-					}
 
-					activateHeader(header);
+					if (data instanceof HeaderInfo) {
+						HeaderInfo header = (HeaderInfo) data;
+						if (DEBUG_MENU) {
+							System.out.println("enter : " + data);
+						}
+
+						activateHeader(header);
+					}
 				}
 			}
 		};
 
-		HeaderInfo firstHeader = addHeader("Control", "Control", new AERunnable() {
+		HeaderInfo firstHeader = addHeader(HEADER_CONTROL, HEADER_MSG_PREFIX
+				+ HEADER_CONTROL, new AERunnable() {
 			public void runSupport() {
 				buildTorrentCustomMenu_Control(detailArea, dms);
 			}
 		});
-		addHeader("Content", "Content", new AERunnable() {
-			public void runSupport() {
-				buildTorrentCustomMenu_Content(detailArea, dms);
-			}
-		});
-		addHeader("Organize", "Organize", new AERunnable() {
-			public void runSupport() {
-				buildTorrentCustomMenu_Organize(detailArea, dms);
-			}
-		});
-		addHeader("Social", "Social", new AERunnable() {
-			public void runSupport() {
-				buildTorrentCustomMenu_Social(detailArea);
-			}
-		});
+		addHeader(HEADER_CONTENT, HEADER_MSG_PREFIX + HEADER_CONTENT,
+				new AERunnable() {
+					public void runSupport() {
+						buildTorrentCustomMenu_Content(detailArea, dms);
+					}
+				});
+		addHeader(HEADER_ORGANIZE, HEADER_MSG_PREFIX + HEADER_ORGANIZE,
+				new AERunnable() {
+					public void runSupport() {
+						buildTorrentCustomMenu_Organize(detailArea, dms);
+					}
+				});
+		addHeader(HEADER_SOCIAL, HEADER_MSG_PREFIX + HEADER_SOCIAL,
+				new AERunnable() {
+					public void runSupport() {
+						buildTorrentCustomMenu_Social(detailArea);
+					}
+				});
 
 		// Add table specific items
 		final List<org.gudy.azureus2.plugins.ui.menus.MenuItem> listOtherItems = new ArrayList<org.gudy.azureus2.plugins.ui.menus.MenuItem>();
@@ -515,7 +557,7 @@ public class TorrentMenuFancy
 		}
 
 		if (listOtherItems.size() > 0) {
-			addHeader("Other", "Other", new AERunnable() {
+			addHeader(HEADER_MENU, HEADER_MSG_PREFIX + HEADER_MENU, new AERunnable() {
 				public void runSupport() {
 					buildTorrentCustomMenu_Other(detailArea, listOtherItems);
 				}
@@ -537,6 +579,83 @@ public class TorrentMenuFancy
 			}
 		});
 
+		shell.addKeyListener(new KeyListener() {
+
+			public void keyReleased(KeyEvent e) {
+			}
+
+			public void keyPressed(KeyEvent e) {
+				if (e.keyCode == SWT.ARROW_DOWN) {
+					if (currentRowInfo == null) {
+						currentRowInfo = listRowInfos.get(0);
+					} else {
+						boolean next = false;
+						for (FancyRowInfo rowInfo : listRowInfos) {
+							if (next) {
+								currentRowInfo = rowInfo;
+								next = false;
+								break;
+							}
+							if (rowInfo == currentRowInfo) {
+								next = true;
+							}
+						}
+						if (next) {
+							currentRowInfo = listRowInfos.get(0);
+						}
+					}
+					Rectangle bounds = detailArea.getBounds();
+					detailArea.redraw(0, 0, bounds.width, bounds.height, true);
+				} else if (e.keyCode == SWT.ARROW_UP) {
+					if (currentRowInfo == null) {
+						currentRowInfo = listRowInfos.get(listRowInfos.size() - 1);
+					} else {
+						FancyRowInfo previous = listRowInfos.get(listRowInfos.size() - 1);
+						for (FancyRowInfo rowInfo : listRowInfos) {
+							if (rowInfo == currentRowInfo) {
+								currentRowInfo = previous;
+								break;
+							}
+							previous = rowInfo;
+						}
+					}
+					Rectangle bounds = detailArea.getBounds();
+					detailArea.redraw(0, 0, bounds.width, bounds.height, true);
+				} else if (e.keyCode == SWT.ARROW_LEFT) {
+					HeaderInfo previous = listHeaders.get(listHeaders.size() - 1);
+					for (HeaderInfo header : listHeaders) {
+						if (header == activatedHeader) {
+							activateHeader(previous);
+							break;
+						}
+						previous = header;
+					}
+				} else if (e.keyCode == SWT.ARROW_RIGHT) {
+					if (currentRowInfo != null && currentRowInfo.hasSubMenu()) {
+						Event event = new Event();
+						event.display = e.display;
+						event.widget = currentRowInfo.cRow;
+						listenerForTrigger.handleEvent(event);
+					} else {
+						boolean next = false;
+						for (HeaderInfo header : listHeaders) {
+							if (next) {
+								activateHeader(header);
+								next = false;
+								break;
+							}
+							if (header == activatedHeader) {
+								next = true;
+							}
+						}
+						if (next) {
+							activateHeader(listHeaders.get(0));
+						}
+					}
+				}
+			}
+		});
+
 		shell.addTraverseListener(new TraverseListener() {
 			public void keyTraversed(TraverseEvent e) {
 				if (e.detail == SWT.TRAVERSE_ESCAPE) {
@@ -545,10 +664,12 @@ public class TorrentMenuFancy
 					}
 					shell.dispose();
 				} else if (e.detail == SWT.TRAVERSE_RETURN) {
-					if (DEBUG_MENU) {
-						System.out.println("Dispose via RETURN");
+					if (currentRowInfo != null) {
+						Event event = new Event();
+						event.display = e.display;
+						event.widget = currentRowInfo.cRow;
+						listenerForTrigger.handleEvent(event);
 					}
-					shell.dispose();
 				}
 			}
 		});
@@ -608,6 +729,8 @@ public class TorrentMenuFancy
 		header.composite.setForeground(d.getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
 
 		Utils.disposeSWTObjects(detailArea.getChildren());
+		listRowInfos.clear();
+		currentRowInfo = null;
 
 		if (header.runnable != null) {
 			header.runnable.run();
@@ -651,8 +774,6 @@ public class TorrentMenuFancy
 		if (ptBottomRight.y > monitorArea.y + monitorArea.height) {
 			// Bottom-Up
 			if (shell.getChildren()[0] != detailArea) {
-				System.out.println("detailArea.getSize()=" + detailArea.getSize() + "/"
-						+ detailArea.getBounds());
 				shell.setLocation(shell.getLocation().x, originalShellLocation.y
 						- detailArea.getSize().y - 3);
 				detailArea.moveAbove(null);
@@ -1266,8 +1387,18 @@ public class TorrentMenuFancy
 			String keyImage, final FancyMenuRowInfoListener listener) {
 
 		Listener showSWTMenuListener = new Listener() {
+			int lastX = 0;
 
-			public void handleEvent(Event event) {
+			int lastY = 0;
+
+			public void handleEvent(final Event event) {
+				if (event.type == SWT.MouseHover && lastX == event.x
+						&& lastY == event.y) {
+					return;
+				}
+				lastX = event.x;
+				lastY = event.y;
+
 				FancyMenuRowInfo rowInfo;
 
 				FancyRowInfo findRowInfo = findRowInfo(event.widget);
@@ -1303,14 +1434,11 @@ public class TorrentMenuFancy
 				});
 				listener.buildMenu(currentMenu);
 
-				Control cursorControl = event.display.getCursorControl();
+				Composite rowComposite = rowInfo.getRow();
 
-				while (cursorControl != null && cursorControl.getData("ID") == null) {
-					cursorControl = cursorControl.getParent();
-				}
-				if (cursorControl != null) {
-					Point size = cursorControl.getSize();
-					Point menuLocation = cursorControl.toDisplay(size.x - 3, -3);
+				if (rowComposite != null) {
+					Point size = rowComposite.getSize();
+					Point menuLocation = rowComposite.toDisplay(size.x - 3, -3);
 					currentMenu.setLocation(menuLocation);
 				}
 				if (currentMenu.getItemCount() > 0) {
@@ -1319,26 +1447,34 @@ public class TorrentMenuFancy
 					addMenuItemListener(currentMenu, listenerForTrigger);
 
 					final FancyMenuRowInfo currentRow = rowInfo;
+					final Point currentMousePos = event.display.getCursorLocation();
 					// Once the menu is visible, we don't get mouse events (even with addFilter)
 					Utils.execSWTThreadLater(300, new Runnable() {
 						public void run() {
+							Point cursorLocation = event.display.getCursorLocation();
+							if (currentMousePos.equals(cursorLocation)) {
+								Utils.execSWTThreadLater(300, this);
+								return;
+							}
+
 							Control control = Utils.getCursorControl();
 
 							if (control != null) {
 								Object data = control.getData("ID");
-								HeaderInfo header = mapHeaderRunnables.get(data);
-								if (header != null) {
+								if (data instanceof HeaderInfo) {
+									HeaderInfo header = (HeaderInfo) data;
 									activateHeader(header);
 								}
 							}
 
-							Menu menu = currentRow.getMenu();
-							if (menu == null || menu.isDisposed() || !menu.isVisible()) {
+							Menu submenu = currentRow.getMenu();
+							if (submenu == null || submenu.isDisposed()
+									|| !submenu.isVisible()) {
 								return;
 							}
 							FancyRowInfo rowInfo = findRowInfo(control);
 							if (rowInfo != null && rowInfo != currentRow) {
-								menu.setVisible(false);
+								submenu.setVisible(false);
 								return;
 							}
 							Utils.execSWTThreadLater(300, this);
@@ -1353,6 +1489,7 @@ public class TorrentMenuFancy
 
 		FancyMenuRowInfo row = new FancyMenuRowInfo();
 		createRow(cParent, keyTitle, keyImage, true, showSWTMenuListener, row);
+		row.setHasSubMenu(true);
 
 		Composite cRow = row.getRow();
 		Utils.addListenerAndChildren(cRow, SWT.MouseHover, showSWTMenuListener);
@@ -1393,13 +1530,10 @@ public class TorrentMenuFancy
 			String keyImage, boolean triggerOnUp, Listener triggerListener,
 			FancyRowInfo rowInfo) {
 
-		final int id = keyTitle == null ? (int) (Integer.MAX_VALUE * Math.random())
-				: (int) (keyTitle.hashCode() * Math.random());
-
 		Composite cRow = new Composite(cParent, SWT.NONE);
 		//cRow.setBackground(ColorCache.getRandomColor());
 
-		cRow.setData("ID", id);
+		cRow.setData("ID", rowInfo);
 		GridLayout gridLayout = new GridLayout(4, false);
 		gridLayout.marginWidth = 1;
 		gridLayout.marginHeight = 3;
@@ -1447,13 +1581,17 @@ public class TorrentMenuFancy
 		rowInfo.setRightLabel(null);
 		rowInfo.setCheckLabel(lblCheck);
 
-		mapRowInfos.put(id, rowInfo);
+		listRowInfos.add(rowInfo);
 		return rowInfo;
 	}
 
 	private FancyRowInfo findRowInfo(Widget widget) {
-		Object data = findData(widget, "ID");
-		return mapRowInfos.get(data);
+		Object findData = findData(widget, "ID");
+		if (findData instanceof FancyRowInfo) {
+			return (FancyRowInfo) findData;
+
+		}
+		return null;
 	}
 
 	protected Object findData(Widget widget, String id) {
@@ -1725,7 +1863,8 @@ public class TorrentMenuFancy
 			Integer requiredUserMode = mapMovedPluginMenuUserMode.get(id);
 			if (requiredUserMode != null && userMode < requiredUserMode) {
 				if (DEBUG_MENU) {
-					System.out.println(" skipped, usermode is " + userMode + " but requires " + requiredUserMode);
+					System.out.println(" skipped, usermode is " + userMode
+							+ " but requires " + requiredUserMode);
 				}
 				continue;
 			}
@@ -1952,8 +2091,11 @@ public class TorrentMenuFancy
 				});
 	}
 
-	private HeaderInfo addHeader(String title, String id, AERunnable runnable) {
+	private HeaderInfo addHeader(String id, String title, AERunnable runnable) {
 		Composite composite = new Composite(topArea, SWT.NONE);
+
+		HeaderInfo headerInfo = new HeaderInfo(id, runnable, composite);
+
 		composite.setBackgroundMode(SWT.INHERIT_FORCE);
 		FillLayout fillLayout = new FillLayout();
 		fillLayout.marginWidth = 6;
@@ -1964,15 +2106,14 @@ public class TorrentMenuFancy
 		composite.setForeground(d.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 
 		Label control = new Label(composite, SWT.NONE);
-		control.setText(title);
-		control.setData("ID", id);
+		Messages.setLanguageText(control, title);
+		control.setData("ID", headerInfo);
 
 		control.addListener(SWT.MouseEnter, headerListener);
 		control.addListener(SWT.MouseExit, headerListener);
 		control.addListener(SWT.Paint, headerListener);
 
-		HeaderInfo headerInfo = new HeaderInfo(id, runnable, composite);
-		mapHeaderRunnables.put(id, headerInfo);
+		listHeaders.add(headerInfo);
 		return headerInfo;
 	}
 
