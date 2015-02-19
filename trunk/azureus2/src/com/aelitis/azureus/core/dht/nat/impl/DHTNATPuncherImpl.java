@@ -2265,6 +2265,9 @@ DHTNATPuncherImpl
 		}
 	}
 	
+	private Map<String,Object[]>	rendezvous_lookup_cache				= new HashMap<String, Object[]>();
+	private long					rendezvous_lookup_cache_tidy_time	= -1;
+	
 	protected DHTTransportContact
 	getRendezvous(
 		String				reason,
@@ -2277,37 +2280,116 @@ DHTNATPuncherImpl
 			return( explicit );
 		}
 		
-		byte[]	key = getPublishKey( target );
+		String target_key = target.getAddress().toString();
 		
-		final DHTTransportValue[]	result_value = {null};
+		DHTTransportValue[]	result_value	= null;
+		AESemaphore 		sem				= null;
+
+		long	now = SystemTime.getMonotonousTime();
 		
-		final Semaphore sem = plugin_interface.getUtilities().getSemaphore();
-		
-		dht.get( 	key, 
-					reason + ": lookup for '" + target.getString() + "'",
-					(byte)0,
-					1,
-					RENDEZVOUS_LOOKUP_TIMEOUT,
-					false, true,
-					new DHTOperationAdapter()
-					{
-						public void
-						read(
-							DHTTransportContact	contact,
-							DHTTransportValue	value )
-						{
-							result_value[0] = value;
-							
-							sem.release();
-						}
+		synchronized( rendezvous_lookup_cache ){
+			
+			if ( rendezvous_lookup_cache_tidy_time == -1 ){
+				
+				rendezvous_lookup_cache_tidy_time = now;
+				
+			}else if ( now - rendezvous_lookup_cache_tidy_time >= 2*60*1000 ){
+			
+				rendezvous_lookup_cache_tidy_time = now;
+				
+				Iterator<Object[]> it = rendezvous_lookup_cache.values().iterator();
+				
+				while ( it.hasNext()){
+					
+					Object[] entry = it.next();
+					
+					long time = (Long)entry[0];
+					
+					if ( time != -1 && now - time > 2*60*1000 ){
 						
-						public void
-						complete(
-							boolean				timeout )
-						{
-							sem.release();
-						}
-					});
+						it.remove();
+					}
+				}
+			}
+			
+			Object[]	existing = rendezvous_lookup_cache.get( target_key );
+			
+			boolean	do_lookup;
+			
+			if ( existing != null ){
+				
+				long time = (Long)existing[0];
+				
+				if ( time == -1 || now - time  < 2*60*1000 ){
+									
+					sem 			= (AESemaphore)existing[1];
+					result_value	= (DHTTransportValue[])existing[2];
+				
+					do_lookup = false;
+					
+				}else{
+					
+					do_lookup = true;
+				}
+			}else{
+				
+				do_lookup = true;
+			}
+			
+			if ( do_lookup ){
+				
+				result_value = new DHTTransportValue[1];
+				
+				sem = new AESemaphore( "getRend" );
+				
+				final Object[] entry = new Object[]{ -1L, sem, result_value };
+												
+				byte[]	key = getPublishKey( target );
+								
+				dht.get( 	key, 
+							reason + ": lookup for '" + target.getString() + "'",
+							(byte)0,
+							1,
+							RENDEZVOUS_LOOKUP_TIMEOUT,
+							false, true,
+							new DHTOperationAdapter()
+							{
+								public void
+								read(
+									DHTTransportContact	contact,
+									DHTTransportValue	value )
+								{
+									synchronized( rendezvous_lookup_cache ){
+									
+										entry[0] = SystemTime.getMonotonousTime();
+										
+										((DHTTransportValue[])entry[2])[0] = value;
+									
+										((AESemaphore)entry[1]).releaseForever();
+									}
+								}
+								
+								public void
+								complete(
+									boolean				timeout )
+								{
+									synchronized( rendezvous_lookup_cache ){
+											
+										AESemaphore	sem = (AESemaphore)entry[1];
+										
+										if ( !sem.isReleasedForever()){
+											
+											entry[0] = SystemTime.getMonotonousTime();
+											
+											sem.releaseForever();
+										}
+									}
+								}
+							});
+				
+				rendezvous_lookup_cache.put( target_key, entry );
+			}
+		}
 		
 		sem.reserve();
 		
