@@ -356,100 +356,156 @@ public class TransferProcessor {
    * Upgrade the given connection to a high-speed transfer handler.
    * @param connection to upgrade
    */
-  public void upgradePeerConnection( final NetworkConnectionBase connection, int partition_id ) {
+  public void 
+  upgradePeerConnection( 
+	final NetworkConnectionBase 	connection, 
+	int 							partition_id ) 
+  {  
     ConnectionData connection_data = null;
     
-    try{ connections_mon.enter();
-      connection_data = (ConnectionData)connections.get( connection );
+    try{ 
+    	connections_mon.enter();
+      
+    	connection_data = (ConnectionData)connections.get( connection );
+    	
+    }finally{
+    	
+    	connections_mon.exit(); 
     }
-    finally{ connections_mon.exit(); }
     
-    if( connection_data != null && connection_data.state == ConnectionData.STATE_NORMAL ) {
+    if ( connection_data != null && connection_data.state == ConnectionData.STATE_NORMAL ){
+    	
       final ConnectionData conn_data = connection_data;
       
-      main_controller.upgradePeerConnection( connection, new RateHandler() {
-        public int getCurrentNumBytesAllowed() {          
-          // sync global rate
-          if( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) {
-            main_bucket.setRate( max_rate.getRateLimitBytesPerSecond() );
-          }
-          
-          int allowed = main_bucket.getAvailableByteCount();
+      main_controller.upgradePeerConnection( 
+    		connection, 
+    		new RateHandler() 
+    		{
+    			public int 
+    			getCurrentNumBytesAllowed() 
+    			{          
+    					// sync global rate
 
-          // reserve bandwidth for the general pool
-          allowed -= connection.getMssSize();
-          
-          if ( allowed < 0 )allowed = 0;
-          
-          	// only apply group rates to non-lan local connections 
-          
-          // ******* READ ME *******
-          // If you ever come here looking for an explanation as to why on torrent startup some peers
-          // appear to be ignoring rate limits for the first few pieces of a download
-          // REMEMBER that fast-start extension pieces are downloaded while be peer is choking us and hence
-          // in a non-upgraded state WHICH MEANS that rate limits are NOT APPLIED
-          
-          
-          if ( RATE_LIMIT_LAN_TOO || !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
-	          // sync group rates
-	          
-	          try{
-		           for (int i=0;i<conn_data.group_datas.length;i++){
-		        	   
-		        	  LimitedRateGroup group = conn_data.groups[i];
-		        	  
-		     		  //boolean log = group.getName().contains("parg");
+    				if( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) {
 
-			          int group_rate = NetworkManagerUtilities.getGroupRateLimit( conn_data.groups[i] );
-			          
-			          ByteBucket group_bucket = conn_data.group_datas[i].bucket;
-			          
-			          /*
-			          if ( log ){
-			        	  long now = SystemTime.getCurrentTime();
-			        	  if ( now - last_log > 500 ){
-			        		  last_log = now;
-			        		  System.out.println( "    " + group.getName() + " -> " + group_rate + "/" + group_bucket.getAvailableByteCount());
-			        	  }
-			          }
-			          */
-			          
-			          if ( group_bucket.getRate() != group_rate ){
-			        	  
-			        	  group_bucket.setRate( group_rate );
-			          }
-			          
-			          int 	group_allowed = group_bucket.getAvailableByteCount();
-			          
-			          if ( group_allowed < allowed ){
-			        	  
-			        	  allowed = group_allowed;
-			          }
-		           }
-	          }catch( Throwable e ){
-	        	  // conn_data.group stuff is not synchronized for speed but can cause borkage if new
-	        	  // limiters added so trap here
-	        	  
-	        	  if (!( e instanceof IndexOutOfBoundsException )){
-	        		  
-	        		  Debug.printStackTrace(e);
-	        	  }
-	          }
-          }
-                  	            
-           return allowed;
-        }
+    					main_bucket.setRate( max_rate.getRateLimitBytesPerSecond() );
+    				}
 
-        public void bytesProcessed( int num_bytes_written ) {
-          if ( RATE_LIMIT_LAN_TOO || !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
-	          for (int i=0;i<conn_data.group_datas.length;i++){
-	        	  conn_data.group_datas[i].bucket.setBytesUsed( num_bytes_written );
-	        	  conn_data.groups[i].updateBytesUsed( num_bytes_written );
-	          }
-          }
-          main_bucket.setBytesUsed( num_bytes_written );
-        }
-      }, partition_id );
+    				int allowed = main_bucket.getAvailableByteCount();
+
+    					// reserve bandwidth for the general pool
+
+    				allowed -= connection.getMssSize();
+
+    				if ( allowed < 0 )allowed = 0;
+
+	    				// only apply group rates to non-lan local connections 
+	
+	    				// ******* READ ME *******
+	    				// If you ever come here looking for an explanation as to why on torrent startup some peers
+	    				// appear to be ignoring rate limits for the first few pieces of a download
+	    				// REMEMBER that fast-start extension pieces are downloaded while be peer is choking us and hence
+	    				// in a non-upgraded state WHICH MEANS that rate limits are NOT APPLIED
+
+
+    				if ( RATE_LIMIT_LAN_TOO || !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
+
+    						// sync group rates
+
+    					LimitedRateGroup[]	groups 		= conn_data.groups;
+    					GroupData[]			group_datas = conn_data.group_datas; 
+
+    					if ( groups.length != group_datas.length ){
+    							// yeah, I know....
+    						try{ 
+    							connections_mon.enter();
+
+    							groups 		= conn_data.groups;
+    							group_datas	= conn_data.group_datas;
+    						}finally{ 
+    							connections_mon.exit(); 
+    						}
+    					}
+
+    					try{
+    						for (int i=0;i<group_datas.length;i++){
+
+    							//boolean log = group.getName().contains("parg");
+
+    							int group_rate = NetworkManagerUtilities.getGroupRateLimit(  groups[i] );
+
+    							ByteBucket group_bucket = group_datas[i].bucket;
+
+    							/*
+						          if ( log ){
+						        	  long now = SystemTime.getCurrentTime();
+						        	  if ( now - last_log > 500 ){
+						        		  last_log = now;
+						        		  System.out.println( "    " + group.getName() + " -> " + group_rate + "/" + group_bucket.getAvailableByteCount());
+						        	  }
+						          }
+    							 */
+
+    							if ( group_bucket.getRate() != group_rate ){
+
+    								group_bucket.setRate( group_rate );
+    							}
+
+    							int 	group_allowed = group_bucket.getAvailableByteCount();
+
+    							if ( group_allowed < allowed ){
+
+    								allowed = group_allowed;
+    							}
+    						}
+    					}catch( Throwable e ){
+    						
+    						// conn_data.group stuff is not synchronized for speed but can cause borkage if new
+    						// limiters added so trap here
+
+    						if (!( e instanceof IndexOutOfBoundsException )){
+
+    							Debug.printStackTrace(e);
+    						}
+    					}
+    				}
+
+    				return allowed;
+    			}
+
+    			public void 
+    			bytesProcessed( 
+    					int num_bytes_written ) 
+    			{
+    				if ( RATE_LIMIT_LAN_TOO || !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
+
+      					LimitedRateGroup[]	groups 		= conn_data.groups;
+    					GroupData[]			group_datas = conn_data.group_datas; 
+
+    					if ( groups.length != group_datas.length ){
+    							// yeah, I know....
+    						try{ 
+    							connections_mon.enter();
+
+    							groups 		= conn_data.groups;
+    							group_datas	= conn_data.group_datas;
+    						}finally{ 
+    							connections_mon.exit(); 
+    						}
+    					}
+    					
+    					for (int i=0;i<group_datas.length;i++){
+    						
+    						group_datas[i].bucket.setBytesUsed( num_bytes_written );
+    						
+    						groups[i].updateBytesUsed( num_bytes_written );
+    					}
+    				}
+
+    				main_bucket.setBytesUsed( num_bytes_written );
+    			}
+    		}, 
+    		partition_id );
       
       conn_data.state = ConnectionData.STATE_UPGRADED;
     }
