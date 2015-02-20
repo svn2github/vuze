@@ -238,11 +238,11 @@ MagnetPluginMDDownloader
 			RandomAccessFile raf = new RandomAccessFile( data_file, "rw" );
 			
 			try{
-				byte[] buffer = new byte[256*1024];
+				byte[] buffer = new byte[512*1024];
 				
 				Arrays.fill( buffer, (byte)0xff );
 				
-				for (long i=0;i<32*1024*1024;i+=buffer.length){
+				for (long i=0;i<64*1024*1024;i+=buffer.length){
 					
 					raf.write( buffer );
 				}
