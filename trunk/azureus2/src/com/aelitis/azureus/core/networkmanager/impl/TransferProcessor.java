@@ -383,6 +383,13 @@ public class TransferProcessor {
           
           	// only apply group rates to non-lan local connections 
           
+          // ******* READ ME *******
+          // If you ever come here looking for an explanation as to why on torrent startup some peers
+          // appear to be ignoring rate limits for the first few pieces of a download
+          // REMEMBER that fast-start extension pieces are downloaded while be peer is choking us and hence
+          // in a non-upgraded state WHICH MEANS that rate limits are NOT APPLIED
+          
+          
           if ( RATE_LIMIT_LAN_TOO || !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
 	          // sync group rates
 	          
