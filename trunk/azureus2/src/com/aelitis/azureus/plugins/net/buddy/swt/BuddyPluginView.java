@@ -666,7 +666,7 @@ BuddyPluginView
 										
 										if ( !chat.isStatistics()){
 											
-											ChatMessage last_msg = chat.getLastMessageNotMine();
+											ChatMessage last_msg = chat.getLastMessageRequiringAttention();
 											
 											if ( last_msg != null ){
 												
@@ -1165,7 +1165,7 @@ BuddyPluginView
 				}
 			}else{
 
-				chat.setUserData( CHAT_LM_KEY, chat.getLastMessageNotMine());
+				chat.setUserData( CHAT_LM_KEY, chat.getLastMessageRequiringAttention());
 
 				chat.setMessageOutstanding( false );
 				

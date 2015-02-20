@@ -98,6 +98,10 @@ BuddyPluginBeta
 	public static final int 	FLAGS_MSG_ORIGIN_USER 		= 0;		// def
 	public static final int 	FLAGS_MSG_ORIGIN_RATINGS 	= 1;
 	
+	public static final String 	FLAGS_MSG_FLASH_OVERRIDE	= "f";
+	public static final int		FLAGS_MSG_FLASH_NO 			= 0;		// def
+	public static final int		FLAGS_MSG_FLASH_YES 		= 1;
+
 	
 	private BuddyPlugin			plugin;
 	private PluginInterface		plugin_interface;
@@ -1855,7 +1859,7 @@ BuddyPluginBeta
 		
 		private int			reference_count;
 		
-		private ChatMessage		last_message_not_mine;
+		private ChatMessage		last_message_requiring_attention;
 		private boolean			message_outstanding;
 		
 		private boolean		is_favourite;
@@ -3168,9 +3172,14 @@ BuddyPluginBeta
 						
 						my_address = address;
 					}
+					
+					if ( msg.getFlagFlashOverride()){
+					
+						last_message_requiring_attention = msg;
+					}
 				}else{
 					
-					last_message_not_mine = msg;
+					last_message_requiring_attention = msg;
 					
 					messages_not_mine_count++;
 				}
@@ -3806,9 +3815,9 @@ BuddyPluginBeta
 		}
 		
 		public ChatMessage
-		getLastMessageNotMine()
+		getLastMessageRequiringAttention()
 		{
-			return( last_message_not_mine );
+			return( last_message_requiring_attention );
 		}
 		
 		public void
@@ -4474,7 +4483,7 @@ BuddyPluginBeta
 				
 				if ( flags != null ){
 					
-					Number status = (Number)flags.get( "s" );
+					Number status = (Number)flags.get( FLAGS_MSG_STATUS_KEY );
 					
 					if ( status != null ){
 						
@@ -4484,6 +4493,29 @@ BuddyPluginBeta
 			}
 			
 			return( FLAGS_MSG_STATUS_CHAT_NONE );
+		}
+		
+		private boolean
+		getFlagFlashOverride()
+		{
+			Map<String,Object> payload = getPayload();
+
+			if ( payload != null ){
+				
+				Map<String,Object>	flags = (Map<String,Object>)payload.get( "f" );
+				
+				if ( flags != null ){
+					
+					Number override = (Number)flags.get( FLAGS_MSG_FLASH_OVERRIDE );
+					
+					if ( override != null ){
+						
+						return( override.intValue() != 0 );
+					}
+				}
+			}
+			
+			return( false );
 		}
 		
 		public String
