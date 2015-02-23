@@ -40,6 +40,8 @@ public class SWTSkinObjectImage
 {
 	protected static final Long DRAW_SCALE = new Long(1);
 
+	protected static final Long DRAW_SCALEDOWN_OR_CENTER = new Long(8);
+
 	protected static final Long DRAW_STRETCH = new Long(2);
 
 	protected static final Long DRAW_NORMAL = new Long(0);
@@ -117,6 +119,14 @@ public class SWTSkinObjectImage
 				}
 				Rectangle imgSrcBounds = imgSrc.getBounds();
 				Point size = control.getSize();
+				
+				if (drawMode == DRAW_SCALEDOWN_OR_CENTER) {
+					if (size.x < imgSrcBounds.width || size.y < imgSrcBounds.height) {
+						drawMode = DRAW_SCALE;
+					} else {
+						drawMode = DRAW_CENTER;
+					}
+				}
 
 				if (drawMode == DRAW_STRETCH) {
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
@@ -135,9 +145,14 @@ public class SWTSkinObjectImage
 				} else if (drawMode == DRAW_HCENTER) {
 					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2, 0);
 				} else if (drawMode == DRAW_SCALE) {
-					// TODO: real scale..
+					float dx = (float) size.x / imgSrcBounds.width;
+					float dy = (float) size.y / imgSrcBounds.height ;
+					float d = Math.min(dx, dy);
+					int newX = (int) (imgSrcBounds.width * d);
+					int newY = (int) (imgSrcBounds.height * d);
+					
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
-							0, 0, size.x, size.y);
+							(size.x - newX) / 2, (size.y - newY) / 2, newX, newY);
 				} else {
 					int x0 = 0;
 					int y0 = 0;
@@ -345,6 +360,8 @@ public class SWTSkinObjectImage
 				Long drawMode;
 				if (sDrawMode.equals("scale")) {
 					drawMode = DRAW_SCALE;
+				} else if (sDrawMode.equals("scaledown")) {
+						drawMode = DRAW_SCALEDOWN_OR_CENTER;
 				} else if (sDrawMode.equals("stretch")) {
 					drawMode = DRAW_STRETCH;
 				} else if (sDrawMode.equals("center")) {
@@ -406,7 +423,7 @@ public class SWTSkinObjectImage
  
 				Rectangle imgBounds = image.getBounds();
 				if (drawMode != DRAW_CENTER && drawMode != DRAW_HCENTER
-						&& drawMode != DRAW_STRETCH) {
+						&& drawMode != DRAW_STRETCH && drawMode != DRAW_SCALEDOWN_OR_CENTER) {
 					canvas.setSize(imgBounds.width + hpadding, imgBounds.height);
 					canvas.setData("oldSize", canvas.getSize());
 				}
