@@ -966,4 +966,9 @@ LWSDownload
 	{
 		Debug.out( "Not Supported" );
 	}
+
+	// @see org.gudy.azureus2.plugins.download.Download#getPrimaryFile()
+	public DiskManagerFileInfo getPrimaryFile() {
+		return null;
+	}
 }

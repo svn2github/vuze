@@ -1130,4 +1130,11 @@ Download extends DownloadEventNotifier, DownloadStub
    */
   public List<DistributedDatabase>
   getDistributedDatabases();
+
+	/**
+	 * Returns the "Primary" file in the download.  Usually the largest one
+	 * 
+	 * @since 5.0.0.1
+	 */
+	public DiskManagerFileInfo getPrimaryFile();
 }

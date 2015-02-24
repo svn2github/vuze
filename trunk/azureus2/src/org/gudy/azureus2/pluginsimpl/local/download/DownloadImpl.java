@@ -1996,6 +1996,16 @@ DownloadImpl
 		return new DiskManagerFileInfoImpl(this, info[index]);
 	}
 	
+	public DiskManagerFileInfo
+	getPrimaryFile() {
+		org.gudy.azureus2.core3.disk.DiskManagerFileInfo primaryFile = download_manager.getDownloadState().getPrimaryFile();
+		
+		if (primaryFile == null) {
+			return null;
+		}
+		return new DiskManagerFileInfoImpl(this, primaryFile);
+	}
+	
 	public DiskManagerFileInfo[]
 	getDiskManagerFileInfo()
 	{

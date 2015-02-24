@@ -1128,5 +1128,10 @@ RPDownload
 		notSupported();
 		
 		return( null );
+	}
+
+	// @see org.gudy.azureus2.plugins.download.Download#getPrimaryFile()
+	public DiskManagerFileInfo getPrimaryFile() {
+		return getDiskManagerFileInfo(0);
 	}    	
 }
