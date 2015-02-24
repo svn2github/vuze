@@ -3629,20 +3629,61 @@ BuddyPluginViewBetaChat
 											}
 										}
 										
-										StyleRange styleRange 	= new StyleRange();
-										styleRange.start 		= this_style_start;
-										styleRange.length 		= this_style_length;
-										styleRange.foreground 	= Colors.blue;
-										styleRange.underline 	= true;
+											/* Check that the URL is actually going tobe useful. IN particular, if it is a magnet URI with
+											 * no hash and no &fl links then it ain't gonna work
+											 */
 										
-											// DON'T store the URL object because in their wisdom SWT invokes the .equals method
-											// on data objects when trying to find 'similar' ones, and for URLs this causes
-											// a name service lookup...
+										boolean	will_work = true;
 										
-										styleRange.data = url_str;
+										try{
+											
+											String lc_url = url_str.toLowerCase( Locale.US );
+											
+											if ( lc_url.startsWith( "magnet" )){
+												
+												if ( 	( !lc_url.contains( "btih:" )) ||
+														lc_url.contains( "btih:&" ) ||
+														lc_url.endsWith( "btih:" )){
+													
+														// no hash
+													
+													if ( !lc_url.contains( "&fl=" )){
+														
+															// no direct link
+															
+														will_work = false;
+													}
+												}
+											}
+										}catch( Throwable e ){
+											
+										}
 										
-										new_ranges.add( styleRange);
-										
+										if ( will_work ){
+											
+											StyleRange styleRange 	= new StyleRange();
+											styleRange.start 		= this_style_start;
+											styleRange.length 		= this_style_length;
+											styleRange.foreground 	= Colors.blue;
+											styleRange.underline 	= true;
+											
+												// DON'T store the URL object because in their wisdom SWT invokes the .equals method
+												// on data objects when trying to find 'similar' ones, and for URLs this causes
+												// a name service lookup...
+											
+											styleRange.data = url_str;
+											
+											new_ranges.add( styleRange);
+											
+										}else{
+											
+											StyleRange styleRange 	= new StyleRange();
+											styleRange.start 		= this_style_start;
+											styleRange.length 		= this_style_length;
+											styleRange.font 		= bold_font;
+											
+											new_ranges.add( styleRange);
+										}
 									}catch( Throwable e ){
 										
 										//e.printStackTrace();

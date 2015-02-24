@@ -1218,7 +1218,9 @@ BuddyPluginBeta
 			
 			while( pos < len ){
 				
-				if ( Character.isWhitespace( str.charAt( pos ))){
+				char c = str.charAt( pos );
+				
+				if ( Character.isWhitespace( c ) || ( c == '"' && start > 0 && lc_str.charAt( start-1 ) == '"' )){
 					
 					break;
 					
