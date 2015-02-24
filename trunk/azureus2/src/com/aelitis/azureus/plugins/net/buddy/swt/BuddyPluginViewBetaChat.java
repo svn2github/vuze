@@ -3437,6 +3437,25 @@ BuddyPluginViewBetaChat
 											Debug.out( e );
 										}
 									}
+								}else{
+									
+									int	hpos = str.lastIndexOf( "[[" );
+																								
+									if ( hpos > 0 && str.endsWith( "]]" )){
+										
+										str = 	str.substring( 0, hpos ) + 
+												"[[" +
+												str.substring( hpos+2, str.length()-2 ) +
+												"]]";
+										
+										try{
+											segments.set( i, new URL( str ));
+											
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
+									}
 								}
 							}else{
 								
@@ -3455,7 +3474,8 @@ BuddyPluginViewBetaChat
 							
 							if ( obj instanceof URL ){
 							
-								sb.append(((URL)obj).toExternalForm());
+								sb.append( "\"" + ((URL)obj).toExternalForm() + "\"" );
+								
 							}else{
 								
 								sb.append((String)obj);
@@ -3463,7 +3483,6 @@ BuddyPluginViewBetaChat
 						}
 						
 						msg = sb.toString();
-	
 					}
 					
 					{	
@@ -3581,7 +3600,7 @@ BuddyPluginViewBetaChat
 											}
 										}
 										
-										if ( !display_url.equals( original_url_str )){
+										if ( term_char != ' ' || !display_url.equals( original_url_str )){
 											
 											int	old_len = msg.length();
 											
