@@ -938,6 +938,7 @@ public class ToolBarView
 		mapToolBarItemToSO.put(item, itemSO);
 	}
 
+	// @see com.aelitis.azureus.ui.common.ToolBarItem.ToolBarItemListener#uiFieldChanged(com.aelitis.azureus.ui.common.ToolBarItem)
 	public void uiFieldChanged(ToolBarItem item) {
 		if (!isVisible()) {
 			return;
@@ -1132,6 +1133,12 @@ public class ToolBarView
 
 	// @see org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerImpl.ToolBarManagerListener#toolbarItemAdded(org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem)
 	public void toolbarItemAdded(final UIToolBarItem item) {
+		if (item instanceof ToolBarItem) {
+			ToolBarItem toolBarItem = (ToolBarItem) item;
+			
+			toolBarItem.addToolBarItemListener(this);
+		}
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				boolean b = initComplete;
