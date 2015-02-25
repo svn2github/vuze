@@ -181,4 +181,9 @@ public class UIToolBarManagerImpl
 			}
 		}
 	}
+	
+	// @see org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerCore#getGroupIDs()
+	public String[] getGroupIDs() {
+		return mapGroupToItemIDs.keySet().toArray(new String[0]);
+	}
 }

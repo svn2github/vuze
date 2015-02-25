@@ -127,6 +127,16 @@ public class ToolBarView
 		}
 		bulkSetupItems(UIToolBarManager.GROUP_MAIN, "toolbar.area.sitem");
 		bulkSetupItems("views", "toolbar.area.vitem");
+		
+		String[] groupIDs = tbm.getGroupIDs();
+		for (String groupID : groupIDs) {
+			if ("classic".equals(groupID)
+					|| UIToolBarManager.GROUP_MAIN.equals(groupID)
+					|| "views".equals(groupID)) {
+				continue;
+			}
+			bulkSetupItems(groupID, "toolbar.area.sitem");
+		}
 
 		Utils.execSWTThreadLater(0, new Runnable() {
 			public void run() {
@@ -940,9 +950,6 @@ public class ToolBarView
 
 	// @see com.aelitis.azureus.ui.common.ToolBarItem.ToolBarItemListener#uiFieldChanged(com.aelitis.azureus.ui.common.ToolBarItem)
 	public void uiFieldChanged(ToolBarItem item) {
-		if (!isVisible()) {
-			return;
-		}
 		ToolBarItemSO itemSO = mapToolBarItemToSO.get(item);
 		if (itemSO != null) {
 			itemSO.updateUI();
@@ -1071,6 +1078,16 @@ public class ToolBarView
 					String groupID = toolBarItem.getGroupID();
 					
 					final String[] idsByGroup = tbm.getToolBarIDsByGroup(groupID);
+					
+					if (idsByGroup.length <= 1) {
+						boolean b = initComplete;
+						initComplete = false;
+						bulkSetupItems(groupID, "toolbar.area.sitem");
+						initComplete = b;
+						so.getParent().relayout();
+						return;
+					}
+					
 					int posToolBarItem = -1;
 					String id = toolBarItem.getID();
 
@@ -1133,10 +1150,11 @@ public class ToolBarView
 
 	// @see org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerImpl.ToolBarManagerListener#toolbarItemAdded(org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem)
 	public void toolbarItemAdded(final UIToolBarItem item) {
-		if (item instanceof ToolBarItem) {
-			ToolBarItem toolBarItem = (ToolBarItem) item;
-			
-			toolBarItem.addToolBarItemListener(this);
+		if (isVisible()) {
+  		if (item instanceof ToolBarItem) {
+  			ToolBarItem toolBarItem = (ToolBarItem) item;
+  			toolBarItem.addToolBarItemListener(this);
+  		}
 		}
 
 		Utils.execSWTThread(new AERunnable() {

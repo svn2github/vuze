@@ -38,4 +38,6 @@ public interface UIToolBarManagerCore
 	void addToolBarItem(UIToolBarItem item, boolean trigger);
 
 	String[] getToolBarIDsByGroup(String groupID);
+	
+	String[] getGroupIDs();
 }
