@@ -97,6 +97,8 @@ public interface MenuManager {
 
 	/**
 	 * Creates a menu item for the appropriate menu.
+	 * <P>
+	 * On plugin unload, use {@link MenuItem#remove()} or {@link MenuItem#removeAllChildItems()} 
 	 * 
 	 * @param menuID The <tt>MENU_</tt> identifier as defined above. 
 	 * @param resource_key ID of the menu, which is also used to retrieve the
@@ -113,6 +115,8 @@ public interface MenuManager {
      * Example: When adding menus to {@link UISWTStatusEntry}, call
      * {@link UISWTStatusEntry#getMenuContext()} to get the MenuContext, and
      * then pass it into this function.
+	 * <P>
+	 * On plugin unload, use {@link MenuItem#remove()} or {@link MenuItem#removeAllChildItems()} 
      * 
      * @param context The menu context object which represents the place to
      *                add a menu item.
@@ -125,6 +129,8 @@ public interface MenuManager {
     
     /**
      * Creates a menu item as a sub-item of the given menu item.
+	 * <P>
+	 * On plugin unload, use {@link MenuItem#remove()} or {@link MenuItem#removeAllChildItems()} 
      * 
      * @param parent The MenuItem to add this new item to. The parent MenuItem
      *               must have its style attribute to be set to "menu".
