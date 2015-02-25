@@ -30,9 +30,11 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
@@ -69,6 +71,7 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
@@ -409,6 +412,8 @@ public class SBC_DevicesView
 		// 7) Go to 1
 		//DevicesFTUX.ensureInstalled();
 
+		updateSelectedContent();
+		
 		return null;
 	}
 
@@ -530,13 +535,7 @@ public class SBC_DevicesView
 		tvFiles.addSelectionListener(new TableSelectionListener() {
 
 			public void selected(TableRowCore[] row) {
-				SelectedContentManager.clearCurrentlySelectedContent();
-
-				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-				if (uiFunctions != null) {
-					uiFunctions.refreshIconBar();
-				}
-				
+				updateSelectedContent();
 			}
 
 			public void mouseExit(TableRowCore row) {
@@ -546,29 +545,16 @@ public class SBC_DevicesView
 			}
 
 			public void focusChanged(TableRowCore focus) {
-				SelectedContentManager.clearCurrentlySelectedContent();
-				
-				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-				if (uiFunctions != null) {
-					uiFunctions.refreshIconBar();
-				}
 			}
 
 			public void deselected(TableRowCore[] rows) {
-				SelectedContentManager.clearCurrentlySelectedContent();
-				
-				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-				if (uiFunctions != null) {
-					uiFunctions.refreshIconBar();
-				}
+				updateSelectedContent();
 			}
 
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
-				SelectedContentManager.clearCurrentlySelectedContent();
-				
 			}
 		}, false);
-
+		
 		tvFiles.addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {
 				if (transTarget == null) {
@@ -583,6 +569,7 @@ public class SBC_DevicesView
 				} else {
 					tvFiles.addDataSources(transTarget.getFiles());
 				}
+				updateSelectedContent();
 			}
 
 			public void tableViewDestroyed() {
@@ -1300,6 +1287,8 @@ public class SBC_DevicesView
 				| SWT.FULL_SELECTION);
 		tvDevices.setRowDefaultHeight(25);
 		tvDevices.setHeaderVisible(true);
+		
+		
 
 		Composite parent = new Composite(control, SWT.NONE);
 		parent.setLayoutData(Utils.getFilledFormData());
@@ -1940,5 +1929,22 @@ public class SBC_DevicesView
 		} catch (Throwable t) {
 			Debug.out( "failed to init drag-n-drop", t);
 		}
+	}
+	
+	public void updateSelectedContent() {
+		TableView tv = tvFiles!=null?tvFiles:tvDevices;
+		Object[] dataSources = tv.getSelectedDataSources(true);
+		List<SelectedContent> listSelected = new ArrayList<SelectedContent>(
+				dataSources.length);
+		for (Object ds : dataSources) {
+			if (ds instanceof DiskManagerFileInfo) {
+				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+				listSelected.add(new SelectedContent(fileInfo.getDownloadManager(),
+						fileInfo.getIndex()));
+			}
+		}
+		SelectedContent[] sc = listSelected.toArray(new SelectedContent[0]);
+		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(),
+				null, tv);
 	}
 }

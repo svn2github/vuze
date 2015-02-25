@@ -186,6 +186,10 @@ public class SelectedContentManager
 			contents = getCurrentlySelectedContent();
 		}
 		if (contents.length == 0) {
+			TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
+			if (tv != null) {
+				return tv.getSelectedDataSources(false);
+			}
 			return null;
 		}
 		if (contents.length == 1) {

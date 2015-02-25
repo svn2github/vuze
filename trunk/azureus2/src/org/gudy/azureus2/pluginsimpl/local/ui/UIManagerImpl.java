@@ -219,7 +219,7 @@ UIManagerImpl
   		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
   			public void currentlySelectedContentChanged(
   					ISelectedContent[] currentContent, String viewID) {
-  				triggerDataSourceListeners(SelectedContentManager.convertSelectedContentToObject(currentContent));
+  				triggerDataSourceListeners(SelectedContentManager.convertSelectedContentToObject(null));
   			}
   		});
 
@@ -805,8 +805,7 @@ UIManagerImpl
 		}
 		if (triggerNow) {
 			try {
-				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-				l.dataSourceChanged(SelectedContentManager.convertSelectedContentToObject(contents));
+				l.dataSourceChanged(SelectedContentManager.convertSelectedContentToObject(null));
 			} catch (Throwable t) {
 				Debug.out(t);
 			}
@@ -823,6 +822,11 @@ UIManagerImpl
 		} finally {
 			class_mon.exit();
 		}
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.UIManager#getDataSource()
+	public Object getDataSource() {
+		return SelectedContentManager.convertSelectedContentToObject(null);
 	}
 	
 	private static void triggerDataSourceListeners(Object ds) {

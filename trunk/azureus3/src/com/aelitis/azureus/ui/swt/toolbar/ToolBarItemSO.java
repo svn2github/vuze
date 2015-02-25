@@ -21,13 +21,13 @@
 package com.aelitis.azureus.ui.swt.toolbar;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
-import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarItemImpl;
 
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
-import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 
 /**
  * @author TuxPaper
@@ -35,79 +35,31 @@ import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
  *
  */
 public class ToolBarItemSO
-	implements ToolBarItem
 {
-	String imageID = "image.toolbar.run";
-
-	String id;
+	private final static boolean DEBUG_TUX = false;
 
 	private SWTSkinButtonUtility skinButton;
 
 	private SWTSkinObjectText skinTitle;
 
-	boolean enabled = false;
-
-	private String textID;
-
-	private String tooltipID;
-
-	private boolean alwaysAvailable = false;
-
-	private final ToolBarView tbView;
-
-	private UIToolBarActivationListener defaultActivation;
-
-	private final boolean isPluginItem;
-
-	private String groupID = UIToolBarManager.GROUP_MAIN;
-
-	private long defaultState;
-
 	private boolean isDown;
 
-	/**
-	 * @param id
-	 * @param image
-	 */
-	public ToolBarItemSO(ToolBarView tbView, String id, String imageid) {
-		super();
-		this.tbView = tbView;
-		this.id = id;
-		imageID = imageid;
-		isPluginItem = false;
+	private UIToolBarItemImpl base;
+
+	private SWTSkinObject so;
+
+	public ToolBarItemSO(UIToolBarItemImpl base, SWTSkinObject so) {
+		this.base = base;
+		this.so = so;
 	}
 
-	public ToolBarItemSO(ToolBarView tbView, String id, String imageid,
-			String textID) {
-		super();
-		this.tbView = tbView;
-		this.id = id;
-		imageID = imageid;
-		this.textID = textID;
-		this.tooltipID = textID + ".tooltip";
-		isPluginItem = false;
-	}
-
-	public ToolBarItemSO(ToolBarView tbView, String id, boolean isPluginItem) {
-		this.tbView = tbView;
-		this.id = id;
-		this.isPluginItem = isPluginItem;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarItem#triggerToolBarItem(long, java.lang.Object)
-	 */
-	public boolean triggerToolBarItem(long activationType, Object datasource) {
-		return tbView.triggerToolBarItem(this, activationType, datasource);
-	}
-
-	public String getID() {
-		return id;
+	public SWTSkinObject getSO() {
+		return so;
 	}
 
 	public void setSkinButton(SWTSkinButtonUtility btn) {
 		this.skinButton = btn;
-		skinButton.setDisabled(!enabled);
+		updateUI();
 	}
 
 	public SWTSkinButtonUtility getSkinButton() {
@@ -116,95 +68,23 @@ public class ToolBarItemSO
 
 	public void setSkinTitle(SWTSkinObjectText s) {
 		skinTitle = s;
-	}
-
-	public long getState() {
-		long state = (isEnabled() ? STATE_ENABLED : 0) | (isDown ? STATE_DOWN : 0);
-
-		return state;
-	}
-
-	public void setState(long state) {
-		// TODO: This gets called a lot for the same toolbar item -- need to look
-		// into why.
-		setEnabled((state & STATE_ENABLED) > 0);
-		isDown = (state & STATE_DOWN) > 0;
-		if (skinButton != null) {
-			skinButton.getSkinObject().switchSuffix(isDown ? "-selected" : "", 4, false);
-		}
-	}
-
-	private boolean isEnabled() {
-		if (skinButton != null) {
-			return !skinButton.isDisabled();
-		}
-		return enabled;
+		skinTitle.setTextID(base.getTextID());
 	}
 
 	private void setEnabled(boolean enabled) {
-		if (alwaysAvailable && !enabled) {
+		if (DEBUG_TUX) {
+			if (Character.isDigit(base.getID().charAt(0))) {
+				//if (base.getID().equals("up")) {
+				System.out.println("setEnabeld " + enabled + "/" + base.getID()
+						+ ";sb=" + Debug.getCompressedStackTrace());
+			}
+		}
+		if (base.isAlwaysAvailable() && !enabled) {
 			return;
 		}
-		this.enabled = enabled;
 		if (skinButton != null) {
 			skinButton.setDisabled(!enabled);
 		}
-	}
-
-	public String getImageID() {
-		return imageID;
-	}
-
-	public void setImageID(String imageID) {
-		this.imageID = imageID;
-		if (skinButton != null) {
-			skinButton.setImage(imageID);
-		}
-	}
-
-	/**
-	 * @param textID the textID to set
-	 */
-	public void setTextID(String textID) {
-		this.textID = textID;
-		if (skinTitle != null) {
-			skinTitle.setTextID(textID);
-		}
-	}
-
-	/**
-	 * @return the textID
-	 */
-	public String getTextID() {
-		return textID;
-	}
-
-	public String getTooltipID() {
-		return tooltipID;
-	}
-
-	public void setTooltipID(String tooltipID) {
-		this.tooltipID = tooltipID;
-	}
-
-	public void setAlwaysAvailable(boolean alwaysAvailable) {
-		this.alwaysAvailable = alwaysAvailable;
-		if (alwaysAvailable) {
-			setEnabled(true);
-		}
-	}
-
-	public boolean isAlwaysAvailable() {
-		return alwaysAvailable;
-	}
-
-	public void setDefaultActivationListener(
-			UIToolBarActivationListener defaultActivation) {
-		this.defaultActivation = defaultActivation;
-	}
-
-	public UIToolBarActivationListener getDefaultActivationListener() {
-		return defaultActivation;
 	}
 
 	public void dispose() {
@@ -213,19 +93,32 @@ public class ToolBarItemSO
 		skinTitle = null;
 	}
 
-	public String getGroupID() {
-		return groupID;
+	public ToolBarItem getBase() {
+		return base;
 	}
 
-	public void setGroupID(String groupID) {
-		this.groupID = groupID;
+	public void updateUI() {
+		if (skinButton != null) {
+			skinButton.setImage(base.getImageID());
+		}
+		if (skinTitle != null) {
+			skinTitle.setTextID(base.getTextID());
+		}
+		if (base.isAlwaysAvailable()) {
+			setEnabled(true);
+		} else {
+			long state = base.getState();
+			setEnabled((state & UIToolBarItem.STATE_ENABLED) > 0);
+			isDown = (state & UIToolBarItem.STATE_DOWN) > 0;
+			if (skinButton != null) {
+				skinButton.getSkinObject().switchSuffix(isDown ? "-selected" : "", 4,
+						false);
+			}
+		}
 	}
 
-	public void setDefaultState(long state) {
-		this.defaultState = state;
+	public void setSO(SWTSkinObject so) {
+		this.so = so;
 	}
 
-	public long getDefaultState() {
-		return defaultState;
-	}
 }

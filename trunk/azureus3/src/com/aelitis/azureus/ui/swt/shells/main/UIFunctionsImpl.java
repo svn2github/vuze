@@ -27,6 +27,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
@@ -53,9 +54,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.*;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
@@ -1207,11 +1206,7 @@ public class UIFunctionsImpl
 	}
 
 	public UIToolBarManager getToolBarManager() {
-		Object tb = SkinViewManager.getByClass(ToolBarView.class);
-		if (tb instanceof UIToolBarManager) {
-			return (UIToolBarManager) tb;
-		}
-		return null;
+		return UIToolBarManagerImpl.getInstance();
 	}
 	
 	public void

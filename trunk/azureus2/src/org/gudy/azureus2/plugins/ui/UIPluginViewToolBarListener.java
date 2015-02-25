@@ -27,6 +27,7 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
  * 
  * @author Vuze
  *
+ * @see UIPluginView#setToolBarListener(UIPluginViewToolBarListener)
  */
 public interface UIPluginViewToolBarListener
 	extends UIToolBarActivationListener, UIToolBarEnablerBase

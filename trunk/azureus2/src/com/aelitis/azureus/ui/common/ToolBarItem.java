@@ -24,13 +24,26 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 public interface ToolBarItem
 	extends UIToolBarItem
 {
+	public static interface ToolBarItemListener
+	{
+		public void uiFieldChanged(ToolBarItem item);
+
+		public boolean triggerToolBarItem(ToolBarItem item, long activationType,
+				Object datasource);
+	}
+
 	public boolean triggerToolBarItem(long activationType, Object datasource);
 
-	public void setDefaultActivationListener(UIToolBarActivationListener toolBarActivation);
+	public void setDefaultActivationListener(
+			UIToolBarActivationListener toolBarActivation);
 
 	public void setAlwaysAvailable(boolean b);
 
 	public String getTooltipID();
 
 	public UIToolBarActivationListener getDefaultActivationListener();
+
+	public void addToolBarItemListener(ToolBarItemListener l);
+	
+	public void removeToolBarItemListener(ToolBarItemListener l);
 }

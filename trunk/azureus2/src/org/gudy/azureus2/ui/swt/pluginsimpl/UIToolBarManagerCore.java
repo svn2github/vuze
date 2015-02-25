@@ -19,9 +19,23 @@
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerImpl.ToolBarManagerListener;
+
+import com.aelitis.azureus.ui.common.ToolBarItem;
 
 public interface UIToolBarManagerCore
 	extends UIToolBarManager
 {
+
+	ToolBarItem[] getAllSWTToolBarItems();
+
+	void addListener(ToolBarManagerListener l);
+
+	void removeListener(ToolBarManagerListener l);
+
+	void addToolBarItem(UIToolBarItem item, boolean trigger);
+
+	String[] getToolBarIDsByGroup(String groupID);
 }

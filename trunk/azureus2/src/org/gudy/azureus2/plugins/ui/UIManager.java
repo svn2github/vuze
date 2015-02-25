@@ -349,6 +349,7 @@ UIManager
 
  	public void addDataSourceListener(UIDataSourceListener l, boolean triggerNow);
  	public void removeDataSourceListener(UIDataSourceListener l);
+ 	public Object getDataSource();
  	
  	public void setEverythingHidden( boolean hidden );
 }

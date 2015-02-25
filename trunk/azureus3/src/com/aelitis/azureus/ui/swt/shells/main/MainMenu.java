@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.shells.main;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
@@ -29,11 +30,13 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.swt.KeyBindings;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerImpl;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.util.FeatureAvailability;
@@ -368,7 +371,7 @@ public class MainMenu
 			MenuFactory.addMenuItem(viewMenu, SWT.RADIO, PREFIX_V3
 					+ ".view.asSimpleList", new Listener() {
 				public void handleEvent(Event event) {
-					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+					UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
 					if (tb != null) {
 						UIToolBarItem item = tb.getToolBarItem("modeBig");
 						if (item != null) {
@@ -382,7 +385,7 @@ public class MainMenu
 			MenuFactory.addMenuItem(viewMenu, SWT.RADIO, PREFIX_V3
 					+ ".view.asAdvancedList", new Listener() {
 				public void handleEvent(Event event) {
-					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+					UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
 					if (tb != null) {
 						UIToolBarItem item = tb.getToolBarItem("modeSmall");
 						if (item != null) {
@@ -419,7 +422,7 @@ public class MainMenu
 					MenuItem itemShowAsSimple = MenuFactory.findMenuItem(viewMenu,
 							PREFIX_V3 + ".view.asSimpleList");
 					if (itemShowAsSimple != null) {
-						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+						UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
 						if (tb != null) {
 							UIToolBarItem item = tb.getToolBarItem("modeBig");
 							long state = item == null ? 0 : item.getState();
@@ -430,7 +433,7 @@ public class MainMenu
 					MenuItem itemShowAsAdv = MenuFactory.findMenuItem(viewMenu, PREFIX_V3
 							+ ".view.asAdvancedList");
 					if (itemShowAsAdv != null) {
-						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+						UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
 						if (tb != null) {
 							UIToolBarItem item = tb.getToolBarItem("modeSmall");
 							long state = item == null ? 0 : item.getState();

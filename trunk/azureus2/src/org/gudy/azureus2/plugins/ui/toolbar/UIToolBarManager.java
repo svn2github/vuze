@@ -21,6 +21,7 @@ package org.gudy.azureus2.plugins.ui.toolbar;
 public interface UIToolBarManager
 {
 	public final static String GROUP_BIG = "big";
+
 	public final static String GROUP_MAIN = "main";
 
 	/**
@@ -32,7 +33,7 @@ public interface UIToolBarManager
 	 * @return newly created toolbar
 	 */
 	public UIToolBarItem createToolBarItem(String id);
-	
+
 	/**
 	 * Adds a {@link UIToolBarItem} to the UI.  Make sure you at least set the
 	 * icon before adding
@@ -42,6 +43,10 @@ public interface UIToolBarManager
 	public void addToolBarItem(UIToolBarItem item);
 
 	public UIToolBarItem getToolBarItem(String id);
+
 	public UIToolBarItem[] getAllToolBarItems();
+
 	public void removeToolBarItem(String id);
+	
+	
 }

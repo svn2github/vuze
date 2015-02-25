@@ -75,4 +75,32 @@ public interface UIToolBarItem
 
 	public void setDefaultActivationListener(
 			UIToolBarActivationListener defaultActivation);
+	
+	/**
+	 * @return Group that item belongs to
+	 *
+	 * @since 5.0.0.1
+	 */
+	public String getGroupID();
+
+	/**
+	 * @param groupID
+	 *
+	 * @since 5.0.0.1
+	 */
+	public void setGroupID(String groupID);
+
+	/**
+	 * @param string
+	 *
+	 * @since 5.0.0.1
+	 */
+	public void setToolTip(String text);
+
+	/**
+	 * @return
+	 *
+	 * @since 5.0.0.1
+	 */
+	String getToolTip();
 }

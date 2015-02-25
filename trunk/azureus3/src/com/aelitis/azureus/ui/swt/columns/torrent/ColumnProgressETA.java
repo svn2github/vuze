@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -271,9 +272,10 @@ public class ColumnProgressETA
 		long speed = showSpeed ? getSpeed(ds) : 0;
 
 		//System.out.println("REFRESH " + sortValue + ";" + ds);
+		Comparable old = cell.getSortValue();
 		boolean sortChanged = cell.setSortValue(sortValue);
 
-		if (sortChanged) {
+		if (sortChanged && old != null && !(old instanceof String)) {
 			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
 		}
 
