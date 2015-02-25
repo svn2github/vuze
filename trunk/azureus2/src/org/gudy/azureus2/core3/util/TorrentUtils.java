@@ -2159,15 +2159,38 @@ TorrentUtils
 	}
 		
 	
-	public static boolean isReallyPrivate(TOTorrent torrent) {
+	public static boolean 
+	isReallyPrivate(
+		TOTorrent torrent) 
+	{
 		if ( torrent == null ){
 			
 			return( false );
 		}	
 		
-		if ( UrlUtils.containsPasskey( torrent.getAnnounceURL())){
+		URL url = torrent.getAnnounceURL();
+		
+		if ( url == null ){
+	
+			TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+			
+			if ( sets != null && sets.length > 0 ){
 				
-			return torrent.getPrivate();
+				URL[] urls = sets[0].getAnnounceURLs();
+				
+				if ( urls.length > 0 ){
+				
+					url = urls[0];
+				}
+			}
+		}
+		
+		if ( url != null ){
+			
+			if ( UrlUtils.containsPasskey( url )){
+					
+				return torrent.getPrivate();
+			}
 		}
 		
 		return false;

@@ -1065,6 +1065,11 @@ public class UrlUtils
 	containsPasskey(
 		URL		url )
 	{
+		if ( url == null ){
+			
+			return( false );
+		}
+		
 		String url_str = url.toExternalForm();
 		
 		return( url_str.matches(".*[0-9a-z]{20,40}.*"));
