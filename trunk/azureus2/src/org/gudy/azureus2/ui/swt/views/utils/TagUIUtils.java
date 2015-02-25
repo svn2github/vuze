@@ -1591,6 +1591,18 @@ public class TagUIUtils
 				}});
 		}
 		
+		if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
+
+			needs_separator_next = true;
+			
+			MenuItem search = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(search, "tag.search");
+			search.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event){
+					UIFunctionsManager.getUIFunctions().doSearch( "tag:" + tag.getTagName( true ));
+				}});
+		}
+		
 			// share with friends
 
 		PluginInterface bpi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByClass(
@@ -1828,7 +1840,7 @@ public class TagUIUtils
 		needs_separator_next = true;
 
 		if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
-			
+					
 			MenuBuildUtils.addChatMenu( menu, "label.chat", getChatKey( tag ));
 		}
 		
