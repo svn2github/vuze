@@ -250,7 +250,7 @@ DeviceUPnPImpl
 		return( upnp_manager );
 	}
 	
-	protected UPnPDevice
+	public UPnPDevice
 	getUPnPDevice()
 	{
 		return( device_may_be_null );
@@ -265,6 +265,7 @@ DeviceUPnPImpl
 			// triggers any address change logic
 			setAddress(getAddress());
 		}
+		setDirty(false);
 	}
 	
 	public boolean
