@@ -195,17 +195,6 @@ public class ImageLoader
 				} else {
 					// maybe there's another suffix..
 					Image[] images = findResources(sParentName);
-					if (images == null) {
-						// hack for URLs
-						images = getImages(sParentName);
-						if (images != null && sSuffix.equals("-disabled")) {
-							Image[] fadedImages = new Image[images.length];
-							for (int j = 0; j < fadedImages.length; j++) {
-								fadedImages[j] = fadeImage(images[j]);
-							}
-							images = fadedImages;
-						}
-					}
 					if (images != null) {
 						return images;
 					}
@@ -628,10 +617,6 @@ public class ImageLoader
 	}
 
 	public Image[] getImages(String sKey) {
-		if (sKey.startsWith("http") && sKey.endsWith("-disabled")) {
-		System.out.println("getImages " + sKey);
-
-		}
 		if (sKey == null) {
 			return new Image[0];
 		}
