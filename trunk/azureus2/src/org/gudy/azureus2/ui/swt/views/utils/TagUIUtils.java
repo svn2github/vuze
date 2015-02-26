@@ -600,31 +600,11 @@ public class TagUIUtils
 	public static Tag
 	createManualTag()
 	{
-		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
-				"TagAddWindow.title", "TagAddWindow.message");
-		
-		entryWindow.prompt();
-		
-		if (entryWindow.hasSubmittedInput()) {
-			String tag_name = entryWindow.getSubmittedInput().trim();
-			TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
-			
-			Tag existing = tt.getTag( tag_name, true );
-			
-			if ( existing == null ){
-				
-				try{
-					checkTagSharing( false );
-					
-					return( tt.createTag( tag_name, true ));
-					
-				}catch( TagException e ){
-					
-					Debug.out( e );
-				}
-			}
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		if (uiFunctions != null) {
+			return uiFunctions.showCreateTagDialog();
 		}
-		
+
 		return( null );
 	}
 	

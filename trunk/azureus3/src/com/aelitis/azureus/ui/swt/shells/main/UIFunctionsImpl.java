@@ -68,7 +68,6 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryOpenListener;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -89,6 +88,7 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.TagUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -1461,5 +1461,10 @@ public class UIFunctionsImpl
 	 */
 	public void openTorrentWindow() {
 		new OpenTorrentWindow(Utils.findAnyShell());
+	}
+	
+	// @see com.aelitis.azureus.ui.UIFunctions#showCreateTagDialog()
+	public Tag showCreateTagDialog() {
+		return TagUIUtilsV3.showCreateTagDialog();
 	}
 }

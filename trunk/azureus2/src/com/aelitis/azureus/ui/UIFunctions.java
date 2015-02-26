@@ -20,6 +20,7 @@ package com.aelitis.azureus.ui;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
+import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
@@ -208,4 +209,6 @@ public interface UIFunctions
 	public boolean addTorrentWithOptions(boolean force, TorrentOpenOptions torrentOptions);
 
 	public void showErrorMessage(String keyPrefix, String details, String[] textParams); 
+	
+	public Tag showCreateTagDialog();
 }
