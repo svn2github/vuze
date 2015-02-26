@@ -3719,7 +3719,7 @@ RelatedContentManager
 		}
 	}
 	
-	protected static String[]
+	public static String[]
 	convertNetworks(
 		byte		net )
 	{
@@ -3750,7 +3750,7 @@ RelatedContentManager
 		}
 	}
 	
-	protected static byte
+	public static byte
 	convertNetworks(
 		String[]		networks )
 	{
