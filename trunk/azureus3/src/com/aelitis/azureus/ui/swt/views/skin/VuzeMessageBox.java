@@ -71,6 +71,8 @@ public class VuzeMessageBox
 
 	private StandardButtonsArea buttonsArea;
 
+	private String dialogTempate = "skin3_dlg_generic";
+
 	public VuzeMessageBox(final String title, final String text,
 			final String[] buttons, final int defaultOption) {
 		this.title = title;
@@ -150,6 +152,10 @@ public class VuzeMessageBox
 			}
 		});
 	}
+	
+	public void setSkinnedDialagTemplate(String dialogTempate) {
+		this.dialogTempate = dialogTempate;
+	}
 
 	protected void _open(UserPrompterResultListener l) {
 		if (l != null) {
@@ -157,7 +163,7 @@ public class VuzeMessageBox
   			resultListeners.add(l);
   		}
 		}
-		dlg = new SkinnedDialog("skin3_dlg_generic", "shell", SWT.DIALOG_TRIM) {
+		dlg = new SkinnedDialog(dialogTempate, "shell", SWT.DIALOG_TRIM) {
 			protected void setSkin(SWTSkin skin) {
 				super.setSkin(skin);
 				
@@ -330,12 +336,14 @@ public class VuzeMessageBox
 							}
 						}
 					}
+					skinDialogClosed(dlg);
 					return buttonsArea.getButtonVal(result);
 				}
 			}
 			sem.reserve();
 		}
 
+		skinDialogClosed(dlg);
 		return buttonsArea.getButtonVal(result);
 	}
 
@@ -352,6 +360,7 @@ public class VuzeMessageBox
 					Debug.out(e);
 				}
 			}
+			resultListeners.clear();
 		}
 	}
 
