@@ -24,6 +24,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
@@ -31,7 +32,6 @@ import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.tag.Tag;
@@ -658,15 +658,25 @@ public class TorrentOpenOptions
 				// could do something here if multiple networks to get user to decide what to do...
 			
 			boolean	enable_i2p = networks.contains( AENetworkClassifier.AT_I2P );
+			String enable_i2p_reason = null;
 			
-			if ( !enable_i2p ){	
+			if ( enable_i2p ){
+				enable_i2p_reason = MessageText.getString("azneti2phelper.install.reason.i2ptracker");					
+			} else {
 
 					// if torrent is purely decentralised then we don't really know what network so enable it
 			
 				if ( tracker_hosts.size() == 1 && decentralised ){
-					
+					enable_i2p_reason = MessageText.getString("azneti2phelper.install.reason.decentralised");					
 					enable_i2p = true;
 				}
+			}
+			
+			if (enabledNetworks.get(AENetworkClassifier.AT_I2P)) {
+				
+				// case where use chooses I2P network as default.  We want to prompt for plugin install
+
+				enable_i2p = true;
 			}
 			
 			if ( enable_i2p ){
@@ -700,6 +710,7 @@ public class TorrentOpenOptions
 					final boolean[]	install_outcome = { false };
 
 					if ( BuddyPluginUtils.installI2PHelper(
+							enable_i2p_reason,
 							"azneti2phelper.install.open.torrent",
 							install_outcome,
 							new Runnable()
