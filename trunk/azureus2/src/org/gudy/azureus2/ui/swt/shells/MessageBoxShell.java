@@ -417,6 +417,12 @@ public class MessageBoxShell
 			Label lblImage = new Label(textComposite, SWT.NONE);
 			lblImage.setImage(imgLeft);
 			lblImage.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+		} else if (!squish) {
+			textComposite = new Composite(shell, SWT.NONE);
+			GridLayout gl = new GridLayout(2, false);
+			gl.marginWidth = 5;
+			textComposite.setLayout(gl);
+			textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 
 		Control linkControl;
