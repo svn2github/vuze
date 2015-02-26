@@ -414,7 +414,7 @@ public class SWTSkinObjectImage
 					image = images[0];
 				}
 
-				if (image == null) {
+				if (image == null || image.isDisposed()) {
 					image = ImageLoader.noImage;
 				}
 
