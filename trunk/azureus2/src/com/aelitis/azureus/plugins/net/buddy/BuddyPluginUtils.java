@@ -357,9 +357,19 @@ BuddyPluginUtils
 			return( i2p_installing );
 		}
 	}
-	
+
 	public static boolean
 	installI2PHelper(
+		String				remember_id,
+		final boolean[]		install_outcome,
+		final Runnable		callback )
+	{
+		return installI2PHelper(null, remember_id, install_outcome, callback);
+	}
+
+	public static boolean
+	installI2PHelper(
+		String extra_text,
 		String				remember_id,
 		final boolean[]		install_outcome,
 		final Runnable		callback )
@@ -390,7 +400,11 @@ BuddyPluginUtils
 			
 			String title = MessageText.getString("azneti2phelper.install");
 			
-			String text = MessageText.getString("azneti2phelper.install.text" );
+			String text = "";
+			if (extra_text != null) {
+				text = extra_text + "\n\n";
+			}
+			text += MessageText.getString("azneti2phelper.install.text" );
 			
 			UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
 				MessageText.getString("Button.yes"),
