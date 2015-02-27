@@ -21,20 +21,13 @@
 package org.gudy.azureus2.ui.swt.views.utils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -44,10 +37,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
-import org.gudy.azureus2.ui.swt.MenuBuildUtils;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
@@ -59,28 +49,12 @@ import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.tag.TagDownload;
-import com.aelitis.azureus.core.tag.TagException;
-import com.aelitis.azureus.core.tag.TagFeature;
-import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
-import com.aelitis.azureus.core.tag.TagFeatureProperties;
+import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
-import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
-import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
-import com.aelitis.azureus.core.tag.TagFeatureRunState;
-import com.aelitis.azureus.core.tag.TagFeatureTranscode;
-import com.aelitis.azureus.core.tag.TagManager;
-import com.aelitis.azureus.core.tag.TagManagerFactory;
-import com.aelitis.azureus.core.tag.TagType;
-import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
-import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 /**
@@ -91,6 +65,10 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 public class TagUIUtils
 {
 	public static final int MAX_TOP_LEVEL_TAGS_IN_MENU	= 20;
+	
+	public interface TagReturner {
+		public void returnedTags(Tag[] tags);
+	}
 		
 	public static String
 	getChatKey(
@@ -345,7 +323,7 @@ public class TagUIUtils
 				
 				menuItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
 					public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target) {
-						createManualTag();
+						createManualTag(null);
 					}
 				});
 				
@@ -597,15 +575,14 @@ public class TagUIUtils
 		}
 	}
 	
-	public static Tag
-	createManualTag()
+	public static void
+	createManualTag(
+			TagReturner tagReturner)
 	{
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null) {
-			return uiFunctions.showCreateTagDialog();
+			uiFunctions.showCreateTagDialog(tagReturner);
 		}
-
-		return( null );
 	}
 	
 	public static void 
@@ -2095,7 +2072,7 @@ public class TagUIUtils
 			item_create.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
 					
-					createManualTag();
+					createManualTag(null);
 				}
 			});
 			
@@ -2535,17 +2512,20 @@ public class TagUIUtils
 		item_create.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				
-				Tag new_tag = createManualTag();
-				
-				if ( new_tag != null ){
-					
-					for ( DownloadManager dm: dms ){
-						
-						new_tag.addTaggable( dm );
+				createManualTag(new TagReturner() {
+					public void returnedTags(Tag[] tags) {
+						if ( tags != null ){
+							for (Tag new_tag : tags) {
+								for ( DownloadManager dm: dms ){
+									
+									new_tag.addTaggable( dm );
+								}
+								
+								COConfigurationManager.setParameter( "Library.TagInSideBar", true );
+							}
+						}
 					}
-					
-					COConfigurationManager.setParameter( "Library.TagInSideBar", true );
-				}
+				});
 			}
 		});
 	}

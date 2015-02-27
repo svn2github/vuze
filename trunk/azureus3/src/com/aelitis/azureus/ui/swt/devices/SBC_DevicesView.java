@@ -52,18 +52,15 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.*;
-import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.tag.TagManager;
-import com.aelitis.azureus.core.tag.TagManagerFactory;
-import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
@@ -78,8 +75,11 @@ import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
 import com.aelitis.azureus.ui.swt.devices.columns.*;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
+import com.aelitis.azureus.ui.swt.utils.TagUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
@@ -1234,20 +1234,27 @@ public class SBC_DevicesView
 		
 		item_create.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				
-				Tag new_tag = TagUIUtils.createManualTag();
-				
-				if ( new_tag != null ){
-					
-					String[] tags = new String[]{ String.valueOf( new_tag.getTagUID()) };
-					
-					for ( TranscodeFile file: files ){
-						
-						file.setTags( tags );
+
+				TagUIUtilsV3.showCreateTagDialog(new TagReturner() {
+					public void returnedTags(Tag[] tags) {
+						if ( tags != null ){
+							for (Tag new_tag : tags) {
+								if ( new_tag != null ){
+									
+									String[] tagUIDs = new String[]{ String.valueOf( new_tag.getTagUID()) };
+									
+									for ( TranscodeFile file: files ){
+										
+										file.setTags( tagUIDs );
+									}
+									
+									COConfigurationManager.setParameter( "Library.TagInSideBar", true );
+								}
+							}
+						}
 					}
-					
-					COConfigurationManager.setParameter( "Library.TagInSideBar", true );
-				}
+				});
+				
 			}
 		});
 	}

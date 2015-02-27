@@ -19,21 +19,16 @@
 package com.aelitis.azureus.ui.swt.utils;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 
 import com.aelitis.azureus.core.tag.*;
-import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
-import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBox;
-import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBoxListener;
+import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
 
 /**
  * @author TuxPaper
@@ -43,79 +38,72 @@ import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBoxListener;
 public class TagUIUtilsV3
 {
 
-	public static Tag showCreateTagDialog() {
-		SkinnedDialog dialog = new SkinnedDialog("skin3_dlg_addtag", "dlg.addtag");
-		final VuzeMessageBox mb = new VuzeMessageBox(
-				MessageText.getString("TagAddWindow.title"), null, new String[] {
-					MessageText.getString("Button.add"),
-					MessageText.getString("Button.cancel")
-		}, 0);
-		mb.setSkinnedDialagTemplate("skin3_dlg_generic_notop");
-		mb.setButtonVals(new Integer[] {
-			SWT.OK,
-			SWT.CANCEL,
-		});
-		mb.setSubTitle(MessageText.getString("TagAddWindow.subtitle"));
-		mb.addResourceBundle(TagUIUtilsV3.class, SkinPropertiesImpl.PATH_SKIN_DEFS,
-				"skin3_dlg_addtag");
+	public static void showCreateTagDialog(final TagReturner tagReturner) {
+		final SkinnedDialog dialog = new SkinnedDialog("skin3_dlg_addtag", "shell");
+		SWTSkin skin = dialog.getSkin();
 
-		final SWTSkinObjectTextbox[] tb = {
-			null
-		};
-		final SWTSkinObjectCheckbox[] cb = {
-			null
-		};
-		mb.setListener(new VuzeMessageBoxListener() {
-			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
-				SWTSkin skin = soExtra.getSkin();
-				skin.createSkinObject("dlg.addtag", "dlg.addtag", soExtra);
+		final SWTSkinObjectTextbox tb = (SWTSkinObjectTextbox) skin.getSkinObject(
+				"tag-name");
+		final SWTSkinObjectCheckbox cb = (SWTSkinObjectCheckbox) skin.getSkinObject(
+				"tag-share");
 
-				tb[0] = (SWTSkinObjectTextbox) skin.getSkinObject("tag-name", soExtra);
-				cb[0] = (SWTSkinObjectCheckbox) skin.getSkinObject("tag-share",
-						soExtra);
-				
-				Control control = tb[0].getControl();
-				control.getParent().setBackgroundMode(SWT.INHERIT_DEFAULT);
+		if (tb == null || cb == null) {
+			return;
+		}
 
-				cb[0].setChecked(COConfigurationManager.getBooleanParameter(
-						"tag.sharing.default.checked"));
-			}
-		});
+		cb.setChecked(COConfigurationManager.getBooleanParameter(
+				"tag.sharing.default.checked"));
 
-		final Tag[] tag = {
-			null
-		};
-		mb.open(new UserPrompterResultListener() {
-			public void prompterClosed(int result) {
+		SWTSkinObject soButtonArea = skin.getSkinObject("bottom-area");
+		if (soButtonArea instanceof SWTSkinObjectContainer) {
+			StandardButtonsArea buttonsArea = new StandardButtonsArea() {
+				// @see com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea#clicked(int)
+				protected void clicked(int buttonValue) {
+					if (buttonValue == SWT.OK) {
 
-				if (result != SWT.OK || tb[0] == null) {
-					return;
-				}
+						String tag_name = tb.getText().trim();
+						TagType tt = TagManagerFactory.getTagManager().getTagType(
+								TagType.TT_DOWNLOAD_MANUAL);
 
-				String tag_name = tb[0].getText().trim();
-				TagType tt = TagManagerFactory.getTagManager().getTagType(
-						TagType.TT_DOWNLOAD_MANUAL);
+						Tag existing = tt.getTag(tag_name, true);
 
-				Tag existing = tt.getTag(tag_name, true);
+						if (existing == null) {
 
-				if (existing == null) {
+							try {
 
-					try {
+								Tag tag = tt.createTag(tag_name, true);
 
-						tag[0] = tt.createTag(tag_name, true);
+								tag.setPublic(cb.isChecked());
 
-						tag[0].setPublic(cb[0].isChecked());
+								if (tagReturner != null) {
+									tagReturner.returnedTags(new Tag[] {
+										tag
+									});
+								}
 
-					} catch (TagException e) {
+							} catch (TagException e) {
 
-						Debug.out(e);
+								Debug.out(e);
+							}
+						}
 					}
+					
+					dialog.close();
 				}
-			}
-		});
-		mb.waitUntilClosed();
-		
-		return tag[0];
+			};
+			buttonsArea.setButtonIDs(new String[] {
+				MessageText.getString("Button.add"),
+				MessageText.getString("Button.cancel")
+			});
+			buttonsArea.setButtonVals(new Integer[] {
+				SWT.OK,
+				SWT.CANCEL
+			});
+			buttonsArea.swt_createButtons(
+					((SWTSkinObjectContainer) soButtonArea).getComposite());
+		}
+
+		dialog.open();
 	}
 
 }

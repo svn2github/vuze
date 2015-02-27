@@ -38,10 +38,10 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -877,10 +877,11 @@ MainWindowDelayStub
 			log( "showErrorMessage" );
 		}
 		
-		// @see com.aelitis.azureus.ui.UIFunctions#showAddTagDialog()
-		public Tag showCreateTagDialog() {
+		// @see com.aelitis.azureus.ui.UIFunctions#showCreateTagDialog(org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner)
+		public void showCreateTagDialog(
+				TagReturner tagReturner) 
+		{
 			log( "showAddTagDialog" );
-			return null;
 		}
 
 		public boolean 

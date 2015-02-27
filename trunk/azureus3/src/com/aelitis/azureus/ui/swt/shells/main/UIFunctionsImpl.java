@@ -60,6 +60,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -1464,7 +1465,7 @@ public class UIFunctionsImpl
 	}
 	
 	// @see com.aelitis.azureus.ui.UIFunctions#showCreateTagDialog()
-	public Tag showCreateTagDialog() {
-		return TagUIUtilsV3.showCreateTagDialog();
+	public void showCreateTagDialog(TagReturner tagReturner) {
+		TagUIUtilsV3.showCreateTagDialog(tagReturner);
 	}
 }
