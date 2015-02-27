@@ -661,18 +661,24 @@ public class TorrentOpenOptions
 			String enable_i2p_reason = null;
 			
 			if ( enable_i2p ){
-				enable_i2p_reason = MessageText.getString("azneti2phelper.install.reason.i2ptracker");					
+				
+				enable_i2p_reason = MessageText.getString("azneti2phelper.install.reason.i2ptracker");
+				
 			} else {
 
 					// if torrent is purely decentralised then we don't really know what network so enable it
 			
 				if ( tracker_hosts.size() == 1 && decentralised ){
-					enable_i2p_reason = MessageText.getString("azneti2phelper.install.reason.decentralised");					
-					enable_i2p = true;
+				
+					// 2015/02/27 - holding off on this for the moment as unsure of the number of purely-dht
+					// torrents out there (e.g. old VHDN content is purely-dht...)
+					
+					//enable_i2p_reason = MessageText.getString("azneti2phelper.install.reason.decentralised");					
+					//enable_i2p = true;
 				}
 			}
 			
-			if (enabledNetworks.get(AENetworkClassifier.AT_I2P)) {
+			if ( enabledNetworks.get(AENetworkClassifier.AT_I2P)){
 				
 				// case where use chooses I2P network as default.  We want to prompt for plugin install
 
