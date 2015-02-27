@@ -383,18 +383,14 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	
 	public void buildMenu(Menu menu) {
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
-		Object plugin_context_obj = this.getPluginMenuContextObject();
-		Object[] plugin_context_obj_arg = null;
-		if (plugin_context_obj != null) {
-			plugin_context_obj_arg = new Object[]{plugin_context_obj};
-		}
-		String[] plugin_menu_ids = this.getPluginMenuIdentifiers(plugin_context_obj);
+		Object[] plugin_context_objs = this.getPluginMenuContextObjects();
+		String[] plugin_menu_ids = this.getPluginMenuIdentifiers(plugin_context_objs);
 		if (plugin_menu_ids != null) {
 			menu_items = MenuItemManager.getInstance().getAllAsArray(plugin_menu_ids);
 			if (menu_items.length > 0) {
 				MenuBuildUtils.addPluginMenuItems(menu_items, menu, true, true,
 						// This will retrieve the plugin download object for associated menus.
-						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(plugin_context_obj_arg)
+						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(plugin_context_objs)
 				);
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
@@ -582,11 +578,11 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	protected abstract void beginConstruction();
 	protected abstract Object getContextObject();
 	
-	public String[] getPluginMenuIdentifiers(Object context) {
+	public String[] getPluginMenuIdentifiers(Object[] context) {
 		return null;
 	}
 	
-	public Object getPluginMenuContextObject() {
+	public Object[] getPluginMenuContextObjects() {
 		return null;
 	}
 	
