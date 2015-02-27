@@ -20,8 +20,6 @@
 
 package org.gudy.azureus2.ui.swt.donations;
  
-import java.util.Locale;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.*;
@@ -168,8 +166,8 @@ public class DonationWindow
 			return;
 		}
 		final Shell parentShell = Utils.findAnyShell();
-		shell = ShellFactory.createShell(parentShell, SWT.BORDER
-				| SWT.APPLICATION_MODAL | SWT.TITLE);
+		shell = ShellFactory.createShell(parentShell,
+				SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		shell.setLayout(new FillLayout());
 		if (parentShell != null) {
 			parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
