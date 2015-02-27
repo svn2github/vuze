@@ -68,6 +68,8 @@ public class SWTSkinObjectImage
 
 	private int h_align;
 
+	private int drawAlpha = 255;
+
 	static {
 		paintListener = new PaintListener() {
 			public void paintControl(PaintEvent e) {
@@ -77,10 +79,15 @@ public class SWTSkinObjectImage
 					e.gc.setInterpolation(SWT.HIGH);
 				} catch (Exception ex) {
 				}
-
+				
 				final Canvas control = (Canvas) e.widget;
 				Image imgSrc = (Image) control.getData("image");
-				
+
+				Integer drawAlpha = (Integer) control.getData("drawAlpha");
+				if (drawAlpha != null) {
+					e.gc.setAlpha(drawAlpha);
+				}
+
 				//Long hpadding_obj = (Long) control.getData("hpadding");
 				//int hpadding = hpadding_obj == null ? 0 : hpadding_obj.intValue();
 
@@ -333,6 +340,8 @@ public class SWTSkinObjectImage
 					return null;
 				}
 
+				canvas.setData("drawAlpha", drawAlpha);
+
 				String oldImageID = (String) canvas.getData("ImageID");
 				if (sImageID != null && sImageID.equals(oldImageID)) {
 					return null;
@@ -521,9 +530,11 @@ public class SWTSkinObjectImage
 
 	protected void swt_reallySetImage() {
 		if (currentImageID == null || customImage) {
+			drawAlpha = 255;
 			return;
 		}
 		
+		boolean removedDisabled = false;
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		boolean imageExists = imageLoader.imageExists(currentImageID);
 		if (!imageExists && imageLoader.imageExists(currentImageID + ".image")) {
@@ -534,6 +545,9 @@ public class SWTSkinObjectImage
 			for (int i = suffixes.length - 1; i >= 0; i--) {
 				String suffixToRemove = suffixes[i];
 				if (suffixToRemove != null) {
+					if (suffixToRemove.equals("-disabled")) {
+						removedDisabled = true;
+					}
 					currentImageID = currentImageID.substring(0, currentImageID.length()
 							- suffixToRemove.length());
 					if (imageLoader.imageExists(currentImageID)) {
@@ -545,8 +559,10 @@ public class SWTSkinObjectImage
 		}
 
 		if (imageExists) {
+			drawAlpha  = removedDisabled ? 64 : 255;
 			setCanvasImage(currentImageID, null);
 		} else {
+			drawAlpha = 255;
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					FormData fd = (FormData) canvas.getLayoutData();
@@ -570,10 +586,12 @@ public class SWTSkinObjectImage
 			public void runSupport() {
 				customImage = true;
 				customImageID = null;
+				drawAlpha  = 255;
 				canvas.setData("image", image);
 				canvas.setData("ImageID", null);
 				canvas.setData("image-left", null);
 				canvas.setData("image-right", null);
+				canvas.setData("drawAlpha", null);
 
 				canvas.removePaintListener(paintListener);
 				canvas.addPaintListener(paintListener);
