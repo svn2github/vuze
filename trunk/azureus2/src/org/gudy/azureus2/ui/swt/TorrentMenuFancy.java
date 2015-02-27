@@ -1559,15 +1559,15 @@ public class TorrentMenuFancy
 		item.setLayoutData(gridData);
 		Messages.setLanguageText(item, keyTitle);
 
-		if (triggerListener != null) {
-			Utils.addListenerAndChildren(cRow, triggerOnUp ? SWT.MouseUp
-					: SWT.MouseDown, listenerForTrigger);
-		}
-
 		Label lblCheck = new Label(cRow, SWT.CENTER);
 		gridData = new GridData();
 		gridData.widthHint = 13;
 		lblCheck.setLayoutData(gridData);
+
+		if (triggerListener != null) {
+			Utils.addListenerAndChildren(cRow, triggerOnUp ? SWT.MouseUp
+					: SWT.MouseDown, listenerForTrigger);
+		}
 
 		Utils.addListenerAndChildren(cRow, SWT.MouseEnter, listenerRow);
 		Utils.addListenerAndChildren(cRow, SWT.MouseExit, listenerRow);
