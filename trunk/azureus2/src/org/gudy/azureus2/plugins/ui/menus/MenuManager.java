@@ -95,6 +95,12 @@ public interface MenuManager {
 	 */
 	public static final String MENU_FILE_CONTEXT = "file_context";
 
+
+	/**
+	 * @since 5.6
+	 */
+	public static final String MENU_TAG_CONTEXT = "tag_content";
+
 	/**
 	 * Creates a menu item for the appropriate menu.
 	 * <P>

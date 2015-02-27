@@ -36,8 +36,11 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
@@ -2169,6 +2172,18 @@ public class TagUIUtils
 				}
 			});
 		}
+		
+
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(
+				MenuManager.MENU_TAG_CONTEXT);
+		
+		if (items.length > 0) {
+			MenuFactory.addSeparatorMenuItem(menu);
+
+			// TODO: Don't send Tag.. send a yet-to-be-created plugin interface version of Tag
+			MenuBuildUtils.addPluginMenuItems(items, menu, true, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Tag[] { tag }));
+		}
 	}
 	
 	public static void 
@@ -2230,6 +2245,17 @@ public class TagUIUtils
 				}
 			}
 		});
+
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(
+				MenuManager.MENU_TAG_CONTEXT);
+		
+		if (items.length > 0) {
+			MenuFactory.addSeparatorMenuItem(menu);
+
+			// TODO: Don't send Tag.. send a yet-to-be-created plugin interface version of Tag
+			MenuBuildUtils.addPluginMenuItems(items, menu, true, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(tags.toArray(new Tag[0])));
+		}
 	}
 		
 	private static final AsyncDispatcher move_dispatcher = new AsyncDispatcher( "tag:applytocurrent" );
