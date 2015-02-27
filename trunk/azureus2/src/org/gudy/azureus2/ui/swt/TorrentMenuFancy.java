@@ -1564,15 +1564,15 @@ public class TorrentMenuFancy
 					: SWT.MouseDown, listenerForTrigger);
 		}
 
-		Utils.addListenerAndChildren(cRow, SWT.MouseEnter, listenerRow);
-		Utils.addListenerAndChildren(cRow, SWT.MouseExit, listenerRow);
-
-		cRow.addPaintListener(listenerRowPaint);
-
 		Label lblCheck = new Label(cRow, SWT.CENTER);
 		gridData = new GridData();
 		gridData.widthHint = 13;
 		lblCheck.setLayoutData(gridData);
+
+		Utils.addListenerAndChildren(cRow, SWT.MouseEnter, listenerRow);
+		Utils.addListenerAndChildren(cRow, SWT.MouseExit, listenerRow);
+
+		cRow.addPaintListener(listenerRowPaint);
 
 		rowInfo.setListener(triggerListener);
 		rowInfo.setRow(cRow);
