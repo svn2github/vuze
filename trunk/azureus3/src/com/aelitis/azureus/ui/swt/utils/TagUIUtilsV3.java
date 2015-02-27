@@ -39,7 +39,8 @@ public class TagUIUtilsV3
 {
 
 	public static void showCreateTagDialog(final TagReturner tagReturner) {
-		final SkinnedDialog dialog = new SkinnedDialog("skin3_dlg_addtag", "shell");
+		final SkinnedDialog dialog = new SkinnedDialog("skin3_dlg_addtag", "shell",
+				SWT.DIALOG_TRIM);
 		SWTSkin skin = dialog.getSkin();
 
 		final SWTSkinObjectTextbox tb = (SWTSkinObjectTextbox) skin.getSkinObject(
