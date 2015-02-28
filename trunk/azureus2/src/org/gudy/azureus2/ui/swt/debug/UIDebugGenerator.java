@@ -25,7 +25,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -360,6 +359,21 @@ public class UIDebugGenerator
 			});
 			addFilesToZip(out, files);
 
+			// recent crashes from temp dir
+			
+			try{
+				File temp_file = File.createTempFile( "AZU", "tmp" );
+				
+				files = temp_file.getParentFile().listFiles(new FileFilter() {
+					public boolean accept(File pathname) {
+						return (pathname.getName().startsWith("hs_err") && pathname.lastModified() > ago);
+					}
+				});
+				addFilesToZip(out, files);
+				temp_file.delete();
+			}catch( Throwable e ){	
+			}
+			
 			// recent errors from OSX java log dir
 			File javaLogPath = new File(System.getProperty("user.home"), "Library"
 					+ File.separator + "Logs" + File.separator + "Java");
