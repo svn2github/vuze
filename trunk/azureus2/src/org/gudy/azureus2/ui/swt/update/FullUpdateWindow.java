@@ -141,6 +141,9 @@ public class FullUpdateWindow
 						public void changed(LocationEvent arg0) {
 						}
 						public void changing(LocationEvent event) {
+							if (event.location == null || !event.location.startsWith("http")) {
+								return;
+							}
 							event.doit = false;
 							Utils.launch(event.location);
 							
