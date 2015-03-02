@@ -1,6 +1,40 @@
 VUZE CHANGELOG
 -----------------
 
+2015.03.xx | Vuze 5.6.0.0
+
+FEATURE: UI   | Restructured Library view context (right-click) menu [TuxPaper]
+FEATURE: UI   | A basic quick-options plugin bar view [Parg]
+FEATURE: UI   | Support upload/download disable for Tag rate limits [Parg]
+FEATURE: UI   | Support .vuze files in the plugin installation wizard [Parg]
+FEATURE: UI   | Added some subscription settings to the sidebar context menu [Parg]
+FEATURE: UI   | Explicit browser configuration option for non-public content [Parg]
+FEATURE: UI   | Option to hide do-not-download files in the Files View [Parg]
+FEATURE: UI   | Right-click menu option in Peers View to kick a peer without banning them [Parg]
+FEATURE: UI   | Support for output redirection from console UI commands [Parg]
+FEATURE: Core | Swarm merging - http://wiki.vuze.com/w/Swarm_Merging [Parg]
+FEATURE: Core | Option to automatically select files for 'do not download' based on file type suffix [Parg]
+FEATURE: Core | Device transcodes can now be auto-shared and tagged [Parg]
+FEATURE: Core | isComplete, percentage and age added to Tag constraint language [Parg]
+FEATURE: Plug | Decentralized chat - http://wiki.vuze.com/w/Decentralized_Chat [Parg]
+FEATURE: Plug | RSS-to-chat plugin - http://wiki.vuze.com/w/RSS_To_Chat [Parg]
+FEATURE: Plug | TorBrowser plugin now supports browsing of .i2p content [Parg]
+FEATURE: Plug | Play-to DLNA enabled devices support [TuxPaper]
+FEATURE: Plug | Swarm search is now also accessible via right-click menu [Parg]
+
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Show decoded magnet URI title in download window [Parg]
+CHANGE: UI    | DHT activity view was showing queued activities - fixed to only show active ones [Parg]
+CHANGE: Core  | Auto-download subscriptions now scheduled more fairly [Parg]
+
+BUGFIX: UI    | Status bar tooltip flicker reduced [Parg]
+BUGFIX: UI    | Sometimes the sub-tab 'sash' could become inaccessible [Parg]
+BUGFIX: Core  | Fix 'is-interested' bug [Parg]
+BUGFIX: Core  | Force disconnect duplicate outbound, stuck peers connections [Parg]
+BUGFIX: Plug  | Magnet URI plugin not always terminating quickly on successfull torrent download [Parg]
+BUGFIX: Plug  | Fixed resource leak in Magnet URI plugin [Parg]
+
+
 2014.11.19 | Vuze 5.5.0.0
 
 FEATURE: UI   | Added option to use quick-view rather than 'launch' when double-clicking files [Parg]
