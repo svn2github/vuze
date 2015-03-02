@@ -29,13 +29,15 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
+import com.aelitis.azureus.util.UrlFilter;
 
 
 public class FullUpdateWindow
@@ -134,6 +136,28 @@ public class FullUpdateWindow
 				}
 			});
 	
+			browser.addOpenWindowListener(new OpenWindowListener() {
+				public void open(WindowEvent event) {
+					final BrowserWrapper subBrowser = new BrowserWrapper(browser,
+							Utils.getInitialBrowserStyle(SWT.NONE));
+					subBrowser.addLocationListener(new LocationListener() {
+						public void changed(LocationEvent arg0) {
+						}
+						public void changing(LocationEvent event) {
+							event.doit = false;
+							Utils.launch(event.location);
+							
+							Utils.execSWTThreadLater(1000, new AERunnable() {
+								public void runSupport() {
+									subBrowser.dispose();
+								}
+							});
+						}
+					});
+					event.browser = subBrowser.getBrowser();
+				}
+			});
+
 			browserFunction = new BrowserFunction(browser, "sendVuzeUpdateEvent") {
 				private String last = null;
 
@@ -278,7 +302,7 @@ public class FullUpdateWindow
 	{
 		try {
 			open( 
-				"http://127.0.0.1:8080/client/update.php?newversion=5.0.0.0", 
+					"http://192.168.1.6:8090/client/update.php?newversion=5.6.0.0", 
 				new UIFunctions.actionListener()
 				{
 					public void actionComplete(Object result) {
