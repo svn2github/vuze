@@ -34,10 +34,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
-import com.aelitis.azureus.util.UrlFilter;
 
 
 public class FullUpdateWindow
@@ -138,7 +135,7 @@ public class FullUpdateWindow
 	
 			browser.addOpenWindowListener(new OpenWindowListener() {
 				public void open(WindowEvent event) {
-					final BrowserWrapper subBrowser = new BrowserWrapper(browser,
+					final Browser subBrowser = Utils.createSafeBrowser(shell,
 							Utils.getInitialBrowserStyle(SWT.NONE));
 					subBrowser.addLocationListener(new LocationListener() {
 						public void changed(LocationEvent arg0) {
@@ -154,7 +151,7 @@ public class FullUpdateWindow
 							});
 						}
 					});
-					event.browser = subBrowser.getBrowser();
+					event.browser = subBrowser;
 				}
 			});
 
