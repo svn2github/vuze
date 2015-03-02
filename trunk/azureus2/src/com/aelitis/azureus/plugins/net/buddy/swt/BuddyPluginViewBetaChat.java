@@ -37,6 +37,8 @@ import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyAdapter;
@@ -74,13 +76,16 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -210,8 +215,87 @@ BuddyPluginViewBetaChat
 			}
 			});
 		
-	    shell.setSize( 500, 500 );
-	    
+		shell.addControlListener(
+			new ControlListener()
+			{
+				private volatile Rectangle last_position;
+				
+				private FrequencyLimitedDispatcher disp = 
+					new FrequencyLimitedDispatcher(
+						new AERunnable() {
+							
+							@Override
+							public void 
+							runSupport() 
+							{
+								Rectangle	pos = last_position;
+								
+								String str = pos.x+","+pos.y+","+pos.width+","+pos.height;
+																
+								COConfigurationManager.setParameter( "azbuddy.dchat.ui.last.win.pos", str );
+							}
+						},
+					1000 );
+				
+				public void 
+				controlResized(
+					ControlEvent e) 
+				{
+					handleChange();
+				}
+				
+				public void 
+				controlMoved(
+					ControlEvent e) 
+				{
+					handleChange();
+				}
+				
+				private void
+				handleChange()
+				{
+					last_position = shell.getBounds();
+					
+					disp.dispatch();
+				}
+			});
+	
+		
+		int DEFAULT_WIDTH	= 500;
+		int DEFAULT_HEIGHT	= 500;
+		int MIN_WIDTH		= 300;
+		int MIN_HEIGHT		= 150;
+
+		
+		String str_pos = COConfigurationManager.getStringParameter( "azbuddy.dchat.ui.last.win.pos", "" );
+
+		Rectangle last_bounds = null;
+
+		try{
+			if ( str_pos != null && str_pos.length() > 0 ){
+				
+				String[] bits = str_pos.split( "," );
+				
+				if ( bits.length == 4 ){
+					
+					int[]	 i_bits = new int[4];
+					
+					for ( int i=0;i<bits.length;i++){
+						
+						i_bits[i] = Integer.parseInt( bits[i] );
+					}
+														 
+					last_bounds = 
+						new Rectangle(
+							i_bits[0], 
+							i_bits[1], 
+							Math.max( MIN_WIDTH, i_bits[2] ),
+							Math.max( MIN_HEIGHT, i_bits[3] ));
+				}
+			}
+		}catch( Throwable e ){
+		}
+				
 	    //Utils.createURLDropTarget(shell, input_area);
 	    
 		if ( active_windows.size() > 0 ){
@@ -230,18 +314,35 @@ BuddyPluginViewBetaChat
 				}
 			}
 				
-			Rectangle rect = shell.getBounds();
+			Rectangle rect = new Rectangle( 0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT );
 							
 			rect.x = max_x + 16;
 			rect.y = max_y + 16;
+			
+			if ( last_bounds != null ){
+				
+				rect.width 	= last_bounds.width;
+				rect.height	=  last_bounds.height;
+			}
 			
 			shell.setBounds( rect );
 									
 			Utils.verifyShellRect( shell, true );
 			
 		}else{
-  
-			Utils.centreWindow(shell);
+  			
+			if ( last_bounds != null ){
+										
+				shell.setBounds( last_bounds );
+					    
+				Utils.verifyShellRect( shell, true );
+						 
+			}else{
+			
+			    shell.setSize( DEFAULT_WIDTH, DEFAULT_HEIGHT );
+
+				Utils.centreWindow(shell);
+			}
 		}
 		
 	    active_windows.add( this );
