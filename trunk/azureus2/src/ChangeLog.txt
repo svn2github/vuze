@@ -25,6 +25,7 @@ FEATURE: Plug | Swarm search is now also accessible via right-click menu [Parg]
 CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
 CHANGE: UI    | Show decoded magnet URI title in download window [Parg]
 CHANGE: UI    | DHT activity view was showing queued activities - fixed to only show active ones [Parg]
+CHANGE: UI    | Added eepsite and onion site to About Window [TuxPaper]
 CHANGE: Core  | Auto-download subscriptions now scheduled more fairly [Parg]
 
 BUGFIX: UI    | Status bar tooltip flicker reduced [Parg]
@@ -33,6 +34,7 @@ BUGFIX: Core  | Fix 'is-interested' bug [Parg]
 BUGFIX: Core  | Force disconnect duplicate outbound, stuck peers connections [Parg]
 BUGFIX: Plug  | Magnet URI plugin not always terminating quickly on successfull torrent download [Parg]
 BUGFIX: Plug  | Fixed resource leak in Magnet URI plugin [Parg]
+
 
 
 2014.11.19 | Vuze 5.5.0.0
