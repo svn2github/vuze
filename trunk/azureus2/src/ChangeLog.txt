@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2015.xx.yy | Vuze 5.6.0.1
+
+
 2015.03.03 | Vuze 5.6.0.0
 
 FEATURE: UI   | Restructured Library view context (right-click) menu [TuxPaper]
