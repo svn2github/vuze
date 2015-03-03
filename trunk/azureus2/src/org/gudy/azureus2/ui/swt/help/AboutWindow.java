@@ -153,12 +153,21 @@ public class AboutWindow {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.verticalSpan = 1;
     gSys.setLayoutData(gridData);
+    
+    String swt = "";
+    if (Utils.isGTK) {
+    	try {
+    		swt = "/" + System.getProperty("org.eclipse.swt.internal.gtk.version");
+			} catch (Throwable e1) {
+				// TODO Auto-generated catch block
+			}
+    }
 
     Text txtSysInfo = new Text(gSys, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP);
     txtSysInfo.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
     txtSysInfo.setText("Java " + System.getProperty("java.version") + "\n "
 				+ System.getProperty("java.vendor") + "\n"
-				+ "SWT v" + SWT.getVersion() + ", " + SWT.getPlatform() + "\n"
+				+ "SWT v" + SWT.getVersion() + ", " + SWT.getPlatform() + swt + "\n"
 				+ System.getProperty("os.name") + " v"
 				+ System.getProperty("os.version") + ", "
 				+ System.getProperty("os.arch") + "\n"
