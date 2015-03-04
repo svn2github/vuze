@@ -1674,35 +1674,32 @@ RelatedContentManager
 								
 								ContentCache	content_cache = loadRelatedContent();
 
-								List<DownloadInfo> infos = content_cache.related_content_map.get( from_hash );
+								DownloadInfo info = content_cache.related_content.get( Base32.encode( from_hash ));
 								
-								if ( infos != null ){
-									
-									for ( DownloadInfo info: infos ){
+								if ( info != null ){
+																			
+									String[] l_tags = info.getTags();
 										
-										String[] l_tags = info.getTags();
-										
-										if ( l_tags != null ){
+									if ( l_tags != null ){
 											
-											for ( String tag: l_tags ){
+										for ( String tag: l_tags ){
 												
-												synchronized( tags ){
+											synchronized( tags ){
 													
-													if ( tags.contains( tag )){
+												if ( tags.contains( tag )){
 														
-														continue;
-													}
-													
-													tags.add( tag );
+													continue;
 												}
+													
+												tags.add( tag );
+											}
+											
+											try{
+												listener.tagFound( tag, dht_plugin_network );
 												
-												try{
-													listener.tagFound( tag, dht_plugin_network );
-													
-												}catch( Throwable e ){
-													
-													Debug.out( e );
-												}
+											}catch( Throwable e ){
+												
+												Debug.out( e );
 											}
 										}
 									}
