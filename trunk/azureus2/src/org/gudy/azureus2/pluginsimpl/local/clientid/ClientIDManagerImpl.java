@@ -434,7 +434,7 @@ ClientIDManagerImpl
 					}
 				}
 				
-				List	lines = new ArrayList();
+				List<String>	lines = new ArrayList<String>();
 				
 				int	pos = 0;
 				
@@ -622,7 +622,51 @@ ClientIDManagerImpl
 							if ( line.toLowerCase( Locale.US ).startsWith( "location:" )){
 								
 								String redirect_url = line.substring( 9  ).trim();
-																
+									
+								String lc_redirect_url = redirect_url.toLowerCase( Locale.US );
+								
+								if ( lc_redirect_url.startsWith( "http:" ) || lc_redirect_url.startsWith( "https:" )){
+									
+									// absolute, nothing to do
+									
+								}else{
+									
+										// relative
+									
+									String prefix = "http" + (is_ssl?"s":"") + "://" + target_host + ":" + target_port;
+									
+									if ( redirect_url.startsWith( "/" )){
+										
+										redirect_url = prefix + redirect_url;
+										
+									}else{
+										
+										String get_line = lines.get(0);
+										
+										get_line = get_line.substring( get_line.indexOf( ' ' ) + 1 ).trim();
+										
+										get_line = get_line.substring( 0, get_line.indexOf( ' ' )).trim();
+										
+										int	x_pos = get_line.indexOf( '?' );
+										
+										if ( x_pos != -1 ){
+											
+											get_line = get_line.substring( 0, x_pos );
+										}
+										
+										x_pos = get_line.lastIndexOf( '/' );
+										
+										if ( x_pos == -1 ){
+											
+											redirect_url = prefix + "/" + redirect_url;
+											
+										}else{
+											
+											redirect_url = prefix + get_line.substring( 0, x_pos + 1 ) + redirect_url;
+										}
+									}
+								}
+								
 								Properties	http_properties = new Properties();
 						 		
 						 		http_properties.put( ClientIDGenerator.PR_URL, new URL( redirect_url ));
