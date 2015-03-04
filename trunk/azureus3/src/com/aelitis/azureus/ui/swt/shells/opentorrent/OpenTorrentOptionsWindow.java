@@ -4260,7 +4260,7 @@ public class OpenTorrentOptionsWindow
 		
 				so = skin.getSkinObject("torrentinfo-createdon");
 				if (so instanceof SWTSkinObjectText) {
-					String creation_date = DisplayFormatters.formatDate(torrent.getCreationDate());
+					String creation_date = DisplayFormatters.formatDate(torrent.getCreationDate() * 1000l);
 					((SWTSkinObjectText) so).setText(creation_date);
 				}
 			}
