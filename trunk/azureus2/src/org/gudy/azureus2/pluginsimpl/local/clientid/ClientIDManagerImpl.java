@@ -19,7 +19,10 @@
 
 package org.gudy.azureus2.pluginsimpl.local.clientid;
 
+import java.io.EOFException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.*;
 import java.util.*;
 
@@ -581,6 +584,67 @@ ClientIDManagerImpl
 					
 					InputStream	target_is = target.getInputStream(); 
 						
+						// meh, need to support 301/302 redirects here
+					
+					String reply_header = "";
+					
+					byte[] temp = new byte[1];
+					
+					while( true ){
+						
+						int	len = target_is.read( temp );
+						
+						if ( len != 1 ){
+							
+							throw( new ClientIDException( "EOF while reading reply header" ));
+						}
+						
+						reply_header += new String(temp,"ISO-8859-1" );
+						
+						if ( temp[0] == '\n' && reply_header.endsWith( "\r\n\r\n" )){
+							
+							break;
+						}
+					}
+					
+					String[] reply_lines = reply_header.trim().split( "\r\n" );
+					
+					String line1 = reply_lines[0];
+					
+					line1 = line1.substring( line1.indexOf( ' ' ) + 1).trim();
+					
+					if ( line1.startsWith( "301" ) || line1.startsWith( "302" )){
+						
+						for ( int i=1;i<reply_lines.length;i++){
+							
+							String line = reply_lines[i];
+							
+							if ( line.toLowerCase( Locale.US ).startsWith( "location:" )){
+								
+								String redirect_url = line.substring( 9  ).trim();
+																
+								Properties	http_properties = new Properties();
+						 		
+						 		http_properties.put( ClientIDGenerator.PR_URL, new URL( redirect_url ));
+						 	
+						 		generateHTTPProperties( http_properties );
+						 			
+						 		URL updated = (URL)http_properties.get( ClientIDGenerator.PR_URL );
+						 		
+						 		reply_lines[i] = "Location: " + updated.toExternalForm();
+							}
+						}
+					}
+					
+					OutputStream os = socket.getOutputStream();
+					
+					for ( String str: reply_lines ){
+						
+						os.write((str + "\r\n" ).getBytes( "ISO-8859-1" ));
+					}
+					
+					os.write( "\r\n" .getBytes( "ISO-8859-1" ));
+					
 					while( true ){
 						
 						int	len = target_is.read( buffer );
@@ -590,7 +654,7 @@ ClientIDManagerImpl
 							break;
 						}
 						
-						socket.getOutputStream().write( buffer, 0,len );
+						os.write( buffer, 0,len );
 						
 						written += len;
 					}	
