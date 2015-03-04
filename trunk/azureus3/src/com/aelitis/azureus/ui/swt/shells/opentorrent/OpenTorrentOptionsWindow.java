@@ -76,6 +76,9 @@ import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.content.ContentException;
+import com.aelitis.azureus.core.content.RelatedAttributeLookupListener;
+import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.RegExUtil;
@@ -274,6 +277,9 @@ public class OpenTorrentOptionsWindow
 	private List<OpenTorrentInstance>	selected_instances 	= new ArrayList<OpenTorrentOptionsWindow.OpenTorrentInstance>();
 	
 	private OpenTorrentInstance			multi_selection_instance;
+
+	protected List<String> listDiscoveredTags = new ArrayList<String>();
+	protected List<String> listTagsToCreate = new ArrayList<String>();
 	
 	public static OpenTorrentOptionsWindow
 	addTorrent(
@@ -599,6 +605,7 @@ public class OpenTorrentOptionsWindow
 						
 				}
 			}
+
 		}catch( Throwable e ){
 			
 			Debug.out( e );
@@ -1485,6 +1492,7 @@ public class OpenTorrentOptionsWindow
 		private Button btnUnmarkSelected;
 		private Button btnRename;
 		private Button btnRetarget;
+		private Composite tagButtonsArea;
 		
 		private 
 		OpenTorrentInstance(
@@ -1534,6 +1542,51 @@ public class OpenTorrentOptionsWindow
 					}
 				}
 			});
+			
+			if ( TagManagerFactory.getTagManager().isEnabled()){
+
+				try {
+					RelatedContentManager rcm = RelatedContentManager.getSingleton();
+					String[] networks = torrentOptions.getEnabledNetworks().keySet().toArray(new String[0]);
+					rcm.lookupAttributes(hash.getBytes(), networks,
+							new RelatedAttributeLookupListener() {
+
+								public void lookupStart() {
+								}
+
+								public void tagFound(String tag, String network) {
+									if (listDiscoveredTags.contains(tag)) {
+										return;
+									}
+									if (checkAlreadyHaveTag(torrentOptions.getInitialTags(), tag)) {
+										return;
+									}
+									listDiscoveredTags.add(tag);
+									Utils.execSWTThread(new Runnable() {
+										public void run() {
+											if (tagButtonsArea == null
+													|| tagButtonsArea.isDisposed()) {
+												return;
+											}
+											buildTagButtonPanel(tagButtonsArea, true);
+										}
+									});
+
+								}
+
+								public void lookupComplete() {
+								}
+
+								public void lookupFailed(ContentException error) {
+								}
+							});
+				} catch (ContentException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+			}				
+
 		}
 		
 		private 
@@ -2587,21 +2640,34 @@ public class OpenTorrentOptionsWindow
 			
 			List<Tag> initialtags = torrentOptions.getInitialTags();
 			
-			String tag_str;
+			String tag_str = null;
+			int numTags = 0;
 			
-			if ( initialtags.size() == 0 ){
-				
-				tag_str = MessageText.getString( "label.none" );
-				
-			}else{
+			if ( initialtags.size() > 0 ){
 				
 				tag_str = "";
 				
 				for ( Tag t: initialtags ){
-					
+					numTags++;
 					tag_str += (tag_str==""?"":", ") + t.getTagName( true );
 				}
 			}
+
+
+			String[] tagsToCreate = listTagsToCreate.toArray(new String[0]);
+			for (String tagName : tagsToCreate) {
+				numTags++;
+				if (tag_str == null) {
+					tag_str = tagName;
+				} else {
+					tag_str += (tag_str==""?"":", ") + tagName;
+				}
+			}
+			
+			if (numTags == 0) {
+				tag_str = MessageText.getString( "label.none" );
+			}
+
 			
 			s += "        " + MessageText.getString( "OpenTorrentOptions.header.tags", new String[]{ tag_str });
 			
@@ -3057,15 +3123,15 @@ public class OpenTorrentOptionsWindow
 				Messages.setLanguageText(label, "label.initial_tags");
 		
 				
-				Composite tagButtons 	= new Composite( tagRight, SWT.NULL);
+				tagButtonsArea 	= new Composite( tagRight, SWT.NULL);
 				gridData = new GridData(GridData.FILL_HORIZONTAL );
-				tagButtons.setLayoutData(gridData);
+				tagButtonsArea.setLayoutData(gridData);
 		
 				RowLayout tagLayout = new RowLayout();
 				tagLayout.pack = false;
-				tagButtons.setLayout( tagLayout);
+				tagButtonsArea.setLayout( tagLayout);
 				
-				buildTagButtonPanel( tagButtons );
+				buildTagButtonPanel( tagButtonsArea );
 				
 				Button addTag = new Button( tagRight, SWT.NULL );
 				addTag.setLayoutData( new GridData(GridData.VERTICAL_ALIGN_CENTER ));
@@ -3115,7 +3181,7 @@ public class OpenTorrentOptionsWindow
 			final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
 			
 			List<Tag> initialTags = torrentOptions.getInitialTags();
-	
+			
 			for ( final Tag tag: TagUIUtils.sortTags( tt.getTags())){
 				
 				if ( tag.canBePublic() && !tag.isTagAuto()){
@@ -3189,6 +3255,52 @@ public class OpenTorrentOptionsWindow
 					
 					TagUIUtils.createSideBarMenuItems(menu, tag);
 				}
+			}
+			
+			String[] discoveredTags = listDiscoveredTags.toArray(new String[0]);
+			for (final String tagName : discoveredTags) {
+				boolean alreadyHave = checkAlreadyHaveTag(initialTags, tagName);
+				if (alreadyHave) {
+					break;
+				}
+				
+				final Button but = new Button( parent, SWT.TOGGLE );
+				but.setImage(ImageLoader.getInstance().getImage("image.sidebar.rcm"));
+
+				
+				if ( listTagsToCreate.contains( tagName )){
+					but.setSelection( true );
+				}
+
+				
+				but.setText( tagName );
+				
+				but.setToolTipText(MessageText.getString("tagtype.discovered"));
+				
+				but.addSelectionListener(
+					new SelectionAdapter() {
+						
+						public void 
+						widgetSelected(
+							SelectionEvent e) 
+						{
+							List<Tag>  tags = torrentOptions.getInitialTags();
+							
+							if ( but.getSelection()){
+								
+								listTagsToCreate.add(tagName);
+								
+							}else{
+								
+								listTagsToCreate.remove(tagName);
+								
+							}
+							
+							
+							updateStartOptionsHeader();
+						}
+					});
+				
 			}
 			
 			if ( is_rebuild ){
@@ -4787,6 +4899,26 @@ public class OpenTorrentOptionsWindow
 				COConfigurationManager.setParameter( PARAM_DEFSAVEPATH, dataDir );
 			}
 		
+			
+			if (listTagsToCreate.size() > 0) {
+				TagManager tagManager = TagManagerFactory.getTagManager();
+				TagType tagType = tagManager.getTagType(TagType.TT_DOWNLOAD_MANUAL);
+				String[] tagsToCreate = listTagsToCreate.toArray(new String[0]);
+				
+				List<Tag> initialTags = torrentOptions.getInitialTags();
+				
+				for (String tagName : tagsToCreate) {
+					try {
+						Tag tag = tagType.createTag(tagName, true);
+						tag.setPublic(true);
+						listTagsToCreate.remove(tagName);
+						initialTags.add(tag);
+					} catch (TagException e) {
+					}
+				}
+				torrentOptions.setInitialTags(initialTags);
+			}
+			
 			return true;
 		}
 		
@@ -4831,5 +4963,17 @@ public class OpenTorrentOptionsWindow
 		{
 			return( false );
 		}	
+	}
+
+	public boolean checkAlreadyHaveTag(List<Tag> initialTags, String tagName) {
+		boolean alreadyHave = false;
+		for (Tag tag : initialTags) {
+			if (tagName.equalsIgnoreCase(tag.getTagName(false))
+					|| tagName.equalsIgnoreCase(tag.getTagName(true))) {
+				alreadyHave = true;
+				break;
+			}
+		}
+		return alreadyHave;
 	}
 }
