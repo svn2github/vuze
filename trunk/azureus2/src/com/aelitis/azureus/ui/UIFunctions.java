@@ -18,7 +18,6 @@ package com.aelitis.azureus.ui;
 
 
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
-import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.tag.Tag;
@@ -212,4 +211,10 @@ public interface UIFunctions
 	public void showErrorMessage(String keyPrefix, String details, String[] textParams); 
 	
 	public void showCreateTagDialog(TagReturner tagReturner);
+	
+	public interface 
+	TagReturner 
+	{
+		public void returnedTags(Tag[] tags);
+	}
 }

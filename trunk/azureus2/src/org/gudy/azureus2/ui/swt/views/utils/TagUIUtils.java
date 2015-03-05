@@ -68,10 +68,6 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 public class TagUIUtils
 {
 	public static final int MAX_TOP_LEVEL_TAGS_IN_MENU	= 20;
-	
-	public interface TagReturner {
-		public void returnedTags(Tag[] tags);
-	}
 		
 	public static String
 	getChatKey(
@@ -580,7 +576,7 @@ public class TagUIUtils
 	
 	public static void
 	createManualTag(
-			TagReturner tagReturner)
+		UIFunctions.TagReturner tagReturner)
 	{
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null) {
@@ -2538,7 +2534,7 @@ public class TagUIUtils
 		item_create.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				
-				createManualTag(new TagReturner() {
+				createManualTag(new UIFunctions.TagReturner() {
 					public void returnedTags(Tag[] tags) {
 						if ( tags != null ){
 							for (Tag new_tag : tags) {

@@ -20,7 +20,6 @@ package org.gudy.azureus2.plugins.ui.menus;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 
 /**
  * Helper class to allow plugins to register their own menus. If you want to
