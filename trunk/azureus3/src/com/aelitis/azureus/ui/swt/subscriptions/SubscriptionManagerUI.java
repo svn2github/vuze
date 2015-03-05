@@ -57,7 +57,6 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
-import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -2136,7 +2135,7 @@ SubscriptionManagerUI
 	addTag(
 		final Subscription			subs )
 	{
-		TagUIUtilsV3.showCreateTagDialog(new TagReturner() {
+		TagUIUtilsV3.showCreateTagDialog(new UIFunctions.TagReturner() {
 			public void returnedTags(Tag[] tags) {
 				if ( tags != null ){
 					for (Tag new_tag : tags) {

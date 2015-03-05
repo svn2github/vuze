@@ -54,7 +54,6 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
-import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -1235,7 +1234,7 @@ public class SBC_DevicesView
 		item_create.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 
-				TagUIUtilsV3.showCreateTagDialog(new TagReturner() {
+				TagUIUtilsV3.showCreateTagDialog(new UIFunctions.TagReturner() {
 					public void returnedTags(Tag[] tags) {
 						if ( tags != null ){
 							for (Tag new_tag : tags) {

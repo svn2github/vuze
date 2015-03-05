@@ -19,13 +19,12 @@
 package com.aelitis.azureus.ui.swt.utils;
 
 import org.eclipse.swt.SWT;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 
 import com.aelitis.azureus.core.tag.*;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
@@ -38,7 +37,7 @@ import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
 public class TagUIUtilsV3
 {
 
-	public static void showCreateTagDialog(final TagReturner tagReturner) {
+	public static void showCreateTagDialog(final UIFunctions.TagReturner tagReturner) {
 		final SkinnedDialog dialog = new SkinnedDialog("skin3_dlg_addtag", "shell",
 				SWT.DIALOG_TRIM);
 		SWTSkin skin = dialog.getSkin();

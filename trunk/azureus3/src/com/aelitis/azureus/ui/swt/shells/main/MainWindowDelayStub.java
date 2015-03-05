@@ -38,7 +38,6 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
-import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.*;

@@ -70,7 +70,6 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
-import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils.TagReturner;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -3675,7 +3674,7 @@ DeviceManagerUI
 					MenuItem			menu,
 					Object 				target )
 				{
-					TagUIUtils.createManualTag(new TagReturner() {
+					TagUIUtils.createManualTag(new UIFunctions.TagReturner() {
 						public void returnedTags(Tag[] tags) {
 							if ( tags != null ){
 								for (Tag new_tag : tags) {
