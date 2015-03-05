@@ -104,6 +104,10 @@ SpeedLimitHandler
 {
 	private static SpeedLimitHandler		singleton;
 	
+	private static Object	RL_TO_BE_REMOVED_LOCK = new Object();
+	private static Object	RLD_TO_BE_REMOVED_KEY = new Object();
+	private static Object	RLU_TO_BE_REMOVED_KEY = new Object();
+	
 	public static SpeedLimitHandler
 	getSingleton(
 		AzureusCore		core )
@@ -1639,7 +1643,24 @@ SpeedLimitHandler
 						
 						if ( ip_set_rate_limiters_down.containsValue( l )){
 							
-							peer.removeRateLimiter( l , false );
+							synchronized( RL_TO_BE_REMOVED_LOCK ){
+								
+								List<RateLimiter> to_be_removed = (List<RateLimiter>)peer.getUserData( RLD_TO_BE_REMOVED_KEY );
+								
+								if ( to_be_removed == null ){
+									
+									to_be_removed = new ArrayList<RateLimiter>();
+									
+									peer.setUserData( RLD_TO_BE_REMOVED_KEY, to_be_removed );
+								}
+								
+								to_be_removed.add( l );	
+							}
+							
+							// defer as removing the rate limiter and then re-adding it gives time for
+							// quite a lot to happen in between
+							
+							// peer.removeRateLimiter( l , false );
 						}
 					}
 					
@@ -1649,7 +1670,21 @@ SpeedLimitHandler
 						
 						if ( ip_set_rate_limiters_up.containsValue( l )){
 							
-							peer.removeRateLimiter( l , true );
+							synchronized( RL_TO_BE_REMOVED_LOCK ){
+								
+								List<RateLimiter> to_be_removed = (List<RateLimiter>)peer.getUserData( RLU_TO_BE_REMOVED_KEY );
+								
+								if ( to_be_removed == null ){
+									
+									to_be_removed = new ArrayList<RateLimiter>();
+									
+									peer.setUserData( RLU_TO_BE_REMOVED_KEY, to_be_removed );
+								}
+								
+								to_be_removed.add( l );	
+							}
+							
+							// peer.removeRateLimiter( l , true );
 						}
 					}
 				}
@@ -2022,172 +2057,207 @@ SpeedLimitHandler
 		
 		for ( Peer peer: peers ){
 			
-			long[] entry = (long[])peer.getUserData( ip_set_peer_key );
-
-			long	l_address;
-
-			if ( entry == null ){
+			List<RateLimiter>	rlu_tbr;
+			List<RateLimiter>	rld_tbr;
+			
+			synchronized( RL_TO_BE_REMOVED_LOCK ){
 				
-				l_address = 0;
+				rlu_tbr = (List<RateLimiter>)peer.getUserData( RLU_TO_BE_REMOVED_KEY );
+				rld_tbr = (List<RateLimiter>)peer.getUserData( RLD_TO_BE_REMOVED_KEY );
 				
-				String ip = peer.getIp();
-				
-				if ( !ip.contains( ":" )){
+				if ( rlu_tbr != null ){
+					peer.setUserData( RLU_TO_BE_REMOVED_KEY, null );
+				}
+				if ( rld_tbr != null ){
+					peer.setUserData( RLD_TO_BE_REMOVED_KEY, null );
+				}
+			}
+			
+			try{
+				long[] entry = (long[])peer.getUserData( ip_set_peer_key );
+	
+				long	l_address;
+	
+				if ( entry == null ){
 					
-					byte[] bytes = HostNameToIPResolver.hostAddressToBytes( ip );
+					l_address = 0;
 					
-					if ( bytes != null ){
+					String ip = peer.getIp();
+					
+					if ( !ip.contains( ":" )){
 						
-						l_address = ((long)((bytes[0]<<24)&0xff000000 | (bytes[1] << 16)&0x00ff0000 | (bytes[2] << 8)&0x0000ff00 | bytes[3]&0x000000ff))&0xffffffffL;
-
+						byte[] bytes = HostNameToIPResolver.hostAddressToBytes( ip );
+						
+						if ( bytes != null ){
+							
+							l_address = ((long)((bytes[0]<<24)&0xff000000 | (bytes[1] << 16)&0x00ff0000 | (bytes[2] << 8)&0x0000ff00 | bytes[3]&0x000000ff))&0xffffffffL;
+	
+						}
 					}
+					
+					entry = new long[]{ l_address };
+					
+					peer.setUserData( ip_set_peer_key, entry );
+					
+				}else{
+					
+					l_address = entry[0];
 				}
 				
-				entry = new long[]{ l_address };
+				String	peer_cc 	= null;
+				String 	peer_net	= null;
 				
-				peer.setUserData( ip_set_peer_key, entry );
-				
-			}else{
-				
-				l_address = entry[0];
-			}
-			
-			String	peer_cc 	= null;
-			String 	peer_net	= null;
-			
-			if ( has_ccs ){
-				
-				String[] details = PeerUtils.getCountryDetails( peer );
-				
-				if ( details != null && details.length > 0 ){
+				if ( has_ccs ){
 					
-					peer_cc = details[0];
-				}	
-			}
-			
-			if ( has_nets ){
-				
-				peer_net = AENetworkClassifier.categoriseAddress( peer.getIp());
-			}
-			
-			Set<IPSet>	added_to_sets = new HashSet<IPSet>();
-			
-			if ( l_address != 0 ){
-								
-				for ( int i=0;i<set_ranges.length;i++ ){
+					String[] details = PeerUtils.getCountryDetails( peer );
 					
-					long[][] ranges = set_ranges[i];
-					
-					if ( ranges.length == 0 ){
+					if ( details != null && details.length > 0 ){
 						
-						continue;
-					}
+						peer_cc = details[0];
+					}	
+				}
+				
+				if ( has_nets ){
 					
-					IPSet set = sets[i];
-					
-					boolean is_inverse = set.isInverse();
-					
-					Set<String> set_cats_or_tags = set.getCategoriesOrTags();
-					
-					if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
-					
-						boolean	hit = false;
-						
-						for ( long[] range: ranges ){
-							
-							if ( l_address >= range[0] && l_address <= range[1] ){
-															
-								hit	= true;
-	
-								if ( !is_inverse ){
-								
-									addLimiters( peer, set );
+					peer_net = AENetworkClassifier.categoriseAddress( peer.getIp());
+				}
+				
+				Set<IPSet>	added_to_sets = new HashSet<IPSet>();
+				
+				if ( l_address != 0 ){
 									
-									added_to_sets.add( set );
+					for ( int i=0;i<set_ranges.length;i++ ){
+						
+						long[][] ranges = set_ranges[i];
+						
+						if ( ranges.length == 0 ){
+							
+							continue;
+						}
+						
+						IPSet set = sets[i];
+						
+						boolean is_inverse = set.isInverse();
+						
+						Set<String> set_cats_or_tags = set.getCategoriesOrTags();
+						
+						if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
+						
+							boolean	hit = false;
+							
+							for ( long[] range: ranges ){
+								
+								if ( l_address >= range[0] && l_address <= range[1] ){
+																
+									hit	= true;
+		
+									if ( !is_inverse ){
+									
+										addLimiters( peer, set, rlu_tbr, rld_tbr );
+										
+										added_to_sets.add( set );
+									}
+		
+									break;
 								}
-	
-								break;
+							}
+							
+							if ( is_inverse && !hit ){
+								
+								addLimiters( peer, set, rlu_tbr, rld_tbr );
+								
+								added_to_sets.add( set );
 							}
 						}
+					}
+				}
+				
+				if ( peer_cc != null ){
+					
+					for ( int i=0;i<set_ccs.length;i++ ){
 						
-						if ( is_inverse && !hit ){
+						IPSet set = sets[i];
+	
+						if ( added_to_sets.contains( set )){
 							
-							addLimiters( peer, set );
+							continue;
+						}
+						
+						Set<String>	ccs = set_ccs[i];
+						
+						if ( ccs.size() == 0 ){
 							
-							added_to_sets.add( set );
+							continue;
+						}
+											
+						boolean not_inverse = !set.isInverse();
+						
+						Set<String> set_cats_or_tags = set.getCategoriesOrTags();
+						
+						if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
+												
+							boolean	hit = ccs.contains( peer_cc );
+																
+							if ( hit == not_inverse ){
+								
+								addLimiters( peer, set, rlu_tbr, rld_tbr );
+								
+								added_to_sets.add( set );
+							}
 						}
 					}
 				}
-			}
-			
-			if ( peer_cc != null ){
 				
-				for ( int i=0;i<set_ccs.length;i++ ){
+				if ( peer_net != null ){
 					
-					IPSet set = sets[i];
-
-					if ( added_to_sets.contains( set )){
+					for ( int i=0;i<set_nets.length;i++ ){
 						
-						continue;
-					}
-					
-					Set<String>	ccs = set_ccs[i];
-					
-					if ( ccs.size() == 0 ){
+						IPSet set = sets[i];
+	
+						if ( added_to_sets.contains( set )){
+							
+							continue;
+						}
 						
-						continue;
-					}
-										
-					boolean not_inverse = !set.isInverse();
-					
-					Set<String> set_cats_or_tags = set.getCategoriesOrTags();
-					
-					if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
+						Set<String>	nets = set_nets[i];
+						
+						if ( nets.size() == 0 ){
+							
+							continue;
+						}
 											
-						boolean	hit = ccs.contains( peer_cc );
-															
-						if ( hit == not_inverse ){
-							
-							addLimiters( peer, set );
-							
-							added_to_sets.add( set );
+						boolean not_inverse = !set.isInverse();
+						
+						Set<String> set_cats_or_tags = set.getCategoriesOrTags();
+						
+						if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
+												
+							boolean	hit = nets.contains( peer_net );
+																
+							if ( hit == not_inverse ){
+								
+								addLimiters( peer, set, rlu_tbr, rld_tbr );
+								
+								added_to_sets.add( set );
+							}
 						}
 					}
 				}
-			}
-			
-			if ( peer_net != null ){
+			}finally{
 				
-				for ( int i=0;i<set_nets.length;i++ ){
+				if ( rlu_tbr != null ){
 					
-					IPSet set = sets[i];
-
-					if ( added_to_sets.contains( set )){
+					for ( RateLimiter l: rlu_tbr ){
 						
-						continue;
+						peer.removeRateLimiter( l, true );
 					}
+				}
+				
+				if ( rld_tbr != null ){
 					
-					Set<String>	nets = set_nets[i];
-					
-					if ( nets.size() == 0 ){
+					for ( RateLimiter l: rld_tbr ){
 						
-						continue;
-					}
-										
-					boolean not_inverse = !set.isInverse();
-					
-					Set<String> set_cats_or_tags = set.getCategoriesOrTags();
-					
-					if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
-											
-						boolean	hit = nets.contains( peer_net );
-															
-						if ( hit == not_inverse ){
-							
-							addLimiters( peer, set );
-							
-							added_to_sets.add( set );
-						}
+						peer.removeRateLimiter( l, false );
 					}
 				}
 			}
@@ -2219,8 +2289,10 @@ SpeedLimitHandler
 	
 	private void
 	addLimiters(
-		Peer	peer,
-		IPSet	set )
+		Peer				peer,
+		IPSet				set,
+		List<RateLimiter>	up_to_be_removed,
+		List<RateLimiter>	down_to_be_removed )
 	{
 		boolean	matched = false;
 		
@@ -2240,8 +2312,17 @@ SpeedLimitHandler
 					break;
 				}
 			}
-			if ( !found ){
-														
+			
+			if ( found ){
+				
+				if ( up_to_be_removed != null && up_to_be_removed.remove( l )){
+					
+						// supposed to have been removed but is still required
+					
+					matched = true;
+				}
+			}else{
+				
 				peer.addRateLimiter( l, true );
 				
 				matched = true;
@@ -2264,8 +2345,15 @@ SpeedLimitHandler
 					break;
 				}
 			}
-			if ( !found ){
-													
+			
+			if ( found ){
+			
+				if ( down_to_be_removed != null && down_to_be_removed.remove( l )){
+					
+					matched = true;
+				}
+			}else{
+				
 				peer.addRateLimiter( l, false );
 				
 				matched = true;
