@@ -37,7 +37,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.I2PHelpers;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 
 
 /**
