@@ -48,6 +48,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
+import com.aelitis.azureus.core.devices.DeviceUPnP;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
@@ -71,7 +72,7 @@ import com.aelitis.net.upnp.UPnPRootDevice;
 public abstract class 
 DeviceUPnPImpl
 	extends DeviceImpl
-	implements TranscodeTargetListener, DownloadManagerListener
+	implements DeviceUPnP, TranscodeTargetListener, DownloadManagerListener
 {
 	private static final Object UPNPAV_FILE_KEY = new Object();
 		
