@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.I2PHelpers;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 
 
@@ -715,7 +716,7 @@ public class TorrentOpenOptions
 					
 					final boolean[]	install_outcome = { false };
 
-					if ( BuddyPluginUtils.installI2PHelper(
+					if ( I2PHelpers.installI2PHelper(
 							enable_i2p_reason,
 							"azneti2phelper.install.open.torrent",
 							install_outcome,

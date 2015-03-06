@@ -70,6 +70,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
+import com.aelitis.azureus.plugins.I2PHelpers;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -1215,7 +1216,7 @@ public class Utils
 									final boolean[]	install_outcome = { false };
 									
 									installing = 
-											BuddyPluginUtils.installI2PHelper( 
+											I2PHelpers.installI2PHelper( 
 											"azneti2phelper.install",
 											install_outcome,
 											new Runnable()

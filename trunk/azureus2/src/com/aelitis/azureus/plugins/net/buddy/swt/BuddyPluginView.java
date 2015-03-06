@@ -90,6 +90,7 @@ import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableLifecycleAdapter;
+import com.aelitis.azureus.plugins.I2PHelpers;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
@@ -1334,13 +1335,13 @@ BuddyPluginView
 										}
 									}else{
 										
-										BuddyPluginUtils.installI2PHelper( null, null, null );
+										I2PHelpers.installI2PHelper( null, null, null );
 									}
 									
 								}
 							});
 	
-					if ( BuddyPluginUtils.isInstallingI2PHelper()){
+					if ( I2PHelpers.isInstallingI2PHelper()){
 						
 						mi.setEnabled( false );
 						mi.setText(  mi.getText() + " (" + MessageText.getString( "PeersView.state.pending" ) + ")" );
@@ -2543,7 +2544,7 @@ BuddyPluginView
 															
 															final boolean[] result = { false };
 																														
-															BuddyPluginUtils.installI2PHelper(
+															I2PHelpers.installI2PHelper(
 																null, result,
 																new Runnable() {
 																	
