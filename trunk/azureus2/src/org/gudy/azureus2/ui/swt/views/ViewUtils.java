@@ -388,7 +388,7 @@ ViewUtils
 				if (maxUpload == 0){
 					maxUpload = 75 * 1024;
 				}else{
-					if ( upSpeedSetMax == 0 ){
+					if ( upSpeedSetMax <= 0 ){
 						maxUpload = 200 * 1024;
 					}else{
 						maxUpload = 4 * ( upSpeedSetMax/1024 ) * 1024;
@@ -521,7 +521,7 @@ ViewUtils
 	
 				//using 200KiB/s as the default limit when no limit set.
 				if (maxDownload == 0){		
-					if ( downSpeedSetMax == 0 ){
+					if ( downSpeedSetMax <= 0 ){
 						maxDownload = 200 * 1024;
 					}else{
 						maxDownload	= 4 * ( downSpeedSetMax/1024 ) * 1024;
