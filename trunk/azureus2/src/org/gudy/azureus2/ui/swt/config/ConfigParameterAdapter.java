@@ -133,7 +133,9 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 
 		changingCount++;
 		try {
-			if (getBooleanValue(key) == value) {
+			if (getBooleanValue(key) == value
+					&& (COConfigurationManager.doesParameterNonDefaultExist(key)
+							|| COConfigurationManager.doesParameterDefaultExist(key))) {
 				changedExternally = true;
 				return;
 			}
