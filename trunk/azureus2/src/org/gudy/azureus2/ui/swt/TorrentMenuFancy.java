@@ -760,6 +760,8 @@ public class TorrentMenuFancy
 			lastControl = child;
 		}
 
+		shell.setLocation(shell.getLocation().x, originalShellLocation.y);
+		detailArea.moveBelow(null);
 		shell.pack(true);
 		detailArea.layout(true, true);
 
@@ -792,12 +794,6 @@ public class TorrentMenuFancy
 					child.setLayoutData(fd);
 					lastControl = child;
 				}
-				shell.layout(true, true);
-			}
-		} else {
-			if (shell.getChildren()[0] == detailArea) {
-				shell.setLocation(shell.getLocation().x, originalShellLocation.y);
-				detailArea.moveBelow(null);
 				shell.layout(true, true);
 			}
 		}
