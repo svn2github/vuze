@@ -524,13 +524,19 @@ PluginInitializer
 	  }
   }
   
-  protected boolean
-  isInitialisationThread()
+  public static boolean
+  isInitThread()
   {
 	  synchronized( initThreads ){
 
 		  return initThreads.contains(Thread.currentThread());
 	  }
+  }
+  
+  protected boolean
+  isInitialisationThread()
+  {
+	  return( isInitThread());
   }
   
   	public List 

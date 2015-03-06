@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -145,6 +146,17 @@ AEPluginProxyHandler
 		}
 	}
 	
+	private static void
+	waitForPlugins(
+		int		max_wait )
+	{
+		if ( PluginInitializer.isInitThread()){
+			Debug.out( "Hmm, rework this" );
+		}
+		
+		plugin_init_complete.reserve( max_wait );
+	}
+	
 	private static final Map<Proxy,WeakReference<PluginProxyImpl>>	proxy_map = new IdentityHashMap<Proxy,WeakReference<PluginProxyImpl>>();
 	
 	public static boolean
@@ -152,7 +164,7 @@ AEPluginProxyHandler
 		String		network,
 		boolean		supports_data )
 	{
-		plugin_init_complete.reserve( plugin_init_max_wait );
+		waitForPlugins( plugin_init_max_wait );
 
 		return( getPluginProxyForNetwork( network, supports_data ) != null );
 	}
@@ -186,7 +198,7 @@ AEPluginProxyHandler
 	public static boolean
 	hasPluginProxy()
 	{
-		plugin_init_complete.reserve( plugin_init_max_wait );
+		waitForPlugins( plugin_init_max_wait );
 	
 		for ( PluginInterface pi: plugins ){
 		
@@ -251,7 +263,7 @@ AEPluginProxyHandler
 				
 				if ( can_wait ){
 					
-					plugin_init_complete.reserve();
+					waitForPlugins(0);
 				}
 				
 				if ( properties == null ){
@@ -370,7 +382,7 @@ AEPluginProxyHandler
 
 				if ( can_wait ){
 					
-					plugin_init_complete.reserve();
+					waitForPlugins(0);
 				}
 				
 				for ( PluginInterface pi: plugins ){
@@ -406,7 +418,7 @@ AEPluginProxyHandler
 
 				if ( can_wait ){
 					
-					plugin_init_complete.reserve();
+					waitForPlugins(0);
 				}
 				
 				for ( PluginInterface pi: plugins ){
@@ -438,7 +450,7 @@ AEPluginProxyHandler
 	{
 		if ( can_wait ){
 			
-			plugin_init_complete.reserve();
+			waitForPlugins(0);
 		}
 		
 		List<PluginInterface> pis = 
@@ -456,7 +468,7 @@ AEPluginProxyHandler
 		String					server_uid,
 		Map<String,Object>		options )
 	{
-		plugin_init_complete.reserve( plugin_init_max_wait );
+		waitForPlugins( plugin_init_max_wait );
 		
 		PluginInterface pi = getPluginProxyForNetwork( network, false );
 		
@@ -489,7 +501,7 @@ AEPluginProxyHandler
 		String					network,
 		Map<String,Object>		options )
 	{
-		plugin_init_complete.reserve( plugin_init_max_wait );
+		waitForPlugins( plugin_init_max_wait );
 		
 		PluginInterface pi = getPluginProxyForNetwork( network, false );
 		
