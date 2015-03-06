@@ -93,6 +93,8 @@ PeerForeignDelegate
 	
 	private boolean	is_download_disabled;
 	
+	private volatile boolean	closed;
+	
 	protected
 	PeerForeignDelegate(
 		PeerManagerImpl		_manager,
@@ -103,7 +105,7 @@ PeerForeignDelegate
 		
 		PEPeerManager pm = manager.getDelegate();
 		
-		network_connection = new PeerForeignNetworkConnection( foreign );
+		network_connection = new PeerForeignNetworkConnection( this, foreign );
 				
 		network_connection.addRateLimiter( pm.getUploadLimitedRateGroup(), true );
 		network_connection.addRateLimiter( pm.getDownloadLimitedRateGroup(), false );
@@ -258,6 +260,8 @@ PeerForeignDelegate
 	closeConnection( 
 		String reason ) 
 	{
+		closed = true;
+		
 		try{
 			foreign.close( reason, false, false );
 			
@@ -267,6 +271,12 @@ PeerForeignDelegate
 		}
 	}
 		
+	public boolean
+	isClosed()
+	{
+		return( closed );
+		
+	}
 	public List
 	getExpiredRequests()
 	{
@@ -1154,7 +1164,22 @@ PeerForeignDelegate
 			}
 					
 			is_download_disabled = download_disabled_set != null;
+			
+			if ( is_download_disabled ){
+				
+				List<Object>	list = foreign.getRequests();
+				
+				if ( list != null ){
+					
+					for ( Object obj: list ){
 						
+						if ( obj instanceof PeerReadRequest ){
+							
+							foreign.cancelRequest((PeerReadRequest)obj);
+						}
+					}
+				}
+			}
 			//System.out.println( "setDownloadDisabled " + getIp() + " -> " + (download_disabled_set==null?0:download_disabled_set.size()));
 		}		
 	}

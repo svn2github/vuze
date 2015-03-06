@@ -432,4 +432,7 @@ PEPeer
 	public boolean isPriorityConnection();
 	
 	public void setPriorityConnection( boolean is_priority ); 
+	
+	public boolean
+	isClosed();
 }

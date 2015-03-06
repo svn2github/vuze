@@ -977,6 +977,12 @@ implements PEPeerTransport
 			recentlyDisconnected.put(mySessionID, this);
 	}
 	
+	public boolean
+	isClosed()
+	{
+		return( closing );
+	}
+	
 	public PEPeerTransport reconnect(boolean tryUDP, boolean tryIPv6) {
 		
 		boolean use_tcp = isTCP() && !(tryUDP && getUDPListenPort() > 0);

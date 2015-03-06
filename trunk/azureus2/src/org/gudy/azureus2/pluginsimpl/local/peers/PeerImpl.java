@@ -540,6 +540,8 @@ PeerImpl
 		
 						((PluginLimitedRateGroup)l).removeListener( up_rg_listener );
 					}
+					
+					delegate.removeRateLimiter( l,  true );
 				}
 				
 				limiters = delegate.getRateLimiters( false );
@@ -550,6 +552,8 @@ PeerImpl
 		
 						((PluginLimitedRateGroup)l).removeListener( down_rg_listener );
 					}
+					
+					delegate.removeRateLimiter( l,  false );
 				}
 			}
 		}

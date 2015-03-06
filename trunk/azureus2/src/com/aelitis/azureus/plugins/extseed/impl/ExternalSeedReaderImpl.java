@@ -666,6 +666,9 @@ ExternalSeedReaderImpl
 			
 			status = active?"Active":"Idle";
 			
+			rate_bytes_permitted		= 0;
+			rate_bytes_read				= 0;
+			
 			setActiveSupport( _peer_manager, _active );
 			
 		}finally{
@@ -815,7 +818,7 @@ ExternalSeedReaderImpl
 			// has already happened and prepare for what will
 		
 		int	res = 0;
-		
+				
 		synchronized( rate_sem ){
 			
 			if ( rate_bytes_read > 0 ){
@@ -840,6 +843,13 @@ ExternalSeedReaderImpl
 				}
 				
 				rate_bytes_permitted = rem;
+			}
+			
+				// if things are way out then hack them back - most likely a change from unlimited to limited...
+			
+			if ( rate_bytes_permitted > max*10L ){
+				
+				rate_bytes_permitted = max;
 			}
 		}
 		

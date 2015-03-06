@@ -461,6 +461,13 @@ PeerManagerImpl
 			
 			PEPeer	local = (PEPeer)foreign_map.get( _foreign );
 			
+			if ( local != null && local.isClosed()){
+				
+				foreign_map.remove( _foreign );
+				
+				local = null;
+			}
+			
 			if( local == null ){
 				
 				if ( destroyed ){

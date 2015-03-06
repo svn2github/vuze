@@ -43,7 +43,8 @@ public class
 PeerForeignNetworkConnection
 	extends NetworkConnectionHelper
 {
-	private Peer				peer;
+	final private PeerForeignDelegate		delegate;
+	final private Peer						peer;
 	
 	private OutgoingMessageQueue	outgoing_message_queue = new omq();
 	private IncomingMessageQueue	incoming_message_queue = new imq();
@@ -52,9 +53,11 @@ PeerForeignNetworkConnection
 			
 	protected
 	PeerForeignNetworkConnection(
-		Peer		_peer )
+		PeerForeignDelegate		_delegate,
+		Peer					_peer )
 	{
-		peer	= _peer;
+		delegate	= _delegate;
+		peer		= _peer;
 	}
 	
 	public ConnectionEndpoint
@@ -198,7 +201,7 @@ PeerForeignNetworkConnection
 		receiveFromTransport( 
 			int max_bytes ) throws IOException
 		{
-			return( peer.readBytes( max_bytes ));
+			return( peer.readBytes( delegate.isDownloadDisabled()?0:max_bytes ));
 		}
 		 
 		public void 
