@@ -1406,7 +1406,7 @@ BuddyPluginViewBetaChat
 					Event e )
 				{
 					try{
-						int offset = log.getOffsetAtLocation( new Point( e.x, e.y ) );
+						final int offset = log.getOffsetAtLocation( new Point( e.x, e.y ) );
 						
 						for ( int i=0;i<log_styles.length;i++){
 							
@@ -1420,7 +1420,7 @@ BuddyPluginViewBetaChat
 								
 								if ( data instanceof String ){
 									
-									String	url_str = (String)data;
+									final String	url_str = (String)data;
 									
 									String lc_url_str = url_str.toLowerCase( Locale.US );
 									
@@ -1469,7 +1469,20 @@ BuddyPluginViewBetaChat
 											
 										}else{
 											
-											Utils.launch( url_str );
+												// without this backoff we end up with the text widget
+												// being left in a 'mouse down' state when returning to it :(
+											
+											Utils.execSWTThreadLater(
+												100, 
+												new Runnable() 
+												{
+													public void 
+													run()
+													{	
+														Utils.launch( url_str );
+													}
+												});
+											
 										}
 									}
 									
