@@ -21,10 +21,13 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import java.io.File;
+import java.io.StringReader;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -3041,6 +3044,37 @@ BuddyPluginViewBetaChat
 		String		text )
 	{
 		//logChatMessage( plugin.getNickname(), Colors.green, text );
+		
+		try{
+				// decode escaped unicode chars
+			
+			Pattern p = Pattern.compile("(?i)\\\\u([\\dabcdef]{4})");
+
+			Matcher m = p.matcher( text );
+
+			boolean result = m.find();
+
+			if ( result ){
+
+				StringBuffer sb = new StringBuffer();
+
+		    	while( result ){
+		    		
+		    		 String str = m.group(1);
+		    		 
+		    		 int unicode = Integer.parseInt( str, 16 );
+		    		 
+		    		 m.appendReplacement(sb, String.valueOf((char)unicode));
+		    		 
+		    		 result = m.find(); 
+		    	 }
+
+				m.appendTail(sb);
+
+				text = sb.toString();
+			}
+		}catch( Throwable e ){
+		}
 		
 		chat.sendMessage( text, new HashMap<String, Object>());
 	}
