@@ -151,7 +151,9 @@ CategoryImpl
   }
 
   public void addCategoryListener(CategoryListener l) {
-	  category_listeners.addListener( l );
+  	if (!category_listeners.hasListener(l)) {
+  		category_listeners.addListener( l );
+  	}
   }
 
   public void removeCategoryListener(CategoryListener l) {

@@ -754,7 +754,9 @@ TagBase
 		TagListener	listener,
 		boolean		fire_for_existing )
 	{
-		t_listeners.addListener( listener );
+		if (!t_listeners.hasListener(listener)) {
+			t_listeners.addListener( listener );
+		}
 		
 		if ( fire_for_existing ){
 			
