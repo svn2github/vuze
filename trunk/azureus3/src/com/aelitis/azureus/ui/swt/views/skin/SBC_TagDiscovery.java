@@ -33,9 +33,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.AEMonitor2;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -86,6 +84,8 @@ public class SBC_TagDiscovery
 
 	private static final boolean DEBUG = false;
 
+	private static final String CONFIG_FILE = "tag-discovery.config";
+
 	private static final String ID_VITALITY_ACTIVE = "image.sidebar.vitality.dl";
 
 	TableViewSWT<TagDiscovery> tv;
@@ -107,6 +107,8 @@ public class SBC_TagDiscovery
 	private SWTSkinObjectText soTitle;
 
 	private MdiEntryVitalityImage vitalityImage;
+
+	private Map mapConfig;
 
 	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
@@ -163,6 +165,8 @@ public class SBC_TagDiscovery
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
+		mapConfig = FileUtil.readResilientConfigFile(CONFIG_FILE);
+
 		soTitle = (SWTSkinObjectText) getSkinObject("title");
 
 		SWTSkinObjectButton soScanButton = (SWTSkinObjectButton) getSkinObject("scan-button");
@@ -175,6 +179,22 @@ public class SBC_TagDiscovery
 				}
 			});
 		}
+		
+		final SWTSkinObject soFilterArea = getSkinObject("filterarea");
+		if (soFilterArea != null) {
+			
+			SWTSkinObjectToggle soFilterButton = (SWTSkinObjectToggle) getSkinObject("filter-button");
+			if (soFilterButton != null) {
+				soFilterButton.addSelectionListener(new SWTSkinToggleListener() {
+					public void toggleChanged(SWTSkinObjectToggle so, boolean toggled) {
+						soFilterArea.setVisible(toggled);
+						Utils.relayout(soFilterArea.getControl().getParent());
+					}
+				});
+			}
+			
+		}
+
 
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 
@@ -262,6 +282,10 @@ public class SBC_TagDiscovery
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
+
+		if (mapConfig != null) {
+			FileUtil.writeResilientConfigFile(CONFIG_FILE, mapConfig);
+		}
 
 		if (tv != null) {
 

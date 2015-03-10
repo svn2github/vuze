@@ -34,8 +34,11 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.views.MyTorrentsSubView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
@@ -48,9 +51,11 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.columns.tag.*;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectButton;
 import com.aelitis.azureus.ui.swt.utils.TagUIUtilsV3;
@@ -77,6 +82,8 @@ public class SBC_TagsOverview
 	private boolean columnsAdded = false;
 
 	private boolean tm_listener_added;
+
+	private boolean registeredCoreSubViews;
 	
 	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
@@ -424,6 +431,14 @@ public class SBC_TagsOverview
 	 * @since 4.6.0.5
 	 */
 	private void initTable(Composite control) {
+		
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
+			
+			registerPluginViews( pluginUI );
+		}
+
 		if ( tv == null ){
 			
 			tv = TableViewFactory.createTableViewSWT(Tag.class, TABLE_TAGS, TABLE_TAGS,
@@ -433,6 +448,7 @@ public class SBC_TagsOverview
 				tv.enableFilterCheck(txtFilter, this);
 			}
 			tv.setRowDefaultHeight(16);
+			tv.setEnableTabViews(true, true, null);
 	
 			table_parent = new Composite(control, SWT.BORDER);
 			table_parent.setLayoutData(Utils.getFilledFormData());
@@ -445,8 +461,19 @@ public class SBC_TagsOverview
 			
 			tv.initialize(table_parent);
 		}
-		
+
 		control.layout(true);
+	}
+
+	private void registerPluginViews(UISWTInstance pluginUI) {
+		if (registeredCoreSubViews) {
+			return;
+		}
+		
+		pluginUI.addView(TABLE_TAGS, "MyTorrentsSubView", MyTorrentsSubView.class,
+				null);
+
+		registeredCoreSubViews = true;
 	}
 
 	public void 

@@ -53,22 +53,13 @@ public class MyTorrentsView_Big
 				forDataSourceType = DownloadTypeIncomplete.class;
 				break;
 				
-			case SBC_LibraryView.TORRENTS_UNOPENED:
-				forDataSourceType = Download.class;
-				break;
-				
-			case SBC_LibraryView.TORRENTS_ALL:
-				forDataSourceType = Download.class;
-				break;
-
 			default:
-				forDataSourceType = null;
+				forDataSourceType = Download.class;
 				break;
 		}
 		init(
 				_azureus_core,
 				SB_Transfers.getTableIdFromFilterMode(torrentFilterMode, true),
-				torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE ? false : true,
 				forDataSourceType, basicItems);
 		//setForceHeaderVisible(true);
 	}
@@ -84,7 +75,7 @@ public class MyTorrentsView_Big
 				return false;
 			}
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
-			if ( !isInCurrentCategory(dm)){
+			if ( !isInCurrentTag(dm)){
 				return(false );
 			}
 			return( isInCurrentTag(dm));
@@ -95,7 +86,8 @@ public class MyTorrentsView_Big
 
 	// @see org.gudy.azureus2.ui.swt.views.MyTorrentsView#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void defaultSelected(TableRowCore[] rows, int stateMask) {
-		SBC_LibraryTableView.doDefaultClick(rows, stateMask, !isSeedingView);
+		boolean neverPlay = DownloadTypeIncomplete.class.equals(getForDataSourceType());
+		SBC_LibraryTableView.doDefaultClick(rows, stateMask, neverPlay);
 	}
 
 	protected int getRowDefaultHeight() {

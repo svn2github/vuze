@@ -686,14 +686,12 @@ ViewUtils
 		public void
 		update(
 			Composite	composite,
-			boolean		seeding_view,
 			int			count,
 			int			active );
 			
 		public void
 		setEnabled(
 			Composite	composite,
-			boolean		seeding_view,
 			boolean		enabled );
 			
 	}
