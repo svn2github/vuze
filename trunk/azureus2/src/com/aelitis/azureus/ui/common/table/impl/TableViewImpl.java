@@ -244,6 +244,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#setParentDataSource(java.lang.Object)
 	public void setParentDataSource(Object newDataSource) {
+		//System.out.println(getTableID()  + "] setParentDataSource " + newDataSource);
 		parentDataSource = newDataSource;
 		Object[] listeners = listenersDataSourceChanged.toArray();
 		for (int i = 0; i < listeners.length; i++) {
@@ -1465,7 +1466,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		visibleRowsChanged();
 		fillRowGaps(false);
 
-		setSelectedRows(selectedRows);
+		if (selectedRows.length > 0) {
+			setSelectedRows(selectedRows);
+		}
 		if (DEBUGADDREMOVE) {
 			debug("<< " + size(false));
 		}
