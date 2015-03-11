@@ -47,7 +47,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 /**
- * aka "Sources" View
+ * aka "Primary Tracker" view in "Sources" View
  */
 public class ScrapeInfoView
 	implements UISWTViewCoreEventListener

@@ -58,7 +58,9 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 
-
+/**
+ * aka "Sources" view
+ */
 public class TrackerView 
 	extends TableViewTab<TrackerPeerSource>
 	implements 	TableLifeCycleListener, TableDataSourceChangedListener, 
