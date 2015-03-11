@@ -2406,12 +2406,23 @@ public class TorrentUtil
 		boolean hasDM = false;
 
 		if (currentContent.length > 0 && hasRealDM) {
+			
+				// well, in fact, we can have hasRealDM set to true here (because tv isn't null) and actually not have a real dm.
+				// fancy that - protect against null DownloadManagers...
+			
 			boolean canMoveUp = true;
 			boolean canMoveDown = true;
-			GlobalManager gm = currentContent[0].getDownloadManager().getGlobalManager();
+			GlobalManager gm = null;
 			for (int i = 0; i < currentContent.length; i++) {
 				ISelectedContent content = currentContent[i];
 				DownloadManager dm = content.getDownloadManager();
+				if ( dm == null ){
+					continue;
+				}
+				if ( gm == null ){
+					gm = dm.getGlobalManager();
+				}
+				
 				if (!gm.isMoveableUp(dm)) {
 					canMoveUp = false;
 				}
@@ -2456,6 +2467,13 @@ public class TorrentUtil
 					}
 				}
 			}
+	
+			if ( gm == null ){
+				
+				canMoveUp 	= false;
+				canMoveDown = false;
+			}
+			
 			boolean canRemove = hasDM || canRemoveFileInfo;
 
 			mapNewToolbarStates.put("remove", canRemove ? UIToolBarItem.STATE_ENABLED
