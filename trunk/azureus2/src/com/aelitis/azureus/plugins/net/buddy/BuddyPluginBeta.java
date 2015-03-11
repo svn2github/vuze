@@ -1770,6 +1770,11 @@ BuddyPluginBeta
 
 				options.put( "timeout", 60*1000 );
 				
+				if ( network != AENetworkClassifier.AT_PUBLIC ){
+					
+					options.put( "server_id", getSharedAnonEndpoint()?"dchat_shared":"dchat" );
+				}
+
 				reply = (Map<String,Object>)pi.getIPC().invoke( "peekMessageHandler", new Object[]{ options } );
 			}
 				
@@ -3421,7 +3426,7 @@ BuddyPluginBeta
 						
 						for ( ChatMessage msg: messages ){
 							
-							System.out.println( pkToString( msg.getID()) + ", " + pkToString( msg.getPreviousID()) + " - " + msg.getMessage());
+							System.out.println( msg.getTimeStamp() + ": " + pkToString( msg.getID()) + ", " + pkToString( msg.getPreviousID()) + " - " + msg.getMessage());
 						}
 					}
 					return;

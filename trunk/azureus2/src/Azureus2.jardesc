@@ -412,6 +412,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.net.buddy"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.logging"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.messaging"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.launcher"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.category"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.ui.components"/>
