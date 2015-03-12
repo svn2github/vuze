@@ -65,27 +65,32 @@ public class TagUIUtilsV3
 						TagType tt = TagManagerFactory.getTagManager().getTagType(
 								TagType.TT_DOWNLOAD_MANUAL);
 
-						Tag existing = tt.getTag(tag_name, true);
+						Tag tag = tt.getTag(tag_name, true);
 
-						if (existing == null) {
+						if (tag == null) {
 
 							try {
 
-								Tag tag = tt.createTag(tag_name, true);
+								tag = tt.createTag(tag_name, true);
 
 								tag.setPublic(cb.isChecked());
 
-								if (tagReturner != null) {
-									tagReturner.returnedTags(new Tag[] {
-										tag
-									});
-								}
 
 							} catch (TagException e) {
 
 								Debug.out(e);
 							}
 						}
+						
+						// return tag even if it already existed.  
+						// Case: assigning tag to DL, user enters same tag name because 
+						// they forgot they already had one
+						if (tagReturner != null && tag != null) {
+							tagReturner.returnedTags(new Tag[] {
+								tag
+							});
+						}
+
 					}
 					
 					dialog.close();
