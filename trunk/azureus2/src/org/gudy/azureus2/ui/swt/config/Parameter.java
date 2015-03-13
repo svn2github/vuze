@@ -41,7 +41,9 @@ Parameter
 	private static AEMonitor	class_mon	= new AEMonitor( "Parameter:class" );
 
 	public Parameter(String sConfigID) {
-		config_adapter = new ConfigParameterAdapter( this, sConfigID );
+		if (sConfigID != null) {
+			config_adapter = new ConfigParameterAdapter( this, sConfigID );
+		}
 	}
 	
 	public boolean
