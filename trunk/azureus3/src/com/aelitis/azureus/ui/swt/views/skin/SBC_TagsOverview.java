@@ -34,11 +34,11 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSubView;
+import org.gudy.azureus2.ui.swt.views.TagSettingsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
@@ -470,6 +470,8 @@ public class SBC_TagsOverview
 			return;
 		}
 		
+		pluginUI.addView(TABLE_TAGS, "TagSettingsView", TagSettingsView.class,
+				null);
 		pluginUI.addView(TABLE_TAGS, "MyTorrentsSubView", MyTorrentsSubView.class,
 				null);
 
