@@ -24,6 +24,10 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
 
+/**
+ * A {@link GenericParameterAdapter} that stores/retrieves settings from
+ * {@link COConfigurationManager}
+ */
 public class ConfigParameterAdapter extends GenericParameterAdapter
 {
 	private static final int CHANGINGCOUNT_BREAKER = 5;

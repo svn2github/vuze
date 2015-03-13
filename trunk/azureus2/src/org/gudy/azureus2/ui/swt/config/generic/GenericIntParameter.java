@@ -25,6 +25,9 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
+/**
+ * SWT widgets representing an Int Parameter, backed by a {@link GenericParameterAdapter}
+ */
 public class GenericIntParameter
 {
 	private static boolean DEBUG = false;

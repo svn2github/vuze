@@ -20,6 +20,8 @@ package org.gudy.azureus2.ui.swt.config;
 import org.eclipse.swt.widgets.Control;
 
 /**
+ * For plugins to add a generic SWT widget to the config page
+ * 
  * @author Allan Crooks
  *
  */
