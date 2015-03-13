@@ -23,6 +23,8 @@ import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 
 /**
+ * Creates a config {@link Parameter} linked to a {@link GenericIntParameter}
+ * 
  * @author Olivier
  * 
  */
@@ -56,6 +58,7 @@ IntParameter
 				minValue, maxValue);
   }
   
+  // @see org.gudy.azureus2.ui.swt.config.Parameter#isInitialised()
   public boolean
   isInitialised()
   {
@@ -94,10 +97,12 @@ IntParameter
   	return( delegate.getValue());
   }
   
+  // @see org.gudy.azureus2.ui.swt.config.IParameter#setLayoutData(java.lang.Object)
   public void setLayoutData(Object layoutData) {
    delegate.setLayoutData( layoutData );
   }
   
+  // @see org.gudy.azureus2.ui.swt.config.IParameter#getControl()
   public Control
   getControl()
   {
@@ -112,12 +117,14 @@ IntParameter
 		delegate.setGenerateIntermediateEvents(generateIntermediateEvents);
 	}
 
+  // @see org.gudy.azureus2.ui.swt.config.Parameter#setValue(java.lang.Object)
   public void setValue(Object value) {
   	if (value instanceof Number) {
   		setValue(((Number)value).intValue());
   	}
   }
   
+  // @see org.gudy.azureus2.ui.swt.config.Parameter#getValueObject()
   public Object getValueObject() {
   	return new Integer(getValue());
   }
