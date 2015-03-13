@@ -400,6 +400,8 @@ TagDownloadWithState
 		upload_rate_limit	= bps;
 		
 		writeLongAttribute( AT_RATELIMIT_UP, upload_rate_limit );
+
+		getTagType().fireChanged( this );
 	}
 	
 	public int
@@ -435,6 +437,8 @@ TagDownloadWithState
 		download_rate_limit	= bps;
 		
 		writeLongAttribute( AT_RATELIMIT_DOWN, download_rate_limit );
+
+		getTagType().fireChanged( this );
 	}
 	
 	public int
@@ -480,6 +484,8 @@ TagDownloadWithState
 				dm.updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, priority>0 );
 			}
 		}
+
+		getTagType().fireChanged( this );
 	}
 	
 	public int
@@ -532,6 +538,8 @@ TagDownloadWithState
 			
 			dm.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO, sr );
 		}
+
+		getTagType().fireChanged( this );
 	}
 	
 	public int
@@ -584,6 +592,8 @@ TagDownloadWithState
 			
 			dm.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO, sr );
 		}
+
+		getTagType().fireChanged( this );
 	}
 	
 	private void
