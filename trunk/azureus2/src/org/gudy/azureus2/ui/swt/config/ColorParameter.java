@@ -61,16 +61,24 @@ public class ColorParameter extends Parameter implements ParameterListener {
   	super(name);
     sParamName = name;
     colorChooser = new Button(composite,SWT.PUSH);
-    r = COConfigurationManager.getIntParameter(name+".red",_r);
-    g = COConfigurationManager.getIntParameter(name+".green",_g);
-    b = COConfigurationManager.getIntParameter(name+".blue",_b);
+    if (name == null) {
+    	r = _r;
+    	g = _g;
+    	b = _b;
+    } else {
+      r = COConfigurationManager.getIntParameter(name+".red",_r);
+      g = COConfigurationManager.getIntParameter(name+".green",_g);
+      b = COConfigurationManager.getIntParameter(name+".blue",_b);
+      COConfigurationManager.addParameterListener(sParamName, this);
+    }
     updateButtonColor(composite.getDisplay(), r, g, b);
 
-    COConfigurationManager.addParameterListener(sParamName, this);
     
     colorChooser.addListener(SWT.Dispose, new Listener() {
       public void handleEvent(Event e) {
-        COConfigurationManager.removeParameterListener(sParamName, ColorParameter.this);
+      	if (sParamName != null) {
+      		COConfigurationManager.removeParameterListener(sParamName, ColorParameter.this);
+      	}
         if(img != null && ! img.isDisposed()) {
           img.dispose();          
         }
@@ -84,9 +92,17 @@ public class ColorParameter extends Parameter implements ParameterListener {
         RGB newColor = cd.open();
         if (newColor == null)
           return;
-        newColorChosen();
-        COConfigurationManager.setRGBParameter(name, newColor.red, newColor.green, newColor.blue);
-        newColorSet();
+        newColorChosen(newColor);
+        if (name != null) {
+        	COConfigurationManager.setRGBParameter(name, newColor.red, newColor.green, newColor.blue);
+        } else {
+        	r = newColor.red;
+        	g = newColor.green;
+        	b = newColor.blue;
+        	
+          updateButtonColor(colorChooser.getDisplay(), r, g, b);
+        }
+        newColorSet(newColor);
       }
     });
     
@@ -120,15 +136,27 @@ public class ColorParameter extends Parameter implements ParameterListener {
     updateButtonColor(colorChooser.getDisplay(), r, g, b);
   }
   
-  public void newColorChosen() {
+  public void newColorChosen(RGB newColor) {
     // subclasses can write their own code
   }
   
-  public void newColorSet() {
+  public void newColorSet(RGB newColor) {
 	  // subclasses can write their own code
   }
 
   public void setValue(Object value) {
   	// not needed, we already trap external changes
+  }
+  
+  public void setColor(int _r, int _g, int _b) {
+		r = _r;
+		g = _g;
+		b = _b;
+
+		if (sParamName == null) {
+    	updateButtonColor(colorChooser.getDisplay(), r, g, b);
+		} else {
+			COConfigurationManager.setRGBParameter(sParamName, r, g, b);
+		}
   }
 }

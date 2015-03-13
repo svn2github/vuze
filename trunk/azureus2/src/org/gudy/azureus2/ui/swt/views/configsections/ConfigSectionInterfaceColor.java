@@ -24,9 +24,11 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -110,7 +112,7 @@ public class ConfigSectionInterfaceColor implements UISWTConfigSection {
 			ColorParameter colorParm = new ColorParameter(cColorOverride, sConfigID,
 					colorsToOverride[i].getRed(), colorsToOverride[i].getGreen(),
 					colorsToOverride[i].getBlue()) {
-				public void newColorChosen() {
+				public void newColorChosen(RGB newColor) {
 					COConfigurationManager.setParameter(sParamName + ".override", true);
 					for (int i = 0; i < sColorsToOverride.length; i++) {
 						if (sParamName.equals("Colors." + sColorsToOverride[i])) {
