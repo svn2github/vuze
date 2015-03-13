@@ -168,6 +168,17 @@ public class GenericBooleanParameter
 			});
 		}
 	}
+	
+	public void refresh() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				boolean selected = isSelected();
+				if (checkBox.getSelection() != selected) {
+					checkBox.setSelection(selected);
+				}
+			}
+		});
+	}
 
 	private void debug(String string) {
 		System.out.println("[GenericBooleanParameter:" + name + "] " + string);
