@@ -125,14 +125,8 @@ BuddyPluginBeta
 	private boolean					shared_anon_endpoint;
 	private boolean					sound_enabled;
 	private String					sound_file;
-	
-	private Map<String,Long>		favourite_map;
-	private Map<String,Long>		save_messages_map;
-	private Map<String,Long>		log_messages_map;
-	private Map<String,byte[]>		lmi_map;
-	
+		
 	private Map<String,Map<String,Object>>		opts_map;
-
 	
 	private CopyOnWriteList<FTUXStateChangeListener>		ftux_listeners = new CopyOnWriteList<FTUXStateChangeListener>();
 	
@@ -165,12 +159,48 @@ BuddyPluginBeta
 		sound_enabled			= COConfigurationManager.getBooleanParameter( "azbuddy.chat.notif.sound.enable", false );
 		sound_file			 	= COConfigurationManager.getStringParameter( "azbuddy.chat.notif.sound.file", "" );
 	
-		favourite_map			= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
-		save_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.savemsgmap", new HashMap<String,Long>());
-		log_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.logmsgmap", new HashMap<String,Long>());
-		lmi_map					= COConfigurationManager.getMapParameter( "azbuddy.dchat.lmimap", new HashMap<String,byte[]>());
-			
 		opts_map				= COConfigurationManager.getMapParameter( "azbuddy.dchat.optsmap", new HashMap<String,Map<String,Object>>());	// should migrate others to use this...
+
+		
+			// migration starts 
+		
+		Map<String,Long> favourite_map	= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
+		
+		if ( favourite_map.size() > 0 ){
+		
+			migrateBooleans( favourite_map, "fave" );
+		
+			COConfigurationManager.removeParameter( "azbuddy.dchat.favemap" );
+		}
+		
+		Map<String,Long> save_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.savemsgmap", new HashMap<String,Long>());
+		
+		if ( save_messages_map.size() > 0 ){
+			
+			migrateBooleans( save_messages_map, "save" );
+		
+			COConfigurationManager.removeParameter( "azbuddy.dchat.savemsgmap" );
+		}
+		
+		Map<String,Long> log_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.logmsgmap", new HashMap<String,Long>());
+		
+		if ( log_messages_map.size() > 0 ){
+			
+			migrateBooleans( log_messages_map, "log" );
+		
+			COConfigurationManager.removeParameter( "azbuddy.dchat.logmsgmap" );
+		}
+		
+		Map<String,byte[]> lmi_map				= COConfigurationManager.getMapParameter( "azbuddy.dchat.lmimap", new HashMap<String,byte[]>());
+			
+		if ( lmi_map.size() > 0 ){
+			
+			migrateByteArrays( lmi_map, "lmi" );
+		
+			COConfigurationManager.removeParameter( "azbuddy.dchat.lmimap" );
+		}
+		
+		// migration ends
 		
 		max_chat_ui_lines		= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.lines", 250 );
 		max_chat_ui_kb			= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.char.kb", 10 );
@@ -241,17 +271,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		synchronized( favourite_map ){
-			
-			Long l = favourite_map.get( net + ":" + key );
-			
-			if ( l == null ){
-				
-				return( false );
-			}
-			
-			return ( l == 1 );
-		}
+		return( getBooleanOption( net, key, "fave" ));
 	}
 	
 	public void
@@ -260,57 +280,31 @@ BuddyPluginBeta
 		String		key,
 		boolean		b )
 	{
-		synchronized( favourite_map ){
+		setBooleanOption( net, key, "fave", b );
 			
-			String net_key = net + ":" + key;
-			
-			Long existing = favourite_map.get( net_key );
-			
-			if ( existing == null && !b ){
-				
-				return;
-			}
-			
-			if ( existing != null && b == ( existing == 1 )){
-				
-				return;
-			}
-			
-			if ( b ){
-				
-				favourite_map.put( net_key, 1L );
-				
-			}else{
-				
-				favourite_map.remove( net_key );
-			}
-			
-			COConfigurationManager.setParameter( "azbuddy.dchat.favemap", favourite_map );	
-		}
-		
-		COConfigurationManager.setDirty();
-		
 		checkFavourites();
 	}
 	
 	public List<String[]>
 	getFavourites()
 	{
-		synchronized( favourite_map ){
-			
+		synchronized( opts_map ){
+
 			List<String[]>	result = new ArrayList<String[]>();
-			
-			for ( Map.Entry<String, Long> entry: favourite_map.entrySet()){
+
+			for ( Map.Entry<String,Map<String,Object>> entry: opts_map.entrySet()){
+						
+				String 				net_key = entry.getKey();
+				Map<String,Object>	map	= entry.getValue();
 				
-				String 	net_key = entry.getKey();
-				Long	value	= entry.getValue();
+				Long	value = (Long)map.get( "fave" );
 				
-				if ( value == 1 ){
+				if ( value != null && value == 1 ){
 					
 					String[] bits = net_key.split( ":", 2 );
 					
 					String network 	= AENetworkClassifier.internalise( bits[0] );
-					String key		= bits[1];
+					String key		= decodeKey( bits[1] );
 					
 					result.add( new String[]{ network, key });
 				}
@@ -399,17 +393,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		synchronized( save_messages_map ){
-			
-			Long l = save_messages_map.get( net + ":" + key );
-			
-			if ( l == null ){
-				
-				return( false );
-			}
-			
-			return ( l == 1 );
-		}
+		return( getBooleanOption( net, key, "save" ));
 	}
 	
 	private void
@@ -418,35 +402,7 @@ BuddyPluginBeta
 		String		key,
 		boolean		b )
 	{
-		synchronized( save_messages_map ){
-			
-			String net_key = net + ":" + key;
-			
-			Long existing = save_messages_map.get( net_key );
-			
-			if ( existing == null && !b ){
-				
-				return;
-			}
-			
-			if ( existing != null && b == ( existing == 1 )){
-				
-				return;
-			}
-			
-			if ( b ){
-				
-				save_messages_map.put( net_key, 1L );
-				
-			}else{
-				
-				save_messages_map.remove( net_key );
-			}
-			
-			COConfigurationManager.setParameter( "azbuddy.dchat.savemsgmap", save_messages_map );	
-		}
-		
-		COConfigurationManager.setDirty();
+		setBooleanOption( net, key, "save", b );
 	}
 
 		// log messages
@@ -456,17 +412,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		synchronized( log_messages_map ){
-			
-			Long l = log_messages_map.get( net + ":" + key );
-			
-			if ( l == null ){
-				
-				return( false );
-			}
-			
-			return ( l == 1 );
-		}
+		return( getBooleanOption( net, key, "log" ));
 	}
 	
 	private void
@@ -475,35 +421,8 @@ BuddyPluginBeta
 		String		key,
 		boolean		b )
 	{
-		synchronized( log_messages_map ){
-			
-			String net_key = net + ":" + key;
-			
-			Long existing = log_messages_map.get( net_key );
-			
-			if ( existing == null && !b ){
-				
-				return;
-			}
-			
-			if ( existing != null && b == ( existing == 1 )){
-				
-				return;
-			}
-			
-			if ( b ){
-				
-				log_messages_map.put( net_key, 1L );
-				
-			}else{
-				
-				log_messages_map.remove( net_key );
-			}
-			
-			COConfigurationManager.setParameter( "azbuddy.dchat.logmsgmap", log_messages_map );	
-		}
-		
-		COConfigurationManager.setDirty();
+		setBooleanOption( net, key, "log", b );
+
 	}
 	
 		// auto-mute
@@ -513,7 +432,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		return( getBooleanOption(net, key, "automute" ));
+		return( getBooleanOption( net, key, "automute" ));
 	}
 	
 	private void
@@ -532,21 +451,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		synchronized( lmi_map ){
-			
-			byte[] info = lmi_map.get( net + ":" + key );
-			
-			if ( info != null ){
-							
-				try{
-					return( new String( info, "UTF-8" ));
-				
-				}catch( Throwable e ){
-				}
-			}
-			
-			return( null );
-		}
+		return( getStringOption( net, key, "lmi" ));
 	}
 	
 	public void
@@ -555,20 +460,50 @@ BuddyPluginBeta
 		String		key,
 		String		info )
 	{
-		synchronized( lmi_map ){
+		setStringOption( net, key, "lmi", info ); 
+	}
+	
+		// migration
+	
+	private void
+	migrateBooleans(
+		Map<String,Long>		map,
+		String					name )
+	{
+		for ( Map.Entry<String, Long> entry: map.entrySet()){
 			
-			String net_key = net + ":" + key;
+			String 	net_key = entry.getKey();
+			Long	value	= entry.getValue();
 			
-			try{
-				lmi_map.put( net_key, info.getBytes( "UTF-8" ));
-			
-				COConfigurationManager.setParameter( "azbuddy.dchat.lmimap", lmi_map );
+			if ( value == 1 ){
 				
-			}catch( Throwable e ){
+				String[] bits = net_key.split( ":", 2 );
+				
+				String network 	= AENetworkClassifier.internalise( bits[0] );
+				String key		= bits[1];
+								
+				setBooleanOption( network, key, name, true );
 			}
 		}
-		
-		COConfigurationManager.setDirty();
+	}
+	
+	private void
+	migrateByteArrays(
+		Map<String,byte[]>		map,
+		String					name )
+	{
+		for ( Map.Entry<String, byte[]> entry: map.entrySet()){
+			
+			String 	net_key = entry.getKey();
+			byte[]	value	= entry.getValue();
+							
+			String[] bits = net_key.split( ":", 2 );
+				
+			String network 	= AENetworkClassifier.internalise( bits[0] );
+			String key		= bits[1];
+								
+			setByteArrayOption( network, key, name, value );
+		}
 	}
 	
 	private void
@@ -597,13 +532,105 @@ BuddyPluginBeta
 		return( false );
 	}
 	
+	private void
+	setStringOption(
+		String		net,
+		String		key,
+		String		name,
+		String		value )
+	{
+		try{
+			setByteArrayOption( net, key, name, value.getBytes( "UTF-8" ));
+			
+		}catch( Throwable e ){
+			
+		}
+	}
+	
+	private String
+	getStringOption(
+		String		net,
+		String		key,
+		String		name )
+	{
+		byte[]	bytes = getByteArrayOption( net, key, name );
+		
+		if ( bytes != null ){
+			
+			try{
+				return( new String( bytes, "UTF-8" ));
+			
+			}catch( Throwable e ){
+			
+			}
+		}
+		
+		return( null );
+	}
+	
+	private void
+	setByteArrayOption(
+		String		net,
+		String		key,
+		String		name,
+		byte[]		value )
+	{
+		setGenericOption( net, key, name, value );
+	}
+	
+	private byte[]
+	getByteArrayOption(
+		String		net,
+		String		key,
+		String		name )
+	{
+		Object	obj = getGenericOption(net, key, name);
+		
+		if ( obj instanceof byte[] ){
+			
+			return((byte[])obj);
+		}
+		
+		return( null );
+	}
+	
+	private String
+	encodeKey(
+		String	key )
+	{
+		try{
+			return( Base32.encode( key.getBytes( "UTF-8" )));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e);
+			
+			return( "" );
+		}
+	}
+	
+	private String
+	decodeKey(
+		String		key )
+	{
+		try{
+			return( new String( Base32.decode( key ),"UTF-8" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e);
+			
+			return( "" );
+		}
+	}
+	
 	private Object
 	getGenericOption(
 		String		net,
 		String		key,
 		String		name )
 	{
-		String net_key = net + ":" + key;
+		String net_key = net + ":" + encodeKey( key );
 		
 		synchronized( opts_map ){
 			
@@ -625,7 +652,7 @@ BuddyPluginBeta
 		String		name,
 		Object		value )
 	{
-		String net_key = net + ":" + key;
+		String net_key = net + ":" + encodeKey( key );
 		
 		synchronized( opts_map ){
 						
