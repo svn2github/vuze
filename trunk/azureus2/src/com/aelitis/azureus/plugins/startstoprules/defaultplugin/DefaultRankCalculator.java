@@ -705,13 +705,15 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 					}
 				}
 				return newSR;
-			} else {
+			} else { // ST_QUEUED
 				if (oldSR <= 0) {
 					newSR = SR_TIMED_QUEUED_ENDS_AT - dl.getPosition();
 					rules.requestProcessCycle(null);
 					if (rules.bDebugLog)
 						rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 								"somethingChanged: NotIgnored");
+				} else {
+					newSR = oldSR;
 				}
 				return newSR;
 			}
