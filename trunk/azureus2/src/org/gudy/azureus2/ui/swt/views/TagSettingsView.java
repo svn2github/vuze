@@ -160,7 +160,7 @@ public class TagSettingsView
 
 	private void initialize(Composite parent) {
 		if (cMainComposite == null || cMainComposite.isDisposed()) {
-			if (parent == null) {
+			if (parent == null || parent.isDisposed()) {
 				return;
 			}
 			sc = new ScrolledComposite(parent, SWT.V_SCROLL);
