@@ -1864,7 +1864,28 @@ BuddyPluginViewBetaChat
 				}
 			});
 		
-	
+		buddy_table.addKeyListener(
+				new KeyAdapter()
+				{
+					public void 
+					keyPressed(
+						KeyEvent event ) 
+					{
+						int key = event.character;
+						
+						if ( key <= 26 && key > 0 ){
+							
+							key += 'a' - 1;
+						}
+
+						if ( key == 'a' && event.stateMask == SWT.MOD1 ){
+							
+							event.doit = false;
+							
+							buddy_table.selectAll();
+						}
+					}
+				});
 		
 			// Text
 		

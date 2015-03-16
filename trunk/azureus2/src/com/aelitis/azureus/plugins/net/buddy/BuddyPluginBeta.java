@@ -3285,7 +3285,7 @@ BuddyPluginBeta
 										
 					participant.addMessage( msg );
 					
-					if ( auto_mute ){
+					if ( auto_mute && !participant.isMe()){
 						
 						participant.setIgnored( true );
 					}
