@@ -19,6 +19,8 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.text.DecimalFormat;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -32,7 +34,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManager;
@@ -1085,20 +1086,51 @@ public class GeneralView
 	  } else if (c instanceof Link) {
 						String sNewComment;
 		  sNewComment = new_comment.replaceAll(
-								"([^=\">][\\s]+|^)(http://[\\S]+)", "$1<A HREF=\"$2\">$2</A>");
+								"([^=\">][\\s]+|^)((?:https?://|chat:)[\\S]+)", "$1<A HREF=\"$2\">$2</A>");
 						// need quotes around url
 		  sNewComment = sNewComment.replaceAll("(href=)(htt[^\\s>]+)", "$1\"$2\"");
 
+		  	// probably want to URL decode the link text if it is a URL
+		  
+		  try{
+			  Pattern p = Pattern.compile("(?i)(<A HREF=[^>]*>)([^<]*</A>)");
+	
+			  Matcher m = p.matcher( sNewComment );
+	
+			  boolean result = m.find();
+	
+			  if ( result ){
+	
+				  StringBuffer sb = new StringBuffer();
+	
+				  while( result ){
+	
+					  m.appendReplacement(sb, m.group(1));
+					  
+					  String str = m.group(2);
+	
+					  sb.append( UrlUtils.decode( str ));
+	
+					  result = m.find(); 
+				  }
+	
+				  m.appendTail(sb);
+	
+				  sNewComment = sb.toString();
+				  
+			  }}catch( Throwable e ){
+			  }
+		  
 						// Examples:
 						// http://cowbow.com/fsdjl&sdfkj=34.sk9391 moo
 						// <A HREF=http://cowbow.com/fsdjl&sdfkj=34.sk9391>moo</a>
 						// <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">moo</a>
 						// <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">http://moo.com</a>
 		  ((Link)c).setText(sNewComment);
-			  	        	}
-	  return true;
-			  	    
-			          }
+	  }
+	  
+	  return true;			  	    
+  }
 
   public void parameterChanged(String parameterName) {
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");

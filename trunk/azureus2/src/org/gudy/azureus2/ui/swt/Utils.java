@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.List;
 
@@ -1159,6 +1160,21 @@ public class Utils
 				handlePluginLaunch( eb_choice, net_type, use_plugins, sFileOriginal, sFileModified, sync );
 				
 				return;
+			}
+		}else if ( lc_sFile.startsWith( "chat:" )){
+							
+			String plug_uri = "azplug:?id=azbuddy&arg=" + UrlUtils.encode( sFileModified );
+			
+			try{
+				URLConnection connection = new URL( plug_uri ).openConnection();
+				
+				connection.connect();
+				
+				String res = FileUtil.readInputStreamAsString( connection.getInputStream(), 2048 );
+								
+				return;
+				
+			}catch( Throwable e ){	
 			}
 		}
 		
