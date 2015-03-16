@@ -1091,7 +1091,7 @@ public class TableColumnImpl
 		pos++;
 		if (list.length >= (pos + 1) && (list[pos] instanceof Map)) {
 			Map loadedUserData = (Map)list[pos];
-			if (userData == null) {
+			if (userData == null || userData.size() == 0) {
 				userData = loadedUserData;
 			} else {
 				for (Object key : loadedUserData.keySet()) {
