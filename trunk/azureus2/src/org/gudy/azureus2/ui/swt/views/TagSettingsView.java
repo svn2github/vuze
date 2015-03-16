@@ -94,7 +94,7 @@ public class TagSettingsView
 				break;
 
 			case UISWTViewEvent.TYPE_DESTROY:
-				//delete();
+				delete();
 				break;
 
 			case UISWTViewEvent.TYPE_INITIALIZE:
@@ -120,6 +120,11 @@ public class TagSettingsView
 		}
 
 		return true;
+	}
+
+	private void delete() {
+		dataSourceChanged(null);
+		params = null;
 	}
 
 	private void refresh() {
