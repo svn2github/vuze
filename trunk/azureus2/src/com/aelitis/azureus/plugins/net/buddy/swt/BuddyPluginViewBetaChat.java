@@ -21,7 +21,6 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import java.io.File;
-import java.io.StringReader;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -722,6 +721,19 @@ BuddyPluginViewBetaChat
 						}
 					});		
 			
+			final MenuItem automute_mi = new MenuItem( advanced_menu, SWT.CHECK );
+			automute_mi.setText( MessageText.getString( "azbuddy.dchat.auto.mute" ));
+			
+			automute_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							chat.setAutoMute( automute_mi.getSelection());
+						}
+					});		
+			
 			status_menu.addMenuListener(
 					new MenuAdapter() 
 					{
@@ -732,6 +744,7 @@ BuddyPluginViewBetaChat
 							fave_mi.setSelection( chat.isFavourite());
 							persist_mi.setSelection( chat.getSaveMessages());
 							log_mi.setSelection( chat.getLogMessages());
+							automute_mi.setSelection( chat.getAutoMute());
 						}
 					});
 		}else{

@@ -131,6 +131,9 @@ BuddyPluginBeta
 	private Map<String,Long>		log_messages_map;
 	private Map<String,byte[]>		lmi_map;
 	
+	private Map<String,Map<String,Object>>		opts_map;
+
+	
 	private CopyOnWriteList<FTUXStateChangeListener>		ftux_listeners = new CopyOnWriteList<FTUXStateChangeListener>();
 	
 	private boolean	ftux_accepted = false;
@@ -159,7 +162,7 @@ BuddyPluginBeta
 		private_chat_state	 	= COConfigurationManager.getIntParameter( "azbuddy.chat.private_chat_state", PRIVATE_CHAT_ENABLED );
 		
 		shared_anon_endpoint	= COConfigurationManager.getBooleanParameter( "azbuddy.chat.share_i2p_endpoint", true );
-		sound_enabled			= COConfigurationManager.getBooleanParameter( "azbuddy.chat.notif.sound.enable", true );
+		sound_enabled			= COConfigurationManager.getBooleanParameter( "azbuddy.chat.notif.sound.enable", false );
 		sound_file			 	= COConfigurationManager.getStringParameter( "azbuddy.chat.notif.sound.file", "" );
 	
 		favourite_map			= COConfigurationManager.getMapParameter( "azbuddy.dchat.favemap", new HashMap<String,Long>());
@@ -167,6 +170,8 @@ BuddyPluginBeta
 		log_messages_map		= COConfigurationManager.getMapParameter( "azbuddy.dchat.logmsgmap", new HashMap<String,Long>());
 		lmi_map					= COConfigurationManager.getMapParameter( "azbuddy.dchat.lmimap", new HashMap<String,byte[]>());
 			
+		opts_map				= COConfigurationManager.getMapParameter( "azbuddy.dchat.optsmap", new HashMap<String,Map<String,Object>>());	// should migrate others to use this...
+		
 		max_chat_ui_lines		= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.lines", 250 );
 		max_chat_ui_kb			= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.char.kb", 10 );
 
@@ -389,7 +394,7 @@ BuddyPluginBeta
 	
 		// save messages
 	
-	public boolean
+	private boolean
 	getSaveMessages(
 		String		net,
 		String		key )
@@ -407,7 +412,7 @@ BuddyPluginBeta
 		}
 	}
 	
-	public void
+	private void
 	setSaveMessages(
 		String		net,
 		String		key,
@@ -446,7 +451,7 @@ BuddyPluginBeta
 
 		// log messages
 	
-	public boolean
+	private boolean
 	getLogMessages(
 		String		net,
 		String		key )
@@ -464,7 +469,7 @@ BuddyPluginBeta
 		}
 	}
 	
-	public void
+	private void
 	setLogMessages(
 		String		net,
 		String		key,
@@ -501,6 +506,26 @@ BuddyPluginBeta
 		COConfigurationManager.setDirty();
 	}
 	
+		// auto-mute
+	
+	private boolean
+	getAutoMute(
+		String		net,
+		String		key )
+	{
+		return( getBooleanOption(net, key, "automute" ));
+	}
+	
+	private void
+	setAutoMute(
+		String		net,
+		String		key,
+		boolean		b )
+	{
+		setBooleanOption( net, key, "automute", b );
+	}
+	
+		// last message info
 	
 	public String
 	getLastMessageInfo(
@@ -546,7 +571,84 @@ BuddyPluginBeta
 		COConfigurationManager.setDirty();
 	}
 	
+	private void
+	setBooleanOption(
+		String		net,
+		String		key,
+		String		name,
+		boolean		value )
+	{
+		setGenericOption(net, key, name, value?1L:0L );
+	}
 	
+	private boolean
+	getBooleanOption(
+		String		net,
+		String		key,
+		String		name )
+	{
+		Object	obj = getGenericOption(net, key, name);
+		
+		if ( obj instanceof Number ){
+			
+			return(((Number)obj).intValue()!=0);
+		}
+		
+		return( false );
+	}
+	
+	private Object
+	getGenericOption(
+		String		net,
+		String		key,
+		String		name )
+	{
+		String net_key = net + ":" + key;
+		
+		synchronized( opts_map ){
+			
+			Map<String,Object>	opts = (Map<String,Object>)opts_map.get( net_key );
+			
+			if ( opts == null ){
+					
+				return( null );
+			}
+			
+			return( opts.get( name ));
+		}
+	}
+	
+	private void
+	setGenericOption(
+		String		net,
+		String		key,
+		String		name,
+		Object		value )
+	{
+		String net_key = net + ":" + key;
+		
+		synchronized( opts_map ){
+						
+			try{
+				Map<String,Object>	opts = (Map<String,Object>)opts_map.get( net_key );
+				
+				if ( opts == null ){
+				
+					opts = new HashMap<String, Object>();
+				
+					opts_map.put( net_key, opts );
+				}
+			
+				opts.put( name, value );
+			
+				COConfigurationManager.setParameter( "azbuddy.dchat.optsmap", opts_map );
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		COConfigurationManager.setDirty();
+	}
 	
 	public String
 	getSharedPublicNickname()
@@ -1874,6 +1976,8 @@ BuddyPluginBeta
 		
 		private boolean		save_messages;
 		private boolean		log_messages;
+		private boolean		auto_mute;
+		
 		private boolean		destroyed;
 		
 		private
@@ -1904,6 +2008,7 @@ BuddyPluginBeta
 				is_favourite 	= getFavourite( network, key );
 				save_messages 	= BuddyPluginBeta.this.getSaveMessages( network, key );
 				log_messages 	= BuddyPluginBeta.this.getLogMessages( network, key );
+				auto_mute 		= BuddyPluginBeta.this.getAutoMute( network, key );
 			}
 			
 			addReference();
@@ -2093,6 +2198,28 @@ BuddyPluginBeta
 					log_messages = b;
 					
 					BuddyPluginBeta.this.setLogMessages( network, key, b );
+					
+				}
+			}
+		}
+		
+		public boolean
+		getAutoMute()
+		{
+			return( auto_mute );
+		}
+		
+		public void
+		setAutoMute(
+			boolean		b )
+		{
+			if ( !is_private_chat ){
+				
+				if ( b != auto_mute ){
+					
+					auto_mute = b;
+					
+					BuddyPluginBeta.this.setAutoMute( network, key, b );
 					
 				}
 			}
@@ -3157,6 +3284,11 @@ BuddyPluginBeta
 					participants.put( pk, participant );
 										
 					participant.addMessage( msg );
+					
+					if ( auto_mute ){
+						
+						participant.setIgnored( true );
+					}
 										
 				}else{
 										
@@ -3186,7 +3318,10 @@ BuddyPluginBeta
 					}
 				}else{
 					
-					last_message_requiring_attention = msg;
+					if ( !msg.isIgnored()){
+					
+						last_message_requiring_attention = msg;
+					}
 					
 					messages_not_mine_count++;
 				}
