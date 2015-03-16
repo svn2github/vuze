@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
@@ -981,6 +982,12 @@ public class TableColumnImpl
 		return null;
 	}
 	
+	public String getUserDataString(String key) {
+		if(userData != null)
+			return MapUtils.getMapString(userData, key, null);
+		return null;
+	}
+	
 	public void setUserData(String key, Object value) {
 		if(userData == null)
 			userData = new LightHashMap(2);
@@ -1083,9 +1090,14 @@ public class TableColumnImpl
 		
 		pos++;
 		if (list.length >= (pos + 1) && (list[pos] instanceof Map)) {
-			userData = (Map)list[pos];
-			if(userData.size() < 1)
-				userData = null;
+			Map loadedUserData = (Map)list[pos];
+			if (userData == null) {
+				userData = loadedUserData;
+			} else {
+				for (Object key : loadedUserData.keySet()) {
+					userData.put(key, loadedUserData.get(key));
+				}
+			}
 		}
 		pos++;
 		if (list.length >= (pos + 1) && (list[pos] instanceof Number)) {

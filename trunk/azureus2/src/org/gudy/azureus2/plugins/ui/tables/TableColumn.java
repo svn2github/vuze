@@ -420,6 +420,9 @@ public interface TableColumn {
    */
   public Object getUserData(String key);
   
+
+  public String getUserDataString(String key);
+
   /**
    * Sets the visibility of the column
    * 
