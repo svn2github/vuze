@@ -121,7 +121,7 @@ public class ClientIdentifier {
 				  }
 			  }
 		  }
-		  
+
 		  String discrepancy_type;
 		  if (is_fake) {discrepancy_type = "fake_client";}
 		  else if (is_mismatch) {discrepancy_type = "mismatch_id";}
@@ -218,6 +218,12 @@ public class ClientIdentifier {
 			if (client_type_peer.toLowerCase().indexOf("libtorrent") == -1 && client_type_handshake.toLowerCase().indexOf(client_type_peer.toLowerCase()) == -1) {
 				return peer_id_name + " (" + handshake_name_to_process + ")";
 			}
+		}
+		
+		if (client_type_peer.startsWith("\u8FC5\u96F7\u5728\u7EBF")
+				&& handshake_name_to_process.length() > 0
+				&& Character.isDigit(handshake_name_to_process.charAt(0))) {
+			return peer_id_name + " (" + handshake_name_to_process + ")";
 		}
 		
 			// meh, now we have Mainline and BitTorrent confusion from 7.9.2 onwards, fix here is just to do a further check on the names as they will
