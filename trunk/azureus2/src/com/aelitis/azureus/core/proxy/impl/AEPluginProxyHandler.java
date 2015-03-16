@@ -146,15 +146,16 @@ AEPluginProxyHandler
 		}
 	}
 	
-	private static void
+	private static boolean
 	waitForPlugins(
 		int		max_wait )
 	{
 		if ( PluginInitializer.isInitThread()){
+			
 			Debug.out( "Hmm, rework this" );
 		}
 		
-		plugin_init_complete.reserve( max_wait );
+		return( plugin_init_complete.reserve( max_wait ));
 	}
 	
 	private static final Map<Proxy,WeakReference<PluginProxyImpl>>	proxy_map = new IdentityHashMap<Proxy,WeakReference<PluginProxyImpl>>();
@@ -164,9 +165,26 @@ AEPluginProxyHandler
 		String		network,
 		boolean		supports_data )
 	{
-		waitForPlugins( plugin_init_max_wait );
+		long start = SystemTime.getMonotonousTime();
+	
+		while( true ){
+			
+			long	rem = plugin_init_max_wait - ( SystemTime.getMonotonousTime() - start );
+			
+			if ( rem <= 0 ){
+				
+				return( false );
+			}
+		
+			boolean wait_complete = waitForPlugins( Math.min( (int)rem, 1000 ));
 
-		return( getPluginProxyForNetwork( network, supports_data ) != null );
+			boolean result = getPluginProxyForNetwork( network, supports_data ) != null;
+				
+			if ( result || wait_complete ){
+				
+				return( result );
+			}
+		}
 	}
 	
 	private static PluginInterface
