@@ -1148,7 +1148,17 @@ GlobalManagerFileMerger
 																
 														int	delta = (int)( origin_offset - origin_start );
 														
-														read_block1.position( SS , delta );
+														read_block1.position( SS, delta );
+														
+															// readblock1 could have more bytes in it than the writeblock if writeblock is the last
+															// block of the file
+														
+														int rb1_rem =  read_block1.remaining( SS );
+														
+														if ( rb1_rem > target_block_size ){
+															
+															read_block1.limit( SS, delta + target_block_size );
+														}
 														
 														write_block.limit( SS, read_block1.remaining( SS ));
 														
