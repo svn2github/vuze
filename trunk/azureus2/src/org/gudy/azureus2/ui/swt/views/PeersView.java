@@ -137,6 +137,7 @@ public class PeersView
 			new ClientIdentificationItem(table_id),	
 			new ASItem(table_id),
 			new IndexItem(table_id),
+			new ColumnPeerNetwork(table_id),
 		};
 	}
 	
