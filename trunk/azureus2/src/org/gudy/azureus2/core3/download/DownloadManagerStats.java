@@ -41,7 +41,7 @@ DownloadManagerStats
 	public int
 	getCompleted();
 
-  /** Retrieve the level of download completion.
+  /** Retrieve the level of download completion, *including* DND files.
    * <P>
    * To understand the bLive parameter, you must know a bit about the
    * Torrent activation process:<BR>
