@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
