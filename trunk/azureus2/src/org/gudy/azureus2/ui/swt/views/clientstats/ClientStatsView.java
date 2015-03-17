@@ -19,7 +19,6 @@
 package org.gudy.azureus2.ui.swt.views.clientstats;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
