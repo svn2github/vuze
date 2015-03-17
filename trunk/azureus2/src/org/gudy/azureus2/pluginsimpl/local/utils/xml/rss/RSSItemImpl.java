@@ -79,6 +79,8 @@ RSSItemImpl
 		if ( link_node != null ){
 
 			try{
+				String value = "";
+
 				if ( is_atom ){
 					
 					SimpleXMLParserDocumentAttribute attr = link_node.getAttribute( "href" );
@@ -88,26 +90,24 @@ RSSItemImpl
 						return( null );
 					}
 					
-					String	value = attr.getValue().trim();
+					value = attr.getValue().trim();
 					
-					if ( value.length() == 0 ){
-						
-						return( null );
-					}
-					
-					return( new URL( value ));
-
 				}else{
 				
-					String	value = link_node.getValue().trim();
-					
-					if ( value.length() == 0 ){
-						
-						return( null );
-					}
-					
-					return( new URL( value ));
+					value = link_node.getValue().trim();
 				}
+					
+				if ( value.length() == 0 ){
+					
+					return( null );
+				}
+				
+				if (value.startsWith("//")) {
+					value = "http:" + value;
+				}
+				
+				return( new URL( value ));
+
 			}catch( Throwable e ){
 			
 				Debug.printStackTrace(e);
