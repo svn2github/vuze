@@ -29,10 +29,13 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -72,6 +75,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
@@ -1944,6 +1948,11 @@ BuddyPluginBeta
 		listeners.remove( l );
 	}
 	
+	private static Pattern auto_dup_pattern1 = Pattern.compile( "File '(.*?)' is" );
+	private static Pattern auto_dup_pattern2 = Pattern.compile( ":([a-zA-Z2-7]{32})", Pattern.CASE_INSENSITIVE );
+
+	private static Pattern[] auto_dup_patterns = { auto_dup_pattern1, auto_dup_pattern2 };
+	
 	public class
 	ChatInstance
 	{
@@ -1985,6 +1994,17 @@ BuddyPluginBeta
 		
 		private Map<Object,Object>					user_data = new HashMap<Object, Object>();
 		
+		private LinkedHashMap<String,String>							auto_dup_set = 
+			new LinkedHashMap<String,String>(500,0.75f,true)
+			{
+				protected boolean 
+				removeEldestEntry(
+					Map.Entry<String,String> eldest) 
+				{
+					return size() > 500;
+				}
+			};
+			
 		private boolean		keep_alive;
 		private boolean		have_interest;
 		
@@ -3299,7 +3319,40 @@ BuddyPluginBeta
 					}
 				}
 				
-
+				int origin = msg.getFlagOrigin();
+				
+				if ( origin != FLAGS_MSG_ORIGIN_USER ){
+					
+					String auto_msg = msg.getMessage();
+					
+					if ( auto_msg.contains( "File" )){
+					
+						auto_msg = auto_msg.replace( '\\', '/' );
+					}
+					
+					outer:
+					for ( Pattern p: auto_dup_patterns ){
+					
+						Matcher m = p.matcher( auto_msg );
+					
+						while( m.find()){
+							
+							String dup_key = m.group( 1 );
+							
+							if ( auto_dup_set.containsKey( dup_key )){
+								
+								System.out.println( "Ignoring " + dup_key );
+								
+								msg.setDuplicate();
+								
+								break outer;
+							}
+							
+							auto_dup_set.put( dup_key, "" );
+						}
+					}
+				}
+				
 				byte[] pk = msg.getPublicKey();
 				
 				ChatParticipant participant = participants.get( pk );
@@ -4566,6 +4619,8 @@ BuddyPluginBeta
 		private final int						uid;
 		private final Map<String,Object>		map;
 		
+		private WeakReference<Map<String,Object>>	payload_ref;
+		
 		private final byte[]					message_id;
 		private final long						timestamp;
 
@@ -4574,6 +4629,7 @@ BuddyPluginBeta
 		private byte[]							previous_id;
 				
 		private boolean							is_ignored;
+		private boolean							is_duplicate;
 		private boolean							is_nick_clash;
 		
 		private
@@ -4628,17 +4684,39 @@ BuddyPluginBeta
 		private Map<String,Object>
 		getPayload()
 		{
-			try{
-				byte[] content_bytes = (byte[])map.get( "content" );
+			synchronized( this ){
 				
-				if ( content_bytes != null && content_bytes.length > 0 ){
+				Map<String,Object> payload = null;
+				
+				if ( payload_ref != null ){
 					
-					return( BDecoder.decode( content_bytes ));
+					payload = payload_ref.get();
+					
+					if ( payload != null ){
+						
+						return( payload );
+					}
 				}
-			}catch( Throwable e){
-			}
 			
-			return( new HashMap<String,Object>());
+				try{
+					byte[] content_bytes = (byte[])map.get( "content" );
+					
+					if ( content_bytes != null && content_bytes.length > 0 ){
+						
+						payload = BDecoder.decode( content_bytes );
+					}
+				}catch( Throwable e){
+				}
+				
+				if ( payload == null ){
+					
+					payload = new HashMap<String, Object>();
+				}
+				
+				payload_ref = new WeakReference<Map<String,Object>>( payload );
+				
+				return( payload );
+			}
 		}
 		
 		private int
@@ -4685,6 +4763,29 @@ BuddyPluginBeta
 			}
 			
 			return( false );
+		}
+		
+		private int
+		getFlagOrigin()
+		{
+			Map<String,Object> payload = getPayload();
+
+			if ( payload != null ){
+				
+				Map<String,Object>	flags = (Map<String,Object>)payload.get( "f" );
+				
+				if ( flags != null ){
+					
+					Number origin = (Number)flags.get( FLAGS_MSG_ORIGIN_KEY );
+					
+					if ( origin != null ){
+						
+						return( origin.intValue());
+					}
+				}
+			}
+			
+			return( FLAGS_MSG_ORIGIN_USER );
 		}
 		
 		public String
@@ -4767,10 +4868,16 @@ BuddyPluginBeta
 			}
 		}
 		
+		public void
+		setDuplicate()
+		{
+			is_duplicate	= true;
+		}
+		
 		public boolean
 		isIgnored()
 		{
-			return( is_ignored );
+			return( is_duplicate || is_ignored );
 		}
 		
 		public void
