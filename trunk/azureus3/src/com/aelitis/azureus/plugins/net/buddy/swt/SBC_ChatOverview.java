@@ -27,13 +27,17 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -348,7 +352,7 @@ public class SBC_ChatOverview
 	{
 		List<Object>	ds = tv.getSelectedDataSources();
 		
-		List<ChatInstance>	chats = new ArrayList<ChatInstance>();
+		final List<ChatInstance>	chats = new ArrayList<ChatInstance>();
 		
 		for ( Object obj: ds ){
 			
@@ -357,6 +361,28 @@ public class SBC_ChatOverview
 				chats.add((ChatInstance)obj);
 			}
 		}
+					
+		MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(itemRemove, "MySharesView.menu.remove");
+		
+		Utils.setMenuItemImage(itemRemove, "delete");
+
+		itemRemove.setEnabled(chats.size() > 0);
+
+		itemRemove.addListener(SWT.Selection, new Listener() {
+			public void 
+			handleEvent(
+				Event e ) 
+			{
+				for ( ChatInstance chat: chats ){
+					
+					chat.remove();
+				}
+			}   
+		});
+		
+		new MenuItem( menu, SWT.SEPARATOR );
 	}
 
 	public void 

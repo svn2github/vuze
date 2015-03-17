@@ -681,6 +681,32 @@ BuddyPluginBeta
 		COConfigurationManager.setDirty();
 	}
 	
+	private void
+	removeAllOptions(
+		String		net,
+		String		key )
+	{
+		String net_key = net + ":" + encodeKey( key );
+		
+		synchronized( opts_map ){
+						
+			try{
+				Map<String,Object>	opts = (Map<String,Object>)opts_map.remove( net_key );
+				
+				if ( opts == null ){
+				
+					return;
+				}
+						
+				COConfigurationManager.setParameter( "azbuddy.dchat.optsmap", opts_map );
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		COConfigurationManager.setDirty();
+	}
+	
 	public String
 	getSharedPublicNickname()
 	{
@@ -4189,6 +4215,14 @@ BuddyPluginBeta
 			listeners.remove( listener );
 		}
 		
+		public void
+		remove()
+		{
+			destroy( true );
+			
+			removeAllOptions( network, key );
+		}
+		
 		public boolean
 		isDestroyed()
 		{
@@ -4198,13 +4232,29 @@ BuddyPluginBeta
 		public void
 		destroy()
 		{
+			destroy( false );
+		}
+		
+		private void
+		destroy(
+			boolean		force )
+		{
 			synchronized( chat_lock ){
 				
-				reference_count--;
-				
-				if ( reference_count > 0 ){
+				if ( force ){
 					
-					return;
+					reference_count	= 0;
+					keep_alive		= false;
+					have_interest	= false;
+					
+				}else{
+					
+					reference_count--;
+					
+					if ( reference_count > 0 ){
+						
+						return;
+					}
 				}
 			}
 			
