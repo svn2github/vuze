@@ -212,6 +212,9 @@ DiskManager
 	getPieceLength(
 		int	piece_number );
 	
+	/**
+	 * Get remaining bytes to completion *including* DND files
+	 */
 	public long
 	getRemaining();
 	
