@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.ui.common.table.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -216,27 +217,9 @@ public class TableColumnImpl
 		return sName;
 	}
 
-	public String getNameOverride(){
-		
-		Object name_override = getUserData( ATTRIBUTE_NAME_OVERIDE );
-		
-		if ( name_override != null ){
-						
-			if ( name_override instanceof String ){
-				
-				return((String)name_override);
-				
-			}else if ( name_override instanceof byte[]){
-				
-				try{
-					return( new String((byte[])name_override, "UTF-8" ));
-					
-				}catch( Throwable e ){
-				}
-			}
-		}
-		
-		return( null );
+	public String getNameOverride()
+	{
+		return getUserDataString( ATTRIBUTE_NAME_OVERIDE );
 	}
 	  
 	public void setNameOverride( String name )
@@ -983,8 +966,19 @@ public class TableColumnImpl
 	}
 	
 	public String getUserDataString(String key) {
-		if(userData != null)
-			return MapUtils.getMapString(userData, key, null);
+		if(userData != null) {
+			Object o = userData.get(key);
+			if (o instanceof String) {
+				return (String) o;
+			} else if (o instanceof byte[]) {
+				try {
+					String s = new String((byte[]) o, "utf-8");
+					// write it back to the map, so we don't continually create new String objects
+					userData.put(key, s);
+				} catch (UnsupportedEncodingException e) {
+				}
+			}
+		}
 		return null;
 	}
 	
