@@ -34,10 +34,8 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.util.AddressUtils;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -52,6 +50,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
@@ -184,12 +183,12 @@ public class ClientStatsView
 				sb.append(": ");
 
 				ClientStatsDataSource[] stats;
-				
-				synchronized( mapData ){
-					
+
+				synchronized (mapData) {
+
 					stats = mapData.values().toArray(new ClientStatsDataSource[0]);
 				}
-				
+
 				Arrays.sort(stats, new Comparator<ClientStatsDataSource>() {
 					public int compare(ClientStatsDataSource o1, ClientStatsDataSource o2) {
 						if (o1.count == o2.count) {
@@ -225,7 +224,7 @@ public class ClientStatsView
 						return v1 > v2 ? -1 : 1;
 					}
 				});
-				/*
+
 				int top = 5;
 				first = true;
 				sb.append("\nBest Seeders (");
@@ -329,7 +328,7 @@ public class ClientStatsView
 						break;
 					}
 				}
-				*/
+
 				ClipboardCopy.copyToClipBoard(sb.toString());
 			}
 		});
@@ -339,10 +338,9 @@ public class ClientStatsView
 	}
 
 	public TableViewSWT<ClientStatsDataSource> initYourTableView() {
-		tv = TableViewFactory.createTableViewSWT(
-				ClientStatsDataSource.class, TABLEID, getPropertiesPrefix(),
-				new TableColumnCore[0], ColumnCS_Count.COLUMN_ID, SWT.MULTI
-						| SWT.FULL_SELECTION | SWT.VIRTUAL);
+		tv = TableViewFactory.createTableViewSWT(ClientStatsDataSource.class,
+				TABLEID, getPropertiesPrefix(), new TableColumnCore[0],
+				ColumnCS_Count.COLUMN_ID, SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		/*
 				tv.addTableDataSourceChangedListener(this, true);
 				tv.addRefreshListener(this, true);
@@ -381,7 +379,6 @@ public class ClientStatsView
 						new ColumnCS_Count(column);
 					}
 				});
-		/*
 		tableManager.registerColumn(ClientStatsDataSource.class,
 				ColumnCS_Discarded.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
@@ -406,24 +403,52 @@ public class ClientStatsView
 						new ColumnCS_Sent(column);
 					}
 				});
-		*/
 		tableManager.registerColumn(ClientStatsDataSource.class,
 				ColumnCS_Pct.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnCS_Pct(column);
 					}
 				});
-		
+
+		for (final String network : AENetworkClassifier.AT_NETWORKS) {
+			tableManager.registerColumn(ClientStatsDataSource.class, network + "."
+					+ ColumnCS_Sent.COLUMN_ID, new TableColumnCreationListener() {
+				public void tableColumnCreated(TableColumn column) {
+					column.setUserData("network", network);
+					new ColumnCS_Sent(column);
+				}
+			});
+			tableManager.registerColumn(ClientStatsDataSource.class, network + "."
+					+ ColumnCS_Discarded.COLUMN_ID, new TableColumnCreationListener() {
+				public void tableColumnCreated(TableColumn column) {
+					column.setUserData("network", network);
+					new ColumnCS_Discarded(column);
+				}
+			});
+			tableManager.registerColumn(ClientStatsDataSource.class, network + "."
+					+ ColumnCS_Received.COLUMN_ID, new TableColumnCreationListener() {
+				public void tableColumnCreated(TableColumn column) {
+					column.setUserData("network", network);
+					new ColumnCS_Received(column);
+				}
+			});
+			tableManager.registerColumn(ClientStatsDataSource.class, network + "."
+					+ ColumnCS_Count.COLUMN_ID, new TableColumnCreationListener() {
+				public void tableColumnCreated(TableColumn column) {
+					column.setUserData("network", network);
+					new ColumnCS_Count(column);
+				}
+			});
+		}
+
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		tcManager.setDefaultColumnNames(TABLEID, new String[] {
 			ColumnCS_Name.COLUMN_ID,
 			ColumnCS_Pct.COLUMN_ID,
 			ColumnCS_Count.COLUMN_ID,
-			/*
 			ColumnCS_Received.COLUMN_ID,
 			ColumnCS_Sent.COLUMN_ID,
 			ColumnCS_Discarded.COLUMN_ID,
-			*/
 		});
 	}
 
@@ -584,18 +609,25 @@ public class ClientStatsView
 		// This captures more duplicates than peer id because most clients
 		// randomize their peer id on restart.  IP address, however, changes
 		// less often.
+		byte[] address = null;
 		byte[] peerId = peer.getId();
 		InetAddress ip = peer.getAlternativeIPv6();
 		if (ip == null) {
 			try {
 				ip = AddressUtils.getByName(peer.getIp());
-			} catch (UnknownHostException e) {
+				address = ip.getAddress();
+			} catch (Throwable e) {
+				String ipString = peer.getIp();
+				if (ipString != null) {
+					address = ByteFormatter.intToByteArray(ipString.hashCode());
+				}
 			}
+		} else {
+			address = ip.getAddress();
 		}
-		if (ip == null) {
+		if (address == null) {
 			bloomId = peerId;
 		} else {
-			byte[] address = ip.getAddress();
 			bloomId = new byte[8 + address.length];
 			System.arraycopy(peerId, 0, bloomId, 0, 8);
 			System.arraycopy(address, 0, bloomId, 8, address.length);
@@ -637,19 +669,91 @@ public class ClientStatsView
 			lastAdd = now;
 
 			String id = getID(peer);
-			ClientStatsDataSource stat = mapData.get(id);
-			boolean needNew = stat == null;
-			if (needNew) {
-				stat = new ClientStatsDataSource();
-				stat.overall = overall;
-				mapData.put(id, stat);
-			}
+			ClientStatsDataSource stat;
+			boolean needNew = false;
+			synchronized (overall) {
+				stat = mapData.get(id);
+				needNew = stat == null;
+				if (needNew) {
+					stat = new ClientStatsDataSource();
+					stat.overall = overall;
+					mapData.put(id, stat);
+				}
 
-			overall.count++;
+				overall.count++;
+			}
 
 			stat.client = getID(peer);
 			stat.count++;
 			stat.current++;
+
+			long existingBytesReceived = peer.getStats().getTotalDataBytesReceived();
+			long existingBytesSent = peer.getStats().getTotalDataBytesSent();
+			long existingBytesDiscarded = peer.getStats().getTotalBytesDiscarded();
+
+			if (existingBytesReceived > 0) {
+				stat.bytesReceived -= existingBytesReceived;
+				if (stat.bytesReceived < 0) {
+					stat.bytesReceived = 0;
+				}
+			}
+			if (existingBytesSent > 0) {
+				stat.bytesSent -= existingBytesSent;
+				if (stat.bytesSent < 0) {
+					stat.bytesSent = 0;
+				}
+			}
+			if (existingBytesDiscarded > 0) {
+				stat.bytesDiscarded -= existingBytesDiscarded;
+				if (stat.bytesDiscarded < 0) {
+					stat.bytesDiscarded = 0;
+				}
+			}
+
+			if (peer instanceof PEPeerTransport) {
+				PeerItem identity = ((PEPeerTransport) peer).getPeerItemIdentity();
+				if (identity != null) {
+					String network = identity.getNetwork();
+					if (network != null) {
+						Map<String, Object> map = stat.perNetworkStats.get(network);
+						if (map == null) {
+							map = new HashMap<String, Object>();
+							stat.perNetworkStats.put(network, map);
+						}
+						long count = MapUtils.getMapLong(map, "count", 0);
+						map.put("count", count + 1);
+
+						if (existingBytesReceived > 0) {
+							long bytesReceived = MapUtils.getMapLong(map, "bytesReceived",
+									0);
+							bytesReceived -= existingBytesReceived;
+							if (bytesReceived < 0) {
+								bytesReceived = 0;
+							}
+							map.put("bytesReceived", bytesReceived);
+						}
+						if (existingBytesSent > 0) {
+							long bytesSent = MapUtils.getMapLong(map, "bytesSent", 0);
+							bytesSent -= existingBytesSent;
+							if (bytesSent < 0) {
+								bytesSent = 0;
+							}
+							map.put("bytesSent", bytesSent);
+						}
+						if (existingBytesDiscarded > 0) {
+							long bytesDiscarded = MapUtils.getMapLong(map,
+									"bytesDiscarded", 0);
+							bytesDiscarded -= existingBytesDiscarded;
+							if (bytesDiscarded < 0) {
+								bytesDiscarded = 0;
+							}
+							map.put("bytesDiscarded", bytesDiscarded);
+						}
+
+					}
+				}
+			}
+
 			if (needNew) {
 				tv.addDataSource(stat);
 			} else {
@@ -675,9 +779,36 @@ public class ClientStatsView
 			ClientStatsDataSource stat = mapData.get(getID(peer));
 			if (stat != null) {
 				stat.current--;
+
+				String network = null;
+				if (peer instanceof PEPeerTransport) {
+					PeerItem identity = ((PEPeerTransport) peer).getPeerItemIdentity();
+					if (identity != null) {
+						network = identity.getNetwork();
+					}
+				}
+				
+
 				stat.bytesReceived += peer.getStats().getTotalDataBytesReceived();
 				stat.bytesSent += peer.getStats().getTotalDataBytesSent();
 				stat.bytesDiscarded += peer.getStats().getTotalBytesDiscarded();
+
+				if (network != null) {
+					Map<String, Object> map = stat.perNetworkStats.get(network);
+					if (map == null) {
+						map = new HashMap<String, Object>();
+						stat.perNetworkStats.put(network, map);
+					}
+					long bytesReceived = MapUtils.getMapLong(map, "bytesReceived", 0);
+					map.put("bytesReceived", bytesReceived
+							+ peer.getStats().getTotalDataBytesReceived());
+					long bytesSent = MapUtils.getMapLong(map, "bytesSent", 0);
+					map.put("bytesSent", bytesSent
+							+ peer.getStats().getTotalDataBytesSent());
+					long bytesDiscarded = MapUtils.getMapLong(map, "bytesDiscarded", 0);
+					map.put("bytesDiscarded", bytesDiscarded
+							+ peer.getStats().getTotalBytesDiscarded());
+				}
 
 				TableRowCore row = tv.getRow(stat);
 				if (row != null) {
