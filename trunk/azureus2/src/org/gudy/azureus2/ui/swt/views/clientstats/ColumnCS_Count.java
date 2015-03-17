@@ -18,7 +18,12 @@
 
 package org.gudy.azureus2.ui.swt.views.clientstats;
 
+import java.util.Map;
+
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
+import com.aelitis.azureus.util.MapUtils;
 
 public class ColumnCS_Count
 	implements TableCellRefreshListener
@@ -30,6 +35,13 @@ public class ColumnCS_Count
 		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 50);
 		column.addListeners(this);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		
+		Object network = column.getUserDataString("network");
+		if (network != null) {
+			column.setVisible(false);
+			column.setNameOverride(network + " "
+					+ MessageText.getString("ClientStats.column." + COLUMN_ID));
+		}
 	}
 
 	public void refresh(TableCell cell) {
@@ -38,6 +50,18 @@ public class ColumnCS_Count
 			return;
 		}
 		long val = ds.count;
+		TableColumn column = cell.getTableColumn();
+		if (column != null) {
+			Object network = column.getUserDataString("network");
+			if (network != null) {
+				Map<String, Object> map = ds.perNetworkStats.get(network);
+				if (map != null) {
+					val = MapUtils.getMapLong(map, "count", 0);
+				} else {
+					val = 0;
+				}
+			}
+		}
 		if (cell.setSortValue(val) || !cell.isValid()) {
 			cell.setText(Long.toString(val));
 		}

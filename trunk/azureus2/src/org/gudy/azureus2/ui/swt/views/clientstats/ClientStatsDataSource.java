@@ -40,10 +40,13 @@ public class ClientStatsDataSource
 	public long bytesDiscarded;
 
 	public long bytesSent;
+	
+	public Map<String, Map<String, Object>> perNetworkStats;
 
 	public ClientStatsOverall overall;
 
 	public ClientStatsDataSource() {
+		perNetworkStats =	new HashMap<String, Map<String, Object>>();
 	}
 
 	public ClientStatsDataSource(Map loadMap) {
@@ -52,6 +55,8 @@ public class ClientStatsDataSource
 		bytesReceived = MapUtils.getMapLong(loadMap, "bytesReceived", 0);
 		bytesDiscarded = MapUtils.getMapLong(loadMap, "bytesDiscarded", 0);
 		bytesSent = MapUtils.getMapLong(loadMap, "bytesSent", 0);
+		perNetworkStats = MapUtils.getMapMap(loadMap, "perNetworkStats",
+				new HashMap<String, Map<String, Object>>());
 	}
 
 	public Object toBencodeObject() {
@@ -61,6 +66,7 @@ public class ClientStatsDataSource
 		map.put("bytesReceived", Long.valueOf(bytesReceived));
 		map.put("bytesDiscarded", Long.valueOf(bytesDiscarded));
 		map.put("bytesSent", Long.valueOf(bytesSent));
+		map.put("perNetworkStats", perNetworkStats);
 		return map;
 	}
 }
