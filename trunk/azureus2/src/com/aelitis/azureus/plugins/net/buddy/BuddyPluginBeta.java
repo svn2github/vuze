@@ -3340,9 +3340,7 @@ BuddyPluginBeta
 							String dup_key = m.group( 1 );
 							
 							if ( auto_dup_set.containsKey( dup_key )){
-								
-								System.out.println( "Ignoring " + dup_key );
-								
+																
 								msg.setDuplicate();
 								
 								break outer;
