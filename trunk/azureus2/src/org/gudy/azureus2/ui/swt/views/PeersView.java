@@ -62,7 +62,6 @@ import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.IdentityHashSet;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
