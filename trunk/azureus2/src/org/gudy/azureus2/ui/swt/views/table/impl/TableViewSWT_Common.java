@@ -30,7 +30,6 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
@@ -1097,24 +1096,7 @@ public class TableViewSWT_Common
 			public void handleEvent(Event e) {
 				String tableID = tv.getTableID();
 				TableColumnManager tcm = TableColumnManager.getInstance();
-				String[] defaultColumnNames = tcm.getDefaultColumnNames(tableID);
-				if (defaultColumnNames != null) {
-					TableColumnCore[] tableColumns = tv.getVisibleColumns();
-					for (TableColumnCore column : tableColumns) {
-						column.setVisible(false);
-					}
-					int i = 0;
-					for (String name : defaultColumnNames) {
-						TableColumnCore column = tcm.getTableColumnCore(tableID, name);
-						if (column != null) {
-							column.reset();
-							column.setVisible(true);
-							column.setPositionNoShift(i++);
-						}
-					}
-					tcm.saveTableColumns(tv.getDataSourceType(), tableID);
-					TableStructureEventDispatcher.getInstance(tableID).tableStructureChanged(true, tv.getDataSourceType());
-				}
+				tcm.resetColumns(tv.getDataSourceType(), tableID);
 			}
 		});
 

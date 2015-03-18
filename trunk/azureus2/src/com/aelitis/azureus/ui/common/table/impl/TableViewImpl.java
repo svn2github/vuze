@@ -213,7 +213,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 				tableID);
 
 		// fixup order
-		tcManager.ensureIntegrety(tableID);
+		tcManager.ensureIntegrety(classPluginDataSourceType, tableID);
 	}
 
 
@@ -1598,19 +1598,6 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		}
 	}
 
-	public Set<Class<?>> prepareForTableReset(){
-		TableColumnCore[] tableColumns = getVisibleColumns();
-		for (TableColumnCore column : tableColumns) {
-			column.setVisible(false);
-		}
-		
-		HashSet<Class<?>> result = new HashSet<Class<?>>();
-		
-		result.add( getDataSourceType());
-		
-		return( result );
-	}
-	
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.common.table.TableView#getTableColumn(java.lang.String)
 	 */

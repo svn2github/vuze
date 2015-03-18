@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.ui.common.table;
 
-import java.util.Set;
 
 /**
  * @author Olivier
@@ -30,8 +29,6 @@ import java.util.Set;
  */
 public interface TableStructureModificationListener<T>
 {
-	Set<Class<?>> prepareForTableReset();
-	
 	void tableStructureChanged(boolean columnAddedOrRemoved, Class forPluginDataSourceType );
 
 	void columnOrderChanged(int[] iPositions);

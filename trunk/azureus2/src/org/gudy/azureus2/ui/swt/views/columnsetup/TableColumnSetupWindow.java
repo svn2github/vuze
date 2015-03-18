@@ -921,15 +921,25 @@ public class TableColumnSetupWindow
 	 * @since 4.0.0.5
 	 */
 	protected void apply() {
+		TableColumnManager tcm = TableColumnManager.getInstance();
+		if (doReset) {
+			TableColumnCore[] allTableColumns = tcm.getAllTableColumnCoreAsArray(
+					forDataSourceType, forTableID);
+			if (allTableColumns != null) {
+				for (TableColumnCore column : allTableColumns) {
+					if (column != null) {
+						column.reset();
+					}
+				}
+			}
+		}
+
 		for (TableColumnCore tc : mapNewVisibility.keySet()) {
 			boolean visible = mapNewVisibility.get(tc).booleanValue();
 			tc.setVisible(visible);
-			if (doReset) {
-				tc.reset();
-			}
 		}
-		TableColumnManager.getInstance().saveTableColumns(forDataSourceType,
-				forTableID);
+
+		tcm.saveTableColumns(forDataSourceType, forTableID);
 		listener.tableStructureChanged(true, forDataSourceType);
 	}
 

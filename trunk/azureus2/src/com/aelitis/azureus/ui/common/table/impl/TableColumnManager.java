@@ -100,6 +100,7 @@ public class TableColumnManager {
 	 * key = TableID; value = table column ids
 	 */
 	private Map<String, String[]> mapTableDefaultColumns = new LightHashMap<String, String[]>();
+	private Map<String, Class[]> mapTableIDsDSTs = new LightHashMap<String, Class[]>();
 
 	private static final Map<String, String> mapResetTable_Version;
 	private static final boolean RERESET = false;
@@ -432,6 +433,8 @@ public class TableColumnManager {
 	 * @since 4.0.0.5
 	 */
 	private void doAddCreate(Map mTypes, String tableID, Map<Class<?>, List> mapDST) {
+		
+		mapTableIDsDSTs.put(tableID, mapDST.keySet().toArray(new Class[0]));
 		ArrayList<TableColumnCore> listAdded = new ArrayList<TableColumnCore>();
 		for (Class forDataSourceType : mapDST.keySet()) {
 			List listDST = mapDST.get(forDataSourceType);
@@ -498,7 +501,7 @@ public class TableColumnManager {
     return (TableColumnCore)mTypes.get(sColumnName);
   }
   
-  public void ensureIntegrety(String sTableID) {
+  public void ensureIntegrety(Class dataSourceType, String sTableID) {
     Map mTypes = (Map)items.get(sTableID);
     if (mTypes == null)
       return;
@@ -519,20 +522,8 @@ public class TableColumnManager {
     }
 
   	if (iPos == 0) {
-			String[] defaultColumnNames = getDefaultColumnNames(sTableID);
-			if (defaultColumnNames != null) {
-				int i = 0;
-				for (String name : defaultColumnNames) {
-					TableColumnCore column = getTableColumnCore(sTableID, name);
-					if (column != null) {
-						column.reset();
-						column.setVisible(true);
-						column.setPositionNoShift(i++);
-					}
-				}
-				saveTableColumns(null, sTableID);
-				TableStructureEventDispatcher.getInstance(sTableID).tableStructureChanged(true, null);
-			}
+  		// no columns?  Something must have went wrong, so reset them all
+  		resetColumns(dataSourceType, sTableID);
   	}
   
   }
@@ -825,31 +816,15 @@ public class TableColumnManager {
 	resetAllTables()
 	{
 		for ( String tableID: new ArrayList<String>( mapTableDefaultColumns.keySet())){
-			
-			String[] defaultColumnNames = getDefaultColumnNames( tableID );
-			
-			if ( defaultColumnNames != null ){
-				
-				TableStructureEventDispatcher disp = TableStructureEventDispatcher.getInstance( tableID );
-				
-				Set<Class<?>> dataSourceTypes = disp.prepareForTableReset();
-				
-				int i = 0;
-				for (String name : defaultColumnNames) {
-					TableColumnCore column = getTableColumnCore(tableID, name);
-					if (column != null) {
-						column.reset();
-						column.setVisible(true);
-						column.setPositionNoShift(i++);
-					}
-				}
-				
-				for ( Class<?> cla: dataSourceTypes ){
-					
-					saveTableColumns( cla, tableID);
-				
-					TableStructureEventDispatcher.getInstance( tableID ).tableStructureChanged(true, cla );
-				}
+
+			Class[] dataSourceTypes = mapTableIDsDSTs.get(tableID);
+
+			if (dataSourceTypes == null || dataSourceTypes.length == 0) {
+				resetColumns(null, tableID);
+			} else {
+  			for (Class dataSourceType : dataSourceTypes) {
+  				resetColumns(dataSourceType, tableID);
+  			}
 			}
 		}
 	}
@@ -899,6 +874,33 @@ public class TableColumnManager {
   			}
   		}
 		}
+	}
+
+	public void resetColumns(Class dataSourceType, String tableID) {
+		TableColumnCore[] allTableColumns = getAllTableColumnCoreAsArray(
+				dataSourceType, tableID);
+		if (allTableColumns != null) {
+			for (TableColumnCore column : allTableColumns) {
+				if (column != null) {
+					column.setVisible(false);
+					column.reset();
+				}
+			}
+		}
+		String[] defaultColumnNames = getDefaultColumnNames(tableID);
+		if (defaultColumnNames != null) {
+			int i = 0;
+			for (String name : defaultColumnNames) {
+				TableColumnCore column = getTableColumnCore(tableID, name);
+				if (column != null) {
+					column.setVisible(true);
+					column.setPositionNoShift(i++);
+				}
+			}
+		}
+		saveTableColumns(dataSourceType, tableID);
+		TableStructureEventDispatcher.getInstance(tableID).tableStructureChanged(
+				true, dataSourceType);
 	}
 
 }
