@@ -53,7 +53,9 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
 
-
+/**
+ * aka "Speed" sub view
+ */
 public class 
 DownloadActivityView 
 	implements UISWTViewCoreEventListener, UIPluginViewToolBarListener
