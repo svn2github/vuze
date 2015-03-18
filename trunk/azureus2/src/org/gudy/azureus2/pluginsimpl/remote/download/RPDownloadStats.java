@@ -356,4 +356,11 @@ RPDownloadStats
 	{
 		return bytesUnavailable;
 	}
+
+	// @see org.gudy.azureus2.plugins.download.DownloadStats#getRemainingExcludingDND()
+	public long getRemainingExcludingDND() {
+		notSupported();
+		
+		return( 0 );
+	}
 }
