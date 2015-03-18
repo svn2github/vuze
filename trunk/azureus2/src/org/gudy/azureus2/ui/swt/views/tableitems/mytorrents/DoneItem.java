@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -66,8 +67,10 @@ public class DoneItem
   	int value;
   	Object ds = cell.getDataSource();
   	if (ds instanceof DownloadManager) {
-  			// show amount completed of non-dnd files as makes more sense 
-  		value = ((DownloadManager) ds).getStats().getDownloadCompleted(false);
+  			// show amount completed of non-dnd files as makes more sense
+  		DownloadManager dm = (DownloadManager) ds;
+  		DownloadManagerStats stats = dm.getStats();
+  		value = stats.getPercentDoneExcludingDND();
   	} else if (ds instanceof DiskManagerFileInfo) {
   		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
 			long length = fileInfo.getLength();

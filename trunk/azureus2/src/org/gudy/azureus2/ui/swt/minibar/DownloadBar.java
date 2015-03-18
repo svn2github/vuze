@@ -136,7 +136,7 @@ public class DownloadBar extends MiniBar {
 		DownloadManagerStats stats = download.getStats();
 
         download_name.setText(download.getDisplayName());
-        int percent = stats.getCompleted();
+        int percent = stats.getPercentDoneExcludingDND();
         
         this.updateSpeedLabel(down_speed, stats.getDataReceiveRate(), stats.getProtocolReceiveRate());
         this.updateSpeedLabel(up_speed, stats.getDataSendRate(), stats.getProtocolSendRate());

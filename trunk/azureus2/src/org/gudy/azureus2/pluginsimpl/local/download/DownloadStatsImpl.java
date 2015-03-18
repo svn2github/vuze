@@ -138,6 +138,10 @@ DownloadStatsImpl
 		return( dm_stats.getRemaining());
 	}
 	
+	public long getRemainingExcludingDND() {
+		return dm_stats.getRemainingExcludingDND();
+	}
+	
 	public long
 	getUploaded()
 	{

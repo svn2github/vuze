@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -883,9 +884,10 @@ public class MyTorrentsView
 								|| dm.getState() == DownloadManager.STATE_SEEDING) {
 							ttlActive++;
 						}
-						ttlSize += dm.getSize();
-						ttlRSpeed += dm.getStats().getDataReceiveRate();
-						ttlSSpeed += dm.getStats().getDataSendRate();
+						DownloadManagerStats stats = dm.getStats();
+						ttlSize += stats.getSizeExcludingDND();
+						ttlRSpeed += stats.getDataReceiveRate();
+						ttlSSpeed += stats.getDataSendRate();
 					}
 
 					String up_details = "";

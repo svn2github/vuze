@@ -678,7 +678,7 @@ public class SBC_TorrentDetailsView
 	 * @since 3.1.0.1
 	 */
 	private void refreshTitle() {
-		int completed = manager == null ? -1 : manager.getStats().getCompleted();
+		int completed = manager == null ? -1 : manager.getStats().getPercentDoneExcludingDND();
 		if (lastCompleted != completed) {
 			if (mdi_entry != null) {
 				ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());

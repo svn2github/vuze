@@ -572,11 +572,11 @@ TorrentOptionsView
 
 			DownloadManager	dm = managers[i];
 
-			total_size += dm.getSize();
-
 			DownloadManagerStats stats = dm.getStats();
 
-			total_remaining += stats.getRemaining();
+			total_size += stats.getSizeExcludingDND();
+
+			total_remaining += stats.getRemainingExcludingDND();
 			
 			long	good_received 	= stats.getTotalGoodDataBytesReceived();
 			long	received 		= stats.getTotalDataBytesReceived();

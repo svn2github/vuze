@@ -1,8 +1,4 @@
 /*
- * File    : NameItem.java
- * Created : 24 nov. 2003
- * By      : Olivier
- *
  * Copyright (C) Azureus Software, Inc, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,69 +21,52 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-
-import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 
-/**
- *
- * @author Olivier
- * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
- */
-public class RemainingItem
+public class ColumnSizeWithDND
        extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
-	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
+	public static final Class DATASOURCE_TYPE = Download.class;
 
-  public static final String COLUMN_ID = "remaining";
+  public static final String COLUMN_ID = "sizewithdnd";
 
 	/** Default Constructor */
-  public RemainingItem(String sTableID) {
+  public ColumnSizeWithDND(String sTableID) {
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID);
-		addDataSourceType(DiskManagerFileInfo.class);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
+
+    setPosition(POSITION_LAST);
   }
 
-	public void fillTableColumnInfo(TableColumnInfo info) {
+  public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
-			CAT_CONTENT,
-			CAT_PROGRESS
+			CAT_SHARING,
+			CAT_BYTES
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_ADVANCED);
 	}
 
-    private boolean bLastValueEstimate = false;
-  
   public void refresh(TableCell cell) {
-    long lRemaining = getRemaining(cell);
+  	long value = 0;
+		Object ds = cell.getDataSource();
+		if (ds instanceof DownloadManager) {
+			DownloadManager dm = (DownloadManager) ds;
+			value = dm.getSize();
+		} else if (ds instanceof DiskManagerFileInfo) {
+			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+			value = fileInfo.getLength();
+		}
 
-    if( !cell.setSortValue( lRemaining ) && cell.isValid() ) {
+    if (!cell.setSortValue(value) && cell.isValid())
       return;
-    }
-    
-    if (bLastValueEstimate) {
-      cell.setText("~ " + DisplayFormatters.formatByteCountToKiBEtc(lRemaining));
-    } else {
-      cell.setText(DisplayFormatters.formatByteCountToKiBEtc(lRemaining));
-    }
-  }
 
-  private long getRemaining(TableCell cell) {
-  	Object ds = cell.getDataSource();
-  	if (ds instanceof DownloadManager) {
-      DownloadManager manager = (DownloadManager)cell.getDataSource();
-      if (manager != null) {
-      	return( manager.getStats().getRemainingExcludingDND());
-      }
-  	} else if (ds instanceof DiskManagerFileInfo) {
-  		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
-  		return fileInfo.getLength() - fileInfo.getDownloaded();
-  	}
-  	return 0;
+    cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
   }
 }

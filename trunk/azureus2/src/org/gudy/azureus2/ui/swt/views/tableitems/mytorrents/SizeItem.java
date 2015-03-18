@@ -22,18 +22,20 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import java.text.NumberFormat;
+
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
-import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 /** Size of Torrent cell
  *
@@ -42,7 +44,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
  */
 public class SizeItem
 	extends CoreTableColumnSWT
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableCellToolTipListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
@@ -68,12 +70,13 @@ public class SizeItem
 	}
 
 	public void refresh(TableCell cell) {
-		Object ds = cell.getDataSource();
 		sizeitemsort value;
+		Object ds = cell.getDataSource();
 		if (ds instanceof DownloadManager) {
 			DownloadManager dm = (DownloadManager) ds;
-			
-			value = new sizeitemsort(dm.getSize(), dm.getStats().getRemaining());
+
+			value = new sizeitemsort(dm.getStats().getSizeExcludingDND(),
+					dm.getStats().getRemainingExcludingDND());
 		} else if (ds instanceof DiskManagerFileInfo) {
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
 			value = new sizeitemsort(fileInfo.getLength(), fileInfo.getLength()
@@ -94,16 +97,18 @@ public class SizeItem
 		if (DO_MULTILINE && cell.getMaxLines() > 1 && value.remaining > 0) {
 			s += "\n"
 					+ DisplayFormatters.formatByteCountToKiBEtc(value.remaining, false,
-							false, 0) + " to go";
+							false, 0) + " "
+					+ MessageText.getString("TableColumn.header.remaining");
 		}
 		cell.setText(s);
+
 		if (Utils.getUserMode() > 0 && (cell instanceof TableCellSWT)) {
 			if (value.size >= 0x40000000l) {
-				((TableCellSWT)cell).setTextAlpha(200 | 0x100);
+				((TableCellSWT) cell).setTextAlpha(200 | 0x100);
 			} else if (value.size < 0x100000) {
-				((TableCellSWT)cell).setTextAlpha(180);
+				((TableCellSWT) cell).setTextAlpha(180);
 			} else {
-				((TableCellSWT)cell).setTextAlpha(255);
+				((TableCellSWT) cell).setTextAlpha(255);
 			}
 		}
 	}
@@ -132,5 +137,38 @@ public class SizeItem
 			}
 			return size > otherObj.size ? 1 : -1;
 		}
+	}
+
+	public void cellHover(TableCell cell) {
+		Comparable sortValue = cell.getSortValue();
+		if (!(sortValue instanceof sizeitemsort)) {
+			return;
+		}
+		sizeitemsort value = (sizeitemsort) sortValue;
+		String tooltip = NumberFormat.getInstance().format(value.size) + " "
+				+ MessageText.getString("DHTView.transport.bytes");
+		if (value.remaining > 0) {
+			tooltip += "\n"
+					+ DisplayFormatters.formatByteCountToKiBEtc(value.remaining, false,
+							false) + " "
+					+ MessageText.getString("TableColumn.header.remaining");
+		}
+		Object ds = cell.getDataSource();
+		if (ds instanceof DownloadManager) {
+			DownloadManager dm = (DownloadManager) ds;
+			long fullSize = dm.getSize();
+			if (fullSize > value.size) {
+				tooltip += "\n"
+						+ DisplayFormatters.formatByteCountToKiBEtc(fullSize - value.size,
+								false, false) + " "
+						+ MessageText.getString("FileView.BlockView.Skipped");
+			}
+		}
+
+		cell.setToolTip(tooltip);
+	}
+
+	public void cellHoverComplete(TableCell cell) {
+		cell.setToolTip(null);
 	}
 }

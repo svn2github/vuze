@@ -488,7 +488,7 @@ public class ColumnProgressETA
 
 	private int getPercentDone(Object ds) {
 		if (ds instanceof DownloadManager) {
-			return ((DownloadManager) ds).getStats().getDownloadCompleted(true);
+			return ((DownloadManager) ds).getStats().getPercentDoneExcludingDND();
 		} else if (ds instanceof DiskManagerFileInfo) {
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
 			long length = fileInfo.getLength();

@@ -464,7 +464,7 @@ public class MainMDISetup
 
 				if (propertyID == TITLE_TEXT) {
 					if (Utils.isAZ2UI()) {
-						int completed = manager.getStats().getCompleted();
+						int completed = manager.getStats().getPercentDoneExcludingDND();
 						return DisplayFormatters.formatPercentFromThousands(completed)
 								+ " : " + manager.getDisplayName();
 					}
@@ -473,13 +473,13 @@ public class MainMDISetup
 				}
 
 				if (propertyID == TITLE_INDICATOR_TEXT && !Utils.isAZ2UI()) {
-					int completed = manager.getStats().getCompleted();
+					int completed = manager.getStats().getPercentDoneExcludingDND();
 					if (completed != 1000) {
 						return (completed / 10) + "%";
 					}
 				} else if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
 					String s = "";
-					int completed = manager.getStats().getCompleted();
+					int completed = manager.getStats().getPercentDoneExcludingDND();
 					if (completed != 1000) {
 						s = (completed / 10) + "% Complete\n";
 					}

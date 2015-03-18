@@ -172,6 +172,7 @@ public class TableColumnCreator
 		c.put(RankItem.COLUMN_ID, new cInfo(RankItem.class, RankItem.DATASOURCE_TYPE));
 		c.put(NameItem.COLUMN_ID, new cInfo(NameItem.class, NameItem.DATASOURCE_TYPE));
 		c.put(SizeItem.COLUMN_ID, new cInfo(SizeItem.class, SizeItem.DATASOURCE_TYPE));
+		c.put(ColumnSizeWithDND.COLUMN_ID, new cInfo(ColumnSizeWithDND.class, ColumnSizeWithDND.DATASOURCE_TYPE));
 		c.put(DoneItem.COLUMN_ID, new cInfo(DoneItem.class, DoneItem.DATASOURCE_TYPE));
 		c.put(StatusItem.COLUMN_ID, new cInfo(StatusItem.class, StatusItem.DATASOURCE_TYPE));
 		c.put(ETAItem.COLUMN_ID, new cInfo(ETAItem.class, ETAItem.DATASOURCE_TYPE));

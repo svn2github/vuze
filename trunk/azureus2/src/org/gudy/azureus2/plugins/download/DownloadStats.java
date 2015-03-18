@@ -95,18 +95,19 @@ DownloadStats
 	public int
 	getCompleted();
 	
-  /** Retrieve the level of download completion.
-   * 
+  /** Retrieve the level of download completion, *including* DND files. If
+   * the user has one or more DND file, return value will never reach 1000.
+   * <P>
    * To understand the bLive parameter, you must know a bit about the
-   * Torrent activation process:
-   * 1) Torrent goes into ST_WAITING
-   * 2) Torrent moves to ST_PREPARING
-   * 3) Torrent moves to ST_DOWNLOADING or ST_SEEDING
-   *
+   * Torrent activation process:<br>
+   * 1) Torrent goes into ST_WAITING<br>
+   * 2) Torrent moves to ST_PREPARING<br>
+   * 3) Torrent moves to ST_DOWNLOADING or ST_SEEDING<br>
+   * <P>
    * While in ST_PREPARING, Completion Level is rebuilt (either via Fast Resume
    * or via piece checking). Quite often, the download completion level before
    * ST_PREPARING and after ST_PREPARING are identical.
-   *
+   * <P>
    * Before going into ST_PREPARING, we store the download completion level.
    * If you wish to retrieve this value instead of the live "building" one,
    * pass false for the parameter.
@@ -160,14 +161,17 @@ DownloadStats
 		boolean	include_protocol );
 	
 	/**
-	 * Gives number of bytes remaining.  Excludes DND files only if disk manager exists
+	 * Gives number of bytes remaining.  *Includes* DND files
 	 * 
 	 * @since 2.5.0.2
 	 */
 	
 	public long
 	getRemaining();
-	
+
+	public long
+	getRemainingExcludingDND();
+
 	/**
 	 * Gives the number of bytes uploaded
 	 * @return

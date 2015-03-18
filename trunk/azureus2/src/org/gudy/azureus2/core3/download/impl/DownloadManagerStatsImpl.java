@@ -662,15 +662,16 @@ DownloadManagerStatsImpl
 	getRemaining()
 	{
 		DiskManager disk_manager = download_manager.getDiskManager();
-		
-	    if ( disk_manager == null ){
-	    	
-	    	return download_manager.getSize() - 
-		             ((long)getDownloadCompleted(false) * download_manager.getSize() / 1000L);
-		
-	    }else{
-		     
-	    	return disk_manager.getRemainingExcludingDND();
+
+		if (disk_manager == null) {
+
+			long size = download_manager.getSize();
+
+			return size - ((long) getDownloadCompleted(false) * size / 1000L);
+
+		} else {
+
+			return disk_manager.getRemaining();
 		}
 	}
 	

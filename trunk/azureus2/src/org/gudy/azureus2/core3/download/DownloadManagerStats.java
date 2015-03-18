@@ -107,7 +107,7 @@ DownloadManagerStats
 	public void resetTotalBytesSentReceived( long sent, long received );
 
 	/**
-	 * Returns the bytes remaining.  Excludes DND files only if there is a DiskManager!
+	 * Returns the bytes remaining.  *Includes* DND files
 	 */
 	public long getRemaining();
 	

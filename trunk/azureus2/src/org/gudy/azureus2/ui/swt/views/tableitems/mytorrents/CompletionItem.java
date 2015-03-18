@@ -27,7 +27,7 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
-
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
@@ -218,6 +218,7 @@ public class CompletionItem
 		if (dm == null) {
 			return 0;
 		}
-		return dm.getStats().getDownloadCompleted(true);
+
+		return dm.getStats().getPercentDoneExcludingDND();
 	}
 }

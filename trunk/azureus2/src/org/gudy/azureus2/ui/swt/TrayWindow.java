@@ -251,7 +251,7 @@ public class TrayWindow
 		DownloadManagerStats	stats = manager.getStats();
 		
         String name = manager.getDisplayName();
-        String completed = DisplayFormatters.formatPercentFromThousands(stats.getCompleted());
+        String completed = DisplayFormatters.formatPercentFromThousands(stats.getPercentDoneExcludingDND());
         toolTip.append(separator);
         toolTip.append(name);
         toolTip.append(" -- C: ");
