@@ -45,18 +45,13 @@ public class IPFilterItem
        extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
-	private static final IpFilter ipfilter = IpFilterManagerFactory.getSingleton().getIPFilter();
+	private static IpFilter ipfilter = null;
 	
 	public static final Class DATASOURCE_TYPE = Download.class;
 
-	private static final UISWTGraphic tick_icon;
+	private static UISWTGraphic tick_icon;
 
-	private static final UISWTGraphic cross_icon;
-	
-	static {
-		tick_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("tick_mark"));
-		cross_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("cross_mark"));
-	}
+	private static UISWTGraphic cross_icon;
 	
   public static final String COLUMN_ID = "ipfilter";
 
@@ -80,8 +75,16 @@ public class IPFilterItem
     
     UISWTGraphic	icon 	= null;
     int				sort	= 0;
+
+    if (ipfilter == null) {
+    	ipfilter = IpFilterManagerFactory.getSingleton().getIPFilter();
+    }
     
     if( ipfilter.isEnabled()){
+    	if (tick_icon == null) {
+    		tick_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("tick_mark"));
+    		cross_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("cross_mark"));
+    	}
 	    DownloadManager dm = (DownloadManager)cell.getDataSource();
 	    if (dm != null) {
 	       boolean excluded = dm.getDownloadState().getFlag( DownloadManagerState.FLAG_DISABLE_IP_FILTER );
