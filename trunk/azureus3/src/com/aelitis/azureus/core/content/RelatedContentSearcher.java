@@ -992,125 +992,128 @@ RelatedContentSearcher
 			Map<String,Object> reply = (Map<String,Object>)BDecoder.decode((byte[])value.getValue( byte[].class ));
 			
 			List<Map<String,Object>>	list = (List<Map<String,Object>>)reply.get( "l" );
-						
-			for ( final Map<String,Object> map: list ){
+			
+			if ( list != null ){
 				
-				final String title = ImportExportUtils.importString( map, "n" );
-				
-				final byte[] hash = (byte[])map.get( "h" );
-				
-				if ( hash == null ){
+				for ( final Map<String,Object> map: list ){
 					
-					continue;
-				}
-				
-				String	hash_str = Base32.encode( hash );
+					final String title = ImportExportUtils.importString( map, "n" );
 					
-				synchronized( hashes_sync_me ){
+					final byte[] hash = (byte[])map.get( "h" );
 					
-					if ( hashes_sync_me.contains( hash_str )){
+					if ( hash == null ){
 						
 						continue;
 					}
 					
-					hashes_sync_me.add( hash_str );
-				}
-
-				SearchResult result = 
-					new SearchResult()
-					{
-						public Object
-						getProperty(
-							int		property_name )
-						{
-							try{
-								if ( property_name == SearchResult.PR_NAME ){
-									
-									return( title );
-									
-								}else if ( property_name == SearchResult.PR_SIZE ){
-									
-									return( ImportExportUtils.importLong( map, "s" ));
-									
-								}else if ( property_name == SearchResult.PR_HASH ){
-									
-									return( hash );
-									
-								}else if ( property_name == SearchResult.PR_RANK ){
-									
-									return( ImportExportUtils.importLong( map, "r" ) / 4 );
-									
-								}else if ( property_name == SearchResult.PR_SUPER_SEED_COUNT ){
-									
-									long cnet = ImportExportUtils.importLong( map, "c", ContentNetwork.CONTENT_NETWORK_UNKNOWN );
-									
-									if ( cnet == ContentNetwork.CONTENT_NETWORK_UNKNOWN ){
-										
-										return( 0L );
-										
-									}else{
-										
-										return( 1L );
-									}
-								}else if ( property_name == SearchResult.PR_SEED_COUNT ){
-									
-									return( ImportExportUtils.importLong( map, "z" ));
-									
-								}else if ( property_name == SearchResult.PR_LEECHER_COUNT ){
-									
-									return( ImportExportUtils.importLong( map, "l" ));
-									
-								}else if ( property_name == SearchResult.PR_PUB_DATE ){
-									
-									long date = ImportExportUtils.importLong( map, "p", 0 )*60*60*1000L;
-									
-									if ( date <= 0 ){
-										
-										return( null );
-									}
-									
-									return( new Date( date ));
-									
-								}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
-											property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
-									
-									byte[] hash = (byte[])map.get( "h" );
-									
-									if ( hash != null ){
-										
-										return( UrlUtils.getMagnetURI( hash, title, RelatedContentManager.convertNetworks((byte)ImportExportUtils.importLong( map, "o", RelatedContentManager.NET_PUBLIC ))));
-									}
-								}else if (  property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_CONTENT_NETWORK ){
-									
-									long cnet = ImportExportUtils.importLong( map, "c", ContentNetwork.CONTENT_NETWORK_UNKNOWN );
-
-									return( cnet );
-									
-								}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_TRACKER_KEYS ){
-									
-									return( map.get( "k" ));
-									
-								}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_WEB_SEED_KEYS ){
-									
-									return( map.get( "w" ));
-									
-								}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_TAGS ){
-									
-									return( manager.decodeTags((byte[])map.get( "g" )));
-									
-								}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_NETWORKS ){
-
-									return( RelatedContentManager.convertNetworks((byte)ImportExportUtils.importLong( map, "o", RelatedContentManager.NET_PUBLIC )));
-								}
-
-							}catch( Throwable e ){
-							}
+					String	hash_str = Base32.encode( hash );
+						
+					synchronized( hashes_sync_me ){
+						
+						if ( hashes_sync_me.contains( hash_str )){
 							
-							return( null );
+							continue;
 						}
-					};
-					
-				observer.resultReceived( si, result );
+						
+						hashes_sync_me.add( hash_str );
+					}
+	
+					SearchResult result = 
+						new SearchResult()
+						{
+							public Object
+							getProperty(
+								int		property_name )
+							{
+								try{
+									if ( property_name == SearchResult.PR_NAME ){
+										
+										return( title );
+										
+									}else if ( property_name == SearchResult.PR_SIZE ){
+										
+										return( ImportExportUtils.importLong( map, "s" ));
+										
+									}else if ( property_name == SearchResult.PR_HASH ){
+										
+										return( hash );
+										
+									}else if ( property_name == SearchResult.PR_RANK ){
+										
+										return( ImportExportUtils.importLong( map, "r" ) / 4 );
+										
+									}else if ( property_name == SearchResult.PR_SUPER_SEED_COUNT ){
+										
+										long cnet = ImportExportUtils.importLong( map, "c", ContentNetwork.CONTENT_NETWORK_UNKNOWN );
+										
+										if ( cnet == ContentNetwork.CONTENT_NETWORK_UNKNOWN ){
+											
+											return( 0L );
+											
+										}else{
+											
+											return( 1L );
+										}
+									}else if ( property_name == SearchResult.PR_SEED_COUNT ){
+										
+										return( ImportExportUtils.importLong( map, "z" ));
+										
+									}else if ( property_name == SearchResult.PR_LEECHER_COUNT ){
+										
+										return( ImportExportUtils.importLong( map, "l" ));
+										
+									}else if ( property_name == SearchResult.PR_PUB_DATE ){
+										
+										long date = ImportExportUtils.importLong( map, "p", 0 )*60*60*1000L;
+										
+										if ( date <= 0 ){
+											
+											return( null );
+										}
+										
+										return( new Date( date ));
+										
+									}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
+												property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
+										
+										byte[] hash = (byte[])map.get( "h" );
+										
+										if ( hash != null ){
+											
+											return( UrlUtils.getMagnetURI( hash, title, RelatedContentManager.convertNetworks((byte)ImportExportUtils.importLong( map, "o", RelatedContentManager.NET_PUBLIC ))));
+										}
+									}else if (  property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_CONTENT_NETWORK ){
+										
+										long cnet = ImportExportUtils.importLong( map, "c", ContentNetwork.CONTENT_NETWORK_UNKNOWN );
+	
+										return( cnet );
+										
+									}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_TRACKER_KEYS ){
+										
+										return( map.get( "k" ));
+										
+									}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_WEB_SEED_KEYS ){
+										
+										return( map.get( "w" ));
+										
+									}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_TAGS ){
+										
+										return( manager.decodeTags((byte[])map.get( "g" )));
+										
+									}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_NETWORKS ){
+	
+										return( RelatedContentManager.convertNetworks((byte)ImportExportUtils.importLong( map, "o", RelatedContentManager.NET_PUBLIC )));
+									}
+	
+								}catch( Throwable e ){
+								}
+								
+								return( null );
+							}
+						};
+						
+					observer.resultReceived( si, result );
+				}
 			}
 			
 			list = (List<Map<String,Object>>)reply.get( "c" );
