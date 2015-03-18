@@ -59,6 +59,7 @@ public class ColumnTC_ChosenColumn
 		String s = MessageText.getString(key, column.getName());
 		//s = column.getPosition() + "] " + s;
 		cell.setText(s);
-		cell.setToolTip("");
+		String info = MessageText.getString(key + ".info", "");
+		cell.setToolTip(info);
 	}
 }
