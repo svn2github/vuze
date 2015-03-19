@@ -19,7 +19,6 @@
 package org.gudy.azureus2.ui.swt.views.stats;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -27,7 +26,6 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -49,7 +47,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  * {@link VivaldiView}
  */
 public class StatsView
-	implements IViewAlwaysInitialize, UISWTViewCoreEventListener
+	implements IViewAlwaysInitialize, UISWTViewCoreEventListenerEx
 {
 	public static String VIEW_ID = UISWTInstance.VIEW_STATISTICS;
 	
@@ -111,6 +109,18 @@ public class StatsView
 	public
 	StatsView()
 	{
+	}
+	
+	public boolean
+	isCloneable()
+	{
+		return( true );
+	}
+	
+	public UISWTViewCoreEventListener
+	getClone()
+	{
+		return( new StatsView());
 	}
 	
 	private void initialize(Composite composite) {

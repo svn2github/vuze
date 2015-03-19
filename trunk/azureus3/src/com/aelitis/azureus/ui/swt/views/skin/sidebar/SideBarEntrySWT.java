@@ -479,6 +479,8 @@ public class SideBarEntrySWT
 				control.setLayoutData(Utils.getFilledFormData());
 				control.getParent().layout(true, true);
 			
+				soContents.setVisible( true );
+			
 				return( soContents );
 				
 			} finally {
@@ -556,6 +558,10 @@ public class SideBarEntrySWT
 							}
 						});
 					
+					soContents.setVisible( true );
+					
+					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+					
 					return( soContents );
 					
 				} catch (Throwable e) {
@@ -632,6 +638,10 @@ public class SideBarEntrySWT
 								}
 							});
 						
+						soContents.setVisible( true );
+						
+						view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+
 						return( soContents );
 						
 					} catch (Throwable e) {

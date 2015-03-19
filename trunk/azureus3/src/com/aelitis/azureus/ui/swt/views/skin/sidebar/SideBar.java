@@ -237,8 +237,8 @@ public class SideBar
 					SWTSkinObjectContainer cont = sbe.buildStandAlone((SWTSkinObjectContainer)skin.getSkinObject( "content-area" ));
 						
 					if ( cont != null ){
-						
-						cont.setVisible( true );
+							
+						skinnedDialog.setTitle( sbe.getTitle());
 						
 						skinnedDialog.open();
 						

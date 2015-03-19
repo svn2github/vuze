@@ -20,11 +20,13 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 
 
 public class
 SubscriptionView
-	implements SubscriptionsViewBase
+	implements SubscriptionsViewBase, UISWTViewCoreEventListenerEx
 {
 	private SubscriptionsViewBase		impl;
 	
@@ -34,6 +36,18 @@ SubscriptionView
 		boolean	internal_subs = !COConfigurationManager.getBooleanParameter( "browser.external.subs" );
 		
 		impl = internal_subs?new SubscriptionViewInternal():new SubscriptionViewExternal();
+	}
+	
+	public boolean
+	isCloneable()
+	{
+		return( true );
+	}
+	
+	public UISWTViewCoreEventListener
+	getClone()
+	{
+		return( new SubscriptionView());
 	}
 	
 	public void
