@@ -312,11 +312,16 @@ public class TableViewSWT_TabsCommon
 	{
 		UISWTViewCore view = getActiveSubView();
 		
-		if ( view != null && view.getComposite().isVisible()){
+		if ( view != null ){
 			
-			checkPendingDataSourceChange( view );
+			Composite comp = view.getComposite();
 			
-			view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
+			if ( !comp.isDisposed() && comp.isVisible()){
+		
+				checkPendingDataSourceChange( view );
+				
+				view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
+			}
 		}
 	}
 
