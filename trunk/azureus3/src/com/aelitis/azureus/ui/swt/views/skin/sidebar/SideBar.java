@@ -30,14 +30,16 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionHolder;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
@@ -52,6 +54,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl.SWTViewListener;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
@@ -63,6 +66,7 @@ import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
+import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 
 /**
  * @author TuxPaper
@@ -159,7 +163,7 @@ public class SideBar
 			cPluginsArea.setLayoutData(Utils.getFilledFormData());
 		}
 
-		// addTestMenus();
+		addGeneralMenus();
 
 		createSideBar();
 
@@ -200,48 +204,54 @@ public class SideBar
 	 *
 	 * @since 3.1.0.1
 	 */
-	/*
-	private void addTestMenus() {
-		// Add some test menus
+
+	private void addGeneralMenus() {
+		
 		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
 		PluginInterface pi = pm.getDefaultPluginInterface();
 		UIManager uim = pi.getUIManager();
 		MenuManager menuManager = uim.getMenuManager();
-		MenuItem menuItem = menuManager.addMenuItem("sidebar", "test menu");
+		MenuItem menuItem = menuManager.addMenuItem("sidebar._end_", "menu.pop.out");
+		
+		menuItem.addFillListener(
+			new MenuItemFillListener() {
+					
+				public void menuWillBeShown(MenuItem menu, Object data) {
+					SideBarEntrySWT sbe = (SideBarEntrySWT)currentEntry;
+					
+					menu.setVisible( sbe != null && sbe.canBuildStandAlone());
+				}
+			});
+		
 		menuItem.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
-				ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-				if (tb != null) {
-					System.out.println("Found download Toolbar");
-					ToolBarItem dlItem = tb.getToolBarItem("download");
-					System.out.println("Download ToolBar Item is " + dlItem);
-					if (dlItem != null) {
-						System.out.println(dlItem.getSkinButton().getSkinObject());
+				SideBarEntrySWT sbe = (SideBarEntrySWT)currentEntry;
+				
+				if ( sbe != null ){
+					SkinnedDialog skinnedDialog = 
+							new SkinnedDialog( "skin3_dlg_sidebar_popout", "shell",
+									SWT.RESIZE | SWT.MAX | SWT.DIALOG_TRIM);
+	
+					SWTSkin skin = skinnedDialog.getSkin();
+					
+					SWTSkinObjectContainer cont = sbe.buildStandAlone((SWTSkinObjectContainer)skin.getSkinObject( "content-area" ));
+						
+					if ( cont != null ){
+						
+						cont.setVisible( true );
+						
+						skinnedDialog.open();
+						
+					}else{
+						
+						skinnedDialog.close();
 					}
-					dlItem.setEnabled(!dlItem.isEnabled());
-				}
-
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					System.err.println(info.getId() + " of " + info.getParentID()
-							+ ";ds=" + info.getDatasource());
 				}
 			}
 		});
 
-		menuItem = menuManager.addMenuItem("sidebar." + SIDEBAR_SECTION_ACTIVITIES,
-				"Activity Only Menu");
-		menuItem.addListener(new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					System.err.println(info.getId() + " of " + info.getParentID()
-							+ ";ds=" + info.getDatasource());
-				}
-			}
-		});
 	}
-	*/
+	
 
 	/**
 	 * 
@@ -1193,6 +1203,16 @@ public class SideBar
 						Debug.out(e);
 					}
 				}
+			}
+			
+			menu_items = MenuItemManager.getInstance().getAllAsArray("sidebar._end_");
+
+			if ( menu_items.length > 0 ){
+				
+				MenuBuildUtils.addPluginMenuItems(menu_items, menuTree, false, true,
+						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
+							entry
+						}));
 			}
 		}
 	}
