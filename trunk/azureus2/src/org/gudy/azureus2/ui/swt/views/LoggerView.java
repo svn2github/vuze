@@ -37,7 +37,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -49,6 +48,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 
 /**
  * @author TuxPaper
@@ -56,7 +56,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
  * @since 2.3.0.5
  */
 public class LoggerView
-	implements ILogEventListener, ParameterListener, UISWTViewCoreEventListener
+	implements ILogEventListener, ParameterListener, UISWTViewCoreEventListenerEx
 {
 	public static final String VIEW_ID = "LoggerView";
 	
@@ -136,6 +136,33 @@ public class LoggerView
 		setEnabled(true);
 	}
 
+	private
+	LoggerView(
+		LoggerView		other )
+	{
+		buffer.addAll( other.buffer );
+		
+		for (int i = 0; i < ignoredComponents.length; i++) {
+			ignoredComponents[i] = new ArrayList();
+		}
+		
+		stopOnNull	= other.stopOnNull;
+		
+		setEnabled( other.bEnabled );
+	}
+	
+	public boolean
+	isCloneable()
+	{
+		return( true );
+	}
+	
+	public UISWTViewCoreEventListener
+	getClone()
+	{
+		return( new LoggerView( this ));
+	}
+	
 	private void initialize(Composite composite) {
 		display = composite.getDisplay();
 

@@ -46,6 +46,9 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
@@ -488,7 +491,7 @@ public class SideBarEntrySWT
 			if ( event_listener instanceof UISWTViewCoreEventListenerEx && ((UISWTViewCoreEventListenerEx)event_listener).isCloneable()){
 				
 				try {
-					UISWTViewCore view = new UISWTViewImpl( getParentID(), id, ((UISWTViewCoreEventListenerEx)event_listener).getClone(), datasource);
+					final UISWTViewCore view = new UISWTViewImpl( getParentID(), id, ((UISWTViewCoreEventListenerEx)event_listener).getClone(), datasource);
 					
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
 							"MdiIView." + uniqueNumber++, SO_ID_ENTRY_WRAPPER,
@@ -496,7 +499,7 @@ public class SideBarEntrySWT
 
 					parent.setBackgroundMode(SWT.INHERIT_NONE);
 
-					Composite viewComposite = soContents.getComposite();
+					final Composite viewComposite = soContents.getComposite();
 					boolean doGridLayout = true;
 					if (view.getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
 						doGridLayout = false;
@@ -535,7 +538,26 @@ public class SideBarEntrySWT
 
 					parent.layout(true, true);
 					
+					final UIUpdater updater = UIFunctionsManager.getUIFunctions().getUIUpdater();
+
+					updater.addUpdater(
+						new UIUpdatable() {
+							
+							public void updateUI() {
+								if (viewComposite.isDisposed()){
+									updater.removeUpdater( this );
+								}else{
+									view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
+								}
+							}
+							
+							public String getUpdateUIName() {
+								return( "popout" );
+							}
+						});
+					
 					return( soContents );
+					
 				} catch (Throwable e) {
 					
 					Debug.out(e);
@@ -543,7 +565,7 @@ public class SideBarEntrySWT
 			}
 		} else if (viewClass != null) {
 			try {
-				UISWTViewCore view = (UISWTViewCore) viewClass.newInstance();
+				final UISWTViewCore view = (UISWTViewCore) viewClass.newInstance();
 
 				if ( view != null ){
 					try {
@@ -553,7 +575,7 @@ public class SideBarEntrySWT
 
 						parent.setBackgroundMode(SWT.INHERIT_NONE);
 
-						Composite viewComposite = soContents.getComposite();
+						final Composite viewComposite = soContents.getComposite();
 						boolean doGridLayout = true;
 						if (view.getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
 							doGridLayout = false;
@@ -591,6 +613,24 @@ public class SideBarEntrySWT
 						}
 
 						parent.layout(true, true);
+						
+						final UIUpdater updater = UIFunctionsManager.getUIFunctions().getUIUpdater();
+
+						updater.addUpdater(
+							new UIUpdatable() {
+								
+								public void updateUI() {
+									if (viewComposite.isDisposed()){
+										updater.removeUpdater( this );
+									}else{
+										view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
+									}
+								}
+								
+								public String getUpdateUIName() {
+									return( "popout" );
+								}
+							});
 						
 						return( soContents );
 						

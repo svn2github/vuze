@@ -26,11 +26,12 @@ import java.util.Set;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -51,7 +52,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 public class 
 PeersGeneralView
 	extends TableViewTab<PEPeer>
-	implements TagListener, TableLifeCycleListener, TableViewSWTMenuFillListener
+	implements TagListener, TableLifeCycleListener, TableViewSWTMenuFillListener, UISWTViewCoreEventListenerEx
 {	
 	private TableViewSWT<PEPeer> tv;
 	
@@ -68,6 +69,18 @@ PeersGeneralView
 		tag = _tag;
 	}	
 
+	public boolean
+	isCloneable()
+	{
+		return( true );
+	}
+	
+	public UISWTViewCoreEventListener
+	getClone()
+	{
+		return( new PeersGeneralView( tag ));
+	}
+	
 	public String 
 	getFullTitle() 
 	{

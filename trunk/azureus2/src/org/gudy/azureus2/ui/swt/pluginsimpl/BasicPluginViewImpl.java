@@ -42,7 +42,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -53,7 +52,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
  */
 public class 
 BasicPluginViewImpl 
-	implements UISWTViewEventListener, UIPropertyChangeListener 
+	implements UISWTViewCoreEventListenerEx, UIPropertyChangeListener 
 {
   
   BasicPluginViewModel model;
@@ -79,6 +78,18 @@ BasicPluginViewImpl
     isCreated = false;
   }
   
+	public boolean
+	isCloneable()
+	{
+		return( true );
+	}
+	
+	public UISWTViewCoreEventListener
+	getClone()
+	{
+		return( new BasicPluginViewImpl( model ));
+	}
+	
   public BasicPluginViewModel
   getModel()
   {
