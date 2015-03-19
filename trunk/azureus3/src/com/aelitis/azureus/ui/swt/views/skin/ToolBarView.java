@@ -108,6 +108,24 @@ public class ToolBarView
 			return null;
 		}
 
+			// walk up skins to see if toolbar explicitly disabled (for pop-out views for example)
+		
+		SWTSkinObject temp = skinObject;
+		
+		while( temp != null ){
+			
+			int visible = temp.getSkin().getSkinProperties().getIntValue( "mdientry.toolbar.visible", 1 );
+			
+			if ( visible == 0 ){
+				
+				skinObject.setVisible(false);
+				
+				return null;	
+			}
+			
+			temp = temp.getParent();
+		}
+		
 		buttonListener = new toolbarButtonListener();
 		so2nd = skin.getSkinObject("toolbar-2nd", skinObject);
 
