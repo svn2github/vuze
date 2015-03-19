@@ -309,6 +309,10 @@ public class SWTSkinObjectSash
 	 * @since 3.1.0.1
 	 */
 	protected void handleShow() {
+		if ( sash.isDisposed()){
+			return;
+		}
+		
 		Long px = (Long) sash.getData("PX");
 		if (px == null) {
 			return;
