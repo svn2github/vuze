@@ -23,6 +23,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -204,6 +205,7 @@ public class TabbedEntry
 				return false;
 			}
 		}
+		
 		return true;
 	}
 
@@ -272,6 +274,9 @@ public class TabbedEntry
 		} else if (viewClass != null) {
 			swtItem.setText(viewClass.getSimpleName());
 		}
+
+		updateLeftImage();
+
 		if (buildonSWTItemSet) {
 			build();
 		}
@@ -334,6 +339,33 @@ public class TabbedEntry
 	}
 
 	public void redraw() {
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#setImageLeftID(java.lang.String)
+	public void setImageLeftID(String id) {
+		super.setImageLeftID(id);
+		updateLeftImage();
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#setImageLeft(org.eclipse.swt.graphics.Image)
+	public void setImageLeft(Image imageLeft) {
+		super.setImageLeft(imageLeft);
+		updateLeftImage();
+	}
+
+	private void updateLeftImage() {
+		if (swtItem == null) {
+			return;
+		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (swtItem == null || swtItem.isDisposed()) {
+					return;
+				}
+				Image image = getImageLeft(null);
+				swtItem.setImage(image);
+			}
+		});
 	}
 
 	public void widgetDisposed(DisposeEvent e) {
