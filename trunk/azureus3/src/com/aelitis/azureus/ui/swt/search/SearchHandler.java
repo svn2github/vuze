@@ -25,6 +25,7 @@ import java.util.Locale;
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -51,6 +52,29 @@ SearchHandler
 		String		sSearchText,
 		boolean		toSubscribe )
 	{
+		if ( !toSubscribe ){
+			
+			try{
+				
+				if ( 	COConfigurationManager.getBooleanParameter("rcm.overall.enabled",true) &&
+						COConfigurationManager.getBooleanParameter( "Plugin.aercm.rcm.search.enable", false ) && 
+						AzureusCoreFactory.isCoreRunning()){
+					
+					final PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "aercm");
+
+					if (	pi != null && 
+							pi.getPluginState().isOperational() &&
+							pi.getIPC().canInvoke("lookupByExpression", new Object[]{ "" })){
+
+						pi.getIPC().invoke("lookupByExpression", new Object[]{ sSearchText });
+					}
+				}
+			}catch (Throwable e ){
+
+				Debug.out(e);
+			}
+		}
+		
 		boolean	internal_search = !COConfigurationManager.getBooleanParameter( "browser.external.search" );
 		
 		if ( internal_search ){
