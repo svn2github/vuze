@@ -68,6 +68,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -413,23 +414,19 @@ public class PeersView
 				
 				Utils.setMenuItemImage(itemDetails, "details");
 				
-				itemDetails.addListener(
-					SWT.Selection,
-					new Listener()
-					{
-						public void 
-						handleEvent(
-							Event event) 
-						{
-							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-							if (uiFunctions != null) {
-								for ( DownloadManager dm: download_managers ){
-									uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
-								}
+				itemDetails.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						if (uiFunctions != null) {
+							for (DownloadManager dm : download_managers) {
+								uiFunctions.getMDI().showEntryByID(
+										MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS,
+										dm);
 							}
 						}
-					});
-				
+					}
+				});
+
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
 		}

@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 
 /**
@@ -230,9 +231,10 @@ BasicPluginViewImpl
     		public void widgetSelected(SelectionEvent e) {
        	 UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
       	 if (uiFunctions != null) {
-      		 uiFunctions.openView(UIFunctions.VIEW_CONFIG,
+						uiFunctions.getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
 								model.getConfigSectionID());
-      	 }
+	      	 }
     		}
     	});
     	btnConfig.setLayoutData(new GridData());

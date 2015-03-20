@@ -116,7 +116,7 @@ public abstract class BaseMdiEntry
 	private String preferredAfterID;
 
 	private Map<Object,Object>	user_data;
-	
+
 	@SuppressWarnings("unused")
 	private BaseMdiEntry() {
 		mdi = null;
@@ -849,11 +849,6 @@ public abstract class BaseMdiEntry
 		if (getParentID() != null) {
 			autoOpenInfo.put("parentID", getParentID());
 		}
-		UISWTViewEventListener eventListener = getEventListener();
-		if (eventListener != null) {
-			autoOpenInfo.put("eventListenerClass",
-					eventListener.getClass().getName());
-		}
 		autoOpenInfo.put("title", getTitle());
 		Object datasource = getDatasourceCore();
 		if (datasource instanceof DownloadManager) {
@@ -884,12 +879,11 @@ public abstract class BaseMdiEntry
 	
 	public void setCloseable(boolean closeable) {
 		this.closeable = closeable;
-		if (closeable) {
 
+		if (closeable) {
 			mdi.informAutoOpenSet(this, getAutoOpenInfo());
-			COConfigurationManager.setParameter("SideBar.AutoOpen." + id, true);
 		} else {
-			COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
+			mdi.removeEntryAutoOpen(id);
 		}
 	}
 
@@ -903,7 +897,7 @@ public abstract class BaseMdiEntry
 		return isExpanded == null
 				? COConfigurationManager.getBooleanParameter("SideBar.Expanded." + id)
 				: isExpanded;
-	}
+			}
 
 	public void setExpanded(boolean expanded) {
 		isExpanded = expanded;

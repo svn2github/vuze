@@ -17,11 +17,14 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.applet.Applet;
+import java.applet.AudioClip;
+import java.io.File;
+import java.net.URL;
+import java.util.Map;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.disk.DiskManagerListener;
-import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -29,24 +32,18 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
-
-import java.applet.Applet;
-import java.applet.AudioClip;
-import java.io.File;
-import java.net.URL;
-import java.util.Map;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 /**
  * Contains methods to alert the user of certain events.
@@ -92,8 +89,9 @@ UserAlerts
 
 							if ((!complete && COConfigurationManager.getBooleanParameter("Open Details"))
 									|| (complete && COConfigurationManager.getBooleanParameter("Open Seeding Details"))) {
-								UIFunctionsManagerSWT.getUIFunctionsSWT().openView(
-										UIFunctions.VIEW_DM_DETAILS, manager);
+								UIFunctionsManager.getUIFunctions().getMDI().loadEntryByID(
+										MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS,
+										false, false, manager);
 							}
 
 							if (((!complete) && COConfigurationManager.getBooleanParameter("Open Bar Incomplete"))

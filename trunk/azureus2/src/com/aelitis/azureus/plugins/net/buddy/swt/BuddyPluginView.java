@@ -105,6 +105,7 @@ import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTrackerListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 
@@ -1365,7 +1366,7 @@ BuddyPluginView
 
 						if ( uif != null ){
 
-							uif.openView( UIFunctions.VIEW_CHAT_OVERVIEW, null );
+							uif.getMDI().showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_CHAT);
 						}
 					}
 				});

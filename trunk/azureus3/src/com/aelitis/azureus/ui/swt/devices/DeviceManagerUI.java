@@ -106,6 +106,8 @@ import com.aelitis.net.upnpms.*;
 public class 
 DeviceManagerUI 
 {
+	private static final String CONFIG_SECTION_ID = "Devices";
+
 	// Not supported for Unix and OSX PPC
 	public static boolean DISABLED;
 	
@@ -553,7 +555,7 @@ DeviceManagerUI
 	
 	public void setupConfigUI() {
 		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
-				ConfigSection.SECTION_ROOT, "Devices");
+				ConfigSection.SECTION_ROOT, CONFIG_SECTION_ID);
 
 			// auto search
 		
@@ -1625,8 +1627,9 @@ DeviceManagerUI
 				UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
 				if (uif != null) {
-
-					uif.openView(UIFunctions.VIEW_CONFIG, "upnpmediaserver.name");
+					uif.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+							"upnpmediaserver.name");
 				}
 			}
 		});
@@ -1697,7 +1700,9 @@ DeviceManagerUI
 
 				if (uif != null) {
 
-					uif.openView(UIFunctions.VIEW_CONFIG, "UPnP");
+					uif.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+							"UPnP");
 				}
 			}
 		});
@@ -2162,7 +2167,9 @@ DeviceManagerUI
 
 				if (uif != null) {
 
-					uif.openView(UIFunctions.VIEW_CONFIG, "Devices");
+					uif.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+							CONFIG_SECTION_ID);
 				}
 			}
 		});

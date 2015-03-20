@@ -49,6 +49,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 /**
  * @author TuxPaper
@@ -405,8 +406,10 @@ public class CategoryUIUtils
 		itemOptions.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-
-				uiFunctions.openView(UIFunctions.VIEW_DM_MULTI_OPTIONS, dms);
+				if (uiFunctions != null) {
+					uiFunctions.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_OPTIONS, dms);
+				}
 			}
 		});
 

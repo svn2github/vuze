@@ -46,7 +46,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
@@ -149,32 +148,12 @@ public class SBC_TorrentDetailsView
 		});
 	}
 
-	public static DownloadManager dataSourceToDownloadManager(Object ds) {
-		DownloadManager dm = null;
-		if (ds instanceof DownloadImpl) {
-			DownloadImpl dataSourcePlugin = (DownloadImpl) ds;
-			dm = dataSourcePlugin.getDownload();
-		} else if (ds instanceof DownloadManager) {
-			dm = (DownloadManager) ds;
-		} else if (ds instanceof Object[]
-				&& ((Object[]) ds)[0] instanceof DownloadManager) {
-			Object[] o = (Object[]) ds;
-			dm = (DownloadManager) o[0];
-		} else if (ds instanceof String) {
-			final String s = (String) ds;
-			dm = DataSourceUtils.getDM(s);
-		} else {
-			dm = null;
-		}
-		return dm;
-	}
-	
 	private void dataSourceChanged(Object newDataSource) {
 		if (manager != null) {
 			manager.removeListener(this);
 		}
 
-		manager = dataSourceToDownloadManager(newDataSource);
+		manager = DataSourceUtils.getDM(newDataSource);
 		
 		if (newDataSource instanceof Object[]
 				&& ((Object[]) newDataSource)[1] instanceof PEPeer) {

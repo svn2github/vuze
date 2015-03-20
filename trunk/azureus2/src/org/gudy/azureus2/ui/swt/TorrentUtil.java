@@ -53,15 +53,14 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
-import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
-import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
-import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
-import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
@@ -83,6 +82,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -317,7 +317,8 @@ public class TorrentUtil
 				public void run(DownloadManager dm) {
 					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 					if (uiFunctions != null) {
-						uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
+						uiFunctions.getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS, dm);
 					}
 				}
 			});
@@ -624,8 +625,10 @@ public class TorrentUtil
 			itemExportXML.addListener(SWT.Selection, new ListenerDMTask(dms) {
 				public void run(DownloadManager[] dms) {
 					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-
-					uiFunctions.openView(UIFunctions.VIEW_DM_MULTI_OPTIONS, dms);
+					if (uiFunctions != null) {
+						uiFunctions.getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_OPTIONS, dms);
+					}
 				}
 			});
 		}
@@ -2056,7 +2059,8 @@ public class TorrentUtil
 		task.go();
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null) {
-			uiFunctions.openView(UIFunctions.VIEW_MYTRACKER, null);
+			uiFunctions.getMDI().showEntryByID(
+					MultipleDocumentInterface.SIDEBAR_SECTION_MY_TRACKER);
 		}
 	}
 
@@ -2070,7 +2074,8 @@ public class TorrentUtil
 		task.go();
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null) {
-			uiFunctions.openView(UIFunctions.VIEW_MYTRACKER, null);
+			uiFunctions.getMDI().showEntryByID(
+					MultipleDocumentInterface.SIDEBAR_SECTION_MY_TRACKER);
 		}
 	}
 

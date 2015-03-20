@@ -224,7 +224,7 @@ PairingManagerImpl
 		final UIManager	ui_manager = default_pi.getUIManager();
 		
 		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
-				ConfigSection.SECTION_CONNECTION, "Pairing");
+				ConfigSection.SECTION_CONNECTION, CONFIG_SECTION_ID);
 
 		configModel.addHyperlinkParameter2( "ConfigView.label.please.visit.here", MessageText.getString( "ConfigView.section.connection.pairing.url" ));
 

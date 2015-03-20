@@ -103,6 +103,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 
@@ -117,7 +118,6 @@ public class TransferStatsView
 	private static final int MAX_DISPLAYED_PING_MILLIS		= 1199;	// prevents us hitting 1200 and resulting in graph expanding to 1400
 	private static final int MAX_DISPLAYED_PING_MILLIS_DISP	= 1200;	// tidy display
 	
-	private AzureusCore			azureus_core;
 	private GlobalManager		global_manager;
 	private GlobalManagerStats 	stats;
 	private SpeedManager 		speedManager;
@@ -171,7 +171,6 @@ public class TransferStatsView
   public TransferStatsView() {
   	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
-				azureus_core	= core;
 				global_manager = core.getGlobalManager();
 				stats = global_manager.getStats();
 				speedManager = core.getSpeedManager();
@@ -336,7 +335,8 @@ public class TransferStatsView
 
     				if (uif != null) {
 
-    					uif.openView(UIFunctions.VIEW_CONFIG, "Stats");
+							uif.getMDI().showEntryByID(
+									MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, "Stats");
     				}
     			}
     		});

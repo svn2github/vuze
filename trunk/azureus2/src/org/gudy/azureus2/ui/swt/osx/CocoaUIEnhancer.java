@@ -40,6 +40,7 @@ import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -558,7 +559,8 @@ public class CocoaUIEnhancer
 					public void widgetSelected(SelectionEvent e) {
 						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 						if (uiFunctions != null) {
-							uiFunctions.openView(UIFunctions.VIEW_CONFIG, null);
+							uiFunctions.getMDI().showEntryByID(
+									MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG);
 						}
 					};
 				});

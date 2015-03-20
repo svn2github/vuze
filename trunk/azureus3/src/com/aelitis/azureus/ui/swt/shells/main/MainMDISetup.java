@@ -18,27 +18,45 @@
 
 package com.aelitis.azureus.ui.swt.shells.main;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.Map;
 
 import org.eclipse.swt.widgets.Menu;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.tracker.host.TRHost;
+import org.gudy.azureus2.core3.tracker.host.TRHostListener;
+import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.plugins.sharing.ShareManagerListener;
+import org.gudy.azureus2.plugins.sharing.ShareResource;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener2;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
-import org.gudy.azureus2.ui.swt.views.ConfigView;
-import org.gudy.azureus2.ui.swt.views.LoggerView;
-import org.gudy.azureus2.ui.swt.views.PeersSuperView;
+import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -71,15 +89,22 @@ public class MainMDISetup
 			setupSidebarVuzeUI(mdi);
 		}
 
-		mdi.registerEntry(SideBar.SIDEBAR_TORRENT_DETAILS_PREFIX + ".*",
+		mdi.registerEntry(SideBar.SIDEBAR_SECTION_TORRENT_DETAILS,
 				new MdiEntryCreationListener2() {
 					public MdiEntry createMDiEntry(MultipleDocumentInterface mdi,
 							String id, Object datasource, Map<?, ?> params) {
+						String hash = DataSourceUtils.getHash(datasource);
+						if (hash != null) {
+							id = MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS 
+									+ "_" + hash;
+						}
 						return createTorrentDetailEntry(mdi, id, datasource);
 					}
 				});
 
-		PluginInitializer.getDefaultInterface().getUIManager().addUIListener(
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
+
+		pi.getUIManager().addUIListener(
 				new UIManagerListener2() {
 					public void UIDetached(UIInstance instance) {
 					}
@@ -210,37 +235,194 @@ public class MainMDISetup
 					}
 				});
 		
-		PluginInterface pi = PluginInitializer.getDefaultInterface();
-		if (pi != null) {
-			UIManager uim = pi.getUIManager();
-			if (uim != null) {
-				MenuItem menuItem = uim.getMenuManager().addMenuItem(
-						MenuManager.MENU_MENUBAR, "tags.view.heading");
-				menuItem.addListener(new MenuItemListener() {
-					public void selected(MenuItem menu, Object target) {
-						UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
-								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS);
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ALLPEERS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromEventListener(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								PeersSuperView.class,
+								MultipleDocumentInterface.SIDEBAR_SECTION_ALLPEERS, true, null,
+								null);
+						return entry;
 					}
 				});
 
-				menuItem = uim.getMenuManager().addMenuItem(
-						MenuManager.MENU_MENUBAR, "tag.discovery.view.heading");
-				menuItem.addListener(new MenuItemListener() {
-					public void selected(MenuItem menu, Object target) {
-						UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
-								MultipleDocumentInterface.SIDEBAR_SECTION_TAG_DISCOVERY);
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_OPTIONS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromEventListener(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								TorrentOptionsView.class,
+								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_OPTIONS, true,
+								null, null);
+						return entry;
 					}
 				});
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_MY_SHARES,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromEventListener(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								MySharesView.class,
+								MultipleDocumentInterface.SIDEBAR_SECTION_MY_SHARES, true,
+								null, null);
+						return entry;
+					}
+				});
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_MY_TRACKER,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromEventListener(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								MyTrackerView.class,
+								MultipleDocumentInterface.SIDEBAR_SECTION_MY_TRACKER, true,
+								null, null);
+						return entry;
+					}
+				});
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_CLIENT_STATS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromEventListener(
+								MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
+								ClientStatsView.class,
+								MultipleDocumentInterface.SIDEBAR_SECTION_CLIENT_STATS, true,
+								null, null);
+						return entry;
+					}
+				});
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_LOGGER,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromEventListener(
+								MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
+								LoggerView.class,
+								MultipleDocumentInterface.SIDEBAR_SECTION_LOGGER, true,
+								null, null);
+						return entry;
+					}
+				});
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+				new MdiEntryCreationListener2() {
 
-				menuItem = uim.getMenuManager().addMenuItem(
-						MenuManager.MENU_MENUBAR, "chats.view.heading");
-				menuItem.addListener(new MenuItemListener() {
-					public void selected(MenuItem menu, Object target) {
-						UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
-								MultipleDocumentInterface.SIDEBAR_SECTION_CHAT);
+					public MdiEntry createMDiEntry(MultipleDocumentInterface mdi,
+							String id, Object datasource, Map<?, ?> params) {
+
+						String section = (datasource instanceof String)
+								? ((String) datasource) : null;
+
+						boolean uiClassic = COConfigurationManager.getStringParameter(
+								"ui").equals("az2");
+						if (uiClassic || COConfigurationManager.getBooleanParameter(
+								"Show Options In Side Bar")) {
+  						MdiEntry entry = ((MultipleDocumentInterfaceSWT) mdi).createEntryFromEventListener(
+  								MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
+  								ConfigView.class,
+  								MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, true, null,
+  								null);
+  						return entry;
+						}
+						
+						ConfigShell.getInstance().open(section);
+						return null;
 					}
 				});
+		
+		try {
+			final ShareManager share_manager = pi.getShareManager();
+			if (share_manager.getShares().length > 0) {
+				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_MY_SHARES);
+			} else {
+  			share_manager.addListener(new ShareManagerListener() {
+  				
+  				public void resourceModified(ShareResource old_resource,
+  						ShareResource new_resource) {
+  				}
+  				
+  				public void resourceDeleted(ShareResource resource) {
+  				}
+  				
+  				public void resourceAdded(ShareResource resource) {
+  					share_manager.removeListener(this);
+						mdi.loadEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_MY_SHARES, false);
+  				}
+  				
+  				public void reportProgress(int percent_complete) {
+  				}
+  				
+  				public void reportCurrentTask(String task_description) {
+  				}
+  			});
 			}
+			
+
+		} catch (Throwable t) {
+		}
+		
+		// Load Tracker View on first host of file
+		TRHost trackerHost = AzureusCoreFactory.getSingleton().getTrackerHost();
+		trackerHost.addListener(new TRHostListener() {
+			boolean done = false;
+			
+			public void torrentRemoved(TRHostTorrent t) {
+			}
+			
+			public void torrentChanged(TRHostTorrent t) {
+			}
+			
+			public void torrentAdded(TRHostTorrent t) {
+				if (done) {
+					return;
+				}
+				TRHost trackerHost = AzureusCoreFactory.getSingleton().getTrackerHost();
+				trackerHost.removeListener(this);
+				done = true;
+				mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_MY_TRACKER,
+						false);
+			}
+			
+			public boolean handleExternalRequest(InetSocketAddress client_address,
+					String user, String url, URL absolute_url, String header, InputStream is,
+					OutputStream os, AsyncController async)
+							throws IOException {
+				return false;
+			}
+		});
+
+		UIManager uim = pi.getUIManager();
+		if (uim != null) {
+			MenuItem menuItem = uim.getMenuManager().addMenuItem(
+					MenuManager.MENU_MENUBAR, "tags.view.heading");
+			menuItem.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_TAGS);
+				}
+			});
+
+			menuItem = uim.getMenuManager().addMenuItem(
+					MenuManager.MENU_MENUBAR, "tag.discovery.view.heading");
+			menuItem.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_TAG_DISCOVERY);
+				}
+			});
+
+			menuItem = uim.getMenuManager().addMenuItem(
+					MenuManager.MENU_MENUBAR, "chats.view.heading");
+			menuItem.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_CHAT);
+				}
+			});
 		}
 
 		//		System.out.println("Activate sidebar " + startTab + " took "
@@ -330,8 +512,9 @@ public class MainMDISetup
 								UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
 								if (uif != null) {
-
-									uif.openView(UIFunctions.VIEW_CONFIG, "plugins");
+									uif.getMDI().showEntryByID(
+											MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+											"plugins");
 								}
 							}
 						});
@@ -457,7 +640,7 @@ public class MainMDISetup
 					return "image.sidebar.details";
 				}
 
-				DownloadManager manager = SBC_TorrentDetailsView.dataSourceToDownloadManager(ds);
+				DownloadManager manager = DataSourceUtils.getDM(ds);
 				if (manager == null) {
 					return null;
 				}
@@ -501,7 +684,7 @@ public class MainMDISetup
 					// todo: This even work?
 					TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
 					menuTree.setData("TableView", tv);
-					DownloadManager manager = SBC_TorrentDetailsView.dataSourceToDownloadManager(torrentDetailEntry.getDatasource());
+					DownloadManager manager = DataSourceUtils.getDM(torrentDetailEntry.getDatasource());
 					if (manager != null) {
 						menuTree.setData("downloads", new DownloadManager[] {
 							manager

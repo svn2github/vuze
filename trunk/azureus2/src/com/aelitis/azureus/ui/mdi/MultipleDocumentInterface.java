@@ -63,7 +63,7 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_LIBRARY_UNOPENED = "LibraryUnopened";
 	
-	public static final String SIDEBAR_TORRENT_DETAILS_PREFIX = "DMDetails_";
+	public static final String SIDEBAR_SECTION_TORRENT_DETAILS = "DMDetails";
 
 	public static final String SIDEBAR_SECTION_WELCOME = "Welcome";
 
@@ -79,7 +79,23 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_SEARCH = "Search";
 	
+	public static final String SIDEBAR_SECTION_ALLPEERS = "AllPeersView";
+	
+	public static final String SIDEBAR_SECTION_TORRENT_OPTIONS = "TorrentOptionsView";
+
+	public static final String SIDEBAR_SECTION_MY_SHARES = "MySharesView";
+
+	public static final String SIDEBAR_SECTION_MY_TRACKER = "MyTrackerView";
+	
+	public static final String SIDEBAR_SECTION_CLIENT_STATS = "ClientStatsView";
+
+	public static final String SIDEBAR_SECTION_LOGGER = "LoggerView";
+
+	public static final String SIDEBAR_SECTION_CONFIG = "ConfigView";
+
 	public boolean showEntryByID(String id);
+
+	public boolean showEntryByID(String id, Object datasource);
 
 		/**
 		 * If you prefix the 'preferedAfterID' string with '~' then the operation will actually
@@ -125,6 +141,10 @@ public interface MultipleDocumentInterface
 
 	public void removeItem(MdiEntry entry);
 
+	/**
+	 * When an entry can not be opened (ie. creation listener isn't registered yet),
+	 * call this to store your open request
+	 */
 	public void setEntryAutoOpen(String id, Object datasource);
 	
 	public void removeEntryAutoOpen(String id);

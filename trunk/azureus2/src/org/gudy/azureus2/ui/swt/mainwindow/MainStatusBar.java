@@ -60,8 +60,8 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
-import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -468,7 +468,8 @@ public class MainStatusBar
 
 								if (uif != null) {
 
-									uif.openView(UIFunctions.VIEW_CONFIG, "ipfilter");
+									uif.getMDI().showEntryByID(
+											MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, "ipfilter");
 								}
 							}
 						});
@@ -539,7 +540,8 @@ public class MainStatusBar
 
 		Listener lNAT = new ListenerNeedingCoreRunning() {
 			public void handleEvent(AzureusCore core, Event e) {
-				uiFunctions.openView(UIFunctions.VIEW_CONFIG,
+				uiFunctions.getMDI().loadEntryByID(
+						MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, true, false,
 						ConfigSection.SECTION_CONNECTION);
 
 				if (PluginInitializer.getDefaultInterface().getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK) {

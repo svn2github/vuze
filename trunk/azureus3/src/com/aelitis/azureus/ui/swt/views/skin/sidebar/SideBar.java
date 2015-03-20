@@ -61,6 +61,7 @@ import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -1168,7 +1169,8 @@ public class SideBar
 
 										for (String s : relevant_sections) {
 
-											uif.openView(UIFunctions.VIEW_CONFIG, s);
+											uif.getMDI().showEntryByID(
+													MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, s);
 										}
 									}
 								}

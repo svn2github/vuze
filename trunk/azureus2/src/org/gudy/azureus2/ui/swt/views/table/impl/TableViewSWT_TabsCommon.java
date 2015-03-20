@@ -53,6 +53,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -646,7 +647,9 @@ public class TableViewSWT_TabsCommon
 					
 					if ( uiFunctions != null ){					
 				
-						uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, maximizeTo );
+						uiFunctions.getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS,
+								maximizeTo);
 					}
 				}	
 			}

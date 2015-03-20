@@ -36,7 +36,6 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
@@ -480,7 +479,7 @@ public class TagUIUtils
 				menuItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
 					public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target) {
 						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-						uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "TagStatsView");
+						uiFunctions.getMDI().showEntryByID(StatsView.VIEW_ID, "TagStatsView");
 
 					}
 				});
@@ -490,8 +489,7 @@ public class TagUIUtils
 				menuItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
 					public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target) {
 						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-						uiFunctions.openView( UIFunctions.VIEW_TAGS_OVERVIEW, null);
-
+						uiFunctions.getMDI().showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_TAGS);
 					}
 				});
 			}
@@ -1092,8 +1090,11 @@ public class TagUIUtils
 			itemOptions.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
 					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-	
-					uiFunctions.openView(UIFunctions.VIEW_DM_MULTI_OPTIONS, dms.toArray( new DownloadManager[dms.size()]));
+					if (uiFunctions != null) {
+						uiFunctions.getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_OPTIONS,
+								dms.toArray(new DownloadManager[dms.size()]));
+					}
 				}
 			});
 	

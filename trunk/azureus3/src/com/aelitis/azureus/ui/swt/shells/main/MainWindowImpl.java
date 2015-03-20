@@ -380,46 +380,8 @@ public class MainWindowImpl
 		
 		if (!Constants.isSafeMode) {
 			
-			if (core.getTrackerHost().getTorrents().length > 0) {
-				Utils.execSWTThreadLater(0, new Runnable() {
-					public void run() {
-						uiFunctions.openView(UIFunctions.VIEW_MYTRACKER, null);
-					}
-				});
-			}
-
-			// share manager init is async so we need to deal with this
-			PluginInterface default_pi = PluginInitializer.getDefaultInterface();
-			try {
-				final ShareManager share_manager = default_pi.getShareManager();
-
-				default_pi.addListener(new PluginListener() {
-					public void initializationComplete() {
-					}
-
-					public void closedownInitiated() {
-						int share_count = share_manager.getShares().length;
-						COConfigurationManager.setParameter("GUI_SWT_share_count_at_close",
-								share_count);
-					}
-
-					public void closedownComplete() {
-					}
-				});
-
-				if (share_manager.getShares().length > 0
-						|| COConfigurationManager.getIntParameter("GUI_SWT_share_count_at_close") > 0) {
-
-					Utils.execSWTThreadLater(0, new Runnable() {
-						public void run() {
-							uiFunctions.openView(UIFunctions.VIEW_MYSHARES, null);
-						}
-					});
-				}
-			} catch (ShareException e) {
-				Debug.out(e);
-			}
-			
+			// We used to open up share view here.  Moved to MainMDISetup.. param not used now
+			COConfigurationManager.removeParameter("GUI_SWT_share_count_at_close");
 			
 			MainHelpers.initTransferBar();
 			

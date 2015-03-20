@@ -43,12 +43,12 @@ import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminImpl;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
 NetworkAdminSWTImpl 
 {
-	private AzureusCore				core;
 	private NetworkAdminImpl		network_admin;
 	
 	private UISWTStatusEntry 	status;
@@ -68,7 +68,6 @@ NetworkAdminSWTImpl
 		AzureusCore				_core,
 		NetworkAdminImpl		_network_admin )
 	{
-		core			= _core;
 		network_admin	= _network_admin;
 		
 		final PluginInterface default_pi = PluginInitializer.getDefaultInterface();
@@ -193,7 +192,9 @@ NetworkAdminSWTImpl
 			
 													if ( uif != null ){
 			
-														uif.openView( UIFunctions.VIEW_CONFIG, "connection.advanced" );
+														uif.getMDI().showEntryByID(
+																MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+																"connection.advanced");
 													}
 												}
 											});

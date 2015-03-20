@@ -678,7 +678,8 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_MYTORRENTS, null);
+					uiFunctions.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
 				}
 			}
 		});
@@ -689,7 +690,8 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_ALLPEERS, null);
+					uiFunctions.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_ALLPEERS);
 				}
 			}
 		});
@@ -700,7 +702,8 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_PEERS_STATS, null);
+					uiFunctions.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_CLIENT_STATS);
 				}
 			}
 		});
@@ -727,10 +730,8 @@ public class MenuFactory
 	public static MenuItem addMyTrackerMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_MY_TRACKERS, new Listener() {
 			public void handleEvent(Event e) {
-				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_MYTRACKER, null);
-				}
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_MY_TRACKER);
 			}
 		});
 	}
@@ -740,7 +741,8 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_MYSHARES, null);
+					uiFunctions.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_MY_SHARES);
 				}
 			}
 		});
@@ -1631,7 +1633,8 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_CONSOLE, null);
+					uiFunctions.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_LOGGER);
 				}
 			}
 		});
@@ -1704,7 +1707,8 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_CONFIG, null);
+					uiFunctions.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG);
 				}
 			}
 		});

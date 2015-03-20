@@ -567,7 +567,8 @@ public class SBC_TagsOverview
 						tag.setVisible( true );
 					}
 					
-					uiFunctions.openView( UIFunctions.VIEW_TAG, tag );
+					String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
+					uiFunctions.getMDI().showEntryByID(id, tag);
 				}
 			}
 		}

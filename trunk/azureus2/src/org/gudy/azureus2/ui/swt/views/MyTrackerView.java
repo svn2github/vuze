@@ -70,6 +70,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 
 /**
@@ -162,7 +163,8 @@ public class MyTrackerView
 				if (dm != null) {
 					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 					if (uiFunctions != null) {
-						uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
+						uiFunctions.getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS, dm);
 					}
 				}
 			}

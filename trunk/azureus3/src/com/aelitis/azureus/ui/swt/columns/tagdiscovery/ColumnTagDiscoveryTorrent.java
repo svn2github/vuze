@@ -17,17 +17,14 @@
 
 package com.aelitis.azureus.ui.swt.columns.tagdiscovery;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDiscovery;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 public class ColumnTagDiscoveryTorrent
 	implements TableCellRefreshListener, TableColumnExtraInfoListener
@@ -45,19 +42,19 @@ public class ColumnTagDiscoveryTorrent
 	public ColumnTagDiscoveryTorrent(TableColumn column) {
 		column.setWidth(200);
 		column.addListeners(this);
-		TableContextMenuItem menuShowTime = column.addContextMenuItem(
+		TableContextMenuItem menuShowTorrent = column.addContextMenuItem(
 				"ConfigView.option.dm.dblclick.details",
 				TableColumn.MENU_STYLE_COLUMN_DATA);
 
-		menuShowTime.addListener(new MenuItemListener() {
+		menuShowTorrent.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof TagDiscovery) {
 					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 					if (uiFunctions != null) {
 						byte[] hash = ((TagDiscovery) target).getHash();
-						DownloadManager dm = AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManager(
-								new HashWrapper(hash));
-						uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
+						uiFunctions.getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS,
+								hash);
 					}
 				}
 			}

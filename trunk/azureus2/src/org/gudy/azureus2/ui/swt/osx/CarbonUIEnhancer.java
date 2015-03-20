@@ -32,6 +32,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 public class CarbonUIEnhancer
@@ -805,7 +806,8 @@ public class CarbonUIEnhancer
 					case kHICommandPreferences: {
 						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 						if (uiFunctions != null) {
-							uiFunctions.openView(UIFunctions.VIEW_CONFIG, null);
+							uiFunctions.getMDI().showEntryByID(
+									MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG);
 						}
 						return noErr;
 					}

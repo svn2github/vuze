@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.mdi;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -38,6 +39,7 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.util.ConstantsVuze;
@@ -63,6 +65,8 @@ public abstract class BaseMDI
 	private static LinkedHashMap<String, Object> mapAutoOpen = new LinkedHashMap<String, Object>();
 
 	private String[] preferredOrder;
+
+	private boolean mapAutoOpenLoaded = false;
 
 	public void addListener(MdiListener l) {
 		synchronized (listeners) {
@@ -139,17 +143,70 @@ public abstract class BaseMDI
 		}
 	}
 
+	// @see com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT#createEntryFromEventListener(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener, java.lang.String, boolean, java.lang.Object, java.lang.String)
 	public abstract MdiEntry createEntryFromEventListener(String parentID,
 			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferedAfterID);
 
+	// @see com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT#createEntryFromView(java.lang.String, org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore, java.lang.String, java.lang.Object, boolean, boolean, boolean)
 	public abstract MdiEntry createEntryFromView(String parentID, UISWTViewCore iview,
 			String id, Object datasource, boolean closeable, boolean show,
 			boolean expand);
 
+	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#createEntryFromSkinRef(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, java.lang.Object, boolean, java.lang.String)
 	public abstract MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
 			boolean closeable, String preferedAfterID);
 
+	// @see com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT#createEntryFromEventListener(java.lang.String, java.lang.Class, java.lang.String, boolean, java.lang.Object, java.lang.String)
+	public MdiEntry createEntryFromEventListener(final String parentID,
+			Class<? extends UISWTViewEventListener> cla, String id, boolean closeable,
+			Object data, String preferedAfterID) {
+		final MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi == null) {
+			return null;
+		}
+
+		if (id == null) {
+			id = cla.getName();
+			int i = id.lastIndexOf('.');
+			if (i > 0) {
+				id = id.substring(i + 1);
+			}
+		}
+
+		MdiEntry entry = mdi.getEntry(id);
+		if (entry != null) {
+			if (data != null) {
+				entry.setDatasource(data);
+			}
+			return entry;
+		}
+		UISWTViewEventListener l = null;
+		if (data != null) {
+			try {
+				Constructor<?> constructor = cla.getConstructor(new Class[] {
+					data.getClass()
+				});
+				l = (UISWTViewEventListener) constructor.newInstance(new Object[] {
+					data
+				});
+			} catch (Exception e) {
+			}
+		}
+
+		try {
+			if (l == null) {
+				l = cla.newInstance();
+			}
+			return mdi.createEntryFromEventListener(parentID, l, id, closeable, data,
+					preferedAfterID);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+
+		return null;
+	}
+	
 	public MdiEntry getCurrentEntry() {
 		return currentEntry;
 	}
@@ -291,6 +348,10 @@ public abstract class BaseMDI
 
 	public boolean showEntryByID(String id) {
 		return loadEntryByID(id, true);
+	}
+
+	public boolean showEntryByID(String id, Object datasource) {
+		return loadEntryByID(id, true, false, datasource);
 	}
 
 	@Override
@@ -453,6 +514,7 @@ public abstract class BaseMDI
 			
 			Debug.out( e );
 		}
+		mapAutoOpenLoaded  = true;
 	}
 
 	@SuppressWarnings({
@@ -460,6 +522,10 @@ public abstract class BaseMDI
 		"rawtypes"
 	})
 	public void saveCloseables() {
+		if (!mapAutoOpenLoaded) {
+			return;
+		}
+
 		try{
 			// update auto open info
 			for (Iterator<String> iter = new ArrayList<String>(mapAutoOpen.keySet()).iterator(); iter.hasNext();) {
@@ -575,6 +641,10 @@ public abstract class BaseMDI
 						});
 					}
 				}
+			}
+			
+			if (entry == null) {
+				System.err.println("Could not create sidebar " + id + "; " + autoOpenInfo);
 			}
 
 			return entry != null;

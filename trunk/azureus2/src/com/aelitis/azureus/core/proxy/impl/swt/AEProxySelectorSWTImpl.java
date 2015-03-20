@@ -52,6 +52,7 @@ import com.aelitis.azureus.core.proxy.impl.AEProxySelectorImpl;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
@@ -229,8 +230,9 @@ AEProxySelectorSWTImpl
 													UIFunctions uif = UIFunctionsManager.getUIFunctions();
 			
 													if ( uif != null ){
-			
-														uif.openView( UIFunctions.VIEW_CONFIG, "proxy" );
+														uif.getMDI().showEntryByID(
+																MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+																"proxy");
 													}
 												}
 											});

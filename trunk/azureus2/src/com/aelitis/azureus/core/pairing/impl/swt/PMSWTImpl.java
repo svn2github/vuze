@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
 import org.gudy.azureus2.ui.swt.auth.CryptoWindow;
 
+import com.aelitis.azureus.core.pairing.PairingManager;
 import com.aelitis.azureus.core.pairing.impl.PairingManagerImpl;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
@@ -52,6 +53,7 @@ import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
@@ -245,7 +247,9 @@ PMSWTImpl
 			
 													if ( uif != null ){
 			
-														uif.openView( UIFunctions.VIEW_CONFIG, "Pairing" );
+														uif.getMDI().showEntryByID(
+																MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+																PairingManager.CONFIG_SECTION_ID );
 													}
 												}
 											});
@@ -262,7 +266,9 @@ PMSWTImpl
 													
 													if ( uif != null ){
 			
-														uif.openView( UIFunctions.VIEW_CONFIG, "Pairing" );
+														uif.getMDI().showEntryByID(
+																MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+																PairingManager.CONFIG_SECTION_ID );
 													}
 												}
 											};

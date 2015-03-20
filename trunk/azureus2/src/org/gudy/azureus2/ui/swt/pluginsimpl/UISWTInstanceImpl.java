@@ -39,8 +39,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -69,11 +67,11 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.ui.IUIIntializer;
-import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableStructureEventDispatcher;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -507,7 +505,8 @@ UISWTInstanceImpl
 				
 				event.setResult(Boolean.TRUE);
 	    	
-				uiFunctions.openView(UIFunctions.VIEW_CONFIG, data);
+				uiFunctions.getMDI().showEntryByID(
+						MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, data);
 
 				break;
 			}
@@ -842,7 +841,9 @@ UISWTInstanceImpl
 	public void openConfig(final BasicPluginConfigModel model) {
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
-	    	uiFunctions.openView(UIFunctions.VIEW_CONFIG, model.getSection());
+				uiFunctions.getMDI().loadEntryByID(
+						MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, true, false,
+						model.getSection());
 			}
 		});
 	}

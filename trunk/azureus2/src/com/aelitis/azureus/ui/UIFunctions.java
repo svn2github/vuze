@@ -41,20 +41,14 @@ public interface UIFunctions
 
 	public static int STATUSICON_ERROR = 2;
 
-	
-	public static final int VIEW_CONSOLE = 0;
-	public static final int VIEW_CONFIG = 4;
-	public static final int VIEW_DM_DETAILS = 5;
-	public static final int VIEW_DM_MULTI_OPTIONS = 6;
-	public static final int VIEW_MYSHARES = 7;
+	/** @deprecated Used by azburn */
 	public static final int VIEW_MYTORRENTS = 8;
-	public static final int VIEW_MYTRACKER = 9;
-	public static final int VIEW_ALLPEERS = 10;
-	public static final int VIEW_PEERS_STATS = 12;
-	public static final int VIEW_TAG = 13;
-	public static final int VIEW_TAGS_OVERVIEW = 14;
-	public static final int VIEW_CHAT_OVERVIEW = 15;
+	/** @deprecated Used by rcm */
+	public static final int VIEW_CONFIG = 4;
+	/** @deprecated Used by rcm */
+	public static final int VIEW_DM_DETAILS = 5;
 
+	
 	public static final int ACTION_FULL_UPDATE				= 1;	// arg: String - url; response Boolean - ok
 	public static final int ACTION_UPDATE_RESTART_REQUEST	= 2;	// arg: Boolean - true->no auto-select response Boolean - ok
 	
@@ -131,10 +125,7 @@ public interface UIFunctions
 	public UIUpdater getUIUpdater();
 
 	/**
-	 * @param viewID
-	 * @param data
-	 *
-	 * @since 3.1.1.1
+	 * @deprecated Use {@link #getMDI()}
 	 */
 	void openView(int viewID, Object datasource);
 	

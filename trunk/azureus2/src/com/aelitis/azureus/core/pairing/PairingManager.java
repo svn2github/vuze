@@ -30,6 +30,8 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 public interface 
 PairingManager 
 {
+	public static String CONFIG_SECTION_ID = "Pairing";
+
 	public boolean
 	isEnabled();
 	

@@ -359,12 +359,6 @@ public class TabbedEntry
 					return;
 				}
 
-				try {
-					COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
-				} catch (Exception e2) {
-					Debug.out(e2);
-				}
-
 				mdi.removeItem(TabbedEntry.this);
 				mdi.removeEntryAutoOpen(id);
 			}

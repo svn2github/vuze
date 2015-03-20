@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -362,8 +363,9 @@ public class SystemTraySWT
 				UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
 				if (uif != null) {
-
-					uif.openView(UIFunctions.VIEW_CONFIG, ConfigSection.SECTION_INTERFACE );
+					uif.getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+							ConfigSection.SECTION_INTERFACE);
 				}
 			}
 		});

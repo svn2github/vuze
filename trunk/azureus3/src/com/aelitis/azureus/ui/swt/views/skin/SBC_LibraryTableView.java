@@ -57,7 +57,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -65,6 +64,7 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedVuzeFileContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -293,37 +293,23 @@ public class SBC_LibraryTableView
 		String mode = COConfigurationManager.getStringParameter("list.dm.dblclick");
 		if (mode.equals("1")) {
 			// OMG! Show Details! I <3 you!
-			DownloadManager dm = DataSourceUtils.getDM(ds);
-			if (dm != null) {
-				UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, dm);
-				return;
-			}
-			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
-			if (file != null) {
-				UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, file.getDownloadManager());
-				return;
-			}
+			UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+					MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS, ds);
 		}else if (mode.equals("2")) {
 			// Show in explorer
-			DownloadManager dm = DataSourceUtils.getDM(ds);
-			if (dm != null) {
-				boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
-				ManagerUtils.open(dm, openMode);
-				return;
-			}
+			boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
 			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
 			if (file != null) {
-				boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
 				ManagerUtils.open(file, openMode);
+				return;
+			}
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm != null) {
+				ManagerUtils.open(dm, openMode);
 				return;
 			}
 		}else if (mode.equals("3") || mode.equals("4")){
 			// Launch
-			DownloadManager dm = DataSourceUtils.getDM(ds);
-			if (dm != null) {
-				TorrentUtil.runDataSources(new Object[]{ dm });
-				return;
-			}
 			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
 			if (file != null) {
 				if (	mode.equals("4") &&
@@ -334,6 +320,11 @@ public class SBC_LibraryTableView
 				}else{
 					TorrentUtil.runDataSources(new Object[]{ file });
 				}
+				return;
+			}
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm != null) {
+				TorrentUtil.runDataSources(new Object[]{ dm });
 				return;
 			}
 		}

@@ -17,7 +17,6 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Locale;
 
@@ -39,7 +38,6 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -53,17 +51,16 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
-import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
-import org.gudy.azureus2.ui.swt.views.*;
-import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.table.TableView;
@@ -448,197 +445,25 @@ public class UIFunctionsImpl
 		return mainWindow.getMainStatusBar();
 	}
 	
-	// @see com.aelitis.azureus.ui.UIFunctions#showConfig(java.lang.String)
-	public boolean showConfig(String section) {
-		try {
-			boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-			if (uiClassic || COConfigurationManager.getBooleanParameter( "Show Options In Side Bar" )) {
-				openView(SideBar.SIDEBAR_HEADER_PLUGINS, ConfigView.class, null, section, true);
-			} else {
-				ConfigShell.getInstance().open(section);
-			}
-			return true;
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "showConfig", e));
-		}
-
-		return false;
-	}
-
+	// BurnPlugin uses this for VIEW_CONFIG
+	// RCM uses VIEW_MYTORRENTS and VIEW_CONFIG and VIEW_DM_DETAILS
+	@Deprecated
 	public void openView(final int viewID, final Object data) {
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				_openView(viewID, data);
-			}
-		});
+		MultipleDocumentInterface mdi = getMDI();
+		if (viewID == VIEW_CONFIG) {
+			mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, data);
+		} else if (viewID == VIEW_DM_DETAILS) {
+			mdi.showEntryByID(
+					MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS, data);
+		} else if (viewID == VIEW_MYTORRENTS) {
+			mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY,
+					data);
+		} else {
+			System.err.println(
+					"DEPRECATED -- Use getMDI().showEntryByID(" + viewID + "..)");
+		}
 	}
 		
-	private void _openView(int viewID, Object data) {
-		switch (viewID) {
-			case VIEW_CONSOLE:
-				openView(SideBar.SIDEBAR_HEADER_PLUGINS, LoggerView.class,
-						null, data, true);
-				break;
-
-			case VIEW_ALLPEERS:
-				openView(SideBar.SIDEBAR_HEADER_TRANSFERS, PeersSuperView.class,
-						"AllPeersView", data, true);
-				break;
-
-			case VIEW_PEERS_STATS:
-				openView(SideBar.SIDEBAR_HEADER_PLUGINS, ClientStatsView.class,
-						null, data, true);
-				break;
-
-			case VIEW_CONFIG:
-				showConfig((data instanceof String) ? (String) data : null);
-				break;
-
-			case VIEW_DM_DETAILS: {
-				String id = SideBar.SIDEBAR_TORRENT_DETAILS_PREFIX;
-				if (data instanceof DownloadManager) {
-					DownloadManager dm = (DownloadManager) data;
-					TOTorrent torrent = dm.getTorrent();
-					if (torrent != null) {
-						try {
-							id += torrent.getHashWrapper().toBase32String();
-						} catch (TOTorrentException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-				
-				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				if (mdi != null) {
-					mdi.loadEntryByID(id, true, false, data);
-				}
-			}
-				break;
-
-			case VIEW_DM_MULTI_OPTIONS:
-				openView(SideBar.SIDEBAR_HEADER_TRANSFERS,
-						TorrentOptionsView.class, null, data, true);
-				break;
-
-			case VIEW_MYSHARES:
-				openView(SideBar.SIDEBAR_HEADER_TRANSFERS,
-						MySharesView.class, null, data, true);
-				break;
-
-			case VIEW_MYTORRENTS: {
-				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				if (mdi != null) {
-					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
-				}
-			}
-				break;
-
-			case VIEW_MYTRACKER:
-				openView(SideBar.SIDEBAR_HEADER_TRANSFERS, MyTrackerView.class,
-						null, data, true);
-				break;
-
-			case VIEW_TAGS_OVERVIEW:{
-				
-				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				
-				if ( mdi != null ){
-
-					mdi.showEntryByID( MultipleDocumentInterface.SIDEBAR_SECTION_TAGS);
-				}
-				
-				break;
-			}
-			case VIEW_CHAT_OVERVIEW:{
-				
-				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				
-				if ( mdi != null ){
-
-					mdi.showEntryByID( MultipleDocumentInterface.SIDEBAR_SECTION_CHAT );
-				}
-				
-				break;
-			}
-			case VIEW_TAG: {
-				
-				if ( data instanceof Tag ){
-					
-					Tag tag = (Tag)data;
-					
-					String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
-					
-					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-					
-					if ( mdi != null ){
-						
-						mdi.loadEntryByID(id, true, false, data);
-					}
-				}
-				break;
-			}
-			default:
-				break;
-		}
-	}
-
-	private void openView(final String parentID,
-			final Class<? extends UISWTViewEventListener> cla, String id,
-			final Object data, final boolean closeable) {
-		final MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if (mdi == null) {
-			return;
-		}
-
-		if (id == null) {
-			id = cla.getName();
-			int i = id.lastIndexOf('.');
-			if (i > 0) {
-				id = id.substring(i + 1);
-			}
-		}
-
-		UISWTViewCore viewFromID = mdi.getCoreViewFromID(id);
-		if (viewFromID != null) {
-			viewFromID.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, data);
-			mdi.showEntryByID(id);
-		}
-
-		final String _id = id;
-		Utils.execSWTThreadLater(0, new AERunnable() {
-
-			public void runSupport() {
-				if (mdi.showEntryByID(_id)) {
-					return;
-				}
-				UISWTViewEventListener l = null;
-				if ( data != null ){
-					try {
-						Constructor<?> constructor = cla.getConstructor(new Class[] {
-							data.getClass()
-						});
-						l = (UISWTViewEventListener) constructor.newInstance(new Object[] {
-							data
-						});
-					} catch (Exception e) {
-					}
-				}
-				
-				try {
-					if (l == null) {
-						l = cla.newInstance();
-					}
-					mdi.createEntryFromEventListener(parentID, l, _id, closeable,
-							data, null );
-				} catch (Exception e) {
-					Debug.out(e);
-				}
-				mdi.showEntryByID(_id);
-			}
-		});
-
-	}
 	public UISWTInstance getUISWTInstance() {
 		UISWTInstanceImpl impl = mainWindow.getUISWTInstanceImpl();
 		if (impl == null) {
@@ -1405,30 +1230,28 @@ public class UIFunctionsImpl
 				if ( looks_good ){
 				
 					return TorrentOpener.addTorrent(torrentOptions);
-					
-				}else{
-					
-					torrentOptions.setParentDir( "" );
-					
-					MessageBoxShell mb = 
-						new MessageBoxShell(
-							SWT.OK | SWT.ICON_ERROR,
-							"OpenTorrentWindow.mb.invaliddefsave", 
-							new String[]{ save_loc });
-					
-					mb.open(
-						new UserPrompterResultListener() 
-						{
-							public void 
-							prompterClosed(
-								int result) 
-							{
-								OpenTorrentOptionsWindow.addTorrent( torrentOptions );
-							}
-						});
-					
-					return( true );
 				}
+				
+				torrentOptions.setParentDir( "" );
+				
+				MessageBoxShell mb = 
+					new MessageBoxShell(
+						SWT.OK | SWT.ICON_ERROR,
+						"OpenTorrentWindow.mb.invaliddefsave", 
+						new String[]{ save_loc });
+				
+				mb.open(
+					new UserPrompterResultListener() 
+					{
+						public void 
+						prompterClosed(
+							int result) 
+						{
+							OpenTorrentOptionsWindow.addTorrent( torrentOptions );
+						}
+					});
+				
+				return( true );
 			}
 		}
 		

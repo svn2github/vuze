@@ -77,6 +77,7 @@ import com.aelitis.azureus.ui.swt.utils.TagUIUtilsV3;
 public class 
 SubscriptionManagerUI 
 {
+	private static final String CONFIG_SECTION_ID = "Subscriptions";
 	public static final Object	SUB_ENTRYINFO_KEY 		= new Object();
 	public static final Object	SUB_EDIT_MODE_KEY 	= new Object();
 	
@@ -442,7 +443,7 @@ SubscriptionManagerUI
 		final SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 
 		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
-				ConfigSection.SECTION_ROOT, "Subscriptions");
+				ConfigSection.SECTION_ROOT, CONFIG_SECTION_ID);
 
 		final IntParameter max_results = 
 			configModel.addIntParameter2( 
@@ -924,7 +925,9 @@ SubscriptionManagerUI
 				      	 
 				      	 if ( uif != null ){
 				      		 
-				      		 uif.openView( UIFunctions.VIEW_CONFIG, "Subscriptions" );
+				      		 uif.getMDI().showEntryByID(
+				      				 MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+				      				 CONFIG_SECTION_ID);
 				      	 }
 					}
 				});
