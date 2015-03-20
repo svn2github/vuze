@@ -129,6 +129,13 @@ public class DataSourceUtils
 				return( PluginCoreUtils.unwrap(((DeviceOfflineDownload)ds).getDownload()));
 			} else if (ds instanceof Download) {
 				return PluginCoreUtils.unwrap((Download) ds);
+			} else if (ds instanceof byte[]) {
+				byte[] hash = (byte[]) ds;
+  			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+  			DownloadManager dm = gm.getDownloadManager(new HashWrapper(hash));
+  			if (dm != null) {
+  				return dm;
+  			}				
 			} else if (ds instanceof Object[]) {
 					Object[] o = (Object[]) ds;
 					return getDM(o[0]);
