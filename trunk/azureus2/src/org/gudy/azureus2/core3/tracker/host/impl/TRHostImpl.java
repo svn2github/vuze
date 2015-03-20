@@ -1064,6 +1064,9 @@ TRHostImpl
 		return( lookupHostTorrent( torrent ));
 	}
 	
+	/**
+	 * Add and fire listener for each torrent already hosted
+	 */
 	public void
 	addListener(
 		TRHostListener	l )
