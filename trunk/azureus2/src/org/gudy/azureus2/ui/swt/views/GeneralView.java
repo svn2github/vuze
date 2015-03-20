@@ -64,6 +64,8 @@ import com.aelitis.azureus.util.MapUtils;
 
 /**
  * View of General information on the torrent
+ * <p>
+ * See also {SBC_TorrentDetailsView}
  * 
  * @author Olivier
  * 
