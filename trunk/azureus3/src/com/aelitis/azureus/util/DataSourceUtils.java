@@ -23,9 +23,7 @@ package com.aelitis.azureus.util;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -129,6 +127,11 @@ public class DataSourceUtils
 				}
 			} else if (ds instanceof DeviceOfflineDownload ) {
 				return( PluginCoreUtils.unwrap(((DeviceOfflineDownload)ds).getDownload()));
+			} else if (ds instanceof Download) {
+				return PluginCoreUtils.unwrap((Download) ds);
+			} else if (ds instanceof Object[]) {
+					Object[] o = (Object[]) ds;
+					return getDM(o[0]);
 			}	else if ((ds instanceof String)  && AzureusCoreFactory.isCoreRunning()) {
 				String hash = (String) ds;
 				try {
@@ -140,6 +143,11 @@ public class DataSourceUtils
 				} catch (Exception e) {
 					// ignore
 				}
+			}
+			
+			org.gudy.azureus2.core3.disk.DiskManagerFileInfo fileInfo = getFileInfo(ds);
+			if (fileInfo != null) {
+				return fileInfo.getDownloadManager();
 			}
 
 
@@ -230,6 +238,11 @@ public class DataSourceUtils
 				// ignore
 			}
 		}
+		
+		DownloadManager dm = getDM(ds);
+		if (dm != null) {
+			return dm.getTorrent();
+		}
 
 		return null;
 	}
@@ -253,19 +266,21 @@ public class DataSourceUtils
 
 	public static String getHash(Object ds) {
 		try {
-			if (ds instanceof DownloadManager) {
-				return ((DownloadManager) ds).getTorrent().getHashWrapper().toBase32String();
-			} else if (ds instanceof TOTorrent) {
-				return ((TOTorrent) ds).getHashWrapper().toBase32String();
-			} else if (ds instanceof DeviceOfflineDownload) {
-				return( getHash(PluginCoreUtils.unwrap(((DeviceOfflineDownload)ds).getDownload())));
-			} else if (ds instanceof VuzeActivitiesEntry) {
+			if (ds instanceof VuzeActivitiesEntry) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
 				return entry.getAssetHash();
 			} else if (ds instanceof ISelectedContent) {
 				return ((ISelectedContent)ds).getHash();
+			} else if (ds instanceof byte[]) {
+				return Base32.encode((byte[]) ds);
 			} else if (ds instanceof String) {
+				// XXX Check validility
 				return (String) ds;
+			}
+			
+			TOTorrent torrent = getTorrent(ds);
+			if (torrent != null) {
+				return torrent.getHashWrapper().toBase32String();
 			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
