@@ -27,7 +27,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -288,11 +287,18 @@ public class TabbedEntry
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#setTitle(java.lang.String)
 	 */
-	public void setTitle(String title) {
+	public void setTitle(final String title) {
 		super.setTitle(title);
 
 		if (swtItem != null) {
-			swtItem.setText(escapeAccelerators(title));
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (swtItem == null || swtItem.isDisposed()) {
+						return;
+					}
+					swtItem.setText(escapeAccelerators(title));
+				}
+			});
 		}
 	}
 
