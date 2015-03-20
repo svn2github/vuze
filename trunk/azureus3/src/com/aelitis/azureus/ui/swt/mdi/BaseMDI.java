@@ -280,6 +280,11 @@ public abstract class BaseMDI
 	}
 
 	public void registerEntry(String id, MdiEntryCreationListener2 l) {
+		if (mapIdToCreationListener.containsKey(id)) {
+			System.err.println("Warning: MDIEntry " + id
+					+ " Creation Listener being registered twice. "
+					+ Debug.getCompressedStackTrace());
+		}
 		mapIdToCreationListener2.put(id, l);
 		
 		createIfAutoOpen(id);
@@ -290,7 +295,17 @@ public abstract class BaseMDI
 		if (o instanceof Map<?, ?>) {
 			Map<?, ?> autoOpenMap = (Map<?, ?>) o;
 
-			return createEntryByCreationListener(id, autoOpenMap.get("datasource"), autoOpenMap) != null;
+			return createEntryByCreationListener(id, autoOpenMap.get("datasource"),
+					autoOpenMap) != null;
+		}
+
+		String[] autoOpenIDs = mapAutoOpen.keySet().toArray(new String[0]);
+		for (String autoOpenID : autoOpenIDs) {
+			if (Pattern.matches(id, autoOpenID)) {
+				Map<?, ?> autoOpenMap = (Map<?, ?>) mapAutoOpen.get(autoOpenID);
+				return createEntryByCreationListener(autoOpenID,
+						autoOpenMap.get("datasource"), autoOpenMap) != null;
+			}
 		}
 		return false;
 	}
@@ -341,6 +356,12 @@ public abstract class BaseMDI
 	}
 
 	public void registerEntry(String id, MdiEntryCreationListener l) {
+		if (mapIdToCreationListener.containsKey(id)
+				|| mapIdToCreationListener2.containsKey(id)) {
+			System.err.println("Warning: MDIEntry " + id
+					+ " Creation Listener being registered twice. "
+					+ Debug.getCompressedStackTrace());
+		}
 		mapIdToCreationListener.put(id, l);
 		
 		createIfAutoOpen(id);
@@ -643,8 +664,8 @@ public abstract class BaseMDI
 				}
 			}
 			
-			if (entry == null) {
-				System.err.println("Could not create sidebar " + id + "; " + autoOpenInfo);
+			if (entry == null && Constants.IS_CVS_VERSION) {
+				System.out.println("Could not create sidebar " + id + "; " + autoOpenInfo);
 			}
 
 			return entry != null;
