@@ -1811,20 +1811,7 @@ BuddyPluginViewBetaChat
 				{
 					TableItem item = (TableItem)event.item;
 					
-					int index = buddy_table.indexOf(item);
-	
-					if ( index < 0 || index >= participants.size()){
-						
-						return;
-					}
-					
-					ChatParticipant	participant = (BuddyPluginBeta.ChatParticipant)participants.get(index);
-					
-					item.setData( participant );
-					
-					item.setText(0, participant.getName( ftux_ok ));		
-					
-					setProperties( item, participant );
+					setItemData( item );
 				}
 			});
 		
@@ -1852,9 +1839,22 @@ BuddyPluginViewBetaChat
 					
 					for (int i=0;i<selection.length;i++){
 						
-						ChatParticipant	participant = (ChatParticipant)selection[i].getData();
+						TableItem item = selection[i];
+						
+						ChatParticipant	participant = (ChatParticipant)item.getData();
 
-						participants.add( participant );
+						if ( participant == null ){
+							
+								// item data won't be set yet for items that haven't been
+								// visible...
+							
+							participant = setItemData( item );
+						}
+						
+						if ( participant != null ){
+						
+							participants.add( participant );
+						}
 					}
 					
 					buildParticipantMenu( menu, participants );
@@ -2472,6 +2472,28 @@ BuddyPluginViewBetaChat
 			
 			private_chat_item.setEnabled( pc_enable || TEST_LOOPBACK_CHAT );
 		}
+	}
+	
+	private ChatParticipant
+	setItemData(
+		TableItem		item )
+	{
+		int index = buddy_table.indexOf(item);
+		
+		if ( index < 0 || index >= participants.size()){
+			
+			return( null );
+		}
+		
+		ChatParticipant	participant = (BuddyPluginBeta.ChatParticipant)participants.get(index);
+		
+		item.setData( participant );
+		
+		item.setText(0, participant.getName( ftux_ok ));		
+		
+		setProperties( item, participant );	
+		
+		return( participant );
 	}
 	
 	private void
