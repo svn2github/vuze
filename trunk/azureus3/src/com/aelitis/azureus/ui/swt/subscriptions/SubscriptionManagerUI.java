@@ -366,6 +366,13 @@ SubscriptionManagerUI
 		icon_rss_some_add_small	= icon_rss_all_add_small;
 		icon_rss_some_add_big	= icon_rss_some_add_small;
 		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						setupSideBar( swt );
+						return mdiEntryOverview;
+					}
+				});
 		
 		mdi.registerEntry("Subscription_.*", new MdiEntryCreationListener2() {
 			// @see com.aelitis.azureus.ui.mdi.MdiEntryCreationListener2#createMDiEntry(com.aelitis.azureus.ui.mdi.MultipleDocumentInterface, java.lang.String, java.lang.Object, java.util.Map)
@@ -444,15 +451,6 @@ SubscriptionManagerUI
 				{	
 				}
 			});
-
-
-		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
-				new MdiEntryCreationListener() {
-					public MdiEntry createMDiEntry(String id) {
-						setupSideBar( swt );
-						return mdiEntryOverview;
-					}
-				});
 	}
 
 	void delayedInit() {
@@ -961,6 +959,8 @@ SubscriptionManagerUI
 		if (mdiEntryOverview == null) {
 			return;
 		}
+		
+		mdiEntryOverview.setDefaultExpanded(true);
 			
 		synchronized( this ){
 				// seen double add buttons in the sidebar, not sure of cause but it would imply we are coming through here
@@ -1192,9 +1192,9 @@ SubscriptionManagerUI
 		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
 		
 		MdiEntry entry = mdi.createEntryFromEventListener(
-				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
+				MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
 				new UISWTViewEventListenerHolder(key, SubscriptionView.class, subs, null),
-				key, true, subs, MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS);
+				key, true, subs, null);
 
 		// This sets up the entry (menu, etc)
 		SubscriptionMDIEntry entryInfo = new SubscriptionMDIEntry(subs, entry);
