@@ -89,7 +89,7 @@ public class MainMDISetup
 			setupSidebarVuzeUI(mdi);
 		}
 
-		mdi.registerEntry(SideBar.SIDEBAR_SECTION_TORRENT_DETAILS,
+		mdi.registerEntry(SideBar.SIDEBAR_SECTION_TORRENT_DETAILS + ".*",
 				new MdiEntryCreationListener2() {
 					public MdiEntry createMDiEntry(MultipleDocumentInterface mdi,
 							String id, Object datasource, Map<?, ?> params) {
@@ -181,15 +181,16 @@ public class MainMDISetup
 			}
 		});
 
-		mdi.registerEntry(PeersSuperView.VIEW_ID, new MdiEntryCreationListener() {
-			public MdiEntry createMDiEntry(String id) {
-				MdiEntry entry = mdi.createEntryFromEventListener(
-						MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, new PeersSuperView(),
-						id, true, null, null);
-				entry.setImageLeftID("image.sidebar.allpeers");
-				return entry;
-			}
-		});
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ALLPEERS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromEventListener(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								new PeersSuperView(), id, true, null, null);
+						entry.setImageLeftID("image.sidebar.allpeers");
+						return entry;
+					}
+				});
 		
 		mdi.registerEntry(LoggerView.VIEW_ID, new MdiEntryCreationListener() {
 			public MdiEntry createMDiEntry(String id) {
@@ -235,18 +236,6 @@ public class MainMDISetup
 					}
 				});
 		
-		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ALLPEERS,
-				new MdiEntryCreationListener() {
-					public MdiEntry createMDiEntry(String id) {
-						MdiEntry entry = mdi.createEntryFromEventListener(
-								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
-								PeersSuperView.class,
-								MultipleDocumentInterface.SIDEBAR_SECTION_ALLPEERS, true, null,
-								null);
-						return entry;
-					}
-				});
-
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_OPTIONS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
@@ -548,18 +537,6 @@ public class MainMDISetup
 		}
 		*/
 
-		if ( COConfigurationManager.getBooleanParameter( "Show Options In Side Bar" )){
-			
-			mdi.registerEntry(ConfigView.VIEW_ID, new MdiEntryCreationListener() {
-				public MdiEntry createMDiEntry(String id) {
-					MdiEntry entry = mdi.createEntryFromEventListener(
-							MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS, new ConfigView(),
-							id, true, null, null);
-					return entry;
-				}
-			});
-		}
-			
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
