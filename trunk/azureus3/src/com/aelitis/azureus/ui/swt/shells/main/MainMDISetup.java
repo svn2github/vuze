@@ -192,14 +192,15 @@ public class MainMDISetup
 					}
 				});
 		
-		mdi.registerEntry(LoggerView.VIEW_ID, new MdiEntryCreationListener() {
-			public MdiEntry createMDiEntry(String id) {
-				MdiEntry entry = mdi.createEntryFromEventListener(
-						MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS, new LoggerView(),
-						id, true, null, null);
-				return entry;
-			}
-		});
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_LOGGER,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromEventListener(
+								MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
+								new LoggerView(), id, true, null, null);
+						return entry;
+					}
+				});
 
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TAGS,
 				new MdiEntryCreationListener() {
@@ -279,18 +280,6 @@ public class MainMDISetup
 								MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
 								ClientStatsView.class,
 								MultipleDocumentInterface.SIDEBAR_SECTION_CLIENT_STATS, true,
-								null, null);
-						return entry;
-					}
-				});
-		
-		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_LOGGER,
-				new MdiEntryCreationListener() {
-					public MdiEntry createMDiEntry(String id) {
-						MdiEntry entry = mdi.createEntryFromEventListener(
-								MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
-								LoggerView.class,
-								MultipleDocumentInterface.SIDEBAR_SECTION_LOGGER, true,
 								null, null);
 						return entry;
 					}
@@ -439,15 +428,6 @@ public class MainMDISetup
 				});
 
 		mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
-
-		mdi.registerEntry(ConfigView.VIEW_ID, new MdiEntryCreationListener() {
-			public MdiEntry createMDiEntry(String id) {
-				MdiEntry entry = mdi.createEntryFromEventListener(
-						MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS, new ConfigView(),
-						id, true, null, null);
-				return entry;
-			}
-		});
 	}
 
 	private static void setupSidebarVuzeUI(final MultipleDocumentInterfaceSWT mdi) {
