@@ -37,8 +37,6 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_HEADER_DVD = "header.dvd";
 
-	public static final String SIDEBAR_HEADER_SUBSCRIPTIONS = "header.subscriptions";
-
 	public static final String SIDEBAR_HEADER_PLUGINS = "header.plugins";
 
 	public static final String SIDEBAR_SECTION_PLUGINS = "Plugins";

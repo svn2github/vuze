@@ -235,7 +235,7 @@ public class MainMenu
 			MenuFactory.addPairingMenuItem(viewMenu);
 			//MenuFactory.addDetailedListMenuItem(viewMenu);
 			//MenuFactory.addDeviceManagerMenuItem(viewMenu);
-			//MenuFactory.addSubscriptionMenuItem(viewMenu);
+			MenuFactory.addSubscriptionMenuItem(viewMenu);
 
 			if (PluginsMenuHelper.getInstance().buildViewMenu(viewMenu, viewMenu.getShell()) && Constants.isOSX) {
 				MenuFactory.addSeparatorMenuItem(viewMenu);

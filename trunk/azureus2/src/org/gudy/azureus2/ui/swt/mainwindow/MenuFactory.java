@@ -722,7 +722,7 @@ public class MenuFactory
 		return addMenuItem(menu, MENU_ID_SUBSCRIPTIONS, new Listener() {
 			public void handleEvent(Event e) {
 				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS);
+				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS);
 			}
 		});
 	}

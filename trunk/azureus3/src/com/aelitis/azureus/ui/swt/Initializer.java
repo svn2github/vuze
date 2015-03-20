@@ -516,16 +516,16 @@ public class Initializer
 
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 
-		if (!uiClassic) {
-  		try{
-  			new SubscriptionManagerUI();
-  			
-  		}catch( Throwable e ){
-  			
-  			Debug.printStackTrace(e);
-  		}
+		try{
+			new SubscriptionManagerUI();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 
   		
+		if (!uiClassic) {
   		try{
   			new DeviceManagerUI( core );
   				

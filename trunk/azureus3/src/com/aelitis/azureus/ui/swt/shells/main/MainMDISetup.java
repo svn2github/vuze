@@ -32,8 +32,6 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.host.TRHostListener;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
@@ -41,7 +39,6 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareManagerListener;
 import org.gudy.azureus2.plugins.sharing.ShareResource;
@@ -52,7 +49,6 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.views.*;
@@ -438,7 +434,6 @@ public class MainMDISetup
 			MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 			MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
 			MultipleDocumentInterface.SIDEBAR_HEADER_DEVICES,
-			MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
 			MultipleDocumentInterface.SIDEBAR_HEADER_DVD,
 			MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
 		};

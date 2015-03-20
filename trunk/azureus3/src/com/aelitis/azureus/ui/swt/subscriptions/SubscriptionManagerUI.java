@@ -366,6 +366,85 @@ SubscriptionManagerUI
 		icon_rss_some_add_small	= icon_rss_all_add_small;
 		icon_rss_some_add_big	= icon_rss_some_add_small;
 		
+		
+		mdi.registerEntry("Subscription_.*", new MdiEntryCreationListener2() {
+			// @see com.aelitis.azureus.ui.mdi.MdiEntryCreationListener2#createMDiEntry(com.aelitis.azureus.ui.mdi.MultipleDocumentInterface, java.lang.String, java.lang.Object, java.util.Map)
+			public MdiEntry createMDiEntry(MultipleDocumentInterface mdi, String id,
+					Object datasource, Map<?, ?> params) {
+				Subscription sub = null;
+				if (datasource instanceof Subscription) {
+					sub = (Subscription) datasource;
+				} else if (id.length() > 13) {
+					String publicKey = id.substring(13);
+					byte[] decodedPublicKey = ByteFormatter.decodeString(publicKey);
+					SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+
+					Subscription[] subscriptions = subs_man.getSubscriptions();
+					for (Subscription subscription : subscriptions) {
+						if (Arrays.equals(subscription.getPublicKey(), decodedPublicKey)) {
+							sub = subscription;
+							break;
+						}
+					}
+				}
+				// hack to hide useless entries
+				if (sub != null && sub.getName().startsWith("Search Template: " )) {
+					return null;
+				}
+				return sub == null ? null : createSubscriptionMdiEntry(sub);
+			}
+		});
+
+		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+		subs_man.addListener(
+			new SubscriptionManagerListener()
+			{
+				public void 
+				subscriptionAdded(
+					Subscription 		subscription ) 
+				{
+				}
+	
+				public void
+				subscriptionChanged(
+					Subscription		sub )
+				{
+					
+					changeSubscription( sub );
+				}
+				
+				public void 
+				subscriptionSelected(
+					Subscription sub )
+				{	
+					
+					String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+					if ( mdi != null ){
+						mdi.showEntryByID(key, sub);
+					}
+				}
+				
+				public void 
+				subscriptionRemoved(
+					Subscription 		subscription ) 
+				{
+					removeSubscription( subscription );
+				}
+				
+				public void
+				associationsChanged(
+					byte[]		association_hash )
+				{ 
+				}
+				
+				public void
+				subscriptionRequested(
+					URL					url )
+				{	
+				}
+			});
+
 
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
 				new MdiEntryCreationListener() {
@@ -374,10 +453,6 @@ SubscriptionManagerUI
 						return mdiEntryOverview;
 					}
 				});
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-		if (uiClassic) {
-			registerAllSubscriptions();
-		}
 	}
 
 	void delayedInit() {
@@ -831,7 +906,7 @@ SubscriptionManagerUI
 										String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
 										MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 										if ( mdi != null ){
-											mdi.showEntryByID(key);
+											mdi.showEntryByID(key, sub);
 										}
 										break;
 									}
@@ -875,7 +950,7 @@ SubscriptionManagerUI
 		if (mdi == null) {
 			return;
 		}
-		
+
 		mdiEntryOverview = mdi.createEntryFromEventListener(
 				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY, 
 				new UISWTViewEventListenerHolder(
@@ -931,93 +1006,8 @@ SubscriptionManagerUI
 				      	 }
 					}
 				});
-		
-		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
-		subs_man.addListener(
-			new SubscriptionManagerListener()
-			{
-				public void 
-				subscriptionAdded(
-					Subscription 		subscription ) 
-				{
-					registerSubscriptionViewMdiEntry( subscription, false );
-				}
-	
-				public void
-				subscriptionChanged(
-					Subscription		subscription )
-				{
-					changeSubscription( subscription );
-				}
-				
-				public void 
-				subscriptionSelected(
-					Subscription sub )
-				{	
-					
-					String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
-					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-					if ( mdi != null ){
-						mdi.showEntryByID(key);
-					}
-				}
-				
-				public void 
-				subscriptionRemoved(
-					Subscription 		subscription ) 
-				{
-					removeSubscription( subscription );
-				}
-				
-				public void
-				associationsChanged(
-					byte[]		association_hash )
-				{ 
-				}
-				
-				public void
-				subscriptionRequested(
-					URL					url )
-				{	
-				}
-			});
-		
-		if (!uiClassic) {
-			registerAllSubscriptions();
-		}
-
-		mdi.addListener(
-			new MdiListener() 
-			{
-				private long last_select = 0;
-				
-				public void 
-				mdiEntrySelected(
-					MdiEntry new_entry,
-					MdiEntry old_entry ) 
-				{
-					if ( new_entry == old_entry && (new_entry instanceof BaseMdiEntry) ){
-						
-						UISWTViewEventListener eventListener = ((BaseMdiEntry)new_entry).getEventListener();
-						
-						if ( eventListener instanceof SubscriptionView ){
-							
-							try{
-								
-								if ( SystemTime.getMonotonousTime() - last_select > 1000 ){
-									
-									((SubscriptionView)eventListener).updateBrowser( false );
-								}
-							}finally{
-								
-								last_select = SystemTime.getMonotonousTime();
-							}
-						}
-					}
-				}
-			});
 	}
-	
+
 	private void setupHeader(MultipleDocumentInterface mdi,
 			final MdiEntry headerEntry) {
 
@@ -1072,7 +1062,9 @@ SubscriptionManagerUI
 						
 						if ( expanded ){
 	
-							warnSub.setVisible(false);
+							if (warnSub != null) {
+								warnSub.setVisible(false);
+							}
 	
 						}else{
 	
@@ -1113,8 +1105,10 @@ SubscriptionManagerUI
 								}
 							}
 	
-							warnSub.setVisible(warn);
-							warnSub.setToolTip(error_str);
+							if (warnSub != null) {
+								warnSub.setVisible(warn);
+								warnSub.setToolTip(error_str);
+							}
 							
 							if (total > 0) {
 	
@@ -1122,32 +1116,34 @@ SubscriptionManagerUI
 							}
 						}
 						
-						if ( subs.length == 0 && !COConfigurationManager.getBooleanParameter( "subscriptions.wizard.shown", false )){
-							
-							long now = SystemTime.getMonotonousTime();
-							
-							if ( 	last_avail_calc == -1 ||
-									now - last_avail_calc > 60*1000 ){
-								
-								last_avail = subs_man.getKnownSubscriptionCount();
-								
-								last_avail_calc = now;
-							}
-							
-							if ( last_avail > 0 ){
-								
-								infoSub.setVisible( true );
-								
-								infoSub.setToolTip( 
-									MessageText.getString(
-										"subscriptions.info.avail",
-										new String[]{
-											String.valueOf( last_avail )
-										}));
-							}
-						}else{
-							
-							infoSub.setVisible( false );
+						if (infoSub != null) {
+  						if ( subs.length == 0 && !COConfigurationManager.getBooleanParameter( "subscriptions.wizard.shown", false )){
+  							
+  							long now = SystemTime.getMonotonousTime();
+  							
+  							if ( 	last_avail_calc == -1 ||
+  									now - last_avail_calc > 60*1000 ){
+  								
+  								last_avail = subs_man.getKnownSubscriptionCount();
+  								
+  								last_avail_calc = now;
+  							}
+  							
+  							if ( last_avail > 0 ){
+  								
+  								infoSub.setVisible( true );
+  								
+  								infoSub.setToolTip( 
+  									MessageText.getString(
+  										"subscriptions.info.avail",
+  										new String[]{
+  											String.valueOf( last_avail )
+  										}));
+  							}
+  						}else{
+  							
+  							infoSub.setVisible( false );
+  						}
 						}
 					}
 	
@@ -1156,104 +1152,26 @@ SubscriptionManagerUI
 			});
 	}
 
-	private void 
-	registerAllSubscriptions() 
-	{
-		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
-	
-		Subscription[]	subs = subs_man.getSubscriptions( true );
-		
-		Arrays.sort(
-			subs,
-			new Comparator<Subscription>()
-			{
-				public int 
-				compare(
-					Subscription o1, Subscription o2 )
-				{
-					return( o1.getName().compareToIgnoreCase( o2.getName()));
-				}
-			});
-		
-		for (int i=0;i<subs.length;i++){
-			
-			registerSubscriptionViewMdiEntry( subs[i], false );
-		}
-	}
-
 	protected void
 	changeSubscription(
 		final Subscription	subs )
 	{
 		refreshTitles( mdiEntryOverview );
 
+		
 		if ( subs.isSubscribed()){
-			
-				// if the subscription wasn't previously subscribed then there won't be an MDI entry registered for it yet
-				// do so now
-			
-			final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());				
-
+			String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
 			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-
 			if ( mdi != null ){
-				
-				if ( mdi.getEntry( key ) == null ){
-					
-					registerSubscriptionViewMdiEntry( subs, false );
-				}
+				mdi.loadEntryByID(key, true, true, subs);
 			}
-		}else{
+
+		} else {
 			
 			removeSubscription( subs);
 		}
 	}
 	
-	protected void
-	registerSubscriptionViewMdiEntry(
-		final Subscription		subs,
-		final boolean			show )
-	{
-		if ( !subs.isSubscribed()){
-			
-			return;
-		}
-		
-			// hack to hide useless entries
-		
-		String name = subs.getName();
-		
-		if ( name.startsWith( "Search Template: " )){
-			
-			return;
-		}
-	
-		refreshColumns();
-		
-		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());				
-
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-
-		if ( mdi == null ){
-			
-				// closing down
-			
-			return;
-		}
-
-		mdi.registerEntry(key, new MdiEntryCreationListener() {
-			public MdiEntry createMDiEntry(String id) {
-				return createSubscriptionMdiEntry(subs);
-			}
-		});
-
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-		if (uiClassic && !show) {
-			return;
-		}
-		
-		mdi.loadEntryByID(key, show, true, subs);
-	}
 	
 	private MdiEntry createSubscriptionMdiEntry(Subscription subs) {
 		
