@@ -413,6 +413,13 @@ public abstract class BaseMDI
 		if (id == null) {
 			return false;
 		}
+
+		@SuppressWarnings("deprecation")
+		boolean loadedOnce = wasEntryLoadedOnce(id);
+		if (loadedOnce && onlyLoadOnce) {
+			return false;
+		}
+
 		MdiEntry entry = getEntry(id);
 		if (entry != null) {
 			if (datasource != null) {
@@ -422,12 +429,6 @@ public abstract class BaseMDI
 				showEntry(entry);
 			}
 			return true;
-		}
-
-		@SuppressWarnings("deprecation")
-		boolean loadedOnce = wasEntryLoadedOnce(id);
-		if (loadedOnce && onlyLoadOnce) {
-			return false;
 		}
 
 		MdiEntry mdiEntry = createEntryByCreationListener(id, datasource, null);
