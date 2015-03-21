@@ -159,6 +159,7 @@ JSONEngine
 		super( meta_search, Engine.ENGINE_TYPE_JSON, id, last_updated, rank_bias, name, map );
 				
 		resultsEntryPath = ImportExportUtils.importString( map, "json_result_key" );
+		resultsEntryPath = UrlUtils.decode(resultsEntryPath);
 		rankDivisorPath = ImportExportUtils.importString( map, "rank_divisor_key" );
 	}
 	
@@ -275,20 +276,25 @@ JSONEngine
 			JSONArray resultArray = null;
 			
 			if(resultsEntryPath != null) {
-				StringTokenizer st = new StringTokenizer(resultsEntryPath,".");
-				if(jsonObject instanceof JSONArray && st.countTokens() > 0) {
+				String[] split = resultsEntryPath.split("\\.");
+				if(jsonObject instanceof JSONArray && split.length > 0 && !split[0].startsWith("[")) {
 					JSONArray array = (JSONArray) jsonObject;
 					if(array.size() == 1) {
 						jsonObject = array.get(0);
 					}
 				}
-				while(st.hasMoreTokens()) {
+				for (String pathEntry : split) {
 					if ( jsonObject == null ){
 						throw new SearchException("Invalid entry path : " + resultsEntryPath );
 					}
 					
 					try{
-						jsonObject = ((JSONObject)jsonObject).get(st.nextToken());
+						if (pathEntry.startsWith("[") && pathEntry.endsWith("]")) {
+							int idx = Integer.parseInt(pathEntry.substring(1, pathEntry.length() - 1));
+							jsonObject = ((JSONArray) jsonObject).get(idx);
+						} else {
+							jsonObject = ((JSONObject)jsonObject).get(pathEntry);
+						}
 						
 					}catch( Throwable t ){
 						
