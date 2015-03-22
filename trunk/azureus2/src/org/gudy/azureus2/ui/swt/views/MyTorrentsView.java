@@ -2421,8 +2421,11 @@ public class MyTorrentsView
 		// request to fully resync this tag
 		
 		List<DownloadManager> dataSources = tv.getDataSources();
-		for (DownloadManager dm : dataSources) {
-			if (!isOurDownloadManager(dm)) {
+		
+		for ( DownloadManager dm : dataSources ){
+			
+			if ( !isOurDownloadManager(dm)){
+				
 				tv.removeDataSource(dm);
 			}
 		}
