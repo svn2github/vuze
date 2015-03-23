@@ -20,10 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.core3.category.*;
@@ -1250,46 +1247,69 @@ public class SB_Transfers
 						
 						return( false );
 					}
+					
+					final String dropped = (String) payload;
+
+					new AEThread2("Tagger") {
+						@Override
+						public void run() {
+							dropTorrentOnTag(tag, dropped);
+						}
+					}.start();
 	
-					String dropped = (String) payload;
+					return true;
+				}
+
+				private void dropTorrentOnTag(Tag tag, String dropped) {
 					String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
-					if (split.length > 1) {
-						String type = split[0];
-						if (type.startsWith("DownloadManager") || type.startsWith( "DiskManagerFileInfo" )) {
-							GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-							for (int i = 1; i < split.length; i++) {
-								String hash = split[i];
-	
-								int sep = hash.indexOf( ";" );	// for files
+					if (split.length <= 1) {
+						return;
+					}
+
+					String type = split[0];
+					if (!type.startsWith("DownloadManager") && !type.startsWith( "DiskManagerFileInfo" )) {
+						return;
+					}
+					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+					List<DownloadManager> listDMs = new ArrayList<DownloadManager>();
+					boolean doAdd = false;
+					for (int i = 1; i < split.length; i++) {
+						String hash = split[i];
+						
+						int sep = hash.indexOf( ";" );	// for files
+						
+						if ( sep != -1 ){
+							
+							hash = hash.substring( 0, sep );
+						}
+						
+						try {
+							DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+									Base32.decode(hash)));
+							
+							if ( dm != null ){
 								
-								if ( sep != -1 ){
-									
-									hash = hash.substring( 0, sep );
-								}
+								listDMs.add(dm);
 								
-								try {
-									DownloadManager dm = gm.getDownloadManager(new HashWrapper(
-											Base32.decode(hash)));
-	
-									if ( dm != null ){
-										
-										if ( tag.hasTaggable( dm )){
-											
-											tag.removeTaggable( dm );
-											
-										}else{
-										
-											tag.addTaggable( dm );
-										}
-									}
-								}catch ( Throwable t ){
-	
+								if (!doAdd && !tag.hasTaggable(dm)) {
+									doAdd = true;
 								}
+							}
+						}catch ( Throwable t ){
+							
+						}
+						
+						for (DownloadManager dm : listDMs) {
+							if ( doAdd ){
+								
+								tag.addTaggable( dm );
+								
+							}else{
+								
+								tag.removeTaggable( dm );
 							}
 						}
 					}
-	
-					return true;
 				}
 			};
 			
