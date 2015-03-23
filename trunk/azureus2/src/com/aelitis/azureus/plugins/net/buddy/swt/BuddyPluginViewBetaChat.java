@@ -3786,6 +3786,8 @@ BuddyPluginViewBetaChat
 											
 											String substitution = url_str.substring( hack_pos + 2, url_str.length() - 2  ).trim();
 											
+											url_str = url_str.substring( 0, hack_pos );
+											
 												// prevent anything that looks like a URL from being used as the display
 												// text to avoid 'confusion'
 	
@@ -3796,7 +3798,7 @@ BuddyPluginViewBetaChat
 											}else{
 												
 												display_url = url_str;
-											}
+											}										
 										}
 										
 										if ( term_char != ' ' || !display_url.equals( original_url_str )){
