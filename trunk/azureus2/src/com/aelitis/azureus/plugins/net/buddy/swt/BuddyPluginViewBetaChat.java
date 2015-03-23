@@ -3793,11 +3793,11 @@ BuddyPluginViewBetaChat
 	
 											if ( UrlUtils.parseTextForURL( substitution, true ) == null ){
 												
-												display_url =  UrlUtils.decode( substitution );
+												display_url = UrlUtils.decode( substitution );
 												
 											}else{
 												
-												display_url = url_str;
+												display_url = UrlUtils.decode( url_str );
 											}										
 										}
 										
