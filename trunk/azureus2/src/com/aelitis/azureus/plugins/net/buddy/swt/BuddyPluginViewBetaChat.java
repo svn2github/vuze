@@ -3769,38 +3769,33 @@ BuddyPluginViewBetaChat
 											}
 										}else{
 										
+												// test that it is a valid URL
+											
 											URL	url = new URL( url_str );
 										}
 										
 										String original_url_str = url_str;
 										
-											// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
-										
 										String display_url = UrlUtils.decode( url_str );
-										
-										int hack_pos = display_url.lastIndexOf( "[[" );
-										
-										if ( hack_pos > 0 && display_url.endsWith( "]]" )){
-											
-											String temp = display_url.substring( hack_pos + 2, display_url.length() - 2  ).trim();
-											
-											if ( temp.length() > 0 ){
-																						
-												hack_pos = url_str.lastIndexOf( "[[" );
-												
-												url_str = url_str.substring( 0, hack_pos );
+
+											// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
 																				
-													// prevent anything that looks like a URL from being used as the display
-													// text to avoid 'confusion'
-		
-												if ( UrlUtils.parseTextForURL( temp, true ) == null ){
-													
-													display_url = temp;
-													
-												}else{
-													
-													display_url = url_str;
-												}
+										int hack_pos = url_str.lastIndexOf( "[[" );
+										
+										if ( hack_pos > 0 && url_str.endsWith( "]]" )){
+											
+											String substitution = url_str.substring( hack_pos + 2, url_str.length() - 2  ).trim();
+											
+												// prevent anything that looks like a URL from being used as the display
+												// text to avoid 'confusion'
+	
+											if ( UrlUtils.parseTextForURL( substitution, true ) == null ){
+												
+												display_url =  UrlUtils.decode( substitution );
+												
+											}else{
+												
+												display_url = url_str;
 											}
 										}
 										
