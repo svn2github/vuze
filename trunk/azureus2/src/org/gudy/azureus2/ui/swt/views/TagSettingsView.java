@@ -292,15 +292,15 @@ public class TagSettingsView
 				params.isPublic = new GenericBooleanParameter(
 						new GenericParameterAdapter() {
 							public boolean getBooleanValue(String key) {
-								return tag.isVisible();
+								return tag.isPublic();
 							}
 
 							public boolean getBooleanValue(String key, boolean def) {
-								return tag.isVisible();
+								return tag.isPublic();
 							}
 
 							public void setBooleanValue(String key, boolean value) {
-								tag.setVisible(value);
+								tag.setPublic(value);
 							}
 						}, cSection2, null, "TagAddWindow.public.checkbox");
 				gd = new GridData();
@@ -388,67 +388,73 @@ public class TagSettingsView
 					}
 
 					// Field: Upload Priority
-					params.uploadPriority = new GenericBooleanParameter(
-							new GenericParameterAdapter() {
-								public boolean getBooleanValue(String key) {
-									return rl.getTagUploadPriority() > 0;
-								}
-
-								public boolean getBooleanValue(String key, boolean def) {
-									return getBooleanValue(key);
-								}
-
-								public void setBooleanValue(String key, boolean value) {
-									rl.setTagUploadPriority(value ? 1 : 0);
-								}
-							}, cSection2, null, "cat.upload.priority");
-					gd = new GridData();
-					gd.horizontalSpan = 4;
-					params.uploadPriority.setLayoutData(gd);
+					if (rl.getTagUploadPriority() >= 0) {
+  					params.uploadPriority = new GenericBooleanParameter(
+  							new GenericParameterAdapter() {
+  								public boolean getBooleanValue(String key) {
+  									return rl.getTagUploadPriority() > 0;
+  								}
+  
+  								public boolean getBooleanValue(String key, boolean def) {
+  									return getBooleanValue(key);
+  								}
+  
+  								public void setBooleanValue(String key, boolean value) {
+  									rl.setTagUploadPriority(value ? 1 : 0);
+  								}
+  							}, cSection2, null, "cat.upload.priority");
+  					gd = new GridData();
+  					gd.horizontalSpan = 4;
+  					params.uploadPriority.setLayoutData(gd);
+					}
 
 					// Field: Min Share
-					label = new Label(cSection2, SWT.NONE);
-					Messages.setLanguageText(label, "TableColumn.header.min_sr" );
-					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
-					label.setLayoutData(gd);
-
-					params.min_sr = new GenericFloatParameter(
-							new GenericParameterAdapter() {
-								public float getFloatValue(String key) {
-									return rl.getTagMinShareRatio();
-								}
-								
-								public void setFloatValue(String key, float value) {
-									rl.setTagMinShareRatio((int) (value * 1000));
-								}
-							}, cSection2, null, 0, Float.MAX_VALUE,
-							true, 3);
-					gd = new GridData();
-					//gd.horizontalSpan = 3;
-					gd.widthHint = 50;
-					params.min_sr.setLayoutData(gd);
+					if (rl.getTagMinShareRatio() >= 0) {
+  					label = new Label(cSection2, SWT.NONE);
+  					Messages.setLanguageText(label, "TableColumn.header.min_sr" );
+  					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+  					label.setLayoutData(gd);
+  
+  					params.min_sr = new GenericFloatParameter(
+  							new GenericParameterAdapter() {
+  								public float getFloatValue(String key) {
+  									return rl.getTagMinShareRatio();
+  								}
+  								
+  								public void setFloatValue(String key, float value) {
+  									rl.setTagMinShareRatio((int) (value * 1000));
+  								}
+  							}, cSection2, null, 0, Float.MAX_VALUE,
+  							true, 3);
+  					gd = new GridData();
+  					//gd.horizontalSpan = 3;
+  					gd.widthHint = 50;
+  					params.min_sr.setLayoutData(gd);
+					}
 
 					// Field: Max Share
-					label = new Label(cSection2, SWT.NONE);
-					Messages.setLanguageText(label, "TableColumn.header.max_sr" );
-					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
-					label.setLayoutData(gd);
-
-					params.max_sr = new GenericFloatParameter(
-							new GenericParameterAdapter() {
-								public float getFloatValue(String key) {
-									return rl.getTagMaxShareRatio();
-								}
-								
-								public void setFloatValue(String key, float value) {
-									rl.setTagMaxShareRatio((int) (value * 1000));
-								}
-							}, cSection2, null, 0, Float.MAX_VALUE,
-							true, 3);
-					gd = new GridData();
-					//gd.horizontalSpan = 3;
-					gd.widthHint = 50;
-					params.max_sr.setLayoutData(gd);
+					if (rl.getTagMaxShareRatio() >= 0) {
+  					label = new Label(cSection2, SWT.NONE);
+  					Messages.setLanguageText(label, "TableColumn.header.max_sr" );
+  					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+  					label.setLayoutData(gd);
+  
+  					params.max_sr = new GenericFloatParameter(
+  							new GenericParameterAdapter() {
+  								public float getFloatValue(String key) {
+  									return rl.getTagMaxShareRatio();
+  								}
+  								
+  								public void setFloatValue(String key, float value) {
+  									rl.setTagMaxShareRatio((int) (value * 1000));
+  								}
+  							}, cSection2, null, 0, Float.MAX_VALUE,
+  							true, 3);
+  					gd = new GridData();
+  					//gd.horizontalSpan = 3;
+  					gd.widthHint = 50;
+  					params.max_sr.setLayoutData(gd);
+					}
 				}
 
 			swt_updateFields();
