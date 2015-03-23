@@ -293,8 +293,10 @@ public class SBC_LibraryTableView
 		String mode = COConfigurationManager.getStringParameter("list.dm.dblclick");
 		if (mode.equals("1")) {
 			// OMG! Show Details! I <3 you!
-			UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
-					MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS, ds);
+			if ( UIFunctionsManager.getUIFunctions().getMDI().showEntryByID( MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS, ds)){
+			
+				return;
+			}
 		}else if (mode.equals("2")) {
 			// Show in explorer
 			boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
