@@ -33,8 +33,9 @@ Engine
 	 * 1: Original
 	 * 2: field value substitution in JSON engine type using ${FIELD_ID}
 	 * 3: field value substitution in REGEX engine type using ${FIELD_NO}
+	 * 4: JSON engine now supports [x] in Entry Path, where x is the array index
 	 */
-	public static final int	AZ_VERSION		= 3;
+	public static final int	AZ_VERSION		= 4;
 	
 	public static final Object	VUZE_FILE_COMPONENT_ENGINE_KEY = new Object();
 	
