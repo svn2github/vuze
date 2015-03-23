@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
@@ -53,9 +54,13 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
+import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarItem;
@@ -331,7 +336,38 @@ public class SubscriptionsView
 					TableRowCore row = rows[0];
 					
 					Subscription sub = (Subscription) row.getDataSource();
-					if(sub != null) {
+					if(sub == null) {
+						return;
+					}
+					
+					if (sub.isSearchTemplate()) {
+
+						try{
+							VuzeFile vf = sub.getSearchTemplateVuzeFile();
+							
+							if ( vf != null ){
+							
+								sub.setSubscribed( true );
+								
+								VuzeFileHandler.getSingleton().handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+								
+								
+								for ( VuzeFileComponent comp: vf.getComponents()){
+									
+									Engine engine = (Engine)comp.getData( Engine.VUZE_FILE_COMPONENT_ENGINE_KEY );
+									
+									if ( engine != null && engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ){
+										
+										engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
+									}
+								}
+							}
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+				} else {
+
 						String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
 						MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 						if (mdi != null) {
