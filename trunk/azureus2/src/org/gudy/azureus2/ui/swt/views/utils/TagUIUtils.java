@@ -2313,13 +2313,7 @@ public class TagUIUtils
 				
 				TagType tt = t.getTagType();
 				
-				if ( tt == manual_tt ){
-					
-					Integer i = manual_map.get( t );
-					
-					manual_map.put( t, i==null?1:i+1 );
-					
-				}else if ( tt.isTagTypeAuto()){
+				if ( tt.isTagTypeAuto() || t.isTagAuto()){
 					
 					List<Tag> x = auto_map.get( tt );
 					
@@ -2331,6 +2325,12 @@ public class TagUIUtils
 					}
 					
 					x.add( t );
+					
+				}else if ( tt == manual_tt ){
+					
+					Integer i = manual_map.get( t );
+					
+					manual_map.put( t, i==null?1:i+1 );
 				}
 			}
 		}
