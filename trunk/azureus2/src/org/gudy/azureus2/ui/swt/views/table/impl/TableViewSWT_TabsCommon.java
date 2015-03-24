@@ -29,9 +29,11 @@ import java.util.Set;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
@@ -783,12 +785,16 @@ public class TableViewSWT_TabsCommon
 		
 		tabFolder.addListener(SWT.MenuDetect, new Listener() {
 			public void handleEvent(Event event) {
-				
 				for ( MenuItem item: menu.getItems()){
 					
 					item.dispose();
 				}
 												
+				Point ptOnControl = tabFolder.toControl(event.x, event.y);
+				if (ptOnControl.y > tabFolder.getTabHeight()) {
+					return;
+				}
+
 				final CTabItem item = tabFolder.getItem( tabFolder.toControl( event.x, event.y ));
 				
 				boolean	need_sep = false;
