@@ -36,6 +36,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Layout;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -68,6 +69,8 @@ public class UISWTViewImpl
 	implements UISWTViewCore, AEDiagnosticsEvidenceGenerator
 {
 	public static final String CFG_PREFIX = "Views.plugins.";
+	
+	private static final boolean DELAY_INITIALIZE_TO_FIRST_ACTIVATE = false;
 
 	private PluginUISWTSkinObject skinObject;
 
@@ -102,6 +105,8 @@ public class UISWTViewImpl
 	private UIPluginViewToolBarListener toolbarListener;
 
 	private volatile Map<Object,Object>	user_data;
+
+	private boolean haveSentInitialize = false;
 	
 	public UISWTViewImpl(String sParentID, String sViewID,
 			UISWTViewEventListener eventListener, Object _initialDatasource)
@@ -223,7 +228,16 @@ public class UISWTViewImpl
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#triggerEvent(int, java.lang.Object)
 	 */
+	@SuppressWarnings("unused")
 	public void triggerEvent(int eventType, Object data) {
+		if (eventType == UISWTViewEvent.TYPE_INITIALIZE) {
+			haveSentInitialize = true;
+		}
+
+		if (DELAY_INITIALIZE_TO_FIRST_ACTIVATE
+				&& eventType == UISWTViewEvent.TYPE_FOCUSGAINED && !haveSentInitialize) {
+			swt_triggerInitialize();
+		}
 		// prevent double fire of focus gained/lost
 		/* erm, this code doesn't do anything atm as nothing is setting hasFocus, removing for the moment
 		if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED && hasFocus != null
@@ -385,29 +399,10 @@ public class UISWTViewImpl
 				composite.setLayoutData(gridData);
 			}
 
-			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
-
-			if (composite.getLayout() instanceof GridLayout) {
-				// Force children to have GridData layoutdata.
-				Control[] children = composite.getChildren();
-				for (int i = 0; i < children.length; i++) {
-					Control control = children[i];
-					Object layoutData = control.getLayoutData();
-					if (layoutData == null || !(layoutData instanceof GridData)) {
-						if (layoutData != null)
-							Logger.log(new LogEvent(LogIDs.PLUGIN, LogEvent.LT_WARNING,
-									"Plugin View '" + sViewID + "' tried to setLayoutData of "
-											+ control + " to a " + layoutData.getClass().getName()));
-
-						if (children.length == 1)
-							gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-						else
-							gridData = new GridData();
-
-						control.setLayoutData(gridData);
-					}
-				}
+			if (DELAY_INITIALIZE_TO_FIRST_ACTIVATE) {
+				return;
 			}
+			swt_triggerInitialize();
 		} else if (iControlType == UISWTView.CONTROLTYPE_AWT) {
 			composite = new Composite(parent, SWT.EMBEDDED);
 			FillLayout layout = new FillLayout();
@@ -427,6 +422,40 @@ public class UISWTViewImpl
 		} else if (iControlType == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
 			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, getSkinObject());
 		}
+	}
+
+	private void swt_triggerInitialize() {
+		composite.setRedraw(false);
+		composite.setLayoutDeferred(true);
+		triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
+
+		if (composite.getLayout() instanceof GridLayout) {
+			// Force children to have GridData layoutdata.
+			Control[] children = composite.getChildren();
+			for (int i = 0; i < children.length; i++) {
+				Control control = children[i];
+				Object layoutData = control.getLayoutData();
+				if (layoutData == null || !(layoutData instanceof GridData)) {
+					if (layoutData != null) {
+						Logger.log(new LogEvent(LogIDs.PLUGIN, LogEvent.LT_WARNING,
+								"Plugin View '" + sViewID + "' tried to setLayoutData of "
+										+ control + " to a " + layoutData.getClass().getName()));
+					}
+
+					GridData gridData;
+					if (children.length == 1) {
+						gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+					} else {
+						gridData = new GridData();
+					}
+
+					control.setLayoutData(gridData);
+				}
+			}
+		}
+		composite.layout();
+		composite.setLayoutDeferred(false);
+		composite.setRedraw(true);
 	}
 
 	/**
