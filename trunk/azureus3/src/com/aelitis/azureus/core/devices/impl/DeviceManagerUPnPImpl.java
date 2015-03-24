@@ -898,15 +898,44 @@ DeviceManagerUPnPImpl
 		
 		synchronized( this ){
 			
-			uid = COConfigurationManager.getStringParameter( "devices.upnp.uid." + unique_name, "" );
+				// don't use 'unique-name' directly as a key as it might incldued non-ascii chars which must not
+				// be used as a key in a bencoded map
+				// migrated from prefix of "devices.upnp.uid." to "devices.upnp.uid2."
+			
+			String un_key;
+			
+			try{
+				un_key = Base32.encode( unique_name.getBytes( "UTF-8" ));
+				
+			}catch( Throwable e ){
+				
+				un_key = Base32.encode( unique_name.getBytes());
+			}
+			
+			String	new_key = "devices.upnp.uid2." + un_key;
+			
+			uid = COConfigurationManager.getStringParameter( new_key, "" );
 			
 			if ( uid.length() == 0 ){
 				
-				uid = UUIDGenerator.generateUUIDString();
+				String old_key = "devices.upnp.uid." + unique_name;
 				
-				COConfigurationManager.setParameter( "devices.upnp.uid." + unique_name, uid );
+				uid = COConfigurationManager.getStringParameter( old_key, "" );
 				
-				COConfigurationManager.save();
+				if ( uid.length() > 0 ){
+					
+					COConfigurationManager.setParameter( new_key, uid );
+					
+					COConfigurationManager.removeParameter( old_key );
+					
+				}else{
+					
+					uid = UUIDGenerator.generateUUIDString();
+					
+					COConfigurationManager.setParameter( new_key, uid );
+					
+					COConfigurationManager.save();
+				}
 			}
 		}
 		
