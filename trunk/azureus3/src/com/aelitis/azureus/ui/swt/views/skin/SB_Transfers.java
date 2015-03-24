@@ -38,7 +38,6 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -835,7 +834,7 @@ public class SB_Transfers
 		
 		List<DownloadManager> downloadManagers = gm.getDownloadManagers();
 		for (Iterator<DownloadManager> iter = downloadManagers.iterator(); iter.hasNext();) {
-			DownloadManager dm = (DownloadManager) iter.next();
+			DownloadManager dm = iter.next();
 			boolean lowNoise = PlatformTorrentUtils.isAdvancedViewOnly(dm);
 			if ( dm.isPersistent() && dm.getTorrent() != null){	// ignore borked torrents as their create time is inaccurate
 				long createTime = dm.getCreationTime();
@@ -952,6 +951,42 @@ public class SB_Transfers
 				name, viewTitleInfo, category, false, null);
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.library");
+
+			entry.addListener(new MdiEntryDropListener() {
+				public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
+					if (!(payload instanceof String)) {
+						return false;
+					}
+
+					String dropped = (String) payload;
+					String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
+					if (split.length > 1) {
+						String type = split[0];
+						if (type.startsWith("DownloadManager")) {
+							GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+							for (int i = 1; i < split.length; i++) {
+								String hash = split[i];
+
+								try {
+									DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+											Base32.decode(hash)));
+
+									if (dm != null) {
+										TorrentUtil.assignToCategory(new Object[] {
+											dm
+										}, category);
+									}
+
+								} catch (Throwable t) {
+
+								}
+							}
+						}
+					}
+
+					return true;
+				}
+			});
 		}
 
 		if (entry instanceof SideBarEntrySWT) {
@@ -963,41 +998,6 @@ public class SB_Transfers
 			});
 		}
 
-		entry.addListener(new MdiEntryDropListener() {
-			public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
-				if (!(payload instanceof String)) {
-					return false;
-				}
-
-				String dropped = (String) payload;
-				String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
-				if (split.length > 1) {
-					String type = split[0];
-					if (type.startsWith("DownloadManager")) {
-						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-						for (int i = 1; i < split.length; i++) {
-							String hash = split[i];
-
-							try {
-								DownloadManager dm = gm.getDownloadManager(new HashWrapper(
-										Base32.decode(hash)));
-
-								if (dm != null) {
-									TorrentUtil.assignToCategory(new Object[] {
-										dm
-									}, category);
-								}
-
-							} catch (Throwable t) {
-
-							}
-						}
-					}
-				}
-
-				return true;
-			}
-		});
 	}
 
 	private static void removeCategory(Category category) {
@@ -1235,7 +1235,7 @@ public class SB_Transfers
 			});
 		}
 		
-		if ( !auto ){	
+		if ( !auto && entry != null ){	
 	
 			MdiEntryDropListener dl = new MdiEntryDropListener() {
 				public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
