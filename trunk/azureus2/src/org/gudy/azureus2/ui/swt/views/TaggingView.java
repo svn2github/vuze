@@ -24,6 +24,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -185,8 +186,6 @@ public class TaggingView
 			Utils.disposeComposite(cMainComposite, false);
 		}
 
-		cMainComposite.setLayout(new FillLayout(SWT.VERTICAL));
-
 		TagManager tm = TagManagerFactory.getTagManager();
 		int[] tagTypesWanted = {
 			TagType.TT_DOWNLOAD_MANUAL,
@@ -215,12 +214,31 @@ public class TaggingView
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		};
+		
+		Listener menuDetectListener = new Listener() {
+			public void handleEvent(Event event) {
+				Button button = (Button) event.widget;
+				Tag tag = (Tag) button.getData("Tag");
+				final Menu menu = new Menu(button);
+				menu.addMenuListener(new MenuListener() {
+					public void menuShown(MenuEvent e) {
+					}
+					
+					public void menuHidden(MenuEvent e) {
+						Utils.disposeSWTObjects(menu.getItems());
+						menu.removeMenuListener(this);
+					}
+				});
+				TagUIUtils.createSideBarMenuItems(menu, tag);
+				button.setMenu(menu);
+			}
+		};
 
 		buttons = new ArrayList<Button>();
 		for (int tagType : tagTypesWanted) {
-			Composite c = new Composite(cMainComposite, SWT.BORDER);
+			Composite c = cMainComposite;
 			RowLayout rowLayout = new RowLayout();
-			rowLayout.spacing = 0;
+			rowLayout.pack = false;
 			c.setLayout(rowLayout);
 
 			TagType tt = tm.getTagType(tagType);
@@ -236,22 +254,21 @@ public class TaggingView
 				}
 				button.setData("Tag", tag);
 
-				Menu menu = new Menu(button);
-				button.setMenu(menu);
-				TagUIUtils.createSideBarMenuItems(menu, tag);
+				button.addListener(SWT.MenuDetect, menuDetectListener);
 			}
 		}
-
+		
 		sc.addControlListener(new ControlAdapter() {
 			public void controlResized(ControlEvent e) {
 				Rectangle r = sc.getClientArea();
-				sc.setMinSize(sc.computeSize(r.width, SWT.DEFAULT));
+				Point size = cMainComposite.computeSize(r.width, SWT.DEFAULT);
+				sc.setMinSize(size);
 			}
 		});
 
 		swt_updateFields();
 
-		Rectangle r = sc.getClientArea();
+		Rectangle r = cMainComposite.getClientArea();
 		sc.setMinSize(sc.computeSize(r.width, SWT.DEFAULT));
 	}
 
@@ -261,8 +278,8 @@ public class TaggingView
 
 	private void swt_updateFields() {
 		cMainComposite.setEnabled(true);
-		boolean labelChanged = false;
 
+		List<Control> layoutChanges = new ArrayList<Control>();
 		for (Button button : buttons) {
 			boolean hasTag = false;
 			boolean hasNoTag = false;
@@ -271,7 +288,7 @@ public class TaggingView
 			String name = tag.getTagName(true);
 			if (!button.getText().equals(name)) {
 				button.setText(name);
-				labelChanged = true;
+				layoutChanges.add(button);
 			}
 
 			if (taggables == null) {
@@ -306,8 +323,8 @@ public class TaggingView
 			}
 		}
 
-		if (labelChanged) {
-			Utils.relayout(cMainComposite);
+		if (layoutChanges.size() > 0) {
+			cMainComposite.layout(layoutChanges.toArray(new Control[0]));
 		}
 	}
 
