@@ -2957,7 +2957,11 @@ BuddyPluginBeta
 			
 				// build id map so we can lookup prev messages
 			
+			// System.out.println( "Sorting messages" );
+			
 			for ( ChatMessage msg: messages ){
+				
+				// System.out.println( "    " + msg.getString());
 				
 				byte[]	id = msg.getID();
 				
@@ -3093,6 +3097,8 @@ BuddyPluginBeta
 				}
 			}
 			
+			// System.out.println( "Got chains: " + chain_heads.size());
+			
 			Set<ChatMessage>	remainder_set = new HashSet<BuddyPluginBeta.ChatMessage>( messages );
 			
 			List<ChatMessage> result = null;
@@ -3102,8 +3108,12 @@ BuddyPluginBeta
 				List<ChatMessage>	chain = new ArrayList<ChatMessage>( num_messages );
 
 				ChatMessage msg = head;
-						
+					
+				// System.out.println( "chain starts" );
+				
 				while( msg != null ){
+					
+					// System.out.println( "    " + msg.getString());
 					
 					chain.add( msg );
 					
@@ -3111,6 +3121,7 @@ BuddyPluginBeta
 					
 					msg = next_map.get( msg );
 				}
+				
 				
 				if ( result == null ){
 					
@@ -3187,6 +3198,7 @@ BuddyPluginBeta
 						
 					if ( messages.get(i) != msg ){
 					
+						// System.out.println( "changed at " + i + ": new = " + msg.getString() + ", old = " + messages.get(i).getString());
 						changed = true;
 					}
 				}
@@ -3234,7 +3246,7 @@ BuddyPluginBeta
 			
 			int	pos1 = 0;
 			int pos2 = 0;
-			
+						
 			while( true ){
 				
 				if ( pos1 == size1 ){
@@ -3260,8 +3272,8 @@ BuddyPluginBeta
 					ChatMessage m1 = list1.get( pos1 );
 					ChatMessage m2 = list2.get( pos2 );
 				
-					long	t1 = m1.getTimeStamp();
-					long	t2 = m2.getTimeStamp();
+					long t1 = m1.getTimeStamp();
+					long t2 = m2.getTimeStamp();
 					
 					if ( t1 < t2 || ( t1 == t2 && m1.getUID() < m2.getUID())){
 						
@@ -3880,9 +3892,18 @@ BuddyPluginBeta
 					
 					synchronized( chat_lock ){
 						
-						if ( messages.size() > 0 ){
+						int	pos = messages.size() - 1;
+						
+						while( pos >= 0 ){
+						
+							ChatMessage m = messages.get( pos-- );
 							
-							prev_message = messages.get( messages.size()-1);
+							if ( m.getMessageType() == ChatMessage.MT_NORMAL ){
+								
+								prev_message = m;
+								
+								break;
+							}
 						}
 					}
 					
@@ -4689,7 +4710,7 @@ BuddyPluginBeta
 			
 			message_id = (byte[])map.get( "id" );
 			
-			timestamp = SystemTime.getCurrentTime() - getAge()*1000L;
+			timestamp = SystemTime.getCurrentTime() - getAgeWhenReceived()*1000L;
 
 			Map<String,Object> payload = getPayload();
 			
@@ -4972,7 +4993,7 @@ BuddyPluginBeta
 		}
 		
 		private int
-		getAge()
+		getAgeWhenReceived()
 		{
 			return(((Number)map.get( "age" )).intValue());
 		}
@@ -5023,6 +5044,12 @@ BuddyPluginBeta
 				// default when no user specified one present
 			
 			return( pkToString( getPublicKey()));
+		}
+		
+		public String
+		getString()
+		{
+			return( "a=" + new SimpleDateFormat( "D HH:mm:ss" ).format( getTimeStamp()) + ", i=" + pkToString( message_id ) + ", p=" + pkToString( previous_id ) + ": " + getMessage());
 		}
 	}
 	
