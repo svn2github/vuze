@@ -33,9 +33,7 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -100,7 +98,7 @@ public class UISWTViewImpl
 
 	private String lastFullTitle = "";
 
-	//private Boolean hasFocus = null;
+	private Boolean hasFocus = null;
 
 	private UIPluginViewToolBarListener toolbarListener;
 
@@ -239,16 +237,17 @@ public class UISWTViewImpl
 			swt_triggerInitialize();
 		}
 		// prevent double fire of focus gained/lost
-		/* erm, this code doesn't do anything atm as nothing is setting hasFocus, removing for the moment
 		if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED && hasFocus != null
 				&& hasFocus) {
+			//System.out.println("Double FOCUSGAIN " + Debug.getCompressedStackTrace());
 			return;
 		}
 		if (eventType == UISWTViewEvent.TYPE_FOCUSLOST && hasFocus != null
 				&& !hasFocus) {
+			//System.out.println("Double FOCUSLOST " + Debug.getCompressedStackTrace());
 			return;
 		}
-		*/
+
 		if (eventType == UISWTViewEvent.TYPE_DATASOURCE_CHANGED) {
 			Object newDataSource = PluginCoreUtils.convert(data, useCoreDataSource);
 			if (dataSource == newDataSource) {
@@ -264,6 +263,12 @@ public class UISWTViewImpl
 				((ObfusticateImage) eventListener).obfusticatedImage((Image) MapUtils.getMapObject(
 						(Map) data, "image", null, Image.class));
 			}
+		} else if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED) {
+			hasFocus = true;
+		} else if (eventType == UISWTViewEvent.TYPE_FOCUSLOST) {
+			hasFocus = false;
+		} else if (eventType == UISWTViewEvent.TYPE_DESTROY && hasFocus != null && hasFocus) {
+			triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
 		}
 
 		try {
@@ -399,6 +404,11 @@ public class UISWTViewImpl
 				composite.setLayoutData(gridData);
 			}
 
+			parent.addListener(SWT.Show, new Listener() {
+				public void handleEvent(Event event) {
+					triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+				}
+			});
 			if (DELAY_INITIALIZE_TO_FIRST_ACTIVATE) {
 				return;
 			}
