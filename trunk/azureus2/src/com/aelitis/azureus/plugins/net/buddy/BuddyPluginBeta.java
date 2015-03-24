@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -53,6 +54,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
@@ -207,7 +209,6 @@ BuddyPluginBeta
 		
 		max_chat_ui_lines		= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.lines", 250 );
 		max_chat_ui_kb			= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.char.kb", 10 );
-
 		
 		SimpleTimer.addPeriodicEvent(
 			"BPB:checkfave",
@@ -219,6 +220,29 @@ BuddyPluginBeta
 					TimerEvent event ) 
 				{
 					checkFavourites();
+				}
+			});
+		
+		AEDiagnostics.addEvidenceGenerator(
+			new AEDiagnosticsEvidenceGenerator() 
+			{		
+				public void 
+				generate(
+					IndentWriter writer ) 
+				{
+					writer.println( "Chat (active=" + chat_instances_list.size() + ")" );
+					
+					try{
+						writer.indent();	
+
+						for ( ChatInstance inst: chat_instances_list ){
+							
+							writer.println( "users=" + inst.getEstimatedNodes() + ", msg=" + inst.getMessageCount( true ) + ", status=" + inst.getStatus());
+						}
+					}finally{
+						
+						writer.exdent();
+					}
 				}
 			});
 	}
@@ -387,6 +411,95 @@ BuddyPluginBeta
 					}
 				}
 			});
+	}
+	
+/*
+ * 			String chat_key_base = "azbuddy.chat." + getNetAndKey();
+			
+			String shared_key 	= chat_key_base + ".shared";
+			String nick_key 	= chat_key_base + ".nick";
+
+			is_shared_nick 	= COConfigurationManager.getBooleanParameter( shared_key, true );
+			instance_nick 	= COConfigurationManager.getStringParameter( nick_key, "" );
+ */
+	
+		// nick
+	
+	public String
+	getNick(
+		String		net,
+		String		key )
+	{
+			// migrate
+		
+		String old_key = "azbuddy.chat." + net + ": " + key + ".nick";
+				
+		if ( COConfigurationManager.doesParameterNonDefaultExist( old_key )){
+			
+			String temp = COConfigurationManager.getStringParameter( old_key, "" );
+			
+			COConfigurationManager.removeParameter( old_key );
+
+			if ( temp.length() > 0 ){
+				
+				setNick( net, key, temp );
+				
+				return( temp );
+			}
+		}
+		
+		String nick = getStringOption( net, key, "nick" );
+		
+		if ( nick == null ){
+			
+			nick = "";
+		}
+		
+		return( nick );
+	}
+	
+	public void
+	setNick(
+		String		net,
+		String		key,
+		String		nick )
+	{
+		setStringOption( net, key, "nick", nick ); 
+	}
+	
+		// shared nick
+	
+	private boolean
+	getSharedNick(
+		String		net,
+		String		key )
+	{
+		String old_key = "azbuddy.chat." + net + ": " + key + ".shared";
+		
+		if ( COConfigurationManager.doesParameterNonDefaultExist( old_key )){
+			
+			boolean temp = COConfigurationManager.getBooleanParameter( old_key, true );
+			
+			COConfigurationManager.removeParameter( old_key );
+
+			if ( !temp ){
+				
+				setSharedNick( net, key, false );
+			}
+			
+			return( temp );
+		}
+		
+		return( getBooleanOption( net, key, "sn" ));
+	}
+	
+	private void
+	setSharedNick(
+		String		net,
+		String		key,
+		boolean		b )
+	{
+		setBooleanOption( net, key, "sn", b );
 	}
 	
 		// save messages
@@ -2067,13 +2180,8 @@ BuddyPluginBeta
 			private_target	= _private_target;			
 			is_private_chat = _is_private_chat;
 			
-			String chat_key_base = "azbuddy.chat." + getNetAndKey();
-			
-			String shared_key 	= chat_key_base + ".shared";
-			String nick_key 	= chat_key_base + ".nick";
-
-			is_shared_nick 	= COConfigurationManager.getBooleanParameter( shared_key, true );
-			instance_nick 	= COConfigurationManager.getStringParameter( nick_key, "" );
+			is_shared_nick 	= getSharedNick( network, key );
+			instance_nick 	= getNick( network, key );
 			
 			if ( !is_private_chat ){
 			
@@ -2458,11 +2566,7 @@ BuddyPluginBeta
 			
 				is_shared_nick	= _shared;
 			
-				String chat_key_base = "azbuddy.chat." + getNetAndKey();
-
-				String shared_key 	= chat_key_base + ".shared";
-
-				COConfigurationManager.setParameter( shared_key, _shared );
+				setSharedNick( network, key, _shared );
 				
 				updated();
 			}
@@ -2482,11 +2586,7 @@ BuddyPluginBeta
 				
 				instance_nick	= _nick;
 			
-				String chat_key_base = "azbuddy.chat." + getNetAndKey();
-
-				String nick_key 	= chat_key_base + ".nick";
-
-				COConfigurationManager.setParameter( nick_key, _nick );
+				setNick( network, key, _nick );
 				
 				updated();
 			}

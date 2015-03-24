@@ -22,11 +22,8 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -42,9 +39,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface.ViewListener;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
+
 
 public class 
 BuddyPluginUtils 

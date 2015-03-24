@@ -1226,6 +1226,7 @@ ConfigurationManager
   		
 		if ( 	key.startsWith( CryptoManager.CRYPTO_CONFIG_PREFIX ) || 
 				lc_key.equals( "id" ) ||
+				lc_key.equals( "azbuddy.dchat.optsmap" ) || 
 				lc_key.endsWith( ".privx" ) ||
 				lc_key.endsWith( ".user" ) ||
 				lc_key.contains( "password" ) ||
