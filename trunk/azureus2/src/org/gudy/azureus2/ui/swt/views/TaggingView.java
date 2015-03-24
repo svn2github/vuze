@@ -18,14 +18,13 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -60,6 +59,8 @@ public class TaggingView
 	private ScrolledComposite sc;
 
 	private List<Taggable> taggables;
+
+	private List<Button> buttons;
 
 	public TaggingView() {
 	}
@@ -139,21 +140,25 @@ public class TaggingView
 			TagType tagType;
 			/*
 			tagType = tm.getTagType(TagType.TT_DOWNLOAD_CATEGORY);
-			if (wasNull) {
+			if (isNull) {
 				tagType.removeTagTypeListener(this);
 			} else {
 				tagType.addTagTypeListener(this, false);
 			}
 			*/
 			tagType = tm.getTagType(TagType.TT_DOWNLOAD_MANUAL);
-			if (wasNull) {
+			if (isNull) {
 				tagType.removeTagTypeListener(this);
 			} else {
 				tagType.addTagTypeListener(this, false);
 			}
 		}
 
-		initialize(null);
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_updateFields();
+			}
+		});
 	}
 
 	private void initialize(Composite parent) {
@@ -181,37 +186,15 @@ public class TaggingView
 		}
 
 		cMainComposite.setLayout(new FillLayout(SWT.VERTICAL));
-		if (taggables == null) {
-			Label label = new Label(cMainComposite, SWT.NONE);
-			label.setText("Nothing Selected");
-		} else {
-			swt_updateFields();
-		}
-
-		Utils.relayout(cMainComposite);
-		sc.setMinSize(cMainComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-	}
-
-	private String getFullTitle() {
-		return MessageText.getString("label.tags");
-	}
-
-	private void swt_updateFields() {
-		if (taggables == null) {
-			initialize(null);
-			return;
-		}
-		
-		Utils.disposeComposite(cMainComposite, false);
 
 		TagManager tm = TagManagerFactory.getTagManager();
 		int[] tagTypesWanted = {
 			TagType.TT_DOWNLOAD_MANUAL,
-			//TagType.TT_DOWNLOAD_CATEGORY
+		//TagType.TT_DOWNLOAD_CATEGORY
 		};
-		
+
 		SelectionListener selectionListener = new SelectionListener() {
-			
+
 			public void widgetSelected(SelectionEvent e) {
 				Button button = (Button) e.widget;
 				Tag tag = (Tag) button.getData("Tag");
@@ -228,15 +211,16 @@ public class TaggingView
 					}
 				}
 			}
-			
+
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		};
-		
+
+		buttons = new ArrayList<Button>();
 		for (int tagType : tagTypesWanted) {
-			Composite c = new Composite(cMainComposite, SWT.NONE);
+			Composite c = new Composite(cMainComposite, SWT.BORDER);
 			RowLayout rowLayout = new RowLayout();
-			rowLayout.spacing = 10;
+			rowLayout.spacing = 0;
 			c.setLayout(rowLayout);
 
 			TagType tt = tm.getTagType(tagType);
@@ -244,34 +228,9 @@ public class TaggingView
 			TagUIUtils.sortTags(tags);
 			for (Tag tag : tags) {
 				Button button = new Button(c, SWT.CHECK);
-				button.setText(tag.getTagName(true));
+				buttons.add(button);
 				button.addSelectionListener(selectionListener);
 				button.setData("Tag", tag);
-				
-				
-				boolean hasTag = false;
-				boolean hasNoTag = false;
-				for (Taggable taggable : taggables) {
-					boolean curHasTag = tag.hasTaggable(taggable);
-					if (!hasTag && curHasTag) {
-						hasTag = true;
-						if (hasNoTag) {
-							break;
-						}
-					} else if (!hasNoTag && !curHasTag) {
-						hasNoTag = true;
-						if (hasTag) {
-							break;
-						}
-					}
-				}
-				if (hasTag && hasNoTag) {
-					button.setGrayed(true);
-					button.setSelection(true);
-				} else {
-					button.setGrayed(false);
-					button.setSelection(hasTag);
-				}
 
 				Menu menu = new Menu(button);
 				button.setMenu(menu);
@@ -279,19 +238,83 @@ public class TaggingView
 			}
 		}
 
+		sc.addControlListener(new ControlAdapter() {
+			public void controlResized(ControlEvent e) {
+				Rectangle r = sc.getClientArea();
+				sc.setMinSize(sc.computeSize(r.width, SWT.DEFAULT));
+			}
+		});
+
+		swt_updateFields();
+
+		Rectangle r = sc.getClientArea();
+		sc.setMinSize(sc.computeSize(r.width, SWT.DEFAULT));
+	}
+
+	private String getFullTitle() {
+		return MessageText.getString("label.tags");
+	}
+
+	private void swt_updateFields() {
+		cMainComposite.setEnabled(true);
+		boolean labelChanged = false;
+
+		for (Button button : buttons) {
+			boolean hasTag = false;
+			boolean hasNoTag = false;
+
+			Tag tag = (Tag) button.getData("Tag");
+			String name = tag.getTagName(true);
+			if (!button.getText().equals(name)) {
+				button.setText(name);
+				labelChanged = true;
+			}
+
+			if (taggables == null) {
+				button.setSelection(false);
+				button.setEnabled(false);
+				continue;
+			}
+			button.setEnabled(true);
+
+			for (Taggable taggable : taggables) {
+				boolean curHasTag = tag.hasTaggable(taggable);
+				if (!hasTag && curHasTag) {
+					hasTag = true;
+					if (hasNoTag) {
+						break;
+					}
+				} else if (!hasNoTag && !curHasTag) {
+					hasNoTag = true;
+					if (hasTag) {
+						break;
+					}
+				}
+			}
+			if (hasTag && hasNoTag) {
+				button.setGrayed(true);
+				button.setSelection(true);
+			} else {
+				button.setGrayed(false);
+				button.setSelection(hasTag);
+			}
+		}
+
+		if (labelChanged) {
+			Utils.relayout(cMainComposite);
+		}
 	}
 
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagTypeChanged(com.aelitis.azureus.core.tag.TagType)
 	public void tagTypeChanged(TagType tag_type) {
 		// TODO Auto-generated method stub
-
 	}
 
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagAdded(com.aelitis.azureus.core.tag.Tag)
 	public void tagAdded(Tag tag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				swt_updateFields();
+				initialize(null);
 			}
 		});
 	}
@@ -300,8 +323,7 @@ public class TaggingView
 	public void tagChanged(final Tag changedTag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				// probably should change the name
-				//swt_updateFields();
+				swt_updateFields();
 			}
 		});
 	}
@@ -310,7 +332,7 @@ public class TaggingView
 	public void tagRemoved(Tag tag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				swt_updateFields();
+				initialize(null);
 			}
 		});
 	}
