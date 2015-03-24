@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
@@ -326,7 +327,7 @@ public class SBC_LibraryView
 		} else if (torrentFilterMode == TORRENTS_UNOPENED) {
 			entryID = SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED;
 		}
-
+		
 		if (entryID != null) {
 			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 			currentEntry = mdi.getEntry(entryID);
@@ -757,6 +758,19 @@ public class SBC_LibraryView
 			torrentFilterMode = TORRENTS_COMPLETE;
 		} else if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED)) {
 			torrentFilterMode = TORRENTS_UNOPENED;
+		}
+		
+		if (datasource instanceof Tag) {
+			Tag tag = (Tag) datasource;
+			TagType tagType = tag.getTagType();
+			if (tagType.getTagType() == TagType.TT_DOWNLOAD_STATE) {
+				int tagID = tag.getTagID(); // see GlobalManagerImp.tag_*
+				if (tagID == 1 || tagID == 3 || tagID == 11) {
+					torrentFilterMode = TORRENTS_INCOMPLETE;
+				} else if (tagID == 2 || tagID == 4 || tagID == 10) {
+					torrentFilterMode = TORRENTS_COMPLETE;
+				}
+			}
 		}
 
 		soListArea = getSkinObject(ID + "-area");
