@@ -96,6 +96,9 @@ public class TaggingView
 
 			case UISWTViewEvent.TYPE_FOCUSGAINED:
 				initialize();
+				if (taggables == null) {
+					dataSourceChanged(swtView.getDataSource());
+				}
 				break;
 				
 			case UISWTViewEvent.TYPE_FOCUSLOST:
