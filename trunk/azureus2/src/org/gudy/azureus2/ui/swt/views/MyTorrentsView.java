@@ -2525,7 +2525,8 @@ public class MyTorrentsView
 			PiecesView.MSGID_PREFIX,
 			DownloadActivityView.MSGID_PREFIX,
 			PieceInfoView.MSGID_PREFIX,
-			FilesView.MSGID_PREFIX
+			FilesView.MSGID_PREFIX,
+			TaggingView.MSGID_PREFIX
 		));
 				
 		// sub-tab hacks
@@ -2571,6 +2572,13 @@ public class MyTorrentsView
 					TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,	// downloading view
 					TableManager.TABLE_MYTORRENTS_COMPLETE,			// bottom part of split views (hack of course)
 			};
+			
+			boolean hasTags = false;
+			try {
+				// gotta be a simpler way?
+				hasTags = TagManagerFactory.getTagManager().getTagType(TagType.TT_DOWNLOAD_MANUAL).getTags().size() > 0;
+			} catch (Throwable t) {
+			}
 
 			for ( String id: views_with_tabs ){
 
@@ -2584,6 +2592,9 @@ public class MyTorrentsView
 				pluginUI.addView( id, FilesView.MSGID_PREFIX,	FilesView.class, null);
 				pluginUI.addView( id, TorrentInfoView.MSGID_PREFIX, TorrentInfoView.class, null);
 				pluginUI.addView( id, TorrentOptionsView.MSGID_PREFIX, TorrentOptionsView.class, null);
+				if (hasTags) {
+					pluginUI.addView( id, TaggingView.MSGID_PREFIX, TaggingView.class, null);
+				}
 	
 				if (Logger.isEnabled()) {
 					pluginUI.addView( id, LoggerView.MSGID_PREFIX, LoggerView.class, null);

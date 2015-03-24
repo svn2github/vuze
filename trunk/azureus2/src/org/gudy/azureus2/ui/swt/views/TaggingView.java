@@ -1,0 +1,318 @@
+/**
+ * Copyright (C) Azureus Software, Inc, All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+package org.gudy.azureus2.ui.swt.views;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
+
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
+
+import com.aelitis.azureus.core.tag.*;
+
+/**
+ * View showing tags set on selected taggable item(s).  Sometimes easier than
+ * drag and dropping to buttons/sidebar
+ * 
+ * @author TuxPaper
+ * @created Mar 23, 2015
+ *
+ */
+public class TaggingView
+	implements UISWTViewCoreEventListener, TagTypeListener
+{
+	public static final String MSGID_PREFIX = "TaggingView";
+
+	private UISWTView swtView;
+
+	private Composite cMainComposite;
+
+	private ScrolledComposite sc;
+
+	private List<Taggable> taggables;
+
+	public TaggingView() {
+	}
+
+	// @see org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener#eventOccurred(org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent)
+	public boolean eventOccurred(UISWTViewEvent event) {
+		switch (event.getType()) {
+			case UISWTViewEvent.TYPE_CREATE:
+				swtView = (UISWTView) event.getData();
+				swtView.setTitle(getFullTitle());
+				break;
+
+			case UISWTViewEvent.TYPE_DESTROY:
+				delete();
+				break;
+
+			case UISWTViewEvent.TYPE_INITIALIZE:
+				initialize((Composite) event.getData());
+				break;
+
+			case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+				Messages.updateLanguageForControl(cMainComposite);
+				swtView.setTitle(getFullTitle());
+				break;
+
+			case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+				Object ds = event.getData();
+				dataSourceChanged(ds);
+				break;
+
+			case UISWTViewEvent.TYPE_FOCUSGAINED:
+				break;
+
+			case UISWTViewEvent.TYPE_REFRESH:
+				refresh();
+				break;
+		}
+
+		return true;
+	}
+
+	private void delete() {
+		dataSourceChanged(null);
+	}
+
+	private void refresh() {
+	}
+
+	private void dataSourceChanged(Object ds) {
+		boolean wasNull = taggables == null;
+
+		if (ds instanceof Taggable) {
+			taggables = new ArrayList<Taggable>();
+			taggables.add((Taggable) ds);
+		} else if (ds instanceof Taggable[]) {
+			taggables = new ArrayList<Taggable>();
+			taggables.addAll(Arrays.asList((Taggable[]) ds));
+		} else if (ds instanceof Object[]) {
+			taggables = new ArrayList<Taggable>();
+			Object[] objects = (Object[]) ds;
+			for (Object o : objects) {
+				if (o instanceof Taggable) {
+					Taggable taggable = (Taggable) o;
+					taggables.add(taggable);
+				}
+			}
+			if (taggables.size() == 0) {
+				taggables = null;
+			}
+		} else {
+			taggables = null;
+		}
+
+		boolean isNull = taggables == null;
+		if (isNull != wasNull) {
+			TagManager tm = TagManagerFactory.getTagManager();
+			TagType tagType;
+			/*
+			tagType = tm.getTagType(TagType.TT_DOWNLOAD_CATEGORY);
+			if (wasNull) {
+				tagType.removeTagTypeListener(this);
+			} else {
+				tagType.addTagTypeListener(this, false);
+			}
+			*/
+			tagType = tm.getTagType(TagType.TT_DOWNLOAD_MANUAL);
+			if (wasNull) {
+				tagType.removeTagTypeListener(this);
+			} else {
+				tagType.addTagTypeListener(this, false);
+			}
+		}
+
+		initialize(null);
+	}
+
+	private void initialize(Composite parent) {
+		if (cMainComposite == null || cMainComposite.isDisposed()) {
+			if (parent == null || parent.isDisposed()) {
+				return;
+			}
+			sc = new ScrolledComposite(parent, SWT.V_SCROLL);
+			sc.setExpandHorizontal(true);
+			sc.setExpandVertical(true);
+			sc.getVerticalBar().setIncrement(16);
+			Layout parentLayout = parent.getLayout();
+			if (parentLayout instanceof GridLayout) {
+				GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+				sc.setLayoutData(gd);
+			} else if (parentLayout instanceof FormLayout) {
+				sc.setLayoutData(Utils.getFilledFormData());
+			}
+
+			cMainComposite = new Composite(sc, SWT.NONE);
+
+			sc.setContent(cMainComposite);
+		} else {
+			Utils.disposeComposite(cMainComposite, false);
+		}
+
+		cMainComposite.setLayout(new FillLayout(SWT.VERTICAL));
+		if (taggables == null) {
+			Label label = new Label(cMainComposite, SWT.NONE);
+			label.setText("Nothing Selected");
+		} else {
+			swt_updateFields();
+		}
+
+		Utils.relayout(cMainComposite);
+		sc.setMinSize(cMainComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+	}
+
+	private String getFullTitle() {
+		return MessageText.getString("label.tags");
+	}
+
+	private void swt_updateFields() {
+		if (taggables == null) {
+			initialize(null);
+			return;
+		}
+		
+		Utils.disposeComposite(cMainComposite, false);
+
+		TagManager tm = TagManagerFactory.getTagManager();
+		int[] tagTypesWanted = {
+			TagType.TT_DOWNLOAD_MANUAL,
+			//TagType.TT_DOWNLOAD_CATEGORY
+		};
+		
+		SelectionListener selectionListener = new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent e) {
+				Button button = (Button) e.widget;
+				Tag tag = (Tag) button.getData("Tag");
+				if (button.getGrayed()) {
+					button.setGrayed(false);
+					button.setSelection(!button.getSelection());
+				}
+				boolean doTag = button.getSelection();
+				for (Taggable taggable : taggables) {
+					if (doTag) {
+						tag.addTaggable(taggable);
+					} else {
+						tag.removeTaggable(taggable);
+					}
+				}
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		};
+		
+		for (int tagType : tagTypesWanted) {
+			Composite c = new Composite(cMainComposite, SWT.NONE);
+			RowLayout rowLayout = new RowLayout();
+			rowLayout.spacing = 10;
+			c.setLayout(rowLayout);
+
+			TagType tt = tm.getTagType(tagType);
+			List<Tag> tags = tt.getTags();
+			TagUIUtils.sortTags(tags);
+			for (Tag tag : tags) {
+				Button button = new Button(c, SWT.CHECK);
+				button.setText(tag.getTagName(true));
+				button.addSelectionListener(selectionListener);
+				button.setData("Tag", tag);
+				
+				
+				boolean hasTag = false;
+				boolean hasNoTag = false;
+				for (Taggable taggable : taggables) {
+					boolean curHasTag = tag.hasTaggable(taggable);
+					if (!hasTag && curHasTag) {
+						hasTag = true;
+						if (hasNoTag) {
+							break;
+						}
+					} else if (!hasNoTag && !curHasTag) {
+						hasNoTag = true;
+						if (hasTag) {
+							break;
+						}
+					}
+				}
+				if (hasTag && hasNoTag) {
+					button.setGrayed(true);
+					button.setSelection(true);
+				} else {
+					button.setGrayed(false);
+					button.setSelection(hasTag);
+				}
+
+				Menu menu = new Menu(button);
+				button.setMenu(menu);
+				TagUIUtils.createSideBarMenuItems(menu, tag);
+			}
+		}
+
+	}
+
+	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagTypeChanged(com.aelitis.azureus.core.tag.TagType)
+	public void tagTypeChanged(TagType tag_type) {
+		// TODO Auto-generated method stub
+
+	}
+
+	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagAdded(com.aelitis.azureus.core.tag.Tag)
+	public void tagAdded(Tag tag) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_updateFields();
+			}
+		});
+	}
+
+	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagChanged(com.aelitis.azureus.core.tag.Tag)
+	public void tagChanged(final Tag changedTag) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				// probably should change the name
+				//swt_updateFields();
+			}
+		});
+	}
+
+	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagRemoved(com.aelitis.azureus.core.tag.Tag)
+	public void tagRemoved(Tag tag) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_updateFields();
+			}
+		});
+	}
+
+}
