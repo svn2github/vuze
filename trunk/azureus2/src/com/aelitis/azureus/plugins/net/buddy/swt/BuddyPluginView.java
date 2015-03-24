@@ -705,6 +705,7 @@ BuddyPluginView
 			TableManager.TABLE_MYTORRENTS_INCOMPLETE,
 			TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,
 			TableManager.TABLE_MYTORRENTS_COMPLETE,
+			"TagsView",
 		};
 		
 		if ( enable ){
@@ -1514,6 +1515,7 @@ BuddyPluginView
 
 		private boolean			have_focus;
 		private boolean			rebuild_outstanding	= true;
+		private Group lhs;
 		
 		private
 		BetaSubViewHolder()
@@ -1594,7 +1596,7 @@ BuddyPluginView
 				
 				// left
 			
-				Group lhs = new Group( composite, SWT.NULL );
+				lhs = new Group( composite, SWT.NULL );
 				lhs.setText( MessageText.getString( "label.chat.type" ));
 				layout = new GridLayout();
 				layout.numColumns = 1;
@@ -1958,6 +1960,14 @@ BuddyPluginView
 						}
 					}else if ( mode == CHAT_TAG ){
 							
+						lhs.setVisible(download != null);
+						GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+						if (download == null) {
+							grid_data.exclude = true;
+						}
+						lhs.setLayoutData(grid_data);
+							
+
 						middle.setVisible( true );				
 						middle.setText( MessageText.getString( "label.tag.selection" ));
 						
@@ -1992,7 +2002,7 @@ BuddyPluginView
 						
 						layout.numColumns = 1;
 						middle.setLayout(layout);
-						GridData grid_data = new GridData(GridData.FILL_VERTICAL );
+						grid_data = new GridData(GridData.FILL_VERTICAL );
 						middle.setLayoutData(grid_data);
 	
 						int	num_tags = tags.size();
@@ -2327,10 +2337,7 @@ BuddyPluginView
 				
 				if ( current_download == null ){
 					
-					if ( chat_mode == CHAT_DOWNLOAD || chat_mode == CHAT_TRACKERS || chat_mode == CHAT_TAG ){
-						
 						setChatMode( current_ds_tag==null?CHAT_GENERAL:CHAT_TAG );
-					}
 				}
 				
 				buildChatMode( chat_mode, false );
@@ -2711,6 +2718,10 @@ BuddyPluginView
 					}else if ( ds[0] instanceof DiskManagerFileInfo ){
 						
 						dl_file = (DiskManagerFileInfo)ds[0];
+						
+					}else if ( ds[0] instanceof Tag ) {
+						
+						tag = (Tag) ds[0];
 					}
 				}
 			}else{
