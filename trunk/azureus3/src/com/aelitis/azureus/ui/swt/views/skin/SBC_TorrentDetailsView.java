@@ -399,7 +399,9 @@ public class SBC_TorrentDetailsView
 
 					TableViewSWT tv = tvt.getTableView();
 
-					tv.disableFilterCheck();
+					if (tv != null) {
+						tv.disableFilterCheck();
+					}
 				}
 			}
 
@@ -440,6 +442,12 @@ public class SBC_TorrentDetailsView
 				listener = ((UISWTViewEventListenerHolder) listener).getDelegatedEventListener(view);
 			}
 
+			
+			item.getControl().setFocus();
+			SelectedContentManager.clearCurrentlySelectedContent();
+			
+			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+
 			// hook in filtering
 
 			if (listener instanceof TableViewTab<?>
@@ -461,11 +469,6 @@ public class SBC_TorrentDetailsView
 
 				soFilterTextBox.setVisible(false);
 			}
-
-			item.getControl().setFocus();
-			SelectedContentManager.clearCurrentlySelectedContent();
-
-			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 
 			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (uiFunctions != null) {
