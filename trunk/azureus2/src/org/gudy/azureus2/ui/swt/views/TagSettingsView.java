@@ -224,7 +224,7 @@ public class TagSettingsView
 
 			// Field: Name
 			label = new Label(cSection1, SWT.NONE);
-			Messages.setLanguageText(label, "TableColumn.header.name");
+			Messages.setLanguageText(label, "MinimizedWindow.name");
 			gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
 			label.setLayoutData(gd);
 
@@ -248,6 +248,8 @@ public class TagSettingsView
 				});
 			} else {
 				label = new Label(cSection1, SWT.NONE);
+				gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+				label.setLayoutData(gd);
 				params.cName = label;
 			}
 
@@ -308,6 +310,14 @@ public class TagSettingsView
 				params.isPublic.setLayoutData(gd);
 			}
 
+			Group gTransfer = new Group(cMainComposite, SWT.NONE);
+			gTransfer.setText("Transfer Settings");
+			gridLayout = new GridLayout(4, false);
+			gTransfer.setLayout(gridLayout);
+
+			gd = new GridData(SWT.NONE, SWT.NONE, false, false, 4, 1);
+			gTransfer.setLayoutData(gd);
+			
 			if (tag instanceof TagFeatureRateLimit) {
 				final TagFeatureRateLimit rl = (TagFeatureRateLimit) tag;
 				String k_unit = DisplayFormatters.getRateUnitBase10(DisplayFormatters.UNIT_KB).trim();
@@ -317,7 +327,7 @@ public class TagSettingsView
 					if (rl.supportsTagDownloadLimit()) {
 
 						gd = new GridData();
-						label = new Label(cSection2, SWT.NULL);
+						label = new Label(gTransfer, SWT.NULL);
 						label.setLayoutData(gd);
 						label.setText(k_unit + " " + MessageText.getString(
 								"GeneralView.label.maxdownloadspeed.tooltip"));
@@ -346,7 +356,7 @@ public class TagSettingsView
 									public boolean resetIntDefault(String key) {
 										return false;
 									}
-								}, cSection2, null, -1, Integer.MAX_VALUE);
+								}, gTransfer, null, -1, Integer.MAX_VALUE);
 						params.maxDownloadSpeed.setLayoutData(gd);
 					}
 				}
@@ -354,7 +364,7 @@ public class TagSettingsView
 					// Upload Limit
 					if (rl.supportsTagUploadLimit()) {
 						gd = new GridData();
-						label = new Label(cSection2, SWT.NULL);
+						label = new Label(gTransfer, SWT.NULL);
 						label.setLayoutData(gd);
 						label.setText(k_unit + " " + MessageText.getString(
 								"GeneralView.label.maxuploadspeed.tooltip"));
@@ -383,7 +393,7 @@ public class TagSettingsView
 									public boolean resetIntDefault(String key) {
 										return false;
 									}
-								}, cSection2, null, -1, Integer.MAX_VALUE);
+								}, gTransfer, null, -1, Integer.MAX_VALUE);
 						params.maxUploadSpeed.setLayoutData(gd);
 					}
 
@@ -402,7 +412,7 @@ public class TagSettingsView
   								public void setBooleanValue(String key, boolean value) {
   									rl.setTagUploadPriority(value ? 1 : 0);
   								}
-  							}, cSection2, null, "cat.upload.priority");
+  							}, gTransfer, null, "cat.upload.priority");
   					gd = new GridData();
   					gd.horizontalSpan = 4;
   					params.uploadPriority.setLayoutData(gd);
@@ -410,7 +420,7 @@ public class TagSettingsView
 
 					// Field: Min Share
 					if (rl.getTagMinShareRatio() >= 0) {
-  					label = new Label(cSection2, SWT.NONE);
+  					label = new Label(gTransfer, SWT.NONE);
   					Messages.setLanguageText(label, "TableColumn.header.min_sr" );
   					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
   					label.setLayoutData(gd);
@@ -424,7 +434,7 @@ public class TagSettingsView
   								public void setFloatValue(String key, float value) {
   									rl.setTagMinShareRatio((int) (value * 1000));
   								}
-  							}, cSection2, null, 0, Float.MAX_VALUE,
+  							}, gTransfer, null, 0, Float.MAX_VALUE,
   							true, 3);
   					gd = new GridData();
   					//gd.horizontalSpan = 3;
@@ -434,7 +444,7 @@ public class TagSettingsView
 
 					// Field: Max Share
 					if (rl.getTagMaxShareRatio() >= 0) {
-  					label = new Label(cSection2, SWT.NONE);
+  					label = new Label(gTransfer, SWT.NONE);
   					Messages.setLanguageText(label, "TableColumn.header.max_sr" );
   					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
   					label.setLayoutData(gd);
@@ -448,7 +458,7 @@ public class TagSettingsView
   								public void setFloatValue(String key, float value) {
   									rl.setTagMaxShareRatio((int) (value * 1000));
   								}
-  							}, cSection2, null, 0, Float.MAX_VALUE,
+  							}, gTransfer, null, 0, Float.MAX_VALUE,
   							true, 3);
   					gd = new GridData();
   					//gd.horizontalSpan = 3;
@@ -505,6 +515,17 @@ public class TagSettingsView
 		if (params.maxUploadSpeed != null) {
 			params.maxUploadSpeed.resetToDefault();
 		}
+		
+		if (params.uploadPriority != null) {
+			params.uploadPriority.refresh();
+		}
+		if (params.min_sr != null) {
+			params.min_sr.refresh();
+		}
+		if (params.max_sr != null) {
+			params.max_sr.refresh();
+		}
+
 	}
 
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagTypeChanged(com.aelitis.azureus.core.tag.TagType)
