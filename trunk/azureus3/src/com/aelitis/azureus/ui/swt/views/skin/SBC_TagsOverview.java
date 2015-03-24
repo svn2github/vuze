@@ -84,6 +84,8 @@ public class SBC_TagsOverview
 	private boolean tm_listener_added;
 
 	private boolean registeredCoreSubViews;
+
+	private Object datasource;
 	
 	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
@@ -402,6 +404,7 @@ public class SBC_TagsOverview
 		return null;
 	}
 
+	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	@Override
 	public Object 
 	skinObjectDestroyed(
@@ -460,6 +463,18 @@ public class SBC_TagsOverview
 			tv.addSelectionListener(this, false);
 			
 			tv.initialize(table_parent);
+
+			tv.addCountChangeListener(new TableCountChangeListener() {
+				
+				public void rowRemoved(TableRowCore row) {
+				}
+				
+				public void rowAdded(TableRowCore row) {
+					if (datasource == row.getDataSource()) {
+						tv.setSelectedRows(new TableRowCore[] { row });
+					}
+				}
+			});
 		}
 
 		control.layout(true);
@@ -625,5 +640,19 @@ public class SBC_TagsOverview
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagRemoved(com.aelitis.azureus.core.tag.Tag)
 	public void tagRemoved(Tag tag) {
 		tv.removeDataSource(tag);
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#dataSourceChanged(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object dataSourceChanged(SWTSkinObject skinObject, Object params) {
+		if (params instanceof Tag) {
+			if (tv != null) {
+				TableRowCore row = tv.getRow((Tag) params);
+				if (row != null) {
+					tv.setSelectedRows(new TableRowCore[] { row });
+				}
+			}
+		}
+		datasource = params;
+		return null;
 	}
 }
