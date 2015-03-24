@@ -298,7 +298,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		return( getBooleanOption( net, key, "fave" ));
+		return( getBooleanOption( net, key, "fave", false ));
 	}
 	
 	public void
@@ -448,12 +448,7 @@ BuddyPluginBeta
 			}
 		}
 		
-		String nick = getStringOption( net, key, "nick" );
-		
-		if ( nick == null ){
-			
-			nick = "";
-		}
+		String nick = getStringOption( net, key, "nick", "" );
 		
 		return( nick );
 	}
@@ -490,7 +485,7 @@ BuddyPluginBeta
 			return( temp );
 		}
 		
-		return( getBooleanOption( net, key, "sn" ));
+		return( getBooleanOption( net, key, "sn", true ));
 	}
 	
 	private void
@@ -509,7 +504,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		return( getBooleanOption( net, key, "save" ));
+		return( getBooleanOption( net, key, "save", false ));
 	}
 	
 	private void
@@ -528,7 +523,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		return( getBooleanOption( net, key, "log" ));
+		return( getBooleanOption( net, key, "log", false ));
 	}
 	
 	private void
@@ -548,7 +543,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		return( getBooleanOption( net, key, "automute" ));
+		return( getBooleanOption( net, key, "automute", false ));
 	}
 	
 	private void
@@ -567,7 +562,7 @@ BuddyPluginBeta
 		String		net,
 		String		key )
 	{
-		return( getStringOption( net, key, "lmi" ));
+		return( getStringOption( net, key, "lmi", null ));
 	}
 	
 	public void
@@ -636,7 +631,8 @@ BuddyPluginBeta
 	getBooleanOption(
 		String		net,
 		String		key,
-		String		name )
+		String		name,
+		boolean		def )
 	{
 		Object	obj = getGenericOption(net, key, name);
 		
@@ -645,7 +641,7 @@ BuddyPluginBeta
 			return(((Number)obj).intValue()!=0);
 		}
 		
-		return( false );
+		return( def );
 	}
 	
 	private void
@@ -667,7 +663,8 @@ BuddyPluginBeta
 	getStringOption(
 		String		net,
 		String		key,
-		String		name )
+		String		name,
+		String		def )
 	{
 		byte[]	bytes = getByteArrayOption( net, key, name );
 		
@@ -681,7 +678,7 @@ BuddyPluginBeta
 			}
 		}
 		
-		return( null );
+		return( def );
 	}
 	
 	private void
