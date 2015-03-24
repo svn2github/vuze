@@ -128,7 +128,6 @@ public class TableColumnCreatorV3
 			}
 		}
 
-		System.out.println("upgradeColumns; old=" + oldOrder.length + ";cur=" + listCurrentOrder.size() + ";" + Debug.getCompressedStackTrace());
 		if (oldOrder.length == listCurrentOrder.size()) {
 			List<String> listOldOrder = Arrays.asList(oldOrder);
 			if (listOldOrder.containsAll(listCurrentOrder)) {
