@@ -2344,10 +2344,32 @@ public class MyTorrentsView
 				tag.removeTagListener(this);
 			}
 		}
+
 		currentTags = tags;
 		if (currentTags != null) {
+			Set<Tag> to_remove = null;
 			for (Tag tag : currentTags) {
-				tag.addTagListener(this, false);
+				if ( tag.getTaggableTypes() != Taggable.TT_DOWNLOAD ){
+						// hmm, not a download related tag (e.g. peer-set), remove from the set. We can get this in the
+						// TagsOverview 'torrents' sub-view when peer-sets are selected in the main tag table
+					if (  to_remove == null ){
+						to_remove = new HashSet<Tag>();
+					}
+					to_remove.add( tag );
+				}else{
+					tag.addTagListener(this, false);
+				}
+			}
+			if ( to_remove != null ){
+				Tag[] updated_tags = new Tag[currentTags.length-to_remove.size()];
+				
+				int	pos = 0;
+				for (Tag tag : currentTags) {
+					if ( !to_remove.contains( tag )){
+						updated_tags[pos++] = tag;
+					}
+				}
+				currentTags = updated_tags;
 			}
 		}
   	
