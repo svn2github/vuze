@@ -63,6 +63,8 @@ public class TaggingView
 
 	private List<Button> buttons;
 
+	private Composite parent;
+
 	public TaggingView() {
 	}
 
@@ -79,7 +81,7 @@ public class TaggingView
 				break;
 
 			case UISWTViewEvent.TYPE_INITIALIZE:
-				initialize((Composite) event.getData());
+				parent = (Composite) event.getData();
 				break;
 
 			case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
@@ -93,6 +95,11 @@ public class TaggingView
 				break;
 
 			case UISWTViewEvent.TYPE_FOCUSGAINED:
+				initialize();
+				break;
+				
+			case UISWTViewEvent.TYPE_FOCUSLOST:
+				delete();
 				break;
 
 			case UISWTViewEvent.TYPE_REFRESH:
@@ -104,6 +111,7 @@ public class TaggingView
 	}
 
 	private void delete() {
+		Utils.disposeComposite(sc);
 		dataSourceChanged(null);
 	}
 
@@ -162,7 +170,7 @@ public class TaggingView
 		});
 	}
 
-	private void initialize(Composite parent) {
+	private void initialize() {
 		if (cMainComposite == null || cMainComposite.isDisposed()) {
 			if (parent == null || parent.isDisposed()) {
 				return;
@@ -268,8 +276,9 @@ public class TaggingView
 
 		swt_updateFields();
 
-		Rectangle r = cMainComposite.getClientArea();
-		sc.setMinSize(sc.computeSize(r.width, SWT.DEFAULT));
+		Rectangle r = sc.getClientArea();
+		Point size = cMainComposite.computeSize(r.width, SWT.DEFAULT);
+		sc.setMinSize(size);
 	}
 
 	private String getFullTitle() {
@@ -277,7 +286,11 @@ public class TaggingView
 	}
 
 	private void swt_updateFields() {
-		cMainComposite.setEnabled(true);
+
+		if (cMainComposite == null || cMainComposite.isDisposed()) {
+			return;
+		}
+		
 
 		List<Control> layoutChanges = new ArrayList<Control>();
 		for (Button button : buttons) {
@@ -325,6 +338,7 @@ public class TaggingView
 
 		if (layoutChanges.size() > 0) {
 			cMainComposite.layout(layoutChanges.toArray(new Control[0]));
+			parent.layout();
 		}
 	}
 
@@ -337,7 +351,7 @@ public class TaggingView
 	public void tagAdded(Tag tag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				initialize(null);
+				initialize();
 			}
 		});
 	}
@@ -355,7 +369,7 @@ public class TaggingView
 	public void tagRemoved(Tag tag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				initialize(null);
+				initialize();
 			}
 		});
 	}
