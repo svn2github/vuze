@@ -229,7 +229,11 @@ public class TaggingView
 			for (Tag tag : tags) {
 				Button button = new Button(c, SWT.CHECK);
 				buttons.add(button);
-				button.addSelectionListener(selectionListener);
+				if ( tag.isTagAuto()){
+					button.setEnabled( false );
+				}else{
+					button.addSelectionListener(selectionListener);
+				}
 				button.setData("Tag", tag);
 
 				Menu menu = new Menu(button);
@@ -275,8 +279,10 @@ public class TaggingView
 				button.setEnabled(false);
 				continue;
 			}
-			button.setEnabled(true);
-
+			if ( !tag.isTagAuto()){
+				button.setEnabled(true);
+			}
+			
 			for (Taggable taggable : taggables) {
 				boolean curHasTag = tag.hasTaggable(taggable);
 				if (!hasTag && curHasTag) {
