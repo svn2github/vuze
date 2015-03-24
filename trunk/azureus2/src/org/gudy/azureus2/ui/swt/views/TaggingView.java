@@ -250,11 +250,12 @@ public class TaggingView
 			Composite c = cMainComposite;
 			RowLayout rowLayout = new RowLayout();
 			rowLayout.pack = false;
+			rowLayout.spacing = 5;
 			c.setLayout(rowLayout);
 
 			TagType tt = tm.getTagType(tagType);
 			List<Tag> tags = tt.getTags();
-			TagUIUtils.sortTags(tags);
+			tags = TagUIUtils.sortTags(tags);
 			for (Tag tag : tags) {
 				Button button = new Button(c, SWT.CHECK);
 				buttons.add(button);
