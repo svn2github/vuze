@@ -849,35 +849,11 @@ public class SWTSkinObjectBasic
 			initialized = true;
 		} else if (eventType == SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED) {
 			datasource = params;
+		} else if (eventType == SWTSkinObjectListener.EVENT_DESTROY && isVisible == 1) {
+			triggerListenersRaw(SWTSkinObjectListener.EVENT_HIDE, null);
 		}
 		
-		// process listeners added locally
-		SWTSkinObjectListener[] listenersArray = getListeners();
-		if (listenersArray.length > 0) {
-			// don't use iterator as triggering code may try to remove itself
-			for (SWTSkinObjectListener l : listenersArray) {
-				try {
-					l.eventOccured(this, eventType, params);
-				} catch (Exception e) {
-					Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
-							+ " caused an error for listener added locally", e);
-				}
-			}
-		}
-
-		// process listeners added to skin
-		SWTSkinObjectListener[] listeners = skin.getSkinObjectListeners(sViewID);
-		if (listeners.length > 0) {
-  		for (int i = 0; i < listeners.length; i++) {
-  			try {
-  				SWTSkinObjectListener l = listeners[i];
-  				l.eventOccured(this, eventType, params);
-  			} catch (Exception e) {
-  				Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
-  						+ " caused an error for listener added to skin", e);
-  			}
-  		}
-		}
+		triggerListenersRaw(eventType, params);
 
 		if (eventType == SWTSkinObjectListener.EVENT_CREATED && isVisible >= 0) {
 			triggerListeners(isVisible() ? SWTSkinObjectListener.EVENT_SHOW
@@ -911,6 +887,36 @@ public class SWTSkinObjectBasic
 					Debug.out(e);
 				}
 			}
+		}
+	}
+
+	private void triggerListenersRaw(int eventType, Object params) {
+		// process listeners added locally
+		SWTSkinObjectListener[] listenersArray = getListeners();
+		if (listenersArray.length > 0) {
+			// don't use iterator as triggering code may try to remove itself
+			for (SWTSkinObjectListener l : listenersArray) {
+				try {
+					l.eventOccured(this, eventType, params);
+				} catch (Exception e) {
+					Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
+							+ " caused an error for listener added locally", e);
+				}
+			}
+		}
+
+		// process listeners added to skin
+		SWTSkinObjectListener[] listeners = skin.getSkinObjectListeners(sViewID);
+		if (listeners.length > 0) {
+  		for (int i = 0; i < listeners.length; i++) {
+  			try {
+  				SWTSkinObjectListener l = listeners[i];
+  				l.eventOccured(this, eventType, params);
+  			} catch (Exception e) {
+  				Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
+  						+ " caused an error for listener added to skin", e);
+  			}
+  		}
 		}
 	}
 
