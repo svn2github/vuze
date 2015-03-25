@@ -428,7 +428,7 @@ public class TagSettingsView
   					params.min_sr = new GenericFloatParameter(
   							new GenericParameterAdapter() {
   								public float getFloatValue(String key) {
-  									return rl.getTagMinShareRatio();
+  									return rl.getTagMinShareRatio() / 1000f;
   								}
   								
   								public void setFloatValue(String key, float value) {
@@ -452,7 +452,7 @@ public class TagSettingsView
   					params.max_sr = new GenericFloatParameter(
   							new GenericParameterAdapter() {
   								public float getFloatValue(String key) {
-  									return rl.getTagMaxShareRatio();
+  									return rl.getTagMaxShareRatio() / 1000f;
   								}
   								
   								public void setFloatValue(String key, float value) {
