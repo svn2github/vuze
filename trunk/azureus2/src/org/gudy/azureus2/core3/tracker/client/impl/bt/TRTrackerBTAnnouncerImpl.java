@@ -3262,7 +3262,8 @@ TRTrackerBTAnnouncerImpl
 				    	
 				    		// 	we got nothing useful under peers and no peers6 either
 				    	
-						throw( new IOException( "peers missing from response" ));
+				    	// meh, seen a tracker that doesn't return anything when it has nothing
+						// throw( new IOException( "peers missing from response" ));
 				    }
 			    	
 			    	
