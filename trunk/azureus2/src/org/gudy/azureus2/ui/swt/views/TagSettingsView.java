@@ -470,7 +470,7 @@ public class TagSettingsView
 			swt_updateFields();
 		}
 
-		Utils.relayout(cMainComposite);
+		cMainComposite.layout();;
 		sc.setMinSize(cMainComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	}
 
