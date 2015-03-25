@@ -32,6 +32,8 @@ public class GenericFloatParameter {
   float fMinValue = 0;
   float fMaxValue = -1;
   boolean allowZero = false;
+	private GenericParameterAdapter adapter;
+	private String name;
 
   public GenericFloatParameter(GenericParameterAdapter adapter,Composite composite, final String name) {
     adapter.getFloatValue( name );
@@ -51,7 +53,9 @@ public class GenericFloatParameter {
     
   public void initialize(final GenericParameterAdapter adapter,Composite composite, final String name) {
  
-    inputField = new Text(composite, SWT.BORDER | SWT.RIGHT);
+    this.adapter = adapter;
+		this.name = name;
+		inputField = new Text(composite, SWT.BORDER | SWT.RIGHT);
     float value = adapter.getFloatValue( name );
     inputField.setText(String.valueOf(value));
     inputField.addListener(SWT.Verify, new Listener() {
@@ -120,6 +124,18 @@ public class GenericFloatParameter {
 			public void runSupport() {
 				if ( !inputField.isDisposed()){
 					 inputField.setText(String.valueOf(value));
+				}
+			}
+		});
+  }
+
+  public void
+  refresh()
+  {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if ( !inputField.isDisposed()){
+					 inputField.setText(String.valueOf(adapter.getFloatValue(name)));
 				}
 			}
 		});
