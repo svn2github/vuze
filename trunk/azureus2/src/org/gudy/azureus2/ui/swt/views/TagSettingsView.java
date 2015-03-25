@@ -228,7 +228,7 @@ public class TagSettingsView
 			gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
 			label.setLayoutData(gd);
 
-			if (!tag.isTagAuto()) {
+			if (!tag.getTagType().isTagTypeAuto()) {
 				Text txtName = new Text(cSection1, SWT.BORDER);
 				params.cName = txtName;
 				gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
