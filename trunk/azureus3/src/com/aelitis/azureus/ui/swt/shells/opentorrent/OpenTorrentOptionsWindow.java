@@ -32,7 +32,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -61,6 +60,7 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -4235,7 +4235,39 @@ public class OpenTorrentOptionsWindow
 
 			if (so instanceof SWTSkinObjectText) {
 				
-				((SWTSkinObjectText) so).setText(torrentOptions.getTorrentName());
+				String hash_str = null;
+				
+				try{
+					hash_str = ByteFormatter.encodeString(torrentOptions.getTorrent().getHash());
+					
+				}catch( Throwable e ){
+				}
+				
+				SWTSkinObjectText text = (SWTSkinObjectText)so;
+				
+				text.setText( torrentOptions.getTorrentName() +  (hash_str==null?"":("\u00a0\u00a0\u00a0\u00a0[" + hash_str + "]")));
+				
+				if ( hash_str != null ){
+					
+					final String f_hash_str = hash_str;
+					
+					ClipboardCopy.addCopyToClipMenu(
+						text.getControl(),
+						new ClipboardCopy.copyToClipProvider2() {
+							
+							public String 
+							getMenuResource() 
+							{
+								return( "menu.copy.hash.to.clipboard" );
+							}
+							
+							public String 
+							getText() 
+							{
+								return( f_hash_str );
+							}
+						});
+				}
 			}
 	
 			so = skin.getSkinObject("torrentinfo-trackername");

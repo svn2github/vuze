@@ -84,7 +84,18 @@ public class ClipboardCopy {
 
 				  MenuItem   item = new MenuItem( menu,SWT.NONE );
 
-				  item.setText( MessageText.getString( "ConfigView.copy.to.clipboard.tooltip"));
+				  String	msg_text_id;
+				  
+				  if ( provider instanceof copyToClipProvider2 ){
+					  
+					  msg_text_id = ((copyToClipProvider2)provider).getMenuResource();
+					  
+				  }else{
+					  
+					  msg_text_id = "label.copy.to.clipboard";
+				  }
+				  
+				  item.setText( MessageText.getString( msg_text_id ));
 
 				  item.addSelectionListener(
 						  new SelectionAdapter()
@@ -139,5 +150,13 @@ public class ClipboardCopy {
   {
 	  public String
 	  getText();
+  }
+  
+  public interface
+  copyToClipProvider2
+  	extends copyToClipProvider
+  {
+	  public String
+	  getMenuResource();
   }
 }
