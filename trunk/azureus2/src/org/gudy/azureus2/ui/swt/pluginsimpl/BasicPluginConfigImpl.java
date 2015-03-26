@@ -191,15 +191,15 @@ BasicPluginConfigImpl
 				ParameterTabFolderImpl	tab_folder = pg.getTabFolder();
 				
 				if ( tab_folder != null ){
-										
+
+					ParameterGroupImpl tab_group = tab_folder.getGroup();
+			
 					CTabFolder	tf = tab_folder_map.get( tab_folder );
 					
 					if ( tf == null ){
 											
 						Composite tab_parent = current_composite;
-						
-						ParameterGroupImpl tab_group = tab_folder.getGroup();
-						
+												
 						if ( tab_group != null ){
 							
 							String tg_resource = tab_group.getResourceName();
@@ -218,8 +218,16 @@ BasicPluginConfigImpl
 									
 									gridData.horizontalSpan = 2;
 									
-									tab_parent.setLayoutData(gridData);
+									if ( tab_group.getMinimumRequiredUserMode() > userMode ){
+										
+										tab_parent.setVisible( false );
+										
+										gridData.widthHint = 0;
+										gridData.heightHint = 0;
+									}
 									
+									tab_parent.setLayoutData(gridData);
+
 									layout = new GridLayout();
 									
 									layout.numColumns = tab_group.getNumberColumns() * 2;
@@ -227,11 +235,6 @@ BasicPluginConfigImpl
 									tab_parent.setLayout(layout);
 									
 									group_map.put( tab_group, tab_parent );
-									
-									if ( tab_group.getMinimumRequiredUserMode() > userMode){
-										
-										tab_parent.setVisible( false );
-									}
 								}
 							}
 						}
@@ -246,14 +249,17 @@ BasicPluginConfigImpl
 						
 						grid_data.horizontalSpan = 2;
 						
+						if ( tab_folder.getMinimumRequiredUserMode() > userMode ){
+							
+							tf.setVisible( false );
+							
+							grid_data.widthHint = 0;
+							grid_data.heightHint = 0;
+						}
+						
 						tf.setLayoutData(grid_data);
 						
 						tab_folder_map.put( tab_folder, tf );
-						
-						if ( tab_folder.getMinimumRequiredUserMode() > userMode){
-							
-							tf.setVisible( false );
-						}
 					}
 					
 					Composite tab_composite = tab_map.get( pg );
@@ -274,10 +280,19 @@ BasicPluginConfigImpl
 						
 						layout = new GridLayout();
 						layout.numColumns = 2;
-						//layout.marginHeight = 0;
-						//layout.marginWidth = 0;
+						
 						tab_composite.setLayout(layout);
+						
 						GridData grid_data = new GridData(GridData.FILL_BOTH);
+						
+						if ( pg.getMinimumRequiredUserMode() > userMode ){
+							
+							tab_composite.setVisible( false );
+							
+							grid_data.widthHint = 0;
+							grid_data.heightHint = 0;
+						}
+						
 						tab_composite.setLayoutData( grid_data );
 							
 						if ( tf.getItemCount() == 1 ){
@@ -310,11 +325,19 @@ BasicPluginConfigImpl
 						Messages.setLanguageText(current_composite, resource_name );
 					}
 					
-					GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+					GridData grid_data = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 					
-					gridData.horizontalSpan = 2;
+					grid_data.horizontalSpan = 2;
 					
-					current_composite.setLayoutData(gridData);
+					if ( pg.getMinimumRequiredUserMode() > userMode ){
+						
+						current_composite.setVisible( false );
+						
+						grid_data.widthHint = 0;
+						grid_data.heightHint = 0;
+					}
+					
+					current_composite.setLayoutData( grid_data );
 					
 					layout = new GridLayout();
 					
@@ -323,11 +346,7 @@ BasicPluginConfigImpl
 					current_composite.setLayout(layout);
 					
 					group_map.put( pg, current_composite );
-					
-					if ( pg.getMinimumRequiredUserMode() > userMode){
-						
-						current_composite.setVisible( false );
-					}
+				
 				}else{
 					
 					current_composite = comp;
