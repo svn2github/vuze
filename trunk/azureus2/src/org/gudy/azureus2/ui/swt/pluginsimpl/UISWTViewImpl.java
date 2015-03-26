@@ -264,6 +264,9 @@ public class UISWTViewImpl
 						(Map) data, "image", null, Image.class));
 			}
 		} else if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED) {
+			if (!haveSentInitialize) {
+				swt_triggerInitialize();
+			}
 			hasFocus = true;
 		} else if (eventType == UISWTViewEvent.TYPE_FOCUSLOST) {
 			hasFocus = false;
@@ -409,6 +412,9 @@ public class UISWTViewImpl
 					triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 				}
 			});
+			if (parent.isVisible()) {
+				triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+			}
 			if (DELAY_INITIALIZE_TO_FIRST_ACTIVATE) {
 				return;
 			}
