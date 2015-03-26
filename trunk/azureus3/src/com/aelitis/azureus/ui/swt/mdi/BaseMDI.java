@@ -279,6 +279,7 @@ public abstract class BaseMDI
 		return currentEntry.getView().getViewID();
 	}
 
+	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#registerEntry(java.lang.String, com.aelitis.azureus.ui.mdi.MdiEntryCreationListener2)
 	public void registerEntry(String id, MdiEntryCreationListener2 l) {
 		if (mapIdToCreationListener.containsKey(id)) {
 			System.err.println("Warning: MDIEntry " + id
@@ -288,6 +289,14 @@ public abstract class BaseMDI
 		mapIdToCreationListener2.put(id, l);
 		
 		createIfAutoOpen(id);
+	}
+	
+	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#deregisterEntry(java.lang.String, com.aelitis.azureus.ui.mdi.MdiEntryCreationListener2)
+	public void deregisterEntry(String id, MdiEntryCreationListener2 l) {
+		MdiEntryCreationListener2 l2 = mapIdToCreationListener2.get(id);
+		if (l == l2) {
+			mapIdToCreationListener2.remove(id);
+		}
 	}
 
 	private boolean createIfAutoOpen(String id) {
@@ -355,6 +364,7 @@ public abstract class BaseMDI
 		return null;
 	}
 
+	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#registerEntry(java.lang.String, com.aelitis.azureus.ui.mdi.MdiEntryCreationListener)
 	public void registerEntry(String id, MdiEntryCreationListener l) {
 		if (mapIdToCreationListener.containsKey(id)
 				|| mapIdToCreationListener2.containsKey(id)) {
@@ -367,6 +377,14 @@ public abstract class BaseMDI
 		createIfAutoOpen(id);
 	}
 
+	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#deregisterEntry(java.lang.String, com.aelitis.azureus.ui.mdi.MdiEntryCreationListener)
+	public void deregisterEntry(String id, MdiEntryCreationListener l) {
+		MdiEntryCreationListener l2 = mapIdToCreationListener.get(id);
+		if (l == l2) {
+			mapIdToCreationListener.remove(id);
+		}
+	}
+	
 	public boolean showEntryByID(String id) {
 		return loadEntryByID(id, true);
 	}

@@ -135,6 +135,11 @@ public interface MultipleDocumentInterface
 	public void registerEntry(String id,
 			MdiEntryCreationListener2 mdiEntryCreationListener2);
 
+	public void deregisterEntry(String id, MdiEntryCreationListener l);
+	
+	public void deregisterEntry(String id,
+			MdiEntryCreationListener2 mdiEntryCreationListener2);
+
 	public boolean entryExists(String id);
 
 	public void removeItem(MdiEntry entry);
