@@ -1283,6 +1283,8 @@ public class SideBarEntrySWT
 		imageLoader.releaseImage("image.sidebar.closeitem");
 		imageLoader.releaseImage("image.sidebar.closeitem-selected");
 
+		setDisposed(true);
+
 		final TreeItem treeItem = (TreeItem) e.widget;
 		if (treeItem != swtItem) {
 			Debug.out("Warning: TreeItem changed for sidebar " + id);
@@ -1292,7 +1294,7 @@ public class SideBarEntrySWT
 		if (swtItem == null) {
 			return;
 		}
-
+		
 		if (swtItem != null && !Constants.isOSX) {
 			// In theory, the disposal of swtItem will trigger the disposal of the
 			// children.  Let's force it just in case
@@ -1322,7 +1324,19 @@ public class SideBarEntrySWT
 
 		mdi.removeItem(SideBarEntrySWT.this);
 
-		triggerCloseListeners(!SWTThread.getInstance().isTerminated());
+		boolean user = !SWTThread.getInstance().isTerminated();
+		if (user) {
+			// It's not a user close if the parent is making the children (this entry)
+			// close.  parent will be marked disposed, so use that as a check.
+  		String parentID = getParentID();
+  		if (parentID != null) {
+  			MdiEntry entry = mdi.getEntry(parentID);
+  			if (entry != null && entry.isDisposed()) {
+  				user = false;
+  			}
+  		}
+		}
+		triggerCloseListeners(user);
 
 		UISWTViewCore iview = getCoreView();
 		if (iview != null) {
