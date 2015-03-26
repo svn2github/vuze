@@ -216,6 +216,7 @@ public class TaggingView
 				if (button.getGrayed()) {
 					button.setGrayed(false);
 					button.setSelection(!button.getSelection());
+					button.getParent().redraw();
 				}
 				boolean doTag = button.getSelection();
 				for (Taggable taggable : taggables) {
@@ -398,6 +399,7 @@ public class TaggingView
 			if (taggables == null) {
 				button.setSelection(false);
 				button.setEnabled(false);
+				button.getParent().redraw();
 				continue;
 			}
 			if ( !tag.isTagAuto()){
@@ -425,6 +427,7 @@ public class TaggingView
 				button.setGrayed(false);
 				button.setSelection(hasTag);
 			}
+			button.getParent().redraw();
 		}
 
 		if (layoutChanges.size() > 0) {
