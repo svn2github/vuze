@@ -277,15 +277,16 @@ public class TaggingView
   				Point sizeButton = button.getSize();
   				e.gc.setAntialias(SWT.ON);
   				e.gc.setForeground(ColorCache.getColor(e.display, tag.getColor()));
-  				int width = sizeButton.x + 12;
+  				int curve = (int) (size.y * 0.75f);
+  				int width = sizeButton.x + curve;
   				if (button.getSelection()) {
     				e.gc.setAlpha(20);
     				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
-    				e.gc.fillRoundRectangle(-1, 0, width, size.y - 1, size.y / 2, size.y);
+    				e.gc.fillRoundRectangle(-6, 0, width, size.y - 1, size.y / 2, (int) (size.y * 0.75f));
     				e.gc.setAlpha(255);
   				}
   				e.gc.setLineWidth(1);
-  				e.gc.drawRoundRectangle(-3, 0, width, size.y - 1, size.y / 2, size.y);
+  				e.gc.drawRoundRectangle(-6, 0, width, size.y - 1, curve, curve);
   				e.gc.drawLine(0, 1, 0, size.y - 2);
 				} else {
   				Point size = button.getSize();
