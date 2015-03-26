@@ -18,7 +18,8 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -39,6 +40,8 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.tag.*;
+import com.aelitis.azureus.ui.UIFunctions.TagReturner;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
  * View showing tags set on selected taggable item(s).  Sometimes easier than
@@ -196,6 +199,8 @@ public class TaggingView
 		} else {
 			Utils.disposeComposite(cMainComposite, false);
 		}
+		
+		cMainComposite.setLayout(new GridLayout(1, false));
 
 		TagManager tm = TagManagerFactory.getTagManager();
 		int[] tagTypesWanted = {
@@ -220,6 +225,8 @@ public class TaggingView
 						tag.removeTaggable(taggable);
 					}
 				}
+				button.getParent().redraw();
+				button.getParent().update();
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -244,20 +251,75 @@ public class TaggingView
 				button.setMenu(menu);
 			}
 		};
+		
+		PaintListener paintListener = new PaintListener() {
+			
+			public void paintControl(PaintEvent e) {
+				Button button;
+				Composite c = null;
+				if (e.widget instanceof Composite) {
+					c = (Composite) e.widget;
+					button = (Button) c.getChildren()[0];
+				} else {
+					button = (Button) e.widget;
+				}
+				Tag tag = (Tag) button.getData("Tag");
+				if (tag == null) {
+					return;
+				}
+
+				
+				
+				//ImageLoader.getInstance().getImage(? "check_yes" : "check_no");
+
+				if (c != null) {
+  				Point size = c.getSize();
+  				Point sizeButton = button.getSize();
+  				e.gc.setAntialias(SWT.ON);
+  				e.gc.setForeground(ColorCache.getColor(e.display, tag.getColor()));
+  				int width = sizeButton.x + 12;
+  				if (button.getSelection()) {
+    				e.gc.setAlpha(20);
+    				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
+    				e.gc.fillRoundRectangle(-1, 0, width, size.y - 1, size.y / 2, size.y);
+    				e.gc.setAlpha(255);
+  				}
+  				e.gc.setLineWidth(1);
+  				e.gc.drawRoundRectangle(-3, 0, width, size.y - 1, size.y / 2, size.y);
+  				e.gc.drawLine(0, 1, 0, size.y - 2);
+				} else {
+  				Point size = button.getSize();
+  				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
+  				if (button.getSelection()) {
+    				e.gc.setAlpha(20);
+    				e.gc.fillRectangle(0, 0, size.x, size.y);
+  				}
+				}
+			}
+		};
 
 		buttons = new ArrayList<Button>();
 		for (int tagType : tagTypesWanted) {
-			Composite c = cMainComposite;
+			Composite c = new Composite(cMainComposite, SWT.DOUBLE_BUFFERED);
+			c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 			RowLayout rowLayout = new RowLayout();
 			rowLayout.pack = false;
 			rowLayout.spacing = 5;
 			c.setLayout(rowLayout);
-
+			
 			TagType tt = tm.getTagType(tagType);
 			List<Tag> tags = tt.getTags();
 			tags = TagUIUtils.sortTags(tags);
 			for (Tag tag : tags) {
-				Button button = new Button(c, SWT.CHECK);
+				Composite p = new Composite(c, SWT.DOUBLE_BUFFERED);
+				GridLayout layout = new GridLayout(1, false);
+				layout.marginHeight = 3;
+				layout.marginWidth = 5;
+				layout.marginLeft = 2;
+				p.setLayout(layout);
+				p.addPaintListener(paintListener);
+				
+				Button button = new Button(p, SWT.CHECK);
 				buttons.add(button);
 				if ( tag.isTagAuto()){
 					button.setEnabled( false );
@@ -267,8 +329,29 @@ public class TaggingView
 				button.setData("Tag", tag);
 
 				button.addListener(SWT.MenuDetect, menuDetectListener);
+				button.addPaintListener(paintListener);
 			}
 		}
+		
+		Button buttonAdd = new Button(cMainComposite, SWT.PUSH);
+		buttonAdd.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, false, false));
+		Messages.setLanguageText(buttonAdd, "label.add.tag");
+		buttonAdd.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				TagUIUtils.createManualTag(new TagReturner() {
+					public void returnedTags(Tag[] tags) {
+						for (Tag tag : tags) {
+							for (Taggable taggable : taggables) {
+								tag.addTaggable(taggable);
+							}
+						}
+					}
+				});
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 		
 		sc.addControlListener(new ControlAdapter() {
 			public void controlResized(ControlEvent e) {
@@ -302,6 +385,9 @@ public class TaggingView
 			boolean hasNoTag = false;
 
 			Tag tag = (Tag) button.getData("Tag");
+			if (tag == null) {
+				continue;
+			}
 			String name = tag.getTagName(true);
 			if (!button.getText().equals(name)) {
 				button.setText(name);
