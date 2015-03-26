@@ -20,12 +20,7 @@
 package org.gudy.azureus2.core3.tracker.client.impl.dht;
 
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -308,20 +303,26 @@ TRTrackerDHTAnnouncerImpl
 		}else{
 			DownloadAnnounceResultPeer[]	ext_peers = result.getPeers();
 			
-			TRTrackerAnnouncerResponsePeerImpl[] peers = new TRTrackerAnnouncerResponsePeerImpl[ext_peers.length];
+			List<TRTrackerAnnouncerResponsePeerImpl> peers_list = new ArrayList<TRTrackerAnnouncerResponsePeerImpl>( ext_peers.length );
 				
 			for (int i=0;i<ext_peers.length;i++){
 				
 				DownloadAnnounceResultPeer	ext_peer	= ext_peers[i];
 				
-				if (Logger.isEnabled())
+				if ( ext_peer == null){
+					
+					continue;
+				}
+				
+				if (Logger.isEnabled()){
 					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER DHT: ip="
 							+ ext_peer.getAddress() + ",port=" + ext_peer.getPort() +",prot=" + ext_peer.getProtocol()));
-
+				}
+				
 				int		http_port	= 0;
 				byte	az_version 	= TRTrackerAnnouncer.AZ_TRACKER_VERSION_1;
 				
-				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
+				peers_list.add( new TRTrackerAnnouncerResponsePeerImpl( 
 									ext_peer.getSource(),
 									ext_peer.getPeerID(),
 									ext_peer.getAddress(), 
@@ -330,8 +331,10 @@ TRTrackerDHTAnnouncerImpl
 									http_port,
 									ext_peer.getProtocol(),
 									az_version,
-									(short)0 );
+									(short)0 ));
 			}
+			
+			TRTrackerAnnouncerResponsePeerImpl[]	peers = peers_list.toArray( new TRTrackerAnnouncerResponsePeerImpl[peers_list.size()] );
 			
 			helper.addToTrackerCache( peers);
 		
