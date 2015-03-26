@@ -19,6 +19,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
+import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
 
 /**
@@ -28,20 +29,78 @@ import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
 
 public class 
 ParameterGroupImpl
+	extends ParameterImpl
 	implements ParameterGroup
 {
-	private String	resource;
+	private String				resource;
+	private ParameterImpl[]		parameters;
+	
+	private int		num_columns = 1;
+	
+	private ParameterTabFolderImpl		tab_folder;
 	
 	public
 	ParameterGroupImpl(
-		String	_resource )
+		String			_resource,
+		Parameter[]		_parameters )
 	{
+		super( null, "", "" );
+		
 		resource = _resource;
+		
+		if ( _parameters != null ){
+			
+			parameters = new ParameterImpl[_parameters.length];
+			
+			for (int i=0;i<_parameters.length;i++){
+				
+				ParameterImpl parameter = (ParameterImpl)_parameters[i];
+				
+				parameters[i] = parameter;
+				
+				if ( parameter != null ){
+				
+					parameter.setGroup( this );
+				}
+			}
+		}
+	}
+	
+	public void
+	setTabFolder(
+		ParameterTabFolderImpl		tf )
+	{
+		tab_folder	= tf;
+	}
+
+	public ParameterTabFolderImpl
+	getTabFolder()
+	{
+		return( tab_folder );
 	}
 	
 	public String
 	getResourceName()
 	{
 		return( resource );
+	}
+	
+	public void
+	setNumberOfColumns(
+		int		num )
+	{
+		num_columns		= num;
+	}
+	
+	public int
+	getNumberColumns()
+	{
+		return( num_columns );
+	}
+	
+	public ParameterImpl[]
+	getParameters()
+	{
+		return( parameters );
 	}
 }

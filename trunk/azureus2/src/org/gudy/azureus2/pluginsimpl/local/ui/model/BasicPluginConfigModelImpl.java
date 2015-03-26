@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.ui.config.InfoParameter;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
+import org.gudy.azureus2.plugins.ui.config.ParameterTabFolder;
 import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
@@ -322,19 +323,15 @@ BasicPluginConfigModelImpl
 		String											_resource_name,
 		org.gudy.azureus2.plugins.ui.config.Parameter[]	_parameters )
 	{
-		ParameterGroupImpl	pg = new ParameterGroupImpl( _resource_name );
-		
-		for (int i=0;i<_parameters.length;i++){
-			
-			ParameterImpl parameter = (ParameterImpl)_parameters[i];
-			
-			if ( parameter != null ){
-			
-				parameter.setGroup( pg );
-			}
-		}
+		ParameterGroupImpl	pg = new ParameterGroupImpl( _resource_name, _parameters );
 		
 		return( pg );
+	}
+	
+	public ParameterTabFolder 
+	createTabFolder() 
+	{
+		return( new ParameterTabFolderImpl());
 	}
 	
 	public void

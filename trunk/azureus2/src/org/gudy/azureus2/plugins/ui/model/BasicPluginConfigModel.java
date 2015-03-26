@@ -302,6 +302,15 @@ BasicPluginConfigModel
 		Parameter[]	parameters );
 
 	/**
+	 * @since 5601
+	 * @param resource_name
+	 * @return
+	 */
+	
+	public ParameterTabFolder
+	createTabFolder();
+	
+	/**
 	 * 
 	 * @return
 	 * @since 2.3.0.5
