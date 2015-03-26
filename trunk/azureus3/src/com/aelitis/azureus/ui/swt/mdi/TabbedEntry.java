@@ -468,4 +468,14 @@ public class TabbedEntry
 	public void removeListener(MdiSWTMenuHackListener l) {
 		// TODO Auto-generated method stub
 	}
+	
+	// @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#setParentID(java.lang.String)
+	public void setParentID(String id) {
+		// Do not set
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#getParentID()
+	public String getParentID() {
+		return null;
+	}
 }
