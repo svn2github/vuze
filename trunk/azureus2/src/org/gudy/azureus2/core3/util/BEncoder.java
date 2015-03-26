@@ -789,6 +789,11 @@ BEncoder
     encodeToJSONArray(
     	List		b_list )
     {
+    	if ( b_list == null ){
+        	
+    		return( null );
+    	}
+    	
     	JSONArray	j_list = new JSONArray();
     	
     	for ( Object o: b_list ){
@@ -804,6 +809,11 @@ BEncoder
     encodeToJSONObject(
     	Map<Object,Object>		b_map )
     {
+    	if ( b_map == null ){
+        	
+    		return( null );
+    	}
+    	
     	JSONObject	j_map = new JSONObject();
     	
     	for ( Map.Entry<Object,Object> entry: b_map.entrySet()){
@@ -820,7 +830,12 @@ BEncoder
     public static String
     encodeToJSON(
     	Map	b_map )
-    {
+    {	
+    	if ( b_map == null ){
+    	
+    		return( null );
+    	}
+    	
     	JSONObject j_map = encodeToJSONObject( b_map );
     	
     	return( JSONUtils.encodeToJSON( j_map ));
