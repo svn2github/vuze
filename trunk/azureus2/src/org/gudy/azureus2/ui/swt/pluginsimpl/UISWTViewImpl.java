@@ -264,10 +264,10 @@ public class UISWTViewImpl
 						(Map) data, "image", null, Image.class));
 			}
 		} else if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED) {
+			hasFocus = true;
 			if (!haveSentInitialize) {
 				swt_triggerInitialize();
 			}
-			hasFocus = true;
 		} else if (eventType == UISWTViewEvent.TYPE_FOCUSLOST) {
 			hasFocus = false;
 		} else if (eventType == UISWTViewEvent.TYPE_DESTROY && hasFocus != null && hasFocus) {
@@ -441,6 +441,9 @@ public class UISWTViewImpl
 	}
 
 	private void swt_triggerInitialize() {
+		if (haveSentInitialize) {
+			return;
+		}
 		composite.setRedraw(false);
 		composite.setLayoutDeferred(true);
 		triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
