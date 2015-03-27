@@ -288,7 +288,8 @@ public class UISWTViewImpl
 			if (c != null && !c.isDisposed()) {
 				Composite parent = c.getParent();
 				Utils.disposeComposite(c);
-				Utils.relayout(parent);
+				parent.layout(true);
+				//Utils.relayout(parent); // crazy slow
 			}
 		}	
 	}
