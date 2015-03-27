@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -290,9 +291,9 @@ public class TaggingView
   				e.gc.drawRoundRectangle(-6, 0, width, size.y - 1, curve, curve);
   				e.gc.drawLine(0, 1, 0, size.y - 2);
 				} else {
-  				Point size = button.getSize();
-  				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
-  				if (button.getSelection()) {
+  				if (!Constants.isOSX && button.getSelection()) {
+    				Point size = button.getSize();
+    				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
     				e.gc.setAlpha(20);
     				e.gc.fillRectangle(0, 0, size.x, size.y);
   				}
@@ -316,8 +317,14 @@ public class TaggingView
 				Composite p = new Composite(c, SWT.DOUBLE_BUFFERED);
 				GridLayout layout = new GridLayout(1, false);
 				layout.marginHeight = 3;
-				layout.marginWidth = 5;
-				layout.marginLeft = 2;
+				if (Constants.isWindows) {
+					layout.marginWidth = 6;
+					layout.marginLeft = 2;
+				} else {
+					layout.marginWidth = 0;
+					layout.marginLeft = 3;
+					layout.marginRight = 10;
+				}
 				p.setLayout(layout);
 				p.addPaintListener(paintListener);
 				
