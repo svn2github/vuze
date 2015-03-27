@@ -30,10 +30,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
-
-import org.gudy.azureus2.core3.category.*;
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -42,7 +45,10 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
-import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerEvent;
+import org.gudy.azureus2.core3.global.GlobalManagerEventListener;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -90,6 +96,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
@@ -2102,24 +2109,29 @@ public class MyTorrentsView
   }  
 
   public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
-	  
-		boolean hasMultiple = datasource instanceof Object[] 
-				&& ((Object[])datasource).length > 1 
-				&& ((Object[])datasource)[0] instanceof DownloadManager;
-		
-		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
-		// fixing each view up, disable toolbar handling for them when we have
-		// multiple selection
-		// XXX FIX LAZINESS! :(
-		if (!hasMultiple) {
-  		UISWTViewCore active_view = getActiveView();
-  		if (active_view != null) {
-  			UIPluginViewToolBarListener l = active_view.getToolBarListener();
-  			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
-  				return true;
-  			}
+	  boolean isTableSelected = false;
+	  if (tv instanceof TableViewImpl) {
+	  	isTableSelected = ((TableViewImpl) tv).isTableSelected();
+	  }
+	  if (!isTableSelected) {
+  		boolean hasMultiple = datasource instanceof Object[] 
+  				&& ((Object[])datasource).length > 1 
+  				&& ((Object[])datasource)[0] instanceof DownloadManager;
+  		
+  		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
+  		// fixing each view up, disable toolbar handling for them when we have
+  		// multiple selection
+  		// XXX FIX LAZINESS! :(
+  		if (!hasMultiple) {
+    		UISWTViewCore active_view = getActiveView();
+    		if (active_view != null) {
+    			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+    			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
+    				return true;
+    			}
+    		}
   		}
-		}
+	  }
 
 		String itemKey = item.getID();
   	if (activationType == UIToolBarActivationListener.ACTIVATIONTYPE_HELD) {
