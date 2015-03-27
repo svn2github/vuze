@@ -2103,11 +2103,14 @@ public class MyTorrentsView
 
   public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
 	  
-		boolean hasMultiple = datasource instanceof Object[] && ((Object[])datasource).length > 1;
+		boolean hasMultiple = datasource instanceof Object[] 
+				&& ((Object[])datasource).length > 1 
+				&& ((Object[])datasource)[0] instanceof DownloadManager;
 		
 		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
 		// fixing each view up, disable toolbar handling for them when we have
 		// multiple selection
+		// XXX FIX LAZINESS! :(
 		if (!hasMultiple) {
   		UISWTViewCore active_view = getActiveView();
   		if (active_view != null) {
