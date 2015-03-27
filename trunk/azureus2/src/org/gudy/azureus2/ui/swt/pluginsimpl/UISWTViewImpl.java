@@ -410,11 +410,35 @@ public class UISWTViewImpl
 
 			parent.addListener(SWT.Show, new Listener() {
 				public void handleEvent(Event event) {
+					if (composite == null || composite.isDisposed()) {
+						return;
+					}
+					Composite parent = composite.getParent();
+					if (parent instanceof CTabFolder) {
+						CTabFolder tabFolder = (CTabFolder) parent;
+						Control selectedControl = tabFolder.getSelection().getControl();
+						if (selectedControl != composite) {
+							return;
+						}
+					} else if (parent instanceof TabFolder) {
+						TabFolder tabFolder = (TabFolder) parent;
+						TabItem[] selectedControl = tabFolder.getSelection();
+						if (selectedControl != null && selectedControl.length == 1
+								&& selectedControl[0].getControl() != composite) {
+							return;
+						}
+					}
 					triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 				}
 			});
 			if (parent.isVisible()) {
-				triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+				boolean focusGained = true;
+				if (parent instanceof CTabFolder || (parent instanceof TabFolder)) {
+					focusGained = false;
+				}
+				if (focusGained) {
+					triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+				}
 			}
 			if (DELAY_INITIALIZE_TO_FIRST_ACTIVATE) {
 				return;
