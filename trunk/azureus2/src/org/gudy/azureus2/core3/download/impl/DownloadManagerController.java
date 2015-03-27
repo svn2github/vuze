@@ -998,6 +998,9 @@ DownloadManagerController
 					  
 					  stats.saveSessionTotals();
 
+						DownloadManagerState dmState = download_manager.getDownloadState();
+						dmState.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_LAST_ACTIVE_TIME, SystemTime.getCurrentTime());
+
 					  SimpleTimer.removeTickReceiver( this );
 
 					  DownloadManagerRateController.removePeerManager( peer_manager );

@@ -110,6 +110,7 @@ DownloadManagerState
 	public static final String	PARAM_DOWNLOAD_ADDED_TIME				= "stats.download.added.time";
 	public static final String	PARAM_DOWNLOAD_COMPLETED_TIME			= "stats.download.completed.time";
 	public static final String	PARAM_DOWNLOAD_FILE_COMPLETED_TIME		= "stats.download.file.completed.time";
+	public static final String	PARAM_DOWNLOAD_LAST_ACTIVE_TIME				= "stats.download.last.active.time";
 	public static final String	PARAM_MAX_UPLOAD_WHEN_BUSY				= "max.upload.when.busy";
 	public static final String  PARAM_DND_FLAGS							= "dndflags";
 	public static final String  PARAM_RANDOM_SEED						= "rand";
@@ -133,6 +134,7 @@ DownloadManagerState
 		{ PARAM_DOWNLOAD_ADDED_TIME,				new Long( 0 ) },
 		{ PARAM_DOWNLOAD_FILE_COMPLETED_TIME, 		new Long( 0 ) },
 		{ PARAM_DOWNLOAD_COMPLETED_TIME, 			new Long( 0 ) },
+		{ PARAM_DOWNLOAD_LAST_ACTIVE_TIME, new Long( 0 ) },
 		{ PARAM_MAX_UPLOAD_WHEN_BUSY,				new Long( 0 ) },
 		{ PARAM_DND_FLAGS, 							new Long( 0 ) },
 		{ PARAM_RANDOM_SEED, 						new Long( 0 ) },
