@@ -32,6 +32,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -57,13 +58,11 @@ import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
-import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -3252,8 +3251,12 @@ public class OpenTorrentOptionsWindow
 					Menu menu = new Menu( but );
 					
 					but.setMenu( menu );
+					MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuilder() {
+						public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
+							TagUIUtils.createSideBarMenuItems(root_menu, tag);
+						}
+					});
 					
-					TagUIUtils.createSideBarMenuItems(menu, tag);
 				}
 			}
 			
