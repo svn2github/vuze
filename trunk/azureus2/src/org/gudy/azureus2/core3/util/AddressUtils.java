@@ -515,6 +515,7 @@ AddressUtils
 				
 			}catch( Throwable e ){
 				
+				return( null );
 			}
 		}
 			

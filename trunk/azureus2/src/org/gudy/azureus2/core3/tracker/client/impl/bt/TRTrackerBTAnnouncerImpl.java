@@ -3039,9 +3039,19 @@ TRTrackerBTAnnouncerImpl
 					
 									//get the peer ip address
 								
-								String ip = new String((byte[]) s_ip, Constants.DEFAULT_ENCODING); 
+								String base_ip = new String((byte[]) s_ip, Constants.DEFAULT_ENCODING); 
 								
-								ip = AddressUtils.convertToShortForm( ip );
+								String ip = AddressUtils.convertToShortForm( base_ip );
+								
+								if ( ip == null ){
+									
+									// corrupt address, skip
+									
+									Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+                            				"Skipping invalid address: " + base_ip ));
+									
+									continue;
+								}
 								
 									//get the peer port number - should be Long but have seen byte[] on occasion
 								
