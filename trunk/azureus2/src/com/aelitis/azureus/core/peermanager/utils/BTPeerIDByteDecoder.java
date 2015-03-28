@@ -246,6 +246,11 @@ public class BTPeerIDByteDecoder {
 			if (client_with_version != null) {return client_with_version;}
 			return client;
 		}
+		
+		// Specific version of BitTorrent used "-M" with all random
+		if (peer_id_bytes[0] == '-' && peer_id_bytes[1] == 'M') {
+			return "BitTorrent 7.8.2";
+		}
 
 		client = identifyAwkwardClient(peer_id_bytes);
 		if (client != null) {return client;}
