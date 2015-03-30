@@ -196,6 +196,18 @@ public class LoggerView
 				consoleText.setTabs(areaWidth / 6 / charWidth);
 			}
 		});
+		
+		consoleText.addListener(SWT.KeyDown, new Listener() {
+			public void handleEvent(Event event) {
+				int key = event.character;
+				if (key <= 26 && key > 0) {
+					key += 'a' - 1;
+				}
+				if ((event.stateMask & SWT.MOD1) > 0  && key == 'a') {
+					((StyledText) event.widget).selectAll();
+				}
+			}
+		});
 
 		ScrollBar sb = consoleText.getVerticalBar();
 		sb.addSelectionListener(new SelectionAdapter() {
