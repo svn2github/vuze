@@ -790,6 +790,8 @@ public class TableViewPainted
 			public void runSupport() {
 				if (!isDisposed()) {
 					cTable.setEnabled(enable);
+					cHeaderArea.setEnabled(enable);
+					cHeaderArea.redraw();
 				}
 			}
 		});
@@ -1503,6 +1505,8 @@ public class TableViewPainted
 		int pos = -1;
 		Set<TableRowPainted> visibleRows = this.visibleRows;
 		
+		boolean isTableSelected = isTableSelected();
+		boolean isTableEnabled = cTable.isEnabled();
 		for (TableRowPainted row : visibleRows) {
 			TableRowPainted paintedRow = row;
 			if (pos == -1) {
@@ -1522,7 +1526,8 @@ public class TableViewPainted
 					drawBounds.height += diffY2; 
 					gc.setClipping(drawBounds);
 				}
-				paintedRow.swt_paintGC(gc, drawBounds, rowStartX, rowStartY, pos);
+				paintedRow.swt_paintGC(gc, drawBounds, rowStartX, rowStartY, pos,
+						isTableSelected, isTableEnabled);
 			}
 			oldRow = row;
 		}
@@ -1539,7 +1544,7 @@ public class TableViewPainted
 		}
 		if (h > 0) {
 			int rowHeight = getRowDefaultHeight();
-			if (extendedErase) {
+			if (extendedErase && cTable.isEnabled()) {
 				while (yDirty < end) {
 					pos++;
 					Color color = TableRowPainted.alternatingColors[pos % 2];
@@ -1554,8 +1559,8 @@ public class TableViewPainted
 					yDirty += rowHeight;
 				}
 			} else {
-				gc.setBackground(gc.getDevice().getSystemColor(
-						SWT.COLOR_LIST_BACKGROUND));
+				gc.setBackground(gc.getDevice().getSystemColor(cTable.isEnabled() ?
+						SWT.COLOR_LIST_BACKGROUND : SWT.COLOR_WIDGET_BACKGROUND));
 				gc.fillRectangle(drawBounds.x, yDirty, drawBounds.width, h);
 			}
 		}
@@ -1597,11 +1602,19 @@ public class TableViewPainted
 	private void paintHeader(PaintEvent e) {
 
 		Rectangle ca = cHeaderArea.getClientArea();
-		Color c1 = e.display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-		Color c2 = e.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-		Color line = c2;
-		Color fg = e.display.getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+		Color c1, c2, fg;
 
+		if (cTable.isEnabled()) {
+  		c1 = e.display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+  		c2 = e.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+  		fg = e.display.getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+		} else {
+			c1 = e.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+			c2 = e.display.getSystemColor(SWT.COLOR_WIDGET_LIGHT_SHADOW);
+			fg = e.display.getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW);
+		}
+
+		Color line = c2;
 		
 		Pattern patternUp = new Pattern(e.display, 0, 0, 0, ca.height, c1, c2);
 		Pattern patternDown = new Pattern(e.display, 0, -ca.height , 0, 0, c2, c1);

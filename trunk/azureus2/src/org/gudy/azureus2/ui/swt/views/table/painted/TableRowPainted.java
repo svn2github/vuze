@@ -173,7 +173,7 @@ public class TableRowPainted
 	 * @param pos
 	 */
 	public void swt_paintGC(GC gc, Rectangle drawBounds, int rowStartX,
-			int rowStartY, int pos) {
+			int rowStartY, int pos, boolean isTableSelected, boolean isTableEnabled) {
 		if (isRowDisposed() || gc == null || gc.isDisposed() || drawBounds == null) {
 			return;
 		}
@@ -188,43 +188,57 @@ public class TableRowPainted
 		}
 
 		boolean isSelected = isSelected();
-		boolean isSelectedNotFocused = isSelected && !getViewPainted().isTableSelected();
+		boolean isSelectedNotFocused = isSelected && !isTableSelected;
 		
 		Color origBG = gc.getBackground();
 		Color origFG = gc.getForeground();
-		
-		Color altColor = alternatingColors[pos >= 0 ? pos % 2 : 0];
-		if (altColor == null) {
-			altColor = gc.getDevice().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-		}
-		if (isSelected) {
-			Color color;
-			color = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION);
-			gc.setBackground(color);
-		} else {
-			gc.setBackground(altColor);
-		}
 
-		Color bg = getBackground();
-		if (bg == null) {
-			bg = gc.getBackground();
-		} else {
-			gc.setBackground(bg);
-		}
 		Color fg = getForeground();
 		Color shadowColor = null;
-		if (isSelected) {
-			shadowColor = fg;
-			fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
-			gc.setForeground(fg);
+
+		Color altColor;
+		Color bg;
+		if (isTableEnabled) {
+  		altColor = alternatingColors[pos >= 0 ? pos % 2 : 0];
+  		if (altColor == null) {
+  			altColor = gc.getDevice().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+  		}
+  		if (isSelected) {
+  			Color color;
+  			color = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION);
+  			gc.setBackground(color);
+  		} else {
+  			gc.setBackground(altColor);
+  		}
+  
+  		bg = getBackground();
+  		if (bg == null) {
+  			bg = gc.getBackground();
+  		} else {
+  			gc.setBackground(bg);
+  		}
+
+  		if (isSelected) {
+  			shadowColor = fg;
+  			fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
+  		} else {
+  			if (fg == null) {
+  				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+  			}
+  		}
 		} else {
-	  		if (fg == null) {
-				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
-				gc.setForeground(fg);
-	  		} else {
-	  			gc.setForeground(fg);
-	  		}
+			Device device = gc.getDevice();
+			altColor = device.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+			if (isSelected) {
+				bg = device.getSystemColor(SWT.COLOR_WIDGET_LIGHT_SHADOW);
+			} else {
+				bg = altColor;
+			}
+			gc.setBackground(bg);
+
+			fg = device.getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW);
 		}
+		gc.setForeground(fg);
 
 		int rowAlpha = getAlpha();
 		Font font = gc.getFont();
