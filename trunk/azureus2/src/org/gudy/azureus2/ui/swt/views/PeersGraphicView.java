@@ -52,11 +52,13 @@ import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.PieUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -208,37 +210,35 @@ public class PeersGraphicView
 			  my_flag = ImageRepository.getCountryFlag( ia, false );
 		  }
 	  }
-	  
-	  DownloadManager old_manager = manager;
-	  if (newDataSource == null){
-		  manager = null;
-	  }else if (newDataSource instanceof Object[]){
-		  Object temp = ((Object[])newDataSource)[0];
-		  if ( temp instanceof DownloadManager ){
-			  manager = (DownloadManager)temp;
-		  }else if ( temp instanceof DiskManagerFileInfo){
-			  manager = ((DiskManagerFileInfo)temp).getDownloadManager();
-		  }else{
-			  return;
-		  }
-	  }else{
-		  if ( newDataSource instanceof DownloadManager ){
-			  manager = (DownloadManager)newDataSource;
-		  }else if ( newDataSource instanceof DiskManagerFileInfo){
-			  manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
-		  }else{
-			  return;
-		  }
-	  }
 
-	  if ( old_manager == manager ){
-		  return;
-	  }
-	  
-	  if (old_manager != null){
-		  old_manager.removePeerListener(this);
-	  }
-	  
+		DownloadManager newManager = null;
+		if (newDataSource instanceof Object[]) {
+			Object[] newDataSources = (Object[]) newDataSource;
+			if (newDataSources.length == 1) {
+				Object temp = ((Object[]) newDataSource)[0];
+				if (temp instanceof DownloadManager) {
+					newManager = (DownloadManager) temp;
+				} else if (temp instanceof DiskManagerFileInfo) {
+					newManager = ((DiskManagerFileInfo) temp).getDownloadManager();
+				}
+			}
+		} else {
+			if (newDataSource instanceof DownloadManager) {
+				newManager = (DownloadManager) newDataSource;
+			} else if (newDataSource instanceof DiskManagerFileInfo) {
+				newManager = ((DiskManagerFileInfo) newDataSource).getDownloadManager();
+			}
+		}
+	
+		if (newManager == manager) {
+			return;
+		}
+
+		if (manager != null) {
+			manager.removePeerListener(this);
+		}
+		
+		manager = newManager;
 
 	  try {
 		  peers_mon.enter();
@@ -250,6 +250,16 @@ public class PeersGraphicView
 	  if (manager != null){
 		  manager.addPeerListener(this);
 	  }
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+			  if (manager != null){
+			  	Utils.disposeComposite(panel, false);
+			  } else {
+			  	ViewUtils.setViewRequiresOneDownload(panel);
+			  }
+			}
+		});
+
   }
 
   private void delete() {

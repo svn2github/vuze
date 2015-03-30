@@ -166,7 +166,7 @@ public class PieceInfoView
 					}
 					fillPieceInfoSection();
 				}
-			} else 	if (objects.length > 0 && (objects[0] instanceof DownloadManager)) {
+			} else 	if (objects.length == 1 && (objects[0] instanceof DownloadManager)) {
 				oldBlockInfo = null;
 				synchronized( this ){
 					if (dlm != null) {
@@ -176,6 +176,20 @@ public class PieceInfoView
 					dlm.addPieceListener(this, false);
 				}
 				fillPieceInfoSection();
+			} else {
+				synchronized( this ){
+	  			if (dlm != null) {
+	  				dlm.removePieceListener(this);
+	  			}
+	  			dlm = null;
+				}
+			}
+		} else {
+			synchronized( this ){
+  			if (dlm != null) {
+  				dlm.removePieceListener(this);
+  			}
+  			dlm = null;
 			}
 		}
 	}
@@ -596,7 +610,7 @@ public class PieceInfoView
 			GC gc = new GC(pieceInfoCanvas);
 			gc.fillRectangle(bounds);
 			gc.dispose();
-			topLabelLHS = "";
+			topLabelLHS = MessageText.getString("view.one.download.only");
 			updateTopLabel();
 			
 			return;

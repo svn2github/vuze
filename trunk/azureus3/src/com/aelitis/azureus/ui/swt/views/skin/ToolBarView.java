@@ -769,9 +769,7 @@ public class ToolBarView
 			for (int i = 0; i < allToolBarItems.length; i++) {
 				UIToolBarItem toolBarItem = allToolBarItems[i];
 				Long state = mapStates.get(toolBarItem.getID());
-				if (state != null) {
-					toolBarItem.setState(state);
-				}
+				toolBarItem.setState(state == null ? 0 : state);
 			}
 
 			if (ssItem != null) {

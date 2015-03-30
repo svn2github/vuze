@@ -1824,6 +1824,7 @@ public class MyTorrentsView
 
 	// @see org.eclipse.swt.events.KeyListener#keyPressed(org.eclipse.swt.events.KeyEvent)
 	public void keyPressed(KeyEvent e) {
+		viewActive = true;
 		int key = e.character;
 		if (key <= 26 && key > 0)
 			key += 'a' - 1;
@@ -2084,24 +2085,21 @@ public class MyTorrentsView
 		return null;
 	}
 
-  public void refreshToolBarItems(Map<String, Long> list) {
-	super.refreshToolBarItems(list);
-  		ISelectedContent[] datasource = SelectedContentManager.getCurrentlySelectedContent();
-		boolean hasMultiple = datasource.length > 1;
-		
-		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
-		// fixing each view up, disable toolbar handling for them when we have
-		// multiple selection
-		if (!hasMultiple) {
-  		UISWTViewCore active_view = getActiveView();
-  		if (active_view != null) {
-  			UIPluginViewToolBarListener l = active_view.getToolBarListener();
-  			if (l != null) {
-  				l.refreshToolBarItems(list);
-  				// don't return here, we want to merge in any potential operations
-  				// from the selected content calculation below
-  			}
-  		}
+	public void refreshToolBarItems(Map<String, Long> list) {
+		super.refreshToolBarItems(list);
+		ISelectedContent[] datasource = SelectedContentManager.getCurrentlySelectedContent();
+
+		UISWTViewCore active_view = getActiveView();
+		if (active_view != null) {
+			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+			if (l != null) {
+				Map<String, Long> activeViewList = new HashMap<String, Long>();
+				l.refreshToolBarItems(activeViewList);
+				if (activeViewList.size() > 0) {
+					list.putAll(activeViewList);
+					return;
+				}
+			}
 		}
   	
 		Map<String, Long> states = TorrentUtil.calculateToolbarStates(datasource, tv.getTableID());

@@ -208,52 +208,50 @@ public class FilesView
 
   
   // @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)
-  public void tableDataSourceChanged(Object newDataSource) {
-	  	DownloadManager old_manager = manager;
-		if (newDataSource == null){
-			manager = null;
-		}else if (newDataSource instanceof Object[]){
-			Object[] ds = (Object[])newDataSource;
-			
-			if ( ds.length == 1 ){
-				Object temp = ds[0];
-				if ( temp instanceof DownloadManager ){
-					manager = (DownloadManager)temp;
-				}else if ( temp instanceof DiskManagerFileInfo){
-					manager = ((DiskManagerFileInfo)temp).getDownloadManager();
-				}else{
-					return;
+	public void tableDataSourceChanged(Object newDataSource) {
+		DownloadManager newManager = null;
+		if (newDataSource instanceof Object[]) {
+			Object[] newDataSources = (Object[]) newDataSource;
+			if (newDataSources.length == 1) {
+				Object temp = ((Object[]) newDataSource)[0];
+				if (temp instanceof DownloadManager) {
+					newManager = (DownloadManager) temp;
+				} else if (temp instanceof DiskManagerFileInfo) {
+					newManager = ((DiskManagerFileInfo) temp).getDownloadManager();
 				}
-			}else{
-				manager = null;
 			}
-		}else{
-			if ( newDataSource instanceof DownloadManager ){
-				manager = (DownloadManager)newDataSource;
-			}else if ( newDataSource instanceof DiskManagerFileInfo){
-				manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
-			}else{
-				return;
+		} else {
+			if (newDataSource instanceof DownloadManager) {
+				newManager = (DownloadManager) newDataSource;
+			} else if (newDataSource instanceof DiskManagerFileInfo) {
+				newManager = ((DiskManagerFileInfo) newDataSource).getDownloadManager();
 			}
-		}
-		
-		if ( old_manager == manager ){
-			return;
-		}
-		
-		if (old_manager != null) {
-			old_manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
-			
-			old_manager.removeListener( this );
-		}
-		if (manager != null) {
-			manager.getDownloadState().addListener(this, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
-			
-			manager.addListener( this );
 		}
 
-		if ( !tv.isDisposed()){
+		if (newManager == manager) {
+			return;
+		}
+
+		if (manager != null) {
+			manager.getDownloadState().removeListener(this,
+					DownloadManagerState.AT_FILE_LINKS2,
+					DownloadManagerStateAttributeListener.WRITTEN);
+			manager.removeListener(this);
+		}
+
+		manager = newManager;
+
+		if (manager != null) {
+			manager.getDownloadState().addListener(this,
+					DownloadManagerState.AT_FILE_LINKS2,
+					DownloadManagerStateAttributeListener.WRITTEN);
+
+			manager.addListener(this);
+		}
+
+		if (!tv.isDisposed()) {
 			tv.removeAllTableRows();
+			tv.setEnabled(manager != null);
 		}
 	}
 	

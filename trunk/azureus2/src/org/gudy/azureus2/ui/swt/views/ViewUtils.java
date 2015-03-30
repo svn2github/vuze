@@ -28,8 +28,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -666,7 +669,31 @@ ViewUtils
 		list.put("startstop", UIToolBarItem.STATE_ENABLED);
 		list.put("stop", ManagerUtils.isStopable(manager) ? UIToolBarItem.STATE_ENABLED : 0);
 		list.put("remove", UIToolBarItem.STATE_ENABLED);
-	}	
+	}
+	
+	public static void setViewRequiresOneDownload(Composite genComposite) {
+		if (genComposite == null || genComposite.isDisposed()) {
+			return;
+		}
+		Utils.disposeComposite(genComposite, false);
+
+		Label lab = new Label(genComposite, SWT.NULL);
+		GridData gridData = new GridData(SWT.CENTER, SWT.CENTER, true, true);
+		gridData.verticalIndent = 10;
+		lab.setLayoutData(gridData);
+		Messages.setLanguageText(lab, "view.one.download.only");
+
+		genComposite.layout(true);
+
+		Composite parent = genComposite.getParent();
+		if (parent instanceof ScrolledComposite) {
+			ScrolledComposite scrolled_comp = (ScrolledComposite) parent;
+			
+			Rectangle r = scrolled_comp.getClientArea();
+			scrolled_comp.setMinSize(genComposite.computeSize(r.width, SWT.DEFAULT ));
+		}
+
+	}
 	
 	public interface
 	SpeedAdapter

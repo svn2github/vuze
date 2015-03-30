@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -73,6 +74,8 @@ DownloadActivityView
 	private MultiPlotGraphic 		mpg;
 	
 	private DownloadManager 		manager;
+
+	private Composite parent;
 	
 	public 
 	DownloadActivityView()
@@ -87,10 +90,17 @@ DownloadActivityView
 	  
 	public void 
 	initialize(
-		Composite composite )
+		Composite parent )
 	{
-	    panel = new Composite(composite,SWT.NULL);
+	    this.parent = parent;
+			panel = new Composite(parent,SWT.NULL);
 	    panel.setLayout(new GridLayout(legend_at_bottom?1:2, false));
+	    fillPanel();
+	}
+	
+	public void fillPanel() {
+		Utils.disposeComposite(panel, false);
+
 	    GridData gridData;
 
 	    ValueFormater formatter =
@@ -311,32 +321,46 @@ DownloadActivityView
 			return;
 		}
 		  
-	  	DownloadManager old_manager = manager;
-		if (newDataSource == null){
-			manager = null;
-		}else if (newDataSource instanceof Object[]){
-			Object temp = ((Object[])newDataSource)[0];
-			if ( temp instanceof DownloadManager ){
-				manager = (DownloadManager)temp;
-			}else if ( temp instanceof DiskManagerFileInfo){
-				manager = ((DiskManagerFileInfo)temp).getDownloadManager();
-			}else{
-				return;
+		DownloadManager newManager = null;
+		if (newDataSource instanceof Object[]) {
+			Object[] newDataSources = (Object[]) newDataSource;
+			if (newDataSources.length == 1) {
+				Object temp = ((Object[]) newDataSource)[0];
+				if (temp instanceof DownloadManager) {
+					newManager = (DownloadManager) temp;
+				} else if (temp instanceof DiskManagerFileInfo) {
+					newManager = ((DiskManagerFileInfo) temp).getDownloadManager();
+				}
 			}
-		}else{
-			if ( newDataSource instanceof DownloadManager ){
-				manager = (DownloadManager)newDataSource;
-			}else if ( newDataSource instanceof DiskManagerFileInfo){
-				manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
-			}else{
-				return;
+		} else {
+			if (newDataSource instanceof DownloadManager) {
+				newManager = (DownloadManager) newDataSource;
+			} else if (newDataSource instanceof DiskManagerFileInfo) {
+				newManager = ((DiskManagerFileInfo) newDataSource).getDownloadManager();
 			}
 		}
-		
-		if ( old_manager == manager ){
-			
+	
+		if (newManager == manager) {
 			return;
 		}
+
+		manager = newManager;
+		
+		Utils.execSWTThread(new AERunnable() {
+			@Override
+			public void runSupport() {
+				if (panel == null || panel.isDisposed()) {
+					return;
+				}
+				Utils.disposeComposite(panel, false);
+			  if (manager != null){
+			  	fillPanel();
+			  	parent.layout(true, true);
+			  } else {
+			  	ViewUtils.setViewRequiresOneDownload(panel);
+			  }
+			}
+		});
 		
 		if ( manager == null ){
 			

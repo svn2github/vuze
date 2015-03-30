@@ -311,44 +311,48 @@ public class PiecesView
 			focus_pending_ds = newDataSource;
 			return;
 		}
-	  	DownloadManager old_manager = manager;
-		if (newDataSource == null){
-			manager = null;
-		}else if (newDataSource instanceof Object[]){
-			Object temp = ((Object[])newDataSource)[0];
-			if ( temp instanceof DownloadManager ){
-				manager = (DownloadManager)temp;
-			}else if ( temp instanceof DiskManagerFileInfo){
-				manager = ((DiskManagerFileInfo)temp).getDownloadManager();
-			}else{
-				return;
+
+		DownloadManager newManager = null;
+		if (newDataSource instanceof Object[]) {
+			Object[] newDataSources = (Object[]) newDataSource;
+			if (newDataSources.length == 1) {
+				Object temp = ((Object[]) newDataSource)[0];
+				if (temp instanceof DownloadManager) {
+					newManager = (DownloadManager) temp;
+				} else if (temp instanceof DiskManagerFileInfo) {
+					newManager = ((DiskManagerFileInfo) temp).getDownloadManager();
+				}
 			}
-		}else{
-			if ( newDataSource instanceof DownloadManager ){
-				manager = (DownloadManager)newDataSource;
-			}else if ( newDataSource instanceof DiskManagerFileInfo){
-				manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
-			}else{
-				return;
+		} else {
+			if (newDataSource instanceof DownloadManager) {
+				newManager = (DownloadManager) newDataSource;
+			} else if (newDataSource instanceof DiskManagerFileInfo) {
+				newManager = ((DiskManagerFileInfo) newDataSource).getDownloadManager();
 			}
 		}
-		
-		if ( old_manager == manager ){
+	
+		if (newManager == manager) {
 			return;
 		}
+
+		if (manager != null) {
+			manager.removePeerListener(this);
+			manager.removePieceListener(this);
+		}
 		
-		if (old_manager != null){
-			old_manager.removePeerListener(this);
-			old_manager.removePieceListener(this);
+		manager = newManager;
+		
+		if (tv.isDisposed()){
+			return;
 		}
 
-		if ( !tv.isDisposed()){
-			tv.removeAllTableRows();
-			if (manager != null) {
-				manager.addPeerListener(this, false);
-				manager.addPieceListener(this, false);
-				addExistingDatasources();
-			}
+		tv.removeAllTableRows();
+		tv.setEnabled(manager != null);
+
+		if (manager != null) {
+			manager.addPeerListener(this, false);
+			manager.addPieceListener(this, false);
+			addExistingDatasources();
 		}
 	}
 

@@ -135,31 +135,30 @@ public class GeneralView
   }
 
 	public void dataSourceChanged(Object newDataSource) {
-	  	DownloadManager old_manager = manager;
-		if (newDataSource == null){
-			manager = null;
-		}else if (newDataSource instanceof Object[]){
-			Object temp = ((Object[])newDataSource)[0];
-			if ( temp instanceof DownloadManager ){
-				manager = (DownloadManager)temp;
-			}else if ( temp instanceof DiskManagerFileInfo){
-				manager = ((DiskManagerFileInfo)temp).getDownloadManager();
-			}else{
-				return;
+		DownloadManager newManager = null;
+		if (newDataSource instanceof Object[]) {
+			Object[] newDataSources = (Object[]) newDataSource;
+			if (newDataSources.length == 1) {
+				Object temp = ((Object[]) newDataSource)[0];
+				if (temp instanceof DownloadManager) {
+					newManager = (DownloadManager) temp;
+				} else if (temp instanceof DiskManagerFileInfo) {
+					newManager = ((DiskManagerFileInfo) temp).getDownloadManager();
+				}
 			}
-		}else{
-			if ( newDataSource instanceof DownloadManager ){
-				manager = (DownloadManager)newDataSource;
-			}else if ( newDataSource instanceof DiskManagerFileInfo){
-				manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
-			}else{
-				return;
+		} else {
+			if (newDataSource instanceof DownloadManager) {
+				newManager = (DownloadManager) newDataSource;
+			} else if (newDataSource instanceof DiskManagerFileInfo) {
+				newManager = ((DiskManagerFileInfo) newDataSource).getDownloadManager();
 			}
 		}
-		
-		if ( old_manager == manager ){
+	
+		if (newManager == manager) {
 			return;
 		}
+
+		manager = newManager;
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -216,17 +215,7 @@ public class GeneralView
   
   private void swt_refreshInfo() {
   	if (manager == null || parent == null){
-  		if ( genComposite != null && !genComposite.isDisposed()){
-  			
-  		  	Utils.disposeComposite(genComposite, false);
-
-  			Label lab = new Label( genComposite, SWT.NULL );
-  			GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-  			lab.setLayoutData(gridData);
-  			Messages.setLanguageText(lab, "label.no.download.selected" );
-  			
-  			genComposite.layout();
-  		}
+  		ViewUtils.setViewRequiresOneDownload(genComposite);
   		return;
   	}
   	
