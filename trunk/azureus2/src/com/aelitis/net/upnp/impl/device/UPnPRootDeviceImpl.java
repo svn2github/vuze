@@ -271,7 +271,14 @@ UPnPRootDeviceImpl
 			
 			p1 = abs_url.indexOf( "/", p1 );
 			
-			abs_url = abs_url.substring( 0, p1 );
+			if ( p1 == -1 ){
+				
+				// no trailing / (e.g. http://192.167.2.3:1234 )
+				
+			}else{
+			
+				abs_url = abs_url.substring( 0, p1 );
+			}
 			
 			return( abs_url + (url.startsWith("/")?"":"/") + url );
 		}
