@@ -279,17 +279,21 @@ public class TaggingView
   				Point sizeButton = button.getSize();
   				e.gc.setAntialias(SWT.ON);
   				e.gc.setForeground(ColorCache.getColor(e.display, tag.getColor()));
-  				int curve = (int) (size.y * 0.75f);
-  				int width = sizeButton.x + curve;
+  				int lineWidth = button.getSelection() ? 2 : 1;
+  				int curve = 20;
+  				int width = sizeButton.x + (curve / 2) + lineWidth + 1;
   				if (button.getSelection()) {
     				e.gc.setAlpha(20);
     				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
-    				e.gc.fillRoundRectangle(-6, 0, width, size.y - 1, size.y / 2, (int) (size.y * 0.75f));
+    				e.gc.fillRoundRectangle(-curve, 0, width + curve, size.y - 1, curve, curve);
     				e.gc.setAlpha(255);
   				}
-  				e.gc.setLineWidth(1);
-  				e.gc.drawRoundRectangle(-6, 0, width, size.y - 1, curve, curve);
-  				e.gc.drawLine(0, 1, 0, size.y - 2);
+  				e.gc.setLineWidth(lineWidth);
+  				if (!button.getSelection()) {
+    				e.gc.setAlpha(0x80);
+  				}
+  				e.gc.drawRoundRectangle(-curve, lineWidth - 1, width + curve, size.y - lineWidth, curve, curve);
+  				e.gc.drawLine(lineWidth - 1, lineWidth, lineWidth - 1, size.y - lineWidth);
 				} else {
   				if (!Constants.isOSX && button.getSelection()) {
     				Point size = button.getSize();
@@ -320,6 +324,7 @@ public class TaggingView
 				if (Constants.isWindows) {
 					layout.marginWidth = 6;
 					layout.marginLeft = 2;
+					layout.marginTop = 1;
 				} else {
 					layout.marginWidth = 0;
 					layout.marginLeft = 3;
