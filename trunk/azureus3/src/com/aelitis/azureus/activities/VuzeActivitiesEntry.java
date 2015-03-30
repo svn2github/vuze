@@ -537,13 +537,13 @@ public class VuzeActivitiesEntry
 
 	}
 
-	public boolean isPlayable() {
+	public boolean isPlayable( boolean blocking) {
 		// our variable is an override
 		if (playable)  {
 			return true;
 		}
 		// use torrent so we don't recurse
-		return PlayUtils.canPlayDS(DataSourceUtils.getTorrent(this), -1);
+		return PlayUtils.canPlayDS(DataSourceUtils.getTorrent(this), -1, blocking);
 	}
 
 	public void setPlayable(boolean playable) {

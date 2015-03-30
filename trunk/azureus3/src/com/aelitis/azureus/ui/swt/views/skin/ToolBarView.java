@@ -226,7 +226,7 @@ public class ToolBarView
 					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
 					if (sc != null && sc.length > 0) {
 
-						if (PlayUtils.canStreamDS(sc[0], sc[0].getFileIndex())) {
+						if (PlayUtils.canStreamDS(sc[0], sc[0].getFileIndex(),true)) {
 							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
 									DLReferals.DL_REFERAL_TOOLBAR, true, false);
 						} else {
@@ -717,9 +717,9 @@ public class ToolBarView
 				if (!(currentContent[0] instanceof ISelectedVuzeFileContent)) {
 
 					can_play = PlayUtils.canPlayDS(currentContent[0],
-							currentContent[0].getFileIndex());
+							currentContent[0].getFileIndex(),false);
 					can_stream = PlayUtils.canStreamDS(currentContent[0],
-							currentContent[0].getFileIndex());
+							currentContent[0].getFileIndex(),false);
 
 					if (can_stream) {
 

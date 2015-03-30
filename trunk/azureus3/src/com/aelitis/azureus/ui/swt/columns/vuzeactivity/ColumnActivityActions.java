@@ -146,7 +146,7 @@ public class ColumnActivityActions
 		}
 
 		DownloadManager dm = entry.getDownloadManger();
-		boolean canPlay = PlayUtils.canPlayDS(entry, -1);
+		boolean canPlay = PlayUtils.canPlayDS(entry, -1,false);
 		boolean canDL = dm == null && entry.getDownloadManger() == null
 				&& (entry.getTorrent() != null || entry.getAssetHash() != null);
 		boolean canRun = !canPlay && dm != null;

@@ -173,7 +173,23 @@ public class PlayUtils
 		return canUseEMP(torrent, file_index);
 	}
 
-	public static boolean canPlayDS(Object ds, int file_index ) {
+	
+	private static ThreadLocal<int[]>		tls_non_block_indicator	= 
+		new ThreadLocal<int[]>()
+		{
+			public int[]
+			initialValue()
+			{
+				return( new int[1] );
+			}
+		};
+			
+	public static boolean 
+	canPlayDS(
+		Object 		ds, 
+		int 		file_index,
+		boolean		block_for_accuracy ) 
+	{
 		
 		if ( !( Constants.isWindows || Constants.isOSX )){
 			
@@ -184,29 +200,43 @@ public class PlayUtils
 			return false;
 		}
 		
-		if (ds instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
-			org.gudy.azureus2.core3.disk.DiskManagerFileInfo fi = (org.gudy.azureus2.core3.disk.DiskManagerFileInfo) ds;
-			return canPlayDS(fi.getDownloadManager(), fi.getIndex());
-		}
+		try{
+			if ( !block_for_accuracy ){
+			
+				tls_non_block_indicator.get()[0]++;
+			}
+			
+			if (ds instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
+				org.gudy.azureus2.core3.disk.DiskManagerFileInfo fi = (org.gudy.azureus2.core3.disk.DiskManagerFileInfo) ds;
+				return canPlayDS(fi.getDownloadManager(), fi.getIndex(), block_for_accuracy);
+			}
 	
-		DownloadManager dm = DataSourceUtils.getDM(ds);
-		if (dm != null) {
-			return canPlay(dm, file_index);
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm != null) {
+				return canPlay(dm, file_index);
+			}
+			TOTorrent torrent = DataSourceUtils.getTorrent(ds);
+			if (torrent != null) {
+				return canPlay(torrent, file_index);
+			}
+			if (ds instanceof VuzeActivitiesEntry) {
+				return ((VuzeActivitiesEntry) ds).isPlayable( block_for_accuracy );
+			}
+			
+			if (ds instanceof SelectedContentV3) {
+				SelectedContentV3 sel = (SelectedContentV3) ds;
+				return sel.canPlay();
+			}
+			
+			return false;
+			
+		}finally{
+			
+			if ( !block_for_accuracy ){
+			
+				tls_non_block_indicator.get()[0]--;
+			}
 		}
-		TOTorrent torrent = DataSourceUtils.getTorrent(ds);
-		if (torrent != null) {
-			return canPlay(torrent, file_index);
-		}
-		if (ds instanceof VuzeActivitiesEntry) {
-			return ((VuzeActivitiesEntry) ds).isPlayable();
-		}
-		
-		if (ds instanceof SelectedContentV3) {
-			SelectedContentV3 sel = (SelectedContentV3) ds;
-			return sel.canPlay();
-		}
-		
-		return false;
 	}
 	
 		// stream stuff
@@ -266,8 +296,9 @@ public class PlayUtils
 		
 	public static boolean 
 	canStreamDS(
-		Object ds, 
-		int file_index ) 
+		Object 		ds, 
+		int 		file_index,
+		boolean		block_for_accuracy ) 
 	{
 		if ( !( Constants.isWindows || Constants.isOSX )){
 			
@@ -279,19 +310,33 @@ public class PlayUtils
 			return( false );
 		}
 
-		if (ds instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
-			org.gudy.azureus2.core3.disk.DiskManagerFileInfo fi = (org.gudy.azureus2.core3.disk.DiskManagerFileInfo) ds;
-			return canStreamDS(fi.getDownloadManager(), fi.getIndex());
-		}
-
-		DownloadManager dm = DataSourceUtils.getDM(ds);
-		
-		if ( dm != null ){
+		try{
+			if ( !block_for_accuracy ){
+				
+				tls_non_block_indicator.get()[0]++;
+			}
 			
-			return( canStream( dm, file_index ));
-		}
+			if (ds instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
+				org.gudy.azureus2.core3.disk.DiskManagerFileInfo fi = (org.gudy.azureus2.core3.disk.DiskManagerFileInfo) ds;
+				return canStreamDS(fi.getDownloadManager(), fi.getIndex(), block_for_accuracy );
+			}
+
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			
+			if ( dm != null ){
+				
+				return( canStream( dm, file_index ));
+			}
+			
+			return( false );
+			
+		}finally{
 		
-		return( false );
+			if ( !block_for_accuracy ){
+			
+				tls_non_block_indicator.get()[0]--;
+			}
+		}
 	}
 
 	/**
@@ -414,7 +459,18 @@ public class PlayUtils
 				}
 			}
 	
-			Object url = pi.getIPC().invoke("getContentURL", new Object[] { file });
+			boolean	use_peek = tls_non_block_indicator.get()[0] > 0;
+			
+			Object url;
+			
+			if ( use_peek && pi.getIPC().canInvoke( "peekContentURL", new Object[] { file })){
+				
+				url = pi.getIPC().invoke("peekContentURL", new Object[] { file });
+
+			}else{
+				
+				url = pi.getIPC().invoke("getContentURL", new Object[] { file });
+			}
 			
 			if (url instanceof String) {
 				return new URL( (String) url);

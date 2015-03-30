@@ -187,7 +187,7 @@ public class ColumnStream
 					public void run() {
 						Object ds = cell.getDataSource();
 						// first call may take forever
-						PlayUtils.canStreamDS(ds, -1);
+						PlayUtils.canStreamDS(ds, -1,true);
 						skipPaint = false;
 					}
 				};
@@ -202,8 +202,8 @@ public class ColumnStream
 		if (noIconForYou(ds, cell)) {
 			sortVal = 0;
 		} else {
-			boolean canStream = PlayUtils.canStreamDS(ds, -1);
-			boolean canPlay = PlayUtils.canPlayDS(ds, -1);
+			boolean canStream = PlayUtils.canStreamDS(ds, -1,false);
+			boolean canPlay = PlayUtils.canPlayDS(ds, -1,false);
 			sortVal = (canStream ? 2 : 0) + (canPlay ? 1 : 0);
 		}
 
@@ -217,7 +217,7 @@ public class ColumnStream
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN
 				&& event.button == 1) {
 			Object ds = event.cell.getDataSource();
-			if (PlayUtils.canStreamDS(ds, -1) || PlayUtils.canPlayDS(ds, -1)) {
+			if (PlayUtils.canStreamDS(ds, -1,true) || PlayUtils.canPlayDS(ds, -1,true)) {
 				TorrentListViewsUtils.playOrStreamDataSource(ds, "column", true, false);
 			}
 		}
@@ -230,7 +230,7 @@ public class ColumnStream
 			cell.setToolTip(null);
 			return;
 		}
-		if (PlayUtils.canStreamDS(ds, -1) || PlayUtils.canPlayDS(ds, -1)) {
+		if (PlayUtils.canStreamDS(ds, -1,false) || PlayUtils.canPlayDS(ds, -1,false)) {
 			cell.setToolTip(null);
 			return;
 		}

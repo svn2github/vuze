@@ -156,7 +156,7 @@ public class InitialisationFunctions
 					org.gudy.azureus2.core3.download.DownloadManager		dm,
 					int														file_index )
 				{
-					return( PlayUtils.canPlayDS(dm, file_index) || PlayUtils.canStreamDS(dm, file_index));
+					return( PlayUtils.canPlayDS(dm, file_index,true) || PlayUtils.canStreamDS(dm, file_index,true));
 				}
 				
 				public void
@@ -179,11 +179,11 @@ public class InitialisationFunctions
 						Debug.out( "UIFunctions not available, can't open play/stream content" );
 						
 					}else{
-						if ( PlayUtils.canPlayDS(dm, file_index)){
+						if ( PlayUtils.canPlayDS(dm, file_index,true)){
 							
 							uif.playOrStreamDataSource( ds, DLReferals.DL_REFERAL_PLAYDM, false, true );
 							
-						}else if ( PlayUtils.canStreamDS(dm, file_index)){
+						}else if ( PlayUtils.canStreamDS(dm, file_index,true)){
 							
 							uif.playOrStreamDataSource( ds, DLReferals.DL_REFERAL_PLAYDM, true, false );
 						}

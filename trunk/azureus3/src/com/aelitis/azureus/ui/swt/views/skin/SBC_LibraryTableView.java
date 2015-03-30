@@ -337,13 +337,13 @@ public class SBC_LibraryTableView
 		
 			// fallback
 		
-		if (PlayUtils.canPlayDS(ds, -1) || (stateMask & SWT.CONTROL) != 0) {
+		if (PlayUtils.canPlayDS(ds, -1,true) || (stateMask & SWT.CONTROL) != 0) {
 			TorrentListViewsUtils.playOrStreamDataSource(ds,
 					DLReferals.DL_REFERAL_DBLCLICK, false, true );
 			return;
 		}
 
-		if (PlayUtils.canStreamDS(ds, -1)) {
+		if (PlayUtils.canStreamDS(ds, -1,true)) {
 			TorrentListViewsUtils.playOrStreamDataSource(ds,
 					DLReferals.DL_REFERAL_DBLCLICK, true, false );
 			return;
@@ -423,14 +423,14 @@ public class SBC_LibraryTableView
 				has1Selection
 						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
 						&& PlayUtils.canPlayDS(currentContent[0],
-								currentContent[0].getFileIndex())
+								currentContent[0].getFileIndex(),false)
 						? UIToolBarItem.STATE_ENABLED : 0);
 		list.put(
 				"stream",
 				has1Selection
 						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
 						&& PlayUtils.canStreamDS(currentContent[0],
-								currentContent[0].getFileIndex())
+								currentContent[0].getFileIndex(),false)
 						? UIToolBarItem.STATE_ENABLED : 0);
 	}
 
