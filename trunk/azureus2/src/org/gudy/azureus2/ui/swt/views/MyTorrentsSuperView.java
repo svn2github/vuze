@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -329,12 +330,37 @@ public class MyTorrentsSuperView
 
     return lastSelectedView;
   }
+  
+	private UIPluginViewToolBarListener getActiveToolbarListener() {
+		MyTorrentsView[] viewsToCheck = {
+			getCurrentView(),
+			torrentview,
+			seedingview
+		};
+		for (int i = 0; i < viewsToCheck.length; i++) {
+			MyTorrentsView view = viewsToCheck[i];
+			if (view != null) {
+				UISWTViewImpl activeSubView = (UISWTViewImpl) view.getTableView().getTabsCommon().getActiveSubView();
+				if (activeSubView != null) {
+					UIPluginViewToolBarListener toolBarListener = activeSubView.getToolBarListener();
+					if (toolBarListener != null) {
+						return toolBarListener;
+					}
+				}
+				if (i == 0 && view.isTableFocus()) {
+					return view;
+				}
+			}
+		}
+
+		return null;
+	}
 
   /* (non-Javadoc)
    * @see com.aelitis.azureus.ui.common.ToolBarEnabler2#refreshToolBarItems(java.util.Map)
    */
   public void refreshToolBarItems(Map<String, Long> list) {
-    MyTorrentsView currentView = getCurrentView();
+  	UIPluginViewToolBarListener currentView = getActiveToolbarListener();
     if (currentView != null) {
       currentView.refreshToolBarItems(list);
     }
@@ -344,7 +370,7 @@ public class MyTorrentsSuperView
    * @see com.aelitis.azureus.ui.common.ToolBarActivation#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long)
    */
   public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
-    MyTorrentsView currentView = getCurrentView();
+  	UIPluginViewToolBarListener currentView = getActiveToolbarListener();
     if (currentView != null) {
       if (currentView.toolBarItemActivated(item, activationType, datasource)) {
       	return true;
