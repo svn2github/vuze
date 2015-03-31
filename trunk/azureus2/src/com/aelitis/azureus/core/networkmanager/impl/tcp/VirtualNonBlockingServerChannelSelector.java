@@ -189,6 +189,14 @@ VirtualNonBlockingServerChannelSelector
 	  return server_channel.socket().getInetAddress();
   }
   
+  public int getPort() {
+	  if ( server_channels.size() == 0 ){
+		  return( -1);
+	  }
+	  ServerSocketChannel	server_channel = (ServerSocketChannel)server_channels.get(0);
+ 	
+	  return server_channel.socket().getLocalPort();
+  }
   
   public long getTimeOfLastAccept() {
   	return last_accept_time;

@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking.TRNonBlocking
 import org.gudy.azureus2.core3.tracker.server.impl.udp.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AsyncController;
+import org.gudy.azureus2.plugins.tracker.Tracker;
 
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
@@ -129,17 +130,25 @@ TRTrackerServerFactoryImpl
 	
 	public static TRTrackerServer
 	create(
-		String		name,
-		int			protocol,
-		int			port,
-		InetAddress	bind_ip,
-		boolean		ssl,
-		boolean		apply_ip_filter,
-		boolean		main_tracker,
-		boolean		start_up_ready )
+		String					name,
+		int						protocol,
+		int						port,
+		InetAddress				bind_ip,
+		boolean					ssl,
+		boolean					apply_ip_filter,
+		boolean					main_tracker,
+		boolean					start_up_ready,
+		Map<String,Object>		properties )
 	
 		throws TRTrackerServerException
 	{
+		if ( properties == null ){
+			
+			properties = new HashMap<String, Object>();
+		}
+		
+		Boolean	pr_non_blocking = (Boolean)properties.get(Tracker.PR_NON_BLOCKING );
+		
 		try{
 			class_mon.enter();
 		
@@ -147,9 +156,15 @@ TRTrackerServerFactoryImpl
 			
 			if ( protocol == TRTrackerServerFactory.PR_TCP ){
 				
-				if ( COConfigurationManager.getBooleanParameter( "Tracker TCP NonBlocking" ) && main_tracker && !ssl ){
+				boolean explicit_non_blocking = pr_non_blocking != null && pr_non_blocking;
+				
+				boolean non_blocking = 
+						( COConfigurationManager.getBooleanParameter( "Tracker TCP NonBlocking" ) && main_tracker ) ||
+						( explicit_non_blocking );
+				
+				if ( non_blocking && !ssl ){
 					
-					server = 
+					TRNonBlockingServer nb_server =
 						new TRNonBlockingServer( 
 							name, 
 							port, 
@@ -167,6 +182,13 @@ TRTrackerServerFactoryImpl
 
 								}
 							});
+					
+					server = nb_server;
+					
+					if ( explicit_non_blocking ){
+						
+						nb_server.setRestrictNonBlocking( false );
+					}
 				}else{
 					
 					server = new TRBlockingServer( name, port, bind_ip, ssl, apply_ip_filter, start_up_ready );

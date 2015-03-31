@@ -2034,6 +2034,17 @@ public class TorrentMenuFancy
 					});
 		}
 
+		// Open In Browser
+		
+		if (hasSelection) {
+			createRow(detailArea, "MyTorrentsView.menu.browse",
+					null, new ListenerDMTask(dms, false) {
+						public void run(DownloadManager dm) {
+							ManagerUtils.browse( dm );
+						}
+					});
+		}
+		
 		// Move Data Files
 		boolean fileMove = true;
 		for (int i = 0; i < dms.length; i++) {

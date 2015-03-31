@@ -163,6 +163,13 @@ public class VirtualBlockingServerChannelSelector
   	return null;
   }
   
+  public int getPort()
+  {
+	 	if( server_channel != null ) {
+	  		return server_channel.socket().getLocalPort();
+	  	}
+	  	return -1;
+  }
   
   public long getTimeOfLastAccept() {
   	return last_accept_time;

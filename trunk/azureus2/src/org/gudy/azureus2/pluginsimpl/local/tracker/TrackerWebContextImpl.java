@@ -48,11 +48,12 @@ TrackerWebContextImpl
 	
 	public 
 	TrackerWebContextImpl(
-		TrackerImpl	_tracker,
-		String		name,
-		int			port,
-		int			protocol,
-		InetAddress	bind_ip )
+		TrackerImpl				_tracker,
+		String					name,
+		int						port,
+		int						protocol,
+		InetAddress				bind_ip,
+		Map<String,Object>		properties )
 	
 		throws TrackerException
 	{
@@ -62,11 +63,11 @@ TrackerWebContextImpl
 			
 			if ( protocol == Tracker.PR_HTTP ){
 				
-				server = TRTrackerServerFactory.create( name, TRTrackerServerFactory.PR_TCP, port, bind_ip, false, false );
+				server = TRTrackerServerFactory.create( name, TRTrackerServerFactory.PR_TCP, port, bind_ip, false, false, properties );
 				
 			}else{
 				
-				server = TRTrackerServerFactory.createSSL( name, TRTrackerServerFactory.PR_TCP, port, bind_ip, false, false );
+				server = TRTrackerServerFactory.createSSL( name, TRTrackerServerFactory.PR_TCP, port, bind_ip, false, false, properties );
 			}
 			
 			server.addListener2( this );

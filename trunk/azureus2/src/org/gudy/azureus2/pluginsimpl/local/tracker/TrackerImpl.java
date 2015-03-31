@@ -201,7 +201,7 @@ TrackerImpl
 	
 		throws TrackerException
 	{
-		return( new TrackerWebContextImpl( this, null, port, protocol, null ));
+		return( new TrackerWebContextImpl( this, null, port, protocol, null, null ));
 	}
 	
 	public TrackerWebContext
@@ -212,7 +212,7 @@ TrackerImpl
 	
 		throws TrackerException
 	{
-		return( new TrackerWebContextImpl( this, name, port, protocol, null ));
+		return( new TrackerWebContextImpl( this, name, port, protocol, null, null ));
 	}
 	
 	public TrackerWebContext
@@ -224,7 +224,20 @@ TrackerImpl
     
     	throws TrackerException
     {
-		return( new TrackerWebContextImpl( this, name, port, protocol, bind_ip ));
+		return( new TrackerWebContextImpl( this, name, port, protocol, bind_ip, null ));
+    }
+	
+	public TrackerWebContext
+    createWebContext(
+    	String					name,
+    	int						port,
+		int						protocol,
+		InetAddress				bind_ip,
+		Map<String,Object>		properties )
+    
+    	throws TrackerException
+    {
+		return( new TrackerWebContextImpl( this, name, port, protocol, bind_ip, properties ));
     }
 	
 	public void

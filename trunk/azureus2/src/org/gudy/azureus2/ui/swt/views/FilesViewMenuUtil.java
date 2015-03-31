@@ -101,6 +101,24 @@ public class FilesViewMenuUtil
 		});
 		itemExplore.setEnabled(hasSelection);
 
+		// open in browser
+		
+		final MenuItem itemBrowse = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemBrowse, "MyTorrentsView.menu.browse" );
+		itemBrowse.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				for (int i = data_sources.length - 1; i >= 0; i--) {
+					DiskManagerFileInfo info = (DiskManagerFileInfo) data_sources[i];
+					if (info != null) {
+						ManagerUtils.browse(info);
+					}
+				}
+			}
+		});
+		itemBrowse.setEnabled(hasSelection);
+		
+		// rename/retarget
+		
 		MenuItem itemRenameOrRetarget = null, itemRename = null, itemRetarget = null;
 
 		itemRenameOrRetarget = new MenuItem(menu, SWT.PUSH);

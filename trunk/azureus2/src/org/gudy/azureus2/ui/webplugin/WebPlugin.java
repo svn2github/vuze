@@ -73,6 +73,9 @@ WebPlugin
 	public static final String	PR_HIDE_RESOURCE_CONFIG		= "DefaultHideResourceConfig";	// Boolean
 	public static final String	PR_ENABLE_KEEP_ALIVE		= "DefaultEnableKeepAlive";		// Boolean
 	public static final String	PR_PAIRING_SID				= "PairingSID";					// String
+	public static final String	PR_NON_BLOCKING				= "NonBlocking";				// Boolean
+	public static final String	PR_ENABLE_PAIRING			= "EnablePairing";				// Boolean
+	public static final String	PR_ENABLE_I2P				= "EnableI2P";					// Boolean
 	
 	public static final String	PROPERTIES_MIGRATED		= "Properties Migrated";
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
@@ -286,8 +289,15 @@ WebPlugin
 			log = plugin_interface.getLogger().getChannel("WebPlugin");
 		}
 		
-		p_sid = (String)properties.get( PR_PAIRING_SID );
-
+		Boolean prop_pairing_enable = (Boolean)properties.get( PR_ENABLE_PAIRING );
+		
+		if ( prop_pairing_enable == null || prop_pairing_enable ){
+		
+				// default is based on sid availability
+			
+			p_sid = (String)properties.get( PR_PAIRING_SID );
+		}
+		
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
 		view_model = (BasicPluginViewModel)properties.get( PR_VIEW_MODEL );
@@ -1237,52 +1247,68 @@ WebPlugin
 			
 
 			int	protocol = protocol_str.equalsIgnoreCase( "HTTP")?Tracker.PR_HTTP:Tracker.PR_HTTPS;
-		
-			log.log( 	LoggerChannel.LT_INFORMATION, 
-						"Server initialisation: port = " + port +
-						(bind_ip == null?"":(", bind = " + bind_ip_str + ")")) +
-						", protocol = " + protocol_str + (root_dir.length()==0?"":(", root = " + root_dir )));
 
+			Map<String,Object>		tc_properties = new HashMap<String, Object>();
+
+			Boolean prop_non_blocking = (Boolean)properties.get( PR_NON_BLOCKING );
+
+			if ( prop_non_blocking != null && prop_non_blocking ){
+				
+				tc_properties.put( Tracker.PR_NON_BLOCKING, true );
+			}
+			
+			log.log( 	LoggerChannel.LT_INFORMATION, 
+						"Server initialisation: port=" + port +
+						(bind_ip == null?"":(", bind=" + bind_ip_str + ")")) +
+						", protocol=" + protocol_str + 
+						(root_dir.length()==0?"":(", root=" + root_dir )) + 
+						(properties.size()==0?"":(", props=" + properties )));
+			
 			tracker_context = 
 				plugin_interface.getTracker().createWebContext(
 						Constants.APP_NAME + " - " + plugin_interface.getPluginName(), 
-						port, protocol, bind_ip );
+						port, protocol, bind_ip, tc_properties );
 		
-			network_dispatcher.dispatch(
-				new AERunnable() 
-				{	
-					public void
-					runSupport()
-					{
-						Map<String,Object>	options = new HashMap<String, Object>();
-						
-						options.put( AEProxyFactory.SP_PORT, port );
-						
-						Map<String,Object> reply = 
-								AEProxyFactory.getPluginServerProxy(
-									plugin_interface.getPluginName(),
-									AENetworkClassifier.AT_I2P,
-									plugin_interface.getPluginID(),
-									options );
-						
-						if ( reply != null ){
-						
-							param_i2p_dest.setVisible( true );
-						
-							String host = (String)reply.get( "host" );
+			Boolean prop_enable_i2p = (Boolean)properties.get( PR_ENABLE_I2P );
+
+			if ( prop_enable_i2p == null || prop_enable_i2p ){
+				
+				network_dispatcher.dispatch(
+					new AERunnable() 
+					{	
+						public void
+						runSupport()
+						{
+							Map<String,Object>	options = new HashMap<String, Object>();
 							
-							if ( !param_i2p_dest.getValue().equals( host )){
+							options.put( AEProxyFactory.SP_PORT, port );
 							
-								param_i2p_dest.setValue( host );
+							Map<String,Object> reply = 
+									AEProxyFactory.getPluginServerProxy(
+										plugin_interface.getPluginName(),
+										AENetworkClassifier.AT_I2P,
+										plugin_interface.getPluginID(),
+										options );
 							
-								if ( p_sid != null ){
+							if ( reply != null ){
+							
+								param_i2p_dest.setVisible( true );
+							
+								String host = (String)reply.get( "host" );
 								
-									updatePairing( p_sid );
+								if ( !param_i2p_dest.getValue().equals( host )){
+								
+									param_i2p_dest.setValue( host );
+								
+									if ( p_sid != null ){
+									
+										updatePairing( p_sid );
+									}
 								}
 							}
 						}
-					}
-				});
+					});
+			}
 			
 			Boolean	pr_enable_keep_alive = (Boolean)properties.get( PR_ENABLE_KEEP_ALIVE );
 
@@ -1884,6 +1910,19 @@ WebPlugin
 		}
 	}
 
+	public int
+	getServerPort()
+	{
+		if ( tracker_context == null ){
+			
+			return( 0 );
+		}
+		
+		URL	url = tracker_context.getURLs()[0];
+		
+		return( url.getPort()==-1?url.getDefaultPort():url.getPort());
+	}
+	
 	public int
 	getPort()
 	{
@@ -2550,7 +2589,7 @@ WebPlugin
 	
 			// first try file system for data
 		
-		if ( response.useFile( file_root, url )){
+		if ( useFile( request, response, file_root, UrlUtils.decode( url ))){
 			
 			return( true );
 		}
@@ -2603,6 +2642,28 @@ WebPlugin
 		}
 		
 		return( false );
+	}
+	
+		/**
+		 * this method can be over-ridden to handle custom file delivery
+		 * @param request
+		 * @param response
+		 * @param root
+		 * @param relative_url
+		 * @return
+		 * @throws IOException
+		 */
+	
+	protected boolean
+	useFile(
+		TrackerWebPageRequest		request,
+		TrackerWebPageResponse		response,
+		String						root,
+		String						relative_url )
+		
+		throws IOException
+	{
+		return( response.useFile( file_root, relative_url ));
 	}
 	
 	private String

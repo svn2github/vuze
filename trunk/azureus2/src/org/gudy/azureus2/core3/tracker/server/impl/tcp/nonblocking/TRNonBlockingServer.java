@@ -136,12 +136,7 @@ TRNonBlockingServer
 		write_selector 		= new VirtualChannelSelector( _name + ":" + _port, VirtualChannelSelector.OP_WRITE, true );
 
 		boolean	ok = false;
-		
-		if ( _port == 0 ){
-			
-			throw( new TRTrackerServerException( "port of 0 not currently supported"));
-		}
-		
+				
 		try{
 			InetSocketAddress	address;
 			
@@ -167,9 +162,14 @@ TRNonBlockingServer
 			}
 			
 			accept_server = VirtualServerChannelSelectorFactory.createBlocking( address, 0, this );
-			
+						
 			accept_server.start();
-		      
+		    
+			if ( _port == 0 ){
+			
+				setPort( accept_server.getPort());
+			}
+			
 			AEThread	read_thread = 
 				new AEThread( "TRTrackerServer:readSelector")
 				{

@@ -27,12 +27,12 @@ package org.gudy.azureus2.pluginsimpl.remote.tracker;
 
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.remote.torrent.RPTorrent;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
-
 import org.gudy.azureus2.pluginsimpl.remote.*;
 
 
@@ -228,6 +228,21 @@ RPTracker
     	int			port,
 		int			protocol,
 		InetAddress	bind_ip )
+    
+    	throws TrackerException
+	{	
+    	notSupported();
+		
+		return( null );
+	}
+    
+    public TrackerWebContext
+    createWebContext(
+    	String					name,
+    	int						port,
+		int						protocol,
+		InetAddress				bind_ip,
+		Map<String,Object>		properties )
     
     	throws TrackerException
 	{	

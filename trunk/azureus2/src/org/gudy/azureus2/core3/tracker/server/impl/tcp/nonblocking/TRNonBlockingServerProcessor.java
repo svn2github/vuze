@@ -27,7 +27,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.tracker.server.impl.TRTrackerServerImpl;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerProcessorTCP;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -81,7 +80,7 @@ TRNonBlockingServerProcessor
 		start_time	= SystemTime.getCurrentTime(); 
 		
 		read_buffer = ByteBuffer.allocate( READ_BUFFER_INITIAL );
-		
+				
 		// System.out.println( "create: " + System.currentTimeMillis());
 	}
 	
@@ -392,7 +391,7 @@ TRNonBlockingServerProcessor
 								lc_request_header,
 								url, 
 								(InetSocketAddress)socket_channel.socket().getRemoteSocketAddress(),
-								TRTrackerServerImpl.restrict_non_blocking_requests,
+								getServer().getRestrictNonBlocking(),
 								new ByteArrayInputStream(new byte[0]),
 								async_control );
 				

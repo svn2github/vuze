@@ -39,6 +39,8 @@ public interface VirtualServerChannelSelector {
  
   public InetAddress getBoundToAddress();
  
+  public int getPort();
+  
   public long getTimeOfLastAccept();
   
   /**

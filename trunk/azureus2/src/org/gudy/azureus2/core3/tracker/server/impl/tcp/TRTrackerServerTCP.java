@@ -28,7 +28,6 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.server.*;
@@ -61,6 +60,8 @@ TRTrackerServerTCP
 	private boolean	ssl;
 	private int		port;
 	private boolean	apply_ip_filter;
+	
+	private boolean restrict_non_blocking_requests = TRTrackerServerImpl.restrict_non_blocking_requests;
 	
 	private ThreadPool	thread_pool;
 	
@@ -98,6 +99,19 @@ TRTrackerServerTCP
 	isIPFilterEnabled()
 	{
 		return( apply_ip_filter );
+	}
+	
+	public boolean
+	getRestrictNonBlocking()
+	{
+		return( restrict_non_blocking_requests );
+	}
+	
+	public void
+	setRestrictNonBlocking(
+		boolean restrict )
+	{
+		restrict_non_blocking_requests = restrict;
 	}
 	
 	static boolean	LOG_DOS_TO_FILE	= false;

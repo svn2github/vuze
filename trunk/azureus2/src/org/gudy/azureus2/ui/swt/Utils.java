@@ -1056,59 +1056,70 @@ public class Utils
 		String 		sFileOriginal,
 		boolean		sync )
 	{
+		launch( sFileOriginal, sync, false );
+	}
+	
+	public static void 
+	launch(
+		String 		sFileOriginal,
+		boolean		sync,
+		boolean		force_url )
+	{
 		String sFileModified = sFileOriginal;
 		
 		if (sFileModified == null || sFileModified.trim().length() == 0) {
 			return;
 		}
 		
-		if (!Constants.isWindows && new File(sFileModified).isDirectory()) {
-			PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
-			if (mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
-				try {
-					PlatformManagerFactory.getPlatformManager().showFile(sFileModified);
-					return;
-				} catch (PlatformManagerException e) {
-				}
-			}
-		}
-
-		sFileModified = sFileModified.replaceAll( "&vzemb=1", "" );
-
-		String exe = getExplicitLauncher( sFileModified );
-		
-		if ( exe != null ){
-			
-			File	file = new File( sFileModified );
-										
-			try{
-				System.out.println( "Launching " + sFileModified + " with " + exe );
-				
-				if ( Constants.isWindows ){
-					
-						// need to use createProcess as we want to force the process to decouple correctly (otherwise Vuze won't close until the child closes)
-					
-					try{
-						PlatformManagerFactory.getPlatformManager().createProcess( exe + " \"" + sFileModified + "\"", false );
-					
+		if ( !force_url ){
+			if (!Constants.isWindows && new File(sFileModified).isDirectory()) {
+				PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
+				if (mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
+					try {
+						PlatformManagerFactory.getPlatformManager().showFile(sFileModified);
 						return;
-						
-					}catch( Throwable e ){
+					} catch (PlatformManagerException e) {
 					}
 				}
+			}
+	
+			sFileModified = sFileModified.replaceAll( "&vzemb=1", "" );
+	
+			String exe = getExplicitLauncher( sFileModified );
+			
+			if ( exe != null ){
 				
-				ProcessBuilder pb = GeneralUtils.createProcessBuilder( file.getParentFile(), new String[]{ exe, file.getName()}, null );
-				
-				pb.start();
-				
-				return;
-				
-			}catch( Throwable e ){
-				
-				Debug.out( "Launch failed", e );
+				File	file = new File( sFileModified );
+											
+				try{
+					System.out.println( "Launching " + sFileModified + " with " + exe );
+					
+					if ( Constants.isWindows ){
+						
+							// need to use createProcess as we want to force the process to decouple correctly (otherwise Vuze won't close until the child closes)
+						
+						try{
+							PlatformManagerFactory.getPlatformManager().createProcess( exe + " \"" + sFileModified + "\"", false );
+						
+							return;
+							
+						}catch( Throwable e ){
+						}
+					}
+					
+					ProcessBuilder pb = GeneralUtils.createProcessBuilder( file.getParentFile(), new String[]{ exe, file.getName()}, null );
+					
+					pb.start();
+					
+					return;
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "Launch failed", e );
+				}
 			}
 		}
-			
+		
 		String lc_sFile = sFileModified.toLowerCase( Locale.US );
 		
 		if ( lc_sFile.startsWith( "http:" ) || lc_sFile.startsWith( "https:" )){
@@ -1157,7 +1168,7 @@ public class Utils
 				
 			}else{
 				
-				handlePluginLaunch( eb_choice, net_type, use_plugins, sFileOriginal, sFileModified, sync );
+				handlePluginLaunch( eb_choice, net_type, use_plugins, sFileOriginal, sFileModified, sync, force_url );
 				
 				return;
 			}
@@ -1201,7 +1212,8 @@ public class Utils
 		boolean				use_plugins,
 		final String		sFileOriginal,
 		final String		sFileModified,
-		final boolean		sync )
+		final boolean		sync,
+		final boolean		force_url )
 	{
 		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
 		
@@ -1243,7 +1255,7 @@ public class Utils
 													try{
 														if ( install_outcome[0] ){
 										
-															Utils.launch( sFileOriginal, sync );
+															Utils.launch( sFileOriginal, sync, force_url );
 														}
 													}finally{
 														
@@ -1397,7 +1409,7 @@ public class Utils
 													try{
 														if ( install_outcome[0] ){
 																
-															Utils.launch( sFileOriginal, sync );
+															Utils.launch( sFileOriginal, sync, force_url );
 														}
 													}finally{
 														

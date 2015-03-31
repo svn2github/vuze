@@ -28,6 +28,7 @@ package org.gudy.azureus2.plugins.tracker;
  */
 
 import java.net.InetAddress;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
@@ -38,6 +39,11 @@ Tracker
 {   
 	public static final int	PR_HTTP			= 1;
 	public static final int	PR_HTTPS		= 2;
+	
+		// properties for passing as, well, properties
+	
+	public static final String	PR_NON_BLOCKING		= "nonblocking";		// Boolean
+	
 	
 	public TrackerTorrent
 	host(
@@ -107,6 +113,16 @@ Tracker
     	int			port,
 		int			protocol,
 		InetAddress	bind_ip )
+    
+    	throws TrackerException;
+    
+    public TrackerWebContext
+    createWebContext(
+    	String					name,
+    	int						port,
+		int						protocol,
+		InetAddress				bind_ip,
+		Map<String,Object>		properties )
     
     	throws TrackerException;
     

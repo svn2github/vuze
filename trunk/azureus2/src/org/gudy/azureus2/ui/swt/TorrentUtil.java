@@ -366,7 +366,17 @@ public class TorrentUtil
 			}
 		});
 		itemExplore.setEnabled(hasSelection);
-
+		
+		// Open in browser
+		final MenuItem itemBrowse = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemBrowse, "MyTorrentsView.menu.browse");
+		itemOpen.addListener(SWT.Selection, new ListenerDMTask(dms) {
+			public void run(DownloadManager dm) {
+				ManagerUtils.browse(dm);
+			}
+		});
+		
+		itemBrowse.setEnabled(hasSelection);
 		// === advanced menu ===
 
 		final MenuItem itemAdvanced = new MenuItem(menu, SWT.CASCADE);

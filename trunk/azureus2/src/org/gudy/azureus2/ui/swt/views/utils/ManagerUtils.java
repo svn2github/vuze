@@ -21,16 +21,14 @@
  */
 package org.gudy.azureus2.ui.swt.views.utils;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
+import java.io.*;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -44,18 +42,25 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.Plugin;
+import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.webplugin.WebPlugin;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -246,6 +251,229 @@ public class ManagerUtils {
 		}
 	}
   
+	public static void 
+	browse(
+		final DiskManagerFileInfo file )
+	{
+		browse( file.getDownloadManager(), file );
+	}
+	
+	public static void 
+	browse(
+		final DownloadManager dm )
+	{
+		browse( dm, null );
+	}
+	
+	public static void 
+	browse(
+		final DownloadManager 			dm,
+		final DiskManagerFileInfo		file )
+	{
+		Properties	props = new Properties();
+		
+		File	save_location = dm.getSaveLocation();
+		
+		final String	root_dir;
+		final String	url_suffix;
+		
+		if ( save_location.isFile()){
+			
+			url_suffix = UrlUtils.encode( save_location.getName());
+			
+			root_dir = save_location.getParentFile().getAbsolutePath();
+			
+		}else{
+			
+			root_dir = save_location.getAbsolutePath();
+		
+			if ( file == null ){
+				
+				url_suffix = "";
+				
+			}else{
+				
+				File f = file.getFile( true );
+				
+				String str = f.getAbsolutePath();
+				
+				if ( str.startsWith( root_dir )){
+					
+					String[] bits = str.substring( root_dir.length()).replace( File.separatorChar, '/' ).split( "/" );
+					
+					String _url_suffix = "";
+					
+					for ( String bit: bits ){
+						
+						if ( bit.length() == 0 ){
+							
+							continue;
+						}
+						
+						_url_suffix += (_url_suffix==""?"":"/") + UrlUtils.encode( bit );
+					}
+					
+					url_suffix = _url_suffix;
+					
+				}else{
+					
+					url_suffix = "";
+				}
+			}
+		}
+		
+		props.put( WebPlugin.PR_PORT, 0 );
+		props.put( WebPlugin.PR_ROOT_DIR, root_dir );
+		
+		props.put( WebPlugin.PR_ENABLE_KEEP_ALIVE, true );
+		props.put( WebPlugin.PR_ENABLE_PAIRING, false );
+		props.put( WebPlugin.PR_ENABLE_I2P, false );
+		//props.put( WebPlugin.PR_NON_BLOCKING, true );
+		
+		final String plugin_id 		= "webserver:" + dm.getInternalName();
+		final String plugin_name	= "Web Server for " + dm.getDisplayName();
+		
+		Properties messages = new Properties();
+		
+		messages.put( "plugins." + plugin_id, plugin_name );;
+
+		PluginInitializer.getDefaultInterface().getUtilities().getLocaleUtilities().integrateLocalisedMessageBundle( messages );
+		
+		Plugin plugin = 
+			new WebPlugin(props)
+			{
+				@Override
+				public void 
+				initialize(
+					PluginInterface plugin_interface )
+						throws PluginException 
+				{
+					Properties props = plugin_interface.getPluginProperties();
+					
+					props.put( "plugin.name", plugin_name );
+					
+					super.initialize( plugin_interface );
+										
+					String url = "http://127.0.0.1:" + getServerPort() + "/" + url_suffix;
+					
+					Utils.launch( url, false, true );
+				}
+				
+				@Override
+				public boolean
+				generate(
+					TrackerWebPageRequest		request,
+					TrackerWebPageResponse		response )
+				
+					throws IOException
+				{
+					boolean res = super.generate(request, response);
+					
+					if ( !res ){
+						
+						response.setReplyStatus( 404 );
+					}
+					
+					return( true );
+				}
+				
+				@Override
+				protected boolean
+				useFile(
+					TrackerWebPageRequest				request,
+					final TrackerWebPageResponse		response,
+					String								root,
+					String								relative_url )
+					
+					throws IOException
+				{
+					String	target = root_dir + relative_url.replace( '/', File.separatorChar );
+
+					final File canonical_file = new File(target).getCanonicalFile();
+
+						// make sure some fool isn't trying to use ../../ to escape from web dir
+
+					if ( !canonical_file.toString().toLowerCase().startsWith( root_dir.toLowerCase())){
+
+						return( false );
+					}
+
+					if ( canonical_file.isDirectory()){
+
+						return( false );
+					}
+					
+					if ( canonical_file.length() < 512*1024 ){
+					
+						return( response.useFile( root, relative_url ));	
+					}
+					
+					//response.setAsynchronous( true );
+										
+					//new AEThread2("pp") {
+					//	
+					//	@Override
+					//	public void 
+					//	run() 
+					//	{
+							OutputStream 	os 	= null;
+							InputStream 	is	= null;
+							
+							try{
+								os = response.getRawOutputStream();
+								
+								byte[] buffer = new byte[128*1024];
+								
+								is = new FileInputStream( canonical_file );
+								
+								while( true ){
+									
+									int len = is.read( buffer );
+									
+									if ( len <= 0 ){
+										
+										break;
+									}
+									
+									os.write( buffer, 0, len );
+								}
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+								
+							}finally{
+								
+								try{
+									os.close();
+									
+								}catch( Throwable e ){
+								}
+								
+								try{
+									is.close();
+									
+								}catch( Throwable e ){
+								}
+								
+								try{
+									//response.setAsynchronous( false );
+									
+								}catch( Throwable e ){
+									
+								}
+							}
+						//}
+					//}.start();
+					
+					return( true );
+				}
+			};
+						
+		PluginManager.registerPlugin(
+			plugin,
+			plugin_id );
+	}
+
   public static boolean isStartable(DownloadManager dm) {
     if(dm == null)
       return false;
