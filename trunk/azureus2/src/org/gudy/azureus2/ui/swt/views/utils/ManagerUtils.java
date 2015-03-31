@@ -448,24 +448,41 @@ public class ManagerUtils {
 																
 								String NL = "\r\n";
 								
+								String title = XUXmlWriter.escapeXML( request_url );
+								
+								if ( title.length() == 0 ){
+									
+									title = "/";
+								}
+								
 								os.write((
 								"<html>" + NL +
 								" <head>" + NL +
 								" <meta charset=\"UTF-8\">" + NL + 
-								"  <title>Index of " + XUXmlWriter.escapeXML( request_url ) + "</title>" + NL +
+								"  <title>Index of " + title + "</title>" + NL +
 								" </head>" + NL +
 								" <body>" + NL +
-								"  <h1>Index of " + XUXmlWriter.escapeXML( request_url ) + "</h1>" + NL +
+								"  <h1>Index of " + title + "</h1>" + NL +
 								"  <pre><hr>" + NL ).getBytes( "UTF-8" ));
 								
 								File[] files = dir.listFiles();
 
+								if ( files == null ){
+									
+									files = new File[0];
+								}
+								
 								String root_url = request_url;
 								
 								if ( !root_url.endsWith( "/" )){
 									
 									root_url += "/";
 								}
+								
+								List<String[]>	filenames		= new ArrayList<String[]>( files.length );
+								int				max_filename	= 0;
+								
+								int MAX_LEN = 120;
 								
 								for ( File file: files ){
 									
@@ -477,14 +494,51 @@ public class ManagerUtils {
 										file_name += "/";
 									}
 									
-									String line = "<a href=\"" + url + "\">" + XUXmlWriter.escapeXML( file_name ) + "</a>" + NL;
+									int len = file_name.length();
 									
-									os.write( line.getBytes( "UTF-8" ));
+									if ( len > MAX_LEN ){
+										
+										file_name = file_name.substring( 0, MAX_LEN-3 ) + "...";
+										
+										len = file_name.length();
+									}
+									
+									if ( len > max_filename ){
+										
+										max_filename = len;
+									}
+									
+									filenames.add( new String[]{ url, file_name, file.isDirectory()?"":DisplayFormatters.formatByteCountToKiBEtc( file.length())});
+								}
+								
+								max_filename = ((max_filename + 15 )/8)*8;
+								
+								char[]	padding = new char[max_filename];
+								
+								Arrays.fill( padding, ' ' );
+								
+								for ( String[] entry: filenames ){
+									
+									String file_name = entry[1];
+								
+									int	len = file_name.length();
+																		
+									StringBuffer line = new StringBuffer( max_filename + 64 );
+									
+									line.append( "<a href=\"" + entry[0] + "\">" + XUXmlWriter.escapeXML( file_name ) + "</a>" );
+									
+									line.append( padding, 0, max_filename - len );
+									
+									line.append(  entry[2] );
+									
+									line.append( NL );
+										
+									os.write( line.toString().getBytes( "UTF-8" ));
 								}
 								
 								os.write((
 								"  <hr></pre>" + NL +
-								"  <address>Vuze Web Server for Download " + XUXmlWriter.escapeXML( dm.getDisplayName()) + " at 127.0.0.1 Port " + getServerPort() +"</address>" + NL +
+								"  <address>Vuze Web Server for Download '" + XUXmlWriter.escapeXML( dm.getDisplayName()) + "' at 127.0.0.1 Port " + getServerPort() +"</address>" + NL +
 								" </body>" + NL +
 								"</html>" ).getBytes( "UTF-8" ));
 								
