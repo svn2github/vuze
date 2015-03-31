@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.utils;
 
 
 import java.io.*;
+import java.net.URLEncoder;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -39,6 +40,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -265,6 +267,8 @@ public class ManagerUtils {
 		browse( dm, null );
 	}
 	
+	private static Map<DownloadManager,WebPlugin>	browse_plugins = new HashMap<DownloadManager, WebPlugin>();
+	
 	public static void 
 	browse(
 		final DownloadManager 			dm,
@@ -322,100 +326,211 @@ public class ManagerUtils {
 			}
 		}
 		
-		props.put( WebPlugin.PR_PORT, 0 );
-		props.put( WebPlugin.PR_ROOT_DIR, root_dir );
+		synchronized( browse_plugins ){
+			
+			WebPlugin	plugin = browse_plugins.get( dm );
 		
-		props.put( WebPlugin.PR_ENABLE_KEEP_ALIVE, true );
-		props.put( WebPlugin.PR_ENABLE_PAIRING, false );
-		props.put( WebPlugin.PR_ENABLE_I2P, false );
-		//props.put( WebPlugin.PR_NON_BLOCKING, true );
-		
-		final String plugin_id 		= "webserver:" + dm.getInternalName();
-		final String plugin_name	= "Web Server for " + dm.getDisplayName();
-		
-		Properties messages = new Properties();
-		
-		messages.put( "plugins." + plugin_id, plugin_name );;
-
-		PluginInitializer.getDefaultInterface().getUtilities().getLocaleUtilities().integrateLocalisedMessageBundle( messages );
-		
-		Plugin plugin = 
-			new WebPlugin(props)
-			{
-				@Override
-				public void 
-				initialize(
-					PluginInterface plugin_interface )
-						throws PluginException 
-				{
-					Properties props = plugin_interface.getPluginProperties();
-					
-					props.put( "plugin.name", plugin_name );
-					
-					super.initialize( plugin_interface );
-										
-					String url = "http://127.0.0.1:" + getServerPort() + "/" + url_suffix;
-					
-					Utils.launch( url, false, true );
-				}
+			if ( plugin == null ){
+			
+				props.put( WebPlugin.PR_PORT, 0 );
+				props.put( WebPlugin.PR_ROOT_DIR, root_dir );
 				
-				@Override
-				public boolean
-				generate(
-					TrackerWebPageRequest		request,
-					TrackerWebPageResponse		response )
+				props.put( WebPlugin.PR_ENABLE_KEEP_ALIVE, true );
+				props.put( WebPlugin.PR_ENABLE_PAIRING, false );
+				props.put( WebPlugin.PR_ENABLE_I2P, false );
 				
-					throws IOException
-				{
-					boolean res = super.generate(request, response);
-					
-					if ( !res ){
+				final String plugin_id 		= "webserver:" + dm.getInternalName();
+				final String plugin_name	= "Web Server for " + dm.getDisplayName();
+				
+				Properties messages = new Properties();
+				
+				messages.put( "plugins." + plugin_id, plugin_name );;
+		
+				PluginInitializer.getDefaultInterface().getUtilities().getLocaleUtilities().integrateLocalisedMessageBundle( messages );
+				
+				plugin = 
+					new WebPlugin( props )
+					{
+						@Override
+						public void 
+						initialize(
+							PluginInterface plugin_interface )
+								throws PluginException 
+						{
+							Properties props = plugin_interface.getPluginProperties();
+							
+							props.put( "plugin.name", plugin_name );
+							
+							super.initialize( plugin_interface );
+							
+							int port = getServerPort();
+							
+							log( "Assigned port: " + port );
+							
+							String url = "http://127.0.0.1:" + port + "/" + url_suffix;
+							
+							Utils.launch( url, false, true );
+						}
 						
-						response.setReplyStatus( 404 );
-					}
-					
-					return( true );
-				}
-				
-				@Override
-				protected boolean
-				useFile(
-					TrackerWebPageRequest				request,
-					final TrackerWebPageResponse		response,
-					String								root,
-					String								relative_url )
-					
-					throws IOException
-				{
-					String	target = root_dir + relative_url.replace( '/', File.separatorChar );
-
-					final File canonical_file = new File(target).getCanonicalFile();
-
-						// make sure some fool isn't trying to use ../../ to escape from web dir
-
-					if ( !canonical_file.toString().toLowerCase().startsWith( root_dir.toLowerCase())){
-
-						return( false );
-					}
-
-					if ( canonical_file.isDirectory()){
-
-						return( false );
-					}
-					
-					if ( canonical_file.length() < 512*1024 ){
-					
-						return( response.useFile( root, relative_url ));	
-					}
-					
-					//response.setAsynchronous( true );
+						@Override
+						public boolean
+						generate(
+							TrackerWebPageRequest		request,
+							TrackerWebPageResponse		response )
+						
+							throws IOException
+						{
+							try{
+								boolean res = super.generate(request, response);
+								
+								if ( !res ){
+									
+									response.setReplyStatus( 404 );
+								}
+							}catch( Throwable e ){
+								
+								response.setReplyStatus( 404 );
+							}
+							
+							return( true );
+						}
+						
+						@Override
+						protected boolean
+						useFile(
+							TrackerWebPageRequest				request,
+							final TrackerWebPageResponse		response,
+							String								root,
+							String								relative_url )
+							
+							throws IOException
+						{
+							String	target = root_dir + relative_url.replace( '/', File.separatorChar );
+		
+							final File canonical_file = new File(target).getCanonicalFile();
+		
+								// make sure some fool isn't trying to use ../../ to escape from web dir
+		
+							if ( !canonical_file.toString().toLowerCase().startsWith( root_dir.toLowerCase())){
+		
+								return( false );
+							}
+									
+							if ( canonical_file.isDirectory() || !canonical_file.exists()){
+		
+								File dir;
+								
+								String request_url = request.getURL();
+								
+								if ( canonical_file.isDirectory()){
+									
+									dir = canonical_file;
+											
+								}else{
+									
+									dir = canonical_file.getParentFile();
+									
+									int	pos = request_url.lastIndexOf( "/" );
+									
+									if ( pos == -1 ){
 										
-					//new AEThread2("pp") {
-					//	
-					//	@Override
-					//	public void 
-					//	run() 
-					//	{
+										request_url = "";
+										
+									}else{
+										
+										request_url = request_url.substring( 0, pos );
+									}
+								}
+																
+								response.setContentType( "text/html" );
+								
+								OutputStream os = response.getOutputStream();
+																
+								String NL = "\r\n";
+								
+								os.write((
+								"<html>" + NL +
+								" <head>" + NL +
+								" <meta charset=\"UTF-8\">" + NL + 
+								"  <title>Index of " + XUXmlWriter.escapeXML( request_url ) + "</title>" + NL +
+								" </head>" + NL +
+								" <body>" + NL +
+								"  <h1>Index of " + XUXmlWriter.escapeXML( request_url ) + "</h1>" + NL +
+								"  <pre><hr>" + NL ).getBytes( "UTF-8" ));
+								
+								File[] files = dir.listFiles();
+
+								String root_url = request_url;
+								
+								if ( !root_url.endsWith( "/" )){
+									
+									root_url += "/";
+								}
+								
+								for ( File file: files ){
+									
+									String file_name 	= file.getName();
+									String url			= root_url + UrlUtils.encode( file_name );
+											
+									if ( file.isDirectory()){
+										
+										file_name += "/";
+									}
+									
+									String line = "<a href=\"" + url + "\">" + XUXmlWriter.escapeXML( file_name ) + "</a>" + NL;
+									
+									os.write( line.getBytes( "UTF-8" ));
+								}
+								
+								os.write((
+								"  <hr></pre>" + NL +
+								"  <address>Vuze Web Server for Download " + XUXmlWriter.escapeXML( dm.getDisplayName()) + " at 127.0.0.1 Port " + getServerPort() +"</address>" + NL +
+								" </body>" + NL +
+								"</html>" ).getBytes( "UTF-8" ));
+								
+								return( true );
+							}
+							
+							if ( !canonical_file.canRead()){
+								
+								return( false );
+							}
+
+							if ( canonical_file.length() < 512*1024 ){
+							
+								String	file_type;
+								
+								String file_name = canonical_file.getName();
+								
+								int	pos = file_name.lastIndexOf( "." );
+		
+								if ( pos == -1 ){
+		
+									file_type = "";
+									
+								}else{
+		
+									file_type = file_name.substring(pos+1);
+								}
+								
+								FileInputStream	fis = null;
+		
+								try{
+									fis = new FileInputStream(canonical_file);
+		
+									response.useStream( file_type, fis );
+		
+									return( true );
+		
+								}finally{
+		
+									if ( fis != null ){
+		
+										fis.close();
+									}
+								}
+							}
+							
 							OutputStream 	os 	= null;
 							InputStream 	is	= null;
 							
@@ -455,23 +570,26 @@ public class ManagerUtils {
 								}catch( Throwable e ){
 								}
 								
-								try{
-									//response.setAsynchronous( false );
-									
-								}catch( Throwable e ){
-									
-								}
+	
 							}
-						//}
-					//}.start();
-					
-					return( true );
-				}
-			};
 						
-		PluginManager.registerPlugin(
-			plugin,
-			plugin_id );
+							return( true );
+						}
+					};
+								
+				PluginManager.registerPlugin(
+					plugin,
+					plugin_id );
+				
+				browse_plugins.put( dm, plugin );
+				
+			}else{
+				
+				String url = "http://127.0.0.1:" + plugin.getServerPort() + "/" + url_suffix;
+				
+				Utils.launch( url, false, true );
+			}
+		}
 	}
 
   public static boolean isStartable(DownloadManager dm) {
