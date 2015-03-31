@@ -281,7 +281,8 @@ public class TaggingView
   				e.gc.setForeground(ColorCache.getColor(e.display, tag.getColor()));
   				int lineWidth = button.getSelection() ? 2 : 1;
   				int curve = 20;
-  				int width = sizeButton.x + (curve / 2) + lineWidth + 1;
+  				int width = sizeButton.x + lineWidth + 1;
+  				width += Constants.isOSX ? 5 : curve / 2;
   				if (button.getSelection()) {
     				e.gc.setAlpha(20);
     				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
