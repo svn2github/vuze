@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -509,11 +510,15 @@ public class NetworkManager {
   startTransferProcessing( 
 	NetworkConnectionBase 	peer_connection )
   {
-  	if( peer_connection.isLANLocal() && lan_rate_enabled ) {
+  	if (	lan_rate_enabled && 	
+  			( 	peer_connection.isLANLocal() || 
+  				AddressUtils.applyLANRateLimits( peer_connection.getEndpoint().getNotionalAddress()))){
+  		
   		lan_upload_processor.registerPeerConnection( peer_connection, true );
   		lan_download_processor.registerPeerConnection( peer_connection, false );
-  	}
-  	else {
+  		
+  	}else {
+  		
   		upload_processor.registerPeerConnection( peer_connection, true );
   		download_processor.registerPeerConnection( peer_connection, false );
   	}

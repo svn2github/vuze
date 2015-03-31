@@ -32,6 +32,8 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
@@ -44,6 +46,22 @@ AddressUtils
 	public static final byte LAN_LOCAL_MAYBE	= 0;
 	public static final byte LAN_LOCAL_YES		= 1;
 	public static final byte LAN_LOCAL_NO		= 2;
+
+	private static boolean	i2p_is_lan_limit;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Plugin.azi2phelper.azi2phelper.rates.use.lan",
+			new ParameterListener()
+			{	
+				public void 
+				parameterChanged(
+					String parameterName ) 
+				{
+					i2p_is_lan_limit = COConfigurationManager.getBooleanParameter( "Plugin.azi2phelper.azi2phelper.rates.use.lan", false );
+				}
+			});
+	}
 	
 	private static AZInstanceManager	instance_manager;
 	
@@ -311,6 +329,20 @@ AddressUtils
 		return is_lan_local;
 	}
 	
+	public static boolean
+	applyLANRateLimits(
+		InetSocketAddress			address )
+	{
+		if ( i2p_is_lan_limit ){
+			
+			if ( address.isUnresolved()){
+		
+				return( AENetworkClassifier.categoriseAddress( address ) == AENetworkClassifier.AT_I2P );
+			}
+		}
+		
+		return( false );
+	}
 	/**
 	 * checks if the provided address is a global-scope ipv6 unicast address
 	 */
