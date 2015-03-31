@@ -25,7 +25,6 @@ import java.util.Map;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
 
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
 
@@ -148,11 +147,6 @@ public interface MdiEntry
 	public void setParentID(String id);
 
 	public UIToolBarEnablerBase[] getToolbarEnablers();
-
-	/**
-	 * @deprecated For azburn
-	 */
-	public void addToolbarEnabler(ToolBarEnabler enabler);
 
 	public void addToolbarEnabler(UIToolBarEnablerBase enabler);
 

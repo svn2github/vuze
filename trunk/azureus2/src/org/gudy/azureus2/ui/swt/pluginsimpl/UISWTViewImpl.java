@@ -43,14 +43,12 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
-import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.*;
 
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -571,8 +569,6 @@ public class UISWTViewImpl
 		}
 		if (eventListener instanceof UIPluginViewToolBarListener) {
 			return ((UIPluginViewToolBarListener) eventListener).toolBarItemActivated(item, activationType, datasource);
-		} else if (eventListener instanceof ToolBarEnabler) {
-			return ((ToolBarEnabler) eventListener).toolBarItemActivated(item.getID());
 		} 
 		return false;
 	}
@@ -580,20 +576,6 @@ public class UISWTViewImpl
 	public void refreshToolBarItems(Map<String, Long> list) {
 		if (eventListener instanceof UIPluginViewToolBarListener) {
 			((UIPluginViewToolBarListener) eventListener).refreshToolBarItems(list);
-		} else if (eventListener instanceof ToolBarEnabler) {
-			Map<String, Boolean> states = new HashMap<String, Boolean>();
-			for ( Map.Entry<String, Long> entry: list.entrySet()){
-				String id = entry.getKey();
-				states.put(id, (entry.getValue() & UIToolBarItem.STATE_ENABLED) > 0);
-			}
-			
-			((ToolBarEnabler) eventListener).refreshToolBar(states);
-
-			for ( Map.Entry<String, Boolean> entry: states.entrySet()){
-				String id = entry.getKey();
-				Boolean visible = entry.getValue();
-				list.put(id, visible ? UIToolBarItem.STATE_ENABLED : 0);
-			}
 		}
 	}
 

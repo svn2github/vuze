@@ -44,7 +44,6 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerImpl.ToolBarManagerListener;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -609,23 +608,6 @@ public class ToolBarView
 						} catch (Throwable e) {
 							Debug.out(e); // don't trust them plugins
 						}
-					} else if (enabler instanceof ToolBarEnabler) {
-						Map<String, Boolean> oldMapStates = new HashMap<String, Boolean>();
-						((ToolBarEnabler) enabler).refreshToolBar(oldMapStates);
-
-						for (Map.Entry<String, Boolean> e : oldMapStates.entrySet()) {
-							String key = e.getKey();
-							Boolean enable = e.getValue();
-							Long curState = mapStates.get(key);
-							if (curState == null) {
-								curState = 0L;
-							}
-							if (enable) {
-								mapStates.put(key, curState | UIToolBarItem.STATE_ENABLED);
-							} else {
-								mapStates.put(key, curState & (~UIToolBarItem.STATE_ENABLED));
-							}
-						}
 					}
 				}
 			}
@@ -822,11 +804,6 @@ public class ToolBarView
 				if (enabler instanceof UIPluginViewToolBarListener) {
 					if (((UIPluginViewToolBarListener) enabler).toolBarItemActivated(
 							item, activationType, datasource)) {
-						return true;
-					}
-				} else if (enabler instanceof ToolBarEnabler) {
-					if (activationType == UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL
-							&& ((ToolBarEnabler) enabler).toolBarItemActivated(item.getID())) {
 						return true;
 					}
 				}

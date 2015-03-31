@@ -67,7 +67,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
@@ -703,14 +702,6 @@ public class SBC_TorrentDetailsView
 			UIPluginViewToolBarListener l = active_view.getToolBarListener();
 			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
 				return true;
-			}
-		}
-
-		String itemKey = item.getID();
-
-		if (itemKey.equals("editcolumns")) {
-			if (active_view instanceof ToolBarEnabler) {
-				return ((ToolBarEnabler) active_view).toolBarItemActivated(itemKey);
 			}
 		}
 
