@@ -229,6 +229,7 @@ public class FilesView
 		}
 
 		if (newManager == manager) {
+			tv.setEnabled(manager != null);
 			return;
 		}
 

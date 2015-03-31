@@ -251,6 +251,7 @@ public class PeersView
 		}
 	
 		if (newManager == manager) {
+			tv.setEnabled(manager != null);
 			return;
 		}
 

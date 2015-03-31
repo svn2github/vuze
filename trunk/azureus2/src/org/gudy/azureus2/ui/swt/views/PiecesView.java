@@ -332,6 +332,7 @@ public class PiecesView
 		}
 	
 		if (newManager == manager) {
+			tv.setEnabled(manager != null);
 			return;
 		}
 
