@@ -465,18 +465,32 @@ public class ManagerUtils {
 								"  <h1>Index of " + title + "</h1>" + NL +
 								"  <pre><hr>" + NL ).getBytes( "UTF-8" ));
 								
-								File[] files = dir.listFiles();
-
-								if ( files == null ){
-									
-									files = new File[0];
-								}
-								
 								String root_url = request_url;
 								
 								if ( !root_url.endsWith( "/" )){
 									
 									root_url += "/";
+								}
+								
+								if ( request_url.length() > 1 ){
+									
+									int	pos = request_url.lastIndexOf( '/' );
+									
+									if ( pos == 0 ){
+										
+										pos++;
+									}
+									
+									String parent = request_url.substring( 0, pos );
+									
+									os.write(( "<a href=\"" + parent + "\">..</a>" + NL).getBytes( "UTF-8" ));
+								}
+
+								File[] files = dir.listFiles();
+
+								if ( files == null ){
+									
+									files = new File[0];
 								}
 								
 								List<String[]>	filenames		= new ArrayList<String[]>( files.length );
