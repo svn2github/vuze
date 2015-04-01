@@ -27,6 +27,7 @@ import org.eclipse.swt.browser.OpenWindowListener;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.browser.StatusTextListener;
 import org.eclipse.swt.browser.TitleListener;
+import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -46,10 +47,17 @@ BrowserWrapper
 		browser = new Browser( composite, style );
 	}
 	
-	public Browser
-	getBrowser()
+	public Composite
+	getControl()
 	{
 		return( browser );
+	}
+	
+	public void
+	setBrowser(
+		WindowEvent		event )
+	{
+		event.browser = browser;
 	}
 	
 	public void
@@ -265,5 +273,57 @@ BrowserWrapper
 		StatusTextListener		l )
 	{
 		browser.removeStatusTextListener( l );
+	}
+	
+	public BrowserFunction
+	addBrowserFunction(
+		String						name,
+		final BrowserFunction		bf )
+	{
+		org.eclipse.swt.browser.BrowserFunction swt_bf =
+			new org.eclipse.swt.browser.BrowserFunction(
+				browser,
+				name )
+			{
+				@Override
+				public Object 
+				function(
+					Object[] arguments )
+				{
+					return( bf.function(arguments));
+				}
+			};
+		
+		bf.setSWTBF( swt_bf );
+		
+		return( bf );
+	}
+	
+	public static abstract class
+	BrowserFunction
+	{
+		private org.eclipse.swt.browser.BrowserFunction		swt_bf;
+		
+		private void
+		setSWTBF(org.eclipse.swt.browser.BrowserFunction	bf )
+		{
+			swt_bf = bf;
+		}
+		
+		public abstract Object 
+		function(
+			Object[] arguments );
+
+		public boolean
+		isDisposed()
+		{
+			return( swt_bf.isDisposed());
+		}
+		
+		public void
+		dispose()
+		{
+			swt_bf.dispose();
+		}
 	}
 }

@@ -22,7 +22,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.download.DownloadManager;

@@ -253,7 +253,7 @@ public class DevicesFTUX
 		lblLearnMore.setLayoutData(fd);
 		
 		fd = new FormData();
-		fd.top = new FormAttachment(browser.getBrowser(), 0);
+		fd.top = new FormAttachment(browser.getControl(), 0);
 		fd.bottom = new FormAttachment(100, 0);
 		fd.left = new FormAttachment(0, 0);
 		fd.right = new FormAttachment(100, 0);

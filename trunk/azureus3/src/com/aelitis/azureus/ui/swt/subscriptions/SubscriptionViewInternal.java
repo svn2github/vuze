@@ -19,14 +19,12 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.DisposeEvent;
@@ -360,11 +358,11 @@ SubscriptionViewInternal
 			return;
 		}
 		try{
-			mainBrowser = new BrowserWrapper(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+			final BrowserWrapper bw = mainBrowser = new BrowserWrapper(composite,Utils.getInitialBrowserStyle(SWT.NONE));
 			mainBrowser.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
-					((Browser)e.widget).setUrl("about:blank");
-					((Browser)e.widget).setVisible(false);
+					bw.setUrl("about:blank");
+					bw.setVisible(false);
 				}
 			});
 			mainBrowserContext = 
@@ -425,11 +423,11 @@ SubscriptionViewInternal
 			data.bottom = new FormAttachment(100,0);
 			mainBrowser.setLayoutData(data);
 			
-			detailsBrowser = new BrowserWrapper(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+			final BrowserWrapper db = detailsBrowser = new BrowserWrapper(composite,Utils.getInitialBrowserStyle(SWT.NONE));
 			detailsBrowser.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
-					((Browser)e.widget).setUrl("about:blank");
-					((Browser)e.widget).setVisible(false);
+					db.setUrl("about:blank");
+					db.setVisible(false);
 				}
 			});
 			BrowserContext detailsContext = 
@@ -503,7 +501,7 @@ SubscriptionViewInternal
 			data = new FormData();
 			data.left = new FormAttachment(0,0);
 			data.right = new FormAttachment(100,0);
-			data.top = new FormAttachment(mainBrowser.getBrowser(),0);
+			data.top = new FormAttachment(mainBrowser.getControl(),0);
 			data.bottom = new FormAttachment(100,0);
 			detailsBrowser.setLayoutData(data);
 							

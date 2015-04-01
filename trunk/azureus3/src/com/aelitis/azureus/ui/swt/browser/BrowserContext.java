@@ -21,7 +21,15 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.*;
+import org.eclipse.swt.browser.TitleListener;
+import org.eclipse.swt.browser.TitleEvent;
+import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.LocationListener;
+import org.eclipse.swt.browser.LocationEvent;
+import org.eclipse.swt.browser.OpenWindowListener;
+import org.eclipse.swt.browser.CloseWindowListener;
+import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
@@ -280,10 +288,11 @@ public class BrowserContext
 						}
 					});
 					shell.open();
-					event.browser = subBrowser.getBrowser();
+					subBrowser.setBrowser( event );
+					
 				} else {
 
-					final BrowserWrapper subBrowser = new BrowserWrapper(browser.getBrowser(),
+					final BrowserWrapper subBrowser = new BrowserWrapper(browser.getControl(),
 							Utils.getInitialBrowserStyle(SWT.NONE));
 					subBrowser.addLocationListener(new LocationListener() {
 						public void changed(LocationEvent arg0) {
@@ -312,10 +321,12 @@ public class BrowserContext
 							});
 						}
 					});
-					event.browser = subBrowser.getBrowser();
+					subBrowser.setBrowser( event );
 				}
 			}
 		});
+		
+		final BrowserWrapper bw = browser;
 		
 		browser.addLocationListener(new LocationListener() {
 			private TimerEvent timerevent;
@@ -429,7 +440,7 @@ public class BrowserContext
 							&& !event_location.equals("about:blank") 
 							&& !isPageLoadingOrRecent) {
   					event.doit = false;
-						String[] contentTypes = getContentTypes(event_location, ((Browser)event.widget).getUrl());
+						String[] contentTypes = getContentTypes(event_location, bw.getUrl());
 
 						boolean isTorrent = false;
 						for (String s : contentTypes) {
@@ -443,7 +454,7 @@ public class BrowserContext
 							}
 						}
 						
-						if (!isTorrent || !openTorrent(event)) {
+						if (!isTorrent || !openTorrent( bw, event)) {
 							Utils.launch(event.location);
 						}
   					return;
@@ -489,7 +500,7 @@ public class BrowserContext
 							
 							if ( test_for_torrent || test_for_vuze ){
 								
-								String[] contentTypes = getContentTypes(event_location, ((Browser)event.widget).getUrl());
+								String[] contentTypes = getContentTypes(event_location, bw.getUrl());
 
 								for (String s : contentTypes) {
 									
@@ -514,7 +525,7 @@ public class BrowserContext
 						
 						if ( isTorrent ){
 							
-							openTorrent(event);
+							openTorrent(bw,event);
 							
 						}else if ( isVuzeFile ){
 							
@@ -525,14 +536,14 @@ public class BrowserContext
 								String referer_str = null;
 
 								try{
-									referer_str = new URL(((Browser)event.widget).getUrl()).toExternalForm();
+									referer_str = new URL(bw.getUrl()).toExternalForm();
 
 								}catch( Throwable e ){
 								}
 																
 								Map headers = UrlUtils.getBrowserHeaders( referer_str );
 																		
-								String cookies = (String) ((Browser)event.widget).getData("current-cookies");
+								String cookies = (String) bw.getData("current-cookies");
 								
 								if ( cookies != null ){
 									
@@ -581,7 +592,7 @@ public class BrowserContext
 		this.display = browser.getDisplay();
 	}
 
-	protected boolean openTorrent(LocationEvent event) {
+	protected boolean openTorrent(BrowserWrapper browser, LocationEvent event) {
 		event.doit = false;
 		setPageLoading(false, event.location);
 		
@@ -589,7 +600,7 @@ public class BrowserContext
 			String referer_str = null;
 
 			try{
-				referer_str = new URL(((Browser)event.widget).getUrl()).toExternalForm();
+				referer_str = new URL(browser.getUrl()).toExternalForm();
 
 			}catch( Throwable e ){
 			}
@@ -597,7 +608,7 @@ public class BrowserContext
 			final Map headers = UrlUtils.getBrowserHeaders( referer_str );
 						
 			
-			String cookies = (String) ((Browser)event.widget).getData("current-cookies");
+			String cookies = (String)browser.getData("current-cookies");
 			
 			if (cookies != null ){
 				
@@ -826,6 +837,7 @@ public class BrowserContext
 	 * @param browser holds the context in its application data map
 	 * @return the browser's context or <code>null</code> if there is none
 	 */
+	/*
 	public static BrowserContext getContext(Browser browser) {
 		Object data = browser.getData(CONTEXT_KEY);
 		if (data != null && !(data instanceof BrowserContext)) {
@@ -836,7 +848,8 @@ public class BrowserContext
 
 		return (BrowserContext) data;
 	}
-
+	*/
+	
 	public void addMessageListener(BrowserMessageListener listener) {
 		messageDispatcherSWT.addListener(listener);
 	}
@@ -922,7 +935,7 @@ public class BrowserContext
 	}
 
 	public void widgetDisposed(DisposeEvent event) {
-		if (event.widget == browser.getBrowser()) {
+		if (event.widget == browser.getControl()) {
 			deregisterBrowser();
 		}
 	}

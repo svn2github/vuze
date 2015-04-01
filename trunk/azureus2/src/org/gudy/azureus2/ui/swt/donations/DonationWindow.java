@@ -63,7 +63,7 @@ public class DonationWindow
 
 	private static BrowserWrapper browser;
 
-	private static BrowserFunction browserFunction;
+	private static BrowserWrapper.BrowserFunction browserFunction;
 
 	public static void checkForDonationPopup() {
 		if (shell != null) {
@@ -209,77 +209,80 @@ public class DonationWindow
 			}
 		});
 		
-		browserFunction = new BrowserFunction(browser.getBrowser(), "sendDonationEvent") {
-			public Object function(Object[] arguments) {
-
-				if (shell == null || shell.isDisposed()) {
-					return null;
-				}
-				
-				if (arguments == null) {
-					Debug.out("Invalid sendDonationEvent null ");
-					return null;
-				}
-				if (arguments.length < 1) {
-					Debug.out("Invalid sendDonationEvent length " + arguments.length + " not 1");
-					return null;
-				}
-				if (!(arguments[0] instanceof String)) {
-					Debug.out("Invalid sendDonationEvent "
-							+ (arguments[0] == null ? "NULL"
-									: arguments.getClass().getSimpleName()) + " not String");
-					return null;
-				}
-
-				String text = (String) arguments[0];
-				if (text.contains("page-loaded")) {
-					pageLoadedOk = true;
-					COConfigurationManager.setParameter("donations.count",
-							COConfigurationManager.getLongParameter("donations.count", 1) + 1);
-					Utils.centreWindow(shell);
-					if (parentShell != null) {
-						parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
+		browserFunction = browser.addBrowserFunction(
+			"sendDonationEvent",
+			new BrowserWrapper.BrowserFunction()
+			{
+				public Object function(Object[] arguments) {
+	
+					if (shell == null || shell.isDisposed()) {
+						return null;
 					}
-					shell.open();
-				} else if (text.contains("reset-ask-time")) {
-					int time = reAskEveryHours;
-					String[] strings = text.split(" ");
-					if (strings.length > 1) {
-						try {
-							time = Integer.parseInt(strings[1]);
-						} catch (Throwable t) {
+					
+					if (arguments == null) {
+						Debug.out("Invalid sendDonationEvent null ");
+						return null;
+					}
+					if (arguments.length < 1) {
+						Debug.out("Invalid sendDonationEvent length " + arguments.length + " not 1");
+						return null;
+					}
+					if (!(arguments[0] instanceof String)) {
+						Debug.out("Invalid sendDonationEvent "
+								+ (arguments[0] == null ? "NULL"
+										: arguments.getClass().getSimpleName()) + " not String");
+						return null;
+					}
+	
+					String text = (String) arguments[0];
+					if (text.contains("page-loaded")) {
+						pageLoadedOk = true;
+						COConfigurationManager.setParameter("donations.count",
+								COConfigurationManager.getLongParameter("donations.count", 1) + 1);
+						Utils.centreWindow(shell);
+						if (parentShell != null) {
+							parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
 						}
-					}
-					resetAskTime(time);
-				} else if (text.contains("never-ask-again")) {
-					neverAskAgain();
-				} else if (text.contains("close")) {
-					Utils.execSWTThreadLater(0, new AERunnable() {	
-						public void runSupport() {
-							if (shell != null && !shell.isDisposed()) {
-								shell.dispose();
+						shell.open();
+					} else if (text.contains("reset-ask-time")) {
+						int time = reAskEveryHours;
+						String[] strings = text.split(" ");
+						if (strings.length > 1) {
+							try {
+								time = Integer.parseInt(strings[1]);
+							} catch (Throwable t) {
 							}
 						}
-					});
-				} else if (text.startsWith("open-url")) {
-					String url = text.substring(9);
-					Utils.launch(url);
-				} else if (text.startsWith("set-size")) {
-					String[] strings = text.split(" ");
-					if (strings.length > 2) {
-						try {
-							int w = Integer.parseInt(strings[1]);
-							int h = Integer.parseInt(strings[2]);
-
-							Rectangle computeTrim = shell.computeTrim(0, 0, w, h);
-							shell.setSize(computeTrim.width, computeTrim.height);
-						} catch (Exception e) {
+						resetAskTime(time);
+					} else if (text.contains("never-ask-again")) {
+						neverAskAgain();
+					} else if (text.contains("close")) {
+						Utils.execSWTThreadLater(0, new AERunnable() {	
+							public void runSupport() {
+								if (shell != null && !shell.isDisposed()) {
+									shell.dispose();
+								}
+							}
+						});
+					} else if (text.startsWith("open-url")) {
+						String url = text.substring(9);
+						Utils.launch(url);
+					} else if (text.startsWith("set-size")) {
+						String[] strings = text.split(" ");
+						if (strings.length > 2) {
+							try {
+								int w = Integer.parseInt(strings[1]);
+								int h = Integer.parseInt(strings[2]);
+	
+								Rectangle computeTrim = shell.computeTrim(0, 0, w, h);
+								shell.setSize(computeTrim.width, computeTrim.height);
+							} catch (Exception e) {
+							}
 						}
 					}
+					return null;
 				}
-				return null;
-			}
-		};
+			});
 
 		browser.addStatusTextListener(new StatusTextListener() {
 			String last = null;

@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -949,21 +948,6 @@ public class SWTSkin
 					break;
 			}
 
-		}
-
-		if (Constants.isWindows && (controlToLayout instanceof Browser) && false) {
-			if (newFormData.top != null) {
-				newFormData.top.offset -= 2;
-			}
-			if (newFormData.right != null) {
-				newFormData.right.offset += 2;
-			}
-			if (newFormData.left != null) {
-				newFormData.left.offset -= 2;
-			}
-			if (newFormData.bottom != null) {
-				newFormData.bottom.offset += 2;
-			}
 		}
 
 		if (!skinObject.getDefaultVisibility()) {

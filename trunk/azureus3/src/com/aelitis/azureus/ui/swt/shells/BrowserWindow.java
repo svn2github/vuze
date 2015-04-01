@@ -18,7 +18,14 @@
 package com.aelitis.azureus.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.*;
+import org.eclipse.swt.browser.TitleListener;
+import org.eclipse.swt.browser.TitleEvent;
+import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.StatusTextListener;
+import org.eclipse.swt.browser.StatusTextEvent;
+import org.eclipse.swt.browser.CloseWindowListener;
+import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;

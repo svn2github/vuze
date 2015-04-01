@@ -44,7 +44,7 @@ public class FullUpdateWindow
 
 	private static BrowserWrapper browser;
 
-	private static BrowserFunction browserFunction;
+	private static BrowserWrapper.BrowserFunction browserFunction;
 
 	public static void 
 	handleUpdate(
@@ -155,93 +155,96 @@ public class FullUpdateWindow
 							});
 						}
 					});
-					event.browser = subBrowser.getBrowser();
+					subBrowser.setBrowser( event );
 				}
 			});
 
-			browserFunction = new BrowserFunction(browser.getBrowser(), "sendVuzeUpdateEvent") {
-				private String last = null;
-
-				public Object function(Object[] arguments) {
-
-					if (shell == null || shell.isDisposed()) {
-						return null;
-					}
-					
-					if (arguments == null) {
-						Debug.out("Invalid sendVuzeUpdateEvent null ");
-						return null;
-					}
-					if (arguments.length < 1) {
-						Debug.out("Invalid sendVuzeUpdateEvent length " + arguments.length + " not 1");
-						return null;
-					}
-					if (!(arguments[0] instanceof String)) {
-						Debug.out("Invalid sendVuzeUpdateEvent "
-								+ (arguments[0] == null ? "NULL"
-										: arguments.getClass().getSimpleName()) + " not String");
-						return null;
-					}
-
-					String text = ((String) arguments[0]).toLowerCase();
-					if (last  != null && last.equals(text)) {
-						return null;
-					}
-					last = text;
-					if ( text.contains("page-loaded")) {
-						
-						Utils.centreWindow(shell);
-						if (parentShell != null) {
-							parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
+			browserFunction = browser.addBrowserFunction(
+				"sendVuzeUpdateEvent",
+				new BrowserWrapper.BrowserFunction()
+				{
+					private String last = null;
+	
+					public Object function(Object[] arguments) {
+	
+						if (shell == null || shell.isDisposed()) {
+							return null;
 						}
-						shell.open();
 						
-					} else if (text.startsWith("set-size")){
-						
-						String[] strings = text.split(" ");
-						
-						if (strings.length > 2){
-							try {
-								
-								int w = Integer.parseInt(strings[1]);
-								int h = Integer.parseInt(strings[2]);
-
-								Rectangle computeTrim = shell.computeTrim(0, 0, w, h);
-								shell.setSize(computeTrim.width, computeTrim.height);
-								
-							} catch (Exception e) {
-							}
+						if (arguments == null) {
+							Debug.out("Invalid sendVuzeUpdateEvent null ");
+							return null;
 						}
-					}else if ( text.contains( "decline" ) || text.contains( "close" )){
-						
-						Utils.execSWTThreadLater(0, new AERunnable() {	
-							public void runSupport() {
-								shell.dispose();
+						if (arguments.length < 1) {
+							Debug.out("Invalid sendVuzeUpdateEvent length " + arguments.length + " not 1");
+							return null;
+						}
+						if (!(arguments[0] instanceof String)) {
+							Debug.out("Invalid sendVuzeUpdateEvent "
+									+ (arguments[0] == null ? "NULL"
+											: arguments.getClass().getSimpleName()) + " not String");
+							return null;
+						}
+	
+						String text = ((String) arguments[0]).toLowerCase();
+						if (last  != null && last.equals(text)) {
+							return null;
+						}
+						last = text;
+						if ( text.contains("page-loaded")) {
+							
+							Utils.centreWindow(shell);
+							if (parentShell != null) {
+								parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
 							}
-						});
-						
-					}else if ( text.contains("accept")){
-						
-						Utils.execSWTThreadLater(0, new AERunnable() {	
-							public void runSupport(){
-								
-								listener_informed[0] = true;
-								
-								try{
-									listener.actionComplete( true );
+							shell.open();
+							
+						} else if (text.startsWith("set-size")){
+							
+							String[] strings = text.split(" ");
+							
+							if (strings.length > 2){
+								try {
 									
-								}catch( Throwable e ){
+									int w = Integer.parseInt(strings[1]);
+									int h = Integer.parseInt(strings[2]);
+	
+									Rectangle computeTrim = shell.computeTrim(0, 0, w, h);
+									shell.setSize(computeTrim.width, computeTrim.height);
 									
-									Debug.out( e );
+								} catch (Exception e) {
 								}
-								
-								shell.dispose();
 							}
-						});
+						}else if ( text.contains( "decline" ) || text.contains( "close" )){
+							
+							Utils.execSWTThreadLater(0, new AERunnable() {	
+								public void runSupport() {
+									shell.dispose();
+								}
+							});
+							
+						}else if ( text.contains("accept")){
+							
+							Utils.execSWTThreadLater(0, new AERunnable() {	
+								public void runSupport(){
+									
+									listener_informed[0] = true;
+									
+									try{
+										listener.actionComplete( true );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+									
+									shell.dispose();
+								}
+							});
+						}
+						return null;
 					}
-					return null;
-				}
-			};
+				});
 
 			browser.addStatusTextListener(new StatusTextListener() {
 				public void changed(StatusTextEvent event) {
