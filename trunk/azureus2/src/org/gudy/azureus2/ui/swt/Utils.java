@@ -3448,4 +3448,15 @@ public class Utils
 		}
 		return parent;
 	}
+
+	public static void relayoutUp(Composite c) {
+		while (c != null && !c.isDisposed()) {
+			Composite newParent = c.getParent();
+			if (newParent == null) {
+				break;
+			}
+			newParent.layout(new Control[] { c });
+			c = newParent;
+		}
+	}
 }

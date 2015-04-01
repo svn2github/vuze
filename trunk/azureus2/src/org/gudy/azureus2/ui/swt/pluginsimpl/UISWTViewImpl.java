@@ -304,11 +304,7 @@ public class UISWTViewImpl
 			if (c != null && !c.isDisposed()) {
 				Composite parent = c.getParent();
 				Utils.disposeComposite(c);
-				while (parent != null) {
-					Composite newParent = parent.getParent();
-					newParent.layout(new Control[] { parent });
-					parent = newParent;
-				}
+				Utils.relayoutUp(parent);
 			}
 			haveSentInitialize = false;
 			hasFocus = false;
