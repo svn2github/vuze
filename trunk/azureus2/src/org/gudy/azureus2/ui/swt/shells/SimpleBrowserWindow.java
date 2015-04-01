@@ -23,7 +23,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
@@ -34,8 +34,8 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
  */
 public class SimpleBrowserWindow
 {
-	private Shell	 	shell;
-	private Browser 	browser;
+	private Shell	 		shell;
+	private BrowserWrapper 	browser;
 	
 	public SimpleBrowserWindow(Shell parent, String url, double wPct, double hPct,
 			boolean allowResize, boolean isModal) {

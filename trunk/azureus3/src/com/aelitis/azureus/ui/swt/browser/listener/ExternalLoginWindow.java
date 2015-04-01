@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
@@ -45,7 +46,6 @@ import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.util.http.HTTPAuthHelper;
 import com.aelitis.azureus.core.util.http.HTTPAuthHelperListener;
-import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 
 public class ExternalLoginWindow {
@@ -108,7 +108,7 @@ public class ExternalLoginWindow {
 			explain.setText(MessageText.getString("externalLogin.explanation", new String[]{ name }));
 		}
 		
-		browser = new BrowserWrapper( Utils.createSafeBrowser(shell, SWT.BORDER));
+		browser = Utils.createSafeBrowser(shell, SWT.BORDER);
 		if (browser == null) {
 			shell.dispose();
 			return;

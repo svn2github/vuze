@@ -27,9 +27,9 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -439,7 +439,7 @@ public class MessageBoxShell
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
 			try {
-				final Browser browser = Utils.createSafeBrowser(shell, SWT.NONE);
+				final BrowserWrapper browser = Utils.createSafeBrowser(shell, SWT.NONE);
 				if (url != null && url.length() > 0) {
 					browser.setUrl(url);
 				} else {

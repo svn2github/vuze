@@ -2745,9 +2745,12 @@ public class Utils
 		tp.run(runnable);
 	}
 	
-	public static Browser createSafeBrowser(Composite parent, int style) {
+	public static BrowserWrapper 
+	createSafeBrowser(
+		Composite parent, int style) 
+	{
 		try {
-  		Browser browser = new Browser(parent, Utils.getInitialBrowserStyle(style));
+		BrowserWrapper browser = new BrowserWrapper(parent, Utils.getInitialBrowserStyle(style));
   		browser.addDisposeListener(new DisposeListener() {
   			public void widgetDisposed(DisposeEvent e)
   			{
@@ -2796,7 +2799,7 @@ public class Utils
   				}
   			}
   		});
-  		return browser;
+  		return browser ;
 		} catch (Throwable e) {
 		}
 		return null;

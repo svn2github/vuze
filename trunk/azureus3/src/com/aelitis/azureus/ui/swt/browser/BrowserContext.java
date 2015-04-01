@@ -28,11 +28,11 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -272,7 +272,7 @@ public class BrowserContext
 					final Shell shell = ShellFactory.createMainShell(SWT.SHELL_TRIM);
 					shell.setLayout(new FillLayout());
 					shell.setSize(920, 500);
-					Browser subBrowser = new Browser(shell,
+					BrowserWrapper subBrowser = new BrowserWrapper(shell,
 							Utils.getInitialBrowserStyle(SWT.NONE));
 					subBrowser.addCloseWindowListener(new CloseWindowListener() {
 						public void close(WindowEvent event) {
@@ -280,7 +280,7 @@ public class BrowserContext
 						}
 					});
 					shell.open();
-					event.browser = subBrowser;
+					event.browser = subBrowser.getBrowser();
 				} else {
 
 					final BrowserWrapper subBrowser = new BrowserWrapper(browser.getBrowser(),

@@ -24,7 +24,6 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -56,10 +55,9 @@ import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
@@ -132,7 +130,7 @@ public class DevicesFTUX
 		Utils.setShellIcon(shell);
 
 		try {
-			browser = new BrowserWrapper( Utils.createSafeBrowser(shell, SWT.NONE));
+			browser = Utils.createSafeBrowser(shell, SWT.NONE);
 			if (browser != null) {
   			BrowserContext context = new BrowserContext("DevicesFTUX", browser, null, true);
   

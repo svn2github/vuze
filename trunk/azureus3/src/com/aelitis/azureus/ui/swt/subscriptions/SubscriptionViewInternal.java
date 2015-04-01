@@ -56,7 +56,7 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;

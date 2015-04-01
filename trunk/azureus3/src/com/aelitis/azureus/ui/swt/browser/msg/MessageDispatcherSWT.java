@@ -20,8 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.swt.browser.*;
-
+import org.eclipse.swt.browser.BrowserFunction;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -30,7 +29,9 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
-import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
+
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
+
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.UrlFilter;
 

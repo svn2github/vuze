@@ -36,10 +36,10 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
@@ -148,7 +148,7 @@ public class WelcomeWindow {
   public void _setWhatsNew() {
 
 		if (sWhatsNew.indexOf("<html") >= 0 || sWhatsNew.indexOf("<HTML") >= 0) {
-			Browser browser = Utils.createSafeBrowser(cWhatsNew, SWT.NONE);
+			BrowserWrapper browser = Utils.createSafeBrowser(cWhatsNew, SWT.NONE);
 			if (browser != null) {	
 				browser.setText(sWhatsNew);
 			} else {

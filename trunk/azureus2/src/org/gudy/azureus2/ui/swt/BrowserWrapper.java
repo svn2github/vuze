@@ -18,7 +18,7 @@
  */
 
 
-package com.aelitis.azureus.ui.swt.browser;
+package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.CloseWindowListener;
@@ -44,13 +44,6 @@ BrowserWrapper
 		int				style )
 	{
 		browser = new Browser( composite, style );
-	}
-	
-	public 
-	BrowserWrapper(
-		Browser		_browser )
-	{
-		browser = _browser;
 	}
 	
 	public Browser

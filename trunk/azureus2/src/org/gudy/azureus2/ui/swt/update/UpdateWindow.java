@@ -31,10 +31,10 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkArea;
@@ -88,7 +88,7 @@ UpdateWindow
   private long totalDownloadSize;
   private List downloaders;
   private Iterator iterDownloaders;
-	private Browser browser;
+  private BrowserWrapper browser;
   
   private static final int COL_NAME = 0;
   private static final int COL_VERSION = 1;

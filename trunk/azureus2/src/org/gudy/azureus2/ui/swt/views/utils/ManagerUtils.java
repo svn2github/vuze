@@ -267,7 +267,7 @@ public class ManagerUtils {
 		browse( dm, null );
 	}
 	
-	private static Map<DownloadManager,WebPlugin>	browse_plugins = new HashMap<DownloadManager, WebPlugin>();
+	private static Map<DownloadManager,WebPlugin>	browse_plugins = new IdentityHashMap<DownloadManager, WebPlugin>();
 	
 	public static void 
 	browse(

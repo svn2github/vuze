@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
@@ -41,7 +42,7 @@ public class FullUpdateWindow
 {
 	private static Shell current_shell = null;
 
-	private static Browser browser;
+	private static BrowserWrapper browser;
 
 	private static BrowserFunction browserFunction;
 
@@ -135,7 +136,7 @@ public class FullUpdateWindow
 	
 			browser.addOpenWindowListener(new OpenWindowListener() {
 				public void open(WindowEvent event) {
-					final Browser subBrowser = Utils.createSafeBrowser(shell,
+					final BrowserWrapper subBrowser = Utils.createSafeBrowser(shell,
 							Utils.getInitialBrowserStyle(SWT.NONE));
 					subBrowser.addLocationListener(new LocationListener() {
 						public void changed(LocationEvent arg0) {
@@ -154,11 +155,11 @@ public class FullUpdateWindow
 							});
 						}
 					});
-					event.browser = subBrowser;
+					event.browser = subBrowser.getBrowser();
 				}
 			});
 
-			browserFunction = new BrowserFunction(browser, "sendVuzeUpdateEvent") {
+			browserFunction = new BrowserFunction(browser.getBrowser(), "sendVuzeUpdateEvent") {
 				private String last = null;
 
 				public Object function(Object[] arguments) {

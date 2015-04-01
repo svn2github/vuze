@@ -27,7 +27,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
@@ -36,6 +35,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -61,7 +61,7 @@ public class DonationWindow
 
 	private static Shell shell = null;
 
-	private static Browser browser;
+	private static BrowserWrapper browser;
 
 	private static BrowserFunction browserFunction;
 
@@ -209,7 +209,7 @@ public class DonationWindow
 			}
 		});
 		
-		browserFunction = new BrowserFunction(browser, "sendDonationEvent") {
+		browserFunction = new BrowserFunction(browser.getBrowser(), "sendDonationEvent") {
 			public Object function(Object[] arguments) {
 
 				if (shell == null || shell.isDisposed()) {

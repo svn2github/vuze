@@ -19,12 +19,11 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.util.Map;
 
-import org.eclipse.swt.browser.Browser;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -34,7 +33,6 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.net.magneturi.MagnetURIHandler;

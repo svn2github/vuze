@@ -18,10 +18,7 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
@@ -41,7 +38,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
+import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.util.UrlFilter;
