@@ -290,6 +290,8 @@ public class FullUpdateWindow
 				
 				Utils.centreWindow(shell);
 				
+				browser.setUrl( "http://www.vuze.com/download" );
+				
 				browser.setText( "Update available, please go to www.vuze.com to update." );
 				
 				shell.open();

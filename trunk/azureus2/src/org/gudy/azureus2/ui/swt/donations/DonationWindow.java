@@ -348,6 +348,10 @@ public class DonationWindow
 		
 		if ( browser.isFake()){
 			
+			browser.setUrl( "http://www.vuze.com/donation/donate.php" );
+				
+			browser.setText( "Please follow the link to donate via an external browser" );
+			
 			shell.setSize( 400, 500 );
 			
 			Utils.centreWindow(shell);
