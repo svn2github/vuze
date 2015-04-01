@@ -649,7 +649,9 @@ public class ClientStatsView
 							BloomFilterFactory.createAddOnly(BLOOMFILTER_PEERID_SIZE), 2);
 					overall = new ClientStatsOverall();
 					mapData.clear();
-					tv.removeAllTableRows();
+					if (tv != null) {
+						tv.removeAllTableRows();
+					}
 					totalTime = 0;
 					startedListeningOn = 0;
 				}
@@ -750,13 +752,15 @@ public class ClientStatsView
 				}
 			}
 
-			if (needNew) {
-				tv.addDataSource(stat);
-			} else {
-				TableRowCore row = tv.getRow(stat);
-				if (row != null) {
-					row.invalidate();
-				}
+			if (tv != null) {
+  			if (needNew) {
+  				tv.addDataSource(stat);
+  			} else {
+  				TableRowCore row = tv.getRow(stat);
+  				if (row != null) {
+  					row.invalidate();
+  				}
+  			}
 			}
 		}
 	}
@@ -806,9 +810,11 @@ public class ClientStatsView
 							+ peer.getStats().getTotalBytesDiscarded());
 				}
 
-				TableRowCore row = tv.getRow(stat);
-				if (row != null) {
-					row.invalidate();
+				if (tv != null) {
+  				TableRowCore row = tv.getRow(stat);
+  				if (row != null) {
+  					row.invalidate();
+  				}
 				}
 			}
 		}
