@@ -275,22 +275,24 @@ public class TaggingView
 				//ImageLoader.getInstance().getImage(? "check_yes" : "check_no");
 
 				if (c != null) {
+					boolean checked = button.getSelection();
   				Point size = c.getSize();
   				Point sizeButton = button.getSize();
   				e.gc.setAntialias(SWT.ON);
   				e.gc.setForeground(ColorCache.getColor(e.display, tag.getColor()));
   				int lineWidth = button.getSelection() ? 2 : 1;
+  				e.gc.setLineWidth(lineWidth);
+
   				int curve = 20;
   				int width = sizeButton.x + lineWidth + 1;
   				width += Constants.isOSX ? 5 : curve / 2;
-  				if (button.getSelection()) {
-    				e.gc.setAlpha(20);
+  				if (checked) {
+    				e.gc.setAlpha(0x20);
     				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
-    				e.gc.fillRoundRectangle(-curve, 0, width + curve, size.y - 1, curve, curve);
-    				e.gc.setAlpha(255);
+    				e.gc.fillRoundRectangle(-curve, lineWidth - 1, width + curve, size.y - lineWidth, curve, curve);
+    				e.gc.setAlpha(0xff);
   				}
-  				e.gc.setLineWidth(lineWidth);
-  				if (!button.getSelection()) {
+  				if (!checked) {
     				e.gc.setAlpha(0x80);
   				}
   				e.gc.drawRoundRectangle(-curve, lineWidth - 1, width + curve, size.y - lineWidth, curve, curve);
