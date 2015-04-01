@@ -30,7 +30,6 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.DisposeEvent;
@@ -72,7 +71,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.plugins.I2PHelpers;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -2750,7 +2748,7 @@ public class Utils
 		Composite parent, int style) 
 	{
 		try {
-		BrowserWrapper browser = BrowserWrapper.createBrowser(parent, Utils.getInitialBrowserStyle(style));
+		final BrowserWrapper browser = BrowserWrapper.createBrowser(parent, Utils.getInitialBrowserStyle(style));
   		browser.addDisposeListener(new DisposeListener() {
   			public void widgetDisposed(DisposeEvent e)
   			{
@@ -2765,9 +2763,9 @@ public class Utils
   					 * the browser. So added timeout
   					 */
   				
-  				((Browser)e.widget).setUrl("about:blank");
+  				browser.setUrl("about:blank");
   				
-  				((Browser)e.widget).setVisible(false);
+  				browser.setVisible(false);
   				
   				final boolean[]	done = {false};
   				

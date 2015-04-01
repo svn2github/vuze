@@ -43,7 +43,7 @@ BrowserWrapper
 		Composite		composite,
 		int				style )
 	{
-		return( new BrowserWrapperSWT( composite, style ));
+		return( new BrowserWrapperFake( composite, style ));
 	}
 	
 	protected
