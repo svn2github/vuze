@@ -108,6 +108,7 @@ public class ClientStatsView
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
 				initColumns(core);
+				register(core);
 			}
 		});
 	}
@@ -452,18 +453,9 @@ public class ClientStatsView
 	}
 
 	public void tableViewDestroyed() {
-		if (core == null) {
-			// not initialized, skip save
-			return;
-		}
-		core.getGlobalManager().removeListener(this);
-		List downloadManagers = core.getGlobalManager().getDownloadManagers();
-		for (Object object : downloadManagers) {
-			((DownloadManager) object).removePeerListener(this);
-		}
-		save(CONFIG_FILE);
 	}
 
+	
 	private void initAndLoad() {
 		synchronized (mapData) {
 			Map map = FileUtil.readResilientConfigFile(CONFIG_FILE);
@@ -541,12 +533,6 @@ public class ClientStatsView
 				tv.addDataSources(mapData.values().toArray(new ClientStatsDataSource[0]));
 			}
 		}
-		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-
-			public void azureusCoreRunning(AzureusCore core) {
-				register(core);
-			}
-		});
 	}
 
 	protected void register(AzureusCore core) {
@@ -557,9 +543,20 @@ public class ClientStatsView
 		}
 	}
 
+	// @see org.gudy.azureus2.core3.global.GlobalManagerListener#destroyInitiated()
 	public void destroyInitiated() {
+		if (core == null) {
+			return;
+		}
+		core.getGlobalManager().removeListener(this);
+		List downloadManagers = core.getGlobalManager().getDownloadManagers();
+		for (Object object : downloadManagers) {
+			((DownloadManager) object).removePeerListener(this);
+		}
+		save(CONFIG_FILE);
 	}
 
+	// @see org.gudy.azureus2.core3.global.GlobalManagerListener#destroyed()
 	public void destroyed() {
 	}
 
