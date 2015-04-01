@@ -319,29 +319,45 @@ public class DonationWindow
 				+ "&uphours=" + upHours + "&azid=" + azid + "&sourceref="
 				+ UrlUtils.encode(sourceRef);
 
-		SimpleTimer.addEvent("donation.pageload", SystemTime.getOffsetTime(6000),
-				new TimerEventPerformer() {
-					public void perform(TimerEvent event) {
-						if (!pageLoadedOk) {
-							Utils.execSWTThread(new AERunnable() {
-								public void runSupport() {
-									Debug.out("Page Didn't Load:" + url);
-									shell.dispose();
-									if (showNoLoad) {
-										new MessageBoxShell(SWT.OK,
-  											MessageText.getString("DonationWindow.noload.title"),
-  											MessageText.getString("DonationWindow.noload.text",
-														new String[] {
-															url
-														})).open(null);
+		if ( !browser.isFake()){
+			
+			SimpleTimer.addEvent("donation.pageload", SystemTime.getOffsetTime(6000),
+					new TimerEventPerformer() {
+						public void perform(TimerEvent event) {
+							if (!pageLoadedOk) {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										Debug.out("Page Didn't Load:" + url);
+										shell.dispose();
+										if (showNoLoad) {
+											new MessageBoxShell(SWT.OK,
+	  											MessageText.getString("DonationWindow.noload.title"),
+	  											MessageText.getString("DonationWindow.noload.text",
+															new String[] {
+																url
+															})).open(null);
+										}
 									}
-								}
-							});
+								});
+							}
 						}
-					}
-				});
-
+					});
+		}
+		
 		browser.setUrl(url);
+		
+		if ( browser.isFake()){
+			
+			shell.setSize( 400, 500 );
+			
+			Utils.centreWindow(shell);
+			
+			if (parentShell != null) {
+				parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
+			}
+			
+			shell.open();
+		}
 	}
 
 	/**

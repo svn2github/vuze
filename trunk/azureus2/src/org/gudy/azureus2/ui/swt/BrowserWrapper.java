@@ -51,6 +51,9 @@ BrowserWrapper
 	{
 	}
 	
+	public abstract boolean
+	isFake();
+	
 	public abstract Composite
 	getControl();
 	

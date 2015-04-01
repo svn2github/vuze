@@ -284,6 +284,17 @@ public class FullUpdateWindow
 			
 			browser.setUrl(final_url);
 			
+			if ( browser.isFake()){
+				
+				shell.setSize( 400, 500 );
+				
+				Utils.centreWindow(shell);
+				
+				browser.setText( "Update available, please go to www.vuze.com to update." );
+				
+				shell.open();
+			}
+			
 			ok = true;
 			
 		}finally{

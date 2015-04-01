@@ -35,7 +35,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 BrowserWrapperSWT
@@ -51,6 +50,11 @@ BrowserWrapperSWT
 		browser = new Browser( composite, style );
 	}
 	
+	public boolean
+	isFake()
+	{
+		return( false );
+	}
 	public Composite
 	getControl()
 	{

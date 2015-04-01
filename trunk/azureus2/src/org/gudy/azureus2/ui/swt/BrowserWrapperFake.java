@@ -67,7 +67,13 @@ BrowserWrapperFake
 		
 		browser = new Composite( parent, SWT.NULL );
 		
-		browser.setBackground( Colors.red );
+		browser.setBackground( Colors.white );
+	}
+	
+	public boolean
+	isFake()
+	{
+		return( true );
 	}
 	
 	public Composite
@@ -166,7 +172,7 @@ BrowserWrapperFake
 			try{
 				TitleEvent event = new TitleEvent( browser );
 				
-				event.title = "Fake Title";
+				event.title = "Browser Unavailable";
 				
 				l.changed( event );
 				
