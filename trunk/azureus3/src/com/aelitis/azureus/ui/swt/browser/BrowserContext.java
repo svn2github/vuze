@@ -280,7 +280,7 @@ public class BrowserContext
 					final Shell shell = ShellFactory.createMainShell(SWT.SHELL_TRIM);
 					shell.setLayout(new FillLayout());
 					shell.setSize(920, 500);
-					BrowserWrapper subBrowser = new BrowserWrapper(shell,
+					BrowserWrapper subBrowser = BrowserWrapper.createBrowser(shell,
 							Utils.getInitialBrowserStyle(SWT.NONE));
 					subBrowser.addCloseWindowListener(new CloseWindowListener() {
 						public void close(WindowEvent event) {
@@ -292,7 +292,7 @@ public class BrowserContext
 					
 				} else {
 
-					final BrowserWrapper subBrowser = new BrowserWrapper(browser.getControl(),
+					final BrowserWrapper subBrowser = BrowserWrapper.createBrowser(browser.getControl(),
 							Utils.getInitialBrowserStyle(SWT.NONE));
 					subBrowser.addLocationListener(new LocationListener() {
 						public void changed(LocationEvent arg0) {

@@ -20,7 +20,6 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.CloseWindowListener;
 import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.OpenWindowListener;
@@ -33,281 +32,164 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.util.Debug;
 
-public class 
+
+public abstract class 
 BrowserWrapper 
 {
-	private Browser		browser;
-	
-	public
-	BrowserWrapper(
+	public static BrowserWrapper
+	createBrowser(
 		Composite		composite,
 		int				style )
 	{
-		browser = new Browser( composite, style );
+		return( new BrowserWrapperSWT( composite, style ));
 	}
 	
-	public Composite
-	getControl()
+	protected
+	BrowserWrapper()
 	{
-		return( browser );
 	}
 	
-	public void
+	public abstract Composite
+	getControl();
+	
+	public abstract void
 	setBrowser(
-		WindowEvent		event )
-	{
-		event.browser = browser;
-	}
+		WindowEvent		event );
 	
-	public void
+	public abstract  void
 	setVisible(
-		boolean		visible )
-	{
-		browser.setVisible( visible );
-	}
+		boolean		visible );
 	
-	public boolean
-	isVisible()
-	{
-		return( browser.isVisible());
-	}
+	public abstract boolean
+	isVisible();
 	
-	public boolean
-	isDisposed()
-	{
-		return( browser.isDisposed());
-	}
+	public abstract  boolean
+	isDisposed();
 	
-	public void
-	dispose()
-	{
-		browser.dispose();
-	}
+	public abstract void
+	dispose();
 	
-	public boolean
+	public abstract  boolean
 	execute(
-		String		str )
-	{
-		//System.out.println( "execute: " + str );
-		
-		return( browser.execute( str ));
-	}
+		String		str );
 	
-	public boolean
-	isBackEnabled()
-	{
-		return( browser.isBackEnabled());
-	}
+	public abstract boolean
+	isBackEnabled();
 	
-	public String
-	getUrl()
-	{
-		return( browser.getUrl());
-	}
+	public abstract String
+	getUrl();
 	
-	public void
+	public abstract void
 	setUrl(
-		String		url )
-	{
-		browser.setUrl( url );
-	}
+		String		url );
 	
-	public void
+	public abstract void
 	setText(
-		String		text )
-	{
-		browser.setText( text );
-	}
+		String		text );
 	
-	public void
+	public abstract void
 	setData(
 		String		key,
-		Object		value )
-	{
-		browser.setData(key, value);
-	}
-
-	public Object
+		Object		value );
+	
+	public abstract Object
 	getData(
-		String	key )
-	{
-		return( browser.getData( key ));
-	}
+		String	key );
 	
-	public void
-	back()
-	{
-		browser.back();
-	}
+	public abstract void
+	back();
 	
-	public void
-	refresh()
-	{
-		browser.refresh();
-	}
+	public abstract void
+	refresh();
 	
-	public void
-	update()
-	{
-		browser.update();
-	}
+	public abstract void
+	update();
 	
-	public Shell
-	getShell()
-	{
-		return( browser.getShell());
-	}
+	public abstract Shell
+	getShell();
 	
-	public Display
-	getDisplay()
-	{
-		return( browser.getDisplay());
-	}
+	public abstract Display
+	getDisplay();
 	
-	public Composite
-	getParent()
-	{
-		return( browser.getParent());
-	}
+	public abstract Composite
+	getParent();
 	
-	public Object
-	getLayoutData()
-	{
-		return( browser.getLayoutData());
-	}
+	public abstract Object
+	getLayoutData();
 	
-	public void
+	public abstract void
 	setLayoutData(
-		Object	data )
-	{
-		browser.setLayoutData( data );
-	}
+		Object	data );
 	
-	public void
-	setFocus()
-	{
-		browser.setFocus();
-	}
+	public abstract void
+	setFocus();
 	
-	public void
+	public abstract void
 	addListener(
 		int			type,
-		Listener	l )
-	{
-		browser.addListener( type, l );
-	}
+		Listener	l );
 	
-	public void
+	public abstract void
 	addLocationListener(
-		LocationListener		l )
-	{
-		browser.addLocationListener( l );
-	}
+		LocationListener		l );
 	
-	public void
+	public abstract void
 	removeLocationListener(
-		LocationListener		l )
-	{
-		browser.removeLocationListener( l );
-	}
+		LocationListener		l );
 	
-	public void
+	public abstract void
 	addTitleListener(
-		TitleListener		l )
-	{
-		browser.addTitleListener( l );
-	}
+		TitleListener		l );
 	
-	public void
+	public abstract void
 	addProgressListener(
-		ProgressListener		l )
-	{
-		browser.addProgressListener( l );
-	}
+		ProgressListener		l );
 	
-	public void
+	public abstract void
 	removeProgressListener(
-		ProgressListener		l )
-	{
-		browser.removeProgressListener( l );
-	}
+		ProgressListener		l );
 	
-	public void
+	public abstract void
 	addOpenWindowListener(
-		OpenWindowListener		l )
-	{
-		browser.addOpenWindowListener( l );
-	}
+		OpenWindowListener		l );
 	
-	public void
+	public abstract void
 	addCloseWindowListener(
-		CloseWindowListener		l )
-	{
-		browser.addCloseWindowListener( l );
-	}
+		CloseWindowListener		l );
 	
-	public void
+	public abstract void
 	addDisposeListener(
-		DisposeListener		l )
-	{
-		browser.addDisposeListener( l );
-	}
+		DisposeListener		l );
 	
-	public void
+	public abstract void
 	removeDisposeListener(
-		DisposeListener		l )
-	{
-		browser.removeDisposeListener( l );
-	}
+		DisposeListener		l );
 	
-	public void
+	public abstract void
 	addStatusTextListener(
-		StatusTextListener		l )
-	{
-		browser.addStatusTextListener( l );
-	}
+		StatusTextListener		l );
 	
-	public void
+	public abstract void
 	removeStatusTextListener(
-		StatusTextListener		l )
-	{
-		browser.removeStatusTextListener( l );
-	}
+		StatusTextListener		l );
 	
-	public BrowserFunction
+	public abstract BrowserFunction
 	addBrowserFunction(
-		String						name,
-		final BrowserFunction		bf )
-	{
-		org.eclipse.swt.browser.BrowserFunction swt_bf =
-			new org.eclipse.swt.browser.BrowserFunction(
-				browser,
-				name )
-			{
-				@Override
-				public Object 
-				function(
-					Object[] arguments )
-				{
-					return( bf.function(arguments));
-				}
-			};
-		
-		bf.setSWTBF( swt_bf );
-		
-		return( bf );
-	}
+		String				name,
+		BrowserFunction		bf );
 	
 	public static abstract class
 	BrowserFunction
 	{
-		private org.eclipse.swt.browser.BrowserFunction		swt_bf;
+		private BrowserFunction		delegate;
 		
-		private void
-		setSWTBF(org.eclipse.swt.browser.BrowserFunction	bf )
+		protected void
+		bind(
+			BrowserFunction		_delegate )
 		{
-			swt_bf = bf;
+			delegate = _delegate;
 		}
 		
 		public abstract Object 
@@ -317,13 +199,25 @@ BrowserWrapper
 		public boolean
 		isDisposed()
 		{
-			return( swt_bf.isDisposed());
+			if ( delegate != null ){
+				
+				return( delegate.isDisposed());
+			}
+			
+			Debug.out( "wrong" );
+			
+			return( false );
 		}
 		
 		public void
 		dispose()
 		{
-			swt_bf.dispose();
+			if ( delegate != null ){
+				
+				delegate.dispose();
+			}
+			
+			Debug.out( "wrong" );
 		}
 	}
 }

@@ -264,7 +264,7 @@ public class SWTSkinObjectBrowser
 		}
 
 		try {
-			browser = new BrowserWrapper(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
+			browser = BrowserWrapper.createBrowser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
 
 			browser.setLayoutData(Utils.getFilledFormData());
 			browser.getParent().layout(true);

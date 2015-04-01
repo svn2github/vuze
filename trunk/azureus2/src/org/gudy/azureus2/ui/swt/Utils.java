@@ -2750,7 +2750,7 @@ public class Utils
 		Composite parent, int style) 
 	{
 		try {
-		BrowserWrapper browser = new BrowserWrapper(parent, Utils.getInitialBrowserStyle(style));
+		BrowserWrapper browser = BrowserWrapper.createBrowser(parent, Utils.getInitialBrowserStyle(style));
   		browser.addDisposeListener(new DisposeListener() {
   			public void widgetDisposed(DisposeEvent e)
   			{

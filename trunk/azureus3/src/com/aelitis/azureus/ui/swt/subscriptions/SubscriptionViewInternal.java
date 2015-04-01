@@ -358,7 +358,7 @@ SubscriptionViewInternal
 			return;
 		}
 		try{
-			final BrowserWrapper bw = mainBrowser = new BrowserWrapper(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+			final BrowserWrapper bw = mainBrowser = BrowserWrapper.createBrowser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
 			mainBrowser.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					bw.setUrl("about:blank");
@@ -423,7 +423,7 @@ SubscriptionViewInternal
 			data.bottom = new FormAttachment(100,0);
 			mainBrowser.setLayoutData(data);
 			
-			final BrowserWrapper db = detailsBrowser = new BrowserWrapper(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+			final BrowserWrapper db = detailsBrowser = BrowserWrapper.createBrowser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
 			detailsBrowser.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					db.setUrl("about:blank");
