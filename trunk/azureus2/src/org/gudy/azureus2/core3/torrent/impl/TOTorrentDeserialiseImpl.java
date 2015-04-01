@@ -494,6 +494,30 @@ TOTorrentDeserialiseImpl
 				setAnnounceURL( TorrentUtils.getDecentralisedEmptyURL());
 			}
 
+				// last ditch attempt to patch things up
+			
+			if ( getAnnounceURL() == null ){
+				
+				boolean done = false;
+		
+				if ( got_announce_list ){
+					
+					TOTorrentAnnounceURLSet[] sets = getAnnounceURLGroup().getAnnounceURLSets();
+					
+					if ( sets.length > 0 ){
+						
+						setAnnounceURL( sets[0].getAnnounceURLs()[0]);
+						
+						done = true;
+					}
+				}
+				
+				if ( !done ){
+					
+					setAnnounceURL( TorrentUtils.getDecentralisedEmptyURL());
+				}
+			}
+			
 			Map	info = (Map)meta_data.get( TK_INFO );
 
 			if ( info == null ){
