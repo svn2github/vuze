@@ -559,6 +559,9 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			label = new Label(gInternalBrowser, SWT.NULL);
 			Messages.setLanguageText(label, "config.internal.browser.info1");
 
+			
+			final BooleanParameter intbrow_disable = new BooleanParameter(gInternalBrowser, "browser.internal.disable", "config.browser.internal.disable");
+		
 			label = new Label(gInternalBrowser, SWT.NULL);
 			Messages.setLanguageText(label, "config.internal.browser.info3");
 			
@@ -675,6 +678,20 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			Messages.setLanguageText(new Label(pArea,SWT.NONE), MSG_PREFIX+"xulRunnerPath");
 			final Parameter xulDir = new DirectoryParameter(pArea, "swt.xulRunner.path","");
 			fMoz.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(xulDir.getControls(), false));
+			
+			intbrow_disable.setAdditionalActionPerformer(
+					new ChangeSelectionActionPerformer(
+						xulDir.getControls(), true));
+			
+			intbrow_disable.setAdditionalActionPerformer(
+					new ChangeSelectionActionPerformer(
+						new Control[]{ fMoz.getControl() }, true));
+			
+			for ( Button b: buttons ){
+				intbrow_disable.setAdditionalActionPerformer(
+						new ChangeSelectionActionPerformer(
+							new Control[]{ b }, true));
+			}
 		}
 		
 			// refresh

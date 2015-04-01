@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 
 
@@ -43,7 +44,16 @@ BrowserWrapper
 		Composite		composite,
 		int				style )
 	{
-		return( new BrowserWrapperFake( composite, style ));
+		boolean use_fake = COConfigurationManager.getBooleanParameter( "browser.internal.disable" );
+		
+		if ( use_fake ){
+			
+			return( new BrowserWrapperFake( composite, style ));
+			
+		}else{
+		
+			return( new BrowserWrapperSWT( composite, style ));
+		}
 	}
 	
 	protected

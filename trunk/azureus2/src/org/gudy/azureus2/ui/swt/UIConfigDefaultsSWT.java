@@ -144,6 +144,7 @@ public class UIConfigDefaultsSWT
 		
 		def.addParameter( "browser.external.id", "system" );
 		def.addParameter( "browser.external.search", false );
+		def.addParameter( "browser.internal.disable", false );
 		def.addParameter( "browser.internal.proxy.id", "none" );
 		
 		def.addParameter( "Bar Transparency", 0 );
