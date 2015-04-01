@@ -113,12 +113,16 @@ public class FileInfoView
 	}
 
 	private void dataSourceChanged(Object newDataSource) {
-		if (newDataSource == null)
-			file = null;
-		else if (newDataSource instanceof Object[])
-			file = (DiskManagerFileInfo) ((Object[]) newDataSource)[0];
-		else if (newDataSource instanceof DiskManagerFileInfo)
+		if (newDataSource instanceof Object[]
+				&& ((Object[]) newDataSource).length > 0) {
+			newDataSource = ((Object[]) newDataSource)[0];
+		}
+		
+		if (newDataSource instanceof DiskManagerFileInfo) {
 			file = (DiskManagerFileInfo) newDataSource;
+		} else {
+			file = null;
+		}
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -383,7 +387,7 @@ public class FileInfoView
 	}
 
 	private void fillFileInfoSection() {
-		if (topLabel == null) {
+		if (topLabel == null || topLabel.isDisposed()) {
 			return;
 		}
 		topLabel.setText( "" );

@@ -37,10 +37,10 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.piece.MyPieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
@@ -77,8 +77,7 @@ public class PiecesView
 	DownloadManagerPieceListener,
 	TableDataSourceChangedListener,
 	TableLifeCycleListener,
-	TableViewSWTMenuFillListener,
-	UISWTViewCoreEventListener
+	TableViewSWTMenuFillListener
 {
 	private static boolean registeredCoreSubViews = false;
 
@@ -360,7 +359,7 @@ public class PiecesView
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
 	public void tableViewInitialized() {
 		if (legendComposite != null && tv != null) {
-			Composite composite = ((TableViewSWT<PEPiece>) tv).getTableComposite();
+			Composite composite = tv.getTableComposite();
 
 			legendComposite = Legend.createLegendComposite(composite,
 					BlocksItem.colors, new String[] {
@@ -435,7 +434,7 @@ public class PiecesView
 		
 		if ( tabs != null ){
 			
-			tabs.triggerTabViewsDataSourceChanged( true );
+			tabs.triggerTabViewsDataSourceChanged(tv);
 		}
 
 	}
@@ -470,31 +469,39 @@ public class PiecesView
 	      		} else {
 	      			id += ":" + manager.getSize();
 	      		}
-	      	}
+						SelectedContentManager.changeCurrentlySelectedContent(id,
+								new SelectedContent[] {
+									new SelectedContent(manager)
+						});
+					} else {
+						SelectedContentManager.changeCurrentlySelectedContent(id, null);
+					}
 	  
-	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
-	      		new SelectedContent(manager)
-	      	});
-		 
 		    break;
 	      case UISWTViewEvent.TYPE_FOCUSLOST:
 	    	  setFocused( false );
+	    		SelectedContentManager.clearCurrentlySelectedContent();
 	    	  break;	
 	    }
 	    
 	    return( super.eventOccurred(event));
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
+	 */
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
-		if ( ViewUtils.toolBarItemActivated(manager, item, activationType, datasource)){
-			return( true );
-		}
 		return( super.toolBarItemActivated(item, activationType, datasource));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#refreshToolBarItems(java.util.Map)
+	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
-		ViewUtils.refreshToolBarItems(manager, list);
+		Map<String, Long> states = TorrentUtil.calculateToolbarStates(
+				SelectedContentManager.getCurrentlySelectedContent(), null);
+		list.putAll(states);
 		super.refreshToolBarItems(list);
 	}
 }

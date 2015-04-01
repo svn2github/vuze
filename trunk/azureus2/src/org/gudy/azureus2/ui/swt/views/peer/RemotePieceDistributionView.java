@@ -37,15 +37,17 @@ public class RemotePieceDistributionView extends PieceDistributionView {
 	 * @see org.gudy.azureus2.ui.swt.views.PieceDistributionView#dataSourceChanged(java.lang.Object)
 	 */
 	public void dataSourceChanged(Object newDataSource) {
-		if (newDataSource instanceof Object[]) {
+		if (newDataSource instanceof Object[]
+				&& ((Object[]) newDataSource).length > 0) {
 			newDataSource = ((Object[]) newDataSource)[0];
 		}
-		if (newDataSource == null) {
-			peer = null;
-			pem = null;
-		} else if (newDataSource instanceof PEPeer) {
+
+		if (newDataSource instanceof PEPeer) {
 			peer = (PEPeer) newDataSource;
 			pem = peer.getManager();
+		} else {
+			peer = null;
+			pem = null;
 		}
 
 		Utils.execSWTThread(new AERunnable() {

@@ -37,7 +37,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -47,16 +46,11 @@ import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
-import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.impl.CoreTableColumn;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 /**
  * @author parg
@@ -630,45 +624,6 @@ ViewUtils
 		result = result / num_entries;
 		if (result == 0) {result = 1;}
 		return result;
-	}
-	
-	public static boolean toolBarItemActivated( DownloadManager manager, ToolBarItem item, long activationType,
-			Object datasource) {
-		String itemKey = item.getID();
-
-		if (itemKey.equals("run")) {
-			ManagerUtils.run(manager);
-			return true;
-		}
-		
-		if (itemKey.equals("start")) {
-			ManagerUtils.queue(manager, null);
-			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-			return true;
-		}
-		
-		if (itemKey.equals("stop")) {
-			ManagerUtils.stop(manager, null);
-			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-			return true;
-		}
-		
-		if (itemKey.equals("remove")) {
-			TorrentUtil.removeDownloads(new DownloadManager[] {
-				manager
-			}, null);
-			return true;
-		}
-		
-		return false;
-	}
-
-	public static void refreshToolBarItems( DownloadManager manager, Map<String, Long> list) {
-		list.put("run", UIToolBarItem.STATE_ENABLED);
-		list.put("start", ManagerUtils.isStartable(manager) ? UIToolBarItem.STATE_ENABLED : 0);
-		list.put("startstop", UIToolBarItem.STATE_ENABLED);
-		list.put("stop", ManagerUtils.isStopable(manager) ? UIToolBarItem.STATE_ENABLED : 0);
-		list.put("remove", UIToolBarItem.STATE_ENABLED);
 	}
 	
 	public static void setViewRequiresOneDownload(Composite genComposite) {

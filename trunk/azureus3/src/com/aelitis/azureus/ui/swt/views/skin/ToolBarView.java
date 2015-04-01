@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerImpl.ToolBarManagerL
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.ToolBarItem;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
@@ -247,9 +248,15 @@ public class ToolBarView
 				if (activationType != ACTIVATIONTYPE_NORMAL) {
 					return false;
 				}
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				if (dms != null) {
-					TorrentUtil.runDataSources(dms);
+				TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
+				Object[] ds;
+				if (tv != null) {
+					ds = tv.getSelectedDataSources().toArray();
+				} else {
+					ds = SelectedContentManager.getDMSFromSelectedContent();
+				}
+				if (ds != null) {
+					TorrentUtil.runDataSources(ds);
 					return true;
 				}
 				return false;
@@ -415,12 +422,9 @@ public class ToolBarView
 				if (activationType != ACTIVATIONTYPE_NORMAL) {
 					return false;
 				}
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				if (dms != null) {
-					TorrentUtil.removeDownloads(dms, null);
-					return true;
-				}
-				return false;
+				TorrentUtil.removeDataSources(
+						SelectedContentManager.getCurrentlySelectedContent());
+				return true;
 			}
 		});
 		tbm.addToolBarItem(item, false);
@@ -613,6 +617,7 @@ public class ToolBarView
 			}
 
 			ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+			//System.out.println("_refreshCoreToolBarItems(" + currentContent.length + ", " + entry + " via " + Debug.getCompressedStackTrace());
 
 			synchronized (dm_listener_map) {
 
@@ -678,15 +683,6 @@ public class ToolBarView
 				}
 			}
 
-			if (!mapStates.containsKey("download")) {
-				for (ISelectedContent content : currentContent) {
-					if (content.getDownloadManager() == null
-							&& content.getDownloadInfo() != null) {
-						mapStates.put("download", UIToolBarItem.STATE_ENABLED);
-						break;
-					}
-				}
-			}
 			boolean has1Selection = currentContent.length == 1;
 
 			boolean can_play = false;
@@ -748,6 +744,33 @@ public class ToolBarView
 						+ (shouldStopGroup ? "stop" : "start"));
 			}
 
+			
+			Map<String, Long> fallBackStates = TorrentUtil.calculateToolbarStates(currentContent, null);
+			for (String key : fallBackStates.keySet()) {
+				if (!mapStates.containsKey(key)) {
+					mapStates.put(key, fallBackStates.get(key));
+				}
+			}
+
+
+			final String[] TBKEYS = new String[] {
+				"play",
+				"run",
+				"top",
+				"up",
+				"down",
+				"bottom",
+				"start",
+				"stop",
+				"startstop",
+				"remove"
+			};
+			for (String key : TBKEYS) {
+				if (!mapStates.containsKey(key)) {
+					mapStates.put(key, 0L);
+				}
+			}
+
 			for (int i = 0; i < allToolBarItems.length; i++) {
 				UIToolBarItem toolBarItem = allToolBarItems[i];
 				Long state = mapStates.get(toolBarItem.getID());
@@ -785,7 +808,6 @@ public class ToolBarView
 					}
 				}
 			}
-
 		}
 		
 	}

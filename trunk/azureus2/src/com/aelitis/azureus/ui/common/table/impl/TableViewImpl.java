@@ -1966,7 +1966,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 				triggerDeselectionListeners(oldSelectionList.toArray(new TableRowCore[0]));
 			}
 
-			triggerTabViewsDataSourceChanged(false);
+			triggerTabViewsDataSourceChanged();
 		}
 
 	}
@@ -2003,7 +2003,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		}
 	}
 
-	public abstract void triggerTabViewsDataSourceChanged(boolean sendParent);
+	public abstract void triggerTabViewsDataSourceChanged();
 
 	protected abstract void uiChangeColumnIndicator();
 

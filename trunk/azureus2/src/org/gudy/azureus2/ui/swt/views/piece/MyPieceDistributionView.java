@@ -38,15 +38,16 @@ public class MyPieceDistributionView
 	}
 	
 	public void dataSourceChanged(Object newDataSource) {
+		if (newDataSource instanceof Object[]
+				&& ((Object[]) newDataSource).length > 0) {
+			newDataSource = ((Object[]) newDataSource)[0];
+		}
+
 		if (newDataSource instanceof DownloadManager) {
 			pem = ((DownloadManager) newDataSource).getPeerManager();
-		} else if (newDataSource instanceof Object[]) {
-			newDataSource = ((Object[]) newDataSource)[0];
-			if (newDataSource instanceof PEPiece) {
-				PEPiece piece = (PEPiece) newDataSource;
-				pem = piece.getManager();
-			}
-
+		} else if (newDataSource instanceof PEPiece) {
+			PEPiece piece = (PEPiece) newDataSource;
+			pem = piece.getManager();
 		} else {
 			pem = null;
 		}

@@ -55,6 +55,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -67,8 +68,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  */
 public class TableViewSWT_TabsCommon
 {
-	private static final Object	NULL_DS = new Object();
-	
 	UISWTView parentView;
 	TableViewSWT<?> tv;
 	
@@ -87,107 +86,68 @@ public class TableViewSWT_TabsCommon
 	private UISWTViewCore selectedView;
 
 	private DownloadManager		maximizeTo;
-	
+	private TableView<?> tvOverride;
+
 	public TableViewSWT_TabsCommon(UISWTView parentView, TableViewSWT<?> tv) {
 		this.parentView = parentView;
 		this.tv = tv;
 	}
 
-	public void triggerTabViewsDataSourceChanged(boolean sendParent) {
+	public void triggerTabViewsDataSourceChanged(TableView<?> tv) {
 		if (tabViews == null || tabViews.size() == 0) {
 			return;
 		}
-		
-		if (sendParent) {
-			for (int i = 0; i < tabViews.size(); i++) {
-				UISWTViewCore view = tabViews.get(i);
-				if (view != null) {
-					dataSourceChanged( view, tv.getParentDataSource());
-				}
-			}
-			return;
-		}
 
-		// Set Data Object for all tabs.  
-
-		Object[] dataSourcesCore = tv.getSelectedDataSources(true);
-		Object[] dataSourcesPlugin = null;
+		Object[][] dataSourcesCoreAndPlugin = {
+			tv.getSelectedDataSources(true),
+			null
+		};
 
 		for (int i = 0; i < tabViews.size(); i++) {
 			UISWTViewCore view = tabViews.get(i);
 			if (view != null) {
-				if (view.useCoreDataSource()) {
-					dataSourceChanged( view, dataSourcesCore.length == 0 ? tv.getParentDataSource()	: dataSourcesCore);
-				} else {
-					if (dataSourcesPlugin == null) {
-						dataSourcesPlugin = tv.getSelectedDataSources(false);
-					}
-
-					dataSourceChanged( 
-						view,
-						dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert( tv.getParentDataSource(), false) : dataSourcesPlugin);
-				}
+				triggerTabViewDataSourceChanged(view, tv, dataSourcesCoreAndPlugin);
 			}
 		}
 	}
 
-	public void triggerTabViewsDataSourceChanged(TableViewSWT<?> tv) {
-		if (tabViews == null || tabViews.size() == 0) {
+	public void setTvOverride(TableView<?> tvOverride) {
+		this.tvOverride = tvOverride;
+	}
+
+	public void triggerTabViewDataSourceChanged(UISWTViewCore view,
+			TableView<?> tv,
+			Object[][] dataSourcesCoreAndPlugin) {
+		if (tvOverride != null) {
+			tv = tvOverride;
+		}
+		if (view == null) {
 			return;
 		}
-
-		// Set Data Object for all tabs.  
-
-		Object[] dataSourcesCore = tv.getSelectedDataSources(true);
-		Object[] dataSourcesPlugin = null;
-
-		for (int i = 0; i < tabViews.size(); i++) {
-			UISWTViewCore view = tabViews.get(i);
-			if (view != null) {
-				if (view.useCoreDataSource()) {
-					dataSourceChanged( 
-							view,
-							dataSourcesCore.length == 0 ? tv.getParentDataSource()
-									: dataSourcesCore);
-				} else {
-					if (dataSourcesPlugin == null) {
-						dataSourcesPlugin = tv.getSelectedDataSources(false);
-					}
-
-					dataSourceChanged( 
-							view,
-							dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert(
-									tv.getParentDataSource(), false) : dataSourcesPlugin);
-				}
+		
+		// When there is not selected datasources in the TableView, send the
+		// parent's datasource
+		
+		if (view.useCoreDataSource()) {
+			if (dataSourcesCoreAndPlugin[0] == null) {
+				dataSourcesCoreAndPlugin[0] = tv.getSelectedDataSources(true);
 			}
+			dataSourceChanged(view, dataSourcesCoreAndPlugin[0].length == 0
+					? tv.getParentDataSource() : dataSourcesCoreAndPlugin[0]);
+		} else {
+			if (dataSourcesCoreAndPlugin[1] == null) {
+				dataSourcesCoreAndPlugin[1] = tv.getSelectedDataSources(false);
+			}
+			if (dataSourcesCoreAndPlugin[1].length == 0) {
+				dataSourcesCoreAndPlugin[1] = new Object[] {
+					tv.getParentDataSource()
+				};
+			}
+			dataSourceChanged(view, dataSourcesCoreAndPlugin[1].length == 0
+					? tv.getParentDataSource() : dataSourcesCoreAndPlugin[1]);
 		}
 	}
 	
-	public void triggerTabViewDataSourceChanged(UISWTViewCore view) {
-		if (view != null) {
-			dataSourceChanged( view, tv.getParentDataSource());
-
-			if (view.useCoreDataSource()) {
-				Object[] dataSourcesCore = tv.getSelectedDataSources(true);
-				if (dataSourcesCore.length > 0) {
-					dataSourceChanged( 
-						view,
-						dataSourcesCore.length == 0 ? tv.getParentDataSource()
-									: dataSourcesCore);
-				}
-			} else {
-				Object[] dataSourcesPlugin = tv.getSelectedDataSources(false);
-				if (dataSourcesPlugin.length > 0) {
-					dataSourceChanged( 
-						view,
-						dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert(
-									tv.getParentDataSource(), false) : dataSourcesPlugin);
-				}
-			}
-		}
-		
-	}
-
 	public void delete() {
 		if (tabViews != null && tabViews.size() > 0) {
 			for (int i = 0; i < tabViews.size(); i++) {
@@ -244,6 +204,9 @@ public class TableViewSWT_TabsCommon
 			return;
 		}
 		
+		view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
+
+		
 		Utils.execSWTThread(
 			new Runnable()
 			{	
@@ -271,43 +234,9 @@ public class TableViewSWT_TabsCommon
 					}
 
 					tabFolder.setMaximizeVisible( maximizeTo != null );
-					
-					if ( comp.isVisible()){
-					
-						Object old_ds = view.getUserData( TableViewSWT_TabsCommon.class );
-						
-						if ( old_ds != null ){
-							
-							view.setUserData( TableViewSWT_TabsCommon.class, null );
-						}
-						
-						view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
-						
-					}else{
-						
-						view.setUserData( TableViewSWT_TabsCommon.class, ds==null?NULL_DS:ds );
-					}
+
 				}
 			});
-	}
-	
-	private void
-	checkPendingDataSourceChange(
-		UISWTViewCore		view )
-	{
-		Object ds = view.getUserData( TableViewSWT_TabsCommon.class );
-		
-		if ( ds != null ){
-			
-			if ( ds == NULL_DS ){
-				
-				ds = null;
-			}
-						
-			view.setUserData( TableViewSWT_TabsCommon.class, null );
-			
-			view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
-		}
 	}
 	
 	public void 
@@ -321,8 +250,6 @@ public class TableViewSWT_TabsCommon
 			
 			if ( !comp.isDisposed() && comp.isVisible()){
 		
-				checkPendingDataSourceChange( view );
-				
 				view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
 			}
 		}
@@ -373,7 +300,10 @@ public class TableViewSWT_TabsCommon
 				view.setParentView( parentView );
 			}
 			
-			triggerTabViewDataSourceChanged(view);
+			triggerTabViewDataSourceChanged(view, tv, new Object[][] {
+				null,
+				null
+			});
 	
 			int	insert_at = tabFolder.getItemCount();
 			
@@ -465,7 +395,7 @@ public class TableViewSWT_TabsCommon
 	
 	private void
 	checkTabViews(
-		Map		closed )
+		Map<?, ?>		closed )
 	{
 		for ( UISWTViewEventListenerWrapper l: new ArrayList<UISWTViewEventListenerWrapper>( removedViews )){
 			
@@ -631,13 +561,16 @@ public class TableViewSWT_TabsCommon
 				for (int i = 0; i < items.length; i++) {
 					CTabItem tabItem = items[i];
 					tabItem.setToolTipText( tt );
-					tabItem.getControl().setVisible(false);
+					Control control = tabItem.getControl();
+					if (control != null && !control.isDisposed()) {
+						tabItem.getControl().setVisible(false);
+					}
 				}
 				form.layout();
 
 				UISWTViewCore view = getActiveSubView();
 				
-				fireFocusLost( view );	// fire even if null so we pick up current...
+				view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
 				
 				ConfigurationManager configMan = ConfigurationManager.getInstance();
 				configMan.setParameter(props_prefix + ".subViews.minimized", true);
@@ -741,10 +674,24 @@ public class TableViewSWT_TabsCommon
 				selectedView = null;
 				// make sure its above
 				try {
-					((CTabItem) e.item).getControl().setVisible(true);
-					((CTabItem) e.item).getControl().moveAbove(null);
-
+					CTabItem item = ((CTabItem) e.item);
 					selectedView = (UISWTViewImpl)e.item.getData( "IView" );
+
+					Control control = item.getControl();
+					if (control == null || control.isDisposed()) {
+						selectedView.initialize(tabFolder);
+						item.setControl(selectedView.getComposite());
+						control = item.getControl();
+						triggerTabViewDataSourceChanged(selectedView, tv,
+								new Object[][] {
+									null,
+									null
+						});
+					}
+					
+					control.setVisible(true);
+					control.moveAbove(null);
+
 					// Call getActiveSubView and don't use selectedView. Function
 					// may return null even if there's a selectedView
 					UISWTViewCore view = getActiveSubView();
@@ -753,12 +700,33 @@ public class TableViewSWT_TabsCommon
 					}
 					
 				} catch (Exception t) {
+					t.printStackTrace();
 				}
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
+		
+		tabFolder.addListener(SWT.Activate, new Listener() {
+			public void handleEvent(Event event) {
+				UISWTViewCore view = getActiveSubView();
+				if (view != null) {
+					fireFocusGained(view);
+				}
+			}
+		});
+
+		/* Does bad things like dispose of views even if view is still visible
+		tabFolder.addListener(SWT.Deactivate, new Listener() {
+			public void handleEvent(Event event) {
+				UISWTViewCore view = getActiveSubView();
+				if (view != null) {
+					fireFocusLost(view);
+				}
+			}
+		});
+		*/
 
 		tabFolder.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
@@ -1000,18 +968,20 @@ public class TableViewSWT_TabsCommon
 	fireFocusGained(
 		UISWTViewCore		view )
 	{
-		if ( focused_view != null ){
-			
-			focused_view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+		if ( focused_view != null && focused_view != view ){
+			focused_view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
 		}
 		
 		focused_view = view;
 		
-		checkPendingDataSourceChange( view );
+		//triggerTabViewDataSourceChanged(view, true, true, tv, new Object[][] { null, null });
+
+		//checkPendingDataSourceChange( view );
 		
 		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 	}
 	
+	/*
 	private void
 	fireFocusLost(
 		UISWTViewCore		view )
@@ -1028,6 +998,7 @@ public class TableViewSWT_TabsCommon
 			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
 		}
 	}
+	*/
 	
 	public void swt_refresh() {
 		if (tv.isTabViewsEnabled() && tabFolder != null && !tabFolder.isDisposed()

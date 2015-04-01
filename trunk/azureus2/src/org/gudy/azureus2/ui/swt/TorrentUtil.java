@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -2089,6 +2090,9 @@ public class TorrentUtil
 		}
 	}
 
+	/**
+	 * @param datasources DownloadManager, DiskManagerFileInfo, SelectedContent
+	 */
 	public static void removeDataSources(final Object[] datasources) {
 		DownloadManager[] dms = toDMS(datasources);
 		removeDownloads(dms, null);
@@ -2333,9 +2337,10 @@ public class TorrentUtil
 		return true;
 	}
 
+	// XXX Don't think *View's need this call anymore.  ToolBarView does it fo them
 	public static Map<String, Long> calculateToolbarStates(
-			ISelectedContent[] currentContent, String viewID) {
-		//System.out.println("updateCoreItems(" + currentContent.length + ", " + viewID + " via " + Debug.getCompressedStackTrace());
+			ISelectedContent[] currentContent, String viewID_unused) {
+		//System.out.println("calculateToolbarStates(" + currentContent.length + ", " + viewID_unused + " via " + Debug.getCompressedStackTrace());
 		/*
 		String[] TBKEYS = new String[] {
 			"download",
@@ -2425,27 +2430,32 @@ public class TorrentUtil
 				// well, in fact, we can have hasRealDM set to true here (because tv isn't null) and actually not have a real dm.
 				// fancy that - protect against null DownloadManagers...
 			
-			boolean canMoveUp = true;
-			boolean canMoveDown = true;
+			boolean canMoveUp = false;
+			boolean canMoveDown = false;
+			boolean canDownload = false;
 			GlobalManager gm = null;
 			for (int i = 0; i < currentContent.length; i++) {
 				ISelectedContent content = currentContent[i];
 				DownloadManager dm = content.getDownloadManager();
 				if ( dm == null ){
+					if (!canDownload && content.getDownloadInfo() != null) {
+						canDownload = true;
+					}
 					continue;
 				}
 				if ( gm == null ){
 					gm = dm.getGlobalManager();
 				}
 				
-				if (!gm.isMoveableUp(dm)) {
-					canMoveUp = false;
-				}
-				if (!gm.isMoveableDown(dm)) {
-					canMoveDown = false;
-				}
 				int fileIndex = content.getFileIndex();
 				if (fileIndex == -1) {
+					if (!canMoveUp && gm.isMoveableUp(dm)) {
+						canMoveUp = true;
+					}
+					if (!canMoveDown && gm.isMoveableDown(dm)) {
+						canMoveDown = true;
+					}
+
 					hasDM = true;
 					if (!canStart && ManagerUtils.isStartable(dm)) {
 						canStart = true;
@@ -2454,9 +2464,9 @@ public class TorrentUtil
 						canStop = true;
 					}
 				} else {
-					DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
-					if (fileIndex < fileInfos.length) {
-						DiskManagerFileInfo fileInfo = fileInfos[fileIndex];
+					DiskManagerFileInfoSet fileInfos = dm.getDiskManagerFileInfoSet();
+					if (fileIndex < fileInfos.nbFiles()) {
+						DiskManagerFileInfo fileInfo = fileInfos.getFiles()[fileIndex];
 						if (!canStart && (fileInfo.isSkipped())) {
 							canStart = true;
 						}
@@ -2483,15 +2493,12 @@ public class TorrentUtil
 				}
 			}
 	
-			if ( gm == null ){
-				
-				canMoveUp 	= false;
-				canMoveDown = false;
-			}
-			
 			boolean canRemove = hasDM || canRemoveFileInfo;
 
 			mapNewToolbarStates.put("remove", canRemove ? UIToolBarItem.STATE_ENABLED
+					: 0);
+			
+			mapNewToolbarStates.put("download", canDownload ? UIToolBarItem.STATE_ENABLED
 					: 0);
 
 			// actually we roll the dm indexes when > 1 selected and we get
@@ -2540,6 +2547,8 @@ public class TorrentUtil
 
 		mapNewToolbarStates.put("start", canStart ? UIToolBarItem.STATE_ENABLED : 0);
 		mapNewToolbarStates.put("stop", canStop ? UIToolBarItem.STATE_ENABLED : 0);
+		mapNewToolbarStates.put("startstop",
+				canStart || canStop ? UIToolBarItem.STATE_ENABLED : 0);
 
 		for (int i = 0; i < itemsNeedingRealDMSelection.length; i++) {
 			String itemID = itemsNeedingRealDMSelection[i];

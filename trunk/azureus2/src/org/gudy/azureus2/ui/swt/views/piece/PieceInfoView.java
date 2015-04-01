@@ -57,12 +57,19 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.views.PiecesView;
 
-import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
+ * Piece Map View.
+ * <p>
+ * This view is placed within the {@link PiecesView} even though it relies on
+ * a {@link DownloadManager} datasource instead of a {@link PEPiece}
+ * <p>
+ * Also placed in Library views
+ * 
  * @author TuxPaper
  * @created Feb 26, 2007
  *

@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -461,12 +462,18 @@ public class TorrentInfoView
 	      		} else {
 	      			id += ":" + download_manager.getSize();
 	      		}
-	      	}
-	  
-	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
-	      		new SelectedContent(download_manager)
-	      	});
+						SelectedContentManager.changeCurrentlySelectedContent(id,
+								new SelectedContent[] {
+									new SelectedContent(download_manager)
+						});
+					} else {
+						SelectedContentManager.changeCurrentlySelectedContent(id, null);
+					}
       	break;
+
+      case UISWTViewEvent.TYPE_FOCUSLOST:
+    		SelectedContentManager.clearCurrentlySelectedContent();
+    		break;
         
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
@@ -476,12 +483,20 @@ public class TorrentInfoView
     return true;
   }
 	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
+	 */
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
-		return( ViewUtils.toolBarItemActivated(download_manager, item, activationType, datasource));
+		return false; // default handler will handle it
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
+	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
-		ViewUtils.refreshToolBarItems(download_manager, list);
+		Map<String, Long> states = TorrentUtil.calculateToolbarStates(
+				SelectedContentManager.getCurrentlySelectedContent(), null);
+		list.putAll(states);
 	}
 }

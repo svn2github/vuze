@@ -356,6 +356,9 @@ public class StatsView
 					if (item.isDisposed() || view == null) {
 						continue;
 					}
+					if (view.getComposite() == null) {
+						continue;
+					}
 					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 				} catch (Throwable e) {
 					Debug.printStackTrace(e);

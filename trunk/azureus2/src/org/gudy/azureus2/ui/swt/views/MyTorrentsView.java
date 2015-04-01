@@ -2089,21 +2089,20 @@ public class MyTorrentsView
 		super.refreshToolBarItems(list);
 		ISelectedContent[] datasource = SelectedContentManager.getCurrentlySelectedContent();
 
-		UISWTViewCore active_view = getActiveView();
-		if (active_view != null) {
-			UIPluginViewToolBarListener l = active_view.getToolBarListener();
-			if (l != null) {
-				Map<String, Long> activeViewList = new HashMap<String, Long>();
-				l.refreshToolBarItems(activeViewList);
-				if (activeViewList.size() > 0) {
-					list.putAll(activeViewList);
-					return;
-				}
-			}
+		if (!isTableFocus()) {
+  		UISWTViewCore active_view = getActiveView();
+  		if (active_view != null) {
+  			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+  			if (l != null) {
+  				Map<String, Long> activeViewList = new HashMap<String, Long>();
+  				l.refreshToolBarItems(activeViewList);
+  				if (activeViewList.size() > 0) {
+  					list.putAll(activeViewList);
+  					return;
+  				}
+  			}
+  		}
 		}
-  	
-		Map<String, Long> states = TorrentUtil.calculateToolbarStates(datasource, tv.getTableID());
-		list.putAll(states);
   }  
 
   public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
@@ -2112,23 +2111,14 @@ public class MyTorrentsView
 	  	isTableSelected = ((TableViewImpl) tv).isTableSelected();
 	  }
 	  if (!isTableSelected) {
-  		boolean hasMultiple = datasource instanceof Object[] 
-  				&& ((Object[])datasource).length > 1 
-  				&& ((Object[])datasource)[0] instanceof DownloadManager;
-  		
-  		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
-  		// fixing each view up, disable toolbar handling for them when we have
-  		// multiple selection
-  		// XXX FIX LAZINESS! :(
-  		if (!hasMultiple) {
-    		UISWTViewCore active_view = getActiveView();
-    		if (active_view != null) {
-    			UIPluginViewToolBarListener l = active_view.getToolBarListener();
-    			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
-    				return true;
-    			}
-    		}
+  		UISWTViewCore active_view = getActiveView();
+  		if (active_view != null) {
+  			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+  			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
+  				return true;
+  			}
   		}
+  		return false;
 	  }
 
 		String itemKey = item.getID();

@@ -18,7 +18,8 @@ package org.gudy.azureus2.ui.swt.views;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -35,7 +36,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -257,7 +257,21 @@ public class MyTorrentsSuperView
     seedingview = createTorrentView(core,
 				TableManager.TABLE_MYTORRENTS_COMPLETE, true, getCompleteColumns(),
 				child2);
+    
+    
+    torrentview.getComposite().addListener(SWT.FocusIn, new Listener() {
+			public void handleEvent(Event event) {
+				seedingview.getTableView().getTabsCommon().setTvOverride(torrentview.getTableView());
+			}
+		});
 
+    seedingview.getComposite().addListener(SWT.FocusIn, new Listener() {
+			public void handleEvent(Event event) {
+				seedingview.getTableView().getTabsCommon().setTvOverride(null);
+			}
+		});
+
+    
     	// delegate selections from the incomplete view to the sub-tabs owned by the seeding view
     
     SelectedContentManager.addCurrentlySelectedContentListener(
@@ -285,7 +299,7 @@ public class MyTorrentsSuperView
     				
     					if ( tabs != null ){
     				
-    						tabs.triggerTabViewsDataSourceChanged( (TableViewSWT<?>)selected_tv );
+    						tabs.triggerTabViewsDataSourceChanged(selected_tv);
     					}
 	    			}
     			}

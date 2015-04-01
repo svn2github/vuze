@@ -56,9 +56,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.graphics.PieUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -738,15 +736,18 @@ public class PeersGraphicView
 	      		} else {
 	      			id += ":" + manager.getSize();
 	      		}
-	      	}
+						SelectedContentManager.changeCurrentlySelectedContent(id,
+								new SelectedContent[] {
+									new SelectedContent(manager)
+						});
+					} else {
+						SelectedContentManager.changeCurrentlySelectedContent(id, null);
+					}
 	  
-	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
-	      		new SelectedContent(manager)
-	      	});
-	      	
 	      break;
       case UISWTViewEvent.TYPE_FOCUSLOST:
     	  setFocused( false );
+    	  SelectedContentManager.clearCurrentlySelectedContent();
     	  break;
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
@@ -756,12 +757,20 @@ public class PeersGraphicView
     return true;
   }
 	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
+	 */
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
-		return( ViewUtils.toolBarItemActivated(manager, item, activationType, datasource));
+		return false; // default handler will handle it
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
+	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
-		ViewUtils.refreshToolBarItems(manager, list);
+		Map<String, Long> states = TorrentUtil.calculateToolbarStates(
+				SelectedContentManager.getCurrentlySelectedContent(), null);
+		list.putAll(states);
 	}
 }

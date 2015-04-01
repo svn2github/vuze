@@ -44,9 +44,7 @@ import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
@@ -231,6 +229,7 @@ public class PeersView
 			focus_pending_ds = newDataSource;
 			return;
 		}
+		
 		DownloadManager newManager = null;
 		if (newDataSource instanceof Object[]) {
 			Object[] newDataSources = (Object[]) newDataSource;
@@ -774,31 +773,39 @@ public class PeersView
 	      		} else {
 	      			id += ":" + manager.getSize();
 	      		}
-	      	}
+						SelectedContentManager.changeCurrentlySelectedContent(id,
+								new SelectedContent[] {
+									new SelectedContent(manager)
+						});
+					} else {
+						SelectedContentManager.changeCurrentlySelectedContent(id, null);
+					}
 	  
-	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
-	      		new SelectedContent(manager)
-	      	});
-
 		    break;
 	      case UISWTViewEvent.TYPE_FOCUSLOST:
 	    	  setFocused( false );
+	    		SelectedContentManager.clearCurrentlySelectedContent();
 	    	  break;	    
 	    }
 	    
 	    return( super.eventOccurred(event));
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
+	 */
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
-		if ( ViewUtils.toolBarItemActivated(manager, item, activationType, datasource)){
-			return( true );
-		}
 		return( super.toolBarItemActivated(item, activationType, datasource));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#refreshToolBarItems(java.util.Map)
+	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
-		ViewUtils.refreshToolBarItems(manager, list);
+		Map<String, Long> states = TorrentUtil.calculateToolbarStates(
+				SelectedContentManager.getCurrentlySelectedContent(), null);
+		list.putAll(states);
 		super.refreshToolBarItems(list);
 	}
 }

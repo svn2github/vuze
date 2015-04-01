@@ -66,6 +66,7 @@ public class UISWTViewImpl
 {
 	public static final String CFG_PREFIX = "Views.plugins.";
 	
+	// TODO: What about IViewAlwaysInitialize?
 	private static final boolean DELAY_INITIALIZE_TO_FIRST_ACTIVATE = false;
 
 	private PluginUISWTSkinObject skinObject;
@@ -104,10 +105,14 @@ public class UISWTViewImpl
 
 	private boolean haveSentInitialize = false;
 	
+	private boolean created = false;
+
+	private String sParentID;
+	
 	public UISWTViewImpl(String sParentID, String sViewID,
 			UISWTViewEventListener eventListener, Object _initialDatasource)
 			throws Exception {
-		//this.sParentID = sParentID;
+		this.sParentID = sParentID;
 		this.sViewID = sViewID;
 		initialDatasource = _initialDatasource;
 		this.eventListener = eventListener;
@@ -121,11 +126,12 @@ public class UISWTViewImpl
 			triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, initialDatasource);
 		}
 
+		
 			// we could pass the parentid as the data for the create call but unfortunately
 			// there's a bunch of crap out there that assumes that data is the view object :(
-		if (!eventListener.eventOccurred(new UISWTViewEventImpl(sParentID, this,
-				UISWTViewEvent.TYPE_CREATE, this)))
+		if (!triggerBooleanEvent(UISWTViewEvent.TYPE_CREATE, this)) {
 			throw new UISWTViewEventCancelledException();
+		}
 
 	}
 
@@ -224,10 +230,20 @@ public class UISWTViewImpl
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#triggerEvent(int, java.lang.Object)
 	 */
-	@SuppressWarnings("unused")
 	public void triggerEvent(int eventType, Object data) {
+		triggerBooleanEvent(eventType, data);
+	}
+	
+	private boolean triggerBooleanEvent(int eventType, Object data) {
 		if (eventType == UISWTViewEvent.TYPE_INITIALIZE) {
+			if (!created) {
+				triggerBooleanEvent(UISWTViewEvent.TYPE_CREATE, this);
+			}
 			haveSentInitialize = true;
+		}
+		
+		if (eventType == UISWTViewEvent.TYPE_CREATE) {
+			created = true;
 		}
 
 		if (DELAY_INITIALIZE_TO_FIRST_ACTIVATE
@@ -238,18 +254,18 @@ public class UISWTViewImpl
 		if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED && hasFocus != null
 				&& hasFocus) {
 			//System.out.println("Double FOCUSGAIN " + Debug.getCompressedStackTrace());
-			return;
+			return true;
 		}
 		if (eventType == UISWTViewEvent.TYPE_FOCUSLOST && hasFocus != null
 				&& !hasFocus) {
 			//System.out.println("Double FOCUSLOST " + Debug.getCompressedStackTrace());
-			return;
+			return true;
 		}
 
 		if (eventType == UISWTViewEvent.TYPE_DATASOURCE_CHANGED) {
 			Object newDataSource = PluginCoreUtils.convert(data, useCoreDataSource);
 			if (dataSource == newDataSource) {
-				return;
+				return true;
 			}
 			data = dataSource = newDataSource;
 		} else if (eventType == UISWTViewEvent.TYPE_LANGUAGEUPDATE) {
@@ -272,8 +288,10 @@ public class UISWTViewImpl
 			triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
 		}
 
+		boolean result = false;
 		try {
-			eventListener.eventOccurred(new UISWTViewEventImpl(null,this, eventType, data));
+			result = eventListener.eventOccurred(
+					new UISWTViewEventImpl(sParentID, this, eventType, data));
 		} catch (Throwable t) {
 			Debug.out("ViewID=" + sViewID + "; EventID=" + eventType + "; data="
 					+ data, t);
@@ -286,15 +304,20 @@ public class UISWTViewImpl
 			if (c != null && !c.isDisposed()) {
 				Composite parent = c.getParent();
 				Utils.disposeComposite(c);
-				parent.layout(true);
+				parent.getParent().layout(true);
 				//Utils.relayout(parent); // crazy slow
 			}
+			haveSentInitialize = false;
+			hasFocus = false;
+			created = false;
 		}	
+		
+		return result;
 	}
 
 	protected boolean triggerEventRaw(int eventType, Object data) {
 		try {
-			return eventListener.eventOccurred(new UISWTViewEventImpl(null,this,
+			return eventListener.eventOccurred(new UISWTViewEventImpl(sParentID ,this,
 					eventType, data));
 		} catch (Throwable t) {
 			throw (new UIRuntimeException("UISWTView.triggerEvent:: ViewID="
@@ -432,6 +455,8 @@ public class UISWTViewImpl
 			if (parent.isVisible()) {
 				boolean focusGained = true;
 				if (parent instanceof CTabFolder || (parent instanceof TabFolder)) {
+					// can't be gaining the focus yet.. we just created it and
+					// it hasn't been assigned to TabFolder yet
 					focusGained = false;
 				}
 				if (focusGained) {
@@ -467,6 +492,11 @@ public class UISWTViewImpl
 		if (haveSentInitialize) {
 			return;
 		}
+		
+		if (!created) {
+			triggerBooleanEvent(UISWTViewEvent.TYPE_CREATE, this);
+		}
+		
 		composite.setRedraw(false);
 		composite.setLayoutDeferred(true);
 		triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);

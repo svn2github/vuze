@@ -27,6 +27,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -48,6 +49,10 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 /**
  * aka "Primary Tracker" view in "Sources" View
+ * <p>
+ * This view is placed within the {@link TrackerView} even though it relies on
+ * a {@link DownloadManager} datasource instead of TrackerPeerSource
+ * 
  */
 public class ScrapeInfoView
 	implements UISWTViewCoreEventListener
@@ -445,6 +450,9 @@ public class ScrapeInfoView
 
       case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
       	Object ds = event.getData();
+      	if (ds instanceof Object[] && ((Object[]) ds).length > 0) {
+      		ds = ((Object[]) ds)[0];
+      	}
       	if (ds instanceof DownloadManager) {
 					DownloadManager dm = (DownloadManager) ds;
 					setDownlaodManager(dm);

@@ -590,9 +590,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	public void triggerTabViewsDataSourceChanged(boolean sendParent) {
+	public void triggerTabViewsDataSourceChanged() {
 		if (tvTabsCommon != null) {
-			tvTabsCommon.triggerTabViewsDataSourceChanged(sendParent);
+			tvTabsCommon.triggerTabViewsDataSourceChanged(this);
 		}
 	}
 
@@ -2851,7 +2851,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	public void setParentDataSource(Object newDataSource) {
 		super.setParentDataSource(newDataSource);
 
-		triggerTabViewsDataSourceChanged(true);
+		triggerTabViewsDataSourceChanged();
 	}
 	
 	public void packColumns() {

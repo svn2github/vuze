@@ -2716,9 +2716,9 @@ public class TableViewPainted
 	}
 
 	@Override
-	public void triggerTabViewsDataSourceChanged(boolean sendParent) {
+	public void triggerTabViewsDataSourceChanged() {
 		if (tvTabsCommon != null) {
-			tvTabsCommon.triggerTabViewsDataSourceChanged(sendParent);
+			tvTabsCommon.triggerTabViewsDataSourceChanged(this);
 		}
 	}
 	

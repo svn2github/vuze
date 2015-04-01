@@ -179,7 +179,8 @@ public class PeerInfoView
 	}
 
 	private void dataSourceChanged(Object newDataSource) {
-		if (newDataSource instanceof Object[]) {
+		if (newDataSource instanceof Object[]
+				&& ((Object[]) newDataSource).length > 0) {
 			newDataSource = ((Object[]) newDataSource)[0];
 		}
 		
@@ -334,6 +335,9 @@ public class PeerInfoView
 	}
 
 	private void swt_fillPeerInfoSection() {
+		if (peerInfoComposite == null || peerInfoComposite.isDisposed()) {
+			return;
+		}
 		if (imageLabel.getImage() != null) {
 			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);

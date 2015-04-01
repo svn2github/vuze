@@ -24,7 +24,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
@@ -32,17 +31,12 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerListener;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -50,9 +44,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -68,10 +60,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.RegExUtil;
-import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -677,48 +667,6 @@ public class FilesView
 			Logger.log(new LogEvent(LogIDs.GUI, "failed to init drag-n-drop", t));
 		}
 	}
-	
-	public void refreshToolBarItems(Map<String, Long> list) {
-		super.refreshToolBarItems(list);
-		ISelectedContent[] content = SelectedContentManager.getCurrentlySelectedContent();
-		long hasEnabledSelect = content.length > 0
-				? UIToolBarItem.STATE_ENABLED : 0;
-		list.put("run", hasEnabledSelect);
-		list.put("start", hasEnabledSelect);
-		list.put("stop", hasEnabledSelect);
-		list.put("remove", hasEnabledSelect);
-		list.put("startstop", hasEnabledSelect);
-	}
-
-	public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
-		String itemKey = item.getID();
-
-		Object[] selected = tv.getSelectedDataSources().toArray();
-		
-		if ( selected.length > 0 ){
-	    if(itemKey.equals("run")){
-	      TorrentUtil.runDataSources(selected);
-	      return true;
-	    }
-	    if(itemKey.equals("start")){
-	      TorrentUtil.queueDataSources(selected, false);
-	      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-	      return true;
-	    }
-	    if(itemKey.equals("stop")){
-	      TorrentUtil.stopDataSources(selected);
-	      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-	      return true;
-	    }
-	    if(itemKey.equals("remove")){
-	      TorrentUtil.removeDataSources(selected);
-	      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-	      return true;
-	    }
-		}
-		
-    return super.toolBarItemActivated(item, activationType, datasource);
-	}
 
 	public boolean eventOccurred(UISWTViewEvent event) {
 		if (event.getType() == UISWTViewEvent.TYPE_CREATE){
@@ -729,11 +677,11 @@ public class FilesView
 	    		  enable_tabs = parent != null && parent.equals( UISWTInstance.VIEW_TORRENT_DETAILS );
 	    	  }
 	    }
-		
 		boolean b = super.eventOccurred(event);
 		if (event.getType() == UISWTViewEvent.TYPE_FOCUSGAINED) {
 	    updateSelectedContent();
 		} else if (event.getType() == UISWTViewEvent.TYPE_FOCUSLOST) {
+			SelectedContentManager.clearCurrentlySelectedContent();
 		}
 		return b;
 	}

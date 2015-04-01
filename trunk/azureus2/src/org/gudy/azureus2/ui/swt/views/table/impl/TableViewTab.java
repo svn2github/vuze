@@ -35,7 +35,13 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.ui.common.ToolBarItem;
+import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
 
+/**
+ * An {@link UISWTView} that contains a {@link TableView}.  Usually is
+ * an view in a  {@link MdiEntry}, or a TableView's subview.
+ */
 public abstract class TableViewTab<DATASOURCETYPE>
 	implements UISWTViewCoreEventListener, UIPluginViewToolBarListener,
 	AEDiagnosticsEvidenceGenerator
