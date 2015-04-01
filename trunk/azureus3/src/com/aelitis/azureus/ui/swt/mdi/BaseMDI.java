@@ -308,15 +308,16 @@ public abstract class BaseMDI
 					autoOpenMap) != null;
 		}
 
+		boolean created = false;
 		String[] autoOpenIDs = mapAutoOpen.keySet().toArray(new String[0]);
 		for (String autoOpenID : autoOpenIDs) {
 			if (Pattern.matches(id, autoOpenID)) {
 				Map<?, ?> autoOpenMap = (Map<?, ?>) mapAutoOpen.get(autoOpenID);
-				return createEntryByCreationListener(autoOpenID,
+				created |= createEntryByCreationListener(autoOpenID,
 						autoOpenMap.get("datasource"), autoOpenMap) != null;
 			}
 		}
-		return false;
+		return created;
 	}
 
 	private MdiEntry createEntryByCreationListener(String id, Object ds, Map<?, ?> autoOpenMap) {
