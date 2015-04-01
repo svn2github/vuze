@@ -498,7 +498,8 @@ public class TagSettingsView
 		}
 
 		if (params.tagColor != null) {
-			params.tagColor.setValue(cMainComposite);
+			int[] color = tag.getColor();
+			params.tagColor.setColor(color[0], color[1], color[2]);
 		}
 
 		if (params.viewInSideBar != null) {
