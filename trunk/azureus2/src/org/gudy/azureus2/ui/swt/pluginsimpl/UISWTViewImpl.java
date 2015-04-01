@@ -304,8 +304,7 @@ public class UISWTViewImpl
 			if (c != null && !c.isDisposed()) {
 				Composite parent = c.getParent();
 				Utils.disposeComposite(c);
-				parent.getParent().layout(true);
-				//Utils.relayout(parent); // crazy slow
+				parent.getShell().layout(new Control[] { parent });
 			}
 			haveSentInitialize = false;
 			hasFocus = false;
