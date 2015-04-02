@@ -759,6 +759,38 @@ ConfigurationChecker
 	    	changed = true;
 	    }
       
+	    	// 5601 propagate swt crash settings 
+	    {
+			if ( COConfigurationManager.getBooleanParameter( "azpromo.dump.disable.plugin", false )){
+	
+					// plugin has detected a crash
+				
+				if ( !COConfigurationManager.doesParameterNonDefaultExist( "browser.internal.disable" )){
+					
+					COConfigurationManager.setParameter( "browser.internal.disable", true );
+					
+					changed = true;
+				}
+			}
+			
+			COConfigurationManager.addAndFireParameterListener(
+				"browser.internal.disable",
+				new ParameterListener() {
+					
+					public void
+					parameterChanged(
+						String parameterName) 
+					{
+						if ( COConfigurationManager.getBooleanParameter( "browser.internal.disable", false )){
+							
+							COConfigurationManager.setParameter( "azpromo.dump.disable.plugin", true );
+							
+							COConfigurationManager.setDirty();
+						}
+					}
+				});
+	    }
+	    
 	    if ( FeatureAvailability.isAutoSpeedDefaultClassic()){
 	    
 	    	ConfigurationDefaults.getInstance().addParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );	// 1 == classic, 2 == beta
