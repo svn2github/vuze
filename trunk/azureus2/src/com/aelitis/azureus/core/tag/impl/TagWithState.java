@@ -111,7 +111,8 @@ TagWithState
 						
 					}else{
 						
-						Debug.out( "No taggable ID for " + taggable );
+						// Get this when the taggable is a download that has lost its torrent
+						// Debug.out( "No taggable ID for " + taggable );
 					}
 				}catch( Throwable e ){
 					
