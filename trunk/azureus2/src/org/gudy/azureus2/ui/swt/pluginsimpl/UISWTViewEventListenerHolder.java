@@ -144,7 +144,11 @@ UISWTViewEventListenerHolder
 						Debug.out(e);
 						return false;
 					}
-				} else if (mapSWTViewToEventListener != null) {
+				} else if (type == UISWTViewEvent.TYPE_DATASOURCE_CHANGED) {
+					datasource = event.getData();
+				}
+				
+				if (mapSWTViewToEventListener != null) {
 					if (type == UISWTViewEvent.TYPE_DESTROY) {
 						eventListener = mapSWTViewToEventListener.remove(event.getView());
 					} else {
