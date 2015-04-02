@@ -120,6 +120,8 @@ AEDiagnostics
 	
 	private static List<AEDiagnosticsEvidenceGenerator>		evidence_generators	= new ArrayList<AEDiagnosticsEvidenceGenerator>();
 		
+	private static final AESemaphore	dump_check_done_sem = new AESemaphore( "dumpcheckcomplete" );
+	
 	public static synchronized void
 	startup(
 		boolean	_enable_pending )
@@ -527,6 +529,10 @@ AEDiagnostics
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+			
+		}finally{
+			
+			dump_check_done_sem.releaseForever();
 		}
 	}
 	
@@ -540,7 +546,9 @@ AEDiagnostics
 			LineNumberReader lnr = new LineNumberReader( new FileReader( file ));
 			
 			try{
-				boolean	float_excep	= false;
+				boolean	float_excep		= false;
+				boolean	swt_crash		= false;
+				boolean	browser_crash	= false;
 				
 				String[]	bad_dlls_uc = new String[bad_dlls.length];
 				
@@ -571,6 +579,20 @@ AEDiagnostics
 						float_excep	= true;
 						
 					}else{
+						
+						if ( line.startsWith( "# C" ) && line.contains( "[SWT-WIN32" )){
+							
+							swt_crash = true;
+							
+						}else if ( line.startsWith( "# C" ) && line.contains( "[IEFRAME" )){
+								
+							swt_crash = browser_crash = true;
+
+						}else if ( 	line.contains( "WEBSITE.PROCESSURLACTION") ||
+									( line.startsWith( "C " ) && line.contains( "[JSCRIPT" ))){
+							
+							browser_crash = true;
+						}
 						
 						for (int i=0;i<bad_dlls_uc.length;i++){
 							
@@ -609,6 +631,25 @@ AEDiagnostics
 									"platform.win32.baddll.info" ),	
 							new String[]{ dll + ".dll", detail });
 				}
+				
+				if ( swt_crash && browser_crash ){
+					
+					if ( Constants.isWindows ){
+						
+						if ( !COConfigurationManager.getBooleanParameter( "browser.internal.disable", false )){
+
+							COConfigurationManager.setParameter( "browser.internal.disable", true );
+							
+							COConfigurationManager.save();
+							
+							Logger.logTextResource(
+									new LogAlert(
+											LogAlert.REPEATABLE, 
+											LogAlert.AT_WARNING,
+											"browser.internal.auto.disabled" ));
+						}
+					}
+				}
 			}finally{
 				
 				lnr.close();
@@ -617,6 +658,13 @@ AEDiagnostics
 			
 			Debug.printStackTrace( e );
 		}
+	}
+	
+	public static void
+	waitForDumpChecks(
+		long	max_wait )
+	{
+		dump_check_done_sem.reserve( max_wait );
 	}
 	
 	public static void

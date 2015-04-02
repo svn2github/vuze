@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
 
@@ -44,6 +45,11 @@ BrowserWrapper
 		Composite		composite,
 		int				style )
 	{
+			// dump checking is async and might decide to disable the real browser to give it a chance to
+			// complete in case there's a race
+		
+		AEDiagnostics.waitForDumpChecks( 10*1000 );
+		
 		boolean use_fake = COConfigurationManager.getBooleanParameter( "browser.internal.disable" );
 		
 		if ( use_fake ){
