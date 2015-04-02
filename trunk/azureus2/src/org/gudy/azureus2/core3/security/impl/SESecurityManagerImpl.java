@@ -470,36 +470,50 @@ SESecurityManagerImpl
 		String		host,
 		int			port )
 	{
-			// special case for socks auth when user is explicitly "<none>" as some servers seem to cause
-			// a password prompt when no auth defined and java doesn't cache a successful blank response
-			// thus causing repetitive prompts
-		
-		if ( protocol.toLowerCase().startsWith( "socks" )){
-
-			String	socks_user 	= COConfigurationManager.getStringParameter( "Proxy.Username" ).trim();
-			String	socks_pw	= COConfigurationManager.getStringParameter( "Proxy.Password" ).trim();
-
-			if ( socks_user.equalsIgnoreCase( "<none>" )){
-				
-				return( new PasswordAuthentication( "", "".toCharArray()));
-			}
-			
-				// actually getting all sorts of problems with Java not caching socks passwords
-				// properly so I've abandoned prompting for them and always use the defined
-				// password
-			
-			if ( socks_user.length() == 0 ){
-				
-				Logger.log(
-					new LogAlert(false, LogAlert.AT_WARNING, "Socks server is requesting authentication, please setup user and password in config" ));
-			}
-			
-			return( new PasswordAuthentication(  socks_user, socks_pw.toCharArray()));
-		}
-		
-		try{			
+		try{
 			URL	tracker_url = new URL( protocol + "://" + host + ":" + port + "/" );
-		
+			
+				// special case for socks auth when user is explicitly "<none>" as some servers seem to cause
+				// a password prompt when no auth defined and java doesn't cache a successful blank response
+				// thus causing repetitive prompts
+			
+			if ( protocol.toLowerCase().startsWith( "socks" )){
+	
+					// give explicit thread-based listeners a chance to override the hack			
+				
+				SEPasswordListener	thread_listener = (SEPasswordListener)tls.get();
+				
+				if ( thread_listener != null ){
+					
+					PasswordAuthentication temp = thread_listener.getAuthentication( realm, tracker_url);
+					
+					if ( temp != null ){
+						
+						return( temp );
+					}
+				}
+
+				String	socks_user 	= COConfigurationManager.getStringParameter( "Proxy.Username" ).trim();
+				String	socks_pw	= COConfigurationManager.getStringParameter( "Proxy.Password" ).trim();
+	
+				if ( socks_user.equalsIgnoreCase( "<none>" )){
+					
+					return( new PasswordAuthentication( "", "".toCharArray()));
+				}
+				
+					// actually getting all sorts of problems with Java not caching socks passwords
+					// properly so I've abandoned prompting for them and always use the defined
+					// password
+				
+				if ( socks_user.length() == 0 ){
+					
+					Logger.log(
+						new LogAlert(false, LogAlert.AT_WARNING, "Socks server is requesting authentication, please setup user and password in config" ));
+				}
+				
+				return( new PasswordAuthentication(  socks_user, socks_pw.toCharArray()));
+			}
+				
 			return( getPasswordAuthentication( realm, tracker_url ));
 			
 		}catch( MalformedURLException e ){
