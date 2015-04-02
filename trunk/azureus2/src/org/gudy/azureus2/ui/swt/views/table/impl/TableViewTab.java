@@ -137,7 +137,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler2#refreshToolBarItems(java.util.Map)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
 		list.put("editcolumns", UIToolBarItem.STATE_ENABLED);
