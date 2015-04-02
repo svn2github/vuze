@@ -174,6 +174,9 @@ public class TableCellPainted
 	 */
 	public int getHeight() {
 		if (bounds == null) {
+			if (tableRow == null) {
+				return 20; // probably disposed
+			}
 			return tableRow.getView().getRowDefaultHeight();
 		}
 		return bounds.height - (getMarginHeight() * 2);
