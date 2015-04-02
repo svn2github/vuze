@@ -2022,13 +2022,6 @@ public class TableViewPainted
 	}
 
 	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableOrTreeSWT()
-	 */
-	public TableOrTreeSWT getTableOrTreeSWT() {
-		return null;
-	}
-
-	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#packColumns()
 	 */
 	public void packColumns() {

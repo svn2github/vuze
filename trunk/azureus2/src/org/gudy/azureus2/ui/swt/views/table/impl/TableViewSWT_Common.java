@@ -177,11 +177,6 @@ public class TableViewSWT_Common
 		tv.editCell(null, -1); // clear out current cell editor
 
 		if (cell != null && tc != null) {
-			if (e.button == 2 && e.stateMask == SWT.CONTROL) {
-				((TableCellImpl) cell).bDebug = !((TableCellImpl) cell).bDebug;
-				System.out.println("Set debug for " + cell + " to "
-						+ ((TableCellImpl) cell).bDebug);
-			}
 			TableCellMouseEvent event = createMouseEvent(cell, e,
 					TableCellMouseEvent.EVENT_MOUSEDOWN, false);
 			if (event != null) {

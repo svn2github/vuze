@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -1432,12 +1431,6 @@ public class FakeTableCell
 	public Rectangle getBounds() {
 		return cellArea == null ? composite.getClientArea() : new Rectangle(
 				cellArea.x, cellArea.y, cellArea.width, cellArea.height);
-	}
-
-	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBufferedTableItem()
-	public BufferedTableItem getBufferedTableItem() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getForegroundSWT()

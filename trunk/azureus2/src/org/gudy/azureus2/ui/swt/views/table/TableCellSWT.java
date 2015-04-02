@@ -19,14 +19,8 @@ package org.gudy.azureus2.ui.swt.views.table;
 
 import org.eclipse.swt.graphics.*;
 
-import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
-
 /**
  * SWT specific functions for Table Cells
- * 
- * SWT cells are split into two logical sections: a BufferedTableItem that
- * handles the actual drawing, and this class' implementor, which handles
- * listeners, checking to see if things are right, buffering, etc.  
  * 
  * @author TuxPaper
  * @created Jan 22, 2007

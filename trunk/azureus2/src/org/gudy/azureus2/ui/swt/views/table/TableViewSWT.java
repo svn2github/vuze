@@ -24,7 +24,10 @@ import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.plugins.ui.tables.*;
+
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener;
+import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 
@@ -185,8 +188,6 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 * @since 4.4.0.7
 	 */
 	void addRowMouseListener(TableRowMouseListener listener);
-
-	TableOrTreeSWT getTableOrTreeSWT();
 
 	/**
 	 * @since 4.5.0.5

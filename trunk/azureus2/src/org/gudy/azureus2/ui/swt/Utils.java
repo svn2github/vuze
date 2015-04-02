@@ -63,9 +63,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
-import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.GeneralUtils;
@@ -493,10 +490,6 @@ public class Utils
 	}
 
 	public static void alternateRowBackground(TableItem item) {
-		alternateRowBackground(TableOrTreeUtils.getEventItem(item));
-	}
-
-	public static void alternateRowBackground(TableItemOrTreeItem item) {
 		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
 			if (!item.getParent().getLinesVisible())
 				item.getParent().setLinesVisible(true);
@@ -532,8 +525,7 @@ public class Utils
 		if (iTopIndex < 0 || (iTopIndex == 0 && table.getItemCount() == 0)) {
 			return;
 		}
-		TableOrTreeSWT tt = TableOrTreeUtils.getTableOrTreeSWT(table);
-		int iBottomIndex = getTableBottomIndex(tt, iTopIndex);
+		int iBottomIndex = getTableBottomIndex(table, iTopIndex);
 
 		Color[] colors = {
 			table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
@@ -541,7 +533,7 @@ public class Utils
 		};
 		int iFixedIndex = iTopIndex;
 		for (int i = iTopIndex; i <= iBottomIndex; i++) {
-			TableItemOrTreeItem row = tt.getItem(i);
+			TableItem row = table.getItem(i);
 			// Rows can be disposed!
 			if (!row.isDisposed()) {
 				Color newColor = colors[iFixedIndex % colors.length];
@@ -906,8 +898,10 @@ public class Utils
 
 	/**
 	 * Bottom Index may be negative. Returns bottom index even if invisible.
+	 * <p>
+	 * Used by rssfeed
 	 */
-	public static int getTableBottomIndex(TableOrTreeSWT table, int iTopIndex) {
+	public static int getTableBottomIndex(Table table, int iTopIndex) {
 
 		// Shortcut: if lastBottomIndex is present, assume it's accurate
 		Object lastBottomIndex = table.getData("lastBottomIndex");
@@ -925,79 +919,14 @@ public class Utils
 		}
 
 		Rectangle clientArea = table.getClientArea();
-		TableItemOrTreeItem bottomItem = table.getItem(new Point(xPos,
+		TableItem bottomItem = table.getItem(new Point(xPos,
 				clientArea.y + clientArea.height - 2));
 		if (bottomItem != null) {
-			while (bottomItem.getParentItem() != null) {
-				bottomItem = bottomItem.getParentItem();
-			}
 			return table.indexOf(bottomItem);
 		}
 		return table.getItemCount() - 1;
 	}
 	
-	public static List<TableItemOrTreeItem> getVisibleTableItems(TableOrTreeSWT table) {
-
-		if (table.getColumnCount() < 2) {
-			return Collections.emptyList();
-		}
-
-		int xPos = table.getColumn(0).getWidth() + table.getColumn(1).getWidth() - 1;
-
-		Rectangle clientArea = table.getClientArea();
-		TableItemOrTreeItem bottomItem = table.getItem(new Point(xPos,
-				clientArea.y + clientArea.height - 1));
-		if (bottomItem == null) {
-			if (clientArea.height + clientArea.y <= 0) {
-				return Collections.emptyList();
-			}
-		}
-
-		TableItemOrTreeItem curItem = table.getTopItem();
-		if (curItem == null) {
-			if (table.getItemCount() > 0) {
-				// BUG in GTK: topitem of tree will be null after setItemCount
-				curItem = table.getItem(0);
-			} else {
-				return Collections.emptyList();
-			}
-		}
-		List<TableItemOrTreeItem> items = new ArrayList<TableItemOrTreeItem>();
-		int i = table.indexOf(curItem);
-		int count = table.getItemCount();
-		while (true) {
-			if (curItem == bottomItem) {
-				items.add(curItem);
-				break;
-			} else if (curItem == null) {
-				break;
-			}
-			items.add(curItem);
-			if (curItem.getExpanded() && curItem.getItemCount() > 0) {
-				if (!addItemsToList(items, curItem.getItems(), bottomItem)) {
-					break;
-				}
-			}
-			i++;
-			if (i >= count) {
-				break;
-			}
-			curItem = table.getItem(i);
-		}
-		return items;
-	}
-
-	private static boolean addItemsToList(List<TableItemOrTreeItem> list, TableItemOrTreeItem[] items,
-			TableItemOrTreeItem stopOnItem) {
-		
-		for (TableItemOrTreeItem item : items) {
-			list.add(item);
-			if (item == stopOnItem) {
-				return false;
-			}
-		}
-		return true;
-	}
 
 	public static void launch( final DiskManagerFileInfo fileInfo ){
 		LaunchManager	launch_manager = LaunchManager.getManager();
