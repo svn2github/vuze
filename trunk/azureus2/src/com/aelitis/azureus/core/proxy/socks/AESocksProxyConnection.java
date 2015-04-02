@@ -37,6 +37,12 @@ AESocksProxyConnection
 	public AEProxyConnection
 	getConnection();
 	
+	public String
+	getUsername();
+	
+	public String
+	getPassword();
+	
 	public void
 	disableDNSLookups();
 	

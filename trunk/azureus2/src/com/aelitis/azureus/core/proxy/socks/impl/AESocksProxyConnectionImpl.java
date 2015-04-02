@@ -44,15 +44,18 @@ AESocksProxyConnectionImpl
 	private static final LogIDs LOGID = LogIDs.NET;
 	public static final boolean	TRACE	= false;
 	
-	protected AESocksProxyImpl		proxy;
-	protected AEProxyConnection		connection;
-	protected boolean				disable_dns_lookups;
+	private final AESocksProxyImpl		proxy;
+	private final AEProxyConnection		connection;
 	
-	protected SocketChannel			source_channel;
+	private boolean					disable_dns_lookups;
+	private String					username;
+	private String					password;
 	
-	protected int					socks_version;
+	private SocketChannel			source_channel;
 	
-	protected AESocksProxyPlugableConnection	plugable_connection;
+	private int						socks_version;
+	
+	private AESocksProxyPlugableConnection	plugable_connection;
 	
 	protected
 	AESocksProxyConnectionImpl(
@@ -102,6 +105,18 @@ AESocksProxyConnectionImpl
 		name += plugable_connection.getName();
 		
 		return( name );
+	}
+	
+	public String
+	getUsername()
+	{
+		return( username );
+	}
+	
+	public String
+	getPassword()
+	{
+		return( password );
 	}
 	
 	protected AEProxyState
@@ -161,10 +176,10 @@ AESocksProxyConnectionImpl
 	
 		throws IOException
 	{
-		new proxyStateClose();
+		new ProxyStateClose();
 	}
 	
-	protected class
+	private class
 	proxyStateVersion
 		extends AESocksProxyState
 	{
@@ -224,7 +239,7 @@ AESocksProxyConnectionImpl
 	
 		// V4
 	
-	protected class
+	private class
 	proxyStateV4Request
 		extends AESocksProxyState
 	{
@@ -333,7 +348,7 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
-	protected class
+	private class
 	proxyStateV4aRequest
 		extends AESocksProxyState
 	{
@@ -438,7 +453,7 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
-	protected class
+	private class
 	proxyStateV4Reply
 		extends AESocksProxyState
 	{
@@ -493,7 +508,7 @@ AESocksProxyConnectionImpl
 	
 		// V5
 	
-	protected class
+	private class
 	proxyStateV5MethodNumber
 		extends AESocksProxyState
 	{
@@ -541,7 +556,7 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
-	protected class
+	private class
 	proxyStateV5Methods
 		extends AESocksProxyState
 	{
@@ -580,51 +595,251 @@ AESocksProxyConnectionImpl
 				return( true );
 			}
 			
-				// we just ignore actual method values
+			buffer.flip();
 			
-			new proxyStateV5MethodsReply();
+			byte[] methods = new byte[ buffer.remaining()];
+			
+			buffer.get( methods );
+			
+			boolean found_no_auth 	= false;
+			boolean found_user_pass	= false;
+			
+			for ( int i=0;i<methods.length;i++){
+				
+				int method = methods[i]&0xff;
+				
+				if ( method == 0 ){
+					
+					found_no_auth = true;
+					
+				}else if ( method == 2 ){
+					
+					found_user_pass = true;
+				}
+			}
+			
+			if ( found_no_auth ){
+			
+				new proxyStateV5MethodsReply( 0 );
+			
+				return( true );
+				
+			}else if ( found_user_pass ){
+					
+				new proxyStateV5MethodsReply( 2 );
+				
+				return( true );
+				
+			}else{
+				
+				throw( new IOException( "V5: No supported methods requested" ));
+			}
+		}
+	}
+	
+	private class
+	proxyStateV5MethodsReply
+		extends ProxyStateWriter
+	{
+		
+		protected
+		proxyStateV5MethodsReply(
+			int	selected_method )
+		
+			throws IOException
+		{
+			if ( selected_method == 0 ){
+			
+				new proxyStateV5Request();
+				
+			}else{
+				
+				new proxyStateV5Username();
+			}
+			
+			connection.setWriteState( this );
+			
+			buffer	= ByteBuffer.wrap(new byte[]{(byte)5,(byte)selected_method});
+			
+			write( source_channel );
+		}
+	}
+	
+	/*
+    +----+------+----------+------+----------+
+    |VER | ULEN |  UNAME   | PLEN |  PASSWD  |
+    +----+------+----------+------+----------+
+    | 1  |  1   | 1 to 255 |  1   | 1 to 255 |
+    +----+------+----------+------+----------+
+    */
+	
+	private class
+	proxyStateV5Username
+		extends AESocksProxyState
+	{
+		boolean	got_length	= false;
+		
+		protected
+		proxyStateV5Username()
+		{
+			super( AESocksProxyConnectionImpl.this );
+			
+			connection.setReadState( this );
+			
+			buffer	= ByteBuffer.allocate(2);
+		}
+		
+		protected boolean
+		readSupport(
+			final SocketChannel 		sc )
+		
+			throws IOException
+		{
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
+				
+				throw( new IOException( "Connection closed" ));
+			}
+			
+			
+			if ( buffer.hasRemaining()){
+				
+				return( true );
+			}
+			
+			buffer.flip();
+			
+			if ( !got_length){
+				
+				buffer.get();		// version
+				
+				int	length = ((int)buffer.get()) & 0xff;
+				
+				buffer = ByteBuffer.allocate( length );
+				
+				got_length	= true;
+				
+			}else{
+				
+				String	user_name = "";
+				
+				while( buffer.hasRemaining()){
+				
+					user_name += (char)buffer.get();
+				}
+													
+				new proxyStateV5Password( user_name );
+			}
 			
 			return( true );
 		}
 	}
 	
-	protected class
-	proxyStateV5MethodsReply
+	private class
+	proxyStateV5Password
 		extends AESocksProxyState
 	{
+		private final String username;
+		
+		boolean	got_length	= false;
 		
 		protected
-		proxyStateV5MethodsReply()
-		
-			throws IOException
+		proxyStateV5Password(
+			String		_username )
 		{
 			super( AESocksProxyConnectionImpl.this );
 			
+			username = _username;
+			
+			connection.setReadState( this );
+			
+			buffer	= ByteBuffer.allocate(1);
+		}
+		
+		protected boolean
+		readSupport(
+			final SocketChannel 		sc )
+		
+			throws IOException
+		{
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
+				
+				throw( new IOException( "Connection closed" ));
+			}
+			
+			
+			if ( buffer.hasRemaining()){
+				
+				return( true );
+			}
+			
+			buffer.flip();
+			
+			if ( !got_length){
+				
+				int	length = ((int)buffer.get()) & 0xff;
+				
+				buffer = ByteBuffer.allocate( length );
+				
+				got_length	= true;
+				
+			}else{
+				
+				String	password = "";
+				
+				while( buffer.hasRemaining()){
+				
+					password += (char)buffer.get();
+				}
+													
+				AESocksProxyConnectionImpl.this.username	= username;
+				AESocksProxyConnectionImpl.this.password	= password;
+				
+				new proxyStateV5UsernamePasswordReply();
+			}
+			
+			return( true );
+		}
+	}
+	
+	/*
+	 +----+--------+
+     |VER | STATUS |
+     +----+--------+
+     | 1  |   1    |
+     +----+--------+
+     */
+	
+	private class
+	proxyStateV5UsernamePasswordReply
+		extends ProxyStateWriter
+	{
+		protected
+		proxyStateV5UsernamePasswordReply()
+		
+			throws IOException
+		{
 			new proxyStateV5Request();
 			
 			connection.setWriteState( this );
 			
-			buffer	= ByteBuffer.wrap(new byte[]{(byte)5,(byte)0});
+			buffer	= ByteBuffer.wrap(new byte[]{(byte)1,(byte)0});
 			
 			write( source_channel );
 		}
-		
-		protected boolean
-		writeSupport(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-			int len = sc.write( buffer );
-			
-			if ( buffer.hasRemaining()){
-				
-				connection.requestWriteSelect( sc );
-			}
-			
-			return( len > 0 );
-		}
 	}
+	
 	
 	/*
     +----+-----+-------+------+----------+----------+
@@ -650,7 +865,7 @@ AESocksProxyConnectionImpl
 	             order
 	             */
 	
-	protected class
+	private class
 	proxyStateV5Request
 		extends AESocksProxyState
 	{
@@ -728,7 +943,7 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
-	protected class
+	private class
 	proxyStateV5RequestIP
 		extends AESocksProxyState
 	{
@@ -780,7 +995,7 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
-	protected class
+	private class
 	proxyStateV5RequestIPV6
 		extends AESocksProxyState
 	{
@@ -832,7 +1047,7 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
-	protected class
+	private class
 	proxyStateV5RequestDNS
 		extends AESocksProxyState
 	{
@@ -922,7 +1137,7 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
-	protected class
+	private class
 	proxyStateV5RequestPort
 		extends AESocksProxyState
 	{
@@ -1011,7 +1226,7 @@ AESocksProxyConnectionImpl
       */
 	
 	
-	protected class
+	private class
 	proxyStateV5Reply
 		extends AESocksProxyState
 	{
@@ -1058,19 +1273,15 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
-	
-	protected class
+	private class
 	proxyStateV5UDPAssociateReply
-		extends AESocksProxyState
-	{
-		
+		extends ProxyStateWriter
+	{	
 		protected
 		proxyStateV5UDPAssociateReply()
 		
 			throws IOException
 		{
-			super( AESocksProxyConnectionImpl.this );
-						
 			connection.setWriteState( this );
 			
 			byte[]	addr = new byte[4];
@@ -1083,9 +1294,34 @@ AESocksProxyConnectionImpl
 					new byte[]{(byte)5,(byte)reply_state,(byte)0,(byte)1,
 								addr[0],addr[1],addr[2],addr[3],
 								(byte)((port>>8)&0xff), (byte)(port&0xff)});
-					
-			
+							
 			write( source_channel );			
+		}
+	}
+	
+	public void
+	connected()
+	
+		throws IOException
+	{
+		if ( socks_version == 4 ){
+			
+			new proxyStateV4Reply();
+			
+		}else{
+			
+			new proxyStateV5Reply();
+		}
+	}
+	
+	private class
+	ProxyStateWriter
+		extends AESocksProxyState
+	{
+		private
+		ProxyStateWriter()
+		{
+			super( AESocksProxyConnectionImpl.this );
 		}
 		
 		protected boolean
@@ -1104,28 +1340,13 @@ AESocksProxyConnectionImpl
 			return( len > 0 );
 		}
 	}
-	public void
-	connected()
 	
-		throws IOException
-	{
-		if ( socks_version == 4 ){
-			
-			new proxyStateV4Reply();
-			
-		}else{
-			
-			new proxyStateV5Reply();
-		}
-	}
-
-	
-	protected class
-	proxyStateClose
+	private class
+	ProxyStateClose
 		extends AESocksProxyState
 	{
-		protected
-		proxyStateClose()
+		private
+		ProxyStateClose()
 		
 			throws IOException
 		{	
