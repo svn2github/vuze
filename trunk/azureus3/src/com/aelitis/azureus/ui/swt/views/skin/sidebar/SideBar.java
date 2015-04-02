@@ -1290,10 +1290,10 @@ public class SideBar
 		}
 	}
 
-	protected int indexOf(final MdiEntry entryLibrary) {
+	protected int indexOf(final MdiEntry entry) {
 		Object o = Utils.execSWTThreadWithObject("indexOf", new AERunnableObject() {
 			public Object runSupport() {
-				TreeItem treeItem = ((SideBarEntrySWT) entryLibrary).getTreeItem();
+				TreeItem treeItem = ((SideBarEntrySWT) entry).getTreeItem();
 				if (treeItem == null) {
 					return -1;
 				}
