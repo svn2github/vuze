@@ -255,6 +255,9 @@ public class DebugMenuHelper
 			800, 550,
 			1024, 718,
 			1280, 700,
+			1440, 850,
+			1600, 1050,
+			1920, 1150
 		};
 		for (int i = 0; i < sizes.length; i += 2) {
 			final int x = sizes[i];
