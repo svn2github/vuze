@@ -584,11 +584,14 @@ AEDiagnostics
 							
 							swt_crash = true;
 							
-						}else if ( line.startsWith( "# C" ) && line.contains( "[IEFRAME" )){
+						}else if ( 	line.startsWith( "# C" ) && 
+									( 	line.contains( "[IEFRAME" ) || 
+										line.contains( "[JSCRIPT" ) ||
+										line.contains( "[MSHTML" ))){
 								
 							swt_crash = browser_crash = true;
 
-						}else if ( 	line.contains( "WEBSITE.PROCESSURLACTION") ||
+						}else if ( 	( line.startsWith( "J " ) && line.contains( "SWT.BROWSER")) ||
 									( line.startsWith( "C " ) && line.contains( "[JSCRIPT" ))){
 							
 							browser_crash = true;
