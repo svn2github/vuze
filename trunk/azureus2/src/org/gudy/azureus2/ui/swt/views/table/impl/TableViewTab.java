@@ -128,7 +128,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
 		if (item.getID().equals("editcolumns")) {
-			if (tv instanceof TableViewSWTImpl) {
+			if (tv instanceof TableViewSWT) {
 				((TableViewSWT<?>)tv).showColumnEditor();
 				return true;
 			}
@@ -154,14 +154,14 @@ public abstract class TableViewTab<DATASOURCETYPE>
 	public void viewActivated() {
 		// cheap hack.. calling isVisible freshens table's visible status (and
 		// updates subviews)
-		if (tv instanceof TableViewSWTImpl) {
-			((TableViewSWTImpl<?>)tv).isVisible();
+		if (tv instanceof TableViewSWT) {
+			((TableViewSWT<?>)tv).isVisible();
 		}
 	}
 	
 	private void viewDeactivated() {
-		if (tv instanceof TableViewSWTImpl) {
-			((TableViewSWTImpl<?>)tv).isVisible();
+		if (tv instanceof TableViewSWT) {
+			((TableViewSWT<?>)tv).isVisible();
 		}
 	}
 
