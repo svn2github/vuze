@@ -255,6 +255,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("DE", "Deluge", VER_AZ_FOUR_DIGITS);
 		addAzStyle("EB", "EBit");
 		addAzStyle("ES", "Electric Sheep", VER_AZ_THREE_DIGITS);
+		addAzStyle("eM", "eMule", NO_VERSION); // has what looks like a 1.2.3.4 version, but 1004 != 0.60
 		addAzStyle("FC", "FileCroc");
 		addAzStyle("FG", "FlashGet", VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN);
 		addAzStyle("FT", "FoxTorrent/RedSwoosh");
