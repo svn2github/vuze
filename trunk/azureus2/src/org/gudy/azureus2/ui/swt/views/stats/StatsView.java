@@ -281,6 +281,8 @@ public class StatsView
 
 			item.getControl().setFocus();
 
+			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+
 			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (uiFunctions != null) {
 				uiFunctions.getMDI().getEntry( StatsView.VIEW_ID ).setDatasource( dataSource );
