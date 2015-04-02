@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -66,8 +67,7 @@ public class UISWTViewImpl
 {
 	public static final String CFG_PREFIX = "Views.plugins.";
 	
-	// TODO: What about IViewAlwaysInitialize?
-	private static final boolean DELAY_INITIALIZE_TO_FIRST_ACTIVATE = true;
+	private boolean DELAY_INITIALIZE_TO_FIRST_ACTIVATE = true;
 
 	private PluginUISWTSkinObject skinObject;
 
@@ -116,6 +116,7 @@ public class UISWTViewImpl
 		this.sViewID = sViewID;
 		initialDatasource = _initialDatasource;
 		this.eventListener = eventListener;
+		DELAY_INITIALIZE_TO_FIRST_ACTIVATE = !(eventListener instanceof IViewAlwaysInitialize);
 		if (eventListener instanceof UISWTViewCoreEventListener) {
 			useCoreDataSource = true;
 		}
