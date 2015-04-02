@@ -110,11 +110,15 @@ BrowserWrapperFake
 		link_label.setBackground( Colors.white );
 		
 		link_label.addMouseListener(new MouseAdapter() {
-			public void mouseDoubleClick(MouseEvent arg0) {
+			public void mouseDoubleClick(MouseEvent e) {
 				Utils.launch( url );
 			}
-			public void mouseUp(MouseEvent arg0) {
-				Utils.launch( url );
+			public void mouseUp(MouseEvent e) {
+				
+				if ( e.button == 1 && e.stateMask != SWT.CONTROL){
+				
+					Utils.launch( url );
+				}
 			}
 		});
 		
@@ -122,7 +126,14 @@ BrowserWrapperFake
 		grid_data.horizontalIndent = 10;
 		link_label.setLayoutData(grid_data);
 		
-		ClipboardCopy.addCopyToClipMenu( link_label );
+		ClipboardCopy.addCopyToClipMenu( 
+			link_label,
+			new ClipboardCopy.copyToClipProvider() {
+				
+				public String getText() {
+					return( url );
+				}
+			});
 		
 			// desc
 		
