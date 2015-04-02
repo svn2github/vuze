@@ -67,7 +67,7 @@ public class UISWTViewImpl
 	public static final String CFG_PREFIX = "Views.plugins.";
 	
 	// TODO: What about IViewAlwaysInitialize?
-	private static final boolean DELAY_INITIALIZE_TO_FIRST_ACTIVATE = false;
+	private static final boolean DELAY_INITIALIZE_TO_FIRST_ACTIVATE = true;
 
 	private PluginUISWTSkinObject skinObject;
 
