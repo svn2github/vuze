@@ -272,11 +272,12 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			gExternalBrowser.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			
 			gExternalBrowser.setText( MessageText.getString( "config.external.browser" ));
-			
-			label = new Label(gExternalBrowser, SWT.NULL);
+			label = new Label(gExternalBrowser, SWT.WRAP);
 			Messages.setLanguageText(label, "config.external.browser.info1");
-			label = new Label(gExternalBrowser, SWT.NULL);
+			label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+			label = new Label(gExternalBrowser, SWT.WRAP);
 			Messages.setLanguageText(label, "config.external.browser.info2");
+			label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
 			
 				// browser selection
 
@@ -312,7 +313,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			layout.marginHeight = 0;
 			cEBArea.setLayout(layout);
 			
-			label = new Label(cEBArea, SWT.NULL);
+			label = new Label(cEBArea, SWT.WRAP);
 			Messages.setLanguageText(label, "config.external.browser.select");
 
 			final Composite cEB = new Group(cEBArea, SWT.WRAP);
@@ -356,7 +357,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			
 			buttons.get(existing_index).setSelection( true );
 			
-			Messages.setLanguageText(new Label(cEBArea,SWT.NONE), "config.external.browser.prog" );
+			Messages.setLanguageText(new Label(cEBArea,SWT.WRAP), "config.external.browser.prog" );
 			
 			Composite manualArea = new Composite(cEBArea,SWT.NULL);
 			layout = new GridLayout(2,false);
@@ -427,7 +428,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			testArea.setLayout(layout);
 			testArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-			label = new Label(testArea, SWT.NULL);
+			label = new Label(testArea, SWT.WRAP);
 			Messages.setLanguageText(label, "config.external.browser.test");
 
 		    final Button test_button = new Button(testArea, SWT.PUSH);
@@ -483,7 +484,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 				// switch internal->external
 			
-			label = new Label(gExternalBrowser, SWT.NULL);
+			label = new Label(gExternalBrowser, SWT.WRAP);
 			Messages.setLanguageText(label, "config.external.browser.switch.info");
 
 			Group switchArea = new Group(gExternalBrowser,SWT.NULL);
@@ -495,11 +496,11 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 				// header
 			
-			label = new Label(switchArea, SWT.NULL);
+			label = new Label(switchArea, SWT.WRAP);
 			Messages.setLanguageText(label, "config.external.browser.switch.feature");
-			label = new Label(switchArea, SWT.NULL);
+			label = new Label(switchArea, SWT.WRAP);
 			Messages.setLanguageText(label, "config.external.browser.switch.external");
-			label = new Label(switchArea, SWT.NULL);
+			label = new Label(switchArea, SWT.WRAP);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalIndent = 10;
 			label.setLayoutData(gridData);
@@ -507,7 +508,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 				// search 
 			
-			label = new Label(switchArea, SWT.NULL);
+			label = new Label(switchArea, SWT.WRAP);
 			gridData = new GridData();
 			gridData.verticalIndent = 10;
 			label.setLayoutData(gridData);
@@ -519,8 +520,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			gridData.horizontalAlignment = SWT.CENTER;
 			switchSearch.setLayoutData(gridData);
 			
-			label = new Label(switchArea, SWT.NULL);
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			label = new Label(switchArea, SWT.WRAP);
+			gridData = Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL);
 			gridData.verticalIndent = 10;
 			gridData.horizontalIndent = 10;
 			label.setLayoutData(gridData);
@@ -528,7 +529,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 				// subscriptions
 			
-			label = new Label(switchArea, SWT.NULL);
+			label = new Label(switchArea, SWT.WRAP);
 			gridData = new GridData();
 			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "config.external.browser.switch.subs");
@@ -538,8 +539,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			gridData.horizontalAlignment = SWT.CENTER;
 			switchSubs.setLayoutData(gridData);
 			
-			label = new Label(switchArea, SWT.NULL);
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			label = new Label(switchArea, SWT.WRAP);
+			gridData = Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL);
 			gridData.horizontalIndent = 10;
 			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "config.external.browser.switch.subs.inf");
@@ -547,7 +548,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		
 			// internal browser
 		
-		if( userMode > 1 ) {
+		if( userMode > 1) {
 			Group gInternalBrowser = new Group(cSection, SWT.NULL);
 			layout = new GridLayout();
 			layout.numColumns = 1;
@@ -556,13 +557,22 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			
 			gInternalBrowser.setText( MessageText.getString( "config.internal.browser" ));
 			
-			label = new Label(gInternalBrowser, SWT.NULL);
+			label = new Label(gInternalBrowser, SWT.WRAP);
+			gridData = Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL);
+			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "config.internal.browser.info1");
 
 			
 			final BooleanParameter intbrow_disable = new BooleanParameter(gInternalBrowser, "browser.internal.disable", "config.browser.internal.disable");
+			label = new Label(gInternalBrowser, SWT.WRAP);
+			gridData = Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL);
+			gridData.horizontalIndent = 15;
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label, "config.browser.internal.disable.info");
 		
-			label = new Label(gInternalBrowser, SWT.NULL);
+			label = new Label(gInternalBrowser, SWT.WRAP);
+			gridData = Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL);
+			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "config.internal.browser.info3");
 			
 			java.util.List<PluginInterface> pis = AEProxyFactory.getPluginHTTPProxyProviders( true ); 
@@ -587,7 +597,9 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			layout.marginHeight = 0;
 			cIPArea.setLayout(layout);
 			
-			label = new Label(cIPArea, SWT.NULL);
+			label = new Label(cIPArea, SWT.WRAP);
+			gridData = Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL);
+			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "config.internal.browser.proxy.select");
 
 			final Composite cIP = new Group(cIPArea, SWT.WRAP);
@@ -667,7 +679,9 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			
 				// force firefox
 			
-			label = new Label(gInternalBrowser, SWT.NULL);
+			label = new Label(gInternalBrowser, SWT.WRAP);
+			gridData = Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL);
+			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "config.internal.browser.info2");
 
 			
@@ -675,7 +689,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			Composite pArea = new Composite(gInternalBrowser,SWT.NULL);
 			pArea.setLayout(new GridLayout(3,false));
 			pArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			Messages.setLanguageText(new Label(pArea,SWT.NONE), MSG_PREFIX+"xulRunnerPath");
+			Messages.setLanguageText(new Label(pArea,SWT.WRAP), MSG_PREFIX+"xulRunnerPath");
 			final Parameter xulDir = new DirectoryParameter(pArea, "swt.xulRunner.path","");
 			fMoz.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(xulDir.getControls(), false));
 			
