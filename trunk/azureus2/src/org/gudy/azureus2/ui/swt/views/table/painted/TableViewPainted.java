@@ -285,8 +285,9 @@ public class TableViewPainted
 							if (select) {
 								rowToSelect.setSelected(select);
 							} else {
-								focusedRow.setSelected(false);
+								TableRowPainted rowToUnSelect = focusedRow;
 								setFocusedRow(rowToSelect);
+								rowToUnSelect.setSelected(false);
 							}
 							updateTable = true;
 						}
@@ -367,8 +368,9 @@ public class TableViewPainted
   							if (select) {
   								rowToSelect.setSelected(select);
   							} else {
-  								focusedRow.setSelected(false);
+  								TableRowPainted rowToUnSelect = focusedRow;
   								setFocusedRow(rowToSelect);
+  								rowToUnSelect.setSelected(false);
   							}
   						} else {
   							setSelectedRows(new TableRowCore[] {
