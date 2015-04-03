@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 import java.awt.Frame;
 import java.awt.Panel;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -268,6 +269,11 @@ public class UISWTViewImpl
 			if (dataSource == newDataSource) {
 				return true;
 			}
+			if (newDataSource instanceof Object[] && dataSource instanceof Object[]) {
+				if (Arrays.equals((Object[]) newDataSource, (Object[]) dataSource)) {
+					return true;
+				}
+			}
 			data = dataSource = newDataSource;
 		} else if (eventType == UISWTViewEvent.TYPE_LANGUAGEUPDATE) {
 			lastFullTitle = "";
@@ -310,7 +316,10 @@ public class UISWTViewImpl
 			haveSentInitialize = false;
 			hasFocus = false;
 			created = false;
-		}	
+			dataSource = null;
+		} else if (eventType == UISWTViewEvent.TYPE_CREATE) {
+			triggerEventRaw(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, dataSource);
+		}
 		
 		return result;
 	}
