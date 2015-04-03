@@ -57,6 +57,9 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -66,7 +69,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  *
  * @TODO dynamically load tab contents, like SBC_TorrentDetailsView does
  */
-public class TableViewSWT_TabsCommon
+public class TableViewSWT_TabsCommon implements SelectedContentListener
 {
 	UISWTView parentView;
 	TableViewSWT<?> tv;
@@ -113,6 +116,7 @@ public class TableViewSWT_TabsCommon
 
 	public void setTvOverride(TableView<?> tvOverride) {
 		this.tvOverride = tvOverride;
+		selectedContent = SelectedContentManager.getCurrentlySelectedContent();
 	}
 
 	public void triggerTabViewDataSourceChanged(UISWTViewCore view,
@@ -144,6 +148,7 @@ public class TableViewSWT_TabsCommon
 	}
 	
 	public void delete() {
+		SelectedContentManager.removeCurrentlySelectedContentListener(this);
 		if (tabViews != null && tabViews.size() > 0) {
 			for (int i = 0; i < tabViews.size(); i++) {
 				UISWTViewCore view = tabViews.get(i);
@@ -441,6 +446,8 @@ public class TableViewSWT_TabsCommon
 			tableComposite = tv.createMainPanel(composite);
 			return tableComposite;
 		}
+
+		SelectedContentManager.addCurrentlySelectedContentListener(this);
 
 		ConfigurationManager configMan = ConfigurationManager.getInstance();
 		
@@ -958,6 +965,7 @@ public class TableViewSWT_TabsCommon
 	}
 
 	private UISWTViewCore	focused_view = null;
+	private ISelectedContent[] selectedContent;
 	
 	private void
 	fireFocusGained(
@@ -968,10 +976,6 @@ public class TableViewSWT_TabsCommon
 		}
 		
 		focused_view = view;
-		
-		//triggerTabViewDataSourceChanged(view, true, true, tv, new Object[][] { null, null });
-
-		//checkPendingDataSourceChange( view );
 		
 		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 	}
@@ -1000,6 +1004,20 @@ public class TableViewSWT_TabsCommon
 				&& !tabFolder.getMinimized()){
 			
 			refreshSelectedSubView();
+		}
+	}
+
+	// @see com.aelitis.azureus.ui.selectedcontent.SelectedContentListener#currentlySelectedContentChanged(com.aelitis.azureus.ui.selectedcontent.ISelectedContent[], java.lang.String)
+	public void currentlySelectedContentChanged(ISelectedContent[] currentContent,
+			String viewID) {
+		TableView tvToUse = tvOverride == null ? tv : tvOverride;
+		if (viewID != null && viewID.equals(tvToUse.getTableID())) {
+			selectedContent = currentContent;
+		}
+		if (currentContent.length == 0 && tv.isVisible() && selectedContent != null
+				&& selectedContent.length != 0) {
+			SelectedContentManager.changeCurrentlySelectedContent(
+					tvToUse.getTableID(), selectedContent, tvToUse);
 		}
 	}
 }
