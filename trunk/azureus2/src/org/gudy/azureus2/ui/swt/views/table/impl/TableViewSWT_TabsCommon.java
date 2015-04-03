@@ -138,11 +138,6 @@ public class TableViewSWT_TabsCommon
 			if (dataSourcesCoreAndPlugin[1] == null) {
 				dataSourcesCoreAndPlugin[1] = tv.getSelectedDataSources(false);
 			}
-			if (dataSourcesCoreAndPlugin[1].length == 0) {
-				dataSourcesCoreAndPlugin[1] = new Object[] {
-					tv.getParentDataSource()
-				};
-			}
 			dataSourceChanged(view, dataSourcesCoreAndPlugin[1].length == 0
 					? tv.getParentDataSource() : dataSourcesCoreAndPlugin[1]);
 		}
