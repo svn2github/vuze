@@ -20,11 +20,12 @@
 
 package com.aelitis.azureus.ui.swt.shells.main;
 
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.util.*;
@@ -902,6 +903,16 @@ MainWindowDelayStub
 			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.openTorrentOpenOptions( shell, sPathOfFilesToOpen, sFilesToOpen, defaultToStopped, forceOpen);}});
 		}
 
+		public void 
+		openTorrentOpenOptions(
+			final Shell 				shell,
+			final String 				sPathOfFilesToOpen, 
+			final String[] 				sFilesToOpen,
+			final Map<String, Object> 	options ) 
+		{
+			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.openTorrentOpenOptions( shell, sPathOfFilesToOpen, sFilesToOpen, options);}});
+		}
+		
 		public void 
 		openTorrentWindow() 
 		{

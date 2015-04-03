@@ -191,6 +191,15 @@ public interface UIFunctions
 		boolean 	launch_already_checked, 
 		boolean 	complete_only );
 
+	public static final String 	OTO_DEFAULT_TO_STOPPED			= "defaultStopped";		// Boolean
+	public static final boolean OTO_DEFAULT_TO_STOPPED_DEFAULT	= false;
+	
+	public static final String 	OTO_FORCE_OPEN					= "forceOpen";			// Boolean
+	public static final boolean OTO_FORCE_OPEN_DEFAULT			= false;
+	
+	public static final String 	OTO_HIDE_ERRORS					= "hideErrors";			// Boolean
+	public static final boolean OTO_HIDE_ERRORS_DEFAULT			= false;
+	
 	/**
 	 * Opens the Torrent Add Options Window, if configured to
 	 * 

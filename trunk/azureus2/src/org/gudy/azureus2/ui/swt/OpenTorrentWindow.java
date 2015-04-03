@@ -2221,7 +2221,7 @@ public class OpenTorrentWindow
 		}
 		
 		// Do a quick check to see if it's a torrent
-		if (!TorrentUtil.isFileTorrent(torrentFile, torrentFile.getName())) {
+		if (!TorrentUtil.isFileTorrent(torrentFile, torrentFile.getName(), true )) {
 			if (bDeleteFileOnCancel) {
 				torrentFile.delete();
 			}
@@ -2633,7 +2633,7 @@ public class OpenTorrentWindow
 			File file = inf.getFile();
 			// we already know it isn't a torrent.. we are just using the call
 			// to popup the message
-			TorrentUtil.isFileTorrent(file, inf.getURL());
+			TorrentUtil.isFileTorrent(file, inf.getURL(), true );
 			if (file.exists()) {
 				file.delete();
 			}

@@ -286,8 +286,13 @@ public class FileDownloadWindow
 					return;
 				}
 
-				pReporter.setErrorMessage(MessageText.getString("fileDownloadWindow.state_error")
-						+ downloader.getError());
+				if ( torrentOptions.getHideErrors()){
+					pReporter.setCancelCloses( true );
+					pReporter.cancel();
+				}else{
+					pReporter.setErrorMessage(MessageText.getString("fileDownloadWindow.state_error")
+							+ downloader.getError());
+				}
 				return;
 			case TorrentDownloader.STATE_FINISHED:
 				if (localLastState == state) {

@@ -19,6 +19,7 @@ package com.aelitis.azureus.ui.swt.shells.main;
 import java.io.File;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -26,7 +27,6 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
@@ -1276,6 +1276,39 @@ public class UIFunctionsImpl
 			// with no listener, Downloader will open options window if user configured
 			TorrentOpener.openTorrentsFromStrings(torrentOptions, shell,
 					sPathOfFilesToOpen, sFilesToOpen, null, null, forceOpen);
+		}
+	}
+	
+	public void 
+	openTorrentOpenOptions(
+		Shell 					shell, 
+		String 					sPathOfFilesToOpen,
+		String[] 				sFilesToOpen, 
+		Map<String,Object>		options )
+	{
+		Boolean _defaultToStopped 	= (Boolean)options.get( UIFunctions.OTO_DEFAULT_TO_STOPPED );
+		boolean	defaultToStopped	= _defaultToStopped!=null?_defaultToStopped:UIFunctions.OTO_DEFAULT_TO_STOPPED_DEFAULT;
+
+		Boolean _hideErrors		 	= (Boolean)options.get( UIFunctions.OTO_HIDE_ERRORS );
+		boolean	hideErrors			= _hideErrors!=null?_hideErrors:UIFunctions.OTO_HIDE_ERRORS_DEFAULT;
+
+		TorrentOpenOptions torrentOptions = new TorrentOpenOptions();
+		if (defaultToStopped) {
+			torrentOptions.iStartID = TorrentOpenOptions.STARTMODE_STOPPED;
+		}
+		torrentOptions.setHideErrors( hideErrors );
+		
+		if (sFilesToOpen == null) {
+			new OpenTorrentWindow(shell);
+		} else {
+			// with no listener, Downloader will open options window if user configured
+			
+			Boolean _forceOpen 	= (Boolean)options.get( UIFunctions.OTO_FORCE_OPEN );
+			boolean	forceOpen	= _forceOpen!=null?_forceOpen:UIFunctions.OTO_FORCE_OPEN_DEFAULT;
+
+			TorrentOpener.openTorrentsFromStrings(
+					torrentOptions, shell,
+					sPathOfFilesToOpen, sFilesToOpen, null, null, forceOpen );
 		}
 	}
 	

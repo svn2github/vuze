@@ -2285,7 +2285,7 @@ public class TorrentUtil
 	 *
 	 * @since 3.0.2.3
 	 */
-	public static boolean isFileTorrent(File torrentFile, String torrentName) {
+	public static boolean isFileTorrent(File torrentFile, String torrentName, boolean warnOnError ) {
 		String sFirstChunk = null;
 		try {
 			sFirstChunk = FileUtil.readFileAsString(torrentFile, 16384).toLowerCase();
@@ -2297,6 +2297,7 @@ public class TorrentUtil
 		}
 
 		if (!sFirstChunk.startsWith("d")) {
+			
 			boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
 
 			String retry_url = UrlUtils.parseTextForMagnets(torrentName);
@@ -2309,28 +2310,31 @@ public class TorrentUtil
 				return false;
 			}
 
-			String[] buttons;
-
-			buttons = new String[] {
-				MessageText.getString("Button.ok")
-			};
-
-			MessageBoxShell boxShell = new MessageBoxShell(
-					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
-					MessageText.getString(
-							"OpenTorrentWindow.mb.notTorrent.text",
-							new String[] {
-								torrentName,
-								isHTML
-										? ""
-										: MessageText.getString("OpenTorrentWindow.mb.notTorrent.cannot.display")
-							}), buttons, 0);
-
-			if (isHTML) {
-				boxShell.setHtml(sFirstChunk);
+			if ( warnOnError ){
+				String[] buttons;
+	
+				buttons = new String[] {
+					MessageText.getString("Button.ok")
+				};
+	
+				MessageBoxShell boxShell = new MessageBoxShell(
+						MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
+						MessageText.getString(
+								"OpenTorrentWindow.mb.notTorrent.text",
+								new String[] {
+									torrentName,
+									isHTML
+											? ""
+											: MessageText.getString("OpenTorrentWindow.mb.notTorrent.cannot.display")
+								}), buttons, 0);
+	
+				if (isHTML) {
+					boxShell.setHtml(sFirstChunk);
+				}
+				
+				boxShell.open(null);
 			}
-			boxShell.open(null);
-
+			
 			return false;
 		}
 

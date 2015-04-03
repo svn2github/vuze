@@ -145,6 +145,10 @@ public interface IProgressReporter
 	 */
 	public void setCancelAllowed(boolean cancelAllowed);
 
+	public void setCancelCloses(boolean cancelCloses);
+
+	public boolean getCancelCloses();
+	
 	/**
 	 * 
 	 * @param listener

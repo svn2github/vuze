@@ -29,6 +29,9 @@ import org.eclipse.swt.graphics.Image;
 public interface IProgressReport
 {
 
+	public IProgressReporter
+	getReporter();
+	
 	/**
 	 * Returns the reporter type of the reporter that created this report
 	 * @return

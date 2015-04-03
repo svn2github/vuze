@@ -119,6 +119,8 @@ public class TorrentOpenOptions
 	private int max_up;
 	private int max_down;
 	
+	private boolean	hide_errors;
+	
 		// add stuff here -> update the clone constructor
 	
 	/**
@@ -180,8 +182,9 @@ public class TorrentOpenOptions
 				updatedTrackers.add( new ArrayList<String>( l ));
 			}
 		}
-		this.max_up 	= toBeCloned.max_up;
-		this.max_down 	= toBeCloned.max_down;	
+		this.max_up 		= toBeCloned.max_up;
+		this.max_down 		= toBeCloned.max_down;	
+		this.hide_errors	= toBeCloned.hide_errors;
 	}
 
 	public static int getDefaultStartMode() {
@@ -436,6 +439,18 @@ public class TorrentOpenOptions
 	getMaxDownloadSpeed()
 	{
 		return( max_down );
+	}
+	public void
+	setHideErrors(
+		boolean		h )
+	{
+		hide_errors	= h;
+	}
+	
+	public boolean
+	getHideErrors()
+	{
+		return( hide_errors );
 	}
 	
 	public TorrentOpenFileOptions[] getFiles() {

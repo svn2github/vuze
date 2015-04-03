@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -89,12 +90,15 @@ public class TorrentOpener {
 	 * @note PLUGINS USE THIS FUNCTION!
 	 */
 	public static void openTorrent(final String torrentFile) {
+		openTorrent( torrentFile, new HashMap<String, Object>());
+	}
+	
+	public static void openTorrent(final String torrentFile, final Map<String,Object> options ) {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
     		UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
     		if (uif != null) {
-    			uif.openTorrentOpenOptions(null, null, new String[] { torrentFile },
-    					false, false);
+    			uif.openTorrentOpenOptions(null, null, new String[] { torrentFile }, options );
     		}
 			}
 		});
@@ -781,7 +785,7 @@ public class TorrentOpener {
 			}
 		}
 		// Do a quick check to see if it's a torrent
-		if (!TorrentUtil.isFileTorrent(torrentFile, torrentFile.getName())) {
+		if (!TorrentUtil.isFileTorrent(torrentFile, torrentFile.getName(), !torrentOptions.getHideErrors())) {
 			if (bDeleteFileOnCancel) {
 				torrentFile.delete();
 			}

@@ -154,6 +154,8 @@ public class ProgressReporter
 	 */
 	private boolean isActive = true;
 
+	private boolean cancelCloses = false;
+	
 	/**
 	 * Construct a <code>ProgressReporter</code>; the returned instance is initialized with the proper ID
 	 */
@@ -602,6 +604,12 @@ public class ProgressReporter
 		return (true == isDisposed || true == isDone);
 	}
 
+	public boolean getCancelCloses() {
+		return( cancelCloses );
+	}
+	public void setCancelCloses(boolean b) {
+		cancelCloses = b;
+	}
 	/**
 	 * Create and add an <code>IMessage</code> to the message history
 	 * @param value
@@ -787,6 +795,9 @@ public class ProgressReporter
 		private ProgressReport() {
 		}
 
+		public IProgressReporter getReporter() {
+			return( ProgressReporter.this );
+		}
 		/* (non-Javadoc)
 		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getReporterType()
 		 */

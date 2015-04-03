@@ -463,13 +463,17 @@ public class ProgressReporterPanel
 			case REPORT_TYPE_CANCEL:
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
-						synchProgressBar(pReport);
-						updateStatusLabel(
-								MessageText.getString("Progress.reporting.status.canceled"),
-								false);
-						appendToDetail(pReport.getMessage(), false);
-						synchActionLabels(pReport);
-						resizeContent();
+						if ( pReport.getReporter().getCancelCloses()){
+							dispose();
+						}else{
+							synchProgressBar(pReport);
+							updateStatusLabel(
+									MessageText.getString("Progress.reporting.status.canceled"),
+									false);
+							appendToDetail(pReport.getMessage(), false);
+							synchActionLabels(pReport);
+							resizeContent();
+						}
 					}
 				});
 				break;

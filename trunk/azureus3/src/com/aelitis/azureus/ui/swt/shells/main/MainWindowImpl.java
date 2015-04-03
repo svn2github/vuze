@@ -2071,7 +2071,11 @@ public class MainWindowImpl
 
 			if ( UrlUtils.isURL( line )){
 				
-				TorrentOpener.openTorrent( line );
+				Map<String,Object>	options = new HashMap<String, Object>();
+				
+				options.put( UIFunctions.OTO_HIDE_ERRORS, true );
+				
+				TorrentOpener.openTorrent( line, options );
 			}
 		}
 	}

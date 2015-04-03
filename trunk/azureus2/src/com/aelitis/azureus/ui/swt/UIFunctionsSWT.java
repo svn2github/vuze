@@ -16,8 +16,9 @@
  */
 package com.aelitis.azureus.ui.swt;
 
-import org.eclipse.swt.widgets.Shell;
+import java.util.Map;
 
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainStatusBar;
@@ -140,5 +141,19 @@ public interface UIFunctionsSWT
 	 */
 	public void openTorrentOpenOptions(Shell shell, String sPathOfFilesToOpen,
 			String[] sFilesToOpen, boolean defaultToStopped, boolean forceOpen);
+	
+	/**
+	 * @since 5.6.0.1
+	 * @param shell
+	 * @param sPathOfFilesToOpen
+	 * @param sFilesToOpen
+	 * @param options	See UIFunctions constants
+	 */
+	public void 
+	openTorrentOpenOptions(
+		Shell 					shell, 
+		String 					sPathOfFilesToOpen,
+		String[] 				sFilesToOpen, 
+		Map<String,Object>		options );
 
 }
