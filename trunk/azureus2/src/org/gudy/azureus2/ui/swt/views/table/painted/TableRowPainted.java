@@ -348,7 +348,7 @@ public class TableRowPainted
 		if (isFocused()) {
 			gc.setAlpha(40);
 			gc.setForeground(origFG);
-			gc.setLineStyle(SWT.LINE_DOT);
+			gc.setLineDash(new int[] { 1, 2 });
 			gc.drawRectangle(0, rowStartY,
 					getViewPainted().getClientArea().width - 1, getHeight() - 1);
 			gc.setLineStyle(SWT.LINE_SOLID);
