@@ -684,10 +684,6 @@ public abstract class BaseMDI
 				}
 			}
 			
-			if (entry == null && Constants.IS_CVS_VERSION) {
-				System.out.println("Could not create sidebar " + id + "; " + autoOpenInfo);
-			}
-
 			return entry != null;
 		} catch (Throwable e) {
 			Debug.out(e);
