@@ -773,8 +773,13 @@ public class SWTSkinObjectBasic
 	 * @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#addListener(com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener)
 	 */
 	public void addListener(final SWTSkinObjectListener listener) {
+		int visibleStateAtAdd = isVisible;
 		listeners_mon.enter();
 		try {
+			if (listeners.contains(listener)) {
+				System.err.println("Already contains listener " + Debug.getCompressedStackTrace());
+				return;
+			}
 			listeners.add(listener);
 		} finally {
 			listeners_mon.exit();
@@ -789,9 +794,12 @@ public class SWTSkinObjectBasic
   				SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
 		}
 
-		if (isVisible == 1 && initialized) {
-			Utils.execSWTThreadLater(0, new AERunnable() {
+		if (visibleStateAtAdd == 1 && initialized) {
+			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
+					if (isVisible != 1) {
+						return;
+					}
 					listener.eventOccured(SWTSkinObjectBasic.this,
 							SWTSkinObjectListener.EVENT_SHOW, null);
 				}
