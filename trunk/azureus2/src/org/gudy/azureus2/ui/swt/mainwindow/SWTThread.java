@@ -381,7 +381,7 @@ public class SWTThread {
   
   public boolean isTerminated() {
   	//System.out.println("isTerm" + terminated + ";" + display.isDisposed() + Debug.getCompressedStackTrace(3));
-  	return terminated || display.isDisposed() || displayDispoed;
+  	return terminated || displayDispoed || display.isDisposed();
   }
 
 	public IUIIntializer getInitializer() {
