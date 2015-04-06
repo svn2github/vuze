@@ -124,5 +124,22 @@ public interface UISWTView extends UIPluginView {
 	 * @since 4.5.1.1
 	 */
 	public PluginInterface getPluginInterface();
+
+
+	/**
+	 * To save memory/CPU, views are sometimes destroyed on {@link UISWTViewEvent#TYPE_FOCUSLOST}
+	 * <P>
+	 * This allows overriding of the default behaviour
+	 * 
+	 * @since 5.6.0.1
+	 */
+	public void setDestroyOnDeactivate(boolean b);
+
+	/**
+	 * Retrieve whether this view can be destroyed on  {@link UISWTViewEvent#TYPE_FOCUSLOST}
+	 * 
+	 * @since 5.6.0.1
+	 */
+	boolean isDestroyOnDeactivate();
 	
 }
