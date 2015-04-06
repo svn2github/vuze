@@ -109,6 +109,8 @@ public class UISWTViewImpl
 	private boolean created = false;
 
 	private String sParentID;
+
+	private boolean destroyOnDeactivate = true;
 	
 	public UISWTViewImpl(String sParentID, String sViewID,
 			UISWTViewEventListener eventListener, Object _initialDatasource)
@@ -672,5 +674,13 @@ public class UISWTViewImpl
 			
 			return( temp.get( key ));
 		}
+	}
+	
+	public void setDestroyOnDeactivate(boolean b) {
+		destroyOnDeactivate = b;
+	}
+	
+	public boolean isDestroyOnDeactivate() {
+		return destroyOnDeactivate;
 	}
 }

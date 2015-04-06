@@ -39,9 +39,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -294,7 +292,27 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 		String view_id = listener.getViewID();
 		
 		try{
-			UISWTViewImpl view = new UISWTViewImpl(tv.getTableID(), view_id, listener, null);
+			UISWTViewImpl view = new UISWTViewImpl(tv.getTableID(), view_id, listener, null) {
+				public void setTitle(String title) {
+					super.setTitle(title);
+					if (tabFolder == null || tabFolder.isDisposed()) {
+						return;
+					}
+					
+					final UISWTViewImpl fThis = this;
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							CTabItem[] items = tabFolder.getItems();
+							for (CTabItem cTabItem : items) {
+								Object data = cTabItem.getData("IView");
+								if (data == fThis) {
+									cTabItem.setText(getFullTitle());
+								}
+							}
+						}
+					});
+				}
+			};
 			
 			if ( parentView != null ){	
 				view.setParentView( parentView );
@@ -570,9 +588,9 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 				}
 				form.layout();
 
-				UISWTViewCore view = getActiveSubView();
-				
-				view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
+				if (selectedView != null) {
+					selectedView.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
+				}
 				
 				ConfigurationManager configMan = ConfigurationManager.getInstance();
 				configMan.setParameter(props_prefix + ".subViews.minimized", true);
@@ -596,6 +614,17 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 				tabFolder.setMinimized(false);
 				CTabItem selection = tabFolder.getSelection();
 				if (selection != null) {
+					Control control = selection.getControl();
+					if (control == null || control.isDisposed()) {
+						selectedView.initialize(tabFolder);
+						selection.setControl(selectedView.getComposite());
+						control = selection.getControl();
+						triggerTabViewDataSourceChanged(selectedView, tv,
+								new Object[][] {
+									null,
+									null
+						});
+					}
 					selection.getControl().setVisible(true);
 				}
 				
@@ -971,12 +1000,15 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 	fireFocusGained(
 		UISWTViewCore		view )
 	{
-		if ( focused_view != null && focused_view != view ){
-			focused_view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
+		if ( focused_view != null && focused_view != view ) {
+			if ( focused_view.isDestroyOnDeactivate() ){
+				focused_view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
+			} else {
+				focused_view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+			}
 		}
 		
 		focused_view = view;
-		
 		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 	}
 	
