@@ -292,7 +292,7 @@ public class TabbedEntry
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#setTitle(java.lang.String)
 	 */
-	public void setTitle(final String title) {
+	public void setTitle(String title) {
 		super.setTitle(title);
 
 		if (swtItem != null) {
@@ -301,7 +301,7 @@ public class TabbedEntry
 					if (swtItem == null || swtItem.isDisposed()) {
 						return;
 					}
-					swtItem.setText(escapeAccelerators(title));
+					swtItem.setText(escapeAccelerators(getTitle()));
 				}
 			});
 		}
