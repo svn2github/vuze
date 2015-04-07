@@ -328,13 +328,6 @@ public class TabbedMDI
 		triggerSelectionListener(newEntry, oldEntry);
 	}
 
-	public void updateUI() {
-		MdiEntry currentEntry = getCurrentEntry();
-		if (currentEntry != null) {
-			currentEntry.updateUI();
-		}
-	}
-	
 	private MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
 			boolean closeable, int index) {
