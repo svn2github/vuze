@@ -762,6 +762,7 @@ public class LoggerView
 	public boolean eventOccurred(UISWTViewEvent event) {
     switch (event.getType()) {
       case UISWTViewEvent.TYPE_CREATE:
+      	event.getView().setDestroyOnDeactivate(false);
       	swtView = (UISWTView)event.getData();
       	swtView.setTitle(getFullTitle());
         break;

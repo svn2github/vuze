@@ -212,6 +212,7 @@ BuddyPluginView
 					return( false );
 				}
 								
+				event.getView().setDestroyOnDeactivate(false);
 				break;
 			}
 			case UISWTViewEvent.TYPE_INITIALIZE:{
