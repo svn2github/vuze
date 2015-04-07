@@ -100,6 +100,8 @@ public class ClientStatsView
 
 	private int lastAddMonth;
 
+	private static boolean registered = false;
+
 	public ClientStatsView() {
 		super("ClientStats");
 
@@ -541,6 +543,7 @@ public class ClientStatsView
 		synchronized (mapData) {
 			startedListeningOn = SystemTime.getCurrentTime();
 		}
+		registered = true;
 	}
 
 	// @see org.gudy.azureus2.core3.global.GlobalManagerListener#destroyInitiated()
@@ -553,6 +556,7 @@ public class ClientStatsView
 		for (Object object : downloadManagers) {
 			((DownloadManager) object).removePeerListener(this);
 		}
+		registered = false;
 		save(CONFIG_FILE);
 	}
 
@@ -657,32 +661,31 @@ public class ClientStatsView
 				}
 			}
 
-			if (bloomFilter.contains(bloomId) || bloomFilterPeerId.contains(peerId)) {
-				return;
-			}
-
-			bloomFilter.add(bloomId);
-			bloomFilterPeerId.add(peerId);
-
-			lastAdd = now;
-
 			String id = getID(peer);
 			ClientStatsDataSource stat;
-			boolean needNew = false;
-			synchronized (overall) {
-				stat = mapData.get(id);
-				needNew = stat == null;
-				if (needNew) {
-					stat = new ClientStatsDataSource();
-					stat.overall = overall;
-					mapData.put(id, stat);
-				}
-
-				overall.count++;
+			stat = mapData.get(id);
+			boolean needNew = stat == null;
+			if (needNew) {
+				stat = new ClientStatsDataSource();
+				stat.overall = overall;
+				stat.client = id;
+				mapData.put(id, stat);
 			}
 
-			stat.client = getID(peer);
-			stat.count++;
+			boolean inBloomFilter = bloomFilter.contains(bloomId) || bloomFilterPeerId.contains(peerId);
+
+			if (!inBloomFilter) {
+				bloomFilter.add(bloomId);
+				bloomFilterPeerId.add(peerId);
+				
+				lastAdd = now;
+				synchronized (overall) {
+					
+					overall.count++;
+				}
+				stat.count++;
+			}
+
 			stat.current++;
 
 			long existingBytesReceived = peer.getStats().getTotalDataBytesReceived();
@@ -718,8 +721,10 @@ public class ClientStatsView
 							map = new HashMap<String, Object>();
 							stat.perNetworkStats.put(network, map);
 						}
-						long count = MapUtils.getMapLong(map, "count", 0);
-						map.put("count", count + 1);
+						if (!inBloomFilter) {
+  						long count = MapUtils.getMapLong(map, "count", 0);
+  						map.put("count", count + 1);
+						}
 
 						if (existingBytesReceived > 0) {
 							long bytesReceived = MapUtils.getMapLong(map, "bytesReceived",
@@ -777,6 +782,7 @@ public class ClientStatsView
 	public void peerRemoved(PEPeer peer) {
 		synchronized (mapData) {
 			ClientStatsDataSource stat = mapData.get(getID(peer));
+			if (peer.getStats().getTotalDataBytesSent() > 0)
 			if (stat != null) {
 				stat.current--;
 
@@ -821,7 +827,7 @@ public class ClientStatsView
 	}
 
 	private String getID(PEPeer peer) {
-		String s = peer.getClient();
+		String s = peer.getClientNameFromPeerID();
 		return s.replaceAll(" v?[0-9._]+", "");
 	}
 }
