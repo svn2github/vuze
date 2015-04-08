@@ -634,10 +634,7 @@ public abstract class BaseMDI
 			String parentID = MapUtils.getMapString(autoOpenInfo, "parentID", SIDEBAR_HEADER_PLUGINS);
 
 			if (viewInfo != null) {
-				if (viewInfo.view != null) {
-					entry = createEntryFromView(parentID, viewInfo.view, id, datasource,
-							true, false, true);
-				} else if (viewInfo.event_listener != null) {
+				if (viewInfo.event_listener != null) {
 					entry = createEntryFromEventListener(parentID,
 							viewInfo.event_listener, id, true, datasource,null);
   				entry.setTitle(title);

@@ -34,10 +34,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 
-import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 
 public class PluginsMenuHelper
 {
@@ -216,40 +214,6 @@ public class PluginsMenuHelper
 		});
 	}
 
-	public void addPluginView(final UISWTViewCore view, final String name) {
-		IViewInfo view_info = new IViewInfo();
-		view_info.name = name;
-		view_info.view = view;
-		try {
-			plugin_helper_mon.enter();
-			plugin_view_info_map.put(name, view_info);
-		} finally {
-			plugin_helper_mon.exit();
-		}
-		triggerPluginAddedViewListeners(view_info);
-	}
-
-	public void removePluginView(final UISWTViewCore view, final String name) {
-		IViewInfo view_info = null;
-		try {
-			plugin_helper_mon.enter();
-			view_info = plugin_view_info_map.remove(name);
-		} finally {
-			plugin_helper_mon.exit();
-		}
-
-		if (view_info != null) {
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-					if (uiFunctions != null) {
-						uiFunctions.closePluginView(view);
-					}
-				}
-			});
-		}
-	}
-
 	/**
 	 * Populates Azureus' menu bar
 	 * @param locales
@@ -289,8 +253,6 @@ public class PluginsMenuHelper
 
 	public static class IViewInfo
 	{
-		public UISWTViewCore view;
-
 		public String name;
 
 		public String viewID;
@@ -301,8 +263,6 @@ public class PluginsMenuHelper
 			if (event_listener != null) {
 				uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, viewID,
 						event_listener, null, true);
-			} else {
-				uiFunctions.openPluginView(view, name);
 			}
 		}
 
