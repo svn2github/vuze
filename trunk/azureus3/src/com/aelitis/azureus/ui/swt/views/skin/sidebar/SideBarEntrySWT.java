@@ -439,9 +439,6 @@ public class SideBarEntrySWT
 
 				return( true );
 			}
-		} else if (viewClass != null) {
-			
-			return( true );
 		}
 		
 		return( false );
@@ -569,94 +566,6 @@ public class SideBarEntrySWT
 					Debug.out(e);
 				}
 			}
-		} else if (viewClass != null) {
-			try {
-				final UISWTViewCore view = (UISWTViewCore) viewClass.newInstance();
-
-				if ( view != null ){
-					try {
-						SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
-								"MdiIView." + uniqueNumber++, SO_ID_ENTRY_WRAPPER,
-								soParent );
-
-						parent.setBackgroundMode(SWT.INHERIT_NONE);
-
-						final Composite viewComposite = soContents.getComposite();
-						boolean doGridLayout = true;
-						if (view.getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
-							doGridLayout = false;
-						}
-						//					viewComposite.setBackground(parent.getDisplay().getSystemColor(
-						//							SWT.COLOR_WIDGET_BACKGROUND));
-						//					viewComposite.setForeground(parent.getDisplay().getSystemColor(
-						//							SWT.COLOR_WIDGET_FOREGROUND));
-						if (doGridLayout) {
-							GridLayout gridLayout = new GridLayout();
-							gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
-							viewComposite.setLayout(gridLayout);
-							viewComposite.setLayoutData(Utils.getFilledFormData());
-						}
-
-						view.setSkinObject(soContents, soContents.getComposite());
-						view.initialize(viewComposite);
-						
-						//swtItem.setText(view.getFullTitle());
-
-						Composite iviewComposite = view.getComposite();
-						control = iviewComposite;
-						// force layout data of IView's composite to GridData, since we set
-						// the parent to GridLayout (most plugins use grid, so we stick with
-						// that instead of form)
-						if (doGridLayout) {
-							Object existingLayoutData = iviewComposite.getLayoutData();
-							Object existingParentLayoutData = iviewComposite.getParent().getLayoutData();
-							if (existingLayoutData == null
-									|| !(existingLayoutData instanceof GridData)
-									&& (existingParentLayoutData instanceof GridLayout)) {
-								GridData gridData = new GridData(GridData.FILL_BOTH);
-								iviewComposite.setLayoutData(gridData);
-							}
-						}
-
-						parent.layout(true, true);
-						
-						final UIUpdater updater = UIFunctionsManager.getUIFunctions().getUIUpdater();
-
-						updater.addUpdater(
-							new UIUpdatable() {
-								
-								public void updateUI() {
-									if (viewComposite.isDisposed()){
-										updater.removeUpdater( this );
-									}else{
-										view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
-									}
-								}
-								
-								public String getUpdateUIName() {
-									return( "popout" );
-								}
-							});
-						
-						soContents.setVisible( true );
-						
-						view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
-
-						return( soContents );
-						
-					} catch (Throwable e) {
-					
-						Debug.out(e);
-					}
-				}else{
-					
-					return( null );
-				}
-				
-			} catch (Throwable e) {
-				Debug.out(e);
-			
-			}
 		}
 		
 		return( null );
@@ -760,21 +669,6 @@ public class SideBarEntrySWT
 					close(true);
 				}
 
-			} else if (viewClass != null) {
-				try {
-					UISWTViewCore view = (UISWTViewCore) viewClass.newInstance();
-
-					if (view != null) {
-						setCoreView(view);
-						// now that we have an IView, go through show one more time
-						return swt_build();
-					}
-					close(true);
-					return false;
-				} catch (Throwable e) {
-					Debug.out(e);
-					close(true);
-				}
 			}
 
 			if (control != null && !control.isDisposed()) {

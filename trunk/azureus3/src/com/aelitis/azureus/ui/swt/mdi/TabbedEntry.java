@@ -177,21 +177,6 @@ public class TabbedEntry
 					close(true);
 				}
 
-			} else if (viewClass != null) {
-				try {
-					UISWTViewCore view = (UISWTViewCore) viewClass.newInstance();
-
-					if (view != null) {
-						setCoreView(view);
-						// now that we have an view, go through show one more time
-						return swt_build();
-					}
-					close(true);
-					return false;
-				} catch (Exception e) {
-					Debug.out(e);
-					close(true);
-				}
 			}
 
 			if (control != null && !control.isDisposed()) {
@@ -271,8 +256,6 @@ public class TabbedEntry
 		String title = getTitle();
 		if (title != null) {
 			swtItem.setText(escapeAccelerators(title));
-		} else if (viewClass != null) {
-			swtItem.setText(viewClass.getSimpleName());
 		}
 
 		updateLeftImage();

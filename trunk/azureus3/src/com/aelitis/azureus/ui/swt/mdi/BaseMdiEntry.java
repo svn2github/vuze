@@ -62,8 +62,6 @@ public abstract class BaseMdiEntry
 
 	protected Object datasource;
 
-	protected Class<? extends UIPluginView> viewClass;
-
 	protected UISWTViewCore view;
 
 	private String skinRef;
@@ -207,14 +205,6 @@ public abstract class BaseMdiEntry
 
 	public UISWTViewCore getCoreView() {
 		return view;
-	}
-
-	public Class<? extends UIPluginView> getViewClass() {
-		return viewClass;
-	}
-
-	public void setViewClass(Class<? extends UIPluginView> viewClass) {
-		this.viewClass = viewClass;
 	}
 
 	public String getLogID() {

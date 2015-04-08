@@ -44,8 +44,6 @@ public interface MdiEntry
 
 	public boolean isCloseable();
 
-	public Class<? extends UIPluginView> getViewClass();
-
 	public UIPluginView getView();
 
 	public String getId();
