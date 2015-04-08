@@ -374,42 +374,6 @@ public class TabbedMDI
 		return entry;
 	}
 
-	public MdiEntry createEntryFromView(String parentID, UISWTViewCore view,
-			String id, Object datasource, boolean closeable, boolean show,
-			boolean expand) {
-		if (id == null) {
-			id = view.getClass().getName();
-			int i = id.lastIndexOf('.');
-			if (i > 0) {
-				id = id.substring(i + 1);
-			}
-		}
-
-		MdiEntry oldEntry = getEntry(id);
-		if (oldEntry != null) {
-			if (show) {
-				showEntry(oldEntry);
-			}
-			return oldEntry;
-		}
-
-		TabbedEntry entry = new TabbedEntry(this, skin, id);
-
-		entry.setCoreView(view);
-		entry.setDatasource(datasource);
-
-		setupNewEntry(entry, id, -1);
-
-		if (view instanceof IViewAlwaysInitialize) {
-			entry.build();
-		}
-		
-		if (show) {
-			showEntry(entry);
-		}
-		return entry;
-	}
-
 	private void setupNewEntry(final TabbedEntry entry, final String id,
 			final int index) {
 		synchronized (mapIdToEntry) {

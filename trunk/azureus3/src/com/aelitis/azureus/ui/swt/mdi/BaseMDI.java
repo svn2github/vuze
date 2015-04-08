@@ -147,11 +147,6 @@ public abstract class BaseMDI
 	public abstract MdiEntry createEntryFromEventListener(String parentID,
 			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferedAfterID);
 
-	// @see com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT#createEntryFromView(java.lang.String, org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore, java.lang.String, java.lang.Object, boolean, boolean, boolean)
-	public abstract MdiEntry createEntryFromView(String parentID, UISWTViewCore iview,
-			String id, Object datasource, boolean closeable, boolean show,
-			boolean expand);
-
 	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#createEntryFromSkinRef(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, java.lang.Object, boolean, java.lang.String)
 	public abstract MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,

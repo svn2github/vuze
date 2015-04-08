@@ -1326,43 +1326,6 @@ public class SideBar
 		return entry;
 	}
 
-	public MdiEntry createEntryFromView(String parentID, UISWTViewCore iview, String id,
-			Object datasource, boolean closeable, boolean show, boolean expand) {
-		if (id == null) {
-			id = iview.getClass().getName();
-			int i = id.lastIndexOf('.');
-			if (i > 0) {
-				id = id.substring(i + 1);
-			}
-		}
-
-		MdiEntry oldEntry = getEntry(id);
-		if (oldEntry != null) {
-			if (show) {
-				showEntry(oldEntry);
-			}
-			return oldEntry;
-		}
-
-		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
-
-		entry.setCoreView(iview);
-		entry.setDatasource(datasource);
-		entry.setParentID(parentID);
-
-		setupNewEntry(entry, id, expand, closeable);
-
-		if (iview instanceof IViewAlwaysInitialize) {
-			entry.build();
-		}
-
-		if (show) {
-			showEntry(entry);
-		}
-
-		return entry;
-	}
-
 	private void setupNewEntry(final SideBarEntrySWT entry, final String id,
 			final boolean expandParent, final boolean closeable) {
 		//System.out.println("createItem " + id + ";" + entry.getParentID() + ";" + Debug.getCompressedStackTrace());
