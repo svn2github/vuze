@@ -313,26 +313,6 @@ public class UIFunctionsImpl
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore, java.lang.String)
-	 */
-	public void openPluginView(UISWTViewCore view, String name) {
-		try {
-			MultipleDocumentInterfaceSWT mdi = getMDISWT();
-			if (mdi == null) {
-				return;
-			}
-			if (mdi.createEntryFromView(
-					MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS, view, name, null,
-					true, true, true) != null) {
-				return;
-			}
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "openPluginView", e));
-		}
-
-	}
-
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(java.lang.String, java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener, java.lang.Object, boolean)
 	public void openPluginView(String sParentID, String sViewID,
 			UISWTViewEventListener l, Object dataSource, boolean bSetFocus) {

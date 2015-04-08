@@ -74,8 +74,6 @@ public interface UIFunctionsSWT
 	public void openPluginView(String sParentID, String sViewID,
 			UISWTViewEventListener l, Object dataSource, boolean bSetFocus);
 
-	public void openPluginView(final UISWTViewCore view, final String name);
-
 	/**
 	 * @param viewID
 	 */
