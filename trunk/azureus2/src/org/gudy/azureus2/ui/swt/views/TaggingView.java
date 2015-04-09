@@ -33,6 +33,8 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -234,23 +236,20 @@ public class TaggingView
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		};
-		
+
 		Listener menuDetectListener = new Listener() {
 			public void handleEvent(Event event) {
-				Button button = (Button) event.widget;
-				Tag tag = (Tag) button.getData("Tag");
-				final Menu menu = new Menu(button);
-				menu.addMenuListener(new MenuListener() {
-					public void menuShown(MenuEvent e) {
-					}
-					
-					public void menuHidden(MenuEvent e) {
-						Utils.disposeSWTObjects(menu.getItems());
-						menu.removeMenuListener(this);
+
+				final Button button = (Button) event.widget;
+				Menu menu = new Menu(button);
+				button.setMenu(menu);
+				
+				MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuilder() {
+					public void buildMenu(final Menu menu, MenuEvent menuEvent) {
+						Tag tag = (Tag) button.getData("Tag");
+						TagUIUtils.createSideBarMenuItems(menu, tag);
 					}
 				});
-				TagUIUtils.createSideBarMenuItems(menu, tag);
-				button.setMenu(menu);
 			}
 		};
 		
