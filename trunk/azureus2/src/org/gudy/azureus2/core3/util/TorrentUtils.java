@@ -327,6 +327,15 @@ TorrentUtils
 		return( torrent );
 	}
 	
+	public static TOTorrent
+	cloneTorrent(
+		TOTorrent	torrent )
+		
+		throws TOTorrentException
+	{
+		return( TOTorrentFactory.deserialiseFromMap( torrent.serialiseToMap()));
+	}
+
 	public static void
 	setMemoryOnly(
 		TOTorrent			torrent,

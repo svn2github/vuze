@@ -23,6 +23,7 @@
 package com.aelitis.azureus.plugins.dht;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Map;
 
 import com.aelitis.azureus.core.dht.DHT;
@@ -113,6 +114,12 @@ DHTPluginInterface
 		byte						flags,
 		DHTPluginOperationListener	listener);
 	
+	public DHTInterface[]
+	getDHTInterfaces();
+	
+	public List<DHTPluginValue>
+	getValues();
+
 	public void
 	remove(
 		byte[]						key,
@@ -140,4 +147,28 @@ DHTPluginInterface
 	log(
 		String	str );
 
+	public interface
+	DHTInterface
+	{
+		public byte[]
+		getID();
+		
+		public boolean
+		isIPV6();
+		
+		public int
+		getNetwork();
+				
+		public DHTPluginContact[]
+		getReachableContacts();
+		
+		public DHTPluginContact[]
+		getRecentContacts();
+		
+		public List<DHTPluginContact>
+		getClosestContacts(
+			byte[]		to_id,
+			boolean		live_only );
+	}
+	
 }

@@ -1963,6 +1963,24 @@ DHTPlugin
 		return( null );
 	}
 	
+	public DHTInterface[] 
+	getDHTInterfaces() 
+	{
+		if ( dhts == null ){
+			
+			return( null );
+		}
+		
+		DHTInterface[] result = new DHTInterface[dhts.length];
+		
+		for (int i=0;i<dhts.length;i++){
+			
+			result[i] = dhts[i];
+		}
+		
+		return( result );
+	}
+	
 	protected long
 	loadClockSkew()
 	{

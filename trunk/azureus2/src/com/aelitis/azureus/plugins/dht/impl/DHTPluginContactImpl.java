@@ -213,4 +213,10 @@ DHTPluginContactImpl
 	{
 		return( plugin.call( listener, this, handler_key, data, timeout ));
 	}
+	
+	public String 
+	getString() 
+	{
+		return( contact.getString());
+	}
 }

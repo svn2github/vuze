@@ -85,4 +85,7 @@ DHTPluginContact
 		byte[]						handler_key,
 		byte[]						data,
 		long						timeout );
+	
+	public String
+	getString();
 }

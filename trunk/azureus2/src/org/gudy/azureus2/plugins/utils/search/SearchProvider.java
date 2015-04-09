@@ -39,6 +39,7 @@ SearchProvider
 	
 	public static final String	SP_SEARCH_TERM			 	= "s";	// String
 	public static final String	SP_MATURE				 	= "m";	// Boolean
+	public static final String	SP_NETWORKS				 	= "n";	// String[]
 	
 	public SearchInstance
 	search(

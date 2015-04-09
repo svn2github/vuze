@@ -68,6 +68,7 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
 import org.gudy.azureus2.plugins.utils.search.SearchInstance;
 import org.gudy.azureus2.plugins.utils.search.SearchObserver;
+import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 
@@ -226,7 +227,9 @@ RelatedContentManager
 	private boolean	secondary_lookup_in_progress;
 	private long	secondary_lookup_complete_time;
 	
-	private final 	RelatedContentSearcher	searcher = new RelatedContentSearcher( this );
+	private RCMSearchXFer			transfer_type = new RCMSearchXFer();
+
+	private final 	CopyOnWriteList<RelatedContentSearcher>	searchers = new CopyOnWriteList<RelatedContentSearcher>();
 	
 	
 	private static final int MAX_TRANSIENT_CACHE	= 256;
@@ -384,7 +387,9 @@ RelatedContentManager
 							
 							public_dht_plugin = dp;
 
-							searcher.setDHTPlugin( dp );
+							RelatedContentSearcher public_searcher = new RelatedContentSearcher( RelatedContentManager.this, transfer_type, dp );
+							
+							searchers.add( public_searcher );
 							
 							DownloadManager dm = plugin_interface.getDownloadManager();
 							
@@ -423,6 +428,23 @@ RelatedContentManager
 									{
 										tick_count++;
 										
+										if ( tick_count == 1 ){
+											
+											List<DistributedDatabase> ddbs = DDBaseImpl.getDDBs( new String[] {AENetworkClassifier.AT_I2P });
+											
+											for ( DistributedDatabase ddb: ddbs ){
+												
+												if ( ddb.getNetwork() == AENetworkClassifier.AT_I2P ){
+													
+													DHTPluginInterface i2p_dht = ((DDBaseImpl)ddb).getDHTPlugin();
+													
+													RelatedContentSearcher i2p_searcher = new RelatedContentSearcher( RelatedContentManager.this, transfer_type, i2p_dht );
+													
+													searchers.add( i2p_searcher );
+												}
+											}
+										}
+										
 										if ( enabled ){
 												
 											if ( tick_count >= INITIAL_PUBLISH_TICKS ){
@@ -449,7 +471,10 @@ RelatedContentManager
 											}							
 										}
 										
-										searcher.timerTick( enabled, tick_count );
+										for ( RelatedContentSearcher searcher: searchers ){
+										
+											searcher.timerTick( enabled, tick_count );
+										}
 									}		
 								});
 						}										
@@ -3029,7 +3054,7 @@ RelatedContentManager
 	public SearchInstance
 	searchRCM(
 		Map<String,Object>		search_parameters,
-		SearchObserver			_observer )
+		SearchObserver			observer )
 	
 		throws SearchException
 	{
@@ -3039,8 +3064,39 @@ RelatedContentManager
 			
 			throw( new SearchException( "rcm is disabled" ));
 		}
+				
+		String[]	networks = (String[])search_parameters.get( SearchProvider.SP_NETWORKS );
 		
-		return( searcher.searchRCM(search_parameters, _observer));
+		String	target_net = AENetworkClassifier.AT_PUBLIC;
+		
+		if ( networks != null ){
+			
+			for ( String net: networks ){
+				
+				if ( net == AENetworkClassifier.AT_PUBLIC ){
+					
+					target_net = AENetworkClassifier.AT_PUBLIC;
+					
+					break;
+					
+				}else if ( net == AENetworkClassifier.AT_I2P ){
+
+					target_net = AENetworkClassifier.AT_I2P;
+				}
+			}
+		}
+		
+		for ( RelatedContentSearcher searcher: searchers ){
+		
+			String net = searcher.getDHTPlugin().getNetwork();
+			
+			if ( net == target_net ){
+			
+				return( searcher.searchRCM( search_parameters, observer ));
+			}
+		}
+		
+		throw( new SearchException( "no searchers available" ));
 	}
 	
 
@@ -3435,7 +3491,10 @@ RelatedContentManager
 					deleteRelatedContent();
 				}
 			
-				searcher.updateKeyBloom( cc );
+				for ( RelatedContentSearcher searcher: searchers ){
+				
+					searcher.updateKeyBloom( cc );
+				}
 			}
 		}
 	}
@@ -4851,8 +4910,6 @@ RelatedContentManager
 	// can't move this class out of here as the key for the transfer type is based on its
 	// class name...
 	
-	protected RCMSearchXFer			transfer_type = new RCMSearchXFer();
-
 	protected class
 	RCMSearchXFer
 		implements DistributedDatabaseTransferType

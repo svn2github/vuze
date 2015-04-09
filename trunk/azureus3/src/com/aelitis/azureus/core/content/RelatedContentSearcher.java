@@ -67,6 +67,7 @@ import org.gudy.azureus2.plugins.utils.search.SearchInstance;
 import org.gudy.azureus2.plugins.utils.search.SearchObserver;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.search.SearchResult;
+import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.content.RelatedContentManager.ContentCache;
@@ -79,6 +80,9 @@ import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.dht.DHTPluginContact;
+import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
+import com.aelitis.azureus.plugins.dht.DHTPluginInterface.DHTInterface;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 import com.aelitis.azureus.util.ImportExportUtils;
 
@@ -138,25 +142,29 @@ RelatedContentSearcher
 	private volatile BloomFilter harvest_op_requester_bloom = BloomFilterFactory.createAddOnly( 2048 );
 	private volatile BloomFilter harvest_se_requester_bloom = BloomFilterFactory.createAddRemove4Bit( 512 );
 
-	private AsyncDispatcher	harvest_dispatcher			= new AsyncDispatcher();
+	private final AsyncDispatcher	harvest_dispatcher			= new AsyncDispatcher();
 
-	private RelatedContentManager		manager;
+	private final RelatedContentManager					manager;
+	private final DistributedDatabaseTransferType		transfer_type;
+	private final DHTPluginInterface					dht_plugin;
 	
-	private DHTPlugin				dht_plugin;
-	private DistributedDatabase		ddb;
+	private DistributedDatabase				ddb;
 
 	protected
 	RelatedContentSearcher(
-		RelatedContentManager		_manager )
+		RelatedContentManager				_manager,
+		DistributedDatabaseTransferType		_transfer_type,
+		DHTPluginInterface					_dht_plugin )
 	{
-		manager		= _manager;
+		manager			= _manager;
+		transfer_type	= _transfer_type;
+		dht_plugin 		= _dht_plugin;
 	}
 	
-	protected void
-	setDHTPlugin(
-		DHTPlugin			_dht_plugin )
+	protected DHTPluginInterface
+	getDHTPlugin()
 	{
-		dht_plugin = _dht_plugin;
+		return( dht_plugin );
 	}
 	
 	protected void
@@ -167,10 +175,14 @@ RelatedContentSearcher
 		if ( tick_count == 1 ){
 			
 			try{
-				ddb = manager.getPluginInterface().getDistributedDatabase();
+				List<DistributedDatabase> ddbs = DDBaseImpl.getDDBs( new String[]{ dht_plugin.getNetwork() });
 			
-				ddb.addTransferHandler( manager.transfer_type, this );
+				if ( ddbs.size() > 0 ){
 				
+					ddb = ddbs.get( 0 );
+					
+					ddb.addTransferHandler( transfer_type, this );
+				}
 			}catch( Throwable e ){
 				
 				// Debug.out( e );
@@ -361,18 +373,16 @@ RelatedContentSearcher
 							
 							if ( ddb != null ){
 								
-								DHT[]	dhts = dht_plugin.getDHTs();
+								DHTInterface[]	dhts = dht_plugin.getDHTInterfaces();
 									
-								for ( DHT dht: dhts ){
-								
-									DHTTransport transport = dht.getTransport();
-									
-									if ( transport.isIPV6()){
+								for ( DHTInterface dht: dhts ){
+													
+									if ( dht.isIPV6()){
 										
 										continue;
 									}
 									
-									int	network = transport.getNetwork();
+									int	network = dht.getNetwork();
 									
 									if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
 										
@@ -381,11 +391,11 @@ RelatedContentSearcher
 										continue;
 									}
 									
-									DHTTransportContact[] contacts = dht.getTransport().getReachableContacts();
+									DHTPluginContact[] contacts = dht.getReachableContacts();
 									
 									Collections.shuffle( Arrays.asList( contacts ));
 																	
-									for ( DHTTransportContact dc: contacts ){
+									for ( DHTPluginContact dc: contacts ){
 												
 										InetSocketAddress address = dc.getAddress();
 										
@@ -413,16 +423,14 @@ RelatedContentSearcher
 									
 										// back fill with less reliable contacts if required
 									
-									for ( DHT dht: dhts ){
-										
-										DHTTransport transport = dht.getTransport();
-										
-										if ( transport.isIPV6()){
+									for ( DHTInterface dht: dhts ){
+																				
+										if ( dht.isIPV6()){
 											
 											continue;
 										}
 										
-										int	network = transport.getNetwork();
+										int	network = dht.getNetwork();
 										
 										if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
 											
@@ -431,9 +439,9 @@ RelatedContentSearcher
 											continue;
 										}
 										
-										DHTTransportContact[] contacts = dht.getTransport().getRecentContacts();
+										DHTPluginContact[] contacts = dht.getRecentContacts();
 		
-										for ( DHTTransportContact dc: contacts ){
+										for ( DHTPluginContact dc: contacts ){
 											
 											InetSocketAddress address = dc.getAddress();
 											
@@ -978,7 +986,7 @@ RelatedContentSearcher
 						{
 						}
 					},
-					manager.transfer_type,
+					transfer_type,
 					key,
 					10000 );
 			
@@ -1180,7 +1188,7 @@ RelatedContentSearcher
 						{
 						}
 					},
-					manager.transfer_type,
+					transfer_type,
 					key,
 					5000 );
 			
@@ -1237,7 +1245,7 @@ RelatedContentSearcher
 						{
 						}
 					},
-					manager.transfer_type,
+					transfer_type,
 					key,
 					5000 );
 			
@@ -1287,17 +1295,17 @@ RelatedContentSearcher
 		try{	
 			boolean	originator_is_neighbour = false;
 			
-			DHT[] dhts = dht_plugin.getDHTs();
+			DHTInterface[] dhts = dht_plugin.getDHTInterfaces();
 			
 			byte[] originator_id = originator.getID();
 			
 			byte[] originator_bytes = originator.getAddress().getAddress().getAddress();
 
-			for ( DHT d: dhts ){
+			for ( DHTInterface d: dhts ){
 				
-				List<DHTTransportContact> contacts = d.getControl().getClosestKContactsList( d.getRouter().getID(), true );
+				List<DHTPluginContact> contacts = d.getClosestContacts( d.getID(), true );
 				
-				for ( DHTTransportContact c: contacts ){
+				for ( DHTPluginContact c: contacts ){
 					
 					if ( Arrays.equals( c.getID(), originator_id)){
 						
@@ -1927,19 +1935,17 @@ RelatedContentSearcher
 						try{
 							int	fail_count	= 0;
 							
-							DHT[] dhts = dht_plugin.getDHTs();
+							DHTInterface[] dhts = dht_plugin.getDHTInterfaces();
 							
 outer:
-							for ( DHT dht: dhts ){
-								
-								DHTTransport transport = dht.getTransport();
-								
-								if ( transport.isIPV6()){
+							for ( DHTInterface dht: dhts ){
+																
+								if ( dht.isIPV6()){
 									
 									continue;
 								}
 								
-								int	network = dht.getTransport().getNetwork();
+								int	network = dht.getNetwork();
 								
 								if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
 									
@@ -1948,13 +1954,15 @@ outer:
 									continue;
 								}
 													
-								DHTTransportContact[] contacts = dht.getTransport().getReachableContacts();
+								DHTPluginContact[] contacts = dht.getReachableContacts();
 								
-								for ( DHTTransportContact contact: contacts ){
+								byte[] dht_id = dht.getID();
+								
+								for ( DHTPluginContact contact: contacts ){
 				
 									byte[]	contact_id = contact.getID();
 									
-									if ( dht.getRouter().isID( contact_id )){
+									if ( Arrays.equals( dht_id, contact_id )){
 										
 										// logSearch( "not skipping local!!!!" );
 										
