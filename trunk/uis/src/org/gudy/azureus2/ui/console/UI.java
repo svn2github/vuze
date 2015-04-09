@@ -14,6 +14,7 @@ package org.gudy.azureus2.ui.console;
 import java.io.File;
 import java.io.PrintStream;
 import java.net.URL;
+import java.util.Locale;
 
 import org.apache.log4j.Logger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -122,17 +123,32 @@ UI
   }
   
   public void openTorrent(String fileName) {
-  	if( console != null )
-  	{
+	String uc_filename = fileName.toUpperCase( Locale.US );
+	
+	boolean	is_remote = 
+			uc_filename.startsWith( "HTTP://" ) 
+			|| uc_filename.startsWith( "HTTPS://" )
+			|| uc_filename.startsWith( "MAGNET:" );
+	
+  	if ( console != null ){
+  		
 //  		System.out.println("NOT NULL CONSOLE. CAN PASS STRAIGHT TO IT!");
-  		console.downloadTorrent(fileName);
+  		
+  		if ( is_remote ){
+  			
+  			console.out.println( "Downloading torrent from url: " + fileName );
+  			
+  			console.downloadRemoteTorrent( fileName );
+  		}else{
+  		
+  			console.downloadTorrent(fileName);
+  		}
   		return;
-  	}
-  	else
-  	{
+  	}else{
 //  		System.out.println("NULL CONSOLE");
   	}
-    if( fileName.toUpperCase().startsWith( "HTTP://" ) || fileName.toUpperCase().startsWith( "HTTPS://" )) {
+  	
+    if( is_remote ) {
       if ( console != null ){
     	  console.out.println( "Downloading torrent from url: " + fileName );
       }
