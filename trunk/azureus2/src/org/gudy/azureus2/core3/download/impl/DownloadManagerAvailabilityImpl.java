@@ -57,7 +57,7 @@ DownloadManagerAvailabilityImpl
 	
 	public
 	DownloadManagerAvailabilityImpl(
-		final TOTorrent			to_torrent,
+		TOTorrent				to_torrent,
 		List<List<String>>		updated_trackers,
 		final String[]			_enabled_peer_sources,
 		final String[]			_enabled_networks )
@@ -69,9 +69,7 @@ DownloadManagerAvailabilityImpl
 	
 		final Set<String>	enabled_peer_sources = new HashSet<String>( Arrays.asList( _enabled_peer_sources ));
 		final Set<String>	enabled_networks	 = new HashSet<String>( Arrays.asList( _enabled_networks ));
-		
-		Torrent	torrent = PluginCoreUtils.wrap( to_torrent );
-		
+				
 		if ( enabled_peer_sources.contains( PEPeerSource.PS_BT_TRACKER)){
 			
 			TOTorrentAnnounceURLSet[] sets;
@@ -83,6 +81,18 @@ DownloadManagerAvailabilityImpl
 			}else{
 				
 				sets = TorrentUtils.listToAnnounceSets( updated_trackers, to_torrent );
+				
+				try{
+					to_torrent = TorrentUtils.cloneTorrent( to_torrent );
+				
+					TorrentUtils.setMemoryOnly( to_torrent, true );
+					
+					to_torrent.getAnnounceURLGroup().setAnnounceURLSets( sets );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
 			}
 				
 			if ( sets.length == 0 ){
@@ -103,6 +113,8 @@ DownloadManagerAvailabilityImpl
 								}
 							});
 			
+				final long torrent_size = to_torrent.getSize();
+				
 				tracker_client.setAnnounceDataProvider(
 			    		new TRTrackerAnnouncerDataProvider()
 			    		{
@@ -127,7 +139,7 @@ DownloadManagerAvailabilityImpl
 			    			public long
 			    			getRemaining()
 			    			{
-			    				return( to_torrent.getSize());
+			    				return( torrent_size );
 			    			}
 			    			
 			    			public long
@@ -507,6 +519,8 @@ DownloadManagerAvailabilityImpl
 			}
 		}
 		
+		Torrent	torrent = PluginCoreUtils.wrap( to_torrent );
+
 			// http seeds
 			
 		try{
