@@ -45,6 +45,7 @@ import java.util.regex.Pattern;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -73,13 +74,10 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.content.RelatedContentManager.ContentCache;
 import com.aelitis.azureus.core.content.RelatedContentManager.DownloadInfo;
 import com.aelitis.azureus.core.dht.DHT;
-import com.aelitis.azureus.core.dht.transport.DHTTransport;
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
 import com.aelitis.azureus.plugins.dht.DHTPluginInterface.DHTInterface;
@@ -984,10 +982,8 @@ RelatedContentSearcher
 					},
 					transfer_type,
 					key,
-					10000 );
-			
-				// System.out.println( "search result=" + value );
-			
+					contact.getAddress().isUnresolved()?20000:10000 );
+						
 			if ( value == null ){
 				
 				return( null );
@@ -1198,7 +1194,7 @@ RelatedContentSearcher
 					},
 					transfer_type,
 					key,
-					5000 );
+					contact.getAddress().isUnresolved()?15000:5000 );
 			
 				// System.out.println( "search result=" + value );
 			
@@ -1231,8 +1227,10 @@ RelatedContentSearcher
 		
 			DistributedDatabaseKey key = ddb.createKey( BEncoder.encode( request ));
 			
+			DistributedDatabaseContact contact = f_bloom.getContact();
+			
 			DistributedDatabaseValue value = 
-				f_bloom.getContact().read( 
+				contact.read( 
 					new DistributedDatabaseProgressListener()
 					{
 						public void
@@ -1255,7 +1253,7 @@ RelatedContentSearcher
 					},
 					transfer_type,
 					key,
-					5000 );
+					contact.getAddress().isUnresolved()?15000:5000 );
 			
 				// System.out.println( "search result=" + value );
 			
@@ -1307,7 +1305,7 @@ RelatedContentSearcher
 			
 			byte[] originator_id = originator.getID();
 			
-			byte[] originator_bytes = originator.getAddress().getAddress().getAddress();
+			byte[] originator_bytes = AddressUtils.getAddressBytes( originator.getAddress());
 
 			for ( DHTInterface d: dhts ){
 				
@@ -1970,7 +1968,7 @@ outer:
 								}
 													
 								DHTPluginContact[] contacts = dht.getReachableContacts();
-								
+																
 								byte[] dht_id = dht.getID();
 								
 								for ( DHTPluginContact contact: contacts ){
