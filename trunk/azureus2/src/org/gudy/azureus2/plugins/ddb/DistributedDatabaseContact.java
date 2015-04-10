@@ -20,6 +20,7 @@
 package org.gudy.azureus2.plugins.ddb;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 /**
  * @author parg
@@ -54,6 +55,9 @@ DistributedDatabaseContact
 	
 	public boolean
 	isOrHasBeenLocal();
+	
+	public Map<String,Object>
+	exportToMap();
 	
 		/**
 		 * Tries to open a NAT tunnel to the contact. Should only be used if direct contact fails

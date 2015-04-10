@@ -402,11 +402,7 @@ RelatedContentSearcher
 										if ( !contact_map.containsKey( address )){
 											
 											try{
-												DistributedDatabaseContact c = 
-													ddb.importContact( 
-														address, 
-														DHTTransportUDP.PROTOCOL_VERSION_MIN, 
-														network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
+												DistributedDatabaseContact c = importContact( dc, network );
 												
 												contact_map.put( address, c );
 												
@@ -448,7 +444,7 @@ RelatedContentSearcher
 											if ( !contact_map.containsKey( address )){
 												
 												try{
-													DistributedDatabaseContact c = ddb.importContact( address, DHTTransportUDP.PROTOCOL_VERSION_MIN, network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
+													DistributedDatabaseContact c = importContact( dc, network );
 													
 													contact_map.put( address, c );
 													
@@ -1133,13 +1129,25 @@ RelatedContentSearcher
 				for ( Map<String,Object> m: list ){
 					
 					try{
-						String	host 	= ImportExportUtils.importString( m, "a" );
-						int		port	= ImportExportUtils.importInt( m, "p" );
+						Map<String,Object> map = (Map<String,Object>)m.get( "m" );
 						
-						DistributedDatabaseContact ddb_contact = 
-							ddb.importContact( new InetSocketAddress( InetAddress.getByName(host), port ), DHTTransportUDP.PROTOCOL_VERSION_MIN, contact.getDHT());
-
-						contacts.add( ddb_contact );
+						if ( map != null ){
+							
+							DistributedDatabaseContact ddb_contact = ddb.importContact( map );
+		
+							contacts.add( ddb_contact );
+							
+						}else{
+							
+							String	host 	= ImportExportUtils.importString( m, "a" );
+							
+							int		port	= ImportExportUtils.importInt( m, "p" );
+							
+							DistributedDatabaseContact ddb_contact = 
+								ddb.importContact( new InetSocketAddress( InetAddress.getByName(host), port ), DHTTransportUDP.PROTOCOL_VERSION_MIN, contact.getDHT());
+	
+							contacts.add( ddb_contact );
+						}
 						
 					}catch( Throwable e ){
 					}
@@ -1466,8 +1474,15 @@ RelatedContentSearcher
 								
 								InetSocketAddress address = c.getAddress();
 								
-								m.put( "a", address.getAddress().getHostAddress());
-								m.put( "p", new Long( address.getPort()));
+								if ( address.isUnresolved()){
+									
+									m.put( "m", c.exportToMap());
+									
+								}else{
+									m.put( "a", address.getAddress().getHostAddress());
+									
+									m.put( "p", new Long( address.getPort()));
+								}
 							}
 							
 							response.put( "c", c_list );
@@ -1969,8 +1984,7 @@ outer:
 										continue;
 									}
 									
-									DistributedDatabaseContact ddb_contact = 
-										ddb.importContact( contact.getAddress(), DHTTransportUDP.PROTOCOL_VERSION_MIN, network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
+									DistributedDatabaseContact ddb_contact = importContact( contact, network );
 									
 									synchronized( harvested_blooms ){
 																				
@@ -2029,6 +2043,25 @@ outer:
 					}
 				}
 			});
+	}
+	
+	private DistributedDatabaseContact
+	importContact(
+		DHTPluginContact		contact,
+		int						network )
+		
+		throws DistributedDatabaseException
+	{
+		InetSocketAddress address = contact.getAddress();
+		
+		if ( address.isUnresolved()){
+			
+			return( ddb.importContact( contact.exportToMap()));
+			
+		}else{
+		
+			return( ddb.importContact( address, DHTTransportUDP.PROTOCOL_VERSION_MIN, network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN ));
+		}
 	}
 	
 	private void

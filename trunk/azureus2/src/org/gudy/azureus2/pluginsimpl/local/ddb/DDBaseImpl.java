@@ -476,6 +476,24 @@ DDBaseImpl
 		return( new DDBaseContactImpl( this, contact ));
 	}
 	
+	public DistributedDatabaseContact
+	importContact(
+		Map<String,Object>			map )
+	
+		throws DistributedDatabaseException
+	{
+		throwIfNotAvailable();
+	
+		DHTPluginContact	contact = getDHT().importContact( map );
+		
+		if ( contact == null ){
+			
+			throw( new DistributedDatabaseException( "import of '" + map + "' failed" ));
+		}
+		
+		return( new DDBaseContactImpl( this, contact));
+	}
+	
 	public void
 	write(
 		DistributedDatabaseListener		listener,

@@ -20,6 +20,7 @@
 package org.gudy.azureus2.plugins.ddb;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 /**
  * @author parg
@@ -94,6 +95,12 @@ DistributedDatabase
 		InetSocketAddress				address,
 		byte							protocol_version,
 		int								preferred_dht )
+	
+		throws DistributedDatabaseException;
+	
+	public DistributedDatabaseContact
+	importContact(
+		Map<String,Object>				map )
 	
 		throws DistributedDatabaseException;
 	

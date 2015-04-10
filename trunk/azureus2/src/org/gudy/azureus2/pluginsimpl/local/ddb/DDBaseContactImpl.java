@@ -20,6 +20,7 @@
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
@@ -174,6 +175,12 @@ DDBaseContactImpl
 		return( contact.isOrHasBeenLocal());
 	}
 
+	public Map<String, Object> 
+	exportToMap() 
+	{
+		return( contact.exportToMap());
+	}
+	
 	public boolean
 	openTunnel()
 	{

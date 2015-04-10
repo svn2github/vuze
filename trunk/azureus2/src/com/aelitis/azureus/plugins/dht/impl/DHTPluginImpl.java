@@ -78,6 +78,7 @@ import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
+import com.aelitis.azureus.plugins.dht.DHTPluginInterface.DHTInterface;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginStorageManager;
 
 
@@ -88,6 +89,7 @@ import com.aelitis.azureus.plugins.dht.impl.DHTPluginStorageManager;
 
 public class 
 DHTPluginImpl
+	implements DHTInterface
 {
 	private static final String	SEED_ADDRESS_V4	= Constants.DHT_SEED_ADDRESS_V4;
 	private static final String	SEED_ADDRESS_V6	= Constants.DHT_SEED_ADDRESS_V6;
@@ -1491,5 +1493,70 @@ outer:
 			
 			return( null );
 		}
+	}
+	
+	public byte[]
+	getID()
+	{
+		return( dht.getRouter().getID());
+	}
+	
+	public boolean
+	isIPV6()
+	{
+		return( dht.getTransport().isIPV6());
+	}
+	
+	public int
+	getNetwork()
+	{
+		return( dht.getTransport().getNetwork());
+	}
+			
+	public DHTPluginContact[]
+	getReachableContacts()
+	{
+		DHTTransportContact[] contacts = dht.getTransport().getReachableContacts();
+		
+		DHTPluginContact[] result = new DHTPluginContact[contacts.length];
+		
+		for ( int i=0;i<contacts.length;i++ ){
+			
+			result[i] = new DHTPluginContactImpl( this, contacts[i] );
+		}
+		
+		return( result );
+	}
+	
+	public DHTPluginContact[]
+	getRecentContacts()
+	{
+		DHTTransportContact[] contacts = dht.getTransport().getRecentContacts();
+		
+		DHTPluginContact[] result = new DHTPluginContact[contacts.length];
+		
+		for ( int i=0;i<contacts.length;i++ ){
+			
+			result[i] = new DHTPluginContactImpl( this, contacts[i] );
+		}
+	
+		return( result );
+	}
+	
+	public List<DHTPluginContact>
+	getClosestContacts(
+		byte[]		to_id,
+		boolean		live_only )
+	{
+		List<DHTTransportContact> contacts = dht.getControl().getClosestKContactsList(to_id, live_only);
+		
+		List<DHTPluginContact> result = new ArrayList<DHTPluginContact>( contacts.size());
+		
+		for ( DHTTransportContact contact: contacts ){
+			
+			result.add( new DHTPluginContactImpl( this, contact ));
+		}
+		
+		return( result );
 	}
 }
