@@ -1911,11 +1911,12 @@ RelatedContentSearcher
 							
 							DistributedDatabaseContact ddb_contact = oldest.getContact();
 
-							if ( now - oldest.getCreateTime() > HARVEST_BLOOM_DISCARD_MILLIS ){
+							if ( 	now - oldest.getCreateTime() > HARVEST_BLOOM_DISCARD_MILLIS &&
+									harvested_blooms.size() >= HARVEST_MAX_BLOOMS / 2 ){
 							
 									// don't want to stick with a stable one for too long otherwise the stabler
 									// nodes will end up in lots of other nodes' harvest set and receive
-									// undue attention
+									// undue attention (unless we don't have that many nodes...)
 								
 								logSearch( "Harvest: discarding " + ddb_contact.getAddress());
 								
