@@ -358,11 +358,16 @@ public class TorrentUIUtilsV3
 			image = (Image) Utils.execSWTThreadWithObject("thumbcreator",
 					new AERunnableObject() {
 						public Object runSupport() {
-
-							ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
-							Image image = new Image(Display.getDefault(), bis);
-
-							return image;
+							try{
+								ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+								Image image = new Image(Display.getDefault(), bis);
+	
+								return image;
+								
+							}catch( Throwable e ){
+								
+								return( null );
+							}
 						}
 					}, 500);
 		}
