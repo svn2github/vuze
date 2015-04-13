@@ -248,13 +248,13 @@ public class BDecoder
 
 					int keyLength = (int)getPositiveNumberFromStream(dbis, ':');
 
+					int skipBytes = 0;
+					
 					if ( keyLength > MAX_MAP_KEY_SIZE ){
-						byte[] remaining = new byte[128];
-						getByteArrayFromStream(dbis, 128, remaining);
-						String msg = "dictionary key is too large - " + keyLength + ":, max=" + MAX_MAP_KEY_SIZE + ": value=" + new String(remaining);
-						System.err.println( msg );
+						skipBytes = keyLength - MAX_MAP_KEY_SIZE;
+						keyLength = MAX_MAP_KEY_SIZE;
 						//new Exception().printStackTrace();
-						throw( new IOException( msg ));
+						//throw( new IOException( msg ));
 					}
 					
 					if(keyLength < keyBytesBuffer.capacity())
@@ -266,7 +266,11 @@ public class BDecoder
 						keyCharsBuffer = CharBuffer.allocate(keyLength);
 					}
 					
-					getByteArrayFromStream(dbis, keyLength, keyBytesBuffer.array());						
+					getByteArrayFromStream(dbis, keyLength, keyBytesBuffer.array());
+					
+					if (skipBytes > 0) {
+						dbis.skip(skipBytes);
+					}
 					
 					if ( verify_map_order ){
 						
@@ -328,6 +332,12 @@ public class BDecoder
 					if (internKeys)
 						key = StringInterner.intern( key );
 					
+					if (skipBytes > 0) {
+							String msg = "dictionary key is too large - "
+									+ (keyLength + skipBytes) + ":, max=" + MAX_MAP_KEY_SIZE
+									+ ": value=" + new String(key.substring(0, 128));
+							System.err.println( msg );
+					}
 					
 
 					//decode value
