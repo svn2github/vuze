@@ -410,7 +410,7 @@ AuthenticatorWindow
 				return;
 			}
 			
-			final String ignore_key = "IgnoreAuth:" + realm + ":" + target + ":" + details;
+			final String ignore_key = "IgnoreAuth:" + realm + ":" + target + ":" + details.hashCode();
 			
 			if ( RememberedDecisionsManager.getRememberedDecision( ignore_key ) == 1 ){
 				
@@ -421,6 +421,22 @@ AuthenticatorWindow
 				return;
 			}
 			
+			String old_ignore_key = "IgnoreAuth:" + realm + ":" + target + ":" + details;
+			
+			int old_decision = RememberedDecisionsManager.getRememberedDecision( old_ignore_key );
+			if ( old_decision >= 0 ) {
+
+				RememberedDecisionsManager.setRemembered(old_ignore_key, -1);
+			}
+
+			if ( old_decision == 1 ){
+				
+				Debug.out( "Authentication for " + realm + "/" + target + "/" + details + " ignored as told not to ask again" );
+				
+				sem.releaseForever();
+				
+				return;
+			}
 				
 	 		shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 	 	
