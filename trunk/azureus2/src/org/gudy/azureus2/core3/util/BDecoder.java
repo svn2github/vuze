@@ -332,13 +332,6 @@ public class BDecoder
 					if (internKeys)
 						key = StringInterner.intern( key );
 					
-					if (skipBytes > 0) {
-							String msg = "dictionary key is too large - "
-									+ (keyLength + skipBytes) + ":, max=" + MAX_MAP_KEY_SIZE
-									+ ": value=" + new String(key.substring(0, 128));
-							System.err.println( msg );
-					}
-					
 
 					//decode value
 
@@ -364,10 +357,20 @@ public class BDecoder
 						
 						break;
 					}
-				
-					if ( tempMap.put( key, value) != null ){
-						
-						Debug.out( "BDecoder: key '" + key + "' already exists!" );
+					
+					if (skipBytes > 0) {
+
+						String msg = "dictionary key is too large - "
+								+ (keyLength + skipBytes) + ":, max=" + MAX_MAP_KEY_SIZE
+								+ ": skipping key starting with " + new String(key.substring(0, 128));
+						System.err.println( msg );
+
+					} else {
+  				
+  					if ( tempMap.put( key, value) != null ){
+  						
+  						Debug.out( "BDecoder: key '" + key + "' already exists!" );
+  					}
 					}
 				}
 
