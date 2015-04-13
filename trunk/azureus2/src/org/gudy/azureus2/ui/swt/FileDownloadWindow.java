@@ -286,7 +286,7 @@ public class FileDownloadWindow
 					return;
 				}
 
-				if ( torrentOptions.getHideErrors()){
+				if ( torrentOptions != null && torrentOptions.getHideErrors()){
 					pReporter.setCancelCloses( true );
 					pReporter.cancel();
 				}else{
