@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.core.devices;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 
 
@@ -78,6 +79,19 @@ DeviceManagerFactory
 			if ( impl_class == null ){
 				
 				throw( new RuntimeException( "No Implementation" ));
+			}
+			
+			boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
+			
+			if ( !isAZ3 ){
+				
+					// musn't instantiate the device manager for console UI as this has unwanted side effects
+					// such as enabling per-device content browse controls that end up hiding content but the
+					// user has no way of changing this!
+				
+				Debug.out( "DeviceManager is only available with Vuze UI" );
+			
+				return( null );
 			}
 			
 			try{
