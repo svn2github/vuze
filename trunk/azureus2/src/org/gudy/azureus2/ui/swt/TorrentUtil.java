@@ -30,7 +30,6 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -1476,6 +1475,8 @@ public class TorrentUtil
 		});
 		itemChangeTracker.setEnabled(changeUrl);
 
+			// edit tracker URLs 
+		
 		final MenuItem itemEditTracker = new MenuItem(menuTracker, SWT.PUSH);
 		Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker");
 		Utils.setMenuItemImage(itemEditTracker, "edit_trackers");
@@ -1553,6 +1554,91 @@ public class TorrentUtil
 
 		itemEditTracker.setEnabled(hasSelection);
 
+			// edit tracker URLs together
+			
+		final MenuItem itemEditTrackerMerged = new MenuItem(menuTracker, SWT.PUSH);
+		Messages.setLanguageText(itemEditTrackerMerged, "MyTorrentsView.menu.editTrackerMerge");
+		
+		itemEditTrackerMerged.addListener(SWT.Selection, new ListenerDMTask(dms) {
+			public void run(final DownloadManager[] dms) {
+	
+				final List<List<String>>	merged_trackers = new ArrayList<List<String>>();
+				
+				Set<String>	added = new HashSet<String>();
+				
+				for (DownloadManager dm : dms) {
+	
+					TOTorrent torrent = dm.getTorrent();
+	
+					if (torrent == null) {
+	
+						continue;
+					}
+	
+					List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
+	
+					for ( List<String> set: group ){
+						
+						List<String>	rem = new ArrayList<String>();
+						
+						for ( String url_str: set ){
+							
+							try{
+								URL url = new URL( url_str );
+							
+								if ( TorrentUtils.isDecentralised( url )){
+									
+									continue;
+								}
+								
+								if ( !added.contains( url_str )){
+									
+									added.add( url_str );
+									
+									rem.add( url_str );
+								}
+							}catch( Throwable e ){
+								
+							}
+						}
+						
+						if ( rem.size() > 0 ){
+							
+							merged_trackers.add( rem );
+						}
+					}
+				}
+		
+				new MultiTrackerEditor(null, null, merged_trackers,
+					new TrackerEditorListener() {
+						public void trackersChanged(String str, String str2,
+								List<List<String>> group) {
+							for (DownloadManager dm : dms) {
+
+								TOTorrent torrent = dm.getTorrent();
+
+								TorrentUtils.listToAnnounceGroups(group, torrent);
+
+								try {
+									TorrentUtils.writeToFile(torrent);
+
+								} catch (Throwable e) {
+
+									Debug.printStackTrace(e);
+								}
+
+								if (dm.getTrackerClient() != null) {
+
+									dm.getTrackerClient().resetTrackerUrl(true);
+								}
+							}
+						}
+					}, true, true );
+			}
+		});
+	
+		itemEditTrackerMerged.setEnabled(dms.length > 1);
+		
 		// edit webseeds
 
 		final MenuItem itemEditWebSeeds = new MenuItem(menuTracker, SWT.PUSH);
