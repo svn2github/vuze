@@ -784,10 +784,13 @@ public class TrackerStatus {
 						// System.out.println("scrape: hash missing from reply");
 					} else {
 						// retrieve values
-						int seeds = ((Long) scrapeMap.get("complete")).intValue();
-						int peers = ((Long) scrapeMap.get("incomplete")).intValue();
-						Long comp = (Long) scrapeMap.get("downloaded");
-						int completed = comp == null ? -1 : comp.intValue();
+						Long l_seeds 	= (Long)scrapeMap.get("complete");
+						Long l_peers 	= (Long)scrapeMap.get("incomplete");
+						Long l_comp 	= (Long)scrapeMap.get("downloaded");
+						
+						int seeds 		= l_seeds==null?0:l_seeds.intValue();	// expected but deal with missing as some trackers ommit :(
+						int peers 		= l_peers==null?0:l_peers.intValue();	// expected but deal with missing
+						int completed 	= l_comp==null?-1:l_comp.intValue();	// optional
 
 						// make sure we dont use invalid replies
 						if (seeds < 0 || peers < 0 || completed < -1) {
@@ -1003,13 +1006,25 @@ public class TrackerStatus {
 			hashes_mon.exit();
 		}
 
-		String msg = e.getLocalizedMessage();
+		String msg;
 		
-		if(e instanceof BEncodingException)
-			if(msg.indexOf("html") != -1)
-				msg = "could not decode response, appears to be a website instead of tracker scrape: "+msg.replace('\n', ' ');
-			else msg = "bencoded response malformed:"+msg;
+		if ( e instanceof BEncodingException ){
+			
+			msg = e.getLocalizedMessage();
 
+			if ( msg.indexOf("html") != -1 ){
+				
+				msg = "Could not decode response, appears to be a website instead of tracker scrape: " + msg.replace('\n', ' ');
+				
+			}else{
+				
+				msg = "Bencoded response malformed: " + msg;
+			}
+		}else{
+			
+			msg =  Debug.getNestedExceptionMessage( e );
+		}
+		
 		for (int i = 0; i < values.length; i++) {
 			TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) values[i];
 
@@ -1024,12 +1039,12 @@ public class TrackerStatus {
 			response.setNextScrapeStartTime(SystemTime.getCurrentTime()
 					+ FAULTY_SCRAPE_RETRY_INTERVAL);
 			response.setStatus(TRTrackerScraperResponse.ST_ERROR,StringInterner.intern(
-					MessageText.getString(SS + "error") + msg + " (IO)"));
+					MessageText.getString(SS + "error") + msg ));
 			// notifiy listeners
 			scraper.scrapeReceived(response);
 		}
 	}
-
+	  
 	private URL
  	scrapeHTTP(
  		List<HashWrapper>		hashesInQuery,
