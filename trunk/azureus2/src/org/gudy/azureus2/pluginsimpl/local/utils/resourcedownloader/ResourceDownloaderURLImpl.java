@@ -329,6 +329,8 @@ ResourceDownloaderURLImpl
 				  	
 							}
 				  
+							con.setInstanceFollowRedirects( plugin_proxy == null );
+							
 							if ( plugin_proxy != null ){
 							
 								con.setRequestProperty( "HOST", plugin_proxy.getURLHostRewrite() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
@@ -353,6 +355,14 @@ ResourceDownloaderURLImpl
 							setProperty( "URL_HTTP_Response", new Long( response ));
 
 							if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+								
+								if ( 	response == HttpURLConnection.HTTP_MOVED_TEMP ||
+										response == HttpURLConnection.HTTP_MOVED_PERM ){
+									
+										// auto redirect doesn't work from http to https or vice-versa
+									
+									return( -1 );	// cheap option for the moment
+								}
 								
 								URL	dest = url;
 								
