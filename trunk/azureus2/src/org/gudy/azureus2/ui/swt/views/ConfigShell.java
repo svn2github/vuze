@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -73,7 +74,16 @@ public class ConfigShell
 	 * @param width
 	 * @param height
 	 */
-	public void open(String section) {
+	public void open(final String section) {
+		Utils.execSWTThread(new AERunnable() {
+			
+			public void runSupport() {
+				open(section);
+			}
+		});
+	}
+
+	public void swt_open(String section) {
 		if (null != shell && false == shell.isDisposed()) {
 			configView.selectSection(section, true);
 			if (true == shell.getMinimized()) {
