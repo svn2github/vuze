@@ -4343,6 +4343,8 @@ DownloadManagerImpl
 										
 										String status_str = null;
 										
+										boolean	found_usable = false;
+										
 										for ( URL u: urls ){
 										
 											TRTrackerScraperResponse resp = scraper.peekScrape(torrent, u );
@@ -4350,6 +4352,8 @@ DownloadManagerImpl
 											if ( resp != null ){
 												
 												if ( !resp.isDHTBackup()){
+													
+													found_usable = true;
 													
 													int peers 	= resp.getPeers();
 													int seeds 	= resp.getSeeds();
@@ -4397,7 +4401,12 @@ DownloadManagerImpl
 											}
 										}
 										
-										last_scrape = new Object[]{ max_seeds, max_peers, max_time, min_scrape, max_comp, status_str }; 
+											// don't overwrite an old status if this time around we haven't found anything usable
+										
+										if ( found_usable || last_scrape == null ){
+										
+											last_scrape = new Object[]{ max_seeds, max_peers, max_time, min_scrape, max_comp, status_str };
+										}
 										
 										last_scrape_fixup_time = now;
 									}
