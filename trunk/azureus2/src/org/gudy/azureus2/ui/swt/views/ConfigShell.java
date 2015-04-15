@@ -78,7 +78,7 @@ public class ConfigShell
 		Utils.execSWTThread(new AERunnable() {
 			
 			public void runSupport() {
-				open(section);
+				swt_open(section);
 			}
 		});
 	}
