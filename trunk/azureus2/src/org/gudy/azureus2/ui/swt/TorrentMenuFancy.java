@@ -30,7 +30,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -1093,7 +1092,7 @@ public class TorrentMenuFancy
 			SpeedLimitHandler slh = SpeedLimitHandler.getSingleton(azureus_core);
 
 			if (slh.hasAnyProfiles()) {
-				List<String> profileNames = slh.getProfileNames();
+				
 				createMenuRow(cParent, IMenuConstants.MENU_ID_SPEED_LIMITS, null,
 						new FancyMenuRowInfoListener() {
 							public void buildMenu(Menu menu) {
@@ -1115,12 +1114,15 @@ public class TorrentMenuFancy
 				}
 			}
 
-			createRow(detailArea, "MainWindow.menu.transfers.pausetransfersfor",
+			if ( can_pause ){
+				
+				createRow(detailArea, "MainWindow.menu.transfers.pausetransfersfor",
 					null, new Listener() {
 						public void handleEvent(Event event) {
 							TorrentUtil.pauseDownloadsFor(dms);
 						}
 					});
+			}
 		}
 
 		// === advanced > options ===
@@ -2010,7 +2012,7 @@ public class TorrentMenuFancy
 	}
 
 	protected void buildTorrentCustomMenu_Content(Composite detailArea,
-			DownloadManager[] dms) {
+			final DownloadManager[] dms) {
 
 		// Run Data File
 		if (hasSelection) {
@@ -2037,12 +2039,37 @@ public class TorrentMenuFancy
 		// Open In Browser
 		
 		if (hasSelection) {
-			createRow(detailArea, "MyTorrentsView.menu.browse",
-					null, new ListenerDMTask(dms, false) {
-						public void run(DownloadManager dm) {
-							ManagerUtils.browse( dm );
-						}
-					});
+			createMenuRow(
+				detailArea, 
+				"MyTorrentsView.menu.browse",
+				null, 
+				new FancyMenuRowInfoListener() 
+				{
+					public void 
+					buildMenu(
+						Menu menuBrowse ) 
+					{
+						final MenuItem itemBrowsePublic = new MenuItem(menuBrowse, SWT.PUSH);
+						Messages.setLanguageText(itemBrowsePublic, "label.public" );
+						itemBrowsePublic.addListener(
+							SWT.Selection, 
+							new ListenerDMTask(dms, false) {
+								public void run(DownloadManager dm) {
+									ManagerUtils.browse( dm, false );
+								}
+							});
+						
+						final MenuItem itemBrowseAnon = new MenuItem(menuBrowse, SWT.PUSH);
+						Messages.setLanguageText(itemBrowseAnon, "label.anon" );
+						itemBrowseAnon.addListener(
+							SWT.Selection, 
+							new ListenerDMTask(dms, false) {
+								public void run(DownloadManager dm) {
+									ManagerUtils.browse( dm, true );
+								}
+							});
+					}
+				});
 		}
 		
 		// Move Data Files

@@ -48,6 +48,7 @@ import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.UnloadablePlugin;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.sharing.*;
@@ -255,16 +256,18 @@ public class ManagerUtils {
   
 	public static void 
 	browse(
-		final DiskManagerFileInfo file )
+		DiskManagerFileInfo 	file,
+		boolean					anon )
 	{
-		browse( file.getDownloadManager(), file );
+		browse( file.getDownloadManager(), file, anon );
 	}
 	
 	public static void 
 	browse(
-		final DownloadManager dm )
+		DownloadManager 	dm,
+		boolean				anon )
 	{
-		browse( dm, null );
+		browse( dm, null, anon );
 	}
 	
 	private static Map<DownloadManager,WebPlugin>	browse_plugins = new IdentityHashMap<DownloadManager, WebPlugin>();
@@ -272,7 +275,8 @@ public class ManagerUtils {
 	public static void 
 	browse(
 		final DownloadManager 			dm,
-		final DiskManagerFileInfo		file )
+		final DiskManagerFileInfo		file,
+		final boolean					anon )
 	{
 		Properties	props = new Properties();
 		
@@ -349,7 +353,7 @@ public class ManagerUtils {
 				PluginInitializer.getDefaultInterface().getUtilities().getLocaleUtilities().integrateLocalisedMessageBundle( messages );
 				
 				plugin = 
-					new WebPlugin( props )
+					new UnloadableWebPlugin( props )
 					{
 						@Override
 						public void 
@@ -369,7 +373,7 @@ public class ManagerUtils {
 							
 							String url = "http://127.0.0.1:" + port + "/" + url_suffix;
 							
-							Utils.launch( url, false, true );
+							Utils.launch( url, false, true, anon );
 						}
 						
 						@Override
@@ -643,6 +647,18 @@ public class ManagerUtils {
 						
 							return( true );
 						}
+						
+						public void 
+						unload() 
+							throws PluginException 
+						{
+							synchronized( browse_plugins ){
+								
+								 browse_plugins.remove( dm );
+							}
+							
+							super.unload();
+						}
 					};
 								
 				PluginManager.registerPlugin(
@@ -655,11 +671,31 @@ public class ManagerUtils {
 				
 				String url = "http://127.0.0.1:" + plugin.getServerPort() + "/" + url_suffix;
 				
-				Utils.launch( url, false, true );
+				Utils.launch( url, false, true, anon );
 			}
 		}
 	}
 
+	private static class
+	UnloadableWebPlugin
+		extends WebPlugin
+		implements UnloadablePlugin
+	{
+		private
+		UnloadableWebPlugin(
+			Properties		props )
+		{
+			super( props );
+		}
+		
+		public void 
+		unload() 
+			throws PluginException 
+		{
+			super.unloadPlugin();
+		}
+	}
+	
   public static boolean isStartable(DownloadManager dm) {
     if(dm == null)
       return false;

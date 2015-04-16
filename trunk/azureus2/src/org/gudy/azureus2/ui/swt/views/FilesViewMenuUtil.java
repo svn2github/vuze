@@ -26,7 +26,6 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -103,19 +102,39 @@ public class FilesViewMenuUtil
 
 		// open in browser
 		
-		final MenuItem itemBrowse = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemBrowse, "MyTorrentsView.menu.browse" );
-		itemBrowse.addListener(SWT.Selection, new Listener() {
+		final Menu menuBrowse = new Menu(menu.getShell(),SWT.DROP_DOWN);
+		final MenuItem itemBrowse = new MenuItem(menu, SWT.CASCADE);
+		Messages.setLanguageText(itemBrowse, "MyTorrentsView.menu.browse");
+		itemBrowse.setMenu(menuBrowse);
+
+		
+		final MenuItem itemBrowsePublic = new MenuItem(menuBrowse, SWT.PUSH);
+		Messages.setLanguageText(itemBrowsePublic, "label.public" );
+		itemBrowsePublic.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				for (int i = data_sources.length - 1; i >= 0; i--) {
 					DiskManagerFileInfo info = (DiskManagerFileInfo) data_sources[i];
 					if (info != null) {
-						ManagerUtils.browse(info);
+						ManagerUtils.browse(info, false);
 					}
 				}
 			}
 		});
-		itemBrowse.setEnabled(hasSelection);
+		
+		final MenuItem itemBrowseAnon = new MenuItem(menuBrowse, SWT.PUSH);
+		Messages.setLanguageText(itemBrowseAnon, "label.anon" );
+		itemBrowseAnon.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				for (int i = data_sources.length - 1; i >= 0; i--) {
+					DiskManagerFileInfo info = (DiskManagerFileInfo) data_sources[i];
+					if (info != null) {
+						ManagerUtils.browse(info, true);
+					}
+				}
+			}
+		});
+		
+		menuBrowse.setEnabled(hasSelection);
 		
 		// rename/retarget
 		

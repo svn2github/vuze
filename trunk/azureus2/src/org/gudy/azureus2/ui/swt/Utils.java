@@ -992,6 +992,16 @@ public class Utils
 		boolean		sync,
 		boolean		force_url )
 	{
+		launch( sFileOriginal, sync, force_url, false );
+	}
+	
+	public static void 
+	launch(
+		String 		sFileOriginal,
+		boolean		sync,
+		boolean		force_url,
+		boolean		force_anon )
+	{
 		String sFileModified = sFileOriginal;
 		
 		if (sFileModified == null || sFileModified.trim().length() == 0) {
@@ -1051,22 +1061,35 @@ public class Utils
 		
 		if ( lc_sFile.startsWith( "http:" ) || lc_sFile.startsWith( "https:" )){
 
-			String net_type = AENetworkClassifier.AT_PUBLIC;
+			String 		net_type;
+			String 		eb_choice;
+			boolean		use_plugins;
 			
-			boolean	use_plugins = COConfigurationManager.getBooleanParameter( "browser.external.non.pub", true );
-			
-			try{
-				net_type = AENetworkClassifier.categoriseAddress( new URL( sFileModified ).getHost());
+			if ( force_anon ){
 				
-			}catch( Throwable e ){
+				net_type 		= AENetworkClassifier.AT_TOR;
+				eb_choice 		= "plugin";
+				use_plugins		= true;
 				
-			}
+			}else{
+				
+				net_type = AENetworkClassifier.AT_PUBLIC;
+						
+				try{
+					net_type = AENetworkClassifier.categoriseAddress( new URL( sFileModified ).getHost());
+					
+				}catch( Throwable e ){
+					
+				}
 			
-			String eb_choice = COConfigurationManager.getStringParameter( "browser.external.id", "system" );
+				eb_choice = COConfigurationManager.getStringParameter( "browser.external.id", "system" );
 
-			if ( net_type != AENetworkClassifier.AT_PUBLIC && use_plugins ){
-				
-				eb_choice = "plugin";	// hack to force to that code leg
+				use_plugins = COConfigurationManager.getBooleanParameter( "browser.external.non.pub", true );
+
+				if ( net_type != AENetworkClassifier.AT_PUBLIC && use_plugins ){
+					
+					eb_choice = "plugin";	// hack to force to that code leg
+				}
 			}
 			
 			if ( eb_choice.equals( "system" )){
@@ -1095,7 +1118,7 @@ public class Utils
 				
 			}else{
 				
-				handlePluginLaunch( eb_choice, net_type, use_plugins, sFileOriginal, sFileModified, sync, force_url );
+				handlePluginLaunch( eb_choice, net_type, use_plugins, sFileOriginal, sFileModified, sync, force_url, force_anon );
 				
 				return;
 			}
@@ -1140,7 +1163,8 @@ public class Utils
 		final String		sFileOriginal,
 		final String		sFileModified,
 		final boolean		sync,
-		final boolean		force_url )
+		final boolean		force_url,
+		final boolean		force_anon )
 	{
 		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
 		
@@ -1182,7 +1206,7 @@ public class Utils
 													try{
 														if ( install_outcome[0] ){
 										
-															Utils.launch( sFileOriginal, sync, force_url );
+															Utils.launch( sFileOriginal, sync, force_url, force_anon );
 														}
 													}finally{
 														
@@ -1336,7 +1360,7 @@ public class Utils
 													try{
 														if ( install_outcome[0] ){
 																
-															Utils.launch( sFileOriginal, sync, force_url );
+															Utils.launch( sFileOriginal, sync, force_url, force_anon );
 														}
 													}finally{
 														
