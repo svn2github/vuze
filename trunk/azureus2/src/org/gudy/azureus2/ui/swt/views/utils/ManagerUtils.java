@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.views.utils;
 import java.io.*;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -32,12 +33,14 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
@@ -58,6 +61,7 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -355,12 +359,71 @@ public class ManagerUtils {
 				plugin = 
 					new UnloadableWebPlugin( props )
 					{
+						private Map<String,Object>	file_map = new HashMap<String,Object>();
+						
 						@Override
 						public void 
 						initialize(
 							PluginInterface plugin_interface )
 								throws PluginException 
 						{
+							DiskManagerFileInfoSet file_set = dm.getDiskManagerFileInfoSet();
+							
+							DiskManagerFileInfo[] files = file_set.getFiles();
+							
+							Set<Object>	root_dir = new HashSet<Object>();
+							
+							file_map.put( "", root_dir );
+
+							for ( DiskManagerFileInfo dm_file: files ){
+												
+								TOTorrentFile file = dm_file.getTorrentFile();
+								
+								String	path = file.getRelativePath();
+								
+								file_map.put( path, dm_file );
+								
+								if ( path.startsWith( File.separator )){
+									
+									path = path.substring( 1 );
+								}
+								
+								Set<Object>	dir = root_dir;
+								
+								int	pos = 0;
+																
+								while( true ){
+									
+									int next_pos = path.indexOf( File.separatorChar, pos );
+									
+									if ( next_pos == -1 ){
+																				
+										dir.add( dm_file );
+										
+										break;
+										
+									}else{
+										
+										String bit = path.substring( pos, next_pos );
+										
+										dir.add( bit );
+										
+										String sub_path = path.substring( 0, next_pos );
+										
+										dir = (Set<Object>)file_map.get( sub_path );
+										
+										if ( dir == null ){
+											
+											dir = new HashSet<Object>();
+											
+											file_map.put( sub_path, dir );
+										}
+										
+										pos = next_pos + 1;
+									}
+								}
+							}
+							
 							Properties props = plugin_interface.getPluginProperties();
 							
 							props.put( "plugin.name", plugin_name );
@@ -409,30 +472,44 @@ public class ManagerUtils {
 							
 							throws IOException
 						{
-							String	target = root_dir + relative_url.replace( '/', File.separatorChar );
-		
-							final File canonical_file = new File(target).getCanonicalFile();
-		
-								// make sure some fool isn't trying to use ../../ to escape from web dir
-		
-							if ( !canonical_file.toString().toLowerCase().startsWith( root_dir.toLowerCase())){
+							String relative_file = relative_url.replace( '/', File.separatorChar );
+							
+							String	node_key = relative_file.substring( 1 );
+							
+							Object	file_node = file_map.get( node_key );
+							
+							boolean	file_node_is_parent = false;
+							
+							if ( file_node == null ){
+								
+								int pos = node_key.lastIndexOf( File.separator );
+								
+								if ( pos == -1 ){
+									
+									node_key = "";
+									
+								}else{
+									
+									node_key = node_key.substring( 0, pos );
+								}
+								
+								file_node = file_map.get( node_key );
+								
+								file_node_is_parent = true;
+							}
+									
+							if ( file_node == null){
 		
 								return( false );
 							}
 									
-							if ( canonical_file.isDirectory() || !canonical_file.exists()){
-		
-								File dir;
+							if ( file_node instanceof Set ){
+									
+								Set<Object>		kids = (Set<Object>)file_node;
 								
 								String request_url = request.getURL();
 								
-								if ( canonical_file.isDirectory()){
-									
-									dir = canonical_file;
-											
-								}else{
-									
-									dir = canonical_file.getParentFile();
+								if ( file_node_is_parent ){
 									
 									int	pos = request_url.lastIndexOf( "/" );
 									
@@ -452,7 +529,7 @@ public class ManagerUtils {
 																
 								String NL = "\r\n";
 								
-								String title = XUXmlWriter.escapeXML( request_url );
+								String title = XUXmlWriter.escapeXML( UrlUtils.decode( request_url ));
 								
 								if ( title.length() == 0 ){
 									
@@ -489,25 +566,45 @@ public class ManagerUtils {
 									
 									os.write(( "<a href=\"" + parent + "\">..</a>" + NL).getBytes( "UTF-8" ));
 								}
-
-								File[] files = dir.listFiles();
-
-								if ( files == null ){
-									
-									files = new File[0];
-								}
-								
-								List<String[]>	filenames		= new ArrayList<String[]>( files.length );
+							
+								List<String[]>	filenames		= new ArrayList<String[]>( kids.size());
 								int				max_filename	= 0;
 								
 								int MAX_LEN = 120;
 								
-								for ( File file: files ){
+								for ( Object	entry: kids ){
 									
-									String file_name 	= file.getName();
+									DiskManagerFileInfo		file;
+									String					file_name;
+									
+									if ( entry instanceof String ){
+										
+										file = null;
+										
+										file_name	= (String)entry;
+										
+									}else{
+										
+										file = (DiskManagerFileInfo)entry;
+										
+										if ( file.isSkipped()){
+											
+											continue;
+										}
+										
+										file_name 	= file.getTorrentFile().getRelativePath();
+										
+										int pos = file_name.lastIndexOf( File.separatorChar );
+										
+										if ( pos != -1 ){
+											
+											file_name = file_name.substring( pos+1 );
+										}
+									}
+																		
 									String url			= root_url + UrlUtils.encode( file_name );
 											
-									if ( file.isDirectory()){
+									if ( file == null ){
 										
 										file_name += "/";
 									}
@@ -526,7 +623,7 @@ public class ManagerUtils {
 										max_filename = len;
 									}
 									
-									filenames.add( new String[]{ url, file_name, file.isDirectory()?"":DisplayFormatters.formatByteCountToKiBEtc( file.length())});
+									filenames.add( new String[]{ url, file_name, file==null?"":DisplayFormatters.formatByteCountToKiBEtc( file.getLength())});
 								}
 								
 								max_filename = ((max_filename + 15 )/8)*8;
@@ -534,6 +631,21 @@ public class ManagerUtils {
 								char[]	padding = new char[max_filename];
 								
 								Arrays.fill( padding, ' ' );
+								
+								Collections.sort(
+									filenames,
+									new Comparator<String[]>()
+									{
+										Comparator comp = new FormattersImpl().getAlphanumericComparator(true);
+										
+										public int 
+										compare(
+											String[] o1,
+											String[] o2) 
+										{
+											return( comp.compare(o1[0], o2[0] ));
+										}
+									});
 								
 								for ( String[] entry: filenames ){
 									
@@ -561,91 +673,95 @@ public class ManagerUtils {
 								"</html>" ).getBytes( "UTF-8" ));
 								
 								return( true );
-							}
+								
+							}else{
 							
-							if ( !canonical_file.canRead()){
+								File target_file = ((DiskManagerFileInfo)file_node).getFile( true );
 								
-								return( false );
-							}
-
-							if ( canonical_file.length() < 512*1024 ){
-							
-								String	file_type;
-								
-								String file_name = canonical_file.getName();
-								
-								int	pos = file_name.lastIndexOf( "." );
-		
-								if ( pos == -1 ){
-		
-									file_type = "";
+								if ( !target_file.canRead()){
 									
-								}else{
-		
-									file_type = file_name.substring(pos+1);
+									return( false );
 								}
-								
-								FileInputStream	fis = null;
-		
-								try{
-									fis = new FileInputStream(canonical_file);
-		
-									response.useStream( file_type, fis );
-		
-									return( true );
-		
-								}finally{
-		
-									if ( fis != null ){
-		
-										fis.close();
-									}
-								}
-							}
-							
-							OutputStream 	os 	= null;
-							InputStream 	is	= null;
-							
-							try{
-								os = response.getRawOutputStream();
-								
-								byte[] buffer = new byte[128*1024];
-								
-								is = new FileInputStream( canonical_file );
-								
-								while( true ){
-									
-									int len = is.read( buffer );
-									
-									if ( len <= 0 ){
-										
-										break;
-									}
-									
-									os.write( buffer, 0, len );
-								}
-							}catch( Throwable e ){
-								
-								e.printStackTrace();
-								
-							}finally{
-								
-								try{
-									os.close();
-									
-								}catch( Throwable e ){
-								}
-								
-								try{
-									is.close();
-									
-								}catch( Throwable e ){
-								}
-								
 	
+								if ( target_file.length() < 512*1024 ){
+								
+									String	file_type;
+									
+									String file_name = target_file.getName();
+									
+									int	pos = file_name.lastIndexOf( "." );
+			
+									if ( pos == -1 ){
+			
+										file_type = "";
+										
+									}else{
+			
+										file_type = file_name.substring(pos+1);
+									}
+									
+									FileInputStream	fis = null;
+			
+									try{
+										fis = new FileInputStream(target_file);
+			
+										response.useStream( file_type, fis );
+			
+										return( true );
+			
+									}finally{
+			
+										if ( fis != null ){
+			
+											fis.close();
+										}
+									}
+								}
+													
+								OutputStream 	os 	= null;
+								InputStream 	is	= null;
+								
+								try{
+									os = response.getRawOutputStream();
+									
+									byte[] buffer = new byte[128*1024];
+									
+									is = new FileInputStream( target_file );
+									
+									while( true ){
+										
+										int len = is.read( buffer );
+										
+										if ( len <= 0 ){
+											
+											break;
+										}
+										
+										os.write( buffer, 0, len );
+									}
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+									
+								}finally{
+									
+									try{
+										os.close();
+										
+									}catch( Throwable e ){
+									}
+									
+									try{
+										is.close();
+										
+									}catch( Throwable e ){
+									}
+									
+		
+								}
+							
+								return( true );
 							}
-						
-							return( true );
 						}
 						
 						public void 
