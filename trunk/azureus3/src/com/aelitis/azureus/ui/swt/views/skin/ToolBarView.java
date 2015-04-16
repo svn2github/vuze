@@ -73,8 +73,6 @@ public class ToolBarView
 
 	private boolean showText = true;
 
-	private SWTSkinObject so2nd;
-
 	private boolean initComplete = false;
 
 	private boolean showCalled = false;
@@ -127,12 +125,7 @@ public class ToolBarView
 		}
 		
 		buttonListener = new toolbarButtonListener();
-		so2nd = skin.getSkinObject("toolbar-2nd", skinObject);
 
-		if (so2nd == null) {
-			skinObject.setVisible(false);
-			return null;
-		}
 
 		if (firstTimeEver) {
 			firstTimeEver = false;
@@ -155,12 +148,6 @@ public class ToolBarView
 			}
 			bulkSetupItems(groupID, "toolbar.area.sitem");
 		}
-
-		Utils.execSWTThreadLater(0, new Runnable() {
-			public void run() {
-				Utils.relayout(so2nd.getControl());
-			}
-		});
 
 		initComplete = true;
 
