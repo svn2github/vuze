@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.utils;
 
 
 import java.io.*;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -39,6 +40,9 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
@@ -52,6 +56,10 @@ import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.UnloadablePlugin;
+import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
+import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
+import org.gudy.azureus2.plugins.disk.DiskManagerListener;
+import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.sharing.*;
@@ -59,6 +67,7 @@ import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
@@ -73,6 +82,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.core.util.HTTPUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -537,14 +547,14 @@ public class ManagerUtils {
 								}
 								
 								os.write((
-								"<html>" + NL +
-								" <head>" + NL +
-								" <meta charset=\"UTF-8\">" + NL + 
-								"  <title>Index of " + title + "</title>" + NL +
-								" </head>" + NL +
-								" <body>" + NL +
-								"  <h1>Index of " + title + "</h1>" + NL +
-								"  <pre><hr>" + NL ).getBytes( "UTF-8" ));
+									"<html>" + NL +
+									" <head>" + NL +
+									" <meta charset=\"UTF-8\">" + NL + 
+									"  <title>Index of " + title + "</title>" + NL +
+									" </head>" + NL +
+									" <body>" + NL +
+									"  <h1>Index of " + title + "</h1>" + NL +
+									"  <pre><hr>" + NL ).getBytes( "UTF-8" ));
 								
 								String root_url = request_url;
 								
@@ -676,91 +686,192 @@ public class ManagerUtils {
 								
 							}else{
 							
-								File target_file = ((DiskManagerFileInfo)file_node).getFile( true );
+								DiskManagerFileInfo dm_file = (DiskManagerFileInfo)file_node;
 								
-								if ( !target_file.canRead()){
-									
-									return( false );
-								}
+								long	file_size = dm_file.getLength();
+								
+								File target_file = dm_file.getFile( true );
+								
+								boolean done = 	dm_file.getDownloaded() == file_size && 
+												target_file.length() == file_size;
 	
-								if ( target_file.length() < 512*1024 ){
+									// for big files see if we can hand off all processing to the
+									// media server
 								
-									String	file_type;
+								if ( file_size >= 512*1024 ){
 									
-									String file_name = target_file.getName();
-									
-									int	pos = file_name.lastIndexOf( "." );
-			
-									if ( pos == -1 ){
-			
-										file_type = "";
+									URL stream_url = getMediaServerContentURL( dm_file );
+
+									if ( stream_url != null ){
 										
-									}else{
-			
-										file_type = file_name.substring(pos+1);
-									}
-									
-									FileInputStream	fis = null;
-			
-									try{
-										fis = new FileInputStream(target_file);
-			
-										response.useStream( file_type, fis );
-			
+										OutputStream os = response.getRawOutputStream();
+										
+										os.write((
+											"HTTP/1.1 302 Found" + NL +
+											"Location: " + stream_url.toExternalForm() + NL +
+											NL ).getBytes( "UTF-8" ));
+										
 										return( true );
-			
-									}finally{
-			
-										if ( fis != null ){
-			
-											fis.close();
-										}
 									}
 								}
-													
-								OutputStream 	os 	= null;
-								InputStream 	is	= null;
 								
-								try{
-									os = response.getRawOutputStream();
-									
-									byte[] buffer = new byte[128*1024];
-									
-									is = new FileInputStream( target_file );
-									
-									while( true ){
-										
-										int len = is.read( buffer );
-										
-										if ( len <= 0 ){
-											
-											break;
-										}
-										
-										os.write( buffer, 0, len );
-									}
-								}catch( Throwable e ){
-									
-									e.printStackTrace();
-									
-								}finally{
-									
-									try{
-										os.close();
-										
-									}catch( Throwable e ){
-									}
-									
-									try{
-										is.close();
-										
-									}catch( Throwable e ){
-									}
-									
+								String	file_type;
+								
+								String file_name = target_file.getName();
+								
+								int	pos = file_name.lastIndexOf( "." );
 		
+								if ( pos == -1 ){
+		
+									file_type = "";
+									
+								}else{
+		
+									file_type = file_name.substring(pos+1);
 								}
+								
+								if ( done ){
+									
+									if ( file_size < 512*1024 ){
+									
+
+										
+										FileInputStream	fis = null;
+				
+										try{
+											fis = new FileInputStream(target_file);
+				
+											response.useStream( file_type, fis );
+				
+											return( true );
+				
+										}finally{
+				
+											if ( fis != null ){
+				
+												fis.close();
+											}
+										}
+									}else{
+											
+										
+										OutputStream 	os 	= null;
+										InputStream 	is	= null;
+										
+										try{
+											os = response.getRawOutputStream();
+											
+											byte[] buffer = new byte[128*1024];
+											
+											is = new FileInputStream( target_file );
+											
+											while( true ){
+												
+												int len = is.read( buffer );
+												
+												if ( len <= 0 ){
+													
+													break;
+												}
+												
+												os.write( buffer, 0, len );
+											}
+										}catch( Throwable e ){
+											
+											//e.printStackTrace();
+											
+										}finally{
+											
+											try{
+												os.close();
+												
+											}catch( Throwable e ){
+											}
+											
+											try{
+												is.close();
+												
+											}catch( Throwable e ){
+											}
+											
+				
+										}
+								
+										return( true );
+									}
 							
-								return( true );
+								}else{
+									
+									dm_file.setPriority(10);
+									
+									try{
+										final OutputStream os = response.getRawOutputStream();
+										
+										os.write((
+												"HTTP/1.1 200 OK" + NL +
+												"Content-Type:" + HTTPUtils.guessContentTypeFromFileType( file_type ) + NL +
+												"Content-Length: " + file_size + NL +
+												"Connection: close" + NL +
+												NL ).getBytes( "UTF-8" ));
+										
+										DiskManagerChannel chan = PluginCoreUtils.wrap( dm_file ).createChannel();
+										
+										DiskManagerRequest req = chan.createRequest();
+										
+										req.setOffset( 0 );
+										req.setLength( file_size );
+																				
+										req.addListener(
+											new DiskManagerListener()
+											{
+												public void
+												eventOccurred(
+													DiskManagerEvent	event )
+												{
+													int	type = event.getType();
+													
+													if ( type ==  DiskManagerEvent.EVENT_TYPE_BLOCKED ){
+													
+														return;
+														
+													}else if ( type == DiskManagerEvent.EVENT_TYPE_FAILED ){
+														
+														throw( new RuntimeException( event.getFailure()));
+													}
+													
+													PooledByteBuffer buffer = event.getBuffer();
+													
+													if ( buffer == null ){
+														
+														throw( new RuntimeException( "eh?" ));
+													}
+													
+													try{
+					
+														byte[] data = buffer.toByteArray();
+														
+														os.write( data );
+														
+													}catch( IOException e ){
+														
+														throw( new RuntimeException( "Failed to write to " + file, e ));
+														
+													}finally{
+														
+														buffer.returnToPool();
+													}
+												}
+											});
+									
+										req.run();
+										
+										return( true );
+										
+									}catch( Throwable e ){
+										
+										return( false );
+									}
+								}
 							}
 						}
 						
@@ -792,6 +903,39 @@ public class ManagerUtils {
 		}
 	}
 
+	public static URL 
+	getMediaServerContentURL(
+		DiskManagerFileInfo file ) 
+	{
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		
+		PluginInterface pi = pm.getPluginInterfaceByID( "azupnpav", false );
+	
+		if ( pi == null ){
+			
+			return( null );
+		}
+	
+		if ( !pi.getPluginState().isOperational()){
+			
+			return( null );
+		}
+	
+		try{						
+			Object	url = pi.getIPC().invoke( "getContentURL", new Object[]{ PluginCoreUtils.wrap( file )});
+			
+			if ( url instanceof String ){
+				
+				return( new URL( (String) url));
+			}
+		}catch ( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	
+		return( null );
+	}
+	
 	private static class
 	UnloadableWebPlugin
 		extends WebPlugin
