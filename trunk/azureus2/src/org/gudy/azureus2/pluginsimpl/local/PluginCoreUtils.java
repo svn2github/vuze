@@ -375,6 +375,16 @@ PluginCoreUtils
 		Object datasource,
 		boolean toCore)
 	{
+		if (datasource instanceof Object[]) {
+			Object[] array = (Object[]) datasource;
+			Object[] newArray = new Object[array.length];
+			for (int i = 0; i < array.length; i++) {
+				Object o = array[i];
+				newArray[i] = convert(o, toCore);
+			}
+			return newArray;
+		}
+
 		try {
 			if (toCore) {
 				if (datasource instanceof org.gudy.azureus2.core3.download.DownloadManager) {
