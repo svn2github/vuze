@@ -76,6 +76,7 @@ WebPlugin
 	public static final String	PR_NON_BLOCKING				= "NonBlocking";				// Boolean
 	public static final String	PR_ENABLE_PAIRING			= "EnablePairing";				// Boolean
 	public static final String	PR_ENABLE_I2P				= "EnableI2P";					// Boolean
+	public static final String	PR_ENABLE_UPNP				= "EnableUPNP";					// Boolean
 	
 	public static final String	PROPERTIES_MIGRATED		= "Properties Migrated";
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
@@ -113,7 +114,7 @@ WebPlugin
 	public static final String 	CONFIG_PROTOCOL_DEFAULT			= "HTTP";
 
 	public static final String	CONFIG_UPNP_ENABLE				= "UPnP Enable";
-	public static final boolean	CONFIG_UPNP_ENABLE_DEFAULT		= true;
+	public 				boolean	CONFIG_UPNP_ENABLE_DEFAULT		= true;
 
 	public static final String 	CONFIG_HOME_PAGE				= "Home Page";
 	public static final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
@@ -278,6 +279,13 @@ WebPlugin
 		if( pr_access != null ){
 			
 			CONFIG_ACCESS_DEFAULT	= pr_access;
+		}
+		
+		Boolean	pr_enable_upnp = (Boolean)properties.get(PR_ENABLE_UPNP);
+		
+		if ( pr_enable_upnp != null ){
+		
+			CONFIG_UPNP_ENABLE_DEFAULT	= pr_enable_upnp.booleanValue();
 		}
 		
 		Boolean	pr_hide_resource_config = (Boolean)properties.get( PR_HIDE_RESOURCE_CONFIG );
@@ -2240,6 +2248,12 @@ WebPlugin
 					Debug.out( "Not supported" );
 					
 					throw( new IOException( "Not supported" ));
+				}
+				
+				public boolean 
+				isActive()
+				{
+					return( true );
 				}
 			};
 			

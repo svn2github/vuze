@@ -493,6 +493,12 @@ TRNonBlockingServerProcessor
 		keep_alive	= k;
 	}
 	
+	public boolean
+	isActive()
+	{
+		return( !socket_channel.socket().isClosed());
+	}
+	
 	public void
 	interruptTask()
 	{

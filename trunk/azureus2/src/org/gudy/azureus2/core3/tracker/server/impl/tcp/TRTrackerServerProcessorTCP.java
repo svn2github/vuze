@@ -956,6 +956,12 @@ TRTrackerServerProcessorTCP
 	}
 		
 	protected boolean
+	isActive()
+	{
+		return( true );
+	}
+	
+	protected boolean
 	handleExternalRequest(
 		InetSocketAddress	local_address,
 		InetSocketAddress	remote_address,
@@ -971,6 +977,6 @@ TRTrackerServerProcessorTCP
 	{
 		URL	absolute_url = new URL( server_url + (url.startsWith("/")?url:("/"+url)));
 			
-		return( server.handleExternalRequest( local_address, remote_address, user,url,absolute_url,header, is, os, async, keep_alive ));
+		return( server.handleExternalRequest( this, local_address, remote_address, user,url,absolute_url,header, is, os, async, keep_alive ));
 	}
 }

@@ -245,6 +245,12 @@ TrackerWebPageResponseImpl
 		return( request.getOutputStream());
 	}
 	
+	public boolean 
+	isActive()
+	{
+		return( request.isActive());
+	}
+	
 	protected void
 	complete()
 

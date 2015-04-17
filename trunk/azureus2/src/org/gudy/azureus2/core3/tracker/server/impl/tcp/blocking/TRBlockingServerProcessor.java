@@ -455,6 +455,23 @@ TRBlockingServerProcessor
 	
 	}
 	
+	public boolean
+	isActive()
+	{
+		try{
+				// not really much use anyway as the default for keep alive timer is 2 hours or more...
+			
+			if ( !socket.getKeepAlive()){
+			
+				socket.setKeepAlive( true );
+			}
+			
+		}catch( Throwable e ){			
+		}
+
+		return( !socket.isClosed());
+	}
+	
 	public void
 	interruptTask()
 	{

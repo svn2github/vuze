@@ -120,4 +120,7 @@ TrackerWebPageResponse
 	getRawOutputStream()
 	
 		throws IOException;
+	
+	public boolean
+	isActive();
 }

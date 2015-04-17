@@ -121,6 +121,12 @@ TrackerWebPageRequestImpl
 		return( request.getOutputStream());
 	}
 	
+	protected boolean
+	isActive()
+	{
+		return( request.isActive());
+	}
+	
 	protected AsyncController
 	getAsyncController()
 	{

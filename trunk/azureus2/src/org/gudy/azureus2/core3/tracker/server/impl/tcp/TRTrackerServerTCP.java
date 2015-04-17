@@ -312,16 +312,17 @@ TRTrackerServerTCP
 	
 	protected boolean
 	handleExternalRequest(
-		final InetSocketAddress		local_address,
-		final InetSocketAddress		client_address,
-		final String				user,
-		final String				url,
-		final URL					absolute_url,
-		final String				header,
-		final InputStream			is,
-		final OutputStream			os,
-		final AsyncController		async,
-		final boolean[]				keep_alive )		
+		final TRTrackerServerProcessorTCP	processor,
+		final InetSocketAddress				local_address,
+		final InetSocketAddress				client_address,
+		final String						user,
+		final String						url,
+		final URL							absolute_url,
+		final String						header,
+		final InputStream					is,
+		final OutputStream					os,
+		final AsyncController				async,
+		final boolean[]						keep_alive )		
 		
 		throws IOException
 	{
@@ -407,6 +408,12 @@ TRTrackerServerTCP
 						boolean		ka )
 					{
 						keep_alive[0] = original_ka && ka;
+					}
+					
+					public boolean 
+					isActive() 
+					{
+						return( processor.isActive());
 					}
 				};
 			

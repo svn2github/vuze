@@ -65,6 +65,9 @@ TRTrackerServerListener2
 		public OutputStream
 		getOutputStream();
 		
+		public boolean
+		isActive();
+		
 		public AsyncController
 		getAsyncController();
 		

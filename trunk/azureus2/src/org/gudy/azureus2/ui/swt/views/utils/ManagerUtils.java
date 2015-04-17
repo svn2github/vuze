@@ -812,11 +812,14 @@ public class ManagerUtils {
 												"Content-Type:" + HTTPUtils.guessContentTypeFromFileType( file_type ) + NL +
 												"Content-Length: " + file_size + NL +
 												"Connection: close" + NL +
-												NL ).getBytes( "UTF-8" ));
+												"X-Vuze-Hack: X" ).getBytes( "UTF-8" ));
 										
 										DiskManagerChannel chan = PluginCoreUtils.wrap( dm_file ).createChannel();
 										
-										DiskManagerRequest req = chan.createRequest();
+										final DiskManagerRequest req = chan.createRequest();
+										
+										final boolean[] header_complete = { false };
+										final long[]	last_write		= { 0 };
 										
 										req.setOffset( 0 );
 										req.setLength( file_size );
@@ -845,9 +848,28 @@ public class ManagerUtils {
 														
 														throw( new RuntimeException( "eh?" ));
 													}
-													
+
 													try{
-					
+
+														boolean	do_header = false;
+														
+														synchronized( header_complete ){
+															
+															if ( !header_complete[0] ){
+																
+																do_header = true;
+																
+																header_complete[0] = true;
+															}
+															
+															last_write[0] = SystemTime.getMonotonousTime();
+														}
+														
+														if ( do_header ){
+															
+															os.write((NL+NL).getBytes( "UTF-8" ));
+														}
+																	
 														byte[] data = buffer.toByteArray();
 														
 														os.write( data );
@@ -863,7 +885,63 @@ public class ManagerUtils {
 												}
 											});
 									
-										req.run();
+										final TimerEventPeriodic timer_event [] = {null};
+										
+										timer_event[0] =
+											SimpleTimer.addPeriodicEvent(
+												"KeepAlive",
+												10*1000,
+												new TimerEventPerformer() 
+												{
+													boolean	cancel_outstanding = false;
+													
+													public void 
+													perform(
+														TimerEvent event) 
+													{
+														if ( cancel_outstanding ){
+															
+															req.cancel();
+															
+														}else{
+															
+															synchronized( header_complete ){
+																
+																if ( header_complete[0] ){
+																	
+																	if ( SystemTime.getMonotonousTime() - last_write[0] >= 5*60*1000 ){
+																		
+																		req.cancel();
+																	}
+																}else{
+																	
+																	try{
+																		os.write( "X".getBytes( "UTF-8" ));
+																		
+																		os.flush();
+																		
+																	}catch( Throwable e ){
+																		
+																		req.cancel();
+																	}
+																}
+															}
+															
+															if ( !response.isActive()){
+																
+																cancel_outstanding = true;
+															}
+														}
+													}
+												});
+										
+										try{
+											req.run();
+										
+										}finally{
+											
+											timer_event[0].cancel();
+										}
 										
 										return( true );
 										
