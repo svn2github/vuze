@@ -1012,7 +1012,7 @@ public class GlobalManagerImpl
 	        
 	        Long lDownloaded = (Long) save_download_state.get("downloaded");
 	        Long lUploaded = (Long) save_download_state.get("uploaded");
-	        Long lCompleted = (Long) save_download_state.get("completed");
+	        Long lCompletedBytes = (Long) save_download_state.get("completedbytes");
 	        Long lDiscarded = (Long) save_download_state.get("discarded");
 	        Long lHashFailsCount = (Long) save_download_state.get("hashfails");	// old method, number of fails
 	        Long lHashFailsBytes = (Long) save_download_state.get("hashfailbytes");	// new method, bytes failed
@@ -1035,8 +1035,8 @@ public class GlobalManagerImpl
 	        dm_stats.setDownloadRateLimitBytesPerSecond( maxDL );
 	        dm_stats.setUploadRateLimitBytesPerSecond( maxUL );
 	        
-	        if (lCompleted != null) {
-	          dm_stats.setDownloadCompleted(lCompleted.intValue());
+	        if (lCompletedBytes != null) {
+	          dm_stats.setDownloadCompletedBytes(lCompletedBytes.longValue());
 	        }
 	        
 	        if (lDiscarded != null) {
@@ -2359,7 +2359,7 @@ public class GlobalManagerImpl
 	boolean				internal_export )
   {
 	  DownloadManagerStats dm_stats = dm.getStats();
-	  Map dmMap = new HashMap();
+	  Map<String, Object> dmMap = new HashMap<String, Object>();
 	  TOTorrent	torrent = dm.getTorrent();
 
 	  if ( torrent != null ){
@@ -2409,7 +2409,7 @@ public class GlobalManagerImpl
 	  }
 	  dmMap.put("downloaded", new Long(dm_stats.getTotalDataBytesReceived()));
 	  dmMap.put("uploaded", new Long(dm_stats.getTotalDataBytesSent()));
-	  dmMap.put("completed", new Long(dm_stats.getDownloadCompleted(true)));
+	  dmMap.put("completedbytes", new Long(dm_stats.getDownloadCompletedBytes()));
 	  dmMap.put("discarded", new Long(dm_stats.getDiscarded()));
 	  dmMap.put("hashfailbytes", new Long(dm_stats.getHashFailBytes()));
 	  dmMap.put("forceStart", new Long(dm.isForceStart() && (dm.getState() != DownloadManager.STATE_CHECKING) ? 1 : 0));

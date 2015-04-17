@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.disk.*;
@@ -61,7 +60,6 @@ DownloadManagerStatsImpl
 		//Completed (used for auto-starting purposes)
 		
 	private int completed;
-	private int downloadCompleted;
 	
 		// saved downloaded and uploaded
 	private long saved_data_bytes_downloaded;
@@ -87,6 +85,8 @@ DownloadManagerStatsImpl
 	
 	private long saved_skipped_file_set_size;
 	private long saved_skipped_but_downloaded;
+	
+	private long saved_completed_download_bytes = -1;
 
 	private int max_upload_rate_bps = 0;  //0 for unlimited
 	private int max_download_rate_bps = 0;  //0 for unlimited
@@ -261,15 +261,14 @@ DownloadManagerStatsImpl
 	        state == DownloadManager.STATE_INITIALIZING)
 	      return completed;
 	    else
-	      return downloadCompleted;
+	      return getDownloadCompleted(true);
 	  }
 	  if (dm.getState() == DiskManager.ALLOCATING || 
 	      dm.getState() == DiskManager.CHECKING || 
 	      dm.getState() == DiskManager.INITIALIZING)
       return dm.getPercentDone();
 	  else {
-      long total = dm.getTotalLength();
-      return total == 0 ? 0 : (int) ((1000 * (total - dm.getRemaining())) / total);
+      return getDownloadCompleted(true);
 	  }
 	}
 
@@ -281,49 +280,73 @@ DownloadManagerStatsImpl
 	getDownloadCompleted(
 		boolean bLive ) 
 	{
-		DiskManager	dm = download_manager.getDiskManager();
-		
-			// no disk manager -> not running -> use stored value
-		
-		if ( dm == null ){
-			
-		   return downloadCompleted;
+		if (bLive) {
+  		DiskManager	dm = download_manager.getDiskManager();
+  		
+  			// no disk manager -> not running -> use stored value
+  		
+  		if ( dm != null ){
+  		
+  	    int state = dm.getState();
+  
+  	    boolean	transient_state = 
+  	    		state == DiskManager.INITIALIZING ||
+  	            state == DiskManager.ALLOCATING   ||
+  	            state == DiskManager.CHECKING;
+  	    
+  	    long total = dm.getTotalLength();
+  	    
+  	    long completed_download_bytes = total - dm.getRemaining();
+  	    int computed_completion = (total == 0) ? 0 : (int) ((1000 * completed_download_bytes) / total);
+  
+ 	    	// use non-transient values to update the record of download completion
+  	    if ( !transient_state ){
+  	    	
+  	    	saved_completed_download_bytes = completed_download_bytes;
+  	    }
+  	    
+    		// return the transient completion level
+	    	return computed_completion;
+  		}
 		}
-		
+	    	
+    long total = download_manager.getSize();
+		int computed_completion = total == 0 ? 0 : (int) (1000 * getDownloadCompletedBytes() / total);
+		return computed_completion;
+	}
+  
+	public void setDownloadCompletedBytes(long completedBytes) {
+		saved_completed_download_bytes = completedBytes;
+	}
+	
+	public void recalcDownloadCompleteBytes() {
+		DiskManager	dm = download_manager.getDiskManager();
+		if (dm != null) {
 	    int state = dm.getState();
-
 	    boolean	transient_state = 
 	    		state == DiskManager.INITIALIZING ||
 	            state == DiskManager.ALLOCATING   ||
 	            state == DiskManager.CHECKING;
 	    
-	    long total = dm.getTotalLength();
-	    
-	    int computed_completion = (total == 0) ? 0 : (int) ((1000 * (total - dm.getRemaining())) / total);
-
-	    	// use non-transient values to update the record of download completion
-	    
-	    if ( !transient_state ){
-	    	
-	    	downloadCompleted = computed_completion;
+	    if (!transient_state) {
+  	    long total = dm.getTotalLength();
+	    	saved_completed_download_bytes = total - dm.getRemaining();
 	    }
-	    
-	    if ( bLive ){
-	    
-	    		// return the transient completion level
-	    	
-	    	return computed_completion;
-	    	
-	    }else{
-	    	
-	    		// return the non-transient one
-	    	
-	    	return( downloadCompleted );
-	    }
+		}
+		if (saved_completed_download_bytes < 0) {
+			// recalc
+			DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfoSet().getFiles();
+			long total_size = 0;
+			for (DiskManagerFileInfo file : files) {
+				total_size += file.getDownloaded();
+			}
+			saved_completed_download_bytes = total_size;
+		}
 	}
-  
-	public void setDownloadCompleted(int _completed) {
-		downloadCompleted = _completed;
+	
+	public long getDownloadCompletedBytes() {
+		recalcDownloadCompleteBytes();
+		return saved_completed_download_bytes;
 	}
 
 	public String getElapsedTime() {
@@ -667,7 +690,7 @@ DownloadManagerStatsImpl
 
 			long size = download_manager.getSize();
 
-			return size - ((long) getDownloadCompleted(false) * size / 1000L);
+			return size - getDownloadCompletedBytes();
 
 		} else {
 
@@ -1128,6 +1151,7 @@ DownloadManagerStatsImpl
 			return 0;
 		}
 		float pct = (sizeExcludingDND - getRemainingExcludingDND()) / (float) sizeExcludingDND;
+
 		return (int) (1000 * pct);
 	}
 
@@ -1147,7 +1171,7 @@ DownloadManagerStatsImpl
 				",discard=" + getDiscarded() + ",hash_fails=" + getHashFailCount() + "/" + getHashFailBytes() +
 				",comp=" + getCompleted() 
 				+ "[live:" + getDownloadCompleted(true) + "/" + getDownloadCompleted( false) 
-				+ "],dl_comp=" + downloadCompleted
+				+ "]"
 				+ ",remaining=" + getRemaining());
 	
 			writer.println( "down_lim=" + getDownloadRateLimitBytesPerSecond() +

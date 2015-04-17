@@ -70,9 +70,19 @@ DownloadManagerStats
 	getDownloadCompleted(boolean bLive);
 	
 	public void 
-	setDownloadCompleted(int completed);
-				
-  
+	setDownloadCompletedBytes(long completedBytes);
+	
+	/**
+	 * Get the number of bytes of the download that we currently have.
+	 * <P>
+	 * Includes bytes downloaded for files marked as DND/Skipped
+	 */
+	public long
+	getDownloadCompletedBytes();
+
+	public void
+	recalcDownloadCompleteBytes();
+
   /**
    * Get the total number of bytes ever downloaded.
    * @return total bytes downloaded

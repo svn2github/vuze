@@ -692,7 +692,7 @@ DownloadManagerController
 
 			  					fileFacadeSet.makeSureFilesFacadeFilled(true);
 
-			  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+			  					stats.recalcDownloadCompleteBytes();
 			  						
 			  					download_manager.setAssumedComplete(isDownloadComplete(false));
 			  				}
@@ -1045,7 +1045,7 @@ DownloadManagerController
 						}
 						
 						stats.setCompleted(stats.getCompleted());
-						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+  					stats.recalcDownloadCompleteBytes();
 			      
 					  		// we don't want to update the torrent if we're seeding
 					  
@@ -1937,7 +1937,7 @@ DownloadManagerController
 		// So, if we have no DND files, use calculation from stats, which
 		// remembers things like whether the file was once complete
 		if (!cached_has_dnd_files) {
-			return stats.getDownloadCompleted(false) == 1000;
+			return stats.getRemaining() == 0;
 		}
 
 		// We have DND files.  If we have an existing diskmanager, then it
@@ -3020,7 +3020,7 @@ DownloadManagerController
 
 				force_start = wasForceStarted;
 
-				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+				stats.recalcDownloadCompleteBytes();
 
 				if (newDMState == DiskManager.READY) {
 

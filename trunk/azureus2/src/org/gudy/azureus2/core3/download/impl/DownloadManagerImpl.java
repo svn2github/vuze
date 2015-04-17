@@ -1013,7 +1013,7 @@ DownloadManagerImpl
 					 
 					  // download_manager_state.clearTrackerResponseCache();
 						
-					  stats.setDownloadCompleted(1000);
+					  stats.setDownloadCompletedBytes(getSize());
 				  
 					  setAssumedComplete(true);
 				  
