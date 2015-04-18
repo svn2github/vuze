@@ -37,7 +37,7 @@ public class ColumnCS_ReceivedPer
 
 	public void refresh(TableCell cell) {
 		ClientStatsDataSource ds = (ClientStatsDataSource) cell.getDataSource();
-		if (ds == null) {
+		if (ds == null || ds.count == 0) {
 			return;
 		}
 		long val = ds.bytesReceived / ds.count;
