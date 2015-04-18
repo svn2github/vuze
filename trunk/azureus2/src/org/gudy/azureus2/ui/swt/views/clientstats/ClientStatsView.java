@@ -828,6 +828,12 @@ public class ClientStatsView
 
 	private String getID(PEPeer peer) {
 		String s = peer.getClientNameFromPeerID();
+		if (s == null) {
+			s = peer.getClient();
+			if (s.startsWith("HTTP Seed")) {
+				return "HTTP Seed";
+			}
+		}
 		return s.replaceAll(" v?[0-9._]+", "");
 	}
 }
