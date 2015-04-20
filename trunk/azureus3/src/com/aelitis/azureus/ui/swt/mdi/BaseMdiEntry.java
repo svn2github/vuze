@@ -715,6 +715,7 @@ public abstract class BaseMdiEntry
 				Debug.out(e);
 			}
 		}
+		setToolbarVisibility(setToolBarEnablers.size() > 0);
 	}
 
 	public void hide() {
@@ -723,6 +724,7 @@ public abstract class BaseMdiEntry
 				swt_hide();
 			}
 		});
+		setToolbarVisibility(false);
 	}
 	
 	public void

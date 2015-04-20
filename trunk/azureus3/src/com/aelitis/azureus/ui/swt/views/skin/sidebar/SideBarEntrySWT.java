@@ -287,6 +287,8 @@ public class SideBarEntrySWT
 	 * @see com.aelitis.azureus.ui.mdi.MdiEntry#redraw()
 	 */
 	boolean isRedrawQueued = false;
+
+	private InfoBarUtil toolBarInfoBar;
 	public void redraw() {
 		if (neverPainted) {
 			return;
@@ -1372,6 +1374,14 @@ public class SideBarEntrySWT
 	
 	// @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#setToolbarVisibility(boolean)
 	protected void setToolbarVisibility(boolean visible) {
+		if (toolBarInfoBar != null) {
+			if (visible) {
+				toolBarInfoBar.show();
+			} else {
+				toolBarInfoBar.hide(false);
+			}
+			return;
+		}
 		SWTSkinObject soMaster = getSkinObjectMaster();
 		if (soMaster == null) {
 			return;
@@ -1382,7 +1392,7 @@ public class SideBarEntrySWT
 		}
 		SWTSkinObject soToolbar = skin.getSkinObject(SkinConstants.VIEWID_VIEW_TOOLBAR, soMaster);
 		if (soToolbar == null && visible) {
-			new InfoBarUtil(so, SO_ID_TOOLBAR, true, "", "") {
+			toolBarInfoBar = new InfoBarUtil(so, SO_ID_TOOLBAR, true, "", "") {
 				public boolean allowShow() {
 					return true;
 				}
