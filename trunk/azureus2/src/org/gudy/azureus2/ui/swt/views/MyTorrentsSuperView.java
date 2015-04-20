@@ -390,6 +390,12 @@ public class MyTorrentsSuperView
       	return true;
       }
     }
+    MyTorrentsView currentView2 = getCurrentView();
+    if (currentView2 != currentView && currentView2 != null) {
+      if (currentView2.toolBarItemActivated(item, activationType, datasource)) {
+      	return true;
+      }
+    }
     return false;
   }
   
