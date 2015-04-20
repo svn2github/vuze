@@ -86,6 +86,7 @@ import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureExecOnAssign;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.TagManager;
@@ -1923,11 +1924,11 @@ SpeedLimitHandler
 											
 											if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
 												
-												peersAdded( download, new Peer[]{ event.getPeer() });
+												peersAdded( download, peer_manager, new Peer[]{ event.getPeer() });
 												
 											}else if ( event.getType() == PeerManagerEvent.ET_PEER_REMOVED ){
 												
-												peerRemoved( download, event.getPeer());
+												peerRemoved( download, peer_manager, event.getPeer());
 											}
 										}
 									};
@@ -1944,7 +1945,7 @@ SpeedLimitHandler
 						
 							Peer[] peers = peer_manager.getPeers();
 																		
-							peersAdded( download, peers );
+							peersAdded( download, peer_manager, peers );
 						}
 						
 						public void
@@ -1985,6 +1986,7 @@ SpeedLimitHandler
 	private void
 	peersAdded(
 		Download	download,
+		PeerManager	peer_manager,
 		Peer[]		peers )
 	{
 		IPSet[]		sets;
@@ -2153,7 +2155,7 @@ SpeedLimitHandler
 		
 									if ( !is_inverse ){
 									
-										addLimiters( peer, set, rlu_tbr, rld_tbr );
+										addLimiters( peer_manager, peer, set, rlu_tbr, rld_tbr );
 										
 										added_to_sets.add( set );
 									}
@@ -2164,7 +2166,7 @@ SpeedLimitHandler
 							
 							if ( is_inverse && !hit ){
 								
-								addLimiters( peer, set, rlu_tbr, rld_tbr );
+								addLimiters( peer_manager, peer, set, rlu_tbr, rld_tbr );
 								
 								added_to_sets.add( set );
 							}
@@ -2200,7 +2202,7 @@ SpeedLimitHandler
 																
 							if ( hit == not_inverse ){
 								
-								addLimiters( peer, set, rlu_tbr, rld_tbr );
+								addLimiters( peer_manager, peer, set, rlu_tbr, rld_tbr );
 								
 								added_to_sets.add( set );
 							}
@@ -2236,7 +2238,7 @@ SpeedLimitHandler
 																
 							if ( hit == not_inverse ){
 								
-								addLimiters( peer, set, rlu_tbr, rld_tbr );
+								addLimiters( peer_manager, peer, set, rlu_tbr, rld_tbr );
 								
 								added_to_sets.add( set );
 							}
@@ -2267,6 +2269,7 @@ SpeedLimitHandler
 	private void
 	peerRemoved(
 		Download	download,
+		PeerManager	peer_manager,
 		Peer		peer )
 	{
 		Collection<IPSet> sets;
@@ -2283,12 +2286,13 @@ SpeedLimitHandler
 		
 		for ( IPSet s: sets ){
 			
-			s.removePeer( peer );
+			s.removePeer( peer_manager, peer );
 		}
 	}
 	
 	private void
 	addLimiters(
+		PeerManager			peer_manager,
 		Peer				peer,
 		IPSet				set,
 		List<RateLimiter>	up_to_be_removed,
@@ -2362,7 +2366,7 @@ SpeedLimitHandler
 		
 		if ( matched ){
 			
-			set.addPeer( peer );
+			set.addPeer( peer_manager, peer );
 		}
 	}
 	
@@ -4411,25 +4415,27 @@ SpeedLimitHandler
 		
 		private void
 		addPeer(
-			Peer		peer )
+			PeerManager		peer_manager,
+			Peer			peer )
 		{
 			TagPeerImpl tag = tag_impl;
 			
 			if ( tag != null ){
 				
-				tag.add( PluginCoreUtils.unwrap( peer ));
+				tag.add( peer_manager, peer );
 			}
 		}
 		
 		private void
 		removePeer(
-			Peer		peer )
+			PeerManager		peer_manager,
+			Peer			peer )
 		{
 			TagPeerImpl tag = tag_impl;
 			
 			if ( tag != null ){
 				
-				tag.remove( PluginCoreUtils.unwrap( peer ));
+				tag.remove( peer_manager, peer );
 			}
 		}
 		
@@ -4488,7 +4494,7 @@ SpeedLimitHandler
 		private class
 		TagPeerImpl
 			extends TagBase
-			implements TagPeer
+			implements TagPeer, TagFeatureExecOnAssign
 		{
 			private Object	UPLOAD_PRIORITY_ADDED_KEY = new Object();
 			
@@ -4513,7 +4519,13 @@ SpeedLimitHandler
 			{
 				return( Taggable.TT_PEER );
 			}
-			 
+			
+			public int
+			getSupportedActions()
+			{
+				return( TagFeatureExecOnAssign.ACTION_DESTROY );
+			}
+			
 			private void
 			update(
 				int		tick_count )
@@ -4594,8 +4606,18 @@ SpeedLimitHandler
 			
 			private void
 			add(
-				PEPeer		peer )
-			{
+				PeerManager		peer_manager,
+				Peer			_peer )
+			{	
+				PEPeer peer = PluginCoreUtils.unwrap( _peer );
+				
+				if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_DESTROY )){
+					
+					peer_manager.removePeer( _peer );
+										
+					return;
+				}
+
 				synchronized( this ){
 										
 					if ( peer.getPeerState() == PEPeer.TRANSFERING ){
@@ -4622,8 +4644,11 @@ SpeedLimitHandler
 			
 			private void
 			remove(
-				PEPeer		peer )
+				PeerManager		peer_manager,
+				Peer			_peer )
 			{
+				PEPeer peer = PluginCoreUtils.unwrap( _peer );
+				
 				synchronized( this ){
 					
 					if ( pending_peers.remove( peer )){

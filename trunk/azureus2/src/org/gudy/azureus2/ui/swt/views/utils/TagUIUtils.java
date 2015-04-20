@@ -1076,6 +1076,41 @@ public class TagUIUtils
 			}
 		}
 		
+		if ( tag_type.hasTagTypeFeature( TagFeature.TF_EXEC_ON_ASSIGN )){
+			
+			final TagFeatureExecOnAssign	tf_eoa = (TagFeatureExecOnAssign)tag;
+			
+			int	supported_actions = tf_eoa.getSupportedActions();
+			
+			if ( supported_actions != TagFeatureExecOnAssign.ACTION_NONE ){
+				
+				final Menu eoa_menu = new Menu( menu.getShell(), SWT.DROP_DOWN);
+				
+				MenuItem eoa_item = new MenuItem( menu, SWT.CASCADE);
+				
+				Messages.setLanguageText( eoa_item, "label.exec.on.assign" );
+				
+				eoa_item.setMenu( eoa_menu );
+				
+				if ( tf_eoa.supportsAction( TagFeatureExecOnAssign.ACTION_DESTROY )){
+					
+					final MenuItem destroy_item = new MenuItem( eoa_menu, SWT.CHECK);
+				
+					Messages.setLanguageText( destroy_item, "FileItem.delete" );
+					
+					destroy_item.setSelection( tf_eoa.isActionEnabled( TagFeatureExecOnAssign.ACTION_DESTROY ));
+					
+					destroy_item.addListener( SWT.Selection, new Listener(){
+							public void 
+							handleEvent(Event event)
+							{
+								tf_eoa.setActionEnabled( TagFeatureExecOnAssign.ACTION_DESTROY, destroy_item.getSelection());
+							}
+						});
+				}
+			}
+		}
+		
 		// options
 
 		if ( tag instanceof TagDownload ){

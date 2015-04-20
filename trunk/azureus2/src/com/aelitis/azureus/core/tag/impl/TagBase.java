@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagException;
+import com.aelitis.azureus.core.tag.TagFeatureExecOnAssign;
 import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
 import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
@@ -62,7 +63,8 @@ TagBase
 	protected static final String	AT_FL_INIT_LOC		= "fl.init";
 	protected static final String	AT_RATELIMIT_MIN_SR	= "rl.minsr";
 	protected static final String	AT_RATELIMIT_MAX_SR	= "rl.maxsr";
-	protected static final String	AT_PROPERTY_PREFX	= "pp.";
+	protected static final String	AT_PROPERTY_PREFIX	= "pp.";
+	protected static final String	AT_EOA_PREFIX		= "eoa.";
 
 	private static final String[] EMPTY_STRING_LIST = {};
 	
@@ -700,6 +702,52 @@ TagBase
 		return( new TagPropertyImpl( name, type ));
 	}
 	
+		// exec on assign
+	
+	public int
+	getSupportedActions()
+	{
+		return( TagFeatureExecOnAssign.ACTION_NONE );
+	}
+	
+	public boolean
+	supportsAction(
+		int		action )
+	{
+		return((getSupportedActions() & action ) != 0 );
+	}
+	
+	public boolean
+	isActionEnabled(
+		int		action )
+	{
+		if ( !supportsAction( action )){
+			
+			Debug.out( "not supported" );
+			
+			return( false );
+		}
+		
+		return( readBooleanAttribute( AT_PROPERTY_PREFIX + action, false ));
+	}
+	
+	public void
+	setActionEnabled(
+		int			action,
+		boolean		enabled )
+	{
+		if ( !supportsAction( action )){
+			
+			Debug.out( "not supported" );
+			
+			return;
+		}
+		
+		writeBooleanAttribute( AT_PROPERTY_PREFIX + action, enabled );
+	}
+	
+		// others
+	
 	public void
 	addTaggable(
 		Taggable	t )
@@ -1022,7 +1070,7 @@ TagBase
 		setStringList(
 			String[]	value )
 		{
-			if ( writeStringListAttribute( AT_PROPERTY_PREFX + name, value )){
+			if ( writeStringListAttribute( AT_PROPERTY_PREFIX + name, value )){
 				
 				for ( TagPropertyListener l: listeners ){
 					
@@ -1042,14 +1090,14 @@ TagBase
 		public String[]
 		getStringList()
 		{
-			return( readStringListAttribute( AT_PROPERTY_PREFX + name, EMPTY_STRING_LIST ));
+			return( readStringListAttribute( AT_PROPERTY_PREFIX + name, EMPTY_STRING_LIST ));
 		}
 		
 		public void
 		setBoolean(
 			boolean	value )
 		{
-			if ( writeBooleanAttribute( AT_PROPERTY_PREFX + name, value )){
+			if ( writeBooleanAttribute( AT_PROPERTY_PREFIX + name, value )){
 				
 				for ( TagPropertyListener l: listeners ){
 					
@@ -1069,7 +1117,7 @@ TagBase
 		public Boolean
 		getBoolean()
 		{
-			return( readBooleanAttribute( AT_PROPERTY_PREFX + name, null ));
+			return( readBooleanAttribute( AT_PROPERTY_PREFIX + name, null ));
 		}
 		
 		public String

@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.ui.swt.columns.tag;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -29,6 +30,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumnExtraInfoListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagFeatureExecOnAssign;
 import com.aelitis.azureus.core.tag.TagFeatureProperties;
 
 
@@ -84,6 +86,35 @@ ColumnTagProperties
 			}
 		}
 		
+		if ( tag instanceof TagFeatureExecOnAssign ){
+			
+			TagFeatureExecOnAssign eoa = (TagFeatureExecOnAssign)tag;
+			
+			int	actions = eoa.getSupportedActions();
+			
+			if ( actions != TagFeatureExecOnAssign.ACTION_NONE ){
+							
+				String actions_str = "";
+				
+				if ( eoa.supportsAction( TagFeatureExecOnAssign.ACTION_DESTROY )){
+					
+					boolean enabled = eoa.isActionEnabled( TagFeatureExecOnAssign.ACTION_DESTROY );
+					
+					if ( enabled ){
+					
+						actions_str += MessageText.getString( "FileItem.delete") + "=Y";
+					}
+				}
+				
+				if ( actions_str.length() > 0 ){
+					
+					text += (text.length()==0?"":"; ") +  MessageText.getString( "label.exec.on.assign" ) + ": ";
+
+					text += actions_str;
+				}
+			}
+		}
+				
 
 		if ( !cell.setSortValue( text ) && cell.isValid()){
 			

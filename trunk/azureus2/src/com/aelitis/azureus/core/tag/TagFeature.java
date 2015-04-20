@@ -30,5 +30,6 @@ TagFeature
 	public static final int TF_XCODE			= 0x00000008;
 	public static final int TF_FILE_LOCATION	= 0x00000010;
 	public static final int TF_PROPERTIES		= 0x00000020;
+	public static final int TF_EXEC_ON_ASSIGN	= 0x00000040;
 	
 }
