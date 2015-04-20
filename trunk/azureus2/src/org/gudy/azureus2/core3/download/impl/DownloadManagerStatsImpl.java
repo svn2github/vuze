@@ -320,18 +320,10 @@ DownloadManagerStatsImpl
 	}
 	
 	public void recalcDownloadCompleteBytes() {
-		DiskManager	dm = download_manager.getDiskManager();
+		DiskManager	dm = getDiskManagerIfNotTransient();
 		if (dm != null) {
-	    int state = dm.getState();
-	    boolean	transient_state = 
-	    		state == DiskManager.INITIALIZING ||
-	            state == DiskManager.ALLOCATING   ||
-	            state == DiskManager.CHECKING;
-	    
-	    if (!transient_state) {
-  	    long total = dm.getTotalLength();
-	    	saved_completed_download_bytes = total - dm.getRemaining();
-	    }
+	    long total = dm.getTotalLength();
+    	saved_completed_download_bytes = total - dm.getRemaining();
 		}
 		if (saved_completed_download_bytes < 0) {
 			// recalc
@@ -684,7 +676,7 @@ DownloadManagerStatsImpl
 	public long 
 	getRemaining()
 	{
-		DiskManager disk_manager = download_manager.getDiskManager();
+		DiskManager disk_manager = getDiskManagerIfNotTransient();
 
 		if (disk_manager == null) {
 
@@ -698,6 +690,19 @@ DownloadManagerStatsImpl
 		}
 	}
 	
+	private DiskManager getDiskManagerIfNotTransient() {
+		DiskManager dm = download_manager.getDiskManager();
+		if (dm == null) {
+			return null;
+		}
+
+		int state = dm.getState();
+
+		boolean transient_state = state == DiskManager.INITIALIZING
+				|| state == DiskManager.ALLOCATING || state == DiskManager.CHECKING;
+		return transient_state ? null : dm;
+	}
+
 	public long 
 	getDiscarded()
 	{
