@@ -58,6 +58,8 @@ public class ViewQuickConfig
 	initialize(
 		Composite parent) 
 	{
+		parent.setLayout( new GridLayout());
+		
 		composite = new Composite( parent, SWT.BORDER );
 		
 		GridData gridData = new GridData(GridData.FILL_BOTH);

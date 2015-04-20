@@ -19,6 +19,7 @@ package com.aelitis.azureus.ui.swt.views;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -76,6 +77,7 @@ public class ViewUpSpeedGraph
 	private void initialize(Composite composite) {
 		GridData gridData;
 
+		composite.setLayout( new GridLayout());
 		upSpeedCanvas = new Canvas(composite, SWT.DOUBLE_BUFFERED);
 		gridData = new GridData(GridData.FILL_BOTH);
 		upSpeedCanvas.setLayoutData(gridData);

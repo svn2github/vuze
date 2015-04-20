@@ -421,6 +421,8 @@ public class TopBarView
 			soTitle.getControl().redraw();
 		}
 		
+		Utils.relayout(c);
+		
 		activeTopBar.triggerEvent( UISWTViewEvent.TYPE_FOCUSGAINED, null );
 	}
 
