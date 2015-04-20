@@ -483,8 +483,10 @@ public class ToolBarView
 
 	public boolean triggerToolBarItem(ToolBarItem item, long activationType,
 			Object datasource) {
-		if (DEBUG && !isVisible()) {
-			Debug.out("Trying to triggerToolBarItem when toolbar is not visible");
+		if (!isVisible()) {
+			if (DEBUG) {
+				Debug.out("Trying to triggerToolBarItem when toolbar is not visible");
+			}
 			return false;
 		}
 		if (triggerViewToolBar(item, activationType, datasource)) {
