@@ -86,7 +86,7 @@ public class SBC_TagDiscovery
 
 	private static final String CONFIG_FILE = "tag-discovery.config";
 
-	private static final String ID_VITALITY_ACTIVE = "image.sidebar.vitality.dl";
+	private static final String ID_VITALITY_ACTIVE = "image.sidebar.vitality.dots";
 
 	TableViewSWT<TagDiscovery> tv;
 
