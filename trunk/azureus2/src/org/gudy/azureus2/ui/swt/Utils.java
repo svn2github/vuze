@@ -1322,9 +1322,7 @@ public class Utils
 		
 		if ( !found ){
 			
-			if (  	net_type != AENetworkClassifier.AT_PUBLIC && 
-					use_plugins && 
-					( Constants.isWindows || Constants.isOSX )){
+			if ( net_type != AENetworkClassifier.AT_PUBLIC && use_plugins ){
 				
 				boolean	try_it;
 				
@@ -1418,7 +1416,7 @@ public class Utils
 		}
 	}
 	
-	public static boolean
+	private static boolean
 	installTorBrowser(
 		String				remember_id,
 		final boolean[]		install_outcome,
