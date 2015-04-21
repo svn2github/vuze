@@ -272,7 +272,7 @@ public class ManagerUtils {
 	browse(
 		DiskManagerFileInfo 	file )
 	{
-		boolean	anon = COConfigurationManager.getBooleanParameter( "library.launch.web.in.browser.anon" );
+		boolean	anon = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserAnon" );
 		
 		browse( file, anon );
 	}
@@ -289,7 +289,7 @@ public class ManagerUtils {
 	browse(
 		DownloadManager 	dm )
 	{
-		boolean	anon = COConfigurationManager.getBooleanParameter( "library.launch.web.in.browser.anon" );
+		boolean	anon = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserAnon" );
 
 		browse( dm, null, anon );
 	}
