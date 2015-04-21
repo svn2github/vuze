@@ -300,6 +300,7 @@ public class ConfigSectionInterfaceTables
 				"ConfigView.option.dm.dblclick.show",
 				"ConfigView.option.dm.dblclick.launch",
 				"ConfigView.option.dm.dblclick.launch.qv",
+				"ConfigView.option.dm.dblclick.open.browser",
 			};
 
 			String dblclickLabels[] = new String[dblclickOptions.length];
@@ -310,8 +311,26 @@ public class ConfigSectionInterfaceTables
 				dblclickLabels[i] = MessageText.getString(dblclickOptions[i]);
 				dblclickValues[i] = "" + i;
 			}
-			new StringListParameter(cLibrary, "list.dm.dblclick", dblclickLabels,
-					dblclickValues);
+			new StringListParameter(cLibrary, "list.dm.dblclick", dblclickLabels, dblclickValues);
+			
+				// always open websites in browser
+			
+			Composite cLaunchWeb = new Composite(cLibrary, SWT.NULL);
+			layout = new GridLayout();
+			layout.numColumns = 4;
+			cLaunchWeb.setLayout(layout);
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			gridData.horizontalSpan = 2;
+			gridData.horizontalIndent = 25;
+			cLaunchWeb.setLayoutData(gridData);
+			
+			BooleanParameter web_in_browser =
+					new BooleanParameter(cLaunchWeb, "Library.LaunchWebsiteInBrowser", "library.launch.web.in.browser");
+
+			BooleanParameter web_in_browser_anon =
+					new BooleanParameter(cLaunchWeb, "Library.LaunchWebsiteInBrowserAnon", "library.launch.web.in.browser.anon");
+
+			web_in_browser.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( web_in_browser_anon ));
 			
 				// Launch helpers
 				

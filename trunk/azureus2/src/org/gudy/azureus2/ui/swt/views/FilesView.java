@@ -392,6 +392,10 @@ public class FilesView
 					Utils.launch(fileInfo);
 				}
 			}	
+		}else if ( mode.equals( "5" )){
+			
+			ManagerUtils.browse( fileInfo );
+			
 		}else{
 			
 			AZ3Functions.provider az3 = AZ3Functions.getProvider();

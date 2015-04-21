@@ -270,10 +270,28 @@ public class ManagerUtils {
   
 	public static void 
 	browse(
+		DiskManagerFileInfo 	file )
+	{
+		boolean	anon = COConfigurationManager.getBooleanParameter( "library.launch.web.in.browser.anon" );
+		
+		browse( file, anon );
+	}
+	
+	public static void 
+	browse(
 		DiskManagerFileInfo 	file,
 		boolean					anon )
 	{
 		browse( file.getDownloadManager(), file, anon );
+	}
+	
+	public static void 
+	browse(
+		DownloadManager 	dm )
+	{
+		boolean	anon = COConfigurationManager.getBooleanParameter( "library.launch.web.in.browser.anon" );
+
+		browse( dm, null, anon );
 	}
 	
 	public static void 

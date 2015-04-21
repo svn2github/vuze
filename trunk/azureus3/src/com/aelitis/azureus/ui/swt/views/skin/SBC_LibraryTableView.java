@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -27,11 +28,11 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
@@ -310,24 +311,84 @@ public class SBC_LibraryTableView
 				ManagerUtils.open(dm, openMode);
 				return;
 			}
-		}else if (mode.equals("3") || mode.equals("4")){
-			// Launch
-			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
-			if (file != null) {
-				if (	mode.equals("4") &&
-						file.getDownloaded() == file.getLength() &&
-						Utils.isQuickViewSupported( file )){
+		}else{
+			
+			boolean webInBrowser = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowser" );
+			
+			if ( webInBrowser ){
+				
+				DiskManagerFileInfo fileInfo = DataSourceUtils.getFileInfo(ds);
+				
+				if ( fileInfo != null ){
 					
-					Utils.setQuickViewActive( file, true );
-				}else{
-					TorrentUtil.runDataSources(new Object[]{ file });
+					String ext = fileInfo.getExtension().toLowerCase();
+					
+					if ( ext.equals( ".html" ) || ext.equals( ".htm" )){
+						
+						ManagerUtils.browse( fileInfo );
+						
+						return;
+					}
 				}
-				return;
+				
+				DownloadManager dm = DataSourceUtils.getDM( ds);
+				
+				if ( dm != null ){
+					
+					try{
+						DiskManagerFileInfo[] files = dm.getDiskManagerFileInfoSet().getFiles();
+													
+						for ( DiskManagerFileInfo file: files ){
+							
+							if ( file.getTorrentFile().getPathComponents().length == 1 ){
+								
+								String name = file.getTorrentFile().getRelativePath().toLowerCase( Locale.US );
+								
+								if ( name.equals( "index.html" ) || name.equals( "index.htm" )){
+									
+									ManagerUtils.browse( file );
+									
+									return;
+								}
+							}
+						}
+					}catch( Throwable e ){
+						
+					}
+				}
 			}
-			DownloadManager dm = DataSourceUtils.getDM(ds);
-			if (dm != null) {
-				TorrentUtil.runDataSources(new Object[]{ dm });
-				return;
+			
+			if (mode.equals("3") || mode.equals("4")){
+		
+				// Launch
+				DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
+				if (file != null) {
+					if (	mode.equals("4") &&
+							file.getDownloaded() == file.getLength() &&
+							Utils.isQuickViewSupported( file )){
+						
+						Utils.setQuickViewActive( file, true );
+					}else{
+						TorrentUtil.runDataSources(new Object[]{ file });
+					}
+					return;
+				}
+				DownloadManager dm = DataSourceUtils.getDM(ds);
+				if (dm != null) {
+					TorrentUtil.runDataSources(new Object[]{ dm });
+					return;
+				}
+			}else if (mode.equals("5")) {
+				DiskManagerFileInfo fileInfo = DataSourceUtils.getFileInfo(ds);
+				if ( fileInfo != null ){
+					ManagerUtils.browse( fileInfo );
+					return;
+				}
+				DownloadManager dm = DataSourceUtils.getDM(ds);
+				if (dm != null) {
+					ManagerUtils.browse( dm );
+					return;
+				}
 			}
 		}
 		

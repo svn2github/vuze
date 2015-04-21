@@ -155,5 +155,8 @@ public class UIConfigDefaultsSWT
 		def.addParameter( "Library.ShowTagButtons", false );
 		def.addParameter( "Library.ShowTagButtons.CompOnly", false );
 		def.addParameter( "open.torrent.window.rename.on.tlf.change", true );
+		
+		def.addParameter( "Library.LaunchWebsiteInBrowser", true );
+		def.addParameter( "Library.LaunchWebsiteInBrowserAnon", false );
 	}
 }
