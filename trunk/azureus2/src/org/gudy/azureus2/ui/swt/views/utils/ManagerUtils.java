@@ -24,9 +24,7 @@ package org.gudy.azureus2.ui.swt.views.utils;
 
 import java.io.*;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -40,9 +38,6 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
@@ -51,7 +46,6 @@ import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
-import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -317,7 +311,9 @@ public class ManagerUtils {
 		final String	root_dir;
 		final String	url_suffix;
 		
-		if ( save_location.isFile()){
+		boolean	always_browse = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserDirList" );
+		
+		if ( save_location.isFile() && !always_browse ){
 			
 			url_suffix = UrlUtils.encode( save_location.getName());
 			
@@ -369,10 +365,12 @@ public class ManagerUtils {
 			if ( plugin == null ){
 			
 				props.put( WebPlugin.PR_PORT, 0 );
+				props.put( WebPlugin.PR_HOME_PAGE, "" );
 				props.put( WebPlugin.PR_ROOT_DIR, root_dir );
 				
 				props.put( WebPlugin.PR_ENABLE_KEEP_ALIVE, true );
 				props.put( WebPlugin.PR_ENABLE_PAIRING, false );
+				props.put( WebPlugin.PR_ENABLE_UPNP, false );
 				props.put( WebPlugin.PR_ENABLE_I2P, false );
 				
 				final String plugin_id 		= "webserver:" + dm.getInternalName();
@@ -500,6 +498,20 @@ public class ManagerUtils {
 							
 							throws IOException
 						{
+							URL absolute_url = request.getAbsoluteURL();
+							
+							String path = absolute_url.getPath();
+							
+							if ( path.equals( "/" )){
+								
+								if ( COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserDirList" )){
+
+									relative_url = "/";
+								}
+							}
+							
+							String download_name = XUXmlWriter.escapeXML( dm.getDisplayName());
+							
 							String relative_file = relative_url.replace( '/', File.separatorChar );
 							
 							String	node_key = relative_file.substring( 1 );
@@ -568,9 +580,10 @@ public class ManagerUtils {
 									"<html>" + NL +
 									" <head>" + NL +
 									" <meta charset=\"UTF-8\">" + NL + 
-									"  <title>Index of " + title + "</title>" + NL +
+									"  <title>" + download_name + ": Index of " + title + "</title>" + NL +
 									" </head>" + NL +
 									" <body>" + NL +
+									"  <p>" + download_name + "</p>" + NL + 
 									"  <h1>Index of " + title + "</h1>" + NL +
 									"  <pre><hr>" + NL ).getBytes( "UTF-8" ));
 								
@@ -696,7 +709,7 @@ public class ManagerUtils {
 								
 								os.write((
 								"  <hr></pre>" + NL +
-								"  <address>Vuze Web Server for Download '" + XUXmlWriter.escapeXML( dm.getDisplayName()) + "' at 127.0.0.1 Port " + getServerPort() +"</address>" + NL +
+								"  <address>Vuze Web Server at 127.0.0.1 Port " + getServerPort() +"</address>" + NL +
 								" </body>" + NL +
 								"</html>" ).getBytes( "UTF-8" ));
 								

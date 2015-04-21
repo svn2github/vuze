@@ -158,5 +158,6 @@ public class UIConfigDefaultsSWT
 		
 		def.addParameter( "Library.LaunchWebsiteInBrowser", true );
 		def.addParameter( "Library.LaunchWebsiteInBrowserAnon", false );
+		def.addParameter( "Library.LaunchWebsiteInBrowserDirList", false );
 	}
 }

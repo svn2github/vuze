@@ -390,6 +390,17 @@ public class TorrentUtil
 			}
 		});
 		
+		new MenuItem(menuBrowse, SWT.SEPARATOR);
+		
+		final MenuItem itemBrowseDir = new MenuItem(menuBrowse, SWT.CHECK);
+		Messages.setLanguageText(itemBrowseDir, "library.launch.web.in.browser.dir.list");
+		itemBrowseDir.setSelection(COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserDirList"));
+		itemBrowseDir.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				COConfigurationManager.setParameter( "Library.LaunchWebsiteInBrowserDirList", itemBrowseDir.getSelection());
+			}
+		});
+		
 		itemBrowse.setEnabled(hasSelection);
 		
 		// === advanced menu ===

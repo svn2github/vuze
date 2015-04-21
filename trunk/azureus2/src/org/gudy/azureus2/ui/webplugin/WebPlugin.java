@@ -64,6 +64,7 @@ WebPlugin
 	public static final String	PR_PORT						= "Port";						// Integer
 	public static final String	PR_BIND_IP					= "Bind IP";					// String
 	public static final String	PR_ROOT_RESOURCE			= "Root Resource";				// String
+	public static final String 	PR_HOME_PAGE				= "Home Page";					// String
 	public static final String	PR_ROOT_DIR					= "Root Dir";					// String
 	public static final String	PR_ACCESS					= "Access";						// String
 	public static final String	PR_LOG						= "DefaultLoggerChannel";		// LoggerChannel
@@ -116,8 +117,8 @@ WebPlugin
 	public static final String	CONFIG_UPNP_ENABLE				= "UPnP Enable";
 	public 				boolean	CONFIG_UPNP_ENABLE_DEFAULT		= true;
 
-	public static final String 	CONFIG_HOME_PAGE				= "Home Page";
-	public static final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
+	public static final String 	CONFIG_HOME_PAGE				= PR_HOME_PAGE;
+	public  		 String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
 	
 	public static final String 	CONFIG_ROOT_DIR					= PR_ROOT_DIR;
 	public        		String 	CONFIG_ROOT_DIR_DEFAULT			= "";
@@ -134,7 +135,7 @@ WebPlugin
 	
 	protected static final String	NL			= "\r\n";
 	
-	protected static final String[]		welcome_pages = {"index.html", "index.htm", "index.php", "index.tmpl" };
+	protected static final String[]		welcome_pages = { "index.html", "index.htm", "index.php", "index.tmpl" };
 	protected static File[]				welcome_files;
 	
 	private static final AsyncDispatcher	network_dispatcher = new AsyncDispatcher( "webplugin:netdispatch", 5000 );
@@ -265,6 +266,13 @@ WebPlugin
 		if( pr_root_resource != null ){
 			
 			CONFIG_ROOT_RESOURCE_DEFAULT	= pr_root_resource;
+		}
+		
+		String	pr_home_page = (String)properties.get( PR_HOME_PAGE );
+		
+		if( pr_home_page != null ){
+			
+			CONFIG_HOME_PAGE_DEFAULT		= pr_home_page;
 		}
 		
 		String	pr_root_dir = (String)properties.get( PR_ROOT_DIR );
@@ -1038,7 +1046,7 @@ WebPlugin
 				
 			home_page = null;
 				
-		}else if (!home_page.startsWith("/" )){
+		}else if ( !home_page.startsWith("/" )){
 			
 			home_page = "/" + home_page;
 		}
