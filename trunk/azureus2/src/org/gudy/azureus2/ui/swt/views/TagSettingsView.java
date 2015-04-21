@@ -641,9 +641,13 @@ public class TagSettingsView
 					dialog.setFilterPath(filterPath);
 					dialog.setMessage(MessageText.getString("label.init.save.loc"));
 					dialog.setText(MessageText.getString("label.init.save.loc"));
-					String path = dialog.open();
+					final String path = dialog.open();
 					if (path != null) {
-						setFolder(new File(path));
+						Utils.getOffOfSWTThread(new AERunnable() {
+							public void runSupport() {
+								setFolder(new File(path));
+							}
+						});
 					}
 				}
 			});
