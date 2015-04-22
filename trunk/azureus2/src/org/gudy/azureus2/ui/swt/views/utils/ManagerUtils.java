@@ -367,6 +367,8 @@ public class ManagerUtils {
 				props.put( WebPlugin.PR_PORT, 0 );
 				props.put( WebPlugin.PR_HOME_PAGE, "" );
 				props.put( WebPlugin.PR_ROOT_DIR, root_dir );
+				props.put( WebPlugin.PR_ACCESS, "local" );
+				props.put( WebPlugin.PR_HIDE_RESOURCE_CONFIG, true );
 				
 				props.put( WebPlugin.PR_ENABLE_KEEP_ALIVE, true );
 				props.put( WebPlugin.PR_ENABLE_PAIRING, false );
@@ -460,7 +462,9 @@ public class ManagerUtils {
 							
 							log( "Assigned port: " + port );
 							
-							String url = "http://127.0.0.1:" + port + "/" + url_suffix;
+							String protocol = getProtocol();
+
+							String url = protocol + "://127.0.0.1:" + port + "/" + url_suffix;
 							
 							Utils.launch( url, false, true, anon );
 						}
@@ -999,13 +1003,16 @@ public class ManagerUtils {
 								
 				PluginManager.registerPlugin(
 					plugin,
+					plugin_id,
 					plugin_id );
 				
 				browse_plugins.put( dm, plugin );
 				
 			}else{
 				
-				String url = "http://127.0.0.1:" + plugin.getServerPort() + "/" + url_suffix;
+				String protocol = plugin.getProtocol();
+				
+				String url = protocol + "://127.0.0.1:" + plugin.getServerPort() + "/" + url_suffix;
 				
 				Utils.launch( url, false, true, anon );
 			}

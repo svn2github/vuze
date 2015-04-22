@@ -165,7 +165,16 @@ PluginManager
 		Plugin		plugin,
 		String		id )
 	{
-		PluginManagerImpl.registerPlugin( plugin, id );
+		PluginManagerImpl.registerPlugin( plugin, id, plugin.getClass().getName() );
+	}
+	
+	public static void
+	registerPlugin(
+		Plugin		plugin,
+		String		id,
+		String		config_key )
+	{
+		PluginManagerImpl.registerPlugin( plugin, id, config_key );
 	}
 	
 	/**

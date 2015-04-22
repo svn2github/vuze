@@ -250,9 +250,10 @@ PluginManagerImpl
 	public static void
 	registerPlugin(
 		Plugin		plugin,
-		String		id )
+		String		id,
+		String		config_key )
 	{
-		PluginInitializer.queueRegistration( plugin, id );
+		PluginInitializer.queueRegistration( plugin, id, config_key );
 	}
 
 	public PluginInterface getPluginInterfaceByID(String id) {

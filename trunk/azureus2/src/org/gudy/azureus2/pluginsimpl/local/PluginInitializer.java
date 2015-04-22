@@ -309,19 +309,20 @@ PluginInitializer
   protected static void
   queueRegistration(
   	Plugin		plugin,
-	String		id )
+	String		id,
+	String		config_key )
   {
   	try{
   		class_mon.enter();
   		
 	   	if ( singleton == null ){
 	  		
-	  		registration_queue.add( new Object[]{ plugin, id });
+	  		registration_queue.add( new Object[]{ plugin, id, config_key });
 	 
 	  	}else{
 	  		
 	  		try{
-	  			singleton.initializePluginFromInstance( plugin, id, plugin.getClass().getName());
+	  			singleton.initializePluginFromInstance( plugin, id, config_key );
 	  			
 			}catch( Throwable e ){
 	  				
@@ -1386,7 +1387,7 @@ PluginInitializer
 	  try{
 		  addInitThread();
 		  
-		  final LinkedList initQueue = new LinkedList();
+		  final LinkedList<Runnable> initQueue = new LinkedList<Runnable>();
 		  
 			for (int i = 0; i < loaded_pi_list.size(); i++) {
 				final int idx = i;
@@ -1524,8 +1525,7 @@ PluginInitializer
 			
 								Plugin plugin = (Plugin) x[0];
 			
-								singleton.initializePluginFromInstance(plugin, (String) x[1], plugin
-										.getClass().getName());
+								singleton.initializePluginFromInstance(plugin, (String) x[1], (String)x[2]);
 							}
 						} catch (PluginException e) {
 						}
