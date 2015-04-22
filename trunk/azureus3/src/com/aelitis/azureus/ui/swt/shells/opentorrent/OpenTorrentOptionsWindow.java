@@ -3822,7 +3822,7 @@ public class OpenTorrentOptionsWindow
 
 				String name = filter.contains( File.separator )?file.getAbsolutePath():file.getName();
 				
-				String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+				String s = regex ? filter : "\\Q" + filter.replaceAll("\\s*[|;]\\s*", "\\\\E|\\\\Q") + "\\E";
 				
 				boolean	match_result = true;
 				
