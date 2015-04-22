@@ -3455,11 +3455,13 @@ public class OpenTorrentOptionsWindow
 				public void keyReleased(KeyEvent e) {
 					if (e.keyCode == SWT.SPACE) {
 						TableRowCore focusedRow = tvFiles.getFocusedRow();
-						TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
-						boolean download = !tfi_focus.isToDownload();
-	
-						TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(new TorrentOpenFileOptions[0]);
-						setToDownload( infos, download );
+						if ( focusedRow != null ){
+							TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
+							boolean download = !tfi_focus.isToDownload();
+		
+							TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(new TorrentOpenFileOptions[0]);
+							setToDownload( infos, download );
+						}
 					}
 					if (e.keyCode == SWT.F2 && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
 						TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(
