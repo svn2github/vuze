@@ -216,8 +216,6 @@ public class TorrentOpener {
 			}
 		}
 		
-		final boolean bOverrideToStopped = event.detail == DND.DROP_COPY;
-
 		if (event.data instanceof String[] || event.data instanceof String) {
 			final String[] sourceNames = (event.data instanceof String[])
 					? (String[]) event.data : new String[] { (String) event.data };
@@ -233,7 +231,7 @@ public class TorrentOpener {
 					UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 					if (uif != null) {
 						uif.openTorrentOpenOptions(null, null, new String[] { sURL },
-								bOverrideToStopped, false);
+								false, false);
 					}
 				} else if (source.isFile()) {
 					
@@ -258,7 +256,7 @@ public class TorrentOpener {
 							UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 							if (uif != null) {
 								uif.openTorrentOpenOptions(null, null, new String[] { filename },
-										bOverrideToStopped, false);
+										false, false);
 							}
 				
 						}
@@ -271,7 +269,7 @@ public class TorrentOpener {
 					UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 					if (uif != null) {
 						uif.openTorrentOpenOptions(null, dir_name, null,
-								bOverrideToStopped, false);
+								false, false);
 					}
 				}
 			}
@@ -280,7 +278,7 @@ public class TorrentOpener {
 			if (uif != null) {
 				uif.openTorrentOpenOptions(null, null, new String[] {
 					((URLTransfer.URLType) event.data).linkURL
-				}, bOverrideToStopped, false);
+				}, false, false);
 			}
 		}
 	}
