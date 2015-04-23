@@ -42,7 +42,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploader;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
-import com.aelitis.net.magneturi.MagnetURIHandler;
 
 /**
  * @author TuxPaper
@@ -483,6 +482,20 @@ public class UrlUtils
 			return null;
 		}
 
+			// be lenient for raw anon addresses
+		
+		try{
+			URL u = new URL( "http://" + text );
+		
+			String host = u.getHost();
+			
+			if ( host != null && AENetworkClassifier.categoriseAddress( host ) != AENetworkClassifier.AT_PUBLIC ){
+				
+				return( u.toExternalForm());
+			}
+		}catch( Throwable e ){
+		}
+		
 		if (accept_magnets
 				&& (text.startsWith("bc://") || text.startsWith("bctp://"))) {
 			return parseTextForMagnets(text);
