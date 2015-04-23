@@ -289,6 +289,10 @@ public class VuzeMessageBox
 	public void setRememberText(String rememberText) {
 	}
 
+	public void setRememberOnlyIfButton(int button) {
+		// TODO Auto-generated method stub
+		
+	}
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#setUrl(java.lang.String)
 	 */

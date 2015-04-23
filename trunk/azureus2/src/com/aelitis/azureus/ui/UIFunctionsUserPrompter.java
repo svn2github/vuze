@@ -109,6 +109,12 @@ public interface UIFunctionsUserPrompter
 	void setRememberText(String rememberText);
 
 	/**
+	 * @since 5601
+	 * @param button
+	 */
+	void setRememberOnlyIfButton( int button );
+	
+	/**
 	 * @param url
 	 *
 	 * @since 3.0.0.9
