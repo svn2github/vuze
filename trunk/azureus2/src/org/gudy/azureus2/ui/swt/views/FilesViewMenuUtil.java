@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
@@ -100,7 +101,7 @@ public class FilesViewMenuUtil
 		});
 		itemExplore.setEnabled(hasSelection);
 
-		// open in browser
+			// open in browser
 		
 		final Menu menuBrowse = new Menu(menu.getShell(),SWT.DROP_DOWN);
 		final MenuItem itemBrowse = new MenuItem(menu, SWT.CASCADE);
@@ -109,34 +110,54 @@ public class FilesViewMenuUtil
 
 		
 		final MenuItem itemBrowsePublic = new MenuItem(menuBrowse, SWT.PUSH);
-		Messages.setLanguageText(itemBrowsePublic, "label.public" );
+		itemBrowsePublic.setText( MessageText.getString( "label.public" ) + "..." );
 		itemBrowsePublic.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				for (int i = data_sources.length - 1; i >= 0; i--) {
 					DiskManagerFileInfo info = (DiskManagerFileInfo) data_sources[i];
 					if (info != null) {
-						ManagerUtils.browse(info, false);
+						ManagerUtils.browse(info, false, true );
 					}
 				}
 			}
 		});
 		
 		final MenuItem itemBrowseAnon = new MenuItem(menuBrowse, SWT.PUSH);
-		Messages.setLanguageText(itemBrowseAnon, "label.anon" );
+		itemBrowseAnon.setText( MessageText.getString( "label.anon" ) + "..." );
 		itemBrowseAnon.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				for (int i = data_sources.length - 1; i >= 0; i--) {
 					DiskManagerFileInfo info = (DiskManagerFileInfo) data_sources[i];
 					if (info != null) {
-						ManagerUtils.browse(info, true);
+						ManagerUtils.browse(info, true, true );
 					}
 				}
 			}
 		});
 		
+		new MenuItem(menuBrowse, SWT.SEPARATOR);
+		
+		final MenuItem itemBrowseURL = new MenuItem(menuBrowse, SWT.PUSH);
+		Messages.setLanguageText(itemBrowseURL, "label.copy.url.to.clip" );
+		itemBrowseURL.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event){
+				Utils.getOffOfSWTThread(
+					new AERunnable() {
+						@Override
+						public void runSupport() {
+							String url = ManagerUtils.browse(dmi_array[0], true, false );
+							if ( url != null ){
+								ClipboardCopy.copyToClipBoard( url );
+							}
+						}
+					});
+			}});
+		
+		itemBrowseURL.setEnabled( data_sources.length==1 );
+		
 		menuBrowse.setEnabled(hasSelection);
 		
-		// rename/retarget
+			// rename/retarget
 		
 		MenuItem itemRenameOrRetarget = null, itemRename = null, itemRetarget = null;
 

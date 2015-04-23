@@ -375,20 +375,40 @@ public class TorrentUtil
 		itemBrowse.setMenu(menuBrowse);
 				
 		final MenuItem itemBrowsePublic = new MenuItem(menuBrowse, SWT.PUSH);
-		Messages.setLanguageText(itemBrowsePublic, "label.public");
+		itemBrowsePublic.setText( MessageText.getString( "label.public" ) + "..." );
 		itemBrowsePublic.addListener(SWT.Selection, new ListenerDMTask(dms) {
 			public void run(DownloadManager dm) {
-				ManagerUtils.browse(dm,false);
+				ManagerUtils.browse(dm,false,true);
 			}
 		});
 		
 		final MenuItem itemBrowseAnon = new MenuItem(menuBrowse, SWT.PUSH);
-		Messages.setLanguageText(itemBrowseAnon, "label.anon");
+		itemBrowseAnon.setText( MessageText.getString( "label.anon" ) + "..." );
 		itemBrowseAnon.addListener(SWT.Selection, new ListenerDMTask(dms) {
 			public void run(DownloadManager dm) {
-				ManagerUtils.browse(dm,true);
+				ManagerUtils.browse(dm,true,true);
 			}
 		});
+		
+		new MenuItem(menuBrowse, SWT.SEPARATOR);
+		
+		final MenuItem itemBrowseURL = new MenuItem(menuBrowse, SWT.PUSH);
+		Messages.setLanguageText(itemBrowseURL, "label.copy.url.to.clip" );
+		itemBrowseURL.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event){
+				Utils.getOffOfSWTThread(
+					new AERunnable() {
+						@Override
+						public void runSupport() {
+							String url = ManagerUtils.browse(dms[0], true, false );
+							if ( url != null ){
+								ClipboardCopy.copyToClipBoard( url );
+							}
+						}
+					});
+			}});
+		
+		itemBrowseURL.setEnabled( dms.length == 1 );
 		
 		new MenuItem(menuBrowse, SWT.SEPARATOR);
 		

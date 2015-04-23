@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.Utils;
 
 
 /**
@@ -44,11 +45,28 @@ public class ClipboardCopy {
   
   public static void
   copyToClipBoard(
-    String    data )
+    final String    data )
   {
-	  new Clipboard(SWTThread.getInstance().getDisplay()).setContents(
-			  new Object[] {data.replaceAll("\\x00", " " )  }, 
-			  new Transfer[] {TextTransfer.getInstance()});
+	  Runnable do_it = 
+		new Runnable()
+	  	{
+		  public void
+		  run()
+		  {
+			  new Clipboard(SWTThread.getInstance().getDisplay()).setContents(
+					  new Object[] {data.replaceAll("\\x00", " " )  }, 
+					  new Transfer[] {TextTransfer.getInstance()});
+		  }
+	  	};
+	  	
+	  if ( Utils.isSWTThread()){
+		  
+		  do_it.run();
+		  
+	  }else{
+		  
+		  Utils.execSWTThread( do_it );
+	  }
   }
   
   public static void

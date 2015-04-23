@@ -50,6 +50,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
@@ -2050,27 +2051,47 @@ public class TorrentMenuFancy
 						Menu menuBrowse ) 
 					{
 						final MenuItem itemBrowsePublic = new MenuItem(menuBrowse, SWT.PUSH);
-						Messages.setLanguageText(itemBrowsePublic, "label.public" );
+						itemBrowsePublic.setText( MessageText.getString( "label.public" ) + "..." );
 						itemBrowsePublic.addListener(
 							SWT.Selection, 
 							new ListenerDMTask(dms, false) {
 								public void run(DownloadManager dm) {
-									ManagerUtils.browse( dm, false );
+									ManagerUtils.browse( dm, false, true );
 								}
 							});
 						
 						final MenuItem itemBrowseAnon = new MenuItem(menuBrowse, SWT.PUSH);
-						Messages.setLanguageText(itemBrowseAnon, "label.anon" );
+						itemBrowseAnon.setText( MessageText.getString( "label.anon" ) + "..." );
 						itemBrowseAnon.addListener(
 							SWT.Selection, 
 							new ListenerDMTask(dms, false) {
 								public void run(DownloadManager dm) {
-									ManagerUtils.browse( dm, true );
+									ManagerUtils.browse( dm, true, true );
 								}
 							});
 						
 						new MenuItem(menuBrowse, SWT.SEPARATOR);
 						
+						final MenuItem itemBrowseURL = new MenuItem(menuBrowse, SWT.PUSH);
+						Messages.setLanguageText(itemBrowseURL, "label.copy.url.to.clip" );
+						itemBrowseURL.addListener(SWT.Selection, new Listener() {
+							public void handleEvent(Event event){
+								Utils.getOffOfSWTThread(
+									new AERunnable() {
+										@Override
+										public void runSupport() {
+											String url = ManagerUtils.browse(dms[0], true, false );
+											if ( url != null ){
+												ClipboardCopy.copyToClipBoard( url );
+											}
+										}
+									});
+							}});
+						
+						itemBrowseURL.setEnabled( dms.length == 1 );
+						
+						new MenuItem(menuBrowse, SWT.SEPARATOR);
+
 						final MenuItem itemBrowseDir = new MenuItem(menuBrowse, SWT.CHECK);
 						Messages.setLanguageText(itemBrowseDir, "library.launch.web.in.browser.dir.list");
 						itemBrowseDir.setSelection(COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserDirList"));

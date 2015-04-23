@@ -262,47 +262,50 @@ public class ManagerUtils {
 		}
 	}
   
-	public static void 
+	public static String 
 	browse(
 		DiskManagerFileInfo 	file )
 	{
 		boolean	anon = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserAnon" );
 		
-		browse( file, anon );
+		return( browse( file, anon, true ));
 	}
 	
-	public static void 
+	public static String 
 	browse(
 		DiskManagerFileInfo 	file,
-		boolean					anon )
+		boolean					anon,
+		boolean					launch )
 	{
-		browse( file.getDownloadManager(), file, anon );
+		return( browse( file.getDownloadManager(), file, anon, launch ));
 	}
 	
-	public static void 
+	public static String 
 	browse(
 		DownloadManager 	dm )
 	{
 		boolean	anon = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserAnon" );
 
-		browse( dm, null, anon );
+		return( browse( dm, null, anon, true ));
 	}
 	
-	public static void 
+	public static String 
 	browse(
 		DownloadManager 	dm,
-		boolean				anon )
+		boolean				anon,
+		boolean				launch )
 	{
-		browse( dm, null, anon );
+		return( browse( dm, null, anon, launch ));
 	}
 	
 	private static Map<DownloadManager,WebPlugin>	browse_plugins = new IdentityHashMap<DownloadManager, WebPlugin>();
 	
-	public static void 
+	public static String 
 	browse(
 		final DownloadManager 			dm,
 		final DiskManagerFileInfo		file,
-		final boolean					anon )
+		final boolean					anon,
+		final boolean					launch )
 	{
 		Properties	props = new Properties();
 		
@@ -383,6 +386,9 @@ public class ManagerUtils {
 				messages.put( "plugins." + plugin_id, plugin_name );;
 		
 				PluginInitializer.getDefaultInterface().getUtilities().getLocaleUtilities().integrateLocalisedMessageBundle( messages );
+				
+				final AESemaphore 	waiter 		= new AESemaphore( "waiter" );
+				final String[]		url_holder	= { null };
 				
 				plugin = 
 					new UnloadableWebPlugin( props )
@@ -466,7 +472,19 @@ public class ManagerUtils {
 
 							String url = protocol + "://127.0.0.1:" + port + "/" + url_suffix;
 							
-							Utils.launch( url, false, true, anon );
+							if ( launch ){
+							
+								Utils.launch( url, false, true, anon );
+								
+							}else{
+								
+								synchronized( url_holder ){
+									
+									url_holder[0] = url;
+								}
+								
+								waiter.release();
+							}
 						}
 						
 						@Override
@@ -1008,13 +1026,35 @@ public class ManagerUtils {
 				
 				browse_plugins.put( dm, plugin );
 				
+				if ( launch ){
+					
+					return( null );
+					
+				}else{
+					
+					waiter.reserve( 10*1000 );
+					
+					synchronized( url_holder ){
+						
+						return( url_holder[0] );
+					}
+				}
 			}else{
 				
 				String protocol = plugin.getProtocol();
 				
 				String url = protocol + "://127.0.0.1:" + plugin.getServerPort() + "/" + url_suffix;
 				
-				Utils.launch( url, false, true, anon );
+				if ( launch ){
+				
+					Utils.launch( url, false, true, anon );
+					
+					return( null );
+					
+				}else{
+					
+					return( url );
+				}
 			}
 		}
 	}
