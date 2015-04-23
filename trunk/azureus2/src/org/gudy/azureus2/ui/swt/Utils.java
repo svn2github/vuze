@@ -1292,7 +1292,9 @@ public class Utils
 								
 								if ( !sem.reserve( 30*1000 )){
 									
-									Debug.out( "Timeout waiting for external url launch" );
+									// can happen when user is prompted to accept the launch or not and is
+									// slow in replying
+									// Debug.out( "Timeout waiting for external url launch" );
 								}
 								
 							}catch( Throwable e ){
