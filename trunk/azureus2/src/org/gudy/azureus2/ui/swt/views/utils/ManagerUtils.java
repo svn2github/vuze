@@ -405,6 +405,7 @@ public class ManagerUtils {
 				props.put( WebPlugin.PR_ENABLE_PAIRING, false );
 				props.put( WebPlugin.PR_ENABLE_UPNP, false );
 				props.put( WebPlugin.PR_ENABLE_I2P, false );
+				props.put( WebPlugin.PR_ENABLE_TOR, false );
 				
 				final String plugin_id 		= "webserver:" + dm.getInternalName();
 				final String plugin_name	= "Web Server for " + dm.getDisplayName();

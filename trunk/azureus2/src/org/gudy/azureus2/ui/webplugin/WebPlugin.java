@@ -77,6 +77,7 @@ WebPlugin
 	public static final String	PR_NON_BLOCKING				= "NonBlocking";				// Boolean
 	public static final String	PR_ENABLE_PAIRING			= "EnablePairing";				// Boolean
 	public static final String	PR_ENABLE_I2P				= "EnableI2P";					// Boolean
+	public static final String	PR_ENABLE_TOR				= "EnableTor";					// Boolean
 	public static final String	PR_ENABLE_UPNP				= "EnableUPNP";					// Boolean
 	
 	public static final String	PROPERTIES_MIGRATED		= "Properties Migrated";
@@ -160,6 +161,7 @@ WebPlugin
 	private StringParameter			param_access;
 	
 	private InfoParameter			param_i2p_dest;
+	private InfoParameter			param_tor_dest;
 	
 	private BooleanParameter		p_upnp_enable;
 	
@@ -523,10 +525,12 @@ WebPlugin
 		param_bind.addListener( update_server_listener );
 		param_protocol.addListener( update_server_listener );		
 		
-		param_i2p_dest = config_model.addInfoParameter2( "webui.i2p_dest", "" );
-		
+		param_i2p_dest = config_model.addInfoParameter2( "webui.i2p_dest", "" );		
 		param_i2p_dest.setVisible( false );
 		
+		param_tor_dest = config_model.addInfoParameter2( "webui.tor_dest", "" );	
+		param_tor_dest.setVisible( false );
+
 		if ( param_enable != null ){
 			COConfigurationManager.registerExportedParameter( plugin_id + ".enable", param_enable.getConfigKeyName());
 		}
@@ -652,7 +656,7 @@ WebPlugin
 		config_model.createGroup(
 			"ConfigView.section.server",
 			new Parameter[]{
-				param_port, param_bind, param_protocol, param_i2p_dest, p_upnp_enable,
+				param_port, param_bind, param_protocol, param_i2p_dest, param_tor_dest, p_upnp_enable,
 			});
 		
 		param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
@@ -1326,6 +1330,48 @@ WebPlugin
 					});
 			}
 			
+			Boolean prop_enable_tor = (Boolean)properties.get( PR_ENABLE_TOR );
+
+			if ( prop_enable_tor == null || prop_enable_tor ){
+				
+				network_dispatcher.dispatch(
+					new AERunnable() 
+					{	
+						public void
+						runSupport()
+						{
+							Map<String,Object>	options = new HashMap<String, Object>();
+							
+							options.put( AEProxyFactory.SP_PORT, port );
+							
+							Map<String,Object> reply = 
+									AEProxyFactory.getPluginServerProxy(
+										plugin_interface.getPluginName(),
+										AENetworkClassifier.AT_TOR,
+										plugin_interface.getPluginID(),
+										options );
+							
+							if ( reply != null ){
+							
+								param_tor_dest.setVisible( true );
+							
+								String host = (String)reply.get( "host" );
+								
+								if ( !param_tor_dest.getValue().equals( host )){
+								
+									param_tor_dest.setValue( host );
+								
+									if ( p_sid != null ){
+									
+										updatePairing( p_sid );
+									}
+								}
+							}
+						}
+					});
+			}
+			
+			
 			Boolean	pr_enable_keep_alive = (Boolean)properties.get( PR_ENABLE_KEEP_ALIVE );
 
 			if ( pr_enable_keep_alive != null && pr_enable_keep_alive ){
@@ -1922,6 +1968,16 @@ WebPlugin
 			if ( host.length() > 0 ){
 				
 				cd.setAttribute( PairingConnectionData.ATTR_I2P, host );
+			}
+		}
+		
+		if ( param_tor_dest.isVisible()){
+			
+			String host = param_tor_dest.getValue();
+			
+			if ( host.length() > 0 ){
+				
+				cd.setAttribute( PairingConnectionData.ATTR_TOR, host );
 			}
 		}
 	}
