@@ -262,11 +262,42 @@ public class ManagerUtils {
 		}
 	}
   
+	private static boolean
+	getBrowseAnon(
+		DownloadManager		dm )
+	{
+		boolean	anon = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserAnon" );
+		
+		if ( !anon ){
+		
+			boolean	found_pub = false;
+			
+			String[] nets = dm.getDownloadState().getNetworks();
+			
+			for ( String net: nets ){
+				
+				if ( net == AENetworkClassifier.AT_PUBLIC ){
+					
+					found_pub = true;
+					
+					break;
+				}
+			}
+			
+			if ( nets.length > 0 && !found_pub ){
+				
+				anon = true;
+			}
+		}
+		
+		return( anon );
+	}
+	
 	public static String 
 	browse(
 		DiskManagerFileInfo 	file )
 	{
-		boolean	anon = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserAnon" );
+		boolean anon = getBrowseAnon( file.getDownloadManager());
 		
 		return( browse( file, anon, true ));
 	}
@@ -284,8 +315,8 @@ public class ManagerUtils {
 	browse(
 		DownloadManager 	dm )
 	{
-		boolean	anon = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserAnon" );
-
+		boolean anon = getBrowseAnon( dm );
+		
 		return( browse( dm, null, anon, true ));
 	}
 	
@@ -312,53 +343,50 @@ public class ManagerUtils {
 		File	save_location = dm.getSaveLocation();
 		
 		final String	root_dir;
-		final String	url_suffix;
 		
-		boolean	always_browse = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserDirList" );
-		
-		if ( save_location.isFile() && !always_browse ){
-			
-			url_suffix = UrlUtils.encode( save_location.getName());
+		if ( save_location.isFile()){
 			
 			root_dir = save_location.getParentFile().getAbsolutePath();
 			
 		}else{
-			
-			root_dir = save_location.getAbsolutePath();
 		
-			if ( file == null ){
+			root_dir = save_location.getAbsolutePath();
+		}
+		
+		final String	url_suffix;
+		
+		boolean	always_browse = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserDirList" );
+		
+		if ( file == null ){
 				
-				url_suffix = "";
+				// asked to launch a download (note that the double-click on a download that has an index.html file will by default result in
+				// us getting here with the file set, not null)
+			
+			url_suffix = "";
 				
-			}else{
+		}else{
 				
-				File f = file.getFile( true );
+			String relative_path = file.getTorrentFile().getRelativePath();
+								
+			String[] bits = relative_path.replace( File.separatorChar, '/' ).split( "/" );
 				
-				String str = f.getAbsolutePath();
+			String _url_suffix = "";
 				
-				if ( str.startsWith( root_dir )){
+			int	bits_to_use = always_browse?bits.length-1:bits.length;
+			
+			for ( int i=0;i<bits_to_use;i++){
+				
+				String bit = bits[i];
+				
+				if ( bit.length() == 0 ){
 					
-					String[] bits = str.substring( root_dir.length()).replace( File.separatorChar, '/' ).split( "/" );
-					
-					String _url_suffix = "";
-					
-					for ( String bit: bits ){
-						
-						if ( bit.length() == 0 ){
-							
-							continue;
-						}
-						
-						_url_suffix += (_url_suffix==""?"":"/") + UrlUtils.encode( bit );
-					}
-					
-					url_suffix = _url_suffix;
-					
-				}else{
-					
-					url_suffix = "";
+					continue;
 				}
+				
+				_url_suffix += (_url_suffix==""?"":"/") + UrlUtils.encode( bit );
 			}
+			
+			url_suffix = _url_suffix;
 		}
 		
 		synchronized( browse_plugins ){
@@ -770,9 +798,12 @@ public class ManagerUtils {
 								
 								String	file_type;
 								
-								String file_name = target_file.getName();
+									// Use the original torrent file name when deducing file type to 
+									// avoid incomplete suffix issues etc
 								
-								int	pos = file_name.lastIndexOf( "." );
+								String relative_path = dm_file.getTorrentFile().getRelativePath();
+								
+								int	pos = relative_path.lastIndexOf( "." );
 		
 								if ( pos == -1 ){
 		
@@ -780,7 +811,7 @@ public class ManagerUtils {
 									
 								}else{
 		
-									file_type = file_name.substring(pos+1);
+									file_type = relative_path.substring(pos+1);
 								}
 								
 								if ( done ){

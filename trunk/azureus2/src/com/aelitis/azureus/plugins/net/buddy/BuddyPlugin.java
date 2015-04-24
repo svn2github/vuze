@@ -625,14 +625,14 @@ BuddyPlugin
 									run()
 									{
 										startup();
+										
+										beta_plugin.startup();
 									}
 								}.start();
 							}
 						});
 					
-					dt.queue();
-					
-					beta_plugin.startup();
+					dt.queue();					
 				}
 				
 				public void
