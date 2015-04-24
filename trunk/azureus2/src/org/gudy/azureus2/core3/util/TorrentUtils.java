@@ -507,9 +507,14 @@ TorrentUtils
 	    		return;
 	    	}
 	    	
-	    	if ( !new File(str).delete()){
+	    	File file = new File(str);
+	    	
+	    	if ( !file.delete()){
 	    		
-	    		throw( new TOTorrentException("TorrentUtils::delete: failed to delete '" + str + "'", TOTorrentException.RT_WRITE_FAILS));
+	    		if ( file.exists()){
+	    		
+	    			throw( new TOTorrentException("TorrentUtils::delete: failed to delete '" + str + "'", TOTorrentException.RT_WRITE_FAILS));
+	    		}
 	    	}
 		
 	    	new File( str + ".bak" ).delete();
@@ -527,7 +532,10 @@ TorrentUtils
 	{
 		if ( !FileUtil.deleteWithRecycle( torrent_file, force_no_recycle )){
 			
-    		Debug.out( "TorrentUtils::delete: failed to delete '" + torrent_file + "'" );
+			if ( torrent_file.exists()){
+    		
+				Debug.out( "TorrentUtils::delete: failed to delete '" + torrent_file + "'" );
+			}
     	}
 	
     	new File( torrent_file.toString() + ".bak" ).delete();
