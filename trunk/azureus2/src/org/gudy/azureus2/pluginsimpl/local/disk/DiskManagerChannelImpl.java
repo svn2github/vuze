@@ -19,6 +19,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.disk;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -774,6 +775,15 @@ DiskManagerChannelImpl
 						
 						DirectByteBuffer buffer = core_file.read( pos, (int)len );
 	
+							// might not have read the amount requested if file has been truncated
+						
+						int read = buffer.position( DirectByteBuffer.SS_EXTERNAL );
+						
+						if ( read != len ){
+							
+							throw( new IOException( "EOF: insufficient bytes read (expected=" + len + ", actual=" + read + ")" ));
+						}
+						
 						inform( new event( new PooledByteBufferImpl( buffer ), pos, (int)len ));
 						
 						pos += len;
