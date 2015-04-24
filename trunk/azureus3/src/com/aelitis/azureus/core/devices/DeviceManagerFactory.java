@@ -65,7 +65,7 @@ DeviceManagerFactory
 			}
 		}
 	}
-	
+		
 	public static DeviceManager
 	getSingleton()
 	{
@@ -88,9 +88,9 @@ DeviceManagerFactory
 					// musn't instantiate the device manager for console UI as this has unwanted side effects
 					// such as enabling per-device content browse controls that end up hiding content but the
 					// user has no way of changing this!
+									
+				Debug.out( "DeviceManager is only fully functional with Vuze UI - some features unavailable" );
 				
-				Debug.out( "DeviceManager is only available with Vuze UI" );
-			
 				return( null );
 			}
 			
