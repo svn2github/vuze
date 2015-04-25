@@ -31,6 +31,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -3411,5 +3412,97 @@ public class Utils
 			newParent.layout(new Control[] { c });
 			c = newParent;
 		}
+	}
+	
+	public static void
+	maintainSashPanelWidth(
+		final SashForm		sash,
+		final Composite		comp,
+		final int[]			default_weights,
+		final String		config_key )
+	{
+		final boolean is_lhs = comp == sash.getChildren()[0];
+		
+		String str = COConfigurationManager.getStringParameter( config_key, default_weights[0]+","+default_weights[1] );
+		
+		try{
+			String[] bits = str.split( "," );
+			
+			sash.setWeights( new int[]{ Integer.parseInt( bits[0] ), Integer.parseInt( bits[1] )});
+				
+		}catch( Throwable e ){
+			
+			sash.setWeights( default_weights );
+		}
+		
+		Listener sash_listener= 
+	    	new Listener()
+	    	{
+	    		private int	comp_weight;
+	    		private int	comp_width;
+	    		
+		    	public void 
+				handleEvent(
+					Event ev ) 
+				{
+		    		if ( ev.widget == comp ){
+		    			
+		    			int[] weights = sash.getWeights();
+		    			
+		    			int current_weight = weights[is_lhs?0:1];
+		    			
+		    			if ( comp_weight != current_weight ){
+		    				
+		    				COConfigurationManager.setParameter( config_key, weights[0]+","+weights[1] );
+		    				
+		    					// sash has moved
+		    				
+		    				comp_weight = current_weight;
+		    				
+		    					// keep track of the width
+		    				
+		    				comp_width = comp.getBounds().width;
+		    			}
+		    		}else{
+		    			
+		    				// resize
+		    			
+		    			if ( comp_width > 0 ){
+		    						    				
+				            int width = sash.getClientArea().width;
+				            	
+				            if ( width < 20 ){
+				            	
+				            	width = 20;
+				            }
+				            
+				            double ratio = (double)comp_width/width;
+	
+				            comp_weight = (int)(ratio*1000 );
+	
+				            if ( comp_weight < 20 ){
+				            	
+				            	comp_weight = 20;
+				            	
+				            }else if ( comp_weight > 980 ){
+				            	
+				            	comp_weight = 980;
+				            }
+				            
+				            if ( is_lhs ){
+				            	
+				            	sash.setWeights( new int[]{ comp_weight, 1000 - comp_weight });
+				            	
+				            }else{
+				            	
+				            	sash.setWeights( new int[]{ 1000 - comp_weight, comp_weight });
+				            }
+		    			}
+		    		}
+			    }
+		    };
+	    
+		comp.addListener(SWT.Resize, sash_listener );
+	    sash.addListener(SWT.Resize, sash_listener );
 	}
 }

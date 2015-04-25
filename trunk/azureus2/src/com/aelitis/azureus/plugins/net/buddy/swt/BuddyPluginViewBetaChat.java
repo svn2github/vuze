@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
@@ -396,7 +397,22 @@ BuddyPluginViewBetaChat
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		parent.setLayoutData(grid_data);
 
-		Composite lhs = new Composite(parent, SWT.NONE);
+		Composite sash_area = new Composite( parent, SWT.NONE );
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		sash_area.setLayout(layout);
+		
+		grid_data = new GridData(GridData.FILL_BOTH );
+		grid_data.horizontalSpan = 2;
+		sash_area.setLayoutData(grid_data);
+		
+	    final SashForm sash = new SashForm(sash_area,SWT.HORIZONTAL );
+	    grid_data = new GridData(GridData.FILL_BOTH );
+	    sash.setLayoutData(grid_data);
+	    	    
+		final Composite lhs = new Composite(sash, SWT.NONE);
 		
 		lhs.addDisposeListener(
 				new DisposeListener()
@@ -1630,7 +1646,7 @@ BuddyPluginViewBetaChat
 				}
 			});
 		
-		Composite rhs = new Composite(parent, SWT.NONE);
+		Composite rhs = new Composite(sash, SWT.NONE);
 		layout = new GridLayout();
 		layout.numColumns = 1;
 		layout.marginHeight = 0;
@@ -1887,6 +1903,57 @@ BuddyPluginViewBetaChat
 					}
 				});
 		
+		
+	    Utils.maintainSashPanelWidth( sash, rhs, new int[]{ 700, 300 }, "azbuddy.dchat.ui.sash.pos" );
+	    
+	    /*
+	    Listener sash_listener= 
+	    	new Listener()
+	    	{
+	    		private int	lhs_weight;
+	    		private int	lhs_width;
+	    		
+		    	public void 
+				handleEvent(
+					Event ev ) 
+				{
+		    		if ( ev.widget == lhs ){
+		    			
+		    			int[] weights = sash.getWeights();
+		    			
+		    			
+		    			if ( lhs_weight != weights[0] ){
+		    				
+		    					// sash has moved
+		    				
+		    				lhs_weight = weights[0];
+		    				
+		    					// keep track of the width
+		    				
+		    				lhs_width = lhs.getBounds().width;
+		    			}
+		    		}else{
+		    			
+		    				// resize
+		    			
+		    			if ( lhs_width > 0 ){
+		    						    				
+				            int width = sash.getClientArea().width;
+				            	
+				            double ratio = (double)lhs_width/width;
+	
+				            lhs_weight = (int)(ratio*1000 );
+				          
+				            sash.setWeights( new int[]{ lhs_weight, 1000 - lhs_weight });
+		    			}
+		    		}
+			    }
+		    };
+	    
+	    lhs.addListener(SWT.Resize, sash_listener );
+	    sash.addListener(SWT.Resize, sash_listener );
+	    */
+	    
 			// Text
 		
 		input_area = new Text( parent, SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
