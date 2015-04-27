@@ -293,6 +293,70 @@ public class ManagerUtils {
 		return( anon );
 	}
 	
+	private static DiskManagerFileInfo
+	getBrowseHomePage(
+		DownloadManager		dm )
+	{
+		try{
+			DiskManagerFileInfo[] files = dm.getDiskManagerFileInfoSet().getFiles();
+										
+			for ( DiskManagerFileInfo file: files ){
+				
+				if ( file.getTorrentFile().getPathComponents().length == 1 ){
+					
+					String name = file.getTorrentFile().getRelativePath().toLowerCase( Locale.US );
+					
+					if ( name.equals( "index.html" ) || name.equals( "index.htm" )){
+						
+						return( file );
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( null );	
+	}
+	
+	public static boolean
+	browseWebsite(
+		DiskManagerFileInfo		file )
+	{
+		try{
+			String name = file.getTorrentFile().getRelativePath().toLowerCase( Locale.US );
+			
+			if ( name.equals( "index.html" ) || name.equals( "index.htm" )){
+				
+				ManagerUtils.browse( file );
+				
+				return( true );
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( false );
+	}
+	
+	public static boolean
+	browseWebsite(
+		DownloadManager		dm )
+	{
+		DiskManagerFileInfo file = getBrowseHomePage( dm );
+		
+		if ( file != null ){
+						
+			ManagerUtils.browse( file );
+			
+			return( true );
+		}
+	
+		return( false );
+	}
+	
 	public static String 
 	browse(
 		DiskManagerFileInfo 	file )
@@ -334,7 +398,7 @@ public class ManagerUtils {
 	public static String 
 	browse(
 		final DownloadManager 			dm,
-		final DiskManagerFileInfo		file,
+		DiskManagerFileInfo				_file,
 		final boolean					anon,
 		final boolean					launch )
 	{
@@ -356,6 +420,16 @@ public class ManagerUtils {
 		final String	url_suffix;
 		
 		boolean	always_browse = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowserDirList" );
+		
+		if ( !always_browse ){
+			
+			if ( _file == null ){
+				
+				_file = getBrowseHomePage( dm );
+			}
+		}
+		
+		final DiskManagerFileInfo file = _file;
 		
 		if ( file == null ){
 				

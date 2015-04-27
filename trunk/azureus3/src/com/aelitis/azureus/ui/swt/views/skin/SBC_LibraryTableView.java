@@ -321,39 +321,20 @@ public class SBC_LibraryTableView
 				
 				if ( fileInfo != null ){
 					
-					String ext = fileInfo.getExtension().toLowerCase();
-					
-					if ( ext.equals( ".html" ) || ext.equals( ".htm" )){
-						
-						ManagerUtils.browse( fileInfo );
+					if ( ManagerUtils.browseWebsite( fileInfo )){
 						
 						return;
 					}
-				}
+				}else{
 				
-				DownloadManager dm = DataSourceUtils.getDM( ds);
-				
-				if ( dm != null ){
+					DownloadManager dm = DataSourceUtils.getDM( ds);
 					
-					try{
-						DiskManagerFileInfo[] files = dm.getDiskManagerFileInfoSet().getFiles();
-													
-						for ( DiskManagerFileInfo file: files ){
-							
-							if ( file.getTorrentFile().getPathComponents().length == 1 ){
-								
-								String name = file.getTorrentFile().getRelativePath().toLowerCase( Locale.US );
-								
-								if ( name.equals( "index.html" ) || name.equals( "index.htm" )){
-									
-									ManagerUtils.browse( file );
-									
-									return;
-								}
-							}
-						}
-					}catch( Throwable e ){
+					if ( dm != null ){
 						
+						if ( ManagerUtils.browseWebsite( dm )){
+							
+							return;
+						}
 					}
 				}
 			}

@@ -32,7 +32,6 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -366,6 +365,7 @@ public class FilesView
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tv.getFirstSelectedDataSource();
 		
 		if ( fileInfo == null ){
+			
 			return;
 		}
 		
@@ -377,44 +377,58 @@ public class FilesView
 			
 			ManagerUtils.open( fileInfo, openMode) ;
 			
-		}else if ( mode.equals( "3" ) || mode.equals( "4" )){
-			
-			if ( fileInfo.getAccessMode() == DiskManagerFileInfo.READ ){
-				
-				if ( 	mode.equals( "4" ) &&
-						fileInfo.getDownloaded() == fileInfo.getLength() &&
-						Utils.isQuickViewSupported( fileInfo )){
-					
-					Utils.setQuickViewActive( fileInfo, true );
-					
-				}else{
-				
-					Utils.launch(fileInfo);
-				}
-			}	
-		}else if ( mode.equals( "5" )){
-			
-			ManagerUtils.browse( fileInfo );
-			
 		}else{
 			
-			AZ3Functions.provider az3 = AZ3Functions.getProvider();
+			boolean webInBrowser = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowser" );
 			
-			if ( az3 != null ){
-				
-				DownloadManager dm = fileInfo.getDownloadManager();
-				
-				if ( az3.canPlay(dm, fileInfo.getIndex()) || (stateMask & SWT.CONTROL) != 0 ){
-					
-					az3.play( dm, fileInfo.getIndex() );
+			if ( webInBrowser ){
+													
+				if ( ManagerUtils.browseWebsite( fileInfo )){
 					
 					return;
 				}
 			}
-			
-			if ( fileInfo.getAccessMode() == DiskManagerFileInfo.READ ){
 				
-				Utils.launch(fileInfo);
+			if ( mode.equals( "3" ) || mode.equals( "4" )){
+	
+			
+				if ( fileInfo.getAccessMode() == DiskManagerFileInfo.READ ){
+					
+					if ( 	mode.equals( "4" ) &&
+							fileInfo.getDownloaded() == fileInfo.getLength() &&
+							Utils.isQuickViewSupported( fileInfo )){
+						
+						Utils.setQuickViewActive( fileInfo, true );
+						
+					}else{
+					
+						Utils.launch(fileInfo);
+					}
+				}	
+			}else if ( mode.equals( "5" )){
+				
+				ManagerUtils.browse( fileInfo );
+				
+			}else{
+				
+				AZ3Functions.provider az3 = AZ3Functions.getProvider();
+				
+				if ( az3 != null ){
+					
+					DownloadManager dm = fileInfo.getDownloadManager();
+					
+					if ( az3.canPlay(dm, fileInfo.getIndex()) || (stateMask & SWT.CONTROL) != 0 ){
+						
+						az3.play( dm, fileInfo.getIndex() );
+						
+						return;
+					}
+				}
+				
+				if ( fileInfo.getAccessMode() == DiskManagerFileInfo.READ ){
+					
+					Utils.launch(fileInfo);
+				}
 			}
 		}
 	}
