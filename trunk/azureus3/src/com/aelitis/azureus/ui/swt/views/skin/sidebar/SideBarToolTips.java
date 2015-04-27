@@ -26,13 +26,9 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.util.Debug;
-
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
-import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
@@ -53,8 +49,6 @@ public class SideBarToolTips
 
 	private final Tree tree;
 
-	private final SideBar sidebar;
-
 	private MdiEntry mdiEntry;
 
 	private Point lastRelMouseHoverPos;
@@ -63,7 +57,6 @@ public class SideBarToolTips
 	 * Initialize
 	 */
 	public SideBarToolTips(SideBar sidebar, Tree tree) {
-		this.sidebar = sidebar;
 		this.tree = tree;
 		mainShell = tree.getShell();
 
