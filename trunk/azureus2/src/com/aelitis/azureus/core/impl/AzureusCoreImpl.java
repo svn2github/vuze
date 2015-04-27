@@ -2620,6 +2620,11 @@ AzureusCoreImpl
 		AzureusCoreLifecycleListener	l )
 	{
 		lifecycle_listeners.add(l);
+		
+		if ( global_manager != null ){
+			
+			l.componentCreated( this, global_manager );
+		}
 	}
 	
 	public void
