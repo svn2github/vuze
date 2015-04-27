@@ -65,8 +65,11 @@ import org.gudy.azureus2.update.CorePatchChecker;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
+import com.aelitis.azureus.ui.swt.Initializer;
+import com.aelitis.azureus.util.InitialisationFunctions;
 
 /**
  * @author Tobias Minich
@@ -179,18 +182,24 @@ public class ConsoleInput extends Thread {
 				azureus_core.addLifecycleListener(
 					new AzureusCoreLifecycleAdapter()
 					{
+						public void 
+						componentCreated(
+							AzureusCore 			core,
+							AzureusCoreComponent 	component )
+						{							
+							if ( component instanceof GlobalManager ){
+								
+								InitialisationFunctions.earlyInitialisation( core );
+							}
+						}
+						
 						public void
 						started(
 							AzureusCore		core )
 						{
 							registerUpdateChecker();
-							
-							try{
-								SubscriptionManagerFactory.getSingleton();
-								
-							}catch( Throwable e ){
-								
-							}
+												
+							InitialisationFunctions.lateInitialisation(core);
 						}
 					});
 			}
