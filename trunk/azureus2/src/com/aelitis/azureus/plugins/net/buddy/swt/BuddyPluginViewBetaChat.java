@@ -2284,7 +2284,10 @@ BuddyPluginViewBetaChat
 				
 			}else{
 				
-				can_pin = true;
+				if ( !participant.isMe()){
+				
+					can_pin = true;
+				}
 			}
 			
 			if ( participant.isSpammer()){
@@ -2454,9 +2457,12 @@ BuddyPluginViewBetaChat
 						
 						if ( !participant.isPinned()){
 							
-							participant.setPinned( true );
-							
-							setProperties( participant );
+							if ( !participant.isMe()){
+								
+								participant.setPinned( true );
+								
+								setProperties( participant );
+							}
 						}
 					}
 				};
