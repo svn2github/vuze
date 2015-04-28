@@ -1164,7 +1164,7 @@ BuddyPluginBeta
 							}	
 						}catch( Throwable e ){
 							
-							Debug.out( e );
+							// Debug.out( e );
 						}
 					}
 				});

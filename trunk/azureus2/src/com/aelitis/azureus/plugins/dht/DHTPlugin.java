@@ -1968,7 +1968,7 @@ DHTPlugin
 	{
 		if ( dhts == null ){
 			
-			return( null );
+			return( new DHTInterface[0] );
 		}
 		
 		DHTInterface[] result = new DHTInterface[dhts.length];
