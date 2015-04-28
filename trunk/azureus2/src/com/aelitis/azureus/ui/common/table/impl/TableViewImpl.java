@@ -1348,44 +1348,49 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		TableRowCore[] selectedRows = getSelectedRows();
 			
 		boolean bWas0Rows = getRowCount() == 0;
-		synchronized (rows_sync) {
-			try {
+		try {
 
-  			if (DEBUGADDREMOVE) {
-  				debug("--" + " Add " + dataSources.length + " rows to SWT");
-  			}
-  
-  			long lStartTime = SystemTime.getCurrentTime();
-  			
-  			final List<TableRowCore> rowsAdded = new ArrayList<TableRowCore>();
-  			
-  			// add to sortedRows list in best position.  
-  			// We need to be in the SWT thread because the rowSorter may end up
-  			// calling SWT objects.
-  			for (int i = 0; i < dataSources.length; i++) {
-  				Object dataSource = dataSources[i];
-  				if (dataSource == null) {
-  					continue;
-  				}
-  
-  				TableRowCore row = mapDataSourceToRow.get(dataSource);
-  				//if ((row == null) || row.isRowDisposed() || sortedRows.indexOf(row) >= 0) {
-  				if (row == null || row.isRowDisposed()) {
-  					continue;
-  				}
-  				if (sortColumn != null) {
-  					TableCellCore cell = row.getSortColumnCell(null);
-  					if (cell != null) {
-  						try {
-  							cell.invalidate();
-  							cell.refresh(true);
-  						} catch (Exception e) {
-  							Logger.log(new LogEvent(LOGID,
-  									"Minor error adding a row to table " + getTableID(), e));
-  						}
-  					}
-  				}
-  
+			if (DEBUGADDREMOVE) {
+				debug("--" + " Add " + dataSources.length + " rows to SWT");
+			}
+
+			long lStartTime = SystemTime.getCurrentTime();
+			
+			final List<TableRowCore> rowsAdded = new ArrayList<TableRowCore>();
+			
+			// add to sortedRows list in best position.  
+			// We need to be in the SWT thread because the rowSorter may end up
+			// calling SWT objects.
+			for (int i = 0; i < dataSources.length; i++) {
+				Object dataSource = dataSources[i];
+				if (dataSource == null) {
+					continue;
+				}
+
+				TableRowCore row;
+				synchronized (rows_sync) {
+					row = mapDataSourceToRow.get(dataSource);
+				}
+				//if ((row == null) || row.isRowDisposed() || sortedRows.indexOf(row) >= 0) {
+				if (row == null || row.isRowDisposed()) {
+					continue;
+				}
+				if (sortColumn != null) {
+					TableCellCore cell = row.getSortColumnCell(null);
+					if (cell != null) {
+						try {
+							cell.invalidate();
+							// refresh could have caused a thread lock if we were 
+							// synchronized by rows_sync
+							cell.refresh(true);
+						} catch (Exception e) {
+							Logger.log(new LogEvent(LOGID,
+									"Minor error adding a row to table " + getTableID(), e));
+						}
+					}
+				}
+
+				synchronized (rows_sync) {
   				try {
   					int index = 0;
   					if (sortedRows.size() > 0) {
@@ -1443,23 +1448,23 @@ public abstract class TableViewImpl<DATASOURCETYPE>
   						Debug.out(e2);
   					}
   				}
-  			} // for dataSources
-  
-  			// NOTE: if the listener tries to do something like setSelected,
-  			// it will fail because we aren't done adding.
-  			// we should trigger after fillRowGaps()
-  			triggerListenerRowAdded(rowsAdded.toArray(new TableRowCore[0]));
-  
-  
-  			if (DEBUGADDREMOVE) {
-  				debug("Adding took " + (SystemTime.getCurrentTime() - lStartTime)
-  						+ "ms");
-  			}
-  
-  		} catch (Exception e) {
-  			Logger.log(new LogEvent(LOGID, "Error while adding row to Table "
-  					+ getTableID(), e));
-  		}
+				}
+			} // for dataSources
+
+			// NOTE: if the listener tries to do something like setSelected,
+			// it will fail because we aren't done adding.
+			// we should trigger after fillRowGaps()
+			triggerListenerRowAdded(rowsAdded.toArray(new TableRowCore[0]));
+
+
+			if (DEBUGADDREMOVE) {
+				debug("Adding took " + (SystemTime.getCurrentTime() - lStartTime)
+						+ "ms");
+			}
+
+		} catch (Exception e) {
+			Logger.log(new LogEvent(LOGID, "Error while adding row to Table "
+					+ getTableID(), e));
 		}
 		refreshenProcessDataSourcesTimer();
 
