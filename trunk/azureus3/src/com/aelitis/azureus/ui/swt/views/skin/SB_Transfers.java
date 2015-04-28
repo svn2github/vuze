@@ -1073,7 +1073,7 @@ public class SB_Transfers
 		}
 	}
 
-	private static void 
+	public static MdiEntry 
 	setupTag(
 		final Tag tag ) 
 	{
@@ -1081,14 +1081,14 @@ public class SB_Transfers
 		
 		if ( mdi == null ){
 			
-			return;
+			return null;
 		}
 
 		String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
 
 		if ( mdi.getEntry( id ) != null ){
 			
-			return;
+			return null;
 		}
 		
 			// find where to locate this in the sidebar
@@ -1322,6 +1322,7 @@ public class SB_Transfers
 				entry.addListener( dl );
 			}
 		}
+		return entry;
 	}
 
 	private static void removeTag(Tag tag) {
