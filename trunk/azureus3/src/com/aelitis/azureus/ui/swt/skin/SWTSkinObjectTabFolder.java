@@ -20,7 +20,6 @@ package com.aelitis.azureus.ui.swt.skin;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.util.Constants;
@@ -34,16 +33,22 @@ public class SWTSkinObjectTabFolder
 	public SWTSkinObjectTabFolder(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, properties, null, sID, sConfigID, "tabfolder", parent);
-		createTabFolder();
-		
+		createTabFolder(null);
 	}
 
-	private void createTabFolder() {
-		Composite createOn;
-		if (parent == null) {
-			createOn = skin.getShell();
-		} else {
-			createOn = (Composite) parent.getControl();
+	public SWTSkinObjectTabFolder(SWTSkin skin, SWTSkinProperties properties,
+			String sID, String sConfigID, Composite createOn) {
+		super(skin, properties, null, sID, sConfigID, "tabfolder", null);
+		createTabFolder(createOn);
+	}
+
+	private void createTabFolder(Composite createOn) {
+		if (createOn == null) {
+  		if (parent == null) {
+  			createOn = skin.getShell();
+  		} else {
+  			createOn = (Composite) parent.getControl();
+  		}
 		}
 
 		int style = SWT.NONE;
