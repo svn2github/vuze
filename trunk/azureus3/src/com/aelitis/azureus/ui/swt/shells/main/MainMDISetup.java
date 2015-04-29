@@ -26,7 +26,6 @@ import java.net.URL;
 import java.util.Map;
 
 import org.eclipse.swt.widgets.Menu;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
@@ -39,6 +38,9 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.download.DownloadStubEvent;
+import org.gudy.azureus2.plugins.download.DownloadStubListener;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareManagerListener;
 import org.gudy.azureus2.plugins.sharing.ShareResource;
@@ -236,11 +238,59 @@ public class MainMDISetup
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ARCHIVED_DOWNLOADS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
+						
+						final org.gudy.azureus2.plugins.download.DownloadManager download_manager = PluginInitializer.getDefaultInterface().getDownloadManager();
+						
+						final ViewTitleInfo title_info = 
+							new ViewTitleInfo() 
+							{
+								public Object 
+								getTitleInfoProperty(
+									int propertyID) 
+								{
+									if ( propertyID == TITLE_INDICATOR_TEXT ){
+										
+										int num = download_manager.getDownloadStubCount();
+																				
+										return( String.valueOf( num ) );
+									}
+									
+									return null;
+								}
+							};
+						
 						MdiEntry entry = mdi.createEntryFromSkinRef(
 								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
 								MultipleDocumentInterface.SIDEBAR_SECTION_ARCHIVED_DOWNLOADS, "archivedlsview",
-								"{mdi.entry.archiveddownloadsview}", null, null, true, null);
+								"{mdi.entry.archiveddownloadsview}", 
+								title_info, null, true, null);
+						
 						//entry.setImageLeftID("image.sidebar.chat-overview");
+						
+						final DownloadStubListener stub_listener =
+							new DownloadStubListener() 
+							{	
+								public void 
+								downloadStubEventOccurred(
+									DownloadStubEvent event )
+								{
+									ViewTitleInfoManager.refreshTitleInfo( title_info );
+								}
+							};
+							
+						download_manager.addDownloadStubListener( stub_listener, false );
+						
+						entry.addListener(
+							new MdiCloseListener() {
+								
+								public void 
+								mdiEntryClosed(
+									MdiEntry entry, boolean userClosed) 
+								{
+									download_manager.removeDownloadStubListener( stub_listener );
+								}
+							});
+						
 						return entry;
 					}
 				});

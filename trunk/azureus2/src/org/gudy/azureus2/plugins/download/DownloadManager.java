@@ -410,6 +410,9 @@ DownloadManager
 	public DownloadStub[]
 	getDownloadStubs();
 	
+	public int
+	getDownloadStubCount();
+	
 	public void addDownloadStubListener( DownloadStubListener l, boolean inform_of_current );
 	
 	public void removeDownloadStubListener( DownloadStubListener l );

@@ -1344,6 +1344,15 @@ DownloadManagerImpl
 		}
 	}
 	
+	public int 
+	getDownloadStubCount() 
+	{
+		synchronized( download_stubs ){
+			
+			return( download_stubs.size());
+		}
+	}
+	
 	private void
 	informAdded(
 		DownloadStub			stub,

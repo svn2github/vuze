@@ -500,6 +500,14 @@ RPDownloadManager
 		return( null );
 	}
 	
+	public int 
+	getDownloadStubCount() 
+	{
+		notSupported();
+		
+		return 0;
+	}
+	
 	public void addDownloadStubListener( DownloadStubListener l, boolean inform_of_current ){
 		notSupported();
 	}

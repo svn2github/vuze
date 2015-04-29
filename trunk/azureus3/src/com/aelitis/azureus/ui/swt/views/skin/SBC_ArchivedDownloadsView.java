@@ -56,9 +56,12 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.columns.archivedls.*;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 
@@ -89,6 +92,8 @@ public class SBC_ArchivedDownloadsView
 	private boolean registeredCoreSubViews;
 
 	private Object datasource;
+	
+	private MdiEntry mdi_entry;
 	
 	public boolean 
 	toolBarItemActivated(
@@ -164,6 +169,13 @@ public class SBC_ArchivedDownloadsView
 		SWTSkinObject 	skinObject, 
 		Object 			params) 
 	{
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		
+		if ( mdi != null ){
+			
+			mdi_entry = mdi.getEntryFromSkinObject(skinObject);
+		}
+		
 		initColumns();
 		
 		return null;
@@ -174,7 +186,7 @@ public class SBC_ArchivedDownloadsView
 	{
 		synchronized (SBC_ArchivedDownloadsView.class) {
 
-			if (columnsAdded) {
+			if ( columnsAdded ){
 
 				return;
 			}
@@ -469,11 +481,11 @@ public class SBC_ArchivedDownloadsView
 		int type = event.getEventType();
 		
 		List<DownloadStub> dls = event.getDownloadStubs();
-		
+				
 		if ( type == DownloadStubEvent.DSE_STUB_ADDED ){
 			
 			tv.addDataSources( dls.toArray( new DownloadStub[dls.size()] ));
-			
+						
 		}else if ( type == DownloadStubEvent.DSE_STUB_REMOVED ){
 			
 			tv.removeDataSources( dls.toArray( new DownloadStub[dls.size()] ));
