@@ -726,8 +726,26 @@ public class ToolBarView
 			}
 
 			UIToolBarItem ssItem = tbm.getToolBarItem("startstop");
-			if (ssItem != null) {
-				boolean shouldStopGroup = TorrentUtil.shouldStopGroup(currentContent);
+			if (ssItem != null){
+				
+				boolean shouldStopGroup;
+				
+					// if no selected content set then use the 'start' key to determine the start/stop
+					// toolbar state (required for archived downloads)
+					// alternative solution would be for the view to start updating the current selected
+					// content which is a little painful
+				
+				if ( 	currentContent.length == 0 &&
+						mapStates.containsKey( "start" ) && 
+						!mapStates.containsKey( "stop" ) && 
+						( mapStates.get("start") & UIToolBarItem.STATE_ENABLED) > 0 ){
+					
+					shouldStopGroup = false;
+					
+				}else{
+					shouldStopGroup = TorrentUtil.shouldStopGroup(currentContent);
+				}
+				
 				ssItem.setTextID(shouldStopGroup ? "iconBar.stop" : "iconBar.start");
 				ssItem.setImageID("image.toolbar.startstop."
 						+ (shouldStopGroup ? "stop" : "start"));

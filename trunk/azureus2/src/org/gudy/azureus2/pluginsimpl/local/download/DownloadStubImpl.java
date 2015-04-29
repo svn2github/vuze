@@ -29,6 +29,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubEx;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
@@ -257,6 +258,16 @@ DownloadStubImpl
 	remove()
 	{
 		manager.remove( this );
+	}
+	
+	public void 
+	remove(
+		boolean delete_torrent, 
+		boolean delete_data )
+			
+			throws DownloadException, DownloadRemovalVetoException 
+	{
+		System.out.println( "TODO!" );
 	}
 	
 	protected static class

@@ -44,6 +44,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -69,11 +70,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 
 
-/**
- * @author TuxPaper
- * @created May 10, 2013
- *
- */
 public class SBC_ArchivedDownloadsView
 	extends SkinView
 	implements 	UIUpdatable, UIPluginViewToolBarListener, TableViewFilterCheck<DownloadStub>,
@@ -352,16 +348,30 @@ public class SBC_ArchivedDownloadsView
 			return( false );
 		}
 		
-		if (item.getID().equals("remove")) {
-			
-			Object[] datasources = tv.getSelectedDataSources().toArray();
-			
-			if ( datasources.length > 0 ){
-				
+		List<Object> datasources = tv.getSelectedDataSources();
+		
+		if ( datasources.size() > 0 ){
 
+			List<DownloadStub>	dms = new ArrayList<DownloadStub>( datasources.size());
+			
+			for ( Object o: datasources ){
 				
-				return true;
+				dms.add((DownloadStub)o);
 			}
+			
+			String id = item.getID();
+			
+			if ( id.equals("remove")) {
+			
+				TorrentUtil.removeDataSources(datasources.toArray());
+				
+			}else if ( id.equals( "startstop" ) || id.equals( "start" )){
+				
+				ManagerUtils.restoreFromArchive( dms, true );
+			}
+			
+				
+			return true;
 		}
 		
 		return false;
@@ -386,6 +396,9 @@ public class SBC_ArchivedDownloadsView
 			canEnable = true;
 		}
 
+		list.put( "start", canEnable ? UIToolBarItem.STATE_ENABLED : 0);
+		list.put( "startstop", canEnable ? UIToolBarItem.STATE_ENABLED : 0);
+		
 		list.put( "remove", canEnable ? UIToolBarItem.STATE_ENABLED : 0);
 	}
 
@@ -457,7 +470,7 @@ public class SBC_ArchivedDownloadsView
 				handleEvent(
 					Event event) 
 				{
-					ManagerUtils.restoreFromArchive( dms );
+					ManagerUtils.restoreFromArchive( dms, false );
 				}
 			});
 		

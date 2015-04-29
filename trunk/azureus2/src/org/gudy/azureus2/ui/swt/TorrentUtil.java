@@ -52,6 +52,8 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadStub;
+import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubEx;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
@@ -2260,6 +2262,10 @@ public class TorrentUtil
 			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_DELETE,
 					fileInfos);
 		}
+		DownloadStubEx[] stubs = toDownloadStubs(  datasources );
+		if ( stubs.length > 0 ){
+			removeDownloadStubs(stubs,null,false);
+		}
 	}
 
 	public static boolean shouldStopGroup(Object[] datasources) {
@@ -2409,6 +2415,16 @@ public class TorrentUtil
 		return resultTrim;
 	}
 
+	private static DownloadStubEx[] toDownloadStubs(Object[] objects){
+		List<DownloadStubEx>	result = new ArrayList<DownloadStubEx>( objects.length );
+		for ( Object o: objects ){
+			if ( o instanceof DownloadStubEx ){
+				result.add((DownloadStubEx)o);
+			}
+		}
+		return( result.toArray( new DownloadStubEx[result.size()]));
+	}
+	
 	private static DiskManagerFileInfo[] toDMFI(Object[] objects) {
 		int count = 0;
 		DiskManagerFileInfo[] result = new DiskManagerFileInfo[objects.length];
@@ -2877,6 +2893,132 @@ public class TorrentUtil
 			dms[index] = null;
 			if (index != dms.length - 1) {
 				removeDownloads(dms, deleteFailed, true);
+			}
+		}
+	}
+	
+	
+	public static void 
+	removeDownloadStubs(
+		final DownloadStubEx[] 	dms,
+		final AERunnable 		deleteFailed, 
+		final boolean 			forcePrompt) 
+	{
+		if ( dms == null ){
+			
+			return;
+		}
+
+		for ( int i = 0; i < dms.length; i++ ){
+			
+			DownloadStubEx dm = dms[i];
+
+			boolean deleteTorrent = COConfigurationManager.getBooleanParameter("def.deletetorrent");
+
+			int confirm = COConfigurationManager.getIntParameter("tb.confirm.delete.content");
+			boolean doPrompt = confirm == 0 | forcePrompt;
+
+			if (doPrompt) {
+				String title = MessageText.getString("deletedata.title");
+				String text = MessageText.getString("v3.deleteContent.message",
+						new String[] {
+							dm.getName()
+						});
+
+				String[] buttons;
+
+				int defaultButtonPos;
+				buttons = new String[] {
+					MessageText.getString("Button.cancel"),
+					MessageText.getString("Button.deleteContent.fromComputer"),
+					MessageText.getString("Button.deleteContent.fromLibrary"),
+				};
+				/*
+				int[] buttonVals = new int[] {
+					SWT.CANCEL,
+					1,
+					2
+				};
+				*/
+				defaultButtonPos = 2;
+
+				final MessageBoxShell mb = new MessageBoxShell(title, text, buttons,
+						defaultButtonPos);
+				int numLeft = (dms.length - i);
+				if (numLeft > 1) {
+					mb.setRemember("na", false, MessageText.getString(
+							"v3.deleteContent.applyToAll", new String[] {
+								"" + numLeft
+							}));
+					// never store remember state
+					mb.setRememberOnlyIfButton(-3);
+				}
+				mb.setRelatedObject(dm);
+				mb.setLeftImage("image.trash");
+				mb.addCheckBox("deletecontent.also.deletetorrent", 2, deleteTorrent);
+
+				final int index = i;
+
+				mb.open(new UserPrompterResultListener() {
+
+					public void prompterClosed(int result) {
+						ImageLoader.getInstance().releaseImage("image.trash");
+
+						removeDownloadStubsPrompterClosed(dms, index, deleteFailed, result,
+								mb.isRemembered(), mb.getCheckBoxEnabled());
+					}
+				});
+				return;
+			} else {
+				boolean deleteData = confirm == 1;
+				removeDownloadStubsPrompterClosed(dms, i, deleteFailed, deleteData ? 1 : 2,
+						true, deleteTorrent);
+			}
+		}
+	}
+	
+	private static void removeDownloadStubsPrompterClosed(DownloadStubEx[] dms,
+			int index, AERunnable deleteFailed, int result, boolean doAll,
+			boolean deleteTorrent) {
+		if (result == -1) {
+			// user pressed ESC (as opposed to clicked Cancel), cancel whole
+			// list
+			return;
+		}
+		if (doAll) {
+			if (result == 1 || result == 2) {
+
+				for (int i = index; i < dms.length; i++) {
+					DownloadStubEx dm = dms[i];
+					boolean deleteData = result == 2 ? false
+							: !false; // dm.getDownloadState().getFlag(Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE);
+					//ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,	deleteTorrent, deleteData, deleteFailed);
+					try{
+						dm.remove(deleteTorrent, deleteData);
+					}catch( Throwable e ){
+						if ( deleteFailed != null ){
+							deleteFailed.runSupport();
+						}
+					}
+				}
+			} //else cancel
+		} else { // not remembered
+			if (result == 1 || result == 2) {
+				DownloadStubEx dm = dms[index];
+				boolean deleteData = result == 2 ? false
+						: !false; // dm.getDownloadState().getFlag(Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE);
+				//ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,	deleteTorrent, deleteData, null);
+				try{
+					dm.remove(deleteTorrent, deleteData);
+					
+				}catch( Throwable e ){
+					// no delete failed logic here apparently...
+				}
+			}
+			// remove the one we just did and go through loop again
+			dms[index] = null;
+			if (index != dms.length - 1) {
+				removeDownloadStubs(dms, deleteFailed, true);
 			}
 		}
 	}

@@ -1782,7 +1782,8 @@ public class ManagerUtils {
 	
 	public static void
 	restoreFromArchive(
-		final List<DownloadStub>		downloads )
+		final List<DownloadStub>		downloads,
+		final boolean					start )
 	{
 		Utils.getOffOfSWTThread(
 			new AERunnable() {
@@ -1816,9 +1817,17 @@ public class ManagerUtils {
 						try{
 							Download dl = dm.destubbify();
 							
-							if ( dl != null && tag != null ){
+							if ( dl != null ){
 								
-								tag.addTaggable(PluginCoreUtils.unwrap( dl ));
+								if ( tag != null ){
+								
+									tag.addTaggable(PluginCoreUtils.unwrap( dl ));
+								}
+								
+								if ( start ){
+									
+									start( PluginCoreUtils.unwrap( dl ));
+								}
 							}
 							
 						}catch( Throwable e ){

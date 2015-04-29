@@ -90,5 +90,14 @@ DownloadStub
 	{
 		public long
 		getCreationDate();
+		
+			// could migrate to DownloadStub one day
+		
+		public void
+		remove(
+			boolean		delete_torrent,
+			boolean		delete_data )
+		
+			throws DownloadException, DownloadRemovalVetoException;
 	}
 }
