@@ -540,8 +540,10 @@ public abstract class TableCellSWTBase
 
 	public void invokeVisibilityListeners(int visibility,
 			boolean invokeColumnListeners) {
-		if (invokeColumnListeners && tableColumn != null) {
-			tableColumn.invokeCellVisibilityListeners(this, visibility);
+		TableColumnCore tc = tableColumn;
+		
+		if (invokeColumnListeners && tc != null) {
+			tc.invokeCellVisibilityListeners(this, visibility);
 		}
 
 		if (cellVisibilityListeners == null)
@@ -568,8 +570,10 @@ public abstract class TableCellSWTBase
 		}
 		setFlag(FLAG_DISPOSED);
 
-		if (tableColumn != null) {
-			tableColumn.invokeCellDisposeListeners(this);
+		TableColumnCore tc = tableColumn;
+		
+		if (tc != null) {
+			tc.invokeCellDisposeListeners(this);
 		}
 
 		if (disposeListeners != null) {
