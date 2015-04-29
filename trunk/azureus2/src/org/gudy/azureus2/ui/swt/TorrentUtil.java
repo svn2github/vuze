@@ -561,6 +561,33 @@ public class TorrentUtil
 		});
 		itemFileClearResume.setEnabled(allStopped);
 
+			// Advanced -> archive
+		
+		final List<Download>	ar_dms = new ArrayList<Download>();
+		
+		for ( DownloadManager dm: dms ){
+			
+			Download stub = PluginCoreUtils.wrap(dm);
+			
+			if ( !stub.canStubbify()){
+				
+				continue;
+			}
+			
+			ar_dms.add( stub );
+		}
+		
+		MenuItem itemArchive = new MenuItem(menuAdvanced, SWT.PUSH);
+		Messages.setLanguageText(itemArchive,
+				"MyTorrentsView.menu.archive");
+		itemArchive.addListener(SWT.Selection, new ListenerDMTask(dms) {
+			public void run(DownloadManager dm) {
+				ManagerUtils.moveToArchive( ar_dms );
+			}
+		});
+		itemFileClearResume.setEnabled(ar_dms.size() > 0);
+		
+		
 		// Advanced - > Rename
 		final MenuItem itemRename = new MenuItem(menuAdvanced, SWT.DROP_DOWN);
 		Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");

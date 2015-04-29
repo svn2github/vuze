@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -381,7 +382,14 @@ public class SBC_ArchivedDownloadsView
 		String 	sColumnName, 
 		Menu 	menu )
 	{
-		final List<Object>	ds = tv.getSelectedDataSources();
+		List<Object>	ds = tv.getSelectedDataSources();
+		
+		final List<DownloadStub>	dms = new ArrayList<DownloadStub>( ds.size());
+		
+		for ( Object o: ds ){
+			
+			dms.add((DownloadStub)o);
+		}
 		
 		final MenuItem itemRestore = new MenuItem(menu, SWT.PUSH);
 		
@@ -391,29 +399,17 @@ public class SBC_ArchivedDownloadsView
 			SWT.Selection, 
 			new Listener()
 			{
-				public void handleEvent(Event event) {
-					Utils.getOffOfSWTThread(
-						new AERunnable() {
-							
-							@Override
-							public void 
-							runSupport() 
-							{
-								for ( Object o: ds ){
-								
-									try{
-										((DownloadStub)o).destubbify();
-										
-									}catch( Throwable e ){
-										
-									}
-								}
-							}
-						});
+				public void 
+				handleEvent(
+					Event event) 
+				{
+					ManagerUtils.restoreFromArchive( dms );
 				}
 			});
 		
 		itemRestore.setEnabled( ds.size() > 0);
+		
+		new MenuItem( menu, SWT.SEPARATOR );
 	}
 
 	public void 

@@ -55,6 +55,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.tracker.Tracker;
@@ -75,6 +76,10 @@ import org.gudy.azureus2.ui.webplugin.WebPlugin;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.HTTPUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
@@ -1728,5 +1733,100 @@ public class ManagerUtils {
 						}
 					}
 				});
+	}
+	
+	public static void
+	moveToArchive(
+		final List<Download>		downloads )
+	{
+		Utils.getOffOfSWTThread(
+			new AERunnable() {
+				
+				@Override
+				public void 
+				runSupport() 
+				{
+					String title 	= MessageText.getString( "archive.info.title" );
+					String text 	= MessageText.getString( "archive.info.text" );
+					
+					MessageBoxShell prompter = 
+						new MessageBoxShell(
+							title, text, 
+							new String[] { MessageText.getString("Button.ok") }, 0 );
+				
+					
+					String remember_id = "managerutils.archive.info";
+					
+					prompter.setRemember( 
+						remember_id, 
+						true,
+						MessageText.getString("MessageBoxWindow.nomoreprompting"));
+									
+					prompter.setAutoCloseInMS(0);
+					
+					prompter.open( null );
+					
+					for ( Download dm: downloads ){
+						
+						try{
+							dm.stubbify();
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});
+	}
+	
+	public static void
+	restoreFromArchive(
+		final List<DownloadStub>		downloads )
+	{
+		Utils.getOffOfSWTThread(
+			new AERunnable() {
+				
+				@Override
+				public void 
+				runSupport() 
+				{
+					Tag	tag = null;
+					
+					try{
+						TagManager	tm = TagManagerFactory.getTagManager();
+						
+						TagType tt = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL );
+						
+						String tag_name = MessageText.getString( "label.restored" );
+						
+						tag = tt.getTag( tag_name, true );
+						
+						if ( tag == null ){	
+						
+							tag = tt.createTag( tag_name, true );
+						}
+					}catch( Throwable e ){
+								
+						Debug.out( e );
+					}
+					
+					for ( DownloadStub dm: downloads ){
+						
+						try{
+							Download dl = dm.destubbify();
+							
+							if ( dl != null && tag != null ){
+								
+								tag.addTaggable(PluginCoreUtils.unwrap( dl ));
+							}
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});
 	}
 }

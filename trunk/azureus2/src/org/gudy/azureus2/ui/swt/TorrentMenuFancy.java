@@ -1696,7 +1696,9 @@ public class TorrentMenuFancy
 		if (!hasSelection) {
 			return;
 		}
-
+		
+			// assign tags
+			
 		createMenuRow(detailArea, "label.tags", "image.sidebar.tag-overview",
 				new FancyMenuRowInfoListener() {
 					public void buildMenu(Menu menu) {
@@ -1704,6 +1706,8 @@ public class TorrentMenuFancy
 					}
 				});
 
+			// assign cats
+		
 		createMenuRow(detailArea, "MyTorrentsView.menu.setCategory",
 				"image.sidebar.library", new FancyMenuRowInfoListener() {
 					public void buildMenu(Menu menu) {
@@ -1711,31 +1715,7 @@ public class TorrentMenuFancy
 					}
 				});
 
-		if (tv.getSWTFilter() != null) {
-			createRow(detailArea, "MyTorrentsView.menu.filter", null, new Listener() {
-				public void handleEvent(Event event) {
-					tv.openFilterDialog();
-				}
-			});
-		}
-
-		// Advanced - > Rename
-		createRow(detailArea, "MyTorrentsView.menu.rename", null, new Listener() {
-			public void handleEvent(Event event) {
-				for (DownloadManager dm : dms) {
-					AdvRenameWindow window = new AdvRenameWindow();
-					window.open(dm);
-				}
-			}
-		});
-
-		createRow(detailArea, "MyTorrentsView.menu.reposition.manual", null,
-				new Listener() {
-					// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-					public void handleEvent(Event event) {
-						TorrentUtil.repositionManual(tv, dms, parentShell, isSeedingView);
-					}
-				});
+			// Archive
 		
 		final List<Download>	ar_dms = new ArrayList<Download>();
 		
@@ -1752,23 +1732,50 @@ public class TorrentMenuFancy
 		}
 		
 		if ( ar_dms.size() > 0 ){
-			createRow(detailArea, "MyTorrentsView.menu.archive", null,
-					new Listener() {
-		
-						public void handleEvent(Event event) {
-							for ( Download dm: ar_dms ){
-								
-								try{
-									dm.stubbify();
-									
-								}catch( Throwable e ){
-									
-									Debug.out( e );
-								}
-							}
-						}
-					});
+			
+			createRow(
+				detailArea, 
+				"MyTorrentsView.menu.archive", null,
+				new Listener() 
+				{
+					public void handleEvent(Event event) {
+							
+						ManagerUtils.moveToArchive( ar_dms );
+					}
+				});
 		}
+		
+
+			// Advanced - > Rename
+		
+		createRow(detailArea, "MyTorrentsView.menu.rename", null, new Listener() {
+			public void handleEvent(Event event) {
+				for (DownloadManager dm : dms) {
+					AdvRenameWindow window = new AdvRenameWindow();
+					window.open(dm);
+				}
+			}
+		});
+
+			// Reposition
+		
+		createRow(detailArea, "MyTorrentsView.menu.reposition.manual", null,
+				new Listener() {
+					public void handleEvent(Event event) {
+						TorrentUtil.repositionManual(tv, dms, parentShell, isSeedingView);
+					}
+				});
+
+			// Filter
+		
+		if (tv.getSWTFilter() != null) {
+			createRow(detailArea, "MyTorrentsView.menu.filter", null, new Listener() {
+				public void handleEvent(Event event) {
+					tv.openFilterDialog();
+				}
+			});
+		}
+
 	}
 
 	public void buildTorrentCustomMenu_Social(Composite detailArea) {
