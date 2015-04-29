@@ -21,6 +21,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 
+import java.io.File;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -32,6 +33,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadStub;
@@ -95,75 +98,6 @@ public class SBC_ArchivedDownloadsView
 	private Object datasource;
 	
 	private MdiEntry mdi_entry;
-	
-	public boolean 
-	toolBarItemActivated(
-		ToolBarItem item, 
-		long activationType,
-		Object datasource) 
-	{
-		if ( tv == null || !tv.isVisible()){
-			
-			return( false );
-		}
-		
-		if (item.getID().equals("remove")) {
-			
-			Object[] datasources = tv.getSelectedDataSources().toArray();
-			
-			if ( datasources.length > 0 ){
-				
-
-				
-				return true;
-			}
-		}
-		
-		return false;
-	}
-
-	public void 
-	filterSet(
-		String filter) 
-	{
-	}
-
-	public void 
-	refreshToolBarItems(
-		Map<String, Long> list) 
-	
-	{
-		if ( tv == null || !tv.isVisible()){
-			return;
-		}
-
-		boolean canEnable = false;
-		Object[] datasources = tv.getSelectedDataSources().toArray();
-		
-		if ( datasources.length > 0 ){
-			
-			for (Object object : datasources) {
-
-			}
-		}
-
-		list.put("remove", canEnable ? UIToolBarItem.STATE_ENABLED : 0);
-	}
-
-	public void 
-	updateUI() 
-	{
-		if (tv != null) {
-			
-			tv.refreshTable(false);
-		}
-	}
-
-	public String 
-	getUpdateUIName() 
-	{
-		return( TABLE_NAME );
-	}
 
 	public Object 
 	skinObjectInitialShow(
@@ -204,11 +138,25 @@ public class SBC_ArchivedDownloadsView
 					}
 				});
 
-
+		tableManager.registerColumn(DownloadStub.class, ColumnArchiveDLSize.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnArchiveDLSize(column);
+					}
+				});
+		
+		tableManager.registerColumn(DownloadStub.class, ColumnArchiveDLFileCount.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnArchiveDLFileCount(column);
+					}
+				});
+		
 		tableManager.setDefaultColumnNames(TABLE_NAME,
 				new String[] {
 					ColumnArchiveDLName.COLUMN_ID,
-					
+					ColumnArchiveDLSize.COLUMN_ID,
+					ColumnArchiveDLFileCount.COLUMN_ID,
 				});
 		
 		tableManager.setDefaultSortColumnName(TABLE_NAME, ColumnArchiveDLName.COLUMN_ID);
@@ -377,6 +325,69 @@ public class SBC_ArchivedDownloadsView
 		registeredCoreSubViews = true;
 	}
 
+	public boolean 
+	toolBarItemActivated(
+		ToolBarItem item, 
+		long activationType,
+		Object datasource) 
+	{
+		if ( tv == null || !tv.isVisible()){
+			
+			return( false );
+		}
+		
+		if (item.getID().equals("remove")) {
+			
+			Object[] datasources = tv.getSelectedDataSources().toArray();
+			
+			if ( datasources.length > 0 ){
+				
+
+				
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	public void 
+	refreshToolBarItems(
+		Map<String, Long> list) 
+	
+	{
+		if ( tv == null || !tv.isVisible()){
+			
+			return;
+		}
+
+		boolean canEnable = false;
+		
+		Object[] datasources = tv.getSelectedDataSources().toArray();
+		
+		if ( datasources.length > 0 ){
+			
+			canEnable = true;
+		}
+
+		list.put( "remove", canEnable ? UIToolBarItem.STATE_ENABLED : 0);
+	}
+
+	public void 
+	updateUI() 
+	{
+		if (tv != null) {
+			
+			tv.refreshTable(false);
+		}
+	}
+
+	public String 
+	getUpdateUIName() 
+	{
+		return( TABLE_NAME );
+	}
+	
 	public void 
 	fillMenu(
 		String 	sColumnName, 
@@ -390,6 +401,33 @@ public class SBC_ArchivedDownloadsView
 			
 			dms.add((DownloadStub)o);
 		}
+		
+		boolean	hasSelection = dms.size() > 0;
+		
+			// Explore (or open containing folder)
+		
+		final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+		
+		final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(itemExplore, "MyTorrentsView.menu."
+				+ (use_open_containing_folder ? "open_parent_folder" : "explore"));
+		
+		itemExplore.addListener(SWT.Selection, new Listener() {
+			public void 
+			handleEvent(
+				Event event) 
+			{
+				for ( DownloadStub download: dms ){
+				
+					ManagerUtils.open( new File( download.getSavePath()), use_open_containing_folder);
+				}
+			}
+		});
+		
+		itemExplore.setEnabled(hasSelection);
+		
+		new MenuItem( menu, SWT.SEPARATOR );
 		
 		final MenuItem itemRestore = new MenuItem(menu, SWT.PUSH);
 		
@@ -407,7 +445,7 @@ public class SBC_ArchivedDownloadsView
 				}
 			});
 		
-		itemRestore.setEnabled( ds.size() > 0);
+		itemRestore.setEnabled( hasSelection );
 		
 		new MenuItem( menu, SWT.SEPARATOR );
 	}
@@ -498,6 +536,12 @@ public class SBC_ArchivedDownloadsView
 	mouseExit(
 		TableRowCore row)
 	{	
+	}
+	
+	public void 
+	filterSet(
+		String filter) 
+	{
 	}
 	
 	public boolean 
