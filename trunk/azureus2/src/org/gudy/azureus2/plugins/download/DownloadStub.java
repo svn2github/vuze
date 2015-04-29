@@ -82,4 +82,13 @@ DownloadStub
 		public long
 		getLength();
 	}
+	
+	public interface
+	DownloadStubEx
+	
+		extends DownloadStub
+	{
+		public long
+		getCreationDate();
+	}
 }

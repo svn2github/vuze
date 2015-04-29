@@ -26,10 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadStub;
+import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubEx;
+import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
@@ -37,12 +39,13 @@ import com.aelitis.azureus.util.MapUtils;
 
 public class 
 DownloadStubImpl
-	implements DownloadStub
+	implements DownloadStubEx
 {
 	private final DownloadManagerImpl		manager;
 	private final String					name;
 	private final byte[]					hash;
 	private final long						size;
+	private final long						date_created;
 	private final String					save_path;
 	private final DownloadStubFileImpl[]	files;
 	private final Map<String,Object>		gm_map;
@@ -54,11 +57,13 @@ DownloadStubImpl
 	DownloadStubImpl(
 		DownloadManagerImpl		_manager,
 		DownloadImpl			_download,
-		Map<String,Object>						_gm_map )
+		Map<String,Object>		_gm_map )
 	{
 		manager			= _manager;
 		temp_download	= _download;
 		
+		date_created = SystemTime.getCurrentTime();
+				
 		name	= temp_download.getName();
 		
 		Torrent	torrent = temp_download.getTorrent();
@@ -86,15 +91,12 @@ DownloadStubImpl
 	{
 		manager		= _manager;
 		
-		hash = (byte[])_map.get( "hash" );
-		
-		name	= MapUtils.getMapString( _map, "name", null );
-		
-		size 	= MapUtils.getMapLong( _map, "s", 0 );
-		
-		save_path	= MapUtils.getMapString( _map, "l", null );
-
-		gm_map 	= (Map<String,Object>)_map.get( "gm" );
+		date_created	= MapUtils.getMapLong( _map, "dt", 0 );
+		hash 			= (byte[])_map.get( "hash" );
+		name			= MapUtils.getMapString( _map, "name", null );
+		size 			= MapUtils.getMapLong( _map, "s", 0 );
+		save_path		= MapUtils.getMapString( _map, "l", null );
+		gm_map 			= (Map<String,Object>)_map.get( "gm" );
 		
 		List<Map<String,Object>>	file_list = (List<Map<String,Object>>)_map.get( "files" );
 		
@@ -120,6 +122,7 @@ DownloadStubImpl
 	{
 		Map<String,Object>	map = new HashMap<String,Object>();
 		
+		map.put( "dt", date_created );
 		map.put( "hash", hash );
 		map.put( "s", size );
 		
@@ -186,6 +189,12 @@ DownloadStubImpl
 	getTorrentSize()
 	{
 		return( size );
+	}
+	
+	public long 
+	getCreationDate() 
+	{
+		return( date_created );
 	}
 	
 	public String
