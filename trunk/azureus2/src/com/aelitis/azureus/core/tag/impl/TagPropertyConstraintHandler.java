@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -48,7 +50,6 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableLifecycleAdapter;
-import com.aelitis.azureus.core.tag.TaggableLifecycleListener;
 
 public class 
 TagPropertyConstraintHandler 
@@ -1058,6 +1059,7 @@ TagPropertyConstraintHandler
 	
 	private static final int FT_HAS_NET		= 11;
 	private static final int FT_IS_COMPLETE	= 12;
+	private static final int FT_CAN_ARCHIVE	= 13;
 
 	
 	private class
@@ -1113,6 +1115,12 @@ TagPropertyConstraintHandler
 
 				params_ok = params.length == 0;
 				
+			}else if ( func_name.equals( "canArchive" )){
+
+				fn_type = FT_CAN_ARCHIVE;
+
+				params_ok = params.length == 0;
+
 			}else if ( func_name.equals( "isGE" )){
 				
 				fn_type = FT_GE;
@@ -1224,6 +1232,12 @@ TagPropertyConstraintHandler
 				case FT_IS_COMPLETE:{
 					
 					return( dm.isDownloadComplete( false ));
+				}
+				case FT_CAN_ARCHIVE:{
+					
+					Download dl = PluginCoreUtils.wrap( dm );
+					
+					return( dl.canStubbify());
 				}
 				case FT_GE:
 				case FT_GT:
