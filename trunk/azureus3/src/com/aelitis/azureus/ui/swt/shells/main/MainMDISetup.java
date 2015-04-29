@@ -265,7 +265,7 @@ public class MainMDISetup
 								"{mdi.entry.archiveddownloadsview}", 
 								title_info, null, true, null);
 						
-						//entry.setImageLeftID("image.sidebar.chat-overview");
+						entry.setImageLeftID( "image.sidebar.archive" );
 						
 						final DownloadStubListener stub_listener =
 							new DownloadStubListener() 

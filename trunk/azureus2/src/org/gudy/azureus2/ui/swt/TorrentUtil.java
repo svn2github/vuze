@@ -578,8 +578,8 @@ public class TorrentUtil
 		}
 		
 		MenuItem itemArchive = new MenuItem(menuAdvanced, SWT.PUSH);
-		Messages.setLanguageText(itemArchive,
-				"MyTorrentsView.menu.archive");
+		Messages.setLanguageText(itemArchive, "MyTorrentsView.menu.archive");
+		Utils.setMenuItemImage(itemArchive, "archive");
 		itemArchive.addListener(SWT.Selection, new ListenerDMTask(dms) {
 			public void run(DownloadManager dm) {
 				ManagerUtils.moveToArchive( ar_dms );

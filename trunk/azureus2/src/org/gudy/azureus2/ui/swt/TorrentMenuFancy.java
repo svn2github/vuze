@@ -1735,7 +1735,7 @@ public class TorrentMenuFancy
 			
 			createRow(
 				detailArea, 
-				"MyTorrentsView.menu.archive", null,
+				"MyTorrentsView.menu.archive", "image.sidebar.archive",
 				new Listener() 
 				{
 					public void handleEvent(Event event) {
