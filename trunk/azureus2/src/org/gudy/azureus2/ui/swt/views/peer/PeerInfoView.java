@@ -431,7 +431,8 @@ public class PeerInfoView
 	private void refreshInfoCanvas() {
 		refreshInfoCanvasQueued = false;
 
-		if (peerInfoComposite == null || !peerInfoComposite.isVisible()) {
+		if (peerInfoComposite == null || peerInfoComposite.isDisposed()
+				|| !peerInfoComposite.isVisible()) {
 			return;
 		}
 
@@ -635,7 +636,8 @@ public class PeerInfoView
 	}
 
 	private void delete() {
-		if (!imageLabel.isDisposed() && imageLabel.getImage() != null) {
+		if (imageLabel != null && !imageLabel.isDisposed()
+				&& imageLabel.getImage() != null) {
 			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);
 			image.dispose();

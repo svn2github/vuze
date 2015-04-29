@@ -24,16 +24,19 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
@@ -41,6 +44,11 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 
+/**
+ * MDI Entry that is a {@link CTabItem} and belongs wo {@link TabbedMDI}
+ * <p>
+ * TODO: VitalityImages
+ */
 public class TabbedEntry
 	extends BaseMdiEntry implements DisposeListener
 {
@@ -54,8 +62,8 @@ public class TabbedEntry
 
 	private static long uniqueNumber = 0;
 
-	public TabbedEntry(TabbedMDI mdi, SWTSkin skin, String id) {
-		super(mdi, id);
+	public TabbedEntry(TabbedMDI mdi, SWTSkin skin, String id, String parentViewID) {
+		super(mdi, id, parentViewID);
 		this.skin = skin;
 	}
 
@@ -80,7 +88,7 @@ public class TabbedEntry
 		buildonSWTItemSet = false;
 
 		Control control = swtItem.getControl();
-		if (control == null) {
+		if (control == null || control.isDisposed()) {
 			Composite parent = swtItem.getParent();
 			SWTSkinObject soParent = (SWTSkinObject) parent.getData("SkinObject");
 
@@ -112,11 +120,16 @@ public class TabbedEntry
 					if (oldSelection != null) {
 						swtItem.getParent().setSelection(oldSelection);
 					}
-					setSkinObject(skinObject, skinObject);
+					setPluginSkinObject(skinObject);
+					setSkinObjectMaster(skinObject);
+
+
+					initialize((Composite) control);
 				} finally {
 					shell.setCursor(cursor);
 				}
-			} else if (view != null) {
+			} else {
+				// XXX: This needs to be merged into BaseMDIEntry.initialize
 				try {
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
 							"MdiIView." + uniqueNumber++, "mdi.content.item",
@@ -129,8 +142,7 @@ public class TabbedEntry
 					//viewComposite.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
 
 					boolean doGridLayout = true;
-					UISWTView swtView = view;
-					if (swtView.getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
+					if (getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
 						doGridLayout = false;
 					}
 					if (doGridLayout) {
@@ -140,13 +152,11 @@ public class TabbedEntry
   					viewComposite.setLayoutData(Utils.getFilledFormData());
 					}
 
-					UISWTViewCore uiViewCore = view;
-					uiViewCore.setSkinObject(soContents, soContents.getComposite());
+					setPluginSkinObject(soContents);
 
-					view.initialize(viewComposite);
-					setTitle(view.getFullTitle());
+					initialize(viewComposite);
 
-					Composite iviewComposite = view.getComposite();
+					Composite iviewComposite = getComposite();
 					control = iviewComposite;
 					if (doGridLayout) {
 						Object existingLayoutData = iviewComposite.getLayoutData();
@@ -159,21 +169,19 @@ public class TabbedEntry
 						}
 					}
 
-					//soContents is invisible, so of course iviwComposite is invisible
-					//We should do the one time layout on the first show..
-					//if (iviewComposite.isVisible()) {
-					//	parent.layout(true, true);
-					//}
-
 					CTabItem oldSelection = swtItem.getParent().getSelection();
 					swtItem.getParent().setSelection(swtItem);
-					swtItem.setControl(soContents.getControl());
+					swtItem.setControl(viewComposite);
 					if (oldSelection != null) {
 						swtItem.getParent().setSelection(oldSelection);
 					}
-					setSkinObject(soContents, soContents);
+					setSkinObjectMaster(soContents);
 				} catch (Exception e) {
 					Debug.out("Error creating sidebar content area for " + id, e);
+					try {
+						setEventListener(null, false);
+					} catch (UISWTViewEventCancelledException e1) {
+					}
 					close(true);
 				}
 
@@ -181,11 +189,14 @@ public class TabbedEntry
 
 			if (control != null && !control.isDisposed()) {
 				control.setData("BaseMDIEntry", this);
+				/** XXX Removed this because we can dispose of the control and still
+				 * want the tab (ie. destroy on focus lost, rebuild on focus gain)
 				control.addDisposeListener(new DisposeListener() {
 					public void widgetDisposed(DisposeEvent e) {
 						close(true);
 					}
 				});
+				*/
 			} else {
 				return false;
 			}
@@ -236,12 +247,26 @@ public class TabbedEntry
 		return null; // new SideBarVitalityImageSWT(this, imageID);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#isCloseable()
-	 */
 	public boolean isCloseable() {
 		// override.. we don't support non-closeable
 		return true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#setCloseable(boolean)
+	 */
+	@Override
+	public void setCloseable(boolean closeable) {
+		super.setCloseable(closeable);
+		Utils.execSWTThread(new AERunnable() {
+			@Override
+			public void runSupport() {
+				if (swtItem == null || swtItem.isDisposed()) {
+					return;
+				}
+				swtItem.setShowClose(isCloseable());
+			}
+		});
 	}
 
 	public void setSwtItem(CTabItem swtItem) {
@@ -259,6 +284,8 @@ public class TabbedEntry
 		}
 
 		updateLeftImage();
+		
+		swtItem.setShowClose(isCloseable());
 
 		if (buildonSWTItemSet) {
 			build();
@@ -309,12 +336,9 @@ public class TabbedEntry
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
 				if (swtItem != null && !swtItem.isDisposed()) {
+					// this will triggerCloseListeners
 					swtItem.dispose();
 					swtItem = null;
-				} else if (view != null) {
-					setCoreView(null);
-
-					triggerCloseListeners(!SWTThread.getInstance().isTerminated());
 				}
 			}
 		});
@@ -322,6 +346,18 @@ public class TabbedEntry
 	}
 
 	public void redraw() {
+		Utils.execSWTThread(new AERunnable() {
+			@Override
+			public void runSupport() {
+				if (swtItem == null || swtItem.isDisposed()) {
+					return;
+				}
+				// recalculate the size of tab (in case indicator text changed)
+				swtItem.getParent().notifyListeners(SWT.Resize, new Event());
+				// redraw indicator text
+				swtItem.getParent().redraw();
+			}
+		});
 	}
 	
 	// @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#setImageLeftID(java.lang.String)
@@ -355,14 +391,15 @@ public class TabbedEntry
 		setSwtItem(null);
 
 		triggerCloseListeners(!SWTThread.getInstance().isTerminated());
-
-		UISWTViewCore view = getCoreView();
-		if (view != null) {
-			setCoreView(null);
+		
+		try {
+			setEventListener(null, false);
+		} catch (UISWTViewEventCancelledException e1) {
 		}
+
 		SWTSkinObject so = getSkinObject();
 		if (so != null) {
-			setSkinObject(null, null);
+			setSkinObjectMaster(null);
 			so.getSkin().removeSkinObject(so);
 		}
 		
@@ -407,30 +444,16 @@ public class TabbedEntry
 			return;
 		}
 
-		String textIndicator = null;
-		try {
-			textIndicator = (String) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT);
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-		if (textIndicator != null) {
-			setPullTitleFromView(false);
-		}
-		
 		String newText = (String) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
 		if (newText != null) {
-			if (textIndicator != null) {
-				newText += " (" + textIndicator + ")";
-			}
-			setPullTitleFromView(false);
 			setTitle(newText);
-		} else if (view != null) {
-			newText = view.getFullTitle();
-			if (textIndicator != null) {
-				newText += " (" + textIndicator + ")";
+		} else {
+			String titleID = getTitleID();
+			if (titleID != null) {
+				setTitleID(titleID);
 			}
-			setTitle(newText);
 		}
+		redraw();
 	}
 	
 	// @see com.aelitis.azureus.ui.mdi.MdiEntry#isSelectable()

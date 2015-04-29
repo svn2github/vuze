@@ -20,7 +20,6 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
@@ -35,7 +34,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
@@ -51,8 +49,10 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.tracker.*;
 
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
-import com.aelitis.azureus.ui.common.ToolBarItem;
-import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
+import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -460,21 +460,4 @@ public class TrackerView
 	    return( super.eventOccurred(event));
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
-	 */
-	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
-			Object datasource) {
-		return( super.toolBarItemActivated(item, activationType, datasource));
-	}
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#refreshToolBarItems(java.util.Map)
-	 */
-	public void refreshToolBarItems(Map<String, Long> list) {
-		Map<String, Long> states = TorrentUtil.calculateToolbarStates(
-				SelectedContentManager.getCurrentlySelectedContent(), null);
-		list.putAll(states);
-		super.refreshToolBarItems(list);
-	}
 }

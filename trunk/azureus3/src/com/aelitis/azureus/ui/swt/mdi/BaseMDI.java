@@ -22,19 +22,36 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionHolder;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.*;
@@ -42,6 +59,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.MapUtils;
@@ -56,17 +74,21 @@ public abstract class BaseMDI
 	private Map<String, MdiEntryCreationListener2> mapIdToCreationListener2 = new LightHashMap<String, MdiEntryCreationListener2>();
 
 	// Sync changes to entry maps on mapIdEntry
-	protected Map<String, MdiEntrySWT> mapIdToEntry = new LightHashMap<String, MdiEntrySWT>();
+	protected Map<String, MdiEntrySWT> mapIdToEntry = new LinkedHashMap<String, MdiEntrySWT>(8);
 
 	private List<MdiListener> listeners = new ArrayList<MdiListener>();
 
 	private List<MdiEntryLoadedListener> listLoadListeners = new ArrayList<MdiEntryLoadedListener>();
 
-	private static LinkedHashMap<String, Object> mapAutoOpen = new LinkedHashMap<String, Object>();
+	private List<MdiSWTMenuHackListener> listMenuHackListners;
+
+	private LinkedHashMap<String, Object> mapAutoOpen = new LinkedHashMap<String, Object>();
 
 	private String[] preferredOrder;
 
 	private boolean mapAutoOpenLoaded = false;
+
+	private String closeableConfigFile = "sidebarauto.config";
 
 	public void addListener(MdiListener l) {
 		synchronized (listeners) {
@@ -144,9 +166,18 @@ public abstract class BaseMDI
 	}
 
 	// @see com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT#createEntryFromEventListener(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener, java.lang.String, boolean, java.lang.Object, java.lang.String)
-	public abstract MdiEntry createEntryFromEventListener(String parentID,
-			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferedAfterID);
+	public final MdiEntry createEntryFromEventListener(String parentID,
+			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferedAfterID) {
+		return createEntryFromEventListener(parentID, null, l, id, closeable, datasource, preferedAfterID);
+	}
 
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT#createEntryFromEventListener(java.lang.String, java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener, java.lang.String, boolean, java.lang.Object, java.lang.String)
+	 */
+	public abstract MdiEntry createEntryFromEventListener(String parentEntryID,
+			String parentViewID, UISWTViewEventListener l, String id,
+			boolean closeable, Object datasource, String preferredAfterID);
+	
 	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#createEntryFromSkinRef(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, java.lang.Object, boolean, java.lang.String)
 	public abstract MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
@@ -261,17 +292,17 @@ public abstract class BaseMDI
 			return null;
 		}
 		MdiEntrySWT entry = getEntrySWT(id);
-		if (entry == null) {
-			return null;
+		if (entry instanceof UISWTViewCore) {
+			return (UISWTViewCore) entry;
 		}
-		return entry.getCoreView();
+		return null;
 	}
 
 	public String getUpdateUIName() {
-		if (currentEntry == null || currentEntry.getView() == null) {
+		if (currentEntry == null) {
 			return "MDI";
 		}
-		return currentEntry.getView().getViewID();
+		return currentEntry.getId();
 	}
 
 	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#registerEntry(java.lang.String, com.aelitis.azureus.ui.mdi.MdiEntryCreationListener2)
@@ -391,6 +422,44 @@ public abstract class BaseMDI
 
 	@Override
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		UIManager ui_manager = PluginInitializer.getDefaultInterface().getUIManager();
+		ui_manager.addUIListener(new UIManagerListener() {
+			public void UIDetached(UIInstance instance) {
+			}
+			
+			public void UIAttached(UIInstance instance) {
+				if (instance instanceof UISWTInstance) {
+					final AESemaphore wait_sem = new AESemaphore( "SideBar:wait" );
+					
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							try{
+								try {
+									loadCloseables();
+								} catch (Throwable t) {
+									Debug.out(t);
+								}
+	
+								setupPluginViews();
+								
+							}finally{
+								
+								wait_sem.release();
+							}
+						}
+					});
+					
+						// we need to wait for the loadCloseables to complete as there is code in MainMDISetup that runs on the 'UIAttachedComplete'
+						// callback that needs the closables to be loaded (when setting 'start tab') otherwise the order gets broken
+					
+					if ( !wait_sem.reserve(10*1000)){
+						
+						Debug.out( "eh?");
+					}
+				}
+			}
+		});
+
 		return null;
 	}
 
@@ -512,8 +581,11 @@ public abstract class BaseMDI
 	}
 
 	public void loadCloseables() {
+		if (closeableConfigFile == null) {
+			return;
+		}
 		try{
-			Map<?,?> loadedMap = FileUtil.readResilientConfigFile("sidebarauto.config", true);
+			Map<?,?> loadedMap = FileUtil.readResilientConfigFile(closeableConfigFile , true);
 			if (loadedMap.isEmpty()) {
 				return;
 			}
@@ -561,6 +633,9 @@ public abstract class BaseMDI
 		if (!mapAutoOpenLoaded) {
 			return;
 		}
+		if (closeableConfigFile == null) {
+			return;
+		}
 
 		try{
 			// update auto open info
@@ -599,7 +674,7 @@ public abstract class BaseMDI
 				//System.out.println( "saved " + id );
 			}
 			
-			FileUtil.writeResilientConfigFile("sidebarauto.config", map );
+			FileUtil.writeResilientConfigFile(closeableConfigFile, map );
 			
 		}catch( Throwable e ){
 			
@@ -632,7 +707,9 @@ public abstract class BaseMDI
 				if (viewInfo.event_listener != null) {
 					entry = createEntryFromEventListener(parentID,
 							viewInfo.event_listener, id, true, datasource,null);
-  				entry.setTitle(title);
+					if (entry != null) {
+						entry.setTitle(title);
+					}
 				}
 			}
 
@@ -744,4 +821,143 @@ public abstract class BaseMDI
 	public String[] getPreferredOrder() {
 		return preferredOrder == null ? new String[0] : preferredOrder;
 	}
+	
+	public int getEntriesCount() {
+		return mapIdToEntry.size();
+	}
+
+	public void setCloseableConfigFile(String closeableConfigFile) {
+		this.closeableConfigFile = closeableConfigFile;
+	}
+	
+	public void addListener(MdiSWTMenuHackListener l) {
+		synchronized (this) {
+			if (listMenuHackListners == null) {
+				listMenuHackListners = new ArrayList<MdiSWTMenuHackListener>(1);
+			}
+			if (!listMenuHackListners.contains(l)) {
+				listMenuHackListners.add(l);
+			}
+		}
+	}
+
+	public void removeListener(MdiSWTMenuHackListener l) {
+		synchronized (this) {
+			if (listMenuHackListners == null) {
+				listMenuHackListners = new ArrayList<MdiSWTMenuHackListener>(1);
+			}
+			listMenuHackListners.remove(l);
+		}
+	}
+
+	public MdiSWTMenuHackListener[] getMenuHackListeners() {
+		synchronized (this) {
+			if (listMenuHackListners == null) {
+				return new MdiSWTMenuHackListener[0];
+			}
+			return listMenuHackListners.toArray(new MdiSWTMenuHackListener[0]);
+		}
+	}
+
+
+	public void fillMenu(Menu menu, final MdiEntry entry, String menuID) {
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
+		
+		menu_items = MenuItemManager.getInstance().getAllAsArray(menuID);
+
+		MenuBuildUtils.addPluginMenuItems(menu_items, menu, false, true,
+				new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
+					entry
+				}));
+
+		if (entry != null) {
+
+			menu_items = MenuItemManager.getInstance().getAllAsArray(
+					"sidebar." + entry.getId());
+
+			if (menu_items.length == 0) {
+
+				if (entry instanceof UISWTView) {
+
+					PluginInterface pi = ((UISWTView) entry).getPluginInterface();
+
+					if (pi != null) {
+
+						final List<String> relevant_sections = new ArrayList<String>();
+
+						List<ConfigSectionHolder> sections = ConfigSectionRepository.getInstance().getHolderList();
+
+						for (ConfigSectionHolder cs : sections) {
+
+							if (pi == cs.getPluginInterface()) {
+
+								relevant_sections.add(cs.configSectionGetName());
+							}
+						}
+
+						if (relevant_sections.size() > 0) {
+
+							MenuItem mi = pi.getUIManager().getMenuManager().addMenuItem(
+									"sidebar." + entry.getId(),
+									"MainWindow.menu.view.configuration");
+
+							mi.addListener(new MenuItemListener() {
+								public void selected(MenuItem menu, Object target) {
+									UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+									if (uif != null) {
+
+										for (String s : relevant_sections) {
+
+											uif.getMDI().showEntryByID(
+													MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, s);
+										}
+									}
+								}
+							});
+
+							menu_items = MenuItemManager.getInstance().getAllAsArray(
+									"sidebar." + entry.getId());
+						}
+					}
+				}
+			}
+
+			MenuBuildUtils.addPluginMenuItems(menu_items, menu, false, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
+						entry
+					}));
+
+			MdiSWTMenuHackListener[] menuHackListeners = getMenuHackListeners();
+			for (MdiSWTMenuHackListener l : menuHackListeners) {
+				try {
+					l.menuWillBeShown(entry, menu);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+			if (currentEntry instanceof SideBarEntrySWT) {
+				menuHackListeners = ((SideBarEntrySWT) entry).getMenuHackListeners();
+				for (MdiSWTMenuHackListener l : menuHackListeners) {
+					try {
+						l.menuWillBeShown(entry, menu);
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+				}
+			}
+		}
+			
+		menu_items = MenuItemManager.getInstance().getAllAsArray(menuID + "._end_");
+
+		if ( menu_items.length > 0 ){
+			
+			MenuBuildUtils.addPluginMenuItems(menu_items, menu, false, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
+						entry
+					}));
+		}
+	}
+
+
 }

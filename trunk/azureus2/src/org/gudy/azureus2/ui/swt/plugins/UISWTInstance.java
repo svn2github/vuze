@@ -134,7 +134,8 @@ public interface UISWTInstance extends UIInstanceBase {
 
 	/**
 	 * Add a view to an Azureus parent view.  For views added to the {@link #VIEW_MAIN}
-	 * window, this adds a menu option.<P>
+	 * window, this adds a menu option.
+	 * <P>
 	 * In comparison to {@link #addView(String, String, UISWTViewEventListener)},
 	 * this method saves memory by not creating the {@link UISWTViewEventListener}
 	 * until it is needed.  It also ensures that only one 
@@ -238,6 +239,10 @@ public interface UISWTInstance extends UIInstanceBase {
 	 */
 	public UISWTView[] getOpenViews(String sParentID);
 
+	/**
+	 * 
+	 * @since 4.8.0.0
+	 */
 	public UISWTViewEventListenerWrapper[] 
 	getViewListeners(
 		String sParentID );

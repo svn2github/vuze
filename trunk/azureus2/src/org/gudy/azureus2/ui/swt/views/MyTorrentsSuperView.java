@@ -23,11 +23,13 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.DelayedListenerMultiCombiner;
@@ -52,6 +54,7 @@ import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -354,7 +357,7 @@ public class MyTorrentsSuperView
 		for (int i = 0; i < viewsToCheck.length; i++) {
 			MyTorrentsView view = viewsToCheck[i];
 			if (view != null) {
-				UISWTViewImpl activeSubView = (UISWTViewImpl) view.getTableView().getTabsCommon().getActiveSubView();
+				MdiEntrySWT activeSubView = view.getTableView().getTabsCommon().getActiveSubView();
 				if (activeSubView != null) {
 					UIPluginViewToolBarListener toolBarListener = activeSubView.getToolBarListener();
 					if (toolBarListener != null) {
@@ -530,7 +533,9 @@ public class MyTorrentsSuperView
 				isSeedingView, columns, txtFilter, cCats, isSeedingView );
 		
 		try {
-			UISWTViewImpl swtView = new UISWTViewImpl(UISWTInstance.VIEW_MAIN, tableID, view, ds);
+			UISWTViewImpl swtView = new UISWTViewImpl(tableID, UISWTInstance.VIEW_MAIN, false);
+			swtView.setDatasource(ds);
+			swtView.setEventListener(view, true);
 			
 			swtView.initialize(c);
 		} catch (Exception e) {

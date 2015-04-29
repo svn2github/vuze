@@ -45,6 +45,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -83,7 +84,8 @@ public class MySharesView
 extends TableViewTab<ShareResource>
 implements ShareManagerListener,
 		TableLifeCycleListener, TableViewSWTMenuFillListener,
-		TableRefreshListener, TableSelectionListener, ViewTitleInfo2
+		TableRefreshListener, TableSelectionListener, ViewTitleInfo2,
+		UIPluginViewToolBarListener
 {
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
@@ -405,7 +407,6 @@ implements ShareManagerListener,
 	  }
 
 	public void refreshToolBarItems(Map<String, Long> list) {
-	  	super.refreshToolBarItems(list);
 
 	  	boolean start = false, stop = false, remove = false;
     
@@ -476,7 +477,7 @@ implements ShareManagerListener,
     	startSelectedShares();
     	return true;
     }
-		return super.toolBarItemActivated(item, activationType, datasource);
+		return false;
   }
   
   private List

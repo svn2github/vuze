@@ -103,6 +103,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 
 /** Displays a list of torrents in a table view.
  *
@@ -129,7 +130,8 @@ public class MyTorrentsView
                   TableViewFilterCheck.TableViewFilterCheckEx<DownloadManager>,
                   TableRowRefreshListener,
                   TableCountChangeListener,
-                  TableExpansionChangeListener
+                  TableExpansionChangeListener,
+                  UIPluginViewToolBarListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
@@ -2077,7 +2079,7 @@ public class MyTorrentsView
 		}
 	}
 
-	private UISWTViewCore getActiveView() {
+	private MdiEntrySWT getActiveView() {
 		TableViewSWT_TabsCommon tabsCommon = tv.getTabsCommon();
 		if (tabsCommon != null) {
 			return tabsCommon.getActiveSubView();
@@ -2086,7 +2088,6 @@ public class MyTorrentsView
 	}
 
 	public void refreshToolBarItems(Map<String, Long> list) {
-		super.refreshToolBarItems(list);
 		ISelectedContent[] datasource = SelectedContentManager.getCurrentlySelectedContent();
 
 		if (!isTableFocus()) {
@@ -2173,7 +2174,7 @@ public class MyTorrentsView
       TorrentUtil.removeDataSources(tv.getSelectedDataSources().toArray());
       return true;
     }
-    return super.toolBarItemActivated(item, activationType, datasource);
+    return false;
   }
   
 
@@ -2459,7 +2460,7 @@ public class MyTorrentsView
 			
 			DownloadManager	manager = (DownloadManager)t;
 			
-			if ( isOurDownloadManager( manager )){
+			if ( isOurDownloadManager( manager ) && !tv.dataSourceExists(manager)){
 				
 				tv.addDataSource(manager);
 			}

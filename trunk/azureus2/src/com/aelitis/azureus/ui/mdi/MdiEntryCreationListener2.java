@@ -23,6 +23,8 @@ package com.aelitis.azureus.ui.mdi;
 import java.util.Map;
 
 /**
+ * Creation Listener with access to mdi, id, datasource, and params
+ * 
  * @author TuxPaper
  * @created Jun 3, 2013
  *

@@ -18,28 +18,30 @@
  */
 package org.gudy.azureus2.ui.swt.views.stats;
 
-import java.util.ArrayList;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
-import org.gudy.azureus2.ui.swt.pluginsimpl.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.TabbedMdiInterface;
 
 /**
  * aka "Statistics View" that contains {@link ActivityView}, 
@@ -53,15 +55,11 @@ public class StatsView
 	
 	public static final int EVENT_PERIODIC_UPDATE = 0x100;
 
-	private CTabFolder folder;
-
-	private ArrayList<UISWTViewCore> tabViews = new ArrayList<UISWTViewCore>();
+	private TabbedMdiInterface tabbedMDI;
 
 	private UpdateThread updateThread;
 
 	private Object dataSource;
-
-	private UISWTViewCore activeView;
 
 	private UISWTView swtView;
 
@@ -83,9 +81,10 @@ public class StatsView
 
 			while (bContinue) {
 
-				for (UISWTViewCore iview : tabViews) {
+				MdiEntry[] entries = tabbedMDI.getEntries();
+				for (MdiEntry entry : entries) {
 					try {
-						iview.triggerEvent(EVENT_PERIODIC_UPDATE, null);
+						((MdiEntrySWT) entry).triggerEvent(EVENT_PERIODIC_UPDATE, null);
 					} catch (Exception e) {
 						Debug.printStackTrace(e);
 					}
@@ -125,22 +124,23 @@ public class StatsView
 	
 	private void initialize(Composite composite) {
 		parent = composite;
-		folder = new CTabFolder(composite, SWT.LEFT);
-		folder.setBorderVisible(true);
-
-		Label lblClose = new Label(folder, SWT.WRAP);
-		lblClose.setText("x");
-		lblClose.addListener(SWT.MouseUp, new Listener() {
-			public void handleEvent(Event event) {
-				delete();
-			}
-		});
-		folder.setTopRight(lblClose);
-		folder.setTabHeight(20);
 
     // Call plugin listeners
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
+			tabbedMDI = uiFunctions.createTabbedMDI(composite, VIEW_ID);
+			
+			CTabFolder folder = tabbedMDI.getTabFolder();
+			Label lblClose = new Label(folder, SWT.WRAP);
+			lblClose.setText("x");
+			lblClose.addListener(SWT.MouseUp, new Listener() {
+				public void handleEvent(Event event) {
+					delete();
+				}
+			});
+			folder.setTopRight(lblClose);
+
+			
 			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 
 			if (pluginUI != null && !registeredCoreSubViews) {
@@ -194,45 +194,18 @@ public class StatsView
 					String name = l.getViewID();
 				
 					try {
-						UISWTViewImpl view = new UISWTViewImpl(
-								UISWTInstance.VIEW_STATISTICS, name, l, null);
-						addSection(view, name);
+						MdiEntrySWT entry = (MdiEntrySWT) tabbedMDI.createEntryFromEventListener(
+								UISWTInstance.VIEW_STATISTICS, l, name, false, null, null);
+						entry.setDestroyOnDeactivate(false);
+						if ((dataSource == null && i == 0) || name.equals(dataSource)) {
+							tabbedMDI.showEntry(entry);
+						}
 					} catch (Exception e) {
 						// skip
 					}
 				}
 			}
 		}
-
-		// Initialize view when user selects it
-		folder.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				CTabItem item = (CTabItem) e.item;
-				selectView(item);
-			}
-		});
-
-		Utils.execSWTThreadLater(0, new AERunnable() {
-			public void runSupport() {
-				if (folder == null || folder.isDisposed() || folder.getItemCount() == 0) {
-					return;
-				}
-				if ( dataSource != null ){
-					for ( CTabItem item: folder.getItems()){
-						
-						String ds = (String)item.getData( "ds" );
-						
-						if ( dataSource.equals( ds )){
-							
-							selectView( item );
-							
-							return;
-						}
-					}
-				}
-				selectView(folder.getItem(0));
-			}
-		});
 
 		updateThread = new UpdateThread();
 		updateThread.setDaemon(true);
@@ -241,145 +214,15 @@ public class StatsView
 		dataSourceChanged(dataSource);
 	}
 
-	private void selectView(CTabItem item) {
-		if (item == null) {
-			return;
-		}
-		if (folder.getSelection() != item) {
-			folder.setSelection(item);
-		}
-		folder.getShell().setCursor(
-				folder.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
-		try {
-			// Send one last refresh to previous tab, just in case it
-			// wants to do something when view goes invisible
-			refresh();
-
-			Object ds = item.getData("ds");
-						
-			if (ds == null) {
-				ds = dataSource;
-			}else{
-				dataSource = ds;
-			}
-
-			UISWTViewCore view = (UISWTViewCore) item.getData("IView");
-			if (view == null) {
-				Class<?> cla = (Class<?>)item.getData("claEventListener");
-				UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
-				view = new UISWTViewImpl(UISWTInstance.VIEW_MAIN, cla.getSimpleName(),
-						l, ds);
-				item.setData("IView", view);
-			}
-			activeView = view;
-
-			if (item.getControl() == null) {
-				view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
-				view.initialize(folder);
-				item.setControl(view.getComposite());
-			}
-
-			item.getControl().setFocus();
-
-			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
-
-			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-			if (uiFunctions != null) {
-				uiFunctions.getMDI().getEntry( StatsView.VIEW_ID ).setDatasource( dataSource );
-				
-				uiFunctions.refreshIconBar(); // For edit columns view
-			}
-
-			refresh();
-		} catch (Exception e) {
-			Debug.out(e);
-		} finally {
-			folder.getShell().setCursor(null);
-		}
-	}
-
-	// Copied from ManagerView
-	private UISWTViewCore getActiveView() {
-		return activeView;
-	}
-
 	// Copied from ManagerView
 	private void refresh() {
-		if (folder == null || folder.isDisposed())
+		if (tabbedMDI == null || tabbedMDI.isDisposed())
 			return;
 
-		try {
-			UISWTViewCore view = getActiveView();
-			if (view != null) {
-				view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
-			}
-
-			CTabItem[] items = folder.getItems();
-
-			for (int i = 0; i < items.length; i++) {
-				CTabItem item = items[i];
-				view = (UISWTViewCore) item.getData("IView");
-				try {
-					if (item.isDisposed() || view == null) {
-						continue;
-					}
-					String lastTitle = item.getText();
-					String newTitle = view.getFullTitle();
-					if (lastTitle == null || !lastTitle.equals(newTitle)) {
-						item.setText(escapeAccelerators(newTitle));
-					}
-					String lastToolTip = item.getToolTipText();
-					String newToolTip = view.getFullTitle();
-					if (lastToolTip == null || !lastToolTip.equals(newToolTip)) {
-						item.setToolTipText(newToolTip);
-					}
-				} catch (Exception e) {
-					Debug.printStackTrace(e);
-				}
-			}
-
-		} catch (Exception e) {
-			Debug.printStackTrace(e);
+		MdiEntrySWT entry = tabbedMDI.getCurrentEntrySWT();
+		if (entry != null) {
+			entry.updateUI();
 		}
-	}
-
-	private void focusGained()
-	{
-		if (folder == null || folder.isDisposed())
-			return;
-
-		try {			
-			CTabItem[] items = folder.getItems();
-
-			for (int i = 0; i < items.length; i++) {
-				CTabItem item = items[i];
-				UISWTViewCore view = (UISWTViewCore) item.getData("IView");
-				try {
-					if (item.isDisposed() || view == null) {
-						continue;
-					}
-					if (view.getComposite() == null) {
-						continue;
-					}
-					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
-				} catch (Throwable e) {
-					Debug.printStackTrace(e);
-				}
-			}
-
-		} catch ( Throwable e) {
-			Debug.printStackTrace(e);
-		}
-	}
-	
-	// Copied from ManagerView
-	private static String escapeAccelerators(String str) {
-		if (str == null) {
-
-			return (str);
-		}
-
-		return (str.replaceAll("&", "&&"));
 	}
 
 	private String getFullTitle() {
@@ -391,93 +234,22 @@ public class StatsView
 			updateThread.stopIt();
 		}
 
-		if (folder != null && !folder.isDisposed()) {
-
-			folder.setSelection(0);
-		}
-
-		//Don't ask me why, but without this an exception is thrown further
-		// (in folder.dispose() )
-		//TODO : Investigate to see if it's a platform (OSX-Carbon) BUG, and report to SWT team.
-		if (Utils.isCarbon) {
-			if (folder != null && !folder.isDisposed()) {
-				CTabItem[] items = folder.getItems();
-				for (int i = 0; i < items.length; i++) {
-					if (!items[i].isDisposed())
-						items[i].dispose();
-				}
-			}
-		}
-
-		for (int i = 0; i < tabViews.size(); i++) {
-			UISWTViewCore view = tabViews.get(i);
-			if (view != null) {
-    		view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
-			}
-		}
-		tabViews.clear();
-
 		Utils.disposeSWTObjects(new Object[] {
-			folder,
 			parent
 		});
 	}
 
 	private void dataSourceChanged(Object newDataSource) {
-		if ( dataSource == newDataSource ){
-			return;
-		}
-		if ( dataSource != null && newDataSource != null && dataSource.equals( newDataSource )){
-			return;
-		}
-		
 		dataSource = newDataSource;
-		if (folder == null) {
+		
+		
+		if (tabbedMDI == null) {
 			return;
 		}
+
 		if (newDataSource instanceof String) {
-			
-			for ( CTabItem item: folder.getItems()){
-				
-				String ds = (String)item.getData( "ds" );
-				
-				if ( newDataSource.equals( ds )){
-			
-					selectView(item);
-				}
-			}
+			tabbedMDI.showEntryByID((String) newDataSource);
 		}
-	}
-
-	/*
-	private int addSection(String titleIdPrefix, Class<?> claEventListener) {
-		return addSection(titleIdPrefix, claEventListener, null);
-	}
-
-	private int addSection(String titleIdPrefix, Class<?> claEventListener, Object ds) {
-		CTabItem item = new CTabItem(folder, SWT.NULL);
-		Messages.setLanguageText(item, titleIdPrefix + ".title.full");
-		item.setData("claEventListener", claEventListener);
-		if (ds != null) {
-			item.setData("ds", ds);
-		}
-		return folder.indexOf(item);
-	}
-	*/
-	
-	private void addSection(UISWTViewCore view, Object dataSource) {
-		if (view == null)
-			return;
-
-		view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, dataSource);
-
-		CTabItem item = new CTabItem(folder, SWT.NULL);
-		Messages.setLanguageText(item, view.getTitleID());
-		item.setData("IView", view);
-		if (dataSource != null) {
-			item.setData("ds", dataSource);
-		}
-		tabViews.add(view);
 	}
 
 	/* (non-Javadoc)
@@ -500,7 +272,6 @@ public class StatsView
 
 			case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
 				swtView.setTitle(getFullTitle());
-				Messages.updateLanguageForControl(folder);
 				break;
 
 			case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
@@ -508,7 +279,6 @@ public class StatsView
 				break;
 
 			case UISWTViewEvent.TYPE_FOCUSGAINED:
-				focusGained();
 				break;
 
 			case UISWTViewEvent.TYPE_REFRESH:

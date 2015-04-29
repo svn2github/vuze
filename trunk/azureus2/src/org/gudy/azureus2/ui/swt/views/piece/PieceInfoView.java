@@ -602,7 +602,8 @@ public class PieceInfoView
 			alreadyFilling = false;
 		}
 		
-		if (!pieceInfoCanvas.isVisible()) {
+		if (pieceInfoCanvas == null || pieceInfoCanvas.isDisposed()
+				|| !pieceInfoCanvas.isVisible()) {
 			return;
 		}
 		pieceInfoCanvas.layout(true);

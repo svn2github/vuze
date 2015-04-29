@@ -18,6 +18,7 @@ package com.aelitis.azureus.ui.swt;
 
 import java.util.Map;
 
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
@@ -30,6 +31,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.mdi.TabbedMdiInterface;
 
 /**
  * @author TuxPaper
@@ -153,5 +155,13 @@ public interface UIFunctionsSWT
 		String 					sPathOfFilesToOpen,
 		String[] 				sFilesToOpen, 
 		Map<String,Object>		options );
+
+	/**
+	 * 
+	 * @param parent 
+	 * @param id TODO
+	 * @since 5.6.0.1
+	 */
+	public TabbedMdiInterface createTabbedMDI(Composite parent, String id);
 
 }

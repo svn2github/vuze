@@ -40,11 +40,6 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionHolder;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
-import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
@@ -55,13 +50,11 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl.SWTViewListener;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
-import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -122,8 +115,6 @@ public class SideBar
 	private Color fg;
 
 	private Color bg;
-
-	private List<MdiSWTMenuHackListener> listMenuHackListners;
 
 	private List<SideBarEntrySWT> 	attention_seekers = new ArrayList<SideBarEntrySWT>();
 	private TimerEventPeriodic		attention_event;
@@ -321,44 +312,7 @@ public class SideBar
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
-		UIManager ui_manager = PluginInitializer.getDefaultInterface().getUIManager();
-		ui_manager.addUIListener(new UIManagerListener() {
-			public void UIDetached(UIInstance instance) {
-			}
-			
-			public void UIAttached(UIInstance instance) {
-				if (instance instanceof UISWTInstance) {
-					final AESemaphore wait_sem = new AESemaphore( "SideBar:wait" );
-					
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							try{
-								try {
-									loadCloseables();
-								} catch (Throwable t) {
-									Debug.out(t);
-								}
-	
-								setupPluginViews();
-								
-								createSideBarPluginViews();
-							}finally{
-								
-								wait_sem.release();
-							}
-						}
-					});
-					
-						// we need to wait for the loadCloseables to complete as there is code in MainMDISetup that runs on the 'UIAttachedComplete'
-						// callback that needs the closables to be loaded (when setting 'start tab') otherwise the order gets broken
-					
-					if ( !wait_sem.reserve(10*1000)){
-						
-						Debug.out( "eh?");
-					}
-				}
-			}
-		});
+		super.skinObjectInitialShow(skinObject, params);
 
 		COConfigurationManager.addParameterListener(
 			"Show Side Bar",
@@ -380,6 +334,15 @@ public class SideBar
 		updateSidebarVisibility();
 		
 		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#setupPluginViews()
+	 */
+	@Override
+	protected void setupPluginViews() {
+		super.setupPluginViews();
+		createSideBarPluginViews();
 	}
 
 	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
@@ -863,7 +826,7 @@ public class SideBar
 				}
 				SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
 
-				fillMenu(menuTree, entry);
+				fillMenu(menuTree, entry, "sidebar");
 
 				if (menuTree.getItemCount() == 0) {
 					Utils.execSWTThreadLater(0, new AERunnable() {
@@ -961,8 +924,8 @@ public class SideBar
 		for (UISWTViewEventListenerHolder l : pluginViews) {
 			if (l != null) {
 				try {
-					UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_SIDEBAR_AREA,
-							l.getViewID(), l, null);
+					UISWTViewImpl view = new UISWTViewImpl(l.getViewID(), UISWTInstance.VIEW_SIDEBAR_AREA, false);
+					view.setEventListener(l, true);
 					addSideBarView(view, cPluginsArea);
 					cPluginsArea.getParent().getParent().layout(true, true);
 				} catch (Exception e) {
@@ -983,7 +946,8 @@ public class SideBar
 
 					public void runSupport() {
 						try {
-							UISWTViewImpl view = new UISWTViewImpl(parent, id, l, null);
+							UISWTViewImpl view = new UISWTViewImpl(id, parent, false);
+							view.setEventListener(l, true);
 							addSideBarView(view, cPluginsArea);
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -1114,141 +1078,6 @@ public class SideBar
 	}
 
 	/**
-	 * @param menuTree
-	 *
-	 * @since 3.1.0.1
-	 */
-	protected void fillMenu(Menu menuTree, final MdiEntry entry) {
-		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
-
-		menu_items = MenuItemManager.getInstance().getAllAsArray("sidebar");
-
-		MenuBuildUtils.addPluginMenuItems(menu_items, menuTree, false, true,
-				new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
-					entry
-				}));
-
-		if (entry != null) {
-
-			menu_items = MenuItemManager.getInstance().getAllAsArray(
-					"sidebar." + entry.getId());
-
-			if (menu_items.length == 0) {
-
-				UIPluginView view = entry.getView();
-
-				if (view instanceof UISWTView) {
-
-					PluginInterface pi = ((UISWTView) view).getPluginInterface();
-
-					if (pi != null) {
-
-						final List<String> relevant_sections = new ArrayList<String>();
-
-						List<ConfigSectionHolder> sections = ConfigSectionRepository.getInstance().getHolderList();
-
-						for (ConfigSectionHolder cs : sections) {
-
-							if (pi == cs.getPluginInterface()) {
-
-								relevant_sections.add(cs.configSectionGetName());
-							}
-						}
-
-						if (relevant_sections.size() > 0) {
-
-							MenuItem mi = pi.getUIManager().getMenuManager().addMenuItem(
-									"sidebar." + entry.getId(),
-									"MainWindow.menu.view.configuration");
-
-							mi.addListener(new MenuItemListener() {
-								public void selected(MenuItem menu, Object target) {
-									UIFunctions uif = UIFunctionsManager.getUIFunctions();
-
-									if (uif != null) {
-
-										for (String s : relevant_sections) {
-
-											uif.getMDI().showEntryByID(
-													MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, s);
-										}
-									}
-								}
-							});
-
-							menu_items = MenuItemManager.getInstance().getAllAsArray(
-									"sidebar." + entry.getId());
-						}
-					}
-				}
-			}
-
-			MenuBuildUtils.addPluginMenuItems(menu_items, menuTree, false, true,
-					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
-						entry
-					}));
-
-			MdiSWTMenuHackListener[] menuHackListeners = getMenuHackListeners();
-			for (MdiSWTMenuHackListener l : menuHackListeners) {
-				try {
-					l.menuWillBeShown(entry, menuTree);
-				} catch (Exception e) {
-					Debug.out(e);
-				}
-			}
-			if (currentEntry instanceof SideBarEntrySWT) {
-				menuHackListeners = ((SideBarEntrySWT) entry).getMenuHackListeners();
-				for (MdiSWTMenuHackListener l : menuHackListeners) {
-					try {
-						l.menuWillBeShown(entry, menuTree);
-					} catch (Exception e) {
-						Debug.out(e);
-					}
-				}
-			}
-			
-			menu_items = MenuItemManager.getInstance().getAllAsArray("sidebar._end_");
-
-			if ( menu_items.length > 0 ){
-				
-				MenuBuildUtils.addPluginMenuItems(menu_items, menuTree, false, true,
-						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
-							entry
-						}));
-			}
-		}
-	}
-
-	public void addListener(MdiSWTMenuHackListener l) {
-		synchronized (this) {
-			if (listMenuHackListners == null) {
-				listMenuHackListners = new ArrayList<MdiSWTMenuHackListener>(1);
-			}
-			if (!listMenuHackListners.contains(l)) {
-				listMenuHackListners.add(l);
-			}
-		}
-	}
-
-	public void removeListener(MdiSWTMenuHackListener l) {
-		synchronized (this) {
-			if (listMenuHackListners == null) {
-				listMenuHackListners = new ArrayList<MdiSWTMenuHackListener>(1);
-			}
-			listMenuHackListners.remove(l);
-		}
-	}
-
-	public MdiSWTMenuHackListener[] getMenuHackListeners() {
-		synchronized (this) {
-			if (listMenuHackListners == null) {
-				return new MdiSWTMenuHackListener[0];
-			}
-			return listMenuHackListners.toArray(new MdiSWTMenuHackListener[0]);
-		}
-	}
-
-	/**
 	 * 
 	 *
 	 * @since 3.1.1.1
@@ -1316,7 +1145,7 @@ public class SideBar
 			return oldEntry;
 		}
 
-		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
+		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id, null);
 		entry.setSelectable(false);
 		entry.setPreferredAfterID(preferredAfterID);
 		entry.setTitleID(titleID);
@@ -1335,6 +1164,7 @@ public class SideBar
 
 		entry.setCloseable(closeable);
 		entry.setParentSkinObject(soSideBarContents);
+		entry.setDestroyOnDeactivate(false);
 
 		if (SIDEBAR_HEADER_PLUGINS.equals(entry.getParentID())
 				&& entry.getImageLeftID() == null) {
@@ -1505,7 +1335,7 @@ public class SideBar
 	/**
 	 *  @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromEventListener(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener, java.lang.String, boolean, java.lang.Object)
 	 */
-	public MdiEntry createEntryFromEventListener(String parentID,
+	public MdiEntry createEntryFromEventListener(String parentEntryID, String parentViewID,
 			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferredAfterID) {
 
 		MdiEntry oldEntry = getEntry(id);
@@ -1513,7 +1343,7 @@ public class SideBar
 			return oldEntry;
 		}
 
-		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
+		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id, parentViewID);
 		try {
 			// hack: setEventListner will create the UISWTView.
 			// We need to have the entry available for the view to use
@@ -1522,12 +1352,12 @@ public class SideBar
 				mapIdToEntry.put(id, entry);
 			}
 
-			entry.setParentID(parentID);
+			entry.setEventListener(l, true);
+			entry.setParentID(parentEntryID);
 			entry.setDatasource(datasource);
 			entry.setPreferredAfterID(preferredAfterID);
 			setupNewEntry(entry, id, false, closeable);
 
-			entry.setEventListener(l);
 
 			if (l instanceof IViewAlwaysInitialize) {
 				entry.build();
@@ -1535,6 +1365,7 @@ public class SideBar
 		} catch (Exception e) {
 			Debug.out(e);
 			entry.close(true);
+			entry = null;
 		}
 
 		return entry;
@@ -1550,7 +1381,7 @@ public class SideBar
 			return oldEntry;
 		}
 
-		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
+		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id, null);
 
 		entry.setTitle(title);
 		entry.setSkinRef(configID, params);
@@ -1582,8 +1413,7 @@ public class SideBar
 			}
 		}
 
-		if (currentEntry == null || currentEntry.getView() == null
-				|| tree.getSelectionCount() == 0) {
+		if (currentEntry == null || tree.getSelectionCount() == 0) {
 			return;
 		}
 		currentEntry.updateUI();
@@ -1720,9 +1550,7 @@ public class SideBar
 				continue;
 			}
 
-			UISWTViewCore view = entry.getCoreView();
-
-			if (!(view instanceof AEDiagnosticsEvidenceGenerator)) {
+			if (!(entry instanceof AEDiagnosticsEvidenceGenerator)) {
 				writer.println("Sidebar View (No Generator): " + entry.getId());
 				try {
 					writer.indent();

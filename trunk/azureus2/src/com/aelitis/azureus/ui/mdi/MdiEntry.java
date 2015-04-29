@@ -33,7 +33,7 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
  * @created Aug 13, 2008
  *
  */
-public interface MdiEntry
+public interface MdiEntry extends UIPluginView
 {
 
 	public String getParentID();
@@ -43,8 +43,6 @@ public interface MdiEntry
 	public String getExportableDatasource();
 
 	public boolean isCloseable();
-
-	public UIPluginView getView();
 
 	public String getId();
 

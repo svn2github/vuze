@@ -75,6 +75,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.mdi.TabbedMDI;
+import com.aelitis.azureus.ui.swt.mdi.TabbedMdiInterface;
 import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
 import com.aelitis.azureus.ui.swt.search.SearchHandler;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
@@ -1302,5 +1304,9 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#showCreateTagDialog()
 	public void showCreateTagDialog(TagReturner tagReturner) {
 		TagUIUtilsV3.showCreateTagDialog(tagReturner);
+	}
+	
+	public TabbedMdiInterface createTabbedMDI(Composite parent, String id) {
+		return new TabbedMDI(parent, id);
 	}
 }

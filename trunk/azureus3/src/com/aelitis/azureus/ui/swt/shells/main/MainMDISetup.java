@@ -56,12 +56,14 @@ import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableView;
@@ -493,6 +495,23 @@ public class MainMDISetup
 						return entry;
 					}
 				});
+		
+		mdi.registerEntry("Tag\\..*", new MdiEntryCreationListener2() {
+			
+			public MdiEntry createMDiEntry(MultipleDocumentInterface mdi, String id,
+					Object datasource, Map<?, ?> params) {
+				// TODO: auto-open entries will have null datasource and id of:
+				//"Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
+				
+				if (datasource instanceof Tag) {
+					Tag tag = (Tag) datasource;
+					
+					return SB_Transfers.setupTag(tag);
+				}
+				
+				return null;
+			}
+		});
 
 		mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
 	}

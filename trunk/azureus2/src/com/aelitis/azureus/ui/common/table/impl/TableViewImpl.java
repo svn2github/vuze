@@ -574,6 +574,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 		synchronized (rows_sync) {
 			DATASOURCETYPE[] unfilteredArray = (DATASOURCETYPE[]) listUnfilteredDataSources.keySet().toArray();
+			if (DEBUGADDREMOVE) {
+				debug("filter: unfilteredArray is " + unfilteredArray.length);
+			}
 
 			Set<DATASOURCETYPE> existing = new HashSet<DATASOURCETYPE>(
 					getDataSources());
@@ -624,8 +627,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("table");
 		diag_logger.log(SystemTime.getCurrentTime() + ":" + getTableID() + ": " + s);
 
-		System.out.println(Thread.currentThread().getName() + "] " + SystemTime.getCurrentTime() + ": " + getTableID() + ": "
-				+ s);
+		System.out.println(Thread.currentThread().getName() + "."
+				+ Integer.toHexString(hashCode()) + "] " + SystemTime.getCurrentTime()
+				+ ": " + getTableID() + ": " + s);
 	}
 
 	private void _processDataSourceQueue() {
@@ -683,11 +687,13 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			return;
 		}
 
-		if (DEBUGADDREMOVE) {
-			debug("AddDS: " + dataSource );
-		}
 		synchronized (rows_sync) {
 			listUnfilteredDataSources.put(dataSource,"");
+		}
+		if (DEBUGADDREMOVE) {
+			debug("AddDS: " + dataSource + "; listUnfilteredDS: "
+					+ listUnfilteredDataSources.size() + " via "
+					+ Debug.getCompressedStackTrace(4));
 		}
 
 		if (!skipFilterCheck && filter != null
@@ -796,7 +802,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 			if (DEBUGADDREMOVE) {
 				debug("Queued " + count + " of " + dataSources.length
-						+ " dataSources to add.  Total Queued: " + dataSourcesToAdd.size());
+						+ " dataSources to add.  Total Qd: " + dataSourcesToAdd.size()
+						+ ";Unfiltered: " + listUnfilteredDataSources.size() + " via "
+						+ Debug.getCompressedStackTrace(5));
 			}
 
 		}
@@ -907,12 +915,13 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			return;
 		}
 
-		if (DEBUGADDREMOVE) {
-			debug("RemDS: " + dataSource );
-		}
-
 		synchronized (rows_sync) {
 			listUnfilteredDataSources.remove(dataSource);
+		}
+
+
+		if (DEBUGADDREMOVE) {
+			debug("RemDS: " + dataSource + "; listUnfilteredDS=" + listUnfilteredDataSources.size() );
 		}
 
 		if (DataSourceCallBackUtil.IMMEDIATE_ADDREMOVE_DELAY == 0) {
@@ -969,8 +978,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 			if (DEBUGADDREMOVE) {
 				debug("Queued " + dataSources.length
-						+ " dataSources to remove.  Total Queued: "
-						+ dataSourcesToRemove.size() + " via " + Debug.getCompressedStackTrace(4));
+						+ " dataSources to remove.  Total Qd: " + dataSourcesToRemove.size()
+						+ "; Unfiltered: " + listUnfilteredDataSources.size() + " via "
+						+ Debug.getCompressedStackTrace(4));
 			}
 		}
 

@@ -37,18 +37,18 @@ public interface MultipleDocumentInterfaceSWT
 	/**
 	 * If you prefix the 'preferedAfterID' string with '~' then the operation will actually
 	 * switch to 'preferedBeforeID'
-	 * @param parentID
-	 * @param l
-	 * @param id
-	 * @param closeable
-	 * @param datasource
-	 * @param preferredAfterID
-	 * @return
 	 */
-	public MdiEntry createEntryFromEventListener(String parentID,
-			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferredAfterID);
+	public MdiEntry createEntryFromEventListener(String parentEntryID,
+			UISWTViewEventListener l, String id, boolean closeable, 
+			Object datasource, String preferredAfterID);
 
-	public MdiEntry createEntryFromEventListener(String parentID,
+
+	public MdiEntry createEntryFromEventListener(String parentEntryID,
+			String parentViewID,
+			UISWTViewEventListener l, String id, boolean closeable, 
+			Object datasource, String preferredAfterID);
+
+	public MdiEntry createEntryFromEventListener(String parentEntryID,
 			Class<? extends UISWTViewEventListener> cla, String id, boolean closeable,
 			Object data, String preferedAfterID);
 
@@ -57,4 +57,10 @@ public interface MultipleDocumentInterfaceSWT
 	public MdiEntrySWT getCurrentEntrySWT();
 
 	public MdiEntrySWT getEntryFromSkinObject(PluginUISWTSkinObject skinObject);
+
+	/**
+	 * @param closeableConfigFile
+	 * @since 5.6.0.1
+	 */
+	void setCloseableConfigFile(String closeableConfigFile);
 }

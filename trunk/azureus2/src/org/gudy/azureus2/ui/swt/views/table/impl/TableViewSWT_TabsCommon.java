@@ -18,76 +18,75 @@
 
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.*;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Sash;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
-import org.gudy.azureus2.ui.swt.pluginsimpl.*;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener2;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.TabbedMdiInterface;
+import com.aelitis.azureus.ui.swt.mdi.TabbedMdiMaximizeListener;
 
 /**
  * 
  * @author TuxPaper
  *
- * @TODO dynamically load tab contents, like SBC_TorrentDetailsView does
  */
 public class TableViewSWT_TabsCommon implements SelectedContentListener
 {
 	UISWTView parentView;
 	TableViewSWT<?> tv;
 	
-		/** TabViews */
-	private ArrayList<UISWTViewCore> 					tabViews 		= new ArrayList<UISWTViewCore>(1);
-
-	private ArrayList<UISWTViewEventListenerWrapper>	removedViews 	= new ArrayList<UISWTViewEventListenerWrapper>();
-	
-	/** TabViews */
-	private CTabFolder 			tabFolder;
-	
 	/** Composite that stores the table (sometimes the same as mainComposite) */
 	public Composite tableComposite;
 
-	private boolean minimized;
-	private UISWTViewCore selectedView;
-
-	private DownloadManager		maximizeTo;
 	private TableView<?> tvOverride;
+	private Sash sash;
+	private TabbedMdiInterface tabbedMDI;
+	private Composite cTabsHolder;
+	private FormData fdHeightChanger;
+	private MenuItem menuItemShowTabs;
 
 	public TableViewSWT_TabsCommon(UISWTView parentView, TableViewSWT<?> tv) {
 		this.parentView = parentView;
@@ -95,19 +94,19 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 	}
 
 	public void triggerTabViewsDataSourceChanged(TableView<?> tv) {
-		if (tabViews == null || tabViews.size() == 0) {
+		if (tabbedMDI == null || tabbedMDI.isDisposed()) {
+			return;
+		}
+		MdiEntry[] entries = tabbedMDI.getEntries();
+		if (entries == null || entries.length == 0) {
 			return;
 		}
 
-		Object[][] dataSourcesCoreAndPlugin = {
-			tv.getSelectedDataSources(true),
-			null
-		};
+		Object[] ds = tv.getSelectedDataSources(true);
 
-		for (int i = 0; i < tabViews.size(); i++) {
-			UISWTViewCore view = tabViews.get(i);
-			if (view != null) {
-				triggerTabViewDataSourceChanged(view, tv, dataSourcesCoreAndPlugin);
+		for (MdiEntry entry : entries) {
+			if (entry instanceof MdiEntrySWT) {
+				triggerTabViewDataSourceChanged((MdiEntrySWT) entry, tv, ds);
 			}
 		}
 	}
@@ -117,346 +116,117 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 		selectedContent = SelectedContentManager.getCurrentlySelectedContent();
 	}
 
-	public void triggerTabViewDataSourceChanged(UISWTViewCore view,
-			TableView<?> tv,
-			Object[][] dataSourcesCoreAndPlugin) {
+	public void triggerTabViewDataSourceChanged(MdiEntrySWT view, TableView<?> tv,
+			Object[] dataSourcesCore) {
 		if (tvOverride != null) {
 			tv = tvOverride;
 		}
 		if (view == null) {
 			return;
 		}
-		
+
 		// When there is not selected datasources in the TableView, send the
 		// parent's datasource
-		
-		if (view.useCoreDataSource()) {
-			if (dataSourcesCoreAndPlugin[0] == null) {
-				dataSourcesCoreAndPlugin[0] = tv.getSelectedDataSources(true);
-			}
-			dataSourceChanged(view, dataSourcesCoreAndPlugin[0].length == 0
-					? tv.getParentDataSource() : dataSourcesCoreAndPlugin[0]);
-		} else {
-			if (dataSourcesCoreAndPlugin[1] == null) {
-				dataSourcesCoreAndPlugin[1] = tv.getSelectedDataSources(false);
-			}
-			dataSourceChanged(view, dataSourcesCoreAndPlugin[1].length == 0
-					? tv.getParentDataSource() : dataSourcesCoreAndPlugin[1]);
+
+		if (dataSourcesCore == null) {
+			dataSourcesCore = tv.getSelectedDataSources(true);
 		}
+		if (tabbedMDI != null) {
+			tabbedMDI.setMaximizeVisible(dataSourcesCore != null && dataSourcesCore.length == 1);
+		}
+		view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+				dataSourcesCore.length == 0 ? tv.getParentDataSource()
+						: dataSourcesCore);
 	}
 	
 	public void delete() {
 		SelectedContentManager.removeCurrentlySelectedContentListener(this);
-		if (tabViews != null && tabViews.size() > 0) {
-			for (int i = 0; i < tabViews.size(); i++) {
-				UISWTViewCore view = tabViews.get(i);
-				if (view != null) {
-					view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
-				}
+		
+		if (menuItemShowTabs != null) {
+			menuItemShowTabs.remove();
+		}
+		/* disposal of composite should take care of tabbedMDI
+		if (tabbedMDI == null || tabbedMDI.isDisposed()) {
+			return;
+		}
+		MdiEntry[] entries = tabbedMDI.getEntries();
+		if (entries == null || entries.length == 0) {
+			return;
+		}
+		for (MdiEntry entry : entries) {
+			if (entry instanceof MdiEntrySWT) {
+				((MdiEntrySWT) entry).triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);				
 			}
 		}
+		*/
 	}
 
 	public void generate(IndentWriter writer) {
-		writer.println("# of SubViews: " + tabViews.size());
-		writer.indent();
-		try {
-			for (Iterator<UISWTViewCore> iter = tabViews.iterator(); iter.hasNext();) {
-				UISWTViewCore view = iter.next();
-				writer.println(view.getTitleID() + ": " + view.getFullTitle());
-			}
-		} finally {
-			writer.exdent();
-		}
+		writer.println("# of SubViews: "
+				+ (tabbedMDI == null ? "null" : tabbedMDI.getEntriesCount()));
 	}
 
 	public void localeChanged() {
-		if (tabViews != null && tabViews.size() > 0) {
-			for (int i = 0; i < tabViews.size(); i++) {
-				UISWTViewCore view = tabViews.get(i);
-				if (view != null) {
-					view.triggerEvent(UISWTViewEvent.TYPE_LANGUAGEUPDATE, null);
-				}
+		MdiEntry[] entries = tabbedMDI.getEntries();
+		if (entries == null || entries.length == 0) {
+			return;
+		}
+		for (MdiEntry entry : entries) {
+			if (entry instanceof MdiEntrySWT) {
+				((MdiEntrySWT) entry).triggerEvent(UISWTViewEvent.TYPE_LANGUAGEUPDATE, null);
 			}
 		}
 	}
 
-	public UISWTViewCore getActiveSubView() {
-		if (!tv.isTabViewsEnabled() || tabFolder == null || tabFolder.isDisposed()
-				|| minimized) {
+	public MdiEntrySWT getActiveSubView() {
+		if (!tv.isTabViewsEnabled() || tabbedMDI == null || tabbedMDI.isDisposed()
+				|| tabbedMDI.getMinimized()) {
 			return null;
 		}
 
-		return selectedView;
-	}
-
-	private void
-	dataSourceChanged(
-		final UISWTViewCore			view,
-		final Object				ds )
-	{
-		Composite comp = view.getComposite();
-		
-		if ( comp == null || comp.isDisposed()){
-			
-			return;
-		}
-		
-		view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
-
-		
-		Utils.execSWTThread(
-			new Runnable()
-			{	
-				public void 
-				run() 
-				{
-					Composite comp = view.getComposite();
-					
-					if ( comp == null || comp.isDisposed()){
-						
-						return;
-					}
-										
-					if ( ds instanceof Object[]){
-						Object[] temp = (Object[])ds;
-						if ( temp.length==1 ){
-							Object obj = temp[0];
-							
-							if ( obj instanceof DownloadManager ){
-								maximizeTo = (DownloadManager)obj;
-							}else if ( obj instanceof Download ){
-								maximizeTo = PluginCoreUtils.unwrap((Download)obj);
-							}
-						}
-					}
-
-					tabFolder.setMaximizeVisible( maximizeTo != null );
-
-				}
-			});
-	}
-	
-	public void 
-	refreshSelectedSubView()
-	{
-		UISWTViewCore view = getActiveSubView();
-		
-		if ( view != null ){
-			
-			Composite comp = view.getComposite();
-			
-			if ( !comp.isDisposed() && comp.isVisible()){
-		
-				view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
-			}
-		}
-	}
-
-	private String
-	getViewTitleID(
-		String	view_id )
-	{
-		String history_key = "swt.ui.table.tab.view.namecache." + view_id;
-
-		String id = COConfigurationManager.getStringParameter( history_key, "" );
-
-		if ( id.length() == 0 ){
-			
-			String test = view_id + ".title.full";
-			
-			if ( MessageText.keyExists( test )){
-			
-				return( test );
-			}
-			
-			id = "!" + view_id + "!";
-		}
-		
-		return( id );
+		return tabbedMDI.getCurrentEntrySWT();
 	}
 
 		// TabViews Functions
 	
-	private void 
-	addTabView(
-		UISWTViewEventListenerWrapper 	listener,
-		boolean							start_of_day,
-		boolean							start_minimized )
+	private MdiEntry addTabView(UISWTViewEventListenerWrapper listener,
+			String afterID) {
+		UISWTViewCore view = null;
+		MdiEntrySWT entry = (MdiEntrySWT) tabbedMDI.createEntryFromEventListener(
+				tv.getTableID(), listener, listener.getViewID(), false, null, afterID);
+		if (entry instanceof UISWTViewCore) {
+			view = (UISWTViewCore) entry;
+
+		} else {
+			return entry;
+		}
+
+		try {
+			if (parentView != null) {
+				view.setParentView(parentView);
+			}
+
+			triggerTabViewDataSourceChanged(entry, tv, null);
+
+		} catch (Throwable e) {
+
+			Debug.out(e);
+		}
+
+		return entry;
+	}
+	
+	private void removeTabView(String id)
 	{
-		if ( tabFolder == null){
-			
+		boolean exists = tabbedMDI.entryExists(id);
+		if (!exists) {
 			return;
 		}
-				
-		String view_id = listener.getViewID();
+		MdiEntry entry = tabbedMDI.getEntry(id);
 		
-		try{
-			UISWTViewImpl view = new UISWTViewImpl(tv.getTableID(), view_id, listener, null) {
-				public void setTitle(String title) {
-					super.setTitle(title);
-					if (tabFolder == null || tabFolder.isDisposed()) {
-						return;
-					}
-					
-					final UISWTViewImpl fThis = this;
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							CTabItem[] items = tabFolder.getItems();
-							for (CTabItem cTabItem : items) {
-								Object data = cTabItem.getData("IView");
-								if (data == fThis) {
-									cTabItem.setText(getFullTitle());
-								}
-							}
-						}
-					});
-				}
-			};
-			
-			if ( parentView != null ){	
-				view.setParentView( parentView );
-			}
-			
-			triggerTabViewDataSourceChanged(view, tv, new Object[][] {
-				null,
-				null
-			});
-	
-			int	insert_at = tabFolder.getItemCount();
-			
-			if ( !start_of_day && insert_at > 0 ){
-				
-				UIFunctionsSWT ui_func  = UIFunctionsManagerSWT.getUIFunctionsSWT();
-				
-				if ( ui_func != null ){
-					
-					UISWTInstance ui_swt = ui_func.getUISWTInstance();
-
-					if ( ui_swt != null ){
-						
-						ArrayList<UISWTViewEventListenerWrapper> listeners = new ArrayList<UISWTViewEventListenerWrapper>( Arrays.asList( ui_swt.getViewListeners(tv.getTableID())));
-					
-						int	l_index = listeners.indexOf( listener );
-						
-						CTabItem[] items = tabFolder.getItems();
-													
-						for ( int j=0;j<items.length;j++){
-									
-							UISWTViewImpl v = (UISWTViewImpl)items[j].getData( "IView" );
-									
-							if ( v != null ){
-										
-								int v_index = listeners.indexOf( v.getEventListener());
-							
-								if ( v_index > l_index ){
-									
-									insert_at = j;
-									
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			CTabItem item = new CTabItem( tabFolder, SWT.NULL, insert_at );
-			
-			boolean	is_minimized;
-			
-			if ( start_of_day ){
-				
-				is_minimized = start_minimized;
-				
-			}else{
-				
-				is_minimized = tabFolder.getMinimized();
-			}
-						
-			item.setToolTipText( MessageText.getString( is_minimized?"label.click.to.restore":"label.dblclick.to.min"));
-			
-			item.setData("IView", view);
-			
-			String title_id = view.getTitleID();
-			
-			String history_key = "swt.ui.table.tab.view.namecache." + view_id;
-			
-			String existing = COConfigurationManager.getStringParameter( history_key, "" );
-			
-			if ( !existing.equals( title_id )){
-				
-				COConfigurationManager.setParameter( history_key, title_id );
-			}
-			
-			Messages.setLanguageText(item, title_id );
-			
-			view.initialize(tabFolder);
-			
-			item.setControl(view.getComposite());
-			
-			tabViews.add(view);
-			
-			if ( !start_of_day ){
-				
-				removedViews.remove( listener );
-				
-				tabFolder.setSelection(item);
-				selectedView = (UISWTViewImpl)item.getData( "IView" );
-			}
-
-		}catch( Throwable e ){
-			
-			Debug.out( e );
-		}
-	}
-	
-	private void
-	checkTabViews(
-		Map<?, ?>		closed )
-	{
-		for ( UISWTViewEventListenerWrapper l: new ArrayList<UISWTViewEventListenerWrapper>( removedViews )){
-			
-			String view_id = l.getViewID();
-			
-			if ( !closed.containsKey( view_id )){
-				
-				addTabView( l, false, false );
-			}
-		}
-		
-		for ( CTabItem item: tabFolder.getItems()){
-			
-			UISWTViewImpl view = (UISWTViewImpl)item.getData( "IView" );
-			
-			if ( view != null ){
-				
-				String view_id = view.getViewID();
-				
-				if ( closed.containsKey( view_id )){
-					
-					removeTabView( item );
-				}
-			}
-		}
-	}
-	
-	private void
-	removeTabView(
-		CTabItem		item )
-	{
-		UISWTViewImpl view = (UISWTViewImpl)item.getData( "IView" );
-		
-		if ( view != null ){
-						
-			removedViews.add((UISWTViewEventListenerWrapper)view.getEventListener());
-			
-			tabViews.remove( view );
-			
-			view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
-		
-			item.dispose();
-		}
+		// XXX 
+		//removedViews.add(((MdiEntrySWT) entry).getEventListener());
+		tabbedMDI.removeItem(entry);
 	}
 
 	public Composite createSashForm(final Composite composite) {
@@ -472,13 +242,11 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 		int iNumViews = 0;
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		UISWTViewEventListenerWrapper[] pluginViews = null;
 		if (uiFunctions != null) {
 			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 
 			if (pluginUI != null) {
-				pluginViews = pluginUI.getViewListeners(tv.getTableID());
-				iNumViews += pluginViews.length;
+				iNumViews += pluginUI.getViewListeners(tv.getTableID()).length;
 			}
 		}
 
@@ -502,16 +270,35 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 
 		// Create them in reverse order, so we can have the table auto-grow, and
 		// set the tabFolder's height manually
+		
+		
+		cTabsHolder = new Composite(form, SWT.NONE);
+		tabbedMDI = uiFunctions.createTabbedMDI(cTabsHolder, props_prefix);
+		tabbedMDI.setMaximizeVisible(true);
+		tabbedMDI.setMinimizeVisible(true);
 
-		final int TABHEIGHT = 22;
-		tabFolder = new CTabFolder(form, SWT.TOP | SWT.BORDER);
-		tabFolder.setMinimizeVisible(true);
-		tabFolder.setTabHeight(TABHEIGHT);
-		final int iFolderHeightAdj = tabFolder.computeSize(SWT.DEFAULT, 0).y;
+		tabbedMDI.setTabbedMdiMaximizeListener(new TabbedMdiMaximizeListener() {
+			public void maximizePressed() {
+				TableView tvToUse = tvOverride == null ? tv : tvOverride;
+				Object[] ds = tvToUse.getSelectedDataSources(true);
+				
+				if (ds.length == 1 && ds[0] instanceof DownloadManager) {
 
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+
+					if (uiFunctions != null) {
+
+						uiFunctions.getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS,
+								ds);
+					}
+				}
+			}
+		});
+		
 		final int SASH_WIDTH = 5;
 		
-		final Sash sash = Utils.createSash( form, SASH_WIDTH );
+		sash = Utils.createSash( form, SASH_WIDTH );
 
 		tableComposite = tv.createMainPanel(form);
 		Composite cFixLayout = tableComposite;
@@ -541,6 +328,7 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 			iSplitAt *= 100;
 		}
 
+		// pct is % bottom
 		double pct = iSplitAt / 10000.0;
 		if (pct < 0.03) {
 			pct = 0.03;
@@ -550,14 +338,15 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 
 		// height will be set on first resize call
 		sash.setData("PCT", new Double(pct));
-		tabFolder.setLayoutData(formData);
-		final FormData tabFolderData = formData;
+		cTabsHolder.setLayout(new FormLayout());
+		fdHeightChanger = formData;
+		cTabsHolder.setLayoutData(formData);
 
 		// FormData for Sash
 		formData = new FormData();
 		formData.left = new FormAttachment(0, 0);
 		formData.right = new FormAttachment(100, 0);
-		formData.bottom = new FormAttachment(tabFolder);
+		formData.bottom = new FormAttachment(cTabsHolder);
 		formData.height = SASH_WIDTH;
 		sash.setLayoutData(formData);
 
@@ -570,87 +359,6 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 		cFixLayout.setLayoutData(formData);
 
 
-		final CTabFolder2Adapter folderListener = new CTabFolder2Adapter() {
-			public void minimize(CTabFolderEvent event) {
-				minimized = true;
-				
-				tabFolder.setMinimized(true);
-				tabFolderData.height = iFolderHeightAdj;
-				CTabItem[] items = tabFolder.getItems();
-				String tt = MessageText.getString( "label.click.to.restore" );
-				for (int i = 0; i < items.length; i++) {
-					CTabItem tabItem = items[i];
-					tabItem.setToolTipText( tt );
-					Control control = tabItem.getControl();
-					if (control != null && !control.isDisposed()) {
-						tabItem.getControl().setVisible(false);
-					}
-				}
-				form.layout();
-
-				if (selectedView != null) {
-					selectedView.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
-				}
-				
-				ConfigurationManager configMan = ConfigurationManager.getInstance();
-				configMan.setParameter(props_prefix + ".subViews.minimized", true);
-			}
-			public void maximize(CTabFolderEvent event){
-				if ( maximizeTo != null){
-
-					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-					
-					if ( uiFunctions != null ){					
-				
-						uiFunctions.getMDI().showEntryByID(
-								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS,
-								maximizeTo);
-					}
-				}	
-			}
-			
-			public void restore(CTabFolderEvent event_maybe_null ) {
-				minimized = false;
-				tabFolder.setMinimized(false);
-				CTabItem selection = tabFolder.getSelection();
-				if (selection != null) {
-					Control control = selection.getControl();
-					if (control == null || control.isDisposed()) {
-						selectedView.initialize(tabFolder);
-						selection.setControl(selectedView.getComposite());
-						control = selection.getControl();
-						triggerTabViewDataSourceChanged(selectedView, tv,
-								new Object[][] {
-									null,
-									null
-						});
-					}
-					selection.getControl().setVisible(true);
-				}
-				
-				CTabItem[] items = tabFolder.getItems();
-				String tt = MessageText.getString( "label.dblclick.to.min"  );
-				
-				for (int i = 0; i < items.length; i++) {
-					CTabItem tabItem = items[i];
-					tabItem.setToolTipText( tt );
-				}
-				
-				form.notifyListeners(SWT.Resize, null);
-
-				UISWTViewCore view = getActiveSubView();
-				if (view != null) {
-					fireFocusGained( view );
-				}
-				refreshSelectedSubView();
-
-				ConfigurationManager configMan = ConfigurationManager.getInstance();
-				configMan.setParameter(props_prefix + ".subViews.minimized", false);
-				
-				tabFolder.setToolTipText( "max" );
-			}
-
-		};
 		
 		// Listeners to size the folder
 		sash.addSelectionListener(new SelectionAdapter() {
@@ -661,13 +369,9 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 					return;
 				}
 
-				if (tabFolder.getMinimized()) {
-					folderListener.restore( null );
-				}
-
 				Rectangle area = form.getClientArea();
 				
-				int height = area.height - e.y - e.height - iFolderHeightAdj;
+				int height = area.height - e.y - e.height;
 				
 				if ( !Constants.isWindows ){
 					height -= SASH_WIDTH;
@@ -684,257 +388,64 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 					height = 0;
 				}
 				
-				tabFolderData.height = height;
-				form.layout();
+				fdHeightChanger.height = height;
 
-				Double l = new Double((double) tabFolder.getBounds().height
-						/ form.getBounds().height);
+				Double l = new Double((double) height / area.height);
 				sash.setData("PCT", l);
 				if (e.detail != SWT.DRAG) {
 					ConfigurationManager configMan = ConfigurationManager.getInstance();
 					configMan.setParameter(props_prefix + ".SplitAt",
 							(int) (l.doubleValue() * 10000));
 				}
+				form.layout();
+				// sometimes sash cheese is left
+				cTabsHolder.redraw();
 			}
 		});
 		
-		tabFolder.addCTabFolder2Listener(folderListener);
+		buildFolder(form, props_prefix);
 
-		tabFolder.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				selectedView = null;
-				// make sure its above
-				try {
-					CTabItem item = ((CTabItem) e.item);
-					selectedView = (UISWTViewImpl)e.item.getData( "IView" );
+		return form;
+	}
 
-					Control control = item.getControl();
-					if (control == null || control.isDisposed()) {
-						selectedView.initialize(tabFolder);
-						item.setControl(selectedView.getComposite());
-						control = item.getControl();
-						triggerTabViewDataSourceChanged(selectedView, tv,
-								new Object[][] {
-									null,
-									null
-						});
-					}
-					
-					control.setVisible(true);
-					control.moveAbove(null);
-
-					// Call getActiveSubView and don't use selectedView. Function
-					// may return null even if there's a selectedView
-					UISWTViewCore view = getActiveSubView();
-					if (view != null) {
-						fireFocusGained( view );
-					}
-					
-				} catch (Exception t) {
-					t.printStackTrace();
-				}
+	private void buildFolder(final Composite form, final String props_prefix) {
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
+		UIManager uim = pi.getUIManager();
+		MenuManager menuManager = uim.getMenuManager();
+		
+		
+		menuItemShowTabs = menuManager.addMenuItem(props_prefix + "._end_",
+				"ConfigView.section.style.ShowTabsInTorrentView");
+		menuItemShowTabs.setStyle(MenuItem.STYLE_CHECK);
+		menuItemShowTabs.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(COConfigurationManager.getBooleanParameter(
+						"Library.ShowTabsInTorrentView"));
 			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
+		});
+		menuItemShowTabs.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				COConfigurationManager.setParameter("Library.ShowTabsInTorrentView",
+						(Boolean) menu.getData());
 			}
 		});
 		
-		tabFolder.addListener(SWT.Activate, new Listener() {
-			public void handleEvent(Event event) {
-				UISWTViewCore view = getActiveSubView();
-				if (view != null) {
-					fireFocusGained(view);
-				}
-			}
-		});
-
-		/* Does bad things like dispose of views even if view is still visible
-		tabFolder.addListener(SWT.Deactivate, new Listener() {
-			public void handleEvent(Event event) {
-				UISWTViewCore view = getActiveSubView();
-				if (view != null) {
-					fireFocusLost(view);
-				}
-			}
-		});
-		*/
-
-		tabFolder.addMouseListener(new MouseAdapter() {
-			public void mouseDown(MouseEvent e) {
-				if (tabFolder.getMinimized()) {
-					folderListener.restore(null);
-					// If the user clicked down on the restore button, and we restore
-					// before the CTabFolder does, CTabFolder will minimize us again
-					// There's no way that I know of to determine if the mouse is 
-					// on that button!
-
-					// one of these will tell tabFolder to cancel
-					e.button = 0;
-					tabFolder.notifyListeners(SWT.MouseExit, null);
-				}
-			}
-			public void mouseDoubleClick(MouseEvent e) {
-				if (!tabFolder.getMinimized()) {
-					folderListener.minimize( null );
-				}
-			}
-		});
-
-		final Menu menu = new Menu( tabFolder );
-		
-		tabFolder.addListener(SWT.MenuDetect, new Listener() {
-			public void handleEvent(Event event) {
-				for ( MenuItem item: menu.getItems()){
-					
-					item.dispose();
-				}
-												
-				Point ptOnControl = tabFolder.toControl(event.x, event.y);
-				if (ptOnControl.y > tabFolder.getTabHeight()) {
-					return;
-				}
-
-				final CTabItem item = tabFolder.getItem( tabFolder.toControl( event.x, event.y ));
-				
-				boolean	need_sep = false;
-				
-				if ( item != null ){
-					
-					tabFolder.setSelection(item);
-					selectedView = (UISWTViewImpl)item.getData( "IView" );
-						
-					if ( selectedView != null ){
-						
-						final String view_id = selectedView.getViewID();
-						
-						MenuItem mi = new MenuItem( menu, SWT.PUSH );
-						
-						mi.setText( MessageText.getString( "label.close.tab" ));
-						
-						mi.addListener(
-							SWT.Selection,
-							new Listener()
-							{
-								public void 
-								handleEvent(
-									Event event ) 
-								{
-									String key = props_prefix + ".closedtabs";
-									
-									Map closedtabs = COConfigurationManager.getMapParameter(key, new HashMap());
-									
-									if ( !closedtabs.containsKey( view_id )){
-										
-										closedtabs.put( view_id, "" );
-										
-										COConfigurationManager.setParameter( key, closedtabs );
-									}
-								}
-							});
-						
-						need_sep = true;
-					}
-				}else{
-					
-					for ( final UISWTViewEventListenerWrapper l: removedViews ){
-						
-						need_sep = true;
-						
-						final String view_id = l.getViewID();
-						
-						MenuItem mi = new MenuItem( menu, SWT.PUSH );
-						
-						mi.setText( MessageText.getString( getViewTitleID( view_id )));
-						
-						mi.addListener(
-							SWT.Selection,
-							new Listener()
-							{
-								public void 
-								handleEvent(
-									Event event ) 
-								{
-									String key = props_prefix + ".closedtabs";
-									
-									Map closedtabs = COConfigurationManager.getMapParameter(key, new HashMap());
-									
-									if ( closedtabs.containsKey( view_id )){
-									
-										closedtabs.remove( view_id );
-									
-										COConfigurationManager.setParameter( key, closedtabs );
-									}
-								}
-							});
-					}
-				}
-				
-				if ( need_sep ){
-				
-					new MenuItem( menu, SWT.SEPARATOR );
-				}
-				
-				final MenuItem mi = new MenuItem( menu, SWT.CHECK );
-				
-				mi.setSelection( COConfigurationManager.getBooleanParameter( "Library.ShowTabsInTorrentView"));
-				
-				mi.setText( MessageText.getString( "ConfigView.section.style.ShowTabsInTorrentView" ));
-				
-				mi.addListener(
-					SWT.Selection,
-					new Listener()
-					{
-						public void 
-						handleEvent(
-							Event event ) 
-						{
-							COConfigurationManager.setParameter( "Library.ShowTabsInTorrentView", mi.getSelection());
-						}
-					});
-				
-				menu.setVisible(true);
-
-			}
-		});
-		
-		form.addListener(SWT.Resize, new Listener() {
+		cTabsHolder.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
-				if (tabFolder.getMinimized()) {
+				if (tabbedMDI.getMinimized()) {
+					fdHeightChanger.height = tabbedMDI.getFolderHeight();
+					cTabsHolder.getParent().layout();
 					return;
 				}
 
 				Double l = (Double) sash.getData("PCT");
 				if (l != null) {
-					tabFolderData.height = (int) (form.getBounds().height * l.doubleValue())
-							- iFolderHeightAdj;
-					form.layout();
+					fdHeightChanger.height = (int) (form.getBounds().height * l.doubleValue());
+					cTabsHolder.getParent().layout();
 				}
 			}
 		});
 
-		String key = props_prefix + ".closedtabs";
-		
-		Map closed_tabs = COConfigurationManager.getMapParameter(key, new HashMap());
-
-		COConfigurationManager.addParameterListener(
-			key,
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					String	name )
-				{
-					if ( tabFolder.isDisposed()){
-						
-						COConfigurationManager.removeParameterListener( name, this );
-						
-					}else{
-						
-						checkTabViews( COConfigurationManager.getMapParameter(name, new HashMap()));
-					}
-				}
-			});
-		
 		String[] restricted_to = tv.getTabViewsRestrictedTo();
 		
 		Set<String> rt_set = new HashSet<String>();
@@ -944,98 +455,64 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 			rt_set.addAll( Arrays.asList( restricted_to ));
 		}
 		
-		boolean folder_minimized = 
-			configMan.getBooleanParameter( props_prefix + ".subViews.minimized", !tv.getTabViewsExpandedByDefault());
-		
 		// Call plugin listeners
 		
-		if (pluginViews != null) {
-			for (UISWTViewEventListenerWrapper l : pluginViews) {
-				if (l != null) {
-					try {
-						String view_id = l.getViewID();
-						
-						if ( restricted_to == null || rt_set.contains( view_id )){
-						
-							if ( closed_tabs.containsKey( view_id )){
-								
-								removedViews.add( l );
-								
-							}else{
-								
-								addTabView( l, true, folder_minimized );
-							}
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+
+			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
+
+			if (pluginUI != null) {
+
+				UISWTViewEventListenerWrapper[] pluginViews = pluginUI.getViewListeners(
+						tv.getTableID());
+				if (pluginViews != null) {
+					for (final UISWTViewEventListenerWrapper l : pluginViews) {
+						if (l == null) {
+							continue;
 						}
-					} catch (Exception e) {
-						// skip, plugin probably specifically asked to not be added
+						try {
+							String view_id = l.getViewID();
+							
+							if (restricted_to != null && !rt_set.contains(view_id)) {
+								continue;
+							}
+							
+							tabbedMDI.registerEntry(view_id, new MdiEntryCreationListener2() {
+								public MdiEntry createMDiEntry(MultipleDocumentInterface mdi, String id,
+										Object datasource, Map<?, ?> params) {
+									return addTabView(l, null);
+								}
+							});
+							
+							tabbedMDI.loadEntryByID(view_id, false);
+
+						} catch (Exception e) {
+							// skip, plugin probably specifically asked to not be added
+						}
 					}
 				}
 			}
 		}
 
-		if ( folder_minimized ){
-			
-			tabFolder.setMinimized(true);
-			
-			tabFolderData.height = iFolderHeightAdj;
-			
-		}else{
-			
-			tabFolder.setMinimized(false);
-		}
-
-		if (tabFolder.getItemCount() > 0) {
-			CTabItem item = tabFolder.getItem(0);
-			tabFolder.setSelection(item);
-			selectedView = (UISWTViewImpl)item.getData( "IView" );
-		}
-
-		return form;
-	}
-
-	private UISWTViewCore	focused_view = null;
-	private ISelectedContent[] selectedContent;
-	
-	private void
-	fireFocusGained(
-		UISWTViewCore		view )
-	{
-		if ( focused_view != null && focused_view != view ) {
-			if ( focused_view.isDestroyOnDeactivate() ){
-				focused_view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
-			} else {
-				focused_view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+		if (!tabbedMDI.getMinimized()) {
+			MdiEntry[] entries = tabbedMDI.getEntries();
+			if (entries.length > 0) {
+				tabbedMDI.showEntry(entries[0]);
 			}
 		}
-		
-		focused_view = view;
-		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 	}
-	
-	/*
-	private void
-	fireFocusLost(
-		UISWTViewCore		view )
-	{
-		if ( focused_view != null && focused_view != view ){
-			
-			focused_view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
-		}
-		
-		focused_view = null;
-		
-		if ( view != null ){
-		
-			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
-		}
-	}
-	*/
+
+	private ISelectedContent[] selectedContent;
 	
 	public void swt_refresh() {
-		if (tv.isTabViewsEnabled() && tabFolder != null && !tabFolder.isDisposed()
-				&& !tabFolder.getMinimized()){
+		if (tv.isTabViewsEnabled() && tabbedMDI != null && !tabbedMDI.isDisposed()
+				&& !tabbedMDI.getMinimized()){
 			
-			refreshSelectedSubView();
+			MdiEntry entry = tabbedMDI.getCurrentEntry();
+			if (entry != null) {
+				entry.updateUI();
+			}
 		}
 	}
 

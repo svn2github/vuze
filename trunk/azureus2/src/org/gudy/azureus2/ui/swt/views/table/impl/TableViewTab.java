@@ -18,24 +18,20 @@
 
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
-import java.util.Map;
-
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
-
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
-import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
-import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.common.table.TableViewFilterCheck.TableViewFilterCheckEx;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 
 /**
@@ -43,14 +39,15 @@ import com.aelitis.azureus.ui.mdi.MdiEntry;
  * an view in a  {@link MdiEntry}, or a TableView's subview.
  */
 public abstract class TableViewTab<DATASOURCETYPE>
-	implements UISWTViewCoreEventListener, UIPluginViewToolBarListener,
-	AEDiagnosticsEvidenceGenerator
+	implements UISWTViewCoreEventListener, AEDiagnosticsEvidenceGenerator
 {
 	private TableViewSWT<DATASOURCETYPE> tv;
 	private Object parentDataSource;
 	private final String propertiesPrefix;
 	private Composite composite;
 	private UISWTView swtView;
+	private Text filterTextControl;
+	private TableViewFilterCheckEx<DATASOURCETYPE> filterCheck;
 
 	
 	public TableViewTab(String propertiesPrefix) {
@@ -72,6 +69,10 @@ public abstract class TableViewTab<DATASOURCETYPE>
 			this.composite = composite;
 		} else {
 			this.composite = tv.getComposite();
+		}
+		
+		if (filterCheck != null) {
+			tv.enableFilterCheck(filterTextControl, filterCheck);
 		}
 		
 		tableViewTabInitComplete();
@@ -103,6 +104,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		if (tv != null) {
 			tv.delete();
 		}
+		tv = null;
 	}
 
 	public String getFullTitle() {
@@ -122,27 +124,6 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		return composite;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
-	 */
-	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
-			Object datasource) {
-		if (item.getID().equals("editcolumns")) {
-			if (tv instanceof TableViewSWT) {
-				((TableViewSWT<?>)tv).showColumnEditor();
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
-	 */
-	public void refreshToolBarItems(Map<String, Long> list) {
-		list.put("editcolumns", UIToolBarItem.STATE_ENABLED);
-	}
-	
 	public String getPropertiesPrefix() {
 		return propertiesPrefix;
 	}
@@ -169,7 +150,6 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		switch (event.getType()) {
 			case UISWTViewEvent.TYPE_CREATE:
 				swtView = (UISWTView) event.getData();
-				swtView.setToolBarListener(this);
 				swtView.setTitle(getFullTitle());
 				break;
 
@@ -212,5 +192,15 @@ public abstract class TableViewTab<DATASOURCETYPE>
 
 	public UISWTView getSWTView() {
 		return swtView;
+	}
+
+	public void enableFilterCheck(Text textControl,
+			TableViewFilterCheckEx<DATASOURCETYPE> filter_check_handler) {
+		if (tv != null) {
+			tv.enableFilterCheck(textControl, filter_check_handler);
+		} else {
+			filterTextControl = textControl;
+			filterCheck = filter_check_handler;
+		}
 	}
 }

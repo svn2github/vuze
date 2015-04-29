@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.tracker.host.TRHostTorrentRemovalVetoException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
@@ -83,7 +84,8 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 public class MyTrackerView
 	extends TableViewTab<TRHostTorrent>
 	implements TRHostListener, CategoryManagerListener, TableLifeCycleListener,
-	TableSelectionListener, TableViewSWTMenuFillListener, TableRefreshListener
+	TableSelectionListener, TableViewSWTMenuFillListener, TableRefreshListener,
+	UIPluginViewToolBarListener
 {
   private static TableColumnCore[] basicItems = null;
 
@@ -349,8 +351,6 @@ public class MyTrackerView
 	}	 
 
 	public void refreshToolBarItems(Map<String, Long> list) {
-		super.refreshToolBarItems(list);
-
 		boolean start = false, stop = false, remove = false;
     Object[] hostTorrents = tv.getSelectedDataSources().toArray();
     if (hostTorrents.length > 0) {
@@ -404,7 +404,7 @@ public class MyTrackerView
       return true;
     }
 
-		return super.toolBarItemActivated(item, activationType, datasource);
+		return false;
 	}
   
   private void stopSelectedTorrents() {

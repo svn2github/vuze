@@ -225,7 +225,9 @@ public class SBC_LibraryTableView
 		}
 
 		try {
-			view = new UISWTViewImpl(UISWTInstance.VIEW_MAIN, ID + torrentFilterMode, swtViewListener, data);
+			view = new UISWTViewImpl(ID + torrentFilterMode, UISWTInstance.VIEW_MAIN, false);
+			view.setDatasource(data);
+			view.setEventListener(swtViewListener, true);
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -448,6 +450,9 @@ public class SBC_LibraryTableView
 		return super.skinObjectHidden(skinObject, params);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
+	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
 		if (!isVisible()) {
 			return;

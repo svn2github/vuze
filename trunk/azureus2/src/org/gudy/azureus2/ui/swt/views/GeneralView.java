@@ -199,10 +199,10 @@ public class GeneralView
     scrolled_comp.setContent(genComposite);
 	scrolled_comp.addControlListener(new ControlAdapter() {
 		public void controlResized(ControlEvent e) {
-			Rectangle r = scrolled_comp.getClientArea();
-			scrolled_comp.setMinSize(genComposite.computeSize(r.width, SWT.DEFAULT ));
+			Utils.updateScrolledComposite(scrolled_comp);
 		}
 	});
+	
 	
     Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
@@ -214,7 +214,7 @@ public class GeneralView
   }
   
   private void swt_refreshInfo() {
-  	if (manager == null || parent == null){
+  	if (manager == null || parent == null || parent.isDisposed()){
   		ViewUtils.setViewRequiresOneDownload(genComposite);
   		return;
   	}
@@ -532,8 +532,7 @@ public class GeneralView
 
     genComposite.layout();
     
-	Rectangle r = scrolled_comp.getClientArea();
-	scrolled_comp.setMinSize(genComposite.computeSize(r.width, SWT.DEFAULT ));
+    Utils.updateScrolledComposite(scrolled_comp);
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
   }
 
@@ -1061,6 +1060,7 @@ public class GeneralView
 				if (do_relayout)
 				{
 					gInfo.layout();
+					Utils.updateScrolledComposite(scrolled_comp);
 				}
 			}
 		});

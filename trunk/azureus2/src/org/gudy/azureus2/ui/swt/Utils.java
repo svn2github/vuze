@@ -31,6 +31,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.DisposeEvent;
@@ -1896,7 +1897,19 @@ public class Utils
 	 * @param control Control that had it's sized changed and needs more room
 	 */
 	public static void relayout(Control control) {
+		long startOn = DEBUG_SWTEXEC ? System.currentTimeMillis() : 0;
 		relayout(control, false);
+		if (DEBUG_SWTEXEC) {
+			long diff = System.currentTimeMillis() - startOn;
+			if (diff > 100) {
+				String s = "Long relayout of " + diff + "ms "
+						+ Debug.getCompressedStackTrace();
+				if (diag_logger != null) {
+					diag_logger.log(s);
+				}
+				System.out.println(s);
+			}
+		}
 	}
 
 	/**
@@ -1909,6 +1922,16 @@ public class Utils
 		if (control == null || control.isDisposed() || !control.isVisible()) {
 			return;
 		}
+		
+		if (control instanceof ScrolledComposite) {
+			ScrolledComposite sc = (ScrolledComposite) control;
+			Control content = sc.getContent();
+			if (content != null && !content.isDisposed()) {
+				Rectangle r = sc.getClientArea();
+				sc.setMinSize(content.computeSize(r.width, SWT.DEFAULT ));
+			}
+		}
+
 
 		Composite parent = control.getParent();
 		Point targetSize = control.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
@@ -1934,19 +1957,31 @@ public class Utils
 			parent.layout();
 			return;
 		}
+		//System.out.println("size=" + size + ";target=" + targetSize);
 
+		Control previous = control;
 		while (parent != null) {
-			parent.layout(true, true);
-			parent = parent.getParent();
+			parent.layout(new Control[] { previous }, SWT.ALL | SWT.DEFER);
+			if (parent instanceof ScrolledComposite) {
+				ScrolledComposite sc = (ScrolledComposite) parent;
+				Control content = sc.getContent();
+				if (content != null && !content.isDisposed()) {
+  				Rectangle r = sc.getClientArea();
+  				sc.setMinSize(content.computeSize(r.width, SWT.DEFAULT ));
+				}
+			}
 
 			Point newSize = control.getSize();
 
-			//System.out.println("new=" + newSize + ";target=" + targetSize);
+			//System.out.println("new=" + newSize + ";target=" + targetSize + ";" + control.isVisible());
 
 			if ((fixedHeight > -1 || (newSize.y >= targetSize.y))
 					&& (fixedWidth > -1 || (newSize.x >= targetSize.x))) {
 				break;
 			}
+
+			previous = parent;
+			parent = parent.getParent();
 		}
 
 		if (parent != null) {
@@ -3411,6 +3446,14 @@ public class Utils
 			}
 			newParent.layout(new Control[] { c });
 			c = newParent;
+		}
+	}
+
+	public static void updateScrolledComposite(ScrolledComposite sc) {
+		Control content = sc.getContent();
+		if (content != null && !content.isDisposed()) {
+			Rectangle r = sc.getClientArea();
+			sc.setMinSize(content.computeSize(r.width, SWT.DEFAULT ));
 		}
 	}
 	

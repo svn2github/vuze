@@ -171,4 +171,12 @@ public interface MultipleDocumentInterface
 	public boolean loadEntryByID(String id, boolean activate,
 			boolean onlyLoadOnce, Object datasource);
 
+	/**
+	 * @return
+	 * @since 5.6.0.1
+	 */
+	public int getEntriesCount();
+	
+	public boolean isDisposed();
+
 }

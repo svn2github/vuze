@@ -89,11 +89,20 @@ public interface UISWTView extends UIPluginView {
 	 */
 	// From UIPluginView, declared here only to change JavaDoc
 	public Object getDataSource();
-	
+
+	/**
+	 * Get the original datasource that was set to the view
+	 * 
+	 * @since 5.5.0.0
+	 */
 	public Object getInitialDataSource();
 
-	public UISWTView
-	getParentView();
+	/**
+	 * Get parent view, if one exists
+	 * 
+	 * @since 5.5.0.0
+	 */
+	public UISWTView getParentView();
 	
 	/**
 	 * Trigger an event for this view

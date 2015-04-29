@@ -57,6 +57,7 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
@@ -1236,6 +1237,7 @@ public class TableViewPainted
 		// and column widths, etc
 		TableStructureEventDispatcher.getInstance(tableID).addListener(this);
 
+		MessageText.addListener(this);
 	}
 
 	protected void swt_vBarChanged() {
@@ -2493,6 +2495,9 @@ public class TableViewPainted
 		return clientArea;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#isVisible()
+	 */
 	public boolean isVisible() {
 		if (!Utils.isThisThreadSWT()) {
 			return isVisible;
@@ -2502,13 +2507,13 @@ public class TableViewPainted
 				&& !shell.getMinimized();
 		if (isVisible != wasVisible) {
 			visibleRowsChanged();
-			UISWTViewCore view = tvTabsCommon == null ? null
+			MdiEntrySWT view = tvTabsCommon == null ? null
 					: tvTabsCommon.getActiveSubView();
 			if (isVisible) {
 				loopFactor = 0;
 
 				if (view != null) {
-					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+					view.getMDI().showEntry(view);
 				}
 			} else {
 				if (view != null) {
@@ -2757,6 +2762,10 @@ public class TableViewPainted
 			cTable
 		});
 		cTable = null;
+		
+		if (filter != null) {
+			disableFilterCheck();
+		}
 
 		removeAllTableRows();
 		configMan.removeParameterListener("ReOrder Delay", this);

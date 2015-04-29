@@ -98,7 +98,9 @@ public class ConfigShell
 			Utils.setShellIcon(shell);
 			configView = new ConfigView();
 			try {
-				swtView = new UISWTViewImpl(null, "ConfigView", configView, section);
+				swtView = new UISWTViewImpl("ConfigView", null, false);
+				swtView.setDatasource(section);
+				swtView.setEventListener(configView, true);
 			} catch (Exception e1) {
 				Debug.out(e1);
 			}

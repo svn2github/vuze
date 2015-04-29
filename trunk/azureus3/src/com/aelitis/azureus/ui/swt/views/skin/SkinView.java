@@ -47,6 +47,8 @@ public abstract class SkinView
 	protected SWTSkinObject soMain;
 
 	protected SWTSkin skin;
+	
+	private boolean disposed = false;
 
 	/**
 	 * 
@@ -99,6 +101,8 @@ public abstract class SkinView
 	
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
+		disposed = true;
+
 		SkinViewManager.remove(this);
 		if (this instanceof UIUpdatable) {
 			UIUpdatable updateable = (UIUpdatable) this;
@@ -110,6 +114,10 @@ public abstract class SkinView
 			}
 		}
 		return null;
+	}
+	
+	public boolean isDisposed() {
+		return disposed;
 	}
 
 	/**

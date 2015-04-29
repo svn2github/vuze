@@ -282,6 +282,9 @@ DownloadActivityView
 	refresh(
 		boolean	force )
 	{
+		if (mpg == null) {
+			return;
+		}
 		mpg.refresh( force );
 	}
 	

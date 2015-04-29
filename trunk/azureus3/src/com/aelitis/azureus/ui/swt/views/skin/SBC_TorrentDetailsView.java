@@ -17,22 +17,14 @@
  */
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Listener;
-
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
@@ -41,21 +33,16 @@ import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
-import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
-import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.PeersView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
@@ -72,13 +59,14 @@ import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MdiListener;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
-import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
@@ -98,17 +86,13 @@ public class SBC_TorrentDetailsView
 
 	private DownloadManager manager;
 
-	private CTabFolder folder;
-
-	private ArrayList<UISWTViewCore> tabViews = new ArrayList<UISWTViewCore>();
+	private TabbedMdiInterface tabbedMDI;
 
 	int lastCompleted = -1;
 
 	private GlobalManagerAdapter gmListener;
 
 	private Composite parent;
-
-	protected UISWTViewCore activeView;
 
 	private FilterCheckHandler filter_check_handler;
 
@@ -121,6 +105,8 @@ public class SBC_TorrentDetailsView
 	private SWTSkinObjectText soInfoArea;
 
 	private MdiEntrySWT mdi_entry;
+
+	private Object dataSource;
 
 	/**
 	 * 
@@ -148,33 +134,28 @@ public class SBC_TorrentDetailsView
 	}
 
 	private void dataSourceChanged(Object newDataSource) {
+		this.dataSource = newDataSource;
+		
 		if (manager != null) {
 			manager.removeListener(this);
 		}
 
 		manager = DataSourceUtils.getDM(newDataSource);
 		
-		if (newDataSource instanceof Object[]
+		if (tabbedMDI != null && newDataSource instanceof Object[]
 				&& ((Object[]) newDataSource)[1] instanceof PEPeer) {
-			Object[] o = (Object[]) newDataSource;
-
-			PeersView pv = (PeersView) showView(PeersView.class);
-
-			if (pv != null) {
-
-				pv.selectPeer((PEPeer) o[1]);
-			}
+			tabbedMDI.showEntryByID(PeersView.MSGID_PREFIX);
 		}
 
 		if (manager != null) {
 			manager.addListener(this);
 		}
-
-		for (int i = 0; i < tabViews.size(); i++) {
-			UISWTViewCore view = tabViews.get(i);
-			if (view != null) {
-				view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, newDataSource);
-			}
+		
+		if (tabbedMDI != null) {
+  		MdiEntry[] entries = tabbedMDI.getEntries();
+  		for (MdiEntry entry : entries) {
+  			entry.setDatasource(newDataSource);
+  		}
 		}
 
 		refreshTitle();
@@ -198,32 +179,7 @@ public class SBC_TorrentDetailsView
 
 		SelectedContentManager.removeCurrentlySelectedContentListener(this);
 
-		if (folder != null && !folder.isDisposed()) {
-			folder.setSelection(0);
-		}
-
-		//Don't ask me why, but without this an exception is thrown further (in folder.dispose() )
-		//TODO : Investigate to see if it's a platform (OSX-Carbon) BUG, and report to SWT team.
-		if (Utils.isCarbon) {
-			if (folder != null && !folder.isDisposed()) {
-				Utils.disposeSWTObjects(folder.getItems());
-			}
-		}
-
-		for (int i = 0; i < tabViews.size(); i++) {
-			UISWTViewCore view = tabViews.get(i);
-			try {
-				if (view != null) {
-					view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
-				}
-			} catch (Throwable t) {
-				Debug.out(t);
-			}
-		}
-		tabViews.clear();
-
 		Utils.disposeSWTObjects(new Object[] {
-			folder,
 			parent
 		});
 	}
@@ -236,30 +192,23 @@ public class SBC_TorrentDetailsView
 		//boolean az2 = Utils.isAZ2UI();
 		//Color bg_color = ColorCache.getColor(composite.getDisplay(), "#c0cbd4");
 
-		FormData formData;
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 
 		this.parent = composite;
-		if (folder == null) {
-			folder = new CTabFolder(main_area, SWT.LEFT);
-			folder.setBorderVisible(true);
+		if (tabbedMDI == null) {
+			tabbedMDI = uiFunctions.createTabbedMDI(main_area, "detailsview");
 		} else {
 			System.out.println("ManagerView::initialize : folder isn't null !!!");
 		}
-
-		formData = Utils.getFilledFormData();
-
-		folder.setLayoutData(formData);
 
 		if (composite.getLayout() instanceof FormLayout) {
 			main_area.setLayoutData(Utils.getFilledFormData());
 		} else if (composite.getLayout() instanceof GridLayout) {
 			main_area.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
-
-		folder.setTabHeight(20);
+		composite.layout();
 
 		// Call plugin listeners
-		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
 			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 
@@ -288,10 +237,9 @@ public class SBC_TorrentDetailsView
 						if (l != null) {
 	
 							try {
-								UISWTViewImpl view = new UISWTViewImpl(
-										UISWTInstance.VIEW_TORRENT_DETAILS, l.getViewID(), l, null);
-	
-								addSection(view);
+								tabbedMDI.createEntryFromEventListener(null,
+										UISWTInstance.VIEW_TORRENT_DETAILS, l, l.getViewID(), false,
+										manager, null);
 	
 							} catch (Throwable e) {
 	
@@ -305,186 +253,86 @@ public class SBC_TorrentDetailsView
 
 		SelectedContentManager.addCurrentlySelectedContentListener(this);
 
-		Menu menu = new Menu(folder);
-
-		menu.setData("downloads", new DownloadManager[] {
-			manager
+		tabbedMDI.addListener(new MdiSWTMenuHackListener() {
+			
+			public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
+				menuTree.setData("downloads", new DownloadManager[] {
+					manager
+				});
+				menuTree.setData("is_detailed_view", true);
+				
+				MenuFactory.buildTorrentMenu(menuTree);
+			}
 		});
-		menu.setData("is_detailed_view", true);
 		
-		MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuilder() {
-			public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
-				MenuFactory.buildTorrentMenu(root_menu);
-			}
-		});
-
-		folder.setMenu(menu);
-		
-	    if ( Constants.isOSX ){
-	    	
-    		/* bug on OSX whereby the table is allowing menu-detect events to fire both on the table itself and the composite it
-    		 * sits on - this results in the header-area menu appearing after a menu appears for the table itself
-    		 * Doesn't happen on 10.6.8 but observed to happen on 10.9.4
-    		 */
-	    	
-		    folder.addListener( 
-						SWT.MenuDetect,
-						new Listener() {
-							
-							public void 
-							handleEvent(
-								Event event ) 
-							{
-								Display display = folder.getDisplay();
-								
-								Point pp_rel = display.map( null, folder, event.x, event.y );
-															
-								Control hit = Utils.findChild(folder, pp_rel.x, pp_rel.y );
-								
-								event.doit = hit == folder;
-							}
-						});
-	    }
-	    
-		// Initialize view when user selects it
-		folder.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				CTabItem item = (CTabItem) e.item;
-				selectView(item);
-			}
-		});
-
-		Utils.execSWTThreadLater(0, new AERunnable() {
-			public void runSupport() {
-				if (!folder.isDisposed() && folder.getItemCount() > 0) {
-					selectView(folder.getItem(0));
-				}
-			}
-		});
-
-		Utils.relayout(folder);
-	}
-
-	private void selectView(CTabItem item) {
-		if (item == null) {
-			return;
-		}
-		if (folder.getSelection() != item) {
-			folder.setSelection(item);
-		}
-		folder.getShell().setCursor(
-				folder.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
-		try {
-			// Send one last refresh to previous tab, just in case it
-			// wants to do something when view goes invisible
-			refresh();
-
-			if (activeView != null) {
-				activeView.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
-
-				UISWTViewEventListener listener = activeView.getEventListener();
-
-				if (listener instanceof UISWTViewEventListenerHolder) {
-
-					listener = ((UISWTViewEventListenerHolder) listener).getDelegatedEventListener(activeView);
+		tabbedMDI.addListener(new MdiListener() {
+			public void mdiEntrySelected(MdiEntry newEntry, MdiEntry oldEntry) {
+				// TODO Auto-generated method stub
+				if (oldEntry != null) {
+  				MdiEntrySWT oldEntrySWT = ((MdiEntrySWT) oldEntry);
+  				UISWTViewEventListener listener = oldEntrySWT.getEventListener();
+  				if (listener instanceof UISWTViewEventListenerHolder) {
+  					listener = ((UISWTViewEventListenerHolder) listener).getDelegatedEventListener(oldEntrySWT);
+  				}
+  
+  				// unhook filtering
+  
+  				if (listener instanceof TableViewTab<?>
+  						&& listener instanceof TableViewFilterCheck<?>) {
+  
+  					TableViewTab<?> tvt = (TableViewTab<?>) listener;
+  
+  					TableViewSWT tv = tvt.getTableView();
+  
+  					if (tv != null) {
+  						tv.disableFilterCheck();
+  					}
+  				}
 				}
 
-				// unhook filtering
+				// hook in filtering
 
-				if (listener instanceof TableViewTab<?>
-						&& listener instanceof TableViewFilterCheck<?>) {
+				MdiEntrySWT newEntrySWT = ((MdiEntrySWT) newEntry);
+				UISWTViewEventListener listener = newEntrySWT.getEventListener();
+				if (listener instanceof TableViewTab
+						&& listener instanceof TableViewFilterCheck) {
 
-					TableViewTab<?> tvt = (TableViewTab<?>) listener;
+					TableViewTab tvt = (TableViewTab) listener;
 
-					TableViewSWT tv = tvt.getTableView();
+					TableViewFilterCheck delegate = (TableViewFilterCheck) tvt;
 
-					if (tv != null) {
-						tv.disableFilterCheck();
-					}
-				}
-			}
+					soFilterTextBox.setVisible(true);
 
-			UISWTViewCore view = (UISWTViewCore) item.getData("IView");
-			if (view == null) {
-				Class<?> cla = (Class<?>) item.getData("claEventListener");
-				UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
-				view = new UISWTViewImpl(UISWTInstance.VIEW_MAIN, cla.getSimpleName(),
-						l, manager);
-				item.setData("IView", view);
-			}
+					filter_check_handler = new FilterCheckHandler(tvt, delegate);
 
-			if (mdi_entry != null) {
-				String id = "";
-				if (activeView instanceof UISWTViewImpl) {
-					id = "" + ((UISWTViewImpl) activeView).getViewID();
-					id = id.substring(id.lastIndexOf(".") + 1);
-				} else if (activeView != null) {
-					String simpleName = activeView.getClass().getName();
-					id = simpleName.substring(simpleName.lastIndexOf(".") + 1);
+					tvt.enableFilterCheck(soFilterTextBox.getTextControl(),
+							filter_check_handler);
+
 				} else {
-					id = "??";
+					filter_check_handler = null;
+
+					soFilterTextBox.setVisible(false);
 				}
-				mdi_entry.setLogID("DMDetails-" + id);
+
+				refresh();
+				if ( mdi_entry != null ){
+					mdi_entry.redraw();
+					ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());
+				}
 			}
-			activeView = view;
-
-			if (item.getControl() == null) {
-				view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, manager);
-				view.initialize(folder);
-				item.setControl(view.getComposite());
-			}
-
-			UISWTViewEventListener listener = view.getEventListener();
-
-			if (listener instanceof UISWTViewEventListenerHolder) {
-
-				listener = ((UISWTViewEventListenerHolder) listener).getDelegatedEventListener(view);
-			}
-
-			
-			item.getControl().setFocus();
-			SelectedContentManager.clearCurrentlySelectedContent();
-			
-			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
-
-			// hook in filtering
-
-			if (listener instanceof TableViewTab<?>
-					&& listener instanceof TableViewFilterCheck<?>) {
-
-				TableViewTab<Object> tvt = (TableViewTab<Object>) listener;
-
-				TableViewFilterCheck delegate = (TableViewFilterCheck) tvt;
-
-				soFilterTextBox.setVisible(true);
-
-				filter_check_handler = new FilterCheckHandler(tvt, delegate);
-
-				tvt.getTableView().enableFilterCheck(soFilterTextBox.getTextControl(),
-						filter_check_handler);
-
-			} else {
-				filter_check_handler = null;
-
-				soFilterTextBox.setVisible(false);
-			}
-
-			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-			if (uiFunctions != null) {
-				uiFunctions.refreshIconBar(); // For edit columns view
-			}
-
-			refresh();
-			if ( mdi_entry != null ){
-				mdi_entry.redraw();
-				ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());
-			}
-		} catch (Exception e) {
-			Debug.out(e);
-		} finally {
-			folder.getShell().setCursor(null);
+		});
+		
+		if (dataSource instanceof Object[]
+				&& ((Object[]) dataSource)[1] instanceof PEPeer) {
+			tabbedMDI.showEntryByID(PeersView.MSGID_PREFIX);
+		} else {
+  		MdiEntry[] entries = tabbedMDI.getEntries();
+  		if (entries.length > 0) {
+  			tabbedMDI.showEntry(entries[0]);
+  		}
 		}
 	}
+
 
 	public void currentlySelectedContentChanged(
 			ISelectedContent[] currentContent, String viewId) {
@@ -578,79 +426,11 @@ public class SBC_TorrentDetailsView
 		return( str );
 	}
 
-	protected Object showView(Class view_class) {
-		CTabItem[] items = folder.getItems();
-
-		for (int i = 0; i < items.length; i++) {
-
-			CTabItem item = items[i];
-
-			UISWTViewCore view = (UISWTViewCore) item.getData("IView");
-
-			UISWTViewEventListener listener = view.getEventListener();
-
-			if (listener instanceof UISWTViewEventListenerHolder) {
-
-				UISWTViewEventListenerHolder lh = (UISWTViewEventListenerHolder) listener;
-
-				UISWTViewEventListener delegated_listener = lh.getDelegatedEventListener(view);
-
-				if (view_class.isInstance(delegated_listener)) {
-
-					selectView(item);
-
-					return (delegated_listener);
-				}
-			}
-		}
-
-		return (null);
-	}
-
-	private UISWTViewCore getActiveView() {
-		return activeView;
-	}
-
 	/**
 	 * Called when view is visible
 	 */
 	private void refresh() {
-		if (folder == null || folder.isDisposed())
-			return;
-
-		try {
-			UISWTViewCore view = getActiveView();
-			if (view != null) {
-				view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
-			}
-
-			CTabItem[] items = folder.getItems();
-
-			for (int i = 0; i < items.length; i++) {
-				CTabItem item = items[i];
-				view = (UISWTViewCore) item.getData("IView");
-				try {
-					if (item.isDisposed() || view == null) {
-						continue;
-					}
-					String lastTitle = item.getText();
-					String newTitle = view.getFullTitle();
-					if (lastTitle == null || !lastTitle.equals(newTitle)) {
-						item.setText(escapeAccelerators(newTitle));
-					}
-					String lastToolTip = item.getToolTipText();
-					String newToolTip = view.getFullTitle();
-					if (lastToolTip == null || !lastToolTip.equals(newToolTip)) {
-						item.setToolTipText(newToolTip);
-					}
-				} catch (Exception e) {
-					Debug.printStackTrace(e);
-				}
-			}
-
-		} catch (Exception e) {
-			Debug.printStackTrace(e);
-		}
+		tabbedMDI.updateUI();
 	}
 
 	/**
@@ -681,31 +461,23 @@ public class SBC_TorrentDetailsView
 	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
-		UISWTViewCore active_view = getActiveView();
-		if (active_view != null) {
-			UIPluginViewToolBarListener l = active_view.getToolBarListener();
-			if (l != null) {
-				l.refreshToolBarItems(list);
-				return;
-			}
+		BaseMdiEntry activeView = getActiveView();
+		if (activeView == null) {
+			return;
 		}
-
-	}
-
+		activeView.refreshToolBarItems(list);
+	};
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	 */
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
-		UISWTViewCore active_view = getActiveView();
-		if (active_view != null) {
-			UIPluginViewToolBarListener l = active_view.getToolBarListener();
-			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
-				return true;
-			}
+		BaseMdiEntry activeView = getActiveView();
+		if (activeView == null) {
+			return false;
 		}
-
-		return false;
+		return activeView.toolBarItemActivated(item, activationType, datasource);
 	}
 
 	public void downloadComplete(DownloadManager manager) {
@@ -719,11 +491,9 @@ public class SBC_TorrentDetailsView
 	}
 
 	public void stateChanged(DownloadManager manager, int state) {
-		if (folder == null || folder.isDisposed())
+		if (tabbedMDI == null || tabbedMDI.isDisposed()) {
 			return;
-		Display display = folder.getDisplay();
-		if (display == null || display.isDisposed())
-			return;
+		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
@@ -736,28 +506,6 @@ public class SBC_TorrentDetailsView
 
 	public void positionChanged(DownloadManager download, int oldPosition,
 			int newPosition) {
-	}
-
-	public void addSection(UISWTViewImpl view) {
-		Object pluginDataSource = null;
-		try {
-			pluginDataSource = DownloadManagerImpl.getDownloadStatic(manager);
-		} catch (DownloadException e) {
-			/* Ignore */
-		}
-		addSection(view, pluginDataSource);
-	}
-
-	private void addSection(UISWTViewCore view, Object dataSource) {
-		if (view == null)
-			return;
-
-		view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, dataSource);
-
-		CTabItem item = new CTabItem(folder, SWT.NULL);
-		Messages.setLanguageText(item, view.getTitleID());
-		item.setData("IView", view);
-		tabViews.add(view);
 	}
 
 	public String getObfusticatedHeader() {
@@ -807,6 +555,9 @@ public class SBC_TorrentDetailsView
 			updateHeader();
 		}
 
+		/* (non-Javadoc)
+		 * @see com.aelitis.azureus.ui.common.table.TableViewFilterCheck#filterCheck(java.lang.Object, java.lang.String, boolean)
+		 */
 		public boolean filterCheck(Object ds, String filter, boolean regex) {
 			return (delegate.filterCheck(ds, filter, regex));
 		};
@@ -895,47 +646,28 @@ public class SBC_TorrentDetailsView
 				mdi_entry = mdi.getCurrentEntrySWT();
 			}
 			
-			mdi_entry.addToolbarEnabler(this);
 		}
 
 		initialize((Composite) soListArea.getControl());
 		return null;
 	}
-
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
-		UISWTViewCore view = getActiveView();
-		if (view != null) {
-			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
-		}
-		refresh();
-		return super.skinObjectShown(skinObject, params);
-	}
-
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
-		UISWTViewCore view = getActiveView();
-		if (view != null) {
-			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
-		}
-		return super.skinObjectHidden(skinObject, params);
-	}
-
+	
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
 		delete();
 		return super.skinObjectDestroyed(skinObject, params);
 	}
 
-	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#updateLanguage(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object updateLanguage(SWTSkinObject skinObject, Object params) {
-		Messages.updateLanguageForControl(folder);
-		return super.updateLanguage(skinObject, params);
-	}
-
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#dataSourceChanged(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object dataSourceChanged(SWTSkinObject skinObject, Object params) {
 		dataSourceChanged(params);
-		return super.dataSourceChanged(skinObject, params);
-	};
+		return null;
+	}
+	
+	private BaseMdiEntry getActiveView() {
+		if (tabbedMDI == null || tabbedMDI.isDisposed()) {
+			return null;
+		}
+		return (BaseMdiEntry) tabbedMDI.getCurrentEntrySWT();
+	}
 }

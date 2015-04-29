@@ -511,6 +511,9 @@ public class FileInfoView
 	}
 	
 	protected void refreshInfoCanvas() {
+		if (fileInfoCanvas == null || fileInfoCanvas.isDisposed()) {
+			return;
+		}
 		refreshInfoCanvasQueued = false;
 		Rectangle bounds = fileInfoCanvas.getClientArea();
 		if (bounds.width <= 0 || bounds.height <= 0)

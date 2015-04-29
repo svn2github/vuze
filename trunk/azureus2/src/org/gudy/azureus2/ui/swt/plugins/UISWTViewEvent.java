@@ -31,6 +31,18 @@ package org.gudy.azureus2.ui.swt.plugins;
  * @author TuxPaper
  */
 public interface UISWTViewEvent {
+	public static final String[] DEBUG_TYPES = {
+		"Create",
+		"DS",
+		"Init",
+		"FocusG",
+		"FocusL",
+		"Refr",
+		"Lang",
+		"Destr",
+		"Close"
+	};
+	
 	/**
 	 * Triggered before view is initialize in order to allow any set up before
 	 * initialization

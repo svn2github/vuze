@@ -364,8 +364,8 @@ public class TopBarView
 				for (UISWTViewEventListenerHolder l : pluginViews) {
 					if (l != null) {
 						try {
-							UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
-									l.getViewID(), l, null);
+							UISWTViewImpl view = new UISWTViewImpl(l.getViewID(), UISWTInstance.VIEW_TOPBAR, false);
+							view.setEventListener(l, true);
 							addTopBarView(view, cPluginArea);
 							if (toActiveView-- == 0) {
 								activateTopBar(view);

@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -48,6 +49,8 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.mdi.TabbedMDI;
+import com.aelitis.azureus.ui.swt.mdi.TabbedMdiInterface;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
 public class 
@@ -917,6 +920,14 @@ MainWindowDelayStub
 		openTorrentWindow() 
 		{
 			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.openTorrentWindow(); }});
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#createTabbedMDI(org.eclipse.swt.widgets.Composite)
+		 */
+		public TabbedMdiInterface createTabbedMDI(Composite parent, String id) {
+			log( "createTabbedMDI" );
+			return null;
 		}
 	}
 }

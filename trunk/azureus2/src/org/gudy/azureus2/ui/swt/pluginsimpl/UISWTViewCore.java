@@ -32,6 +32,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 public interface UISWTViewCore
 	extends UISWTView
 {
+	// XXX ControlType never seems to be set to this.. could remove?
 	public static final int CONTROLTYPE_SKINOBJECT = 0x100 + 1;
 
 	// >> From IView
@@ -71,9 +72,9 @@ public interface UISWTViewCore
   
   // << From IView
 
-	public void setSkinObject(PluginUISWTSkinObject so, Composite composite);
+	public void setPluginSkinObject(PluginUISWTSkinObject so);
 	
-	public PluginUISWTSkinObject getSkinObject();
+	public PluginUISWTSkinObject getPluginSkinObject();
 	
 	public void setUseCoreDataSource(boolean useCoreDataSource);
 
@@ -89,4 +90,6 @@ public interface UISWTViewCore
 	public Object
 	getUserData(
 		Object		key );
+
+	public void setParentView(UISWTView parentView);
 }
