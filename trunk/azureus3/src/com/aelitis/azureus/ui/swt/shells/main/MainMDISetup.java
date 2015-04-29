@@ -233,6 +233,18 @@ public class MainMDISetup
 					}
 				});
 		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ARCHIVED_DOWNLOADS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								MultipleDocumentInterface.SIDEBAR_SECTION_ARCHIVED_DOWNLOADS, "archivedlsview",
+								"{mdi.entry.archiveddownloadsview}", null, null, true, null);
+						//entry.setImageLeftID("image.sidebar.chat-overview");
+						return entry;
+					}
+				});
+		
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_OPTIONS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
@@ -395,6 +407,15 @@ public class MainMDISetup
 				public void selected(MenuItem menu, Object target) {
 					UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
 							MultipleDocumentInterface.SIDEBAR_SECTION_CHAT);
+				}
+			});
+			
+			menuItem = uim.getMenuManager().addMenuItem(
+					MenuManager.MENU_MENUBAR, "archivedlsview.view.heading");
+			menuItem.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_ARCHIVED_DOWNLOADS );
 				}
 			});
 		}

@@ -41,12 +41,14 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.GraphicURI;
 import org.gudy.azureus2.plugins.ui.menus.MenuBuilder;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
@@ -1734,7 +1736,39 @@ public class TorrentMenuFancy
 						TorrentUtil.repositionManual(tv, dms, parentShell, isSeedingView);
 					}
 				});
-
+		
+		final List<Download>	ar_dms = new ArrayList<Download>();
+		
+		for ( DownloadManager dm: dms ){
+			
+			Download stub = PluginCoreUtils.wrap(dm);
+			
+			if ( !stub.canStubbify()){
+				
+				continue;
+			}
+			
+			ar_dms.add( stub );
+		}
+		
+		if ( ar_dms.size() > 0 ){
+			createRow(detailArea, "MyTorrentsView.menu.archive", null,
+					new Listener() {
+		
+						public void handleEvent(Event event) {
+							for ( Download dm: ar_dms ){
+								
+								try{
+									dm.stubbify();
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+					});
+		}
 	}
 
 	public void buildTorrentCustomMenu_Social(Composite detailArea) {
