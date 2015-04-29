@@ -825,7 +825,7 @@ public class TableViewSWT_Common
 		// We need a better way to determine this...
 		boolean isDownloadContext;
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items = null;
-		if (tv.getDataSourceType().isAssignableFrom(Download.class) && !hasLevel2) {
+		if (Download.class.isAssignableFrom( tv.getDataSourceType()) && !hasLevel2) {
 			menu_items = MenuItemManager.getInstance().getAllAsArray(
 					MenuManager.MENU_DOWNLOAD_CONTEXT);
 			isDownloadContext = true;
