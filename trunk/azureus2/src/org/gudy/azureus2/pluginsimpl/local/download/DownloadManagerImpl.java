@@ -1353,37 +1353,59 @@ DownloadManagerImpl
 		}
 	}
 	
+	private Set<DownloadStub>	informing_of_add = new HashSet<DownloadStub>();
+	
 	private void
 	informAdded(
 		DownloadStub			stub,
 		final boolean			preparing )
 	{
-		final List<DownloadStub>	list = new ArrayList<DownloadStub>();
-		
-		list.add( stub );
-		
-		for ( DownloadStubListener l: download_stub_listeners ){
+		synchronized( informing_of_add ){
 			
-			try{
-				l.downloadStubEventOccurred(
-						new DownloadStubEvent()
-						{
-							public int
-							getEventType()
-							{
-								return( preparing?DownloadStubEvent.DSE_STUB_WILL_BE_ADDED:DownloadStubEvent.DSE_STUB_ADDED );
-							}
-							
-							public List<DownloadStub>
-							getDownloadStubs()
-							{
-								return( list );
-							}
-						});
+			if ( informing_of_add.contains( stub )){
 				
-			}catch( Throwable e ){
+				Debug.out( "Already informing of addition, ignoring" );
 				
-				Debug.out( e );
+				return;
+			}
+			
+			informing_of_add.add( stub );
+		}
+		
+		try{
+			final List<DownloadStub>	list = new ArrayList<DownloadStub>();
+			
+			list.add( stub );
+			
+			for ( DownloadStubListener l: download_stub_listeners ){
+				
+				try{
+					l.downloadStubEventOccurred(
+							new DownloadStubEvent()
+							{
+								public int
+								getEventType()
+								{
+									return( preparing?DownloadStubEvent.DSE_STUB_WILL_BE_ADDED:DownloadStubEvent.DSE_STUB_ADDED );
+								}
+								
+								public List<DownloadStub>
+								getDownloadStubs()
+								{
+									return( list );
+								}
+							});
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}finally{
+			
+			synchronized( informing_of_add ){
+				
+				informing_of_add.remove( stub );
 			}
 		}
 	}

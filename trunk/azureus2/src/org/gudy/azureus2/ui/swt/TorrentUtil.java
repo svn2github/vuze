@@ -2790,6 +2790,18 @@ public class TorrentUtil
 		// If the user chose an action just for the one torrent, we do that action, 
 		// remove that item from the array (by nulling it), and then call 
 		// removeDownloads again so we can prompt again (or erase more published/low noise torrents)
+		
+		boolean can_archive = false;
+		
+		for (int i = 0; i < dms.length; i++) {
+			DownloadManager dm = dms[i];
+			if (dm == null) {
+				continue;
+			}
+			if ( PluginCoreUtils.wrap( dm ).canStubbify()){
+				can_archive = true;
+			}
+		}
 		for (int i = 0; i < dms.length; i++) {
 			DownloadManager dm = dms[i];
 			if (dm == null) {
@@ -2808,6 +2820,10 @@ public class TorrentUtil
 							dm.getDisplayName()
 						});
 
+				if ( can_archive ){
+					text += "\n\n" + MessageText.getString("v3.deleteContent.or.archive" );
+				}
+				
 				String[] buttons;
 
 				int defaultButtonPos;

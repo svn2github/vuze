@@ -1237,7 +1237,7 @@ TagPropertyConstraintHandler
 					
 					Download dl = PluginCoreUtils.wrap( dm );
 					
-					return( dl.canStubbify());
+					return( dl != null && dl.canStubbify());
 				}
 				case FT_GE:
 				case FT_GT:
