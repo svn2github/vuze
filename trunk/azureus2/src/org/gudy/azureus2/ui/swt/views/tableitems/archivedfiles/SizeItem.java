@@ -74,7 +74,16 @@ SizeItem
 			return;
 		}
 
-		cell.setText(DisplayFormatters.formatByteCountToKiBEtc(size));
+		if ( size < 0 ){
+			
+				// skipped
+			
+			cell.setText( "(" + DisplayFormatters.formatByteCountToKiBEtc(-size) + ")");
+			
+		}else{
+			
+			cell.setText(DisplayFormatters.formatByteCountToKiBEtc(size));
+		}
 	}
 
 	public void 
