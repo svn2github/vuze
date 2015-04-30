@@ -565,7 +565,7 @@ public class UISWTViewImpl
 			if (parentLayout instanceof FormLayout) {
 				composite = parent;
 			} else {
-				composite = new Composite(parent, SWT.NULL);
+				composite = new Composite(parent, SWT.NONE);
 				GridLayout layout = new GridLayout(1, false);
 				layout.marginHeight = 0;
 				layout.marginWidth = 0;
@@ -573,8 +573,8 @@ public class UISWTViewImpl
 				gridData = new GridData(GridData.FILL_BOTH);
 				composite.setLayoutData(gridData);
 			}
-	
-			composite.addListener(SWT.Show, new Listener() {
+			
+			Listener showListener = new Listener() {
 				public void handleEvent(Event event) {
 					if (composite == null || composite.isDisposed()) {
 						return;
@@ -602,7 +602,12 @@ public class UISWTViewImpl
 						}
 					});
 				}
-			});
+			};
+	
+			composite.addListener(SWT.Show, showListener);
+			if (parent != composite) {
+				parent.addListener(SWT.Show, showListener);
+			}
 			if (composite.isVisible()) {
 				boolean focusGained = true;
 				if (parent instanceof CTabFolder || (parent instanceof TabFolder)) {
