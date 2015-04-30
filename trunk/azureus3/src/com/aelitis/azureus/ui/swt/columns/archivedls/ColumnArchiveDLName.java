@@ -17,11 +17,13 @@
 
 package com.aelitis.azureus.ui.swt.columns.archivedls;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 
 public class ColumnArchiveDLName
-	implements TableCellRefreshListener, TableColumnExtraInfoListener
+	implements TableCellRefreshListener, TableColumnExtraInfoListener, ObfusticateCellText
 {
 	public static String COLUMN_ID = "name";
 
@@ -73,5 +75,19 @@ public class ColumnArchiveDLName
 		}
 		
 		cell.setText(name);
+	}
+	
+	public String 
+	getObfusticatedText(
+		TableCell 	cell) 
+	{
+		DownloadStub dl = (DownloadStub) cell.getDataSource();
+		
+		if ( dl == null ){
+			
+			return( "" );
+		}
+		
+		return( ByteFormatter.encodeString(dl.getTorrentHash()));
 	}
 }

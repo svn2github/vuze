@@ -47,8 +47,8 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.views.ArchivedFilesView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
@@ -61,11 +61,9 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.columns.archivedls.*;
-import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 
@@ -73,7 +71,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 public class SBC_ArchivedDownloadsView
 	extends SkinView
 	implements 	UIUpdatable, UIPluginViewToolBarListener, TableViewFilterCheck<DownloadStub>,
-				TableViewSWTMenuFillListener, TableSelectionListener, DownloadStubListener
+				TableSelectionListener, DownloadStubListener
 {
 
 	private static final String TABLE_NAME = "ArchivedDownloads";
@@ -91,24 +89,15 @@ public class SBC_ArchivedDownloadsView
 	private boolean registeredCoreSubViews;
 
 	private Object datasource;
-	
-	private MdiEntry mdi_entry;
-
+	  
 	public Object 
 	skinObjectInitialShow(
 		SWTSkinObject 	skinObject, 
 		Object 			params) 
-	{
-		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		
-		if ( mdi != null ){
-			
-			mdi_entry = mdi.getEntryFromSkinObject(skinObject);
-		}
-		
+	{		
 		initColumns();
 		
-		return null;
+		return( null );
 	}
 
 	protected void 
@@ -296,7 +285,6 @@ public class SBC_ArchivedDownloadsView
 			
 			table_parent.setLayout(layout);
 	
-			tv.addMenuFillListener( this );
 			tv.addSelectionListener( this, false );
 			
 			tv.initialize( table_parent );
@@ -333,7 +321,9 @@ public class SBC_ArchivedDownloadsView
 			
 			return;
 		}
-
+			
+		pluginUI.addView(TABLE_NAME, "ArchivedFilesView", ArchivedFilesView.class, null);
+		
 		registeredCoreSubViews = true;
 	}
 
@@ -477,14 +467,6 @@ public class SBC_ArchivedDownloadsView
 		itemRestore.setEnabled( hasSelection );
 		
 		new MenuItem( menu, SWT.SEPARATOR );
-	}
-
-	public void 
-	addThisColumnSubMenu(
-		String 	sColumnName, 
-		Menu	menuThisColumn )
-	{
-		
 	}
 	
 	public void 
