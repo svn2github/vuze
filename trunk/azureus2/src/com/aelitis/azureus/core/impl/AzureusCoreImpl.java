@@ -203,7 +203,7 @@ AzureusCoreImpl
 
 	private AzureusCoreOperation	initialisation_op = createOperation( AzureusCoreOperation.OP_INITIALISATION );
 	
-	public static boolean SUPPRESS_CLASSLOADER_ERRORS = false;
+	public static boolean SUPPRESS_CLASSLOADER_ERRORS = true;
 	
 	private boolean ca_shutdown_computer_after_stop	= false;
 	private long	ca_last_time_downloading 		= -1;

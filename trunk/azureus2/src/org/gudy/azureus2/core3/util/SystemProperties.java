@@ -102,7 +102,8 @@ public class SystemProperties {
 				
 				if ( dot_pos == -1 ){
 					
-					System.out.println( "SystemProperties: determineApplicationName -  can't determine application name from " + classpath );
+					// probably console UI
+					// System.out.println( "SystemProperties: determineApplicationName -  can't determine application name from " + classpath );
 					
 				}else{
 					

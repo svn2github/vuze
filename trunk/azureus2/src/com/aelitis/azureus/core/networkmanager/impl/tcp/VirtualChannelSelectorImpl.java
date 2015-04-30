@@ -799,7 +799,8 @@ public class VirtualChannelSelectorImpl {
 	 				 
 	 				logged_broken_select = true;
 	 				 
-	 				Debug.outNoStack( "Select operation looks broken, trying workaround" );
+	 				//We always get this on OSX
+	 				//Debug.outNoStack( "Select operation looks broken, trying workaround" );
 	 			 }
 	 		 }
  		 }else{

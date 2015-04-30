@@ -52,7 +52,7 @@ public class OSXAccess
 	private static boolean loadLibrary(String lib) {
 		try {
 			SystemLoadLibrary(lib);
-			System.out.println(lib + " v" + getVersion() + " Load complete!");
+			//System.out.println(lib + " v" + getVersion() + " Load complete!");
 			bLoaded = true;
 			initialize();
 		} catch (Throwable e1) {
