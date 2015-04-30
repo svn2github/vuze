@@ -587,7 +587,8 @@ public class TorrentUtil
 				ManagerUtils.moveToArchive( ar_dms );
 			}
 		});
-		itemFileClearResume.setEnabled(ar_dms.size() > 0);
+		
+		itemArchive.setEnabled(ar_dms.size() > 0);
 		
 		
 		// Advanced - > Rename
