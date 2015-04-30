@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadStub;
+import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.download.DownloadStubEvent;
 import org.gudy.azureus2.plugins.download.DownloadStubListener;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
@@ -570,22 +571,62 @@ public class SBC_ArchivedDownloadsView
 		String 			filter, 
 		boolean 		regex) 
 	{
-		String name = ds.getName();
-		
-		String s = regex ? filter : "\\Q" + filter.replaceAll("\\s*[|;]\\s*", "\\\\E|\\\\Q") + "\\E";
-		
-		boolean	match_result = true;
-		
-		if ( regex && s.startsWith( "!" )){
+		if ( filter.toLowerCase( Locale.US ).startsWith( "f:" )){
 			
-			s = s.substring(1);
+			filter = filter.substring(2).trim();
+					
+			DownloadStubFile[] files = ds.getStubFiles();
 			
-			match_result = false;
-		}
-		
-		Pattern pattern = RegExUtil.getCachedPattern( "archiveview:search", s, Pattern.CASE_INSENSITIVE);
+			String s = regex ? filter : "\\Q" + filter.replaceAll("\\s*[|;]\\s*", "\\\\E|\\\\Q") + "\\E";
+			
+			boolean	match_result = true;
+			
+			if ( regex && s.startsWith( "!" )){
+				
+				s = s.substring(1);
+				
+				match_result = false;
+			}
+			
+			Pattern pattern = RegExUtil.getCachedPattern( "archiveview:search", s, Pattern.CASE_INSENSITIVE);
 
-		return( pattern.matcher(name).find() == match_result );
+			
+			boolean result = !match_result;
+			
+		
+			for ( DownloadStubFile file: files ){
+				
+				String name = file.getFile().getName();
+				
+				if ( pattern.matcher( name ).find()){
+				
+					result = match_result;
+						
+					break;
+				}
+			}
+			
+			return( result );
+			
+		}else{
+			
+			String name = ds.getName();
+			
+			String s = regex ? filter : "\\Q" + filter.replaceAll("\\s*[|;]\\s*", "\\\\E|\\\\Q") + "\\E";
+			
+			boolean	match_result = true;
+			
+			if ( regex && s.startsWith( "!" )){
+				
+				s = s.substring(1);
+				
+				match_result = false;
+			}
+			
+			Pattern pattern = RegExUtil.getCachedPattern( "archiveview:search", s, Pattern.CASE_INSENSITIVE);
+	
+			return( pattern.matcher(name).find() == match_result );
+		}
 	}
 
 	public Object 
