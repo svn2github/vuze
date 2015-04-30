@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.ArchivedFilesView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
@@ -71,7 +72,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 public class SBC_ArchivedDownloadsView
 	extends SkinView
 	implements 	UIUpdatable, UIPluginViewToolBarListener, TableViewFilterCheck<DownloadStub>,
-				TableSelectionListener, DownloadStubListener
+	TableViewSWTMenuFillListener, TableSelectionListener, DownloadStubListener
 {
 
 	private static final String TABLE_NAME = "ArchivedDownloads";
@@ -285,6 +286,7 @@ public class SBC_ArchivedDownloadsView
 			
 			table_parent.setLayout(layout);
 	
+			tv.addMenuFillListener(this);
 			tv.addSelectionListener( this, false );
 			
 			tv.initialize( table_parent );
@@ -405,6 +407,13 @@ public class SBC_ArchivedDownloadsView
 	getUpdateUIName() 
 	{
 		return( TABLE_NAME );
+	}
+	
+	public void 
+	addThisColumnSubMenu(
+		String 		columnName, 
+		Menu 		menuThisColumn ) 
+	{
 	}
 	
 	public void 

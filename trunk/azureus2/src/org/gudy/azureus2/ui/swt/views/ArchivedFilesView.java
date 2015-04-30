@@ -20,6 +20,10 @@
 package org.gudy.azureus2.ui.swt.views;
 
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -29,13 +33,13 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.archivedfiles.*;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
@@ -52,13 +56,14 @@ public class ArchivedFilesView
 	
 	private final static TableColumnCore[] basicItems = {
 		new NameItem(TABLE_ID),
+		new SizeItem(TABLE_ID),
 	};
 
 	static{
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 
 		tcManager.setDefaultColumnNames( TABLE_ID, basicItems );
-	 }
+	}
 	 
 	public static final String MSGID_PREFIX = "ArchivedFilesView";
 	
@@ -112,6 +117,41 @@ public class ArchivedFilesView
 	fillMenu(
 		String sColumnName, Menu menu) 
 	{
+		List<Object>	ds = tv.getSelectedDataSources();
+		
+		final List<DownloadStubFile> files = new ArrayList<DownloadStub.DownloadStubFile>();
+		
+		for ( Object o: ds ){
+			
+			files.add((DownloadStubFile)o);
+		}
+		
+		boolean	hasSelection = files.size() > 0;
+		
+			// Explore (or open containing folder)
+		
+		final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+		
+		final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(itemExplore, "MyTorrentsView.menu."
+				+ (use_open_containing_folder ? "open_parent_folder" : "explore"));
+		
+		itemExplore.addListener(SWT.Selection, new Listener() {
+			public void 
+			handleEvent(
+				Event event) 
+			{
+				for ( DownloadStubFile file: files ){
+				
+					ManagerUtils.open( new File( file.getFile().getAbsolutePath()), use_open_containing_folder);
+				}
+			}
+		});
+		
+		itemExplore.setEnabled(hasSelection);
+		
+		new MenuItem( menu, SWT.SEPARATOR );
 	}
 	
 	public void 
