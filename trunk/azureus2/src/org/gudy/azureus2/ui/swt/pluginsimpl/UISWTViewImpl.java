@@ -448,7 +448,10 @@ public class UISWTViewImpl
 				}
 			}
 
-			triggerEventRaw(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, datasource);
+			if (DEBUG_TRIGGERS) {
+				System.out.println(" -> raw DS Change");
+			}
+			triggerEventRaw(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, PluginCoreUtils.convert(datasource, useCoreDataSource));
 		}
 	
 		return result;
@@ -571,7 +574,7 @@ public class UISWTViewImpl
 				composite.setLayoutData(gridData);
 			}
 	
-			parent.addListener(SWT.Show, new Listener() {
+			composite.addListener(SWT.Show, new Listener() {
 				public void handleEvent(Event event) {
 					if (composite == null || composite.isDisposed()) {
 						return;
@@ -600,7 +603,7 @@ public class UISWTViewImpl
 					});
 				}
 			});
-			if (parent.isVisible()) {
+			if (composite.isVisible()) {
 				boolean focusGained = true;
 				if (parent instanceof CTabFolder || (parent instanceof TabFolder)) {
 					// can't be gaining the focus yet.. we just created it and
