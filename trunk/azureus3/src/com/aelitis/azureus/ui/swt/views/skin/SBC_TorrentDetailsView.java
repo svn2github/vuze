@@ -323,7 +323,7 @@ public class SBC_TorrentDetailsView
 		});
 		
 		if (dataSource instanceof Object[]
-				&& ((Object[]) dataSource)[1] instanceof PEPeer) {
+				&& ((Object[]) dataSource)[0] instanceof PEPeer) {
 			tabbedMDI.showEntryByID(PeersView.MSGID_PREFIX);
 		} else {
   		MdiEntry[] entries = tabbedMDI.getEntries();
