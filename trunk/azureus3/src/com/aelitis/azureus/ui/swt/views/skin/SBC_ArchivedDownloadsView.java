@@ -99,6 +99,20 @@ public class SBC_ArchivedDownloadsView
 	{		
 		initColumns();
 		
+		new InfoBarUtil(
+			skinObject, 
+			"archivedlsview.infobar", 
+			false,
+			"archivedls.infobar", 
+			"archivedls.view.infobar" ) 
+			{
+				public boolean 
+				allowShow() 
+				{
+					return( true );
+				}
+			};
+		
 		return( null );
 	}
 
