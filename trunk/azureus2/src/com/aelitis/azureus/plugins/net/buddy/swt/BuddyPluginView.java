@@ -763,6 +763,7 @@ BuddyPluginView
 							case UISWTViewEvent.TYPE_CREATE:{
 								
 								beta_subviews.put(currentView, new BetaSubViewHolder());
+								currentView.setDestroyOnDeactivate(false);
 								
 								break;
 							}
@@ -2759,6 +2760,10 @@ BuddyPluginView
 				
 				current_download 	= dl==null?null:getDownloadAdapter( dl );
 				current_ds_tag		= tag;
+				
+				if (current_download != null) {
+					setChatMode(CHAT_DOWNLOAD);
+				}
 				
 				rebuild_outstanding = true;
 				
