@@ -26,18 +26,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
-import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubEx;
-import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
@@ -86,7 +84,7 @@ DownloadStubImpl
 		
 		for ( int i=0;i<files.length;i++){
 			
-			files[i] = new DownloadStubFileImpl( _files[i] );
+			files[i] = new DownloadStubFileImpl( this, _files[i] );
 		}
 	}
 	
@@ -116,7 +114,7 @@ DownloadStubImpl
 			
 			for ( int i=0;i<files.length;i++){
 				
-				files[i] = new DownloadStubFileImpl((Map)file_list.get(i));
+				files[i] = new DownloadStubFileImpl( this, (Map)file_list.get(i));
 			}
 		}
 		
@@ -400,22 +398,55 @@ DownloadStubImpl
 	DownloadStubFileImpl
 		implements DownloadStubFile
 	{
-		private final File		file;
-		private final long		length;
+		private final DownloadStubImpl		stub;
+		private final Object				file;
+		private final long					length;
 		
 		protected
 		DownloadStubFileImpl(
+			DownloadStubImpl	_stub,
 			DownloadStubFile	stub_file )
 		{
-			file	= stub_file.getFile();
+			stub	= _stub;
 			length	= stub_file.getLength();
+			
+			File f	= stub_file.getFile();
+			
+			String path = f.getAbsolutePath();
+			
+			String save_loc = stub.getSavePath();
+			
+			int	save_loc_len = save_loc.length();
+			
+			if ( 	path.startsWith( save_loc ) && 
+					path.length() > save_loc_len &&
+					path.charAt( save_loc_len ) == File.separatorChar ){
+				
+				file = path.substring( save_loc_len + 1 );
+				
+			}else{
+				
+				file = f;
+			}
 		}
 		
 		protected
 		DownloadStubFileImpl(
-			Map		map )
+			DownloadStubImpl	_stub,
+			Map					map )
 		{
-			file 	= new File( MapUtils.getMapString(map, "file", null ));
+			stub	= _stub;
+			
+			String abs_file = MapUtils.getMapString(map, "file", null );
+			
+			if ( abs_file != null ){
+				
+				file 	= new File( abs_file );
+				
+			}else{
+				
+				file =  MapUtils.getMapString(map, "rel", null );
+			}
 			
 			length 	= (Long)map.get( "len" );
 		}
@@ -425,7 +456,15 @@ DownloadStubImpl
 		{
 			Map	map = new HashMap();
 
-			map.put( "file", file.getAbsolutePath());
+			if ( file instanceof File ){
+				
+				map.put( "file", ((File)file).getAbsolutePath());
+				
+			}else{
+				
+				map.put( "rel",(String)file );
+			}
+			
 			map.put( "len", length );
 			
 			return( map );
@@ -434,7 +473,14 @@ DownloadStubImpl
 		public File
 		getFile()
 		{
-			return( file );
+			if ( file instanceof File ){
+			
+				return((File)file );
+				
+			}else{
+				
+				return( new File( stub.getSavePath(), (String)file ));
+			}
 		}
 		
 		public long
@@ -443,4 +489,213 @@ DownloadStubImpl
 			return( length );
 		}
 	}
+	
+	
+	/*
+	private static Object	file_name_manager_lock = new Object();
+	
+	private static long		nodes 	= 0;
+	private static long		chars 	= 0;
+	private static long		raw 	= 0;
+	
+	private static class
+	FileNameManager
+	{
+		private FileNode	root = new FileNode( null, null );
+		
+		public FileNode
+		addFile(
+			File		f )
+		{
+			raw += f.getAbsolutePath().length();
+			
+			synchronized( file_name_manager_lock ){
+				
+				f = f.getAbsoluteFile();
+				
+				List<String>	comps = new ArrayList<String>( 32 );
+				
+				while(true ){
+					
+					File parent = f.getParentFile();
+					
+					if ( parent == null ){
+						
+						comps.add( f.getAbsolutePath());
+						
+						break;
+						
+					}else{
+						
+						comps.add( f.getName());
+					
+						f = parent;
+					}
+				}
+				
+				int	comp_num = comps.size();
+				
+				if ( comp_num == 1 ){
+					
+					return( new FileNode( comps.get(0), null ));
+					
+				}else{
+					
+					FileNode node = root;
+					
+					for ( int i=comp_num-1;i>0;i--){
+						
+						String bit = comps.get(i);
+						
+						node = node.getChild( bit );
+					}
+					
+					return( new FileNode( comps.get(0), node ));
+				}
+			}
+		}
+	}
+	
+	private static final class
+	FileNode
+	{
+		private final String			name;
+		private final FileNode			parent;
+		
+		private LightHashMap<String,FileNode>	kids;
+		
+		private
+		FileNode(
+			String		_name,
+			FileNode	_parent )
+		{
+			name		= _name;
+			parent		= _parent;
+			
+			nodes++;
+			if ( name != null ){
+				chars += name.length();
+			}
+		}
+		
+		public String
+		getName()
+		{
+			return( name );
+		}
+		
+		public FileNode
+		getParent()
+		{
+			return( parent );
+		}
+		
+		private FileNode
+		getChild(
+			String		name )
+		{
+			FileNode node;
+			
+			if ( kids == null ){
+				
+				kids = new LightHashMap<String, DownloadStubImpl.FileNode>();
+				
+				node = null;
+				
+			}else{
+				
+				node = kids.get( name );
+			}
+			
+			if ( node == null ){
+								
+				node = new FileNode( name, this );
+				
+				kids.put( name, node );
+			}
+			
+			return( node );
+		}
+		
+		public File
+		getFile()
+		{
+			if ( parent == null ){
+			
+				return( new File( name ));
+				
+			}else{
+				
+				List<FileNode> nodes = new ArrayList<FileNode>( 32 );
+	
+				FileNode current = this;
+
+				synchronized( file_name_manager_lock ){
+												
+					while( current.getName() != null ){
+						
+						nodes.add(current);
+						
+						current = current.getParent();
+					}
+				}
+				
+				StringBuffer path = new StringBuffer( 1024 );
+
+				int	num_nodes = nodes.size();
+				
+				for ( int i=num_nodes-1;i>=0;i--){
+					
+					if ( path.length() > 0 ){
+						
+						path.append( File.separator );
+					}
+					
+					path.append( nodes.get(i).getName());
+				}
+				
+				return( new File( path.toString()));
+			}
+		}
+	}
+	
+	private static void
+	addFiles(
+		FileNameManager		manager,
+		File				file )
+	{
+		if ( file.isFile()){
+			
+			FileNode node = manager.addFile( file );
+			
+			System.out.println( node.getFile() + ": nodes=" + nodes + ",chars=" + chars + ",raw=" + raw );
+			
+		}else{
+			
+			File[] files = file.listFiles();
+			
+			for ( File f: files ){
+				
+				addFiles( manager, f );
+			}
+		}
+	}
+	
+	public static void
+	main(
+		String[]		args )
+	{
+		try{
+			FileNameManager manager = new FileNameManager();
+			
+			File root = new File( "C:\\temp" );
+			
+			addFiles( manager, root );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	*/
 }
