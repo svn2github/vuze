@@ -21,6 +21,7 @@ package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 
 import java.net.InetAddress;
+import java.nio.channels.CancelledKeyException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -197,7 +198,12 @@ TCPNetworkManager
 			    				
 		    			}catch( Throwable t ) {
 		    				
-		    				Debug.out( "readSelectorLoop() EXCEPTION: ", t );
+		    					// filter out the boring ones
+		    				
+		    				if (!( t instanceof CancelledKeyException )){
+		    				
+		    					Debug.out( "readSelectorLoop() EXCEPTION: ", t );
+		    				}
 		    			}      
 		    		}
 		    	}
