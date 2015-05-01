@@ -26,7 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFactory;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
@@ -265,9 +270,130 @@ DownloadStubImpl
 		boolean delete_torrent, 
 		boolean delete_data )
 			
-			throws DownloadException, DownloadRemovalVetoException 
+		throws DownloadException, DownloadRemovalVetoException 
 	{
-		System.out.println( "TODO!" );
+		if ( delete_data ){
+			
+			TOTorrent torrent = manager.getTorrent( this );
+			
+			if ( torrent != null ){
+				
+				File save_location = new File(getSavePath());
+				
+				if ( torrent.isSimpleTorrent()){
+					
+					if ( save_location.isFile()){
+						
+						FileUtil.deleteWithRecycle( save_location, false );
+					}
+				}else{
+					
+						// stub files are fully resolved (i.e. links followed). Anything outside the
+						// save location root doesn't get touched and we want to avoid individual file deletes
+						// if we can delete a parent directory instead
+					
+					if ( save_location.isDirectory()){
+						
+						DownloadStubFile[] files = getStubFiles();
+						
+						String	save_path = save_location.getAbsolutePath();
+						
+						if ( !save_path.endsWith( File.separator )){
+							
+							save_path += File.separator;
+						}
+						
+						int	found = 0;
+						
+						for ( DownloadStubFile file: files ){
+							
+							File f = file.getFile();
+							
+							String path = f.getAbsolutePath();
+							
+							if ( path.startsWith( save_path )){
+								
+								if ( f.exists()){
+								
+									found++;
+								}
+							}
+						}
+						
+						int actual = countFiles( save_location );
+													
+						if ( actual == found ){
+							
+							FileUtil.deleteWithRecycle( save_location, false );
+							
+						}else{
+							
+							for ( DownloadStubFile file: files ){
+								
+								File f = file.getFile();
+								
+								String path = f.getAbsolutePath();
+								
+								if ( path.startsWith( save_path )){
+									
+									FileUtil.deleteWithRecycle( f, false );
+								}
+							}
+							
+							TorrentUtils.recursiveEmptyDirDelete( save_location, false );
+						}
+					}
+				}
+			}
+		}
+	
+		if ( delete_torrent ){
+			
+			byte[]	bytes = (byte[])gm_map.get( "torrent" );
+			
+			if ( bytes != null ){
+				
+				try{
+					String torrent_file = new String( bytes, "UTF-8" );
+					
+					File file = new File( torrent_file );
+					
+					TorrentUtils.delete( file, false );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+		
+		manager.remove( this );
+	}
+	
+	private int
+	countFiles(
+		File		dir )
+	{
+		int	result = 0;
+		
+		File[] files = dir.listFiles();
+		
+		if ( files != null ){
+			
+			for ( File f: files ){
+				
+				if ( f.isFile()){
+					
+					result++;
+					
+				}else{
+					
+					result += countFiles( f );
+				}
+			}
+		}
+		
+		return( result );
 	}
 	
 	protected static class

@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerDownloadWillBeRemovedListener
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManager;
@@ -1321,6 +1322,26 @@ DownloadManagerImpl
 				informAdded( stub, true );
 			}
 		}
+	}
+	
+	protected TOTorrent
+	getTorrent(
+		DownloadStubImpl		stub )
+	{
+		File torrent_file = new File( ARCHIVE_DIR, ByteFormatter.encodeString( stub.getTorrentHash()) + ".dat" );
+		
+		if ( torrent_file.exists()){
+			
+			try{
+				return( TOTorrentFactory.deserialiseFromBEncodedFile( torrent_file ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( null );
 	}
 	
 	protected void
