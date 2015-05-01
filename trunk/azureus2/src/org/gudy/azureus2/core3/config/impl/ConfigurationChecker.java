@@ -761,6 +761,16 @@ ConfigurationChecker
       
 	    	// 5601 propagate swt crash settings 
 	    {
+	    	if ( System.getProperty( "azureus.internal.browser.disable", "0" ).equals( "1" )){
+	    		
+	    		if ( COConfigurationManager.getBooleanParameter( "browser.internal.disable", false )){
+	    		
+	    			COConfigurationManager.setParameter( "browser.internal.disable", true );
+				
+	    			changed = true;
+	    		}
+	    	}
+	    	
 			if ( COConfigurationManager.getBooleanParameter( "azpromo.dump.disable.plugin", false )){
 	
 					// plugin has detected a crash
