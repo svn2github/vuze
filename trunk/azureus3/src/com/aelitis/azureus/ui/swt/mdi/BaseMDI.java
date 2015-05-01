@@ -621,8 +621,11 @@ public abstract class BaseMDI
 		}catch( Throwable e ){
 			
 			Debug.out( e );
+			
+		}finally{
+		
+			mapAutoOpenLoaded  = true;
 		}
-		mapAutoOpenLoaded  = true;
 	}
 
 	@SuppressWarnings({
