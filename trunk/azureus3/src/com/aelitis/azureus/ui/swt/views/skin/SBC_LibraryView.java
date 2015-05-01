@@ -471,18 +471,12 @@ public class SBC_LibraryView
 							
 							String s;
 							
-							if (torrentFilterMode == TORRENTS_INCOMPLETE) {
-								String id = "library.incomplete.header";
-								if (stats.numDownloading != 1) {
-									id += ".p";
-								}
-								s = MessageText.getString(id,
-										new String[] {
-										String.valueOf(stats.numDownloading),
-										String.valueOf(stats.numIncomplete - stats.numDownloading),
-								});
+								// seeding and downloading Tag views were changed to filter appropriately
+								// but that broke the header display - fixed by forcing through the 'TORRENTS_ALL'
+								// leg for Tag based views
+							
+							if ( torrentFilterMode == TORRENTS_ALL || (datasource instanceof Tag)){
 								
-							} else if (torrentFilterMode == TORRENTS_ALL) {
 								if (datasource instanceof Category) {
 									Category cat = (Category) datasource;
 
@@ -523,7 +517,20 @@ public class SBC_LibraryView
 												"label.num_queued", new String[]{ String.valueOf( stats.numQueued )});
 									}
 								}
-							} else if (torrentFilterMode == TORRENTS_UNOPENED) {
+								
+							}else if (torrentFilterMode == TORRENTS_INCOMPLETE) {
+								String id = "library.incomplete.header";
+								if (stats.numDownloading != 1) {
+									id += ".p";
+								}
+								s = MessageText.getString(id,
+										new String[] {
+										String.valueOf(stats.numDownloading),
+										String.valueOf(stats.numIncomplete - stats.numDownloading),
+								});
+								
+							} else if ( torrentFilterMode == TORRENTS_UNOPENED ||  torrentFilterMode == TORRENTS_COMPLETE ) {
+									// complete filtering currently uses same display text as unopened
 								String id = "library.unopened.header";
 								if (stats.numUnOpened != 1) {
 									id += ".p";
@@ -653,7 +660,10 @@ public class SBC_LibraryView
 								}
 								
 								String up_str = TimeFormatter.format2( up_secs, false );
-																
+									
+								if ( s.equals( "" )){
+									Debug.out( "eh" );
+								}
 								s += "; " + 
 									MessageText.getString(
 										"label.uptime_coarse",
