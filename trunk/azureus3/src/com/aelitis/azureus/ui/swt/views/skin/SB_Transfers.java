@@ -1073,6 +1073,8 @@ public class SB_Transfers
 		}
 	}
 
+	private static Object	tag_setup_lock = new Object();
+	
 	public static MdiEntry 
 	setupTag(
 		final Tag tag ) 
@@ -1084,245 +1086,252 @@ public class SB_Transfers
 			return null;
 		}
 
-		String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
-
-		if ( mdi.getEntry( id ) != null ){
+			/*
+			 * Can get hit here concurrently due to various threads interacting with tags...
+			 */
+		
+		synchronized( tag_setup_lock ){
 			
-			return null;
-		}
-		
-			// find where to locate this in the sidebar
+			String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
+	
+			if ( mdi.getEntry( id ) != null ){
 				
-		TreeMap<Tag,String>	name_map = new TreeMap<Tag,String>(TagUIUtils.getTagComparator());
-		
-		name_map.put( tag, id );
-		
-		for ( Tag t: tag.getTagType().getTags()){
-			
-			if ( t.isVisible()){
-				
-				String tid = "Tag." + tag.getTagType().getTagType() + "." + t.getTagID();
-
-				if ( mdi.getEntry( tid ) != null ){
-					
-					name_map.put( t, tid );
-				}
-			}
-		}
-		
-		String	prev_id = null;
-		
-		for ( String this_id: name_map.values()){
-					
-			if ( this_id == id ){
-				
-				break;
+				return null;
 			}
 			
-			prev_id = this_id;
-		}
-		
-		if ( prev_id == null && name_map.size() > 1 ){
-						
-			Iterator<String>	it = name_map.values().iterator();
+				// find where to locate this in the sidebar
+					
+			TreeMap<Tag,String>	name_map = new TreeMap<Tag,String>(TagUIUtils.getTagComparator());
 			
-			it.next();
+			name_map.put( tag, id );
 			
-			prev_id = "~" + it.next();
-		}
-		
-		boolean auto = tag.getTagType().isTagTypeAuto();
+			for ( Tag t: tag.getTagType().getTags()){
 				
-		ViewTitleInfo viewTitleInfo = 
-			new ViewTitleInfo() 
-			{
-				public Object 
-				getTitleInfoProperty(
-					int pid )
-				{
-					if ( pid == TITLE_INDICATOR_TEXT ){
+				if ( t.isVisible()){
+					
+					String tid = "Tag." + tag.getTagType().getTagType() + "." + t.getTagID();
+	
+					if ( mdi.getEntry( tid ) != null ){
 						
-						return( String.valueOf( tag.getTaggedCount()));
-						
-					}else if ( pid == TITLE_INDICATOR_COLOR ){
-						
-						TagType tag_type = tag.getTagType();
-						
-						int[] def_color = tag_type.getColorDefault();
-						
-						int[] tag_color = tag.getColor();
-						
-						if ( tag_color != def_color ){
-							
-							return( tag_color );
-						}
-						
-					}else if ( pid == TITLE_INDICATOR_TEXT_TOOLTIP ){
-						
-						return( TagUIUtils.getTagTooltip( tag ));	
+						name_map.put( t, tid );
 					}
-					
-					return null;
 				}
-			};
-
-		MdiEntry entry;
-		
-		boolean closable = auto;
-		
-		if ( tag.getTaggableTypes() == Taggable.TT_DOWNLOAD ){
+			}
 			
-			closable = true;
+			String	prev_id = null;
 			
-			String name = tag.getTagName( true );
-
-			entry = mdi.createEntryFromSkinRef(
-					MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
-					name, viewTitleInfo, tag, closable, prev_id);
-		}else{
+			for ( String this_id: name_map.values()){
+						
+				if ( this_id == id ){
+					
+					break;
+				}
+				
+				prev_id = this_id;
+			}
 			
-			entry = mdi.createEntryFromEventListener(
-						MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, 
-						new PeersGeneralView( tag ), id, closable, null, prev_id);
+			if ( prev_id == null && name_map.size() > 1 ){
+							
+				Iterator<String>	it = name_map.values().iterator();
+				
+				it.next();
+				
+				prev_id = "~" + it.next();
+			}
 			
-			entry.setViewTitleInfo( viewTitleInfo );
-		}
-		
-		if ( closable ){
-			
-			entry.addListener(
-				new MdiCloseListener()
+			boolean auto = tag.getTagType().isTagTypeAuto();
+					
+			ViewTitleInfo viewTitleInfo = 
+				new ViewTitleInfo() 
 				{
-					public void 
-					mdiEntryClosed(
-						MdiEntry 	entry, 
-						boolean 	userClosed )
+					public Object 
+					getTitleInfoProperty(
+						int pid )
 					{
-						if ( userClosed && entry.getUserData( AUTO_CLOSE_KEY ) == null ){
+						if ( pid == TITLE_INDICATOR_TEXT ){
 							
-								// userClosed isn't all we want - it just means we're not closing the app... So to prevent
-								// a deselection of 'show tags in sidebar' 'user-closing' the entries we need this test
+							return( String.valueOf( tag.getTaggedCount()));
 							
-							if ( COConfigurationManager.getBooleanParameter("Library.TagInSideBar")){
+						}else if ( pid == TITLE_INDICATOR_COLOR ){
 							
-								tag.setVisible( false );
+							TagType tag_type = tag.getTagType();
+							
+							int[] def_color = tag_type.getColorDefault();
+							
+							int[] tag_color = tag.getColor();
+							
+							if ( tag_color != def_color ){
+								
+								return( tag_color );
 							}
+							
+						}else if ( pid == TITLE_INDICATOR_TEXT_TOOLTIP ){
+							
+							return( TagUIUtils.getTagTooltip( tag ));	
 						}
+						
+						return null;
 					}
-				});
-		}
-		
-		if (entry != null) {
-			String image_id = tag.getImageID();
+				};
+	
+			MdiEntry entry;
 			
-			if ( image_id != null ){
-				entry.setImageLeftID( image_id );
-			}else if ( tag.getTagType().getTagType() == TagType.TT_PEER_IPSET ){
-				entry.setImageLeftID("image.sidebar.tag-red");
-			}else if ( tag.getTagType().isTagTypePersistent()){
-				entry.setImageLeftID("image.sidebar.tag-green");
+			boolean closable = auto;
+			
+			if ( tag.getTaggableTypes() == Taggable.TT_DOWNLOAD ){
+				
+				closable = true;
+				
+				String name = tag.getTagName( true );
+	
+				entry = mdi.createEntryFromSkinRef(
+						MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
+						name, viewTitleInfo, tag, closable, prev_id);
 			}else{
-				entry.setImageLeftID("image.sidebar.tag-blue");
+				
+				entry = mdi.createEntryFromEventListener(
+							MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, 
+							new PeersGeneralView( tag ), id, closable, null, prev_id);
+				
+				entry.setViewTitleInfo( viewTitleInfo );
 			}
-		}
-
-		if (entry instanceof SideBarEntrySWT) {
-			final SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
-			entrySWT.addListener(new MdiSWTMenuHackListener() {
-				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
-					TagUIUtils.createSideBarMenuItems(menuTree, tag);
-				}
-			});
-		}
-		
-		if ( !auto && entry != null ){	
-	
-			MdiEntryDropListener dl = new MdiEntryDropListener() {
-				public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
-					if (!(payload instanceof String)) {
-						return false;
-					}
-					
-					if ( tag.isTagAuto()){
-						
-						return( false );
-					}
-					
-					final String dropped = (String) payload;
-
-					new AEThread2("Tagger") {
-						@Override
-						public void run() {
-							dropTorrentOnTag(tag, dropped);
-						}
-					}.start();
-	
-					return true;
-				}
-
-				private void dropTorrentOnTag(Tag tag, String dropped) {
-					String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
-					if (split.length <= 1) {
-						return;
-					}
-
-					String type = split[0];
-					if (!type.startsWith("DownloadManager") && !type.startsWith( "DiskManagerFileInfo" )) {
-						return;
-					}
-					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-					List<DownloadManager> listDMs = new ArrayList<DownloadManager>();
-					boolean doAdd = false;
-					for (int i = 1; i < split.length; i++) {
-						String hash = split[i];
-						
-						int sep = hash.indexOf( ";" );	// for files
-						
-						if ( sep != -1 ){
-							
-							hash = hash.substring( 0, sep );
-						}
-						
-						try {
-							DownloadManager dm = gm.getDownloadManager(new HashWrapper(
-									Base32.decode(hash)));
-							
-							if ( dm != null ){
+			
+			if ( closable ){
+				
+				entry.addListener(
+					new MdiCloseListener()
+					{
+						public void 
+						mdiEntryClosed(
+							MdiEntry 	entry, 
+							boolean 	userClosed )
+						{
+							if ( userClosed && entry.getUserData( AUTO_CLOSE_KEY ) == null ){
 								
-								listDMs.add(dm);
+									// userClosed isn't all we want - it just means we're not closing the app... So to prevent
+									// a deselection of 'show tags in sidebar' 'user-closing' the entries we need this test
 								
-								if (!doAdd && !tag.hasTaggable(dm)) {
-									doAdd = true;
+								if ( COConfigurationManager.getBooleanParameter("Library.TagInSideBar")){
+								
+									tag.setVisible( false );
 								}
 							}
-						}catch ( Throwable t ){
-							
+						}
+					});
+			}
+			
+			if (entry != null) {
+				String image_id = tag.getImageID();
+				
+				if ( image_id != null ){
+					entry.setImageLeftID( image_id );
+				}else if ( tag.getTagType().getTagType() == TagType.TT_PEER_IPSET ){
+					entry.setImageLeftID("image.sidebar.tag-red");
+				}else if ( tag.getTagType().isTagTypePersistent()){
+					entry.setImageLeftID("image.sidebar.tag-green");
+				}else{
+					entry.setImageLeftID("image.sidebar.tag-blue");
+				}
+			}
+	
+			if (entry instanceof SideBarEntrySWT) {
+				final SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
+				entrySWT.addListener(new MdiSWTMenuHackListener() {
+					public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
+						TagUIUtils.createSideBarMenuItems(menuTree, tag);
+					}
+				});
+			}
+			
+			if ( !auto && entry != null ){	
+		
+				MdiEntryDropListener dl = new MdiEntryDropListener() {
+					public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
+						if (!(payload instanceof String)) {
+							return false;
 						}
 						
-						for (DownloadManager dm : listDMs) {
-							if ( doAdd ){
+						if ( tag.isTagAuto()){
+							
+							return( false );
+						}
+						
+						final String dropped = (String) payload;
+	
+						new AEThread2("Tagger") {
+							@Override
+							public void run() {
+								dropTorrentOnTag(tag, dropped);
+							}
+						}.start();
+		
+						return true;
+					}
+	
+					private void dropTorrentOnTag(Tag tag, String dropped) {
+						String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
+						if (split.length <= 1) {
+							return;
+						}
+	
+						String type = split[0];
+						if (!type.startsWith("DownloadManager") && !type.startsWith( "DiskManagerFileInfo" )) {
+							return;
+						}
+						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+						List<DownloadManager> listDMs = new ArrayList<DownloadManager>();
+						boolean doAdd = false;
+						for (int i = 1; i < split.length; i++) {
+							String hash = split[i];
+							
+							int sep = hash.indexOf( ";" );	// for files
+							
+							if ( sep != -1 ){
 								
-								tag.addTaggable( dm );
+								hash = hash.substring( 0, sep );
+							}
+							
+							try {
+								DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+										Base32.decode(hash)));
 								
-							}else{
+								if ( dm != null ){
+									
+									listDMs.add(dm);
+									
+									if (!doAdd && !tag.hasTaggable(dm)) {
+										doAdd = true;
+									}
+								}
+							}catch ( Throwable t ){
 								
-								tag.removeTaggable( dm );
+							}
+							
+							for (DownloadManager dm : listDMs) {
+								if ( doAdd ){
+									
+									tag.addTaggable( dm );
+									
+								}else{
+									
+									tag.removeTaggable( dm );
+								}
 							}
 						}
 					}
-				}
-			};
-			
-			boolean tag_auto = tag.isTagAuto();
-			
-			entry.setUserData( TAG_DATA_KEY, new Object[]{ dl, tag_auto });
-			
-			if ( !tag_auto ){
+				};
 				
-				entry.addListener( dl );
+				boolean tag_auto = tag.isTagAuto();
+				
+				entry.setUserData( TAG_DATA_KEY, new Object[]{ dl, tag_auto });
+				
+				if ( !tag_auto ){
+					
+					entry.addListener( dl );
+				}
 			}
+			return entry;
 		}
-		return entry;
 	}
 
 	private static void removeTag(Tag tag) {
