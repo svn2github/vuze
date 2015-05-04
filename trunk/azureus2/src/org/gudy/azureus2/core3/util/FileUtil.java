@@ -27,6 +27,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -1915,6 +1916,24 @@ public class FileUtil {
 		}
 	}
 		
+	public static String
+	readGZippedFileAsString(
+		File	file,
+		int		size_limit )
+	
+		throws IOException
+	{
+		FileInputStream fis = new FileInputStream(file);
+				
+		try {
+			GZIPInputStream zis = new GZIPInputStream( fis );
+
+			return readInputStreamAsString(zis, size_limit);
+		} finally {
+
+			fis.close();
+		}
+	}
 	public static String
 	readInputStreamAsString(
 		InputStream is,

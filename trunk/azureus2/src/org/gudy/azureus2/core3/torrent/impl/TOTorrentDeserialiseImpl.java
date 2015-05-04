@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.torrent.impl;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 import org.gudy.azureus2.core3.html.HTMLUtils;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -66,7 +67,7 @@ TOTorrentDeserialiseImpl
 			// However, this as been exceeded! (see bug 826617)
 			// As there is no technical reason for this limit I have removed it
 		
-		FileInputStream fis = null;
+		InputStream fis = null;
 		
 		try{
 				
@@ -76,9 +77,26 @@ TOTorrentDeserialiseImpl
 	
 		}catch( Throwable e ){
 			
-			throw( new TOTorrentException( "Error reading torrent file '" + file.toString() + " - " + Debug.getNestedExceptionMessage(e),
-											TOTorrentException.RT_READ_FAILS ));
+				// added automatic handling of gzipped files here as some users seem to be ending up 
+				// with then and it isn't a big deal to try 
 			
+			try{
+				if ( fis != null ){
+					
+					fis.close();
+					
+					fis = null;
+				}
+				
+				fis = new GZIPInputStream( new FileInputStream( file ));
+				
+				construct( fis );
+								
+			}catch( Throwable f ){	
+			
+				throw( new TOTorrentException( "Error reading torrent file '" + file.toString() + " - " + Debug.getNestedExceptionMessage(e),
+											TOTorrentException.RT_READ_FAILS ));
+			}
 		}finally{
 			
 			if ( fis != null ){
@@ -101,7 +119,39 @@ TOTorrentDeserialiseImpl
 		
 		throws TOTorrentException
 	{		
-		construct( is );
+			// while we could do this I don't like it because we end up with yet another copy of the
+			// torrent data in memory (could in theory be a 50MB torrent...) - we already cache the entire
+			// torrent in a bytearrayoutputstream in 'construct' later and in theory this could be coming
+			
+		
+		if ( false && is.markSupported()){
+						
+			is.mark( Integer.MAX_VALUE );
+			
+			BufferedInputStream bis = new BufferedInputStream( is );	// supports independent 'mark/reset'
+			
+			try{
+				construct( bis );
+				
+			}catch( TOTorrentException e ){
+				
+				try{
+				
+					is.reset();
+					
+					bis = new BufferedInputStream( new GZIPInputStream( is ));
+					
+					construct( bis );
+					
+				}catch( Throwable f ){
+					
+					throw( e );
+				}
+			}
+		}else{
+		
+			construct( is );
+		}
 	}
 	
 	public
@@ -127,7 +177,7 @@ TOTorrentDeserialiseImpl
 	
 		throws TOTorrentException
 	{
-		ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
+		ByteArrayOutputStream metaInfo = new ByteArrayOutputStream( 64*1024 );
 		
 		try{
 			byte[] buf = new byte[32*1024];	// raised this limit as 2k was rather too small

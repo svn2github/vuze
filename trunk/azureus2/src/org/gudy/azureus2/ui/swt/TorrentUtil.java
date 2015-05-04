@@ -2465,6 +2465,14 @@ public class TorrentUtil
 		String sFirstChunk = null;
 		try {
 			sFirstChunk = FileUtil.readFileAsString(torrentFile, 16384).toLowerCase();
+			
+			try{
+				if (!sFirstChunk.startsWith("d")) {
+					sFirstChunk = FileUtil.readGZippedFileAsString(torrentFile, 16384).toLowerCase();
+				}
+			}catch( Throwable e ){
+				
+			}
 		} catch (IOException e) {
 			Debug.out("warning", e);
 		}
