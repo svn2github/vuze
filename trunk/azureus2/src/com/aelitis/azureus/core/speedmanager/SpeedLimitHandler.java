@@ -913,6 +913,10 @@ SpeedLimitHandler
 					int		up_lim		= -1;
 					int		down_lim	= -1;
 					
+					int		peer_up_lim		= 0;
+					int		peer_down_lim	= 0;
+
+					
 					Set<String>	categories_or_tags = new HashSet<String>();
 					
 					IPSet set = null;
@@ -944,6 +948,14 @@ SpeedLimitHandler
 							}else if ( lc_lhs.equals( "down" )){
 								
 								down_lim = (int)parseRate( lc_rhs );
+								
+							}else if ( lc_lhs.equals( "peer_up" )){
+								
+								peer_up_lim = (int)parseRate( lc_rhs );
+								
+							}else if ( lc_lhs.equals( "peer_down" )){
+								
+								peer_down_lim = (int)parseRate( lc_rhs );
 								
 							}else if ( lc_lhs.equals( "cat" ) || lc_lhs.equals( "tag" )){
 								
@@ -1005,11 +1017,11 @@ SpeedLimitHandler
 						throw( new Exception());
 					}
 					
-					set.setParameters( inverse, up_lim, down_lim, categories_or_tags );
+					set.setParameters( inverse, up_lim, down_lim, peer_up_lim, peer_down_lim, categories_or_tags );
 					
 				}catch( Throwable e ){
 					
-					result.add( "'" +line + "' is invalid: use ip_set <name>=<cidrs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [,cat=<categories>]: " + e.getMessage());
+					result.add( "'" +line + "' is invalid: use ip_set <name>=<cidrs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [,peer_up=<limit>] [,peer_down=<limit>] [,cat=<categories>]: " + e.getMessage());
 				}
 			}else if ( lc_line.startsWith( "net_limit" )){
 
@@ -2368,6 +2380,20 @@ SpeedLimitHandler
 			
 			set.addPeer( peer_manager, peer );
 		}
+		
+		int	peer_up = set.getPeerUpLimit();
+		
+		if ( peer_up > 0 ){
+			
+			peer.getStats().setUploadRateLimit( peer_up );
+		}
+		
+		int	peer_down = set.getPeerDownLimit();
+		
+		if ( peer_down > 0 ){
+			
+			peer.getStats().setDownloadRateLimit( peer_down );
+		}
 	}
 	
 	private ScheduleRule
@@ -2553,7 +2579,7 @@ SpeedLimitHandler
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
 		result.add( "#        extension: (start_tag|stop_tag|pause_tag|resume_tag):<tag_name>" );
 		result.add( "#    peer_set <set_name>=[<CIDR_specs...>|CC list|Network List|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [,cat=<cat names>] [,tag=<tag names>]" );
-		result.add( "#    net_limit (daily|weekly|monthly)[:<profile>] [total=<limit>] [up=<limit>] [down=<limit>]");
+		result.add( "#    net_limit (daily|weekly|monthly)[:<profile>] [total=<limit>] [up=<limit>] [down=<limit>] [peer_up=<limit>] [peer_down=<limit>]");
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
 		result.add( "#" );
@@ -4159,6 +4185,9 @@ SpeedLimitHandler
 		private RateLimiter		up_limiter;
 		private RateLimiter		down_limiter;
 		
+		private int				peer_up_lim;
+		private int				peer_down_lim;
+		
 		private TagPeerImpl		tag_impl;
 		
 		private
@@ -4196,6 +4225,8 @@ SpeedLimitHandler
 			boolean			_inverse,
 			int				_up_lim,
 			int				_down_lim,
+			int				_peer_up_lim,
+			int				_peer_down_lim,
 			Set<String>		_cats_or_tags )
 		{
 			inverse	= _inverse;
@@ -4213,7 +4244,22 @@ SpeedLimitHandler
 			up_limiter.setRateLimitBytesPerSecond( _up_lim );
 			down_limiter.setRateLimitBytesPerSecond( _down_lim );
 			
+			peer_up_lim 	= _peer_up_lim;
+			peer_down_lim	= _peer_down_lim;
+			
 			categories_or_tags = _cats_or_tags.size()==0?null:_cats_or_tags;
+		}
+		
+		private int
+		getPeerUpLimit()
+		{
+			return( peer_up_lim );
+		}
+		
+		private int
+		getPeerDownLimit()
+		{
+			return( peer_down_lim );
 		}
 		
 		private boolean
@@ -4487,7 +4533,8 @@ SpeedLimitHandler
 					", CC=" + country_codes +
 					", Networks=" + networks +
 					", Inverse=" + inverse +
-					", Categories/Tags=" + (categories_or_tags==null?"[]":String.valueOf(categories_or_tags)));
+					", Categories/Tags=" + (categories_or_tags==null?"[]":String.valueOf(categories_or_tags)) +
+					", Peer_Up=" + format( peer_up_lim ) + ", Peer_Down=" + format( peer_down_lim ));
 					
 		}
 		
