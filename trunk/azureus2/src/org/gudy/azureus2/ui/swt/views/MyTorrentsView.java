@@ -354,7 +354,7 @@ public class MyTorrentsView
 
 		boolean isSeedingView = Download.class.equals(forDataSourceType) || DownloadTypeComplete.class.equals(forDataSourceType);
 		new TorrentMenuFancy(tv, isSeedingView, getComposite().getShell(), dms,
-				tv.getTableID()).showMenu(column);
+				tv.getTableID()).showMenu(column, oldMenu);
 		return true;
 	}
 

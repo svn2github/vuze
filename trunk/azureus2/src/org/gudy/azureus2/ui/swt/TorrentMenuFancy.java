@@ -41,7 +41,6 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.GraphicURI;
@@ -429,7 +428,7 @@ public class TorrentMenuFancy
 		Collections.sort(listMovedPluginIDs);
 	}
 
-	public void showMenu(TableColumnCore acolumn) {
+	public void showMenu(TableColumnCore acolumn, final Menu fallbackMenu ) {
 		this.column = acolumn;
 		Display d = parentShell.getDisplay();
 
@@ -659,6 +658,18 @@ public class TorrentMenuFancy
 			}
 		});
 
+		if ( fallbackMenu != null ){
+			
+			firstHeader.composite.addMenuDetectListener(
+					new MenuDetectListener() {
+						
+						public void menuDetected(MenuDetectEvent e) {
+							shell.dispose();
+							fallbackMenu.setVisible( true );
+						}
+					});
+		}
+		
 		shell.addTraverseListener(new TraverseListener() {
 			public void keyTraversed(TraverseEvent e) {
 				if (e.detail == SWT.TRAVERSE_ESCAPE) {
