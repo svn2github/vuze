@@ -1919,6 +1919,38 @@ BuddyPluginViewBetaChat
 				});
 		
 		
+		buddy_table.addMouseListener(
+			new MouseAdapter()
+			{
+				public void 
+				mouseDoubleClick(
+					MouseEvent e ) 
+				{
+					TableItem[] selection = buddy_table.getSelection();
+					
+					if ( selection.length != 1 ){
+						
+						return;
+					}
+					
+					TableItem item = selection[0];
+						
+					ChatParticipant	participant = (ChatParticipant)item.getData();
+					
+					String name = participant.getName( true );
+					
+					String existing = input_area.getText();
+					
+					if ( existing.length() > 0 && !existing.endsWith( " " )){
+						
+						name = " " + name;
+					}
+					
+					input_area.append( name );
+
+				}
+			});
+		
 	    Utils.maintainSashPanelWidth( sash, rhs, new int[]{ 700, 300 }, "azbuddy.dchat.ui.sash.pos" );
 	    
 	    /*
