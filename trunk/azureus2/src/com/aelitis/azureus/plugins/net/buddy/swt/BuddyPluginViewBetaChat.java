@@ -1359,7 +1359,7 @@ BuddyPluginViewBetaChat
 									
 									final MenuItem mi_copy_clip = new MenuItem( log_menu, SWT.PUSH );
 									
-									mi_copy_clip.setText( lu.getLocalisedMessageText( "ConfigView.copy.to.clipboard.tooltip" ));
+									mi_copy_clip.setText( lu.getLocalisedMessageText( "label.copy.to.clipboard" ));
 									mi_copy_clip.setData( url_str );
 
 									mi_copy_clip.addSelectionListener(
@@ -1404,7 +1404,7 @@ BuddyPluginViewBetaChat
 							
 							MenuItem   item = new MenuItem( log_menu, SWT.NONE );
 
-							item.setText( MessageText.getString( "ConfigView.copy.to.clipboard.tooltip"));
+							item.setText( MessageText.getString( "label.copy.to.clipboard"));
 
 							item.addSelectionListener(
 								new SelectionAdapter()
@@ -1521,6 +1521,21 @@ BuddyPluginViewBetaChat
 									log.setSelection( offset );
 									
 									e.doit = false;
+									
+								}else if ( data instanceof ChatParticipant ){
+									
+									ChatParticipant participant = (ChatParticipant)data;
+									
+									String name = participant.getName( true );
+									
+									String existing = input_area.getText();
+									
+									if ( existing.length() > 0 && !existing.endsWith( " " )){
+										
+										name = " " + name;
+									}
+									
+									input_area.append( name );
 								}
 							}
 						}
@@ -2544,6 +2559,26 @@ BuddyPluginViewBetaChat
 			}
 			
 			private_chat_item.setEnabled( pc_enable || TEST_LOOPBACK_CHAT );
+		}
+		
+		if ( participants.size() == 1 ){
+			
+			new MenuItem(menu, SWT.SEPARATOR );
+	
+			final MenuItem mi_copy_clip = new MenuItem( menu, SWT.PUSH );
+			
+			mi_copy_clip.setText( lu.getLocalisedMessageText( "label.copy.to.clipboard" ));
+	
+			mi_copy_clip.addSelectionListener(
+				new SelectionAdapter() {
+					
+					public void 
+					widgetSelected(
+						SelectionEvent e ) 
+					{
+						ClipboardCopy.copyToClipBoard( participants.get(0).getName( true ));
+					}
+				});
 		}
 	}
 	
