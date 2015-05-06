@@ -368,7 +368,13 @@ public class MainMenu
 				MenuFactory.addSeparatorMenuItem(viewMenu);
 			}
 
-			MenuFactory.addMenuItem(viewMenu, SWT.RADIO, PREFIX_V3
+				// Ubuntu Unity (14.04) with SWT 4508 crashes when global View menu triggered as it appears
+				// that radio menu items aren't supported
+				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=419729#c9
+			
+			int simple_advanced_menu_type = Constants.isLinux?SWT.CHECK:SWT.RADIO;
+			
+			MenuFactory.addMenuItem(viewMenu, simple_advanced_menu_type, PREFIX_V3
 					+ ".view.asSimpleList", new Listener() {
 				public void handleEvent(Event event) {
 					UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
@@ -382,7 +388,7 @@ public class MainMenu
 					}
 				}
 			});
-			MenuFactory.addMenuItem(viewMenu, SWT.RADIO, PREFIX_V3
+			MenuFactory.addMenuItem(viewMenu, simple_advanced_menu_type, PREFIX_V3
 					+ ".view.asAdvancedList", new Listener() {
 				public void handleEvent(Event event) {
 					UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
