@@ -536,6 +536,7 @@ public class MyTorrentsSuperView
 			UISWTViewImpl swtView = new UISWTViewImpl(tableID, UISWTInstance.VIEW_MAIN, false);
 			swtView.setDatasource(ds);
 			swtView.setEventListener(view, true);
+			swtView.setDelayInitializeToFirstActivate(false);
 			
 			swtView.initialize(c);
 		} catch (Exception e) {

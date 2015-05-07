@@ -77,7 +77,7 @@ public class UISWTViewImpl
 
 	private boolean delayInitializeToFirstActivate = true;
 
-	private static final boolean DEBUG_TRIGGERS = false;
+	private static final boolean DEBUG_TRIGGERS = true;
 
 	// TODO: not protected
 	protected PluginUISWTSkinObject skinObject;
@@ -150,7 +150,9 @@ public class UISWTViewImpl
 			}
 		}
 	
-		delayInitializeToFirstActivate = !(eventListener instanceof IViewAlwaysInitialize);
+		if (eventListener instanceof IViewAlwaysInitialize) {
+			delayInitializeToFirstActivate = false;
+		}
 	
 		if (eventListener instanceof UISWTViewCoreEventListener) {
 			setUseCoreDataSource(true);
@@ -430,6 +432,7 @@ public class UISWTViewImpl
 			}
 			masterComposite = null;
 			composite = null;
+			System.out.println("nullit");
 			haveSentInitialize = false;
 			hasFocus = false;
 			created = false;
@@ -846,6 +849,15 @@ public class UISWTViewImpl
 	 */
 	public boolean isDestroyOnDeactivate() {
 		return destroyOnDeactivate;
+	}
+
+	public boolean isDelayInitializeToFirstActivate() {
+		return delayInitializeToFirstActivate;
+	}
+
+	public void setDelayInitializeToFirstActivate(
+			boolean delayInitializeToFirstActivate) {
+		this.delayInitializeToFirstActivate = delayInitializeToFirstActivate;
 	}
 
 }
