@@ -77,7 +77,7 @@ public class UISWTViewImpl
 
 	private boolean delayInitializeToFirstActivate = true;
 
-	private static final boolean DEBUG_TRIGGERS = true;
+	private static final boolean DEBUG_TRIGGERS = false;
 
 	// TODO: not protected
 	protected PluginUISWTSkinObject skinObject;
@@ -432,7 +432,6 @@ public class UISWTViewImpl
 			}
 			masterComposite = null;
 			composite = null;
-			System.out.println("nullit");
 			haveSentInitialize = false;
 			hasFocus = false;
 			created = false;
