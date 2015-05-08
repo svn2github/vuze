@@ -2173,7 +2173,7 @@ public class TorrentUtil
 				DownloadManager dm = dms[i];
 
 				int state = dm.getState();
-				if (state == DownloadManager.STATE_STOPPED) {
+				if (state != DownloadManager.STATE_ERROR) {
 					if (!dm.filesExist(true)) {
 						state = DownloadManager.STATE_ERROR;
 					}
