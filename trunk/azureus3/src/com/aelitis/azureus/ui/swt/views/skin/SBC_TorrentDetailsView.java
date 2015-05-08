@@ -143,7 +143,7 @@ public class SBC_TorrentDetailsView
 		manager = DataSourceUtils.getDM(newDataSource);
 		
 		if (tabbedMDI != null && newDataSource instanceof Object[]
-				&& ((Object[]) newDataSource)[1] instanceof PEPeer) {
+				&& ((Object[]) newDataSource)[0] instanceof PEPeer) {
 			tabbedMDI.showEntryByID(PeersView.MSGID_PREFIX);
 		}
 
