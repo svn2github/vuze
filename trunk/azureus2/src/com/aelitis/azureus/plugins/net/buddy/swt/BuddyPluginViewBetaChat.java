@@ -1754,7 +1754,8 @@ BuddyPluginViewBetaChat
 		nickname.setLayoutData( grid_data );
 
 		nickname.setText( chat.getNickname());
-
+		nickname.setMessage( chat.getDefaultNickname());
+		
 		label = new Label( nick_area, SWT.NULL );
 		label.setText( lu.getLocalisedMessageText( "label.shared" ));
 		label.setToolTipText( lu.getLocalisedMessageText( "azbuddy.dchat.shared.tooltip" ));

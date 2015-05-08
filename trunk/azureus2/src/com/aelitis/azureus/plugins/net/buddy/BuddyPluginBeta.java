@@ -2549,6 +2549,12 @@ BuddyPluginBeta
 			return( keep_alive );
 		}
 		
+		public String
+		getDefaultNickname()
+		{
+			return( pkToString( getPublicKey()));
+		}
+		
 		public boolean
 		isSharedNickname()
 		{
