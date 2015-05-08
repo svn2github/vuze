@@ -420,7 +420,7 @@ public class ScrapeInfoView
 				if ( cScrapeInfoView != null ){
 					Utils.disposeComposite(cScrapeInfoView, false);
 				}
-				if ( cParent != null ){
+				if ( cParent != null && !cParent.isDisposed() ){
 					
 					initialize( cParent );
 				}
