@@ -1751,7 +1751,7 @@ public class TorrentMenuFancy
 				{
 					public void handleEvent(Event event) {
 							
-						ManagerUtils.moveToArchive( ar_dms );
+						ManagerUtils.moveToArchive( ar_dms, null );
 					}
 				});
 		}

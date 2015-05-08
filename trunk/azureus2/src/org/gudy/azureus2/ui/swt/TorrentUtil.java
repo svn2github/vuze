@@ -52,7 +52,6 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubEx;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -584,7 +583,7 @@ public class TorrentUtil
 		Utils.setMenuItemImage(itemArchive, "archive");
 		itemArchive.addListener(SWT.Selection, new ListenerDMTask(dms) {
 			public void run(DownloadManager dm) {
-				ManagerUtils.moveToArchive( ar_dms );
+				ManagerUtils.moveToArchive( ar_dms, null );
 			}
 		});
 		

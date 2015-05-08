@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.widgets.Menu;
@@ -36,9 +38,11 @@ import org.gudy.azureus2.core3.tracker.host.TRHostListener;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncController;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.download.DownloadStubEvent;
 import org.gudy.azureus2.plugins.download.DownloadStubListener;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
@@ -53,10 +57,11 @@ import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
-import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -292,6 +297,91 @@ public class MainMDISetup
 									download_manager.removeDownloadStubListener( stub_listener );
 								}
 							});
+						
+						entry.addListener(
+								new MdiEntryDropListener()
+								{	
+									public boolean 
+									mdiEntryDrop(
+										MdiEntry 		entry, 
+										Object 			data ) 
+									{
+										if ( data instanceof String ){
+										
+											String str = (String)data;
+											
+											if ( str.startsWith( "DownloadManager\n" )){
+												
+												String[] bits = str.split( "\n" );
+												
+												org.gudy.azureus2.plugins.download.DownloadManager dm = PluginInitializer.getDefaultInterface().getDownloadManager();
+												
+												List<Download> downloads = new ArrayList<Download>();
+												
+												boolean	failed = false;
+												
+												for ( int i=1;i<bits.length;i++ ){
+													
+													byte[]	 hash = Base32.decode( bits[i] );
+													
+													try{
+														Download download = dm.getDownload( hash );
+														
+														if ( download.canStubbify()){
+															
+															downloads.add( download );
+															
+														}else{
+															
+															failed = true;
+														}
+													}catch( Throwable e ){	
+													}
+												}
+																									
+												final boolean f_failed = failed;
+												
+												ManagerUtils.moveToArchive( 
+													downloads, 
+													new ManagerUtils.ArchiveCallback()
+													{
+														boolean error = f_failed;
+														
+														public void
+														failed(
+															DownloadStub		original,
+															Throwable			e )
+														{
+															error = true;
+														}
+														
+														public void
+														completed()
+														{
+															if ( error ){
+																
+																String title 	= MessageText.getString( "archive.failed.title" );
+																String text 	= MessageText.getString( "archive.failed.text" );
+																
+																MessageBoxShell prompter = 
+																	new MessageBoxShell(
+																		title, text, 
+																		new String[] { MessageText.getString("Button.ok") }, 0 );
+																																
+																prompter.setAutoCloseInMS(0);
+																
+																prompter.open( null );
+															}
+														}
+													});
+											}
+											
+											return( true );
+										}
+										
+										return false;
+									}
+								});
 						
 						return entry;
 					}

@@ -26,6 +26,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -34,6 +36,8 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
@@ -43,6 +47,7 @@ import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
@@ -55,7 +60,9 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils.ArchiveCallback;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -374,7 +381,7 @@ public class SBC_ArchivedDownloadsView
 				
 			}else if ( id.equals( "startstop" ) || id.equals( "start" )){
 				
-				ManagerUtils.restoreFromArchive( dms, true );
+				ManagerUtils.restoreFromArchive( dms, true, null );
 			}
 			
 				
@@ -484,11 +491,83 @@ public class SBC_ArchivedDownloadsView
 				handleEvent(
 					Event event) 
 				{
-					ManagerUtils.restoreFromArchive( dms, false );
+					ManagerUtils.restoreFromArchive( dms,false, null );				
 				}
 			});
 		
 		itemRestore.setEnabled( hasSelection );
+		
+		final MenuItem itemRestoreAnd = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(itemRestoreAnd, "MyTorrentsView.menu.restore.and");
+		
+		itemRestoreAnd.addListener(
+			SWT.Selection, 
+			new Listener()
+			{
+				public void 
+				handleEvent(
+					Event event) 
+				{
+					ManagerUtils.restoreFromArchive( 
+						dms, 
+						false, 
+						new ArchiveCallback()
+						{
+							@Override
+							public void 
+							success(
+								final DownloadStub source,
+								final DownloadStub target) 
+							{
+								Utils.execSWTThread(
+									new Runnable() 
+									{
+										public void 
+										run()
+										{
+											final Menu menu = new Menu( table_parent );
+											
+											DownloadManager[] dm = { PluginCoreUtils.unwrap((Download)target )};
+											
+											TorrentUtil.fillTorrentMenu(
+												menu, dm, AzureusCoreFactory.getSingleton(), table_parent, true, 0, tv);
+											
+											menu.addMenuListener(
+												new MenuListener() {
+													
+													public void 
+													menuShown(
+														MenuEvent e) 
+													{
+													}
+													
+													public void 
+													menuHidden(
+														MenuEvent e) 
+													{
+														Utils.execSWTThreadLater(
+															1,
+															new Runnable() 
+															{
+																public void 
+																run() 
+																{
+																	menu.dispose();
+																}
+															});
+													}
+												});
+											
+											menu.setVisible( true );
+										}
+									});
+							}
+						});
+				}
+			});
+		
+		itemRestoreAnd.setEnabled( hasSelection );
 		
 		new MenuItem( menu, SWT.SEPARATOR );
 	}

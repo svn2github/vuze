@@ -1735,10 +1735,37 @@ public class ManagerUtils {
 				});
 	}
 	
+	public static class
+	ArchiveCallback
+	{
+		public void
+		success(
+			DownloadStub		source,
+			DownloadStub		target )
+		{
+		}
+		
+		public void
+		failed(
+			DownloadStub		original,
+			Throwable			error )
+		{
+		}
+		
+		public void
+		completed()
+		{
+		}
+	}
+	
+	
 	public static void
 	moveToArchive(
-		final List<Download>		downloads )
+		final List<Download>	downloads,
+		ArchiveCallback			_run_when_complete )
 	{
+		final ArchiveCallback run_when_complete=_run_when_complete==null?new ArchiveCallback():_run_when_complete;
+
 		Utils.getOffOfSWTThread(
 			new AERunnable() {
 				
@@ -1746,35 +1773,46 @@ public class ManagerUtils {
 				public void 
 				runSupport() 
 				{
-					String title 	= MessageText.getString( "archive.info.title" );
-					String text 	= MessageText.getString( "archive.info.text" );
-					
-					MessageBoxShell prompter = 
-						new MessageBoxShell(
-							title, text, 
-							new String[] { MessageText.getString("Button.ok") }, 0 );
-				
-					
-					String remember_id = "managerutils.archive.info";
-					
-					prompter.setRemember( 
-						remember_id, 
-						true,
-						MessageText.getString("MessageBoxWindow.nomoreprompting"));
-									
-					prompter.setAutoCloseInMS(0);
-					
-					prompter.open( null );
-					
-					for ( Download dm: downloads ){
+					try{
+						String title 	= MessageText.getString( "archive.info.title" );
+						String text 	= MessageText.getString( "archive.info.text" );
 						
-						try{
-							dm.stubbify();
+						MessageBoxShell prompter = 
+							new MessageBoxShell(
+								title, text, 
+								new String[] { MessageText.getString("Button.ok") }, 0 );
+					
+						
+						String remember_id = "managerutils.archive.info";
+						
+						prompter.setRemember( 
+							remember_id, 
+							true,
+							MessageText.getString("MessageBoxWindow.nomoreprompting"));
+										
+						prompter.setAutoCloseInMS(0);
+						
+						prompter.open( null );
+						
+						prompter.waitUntilClosed();
+						
+						for ( Download dm: downloads ){
 							
-						}catch( Throwable e ){
-							
-							Debug.out( e );
+							try{
+								DownloadStub stub = dm.stubbify();
+								
+								run_when_complete.success( dm, stub );
+								
+							}catch( Throwable e ){
+								
+								run_when_complete.failed( dm, e );
+								
+								Debug.out( e );
+							}
 						}
+					}finally{
+					
+						run_when_complete.completed();
 					}
 				}
 			});
@@ -1783,8 +1821,11 @@ public class ManagerUtils {
 	public static void
 	restoreFromArchive(
 		final List<DownloadStub>		downloads,
-		final boolean					start )
+		final boolean					start,
+		ArchiveCallback					_run_when_complete )
 	{
+		final ArchiveCallback run_when_complete=_run_when_complete==null?new ArchiveCallback():_run_when_complete;
+		
 		Utils.getOffOfSWTThread(
 			new AERunnable() {
 				
@@ -1792,48 +1833,60 @@ public class ManagerUtils {
 				public void 
 				runSupport() 
 				{
-					Tag	tag = null;
-					
 					try{
-						TagManager	tm = TagManagerFactory.getTagManager();
-						
-						TagType tt = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL );
-						
-						String tag_name = MessageText.getString( "label.restored" );
-						
-						tag = tt.getTag( tag_name, true );
-						
-						if ( tag == null ){	
-						
-							tag = tt.createTag( tag_name, true );
-						}
-					}catch( Throwable e ){
-								
-						Debug.out( e );
-					}
-					
-					for ( DownloadStub dm: downloads ){
+						Tag	tag = null;
 						
 						try{
-							Download dl = dm.destubbify();
+							TagManager	tm = TagManagerFactory.getTagManager();
 							
-							if ( dl != null ){
-								
-								if ( tag != null ){
-								
-									tag.addTaggable(PluginCoreUtils.unwrap( dl ));
-								}
-								
-								if ( start ){
-									
-									start( PluginCoreUtils.unwrap( dl ));
-								}
+							TagType tt = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL );
+							
+							String tag_name = MessageText.getString( "label.restored" );
+							
+							tag = tt.getTag( tag_name, true );
+							
+							if ( tag == null ){	
+							
+								tag = tt.createTag( tag_name, true );
 							}
-							
 						}catch( Throwable e ){
-							
+									
 							Debug.out( e );
 						}
+						
+						for ( DownloadStub dm: downloads ){
+							
+							try{
+								Download dl = dm.destubbify();
+								
+								if ( dl != null ){
+																		
+									run_when_complete.success( dm, dl );
+									
+									if ( tag != null ){
+									
+										tag.addTaggable(PluginCoreUtils.unwrap( dl ));
+									}
+									
+									if ( start ){
+										
+										start( PluginCoreUtils.unwrap( dl ));
+									}
+								}else{
+									
+									run_when_complete.failed( dm, new Exception( "Unknown error" ));
+								}
+								
+							}catch( Throwable e ){
+								
+								run_when_complete.failed( dm, e );
+								
+								Debug.out( e );
+							}
+						}
+					}finally{
+													
+						run_when_complete.completed();
 					}
 				}
 			});
