@@ -1469,7 +1469,7 @@ public class MainWindowImpl
 		
 		if ( run_speed_test ){
 
-			SpeedTestSelector.runMLABTest(false,
+			SpeedTestSelector.runMLABTest(
 				new AERunnable() 
 				{
 					public void 

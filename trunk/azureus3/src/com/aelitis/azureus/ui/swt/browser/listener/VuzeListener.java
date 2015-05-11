@@ -93,11 +93,8 @@ public class VuzeListener
 			FeatureManagerUI.createTrial();
 
 		}else if (OP_RUN_SPEED_TEST.equals(opid)) {
-			Map decodedMap = message.getDecodedMap();
 			
-			boolean allowShaperLogicProbe = MapUtils.getMapBoolean(decodedMap,
-					"allowShaperLogicProbe", false);
-			SpeedTestSelector.runMLABTest(allowShaperLogicProbe, null);
+			SpeedTestSelector.runMLABTest( null);
 
 		}else if (OP_GET_MODE.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();

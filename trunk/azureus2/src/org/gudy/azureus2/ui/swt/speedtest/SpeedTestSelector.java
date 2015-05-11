@@ -128,7 +128,7 @@ SpeedTestSelector
 
 			wizard.close();
 
-			runMLABTest(true, null);
+			runMLABTest( null);
 			
 			//new ConfigureWizard( false, ConfigureWizard.WIZARD_MODE_SPEED_TEST_AUTO );
 			
@@ -140,15 +140,14 @@ SpeedTestSelector
 		}
 	}
 
-	public static void runMLABTest(final boolean allowShaperProbeLogic,
-			final Runnable runWhenClosed) {
+	public static void runMLABTest(final Runnable runWhenClosed) {
 		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
 				UIFunctionsManager.getUIFunctions().installPlugin("mlab",
 						"dlg.install.mlab", new UIFunctions.actionListener() {
 							public void actionComplete(Object result) {
 								if (result instanceof Boolean) {
-									_runMLABTest(allowShaperProbeLogic, runWhenClosed);
+									_runMLABTest(runWhenClosed);
 								} else {
 
 									try {
@@ -168,8 +167,7 @@ SpeedTestSelector
 		});
 	}
 	
-	private static void _runMLABTest(final boolean allowShaperProbeLogic,
-			final Runnable runWhenClosed) {
+	private static void _runMLABTest(final Runnable runWhenClosed) {
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 				"mlab");
 		
@@ -181,7 +179,7 @@ SpeedTestSelector
 		}else{
 			try {
 				HashMap<String, Object> map = new HashMap<String, Object>();
-				map.put("allowShaperProbeLogic", Boolean.valueOf(allowShaperProbeLogic));
+				
 				pi.getIPC().invoke("runTest", new Object[] {
 					map,
 					new IPCInterface() {
