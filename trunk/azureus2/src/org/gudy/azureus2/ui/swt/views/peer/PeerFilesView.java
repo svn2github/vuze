@@ -300,8 +300,12 @@ public class PeerFilesView
 			
 			int percent = ( done * 1000 ) / (last_piece - first_piece + 1 );
 			
-			cell.setText(percent < 0 ? ""
-					: DisplayFormatters.formatPercentFromThousands((int) percent));
+			if ( !cell.setSortValue(percent) && cell.isValid()){
+
+				return;
+			}
+			
+			cell.setText(percent < 0 ? "" : DisplayFormatters.formatPercentFromThousands((int) percent));
 				
 		}
 	}
