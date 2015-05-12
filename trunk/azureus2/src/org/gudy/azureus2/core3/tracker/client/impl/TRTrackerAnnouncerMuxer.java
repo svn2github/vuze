@@ -520,7 +520,7 @@ TRTrackerAnnouncerMuxer
 					}
 				}else{
 					
-					int	allowed		= provider.getMaxNewConnectionsAllowed();	
+					int	allowed		= provider.getMaxNewConnectionsAllowed();	// -1 -> unlimited
 					int	pending		= provider.getPendingConnectionCount();
 					int	connected	= provider.getConnectedConnectionCount();
 					
@@ -568,7 +568,7 @@ TRTrackerAnnouncerMuxer
 							
 							next_check_delay = ACT_CHECK_INIT_DELAY;
 
-						}else if ( allowed >= 5 && pending < 3*allowed/4 ){
+						}else if ( allowed < 0 || ( allowed >= 5 && pending < 3*allowed/4 )){
 							
 								// not enough to fulfill our needs
 							
@@ -1273,7 +1273,7 @@ TRTrackerAnnouncerMuxer
 		
 		if ( active != null && provider != null && active.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
 			
-			if ( 	provider.getMaxNewConnectionsAllowed() > 0 &&
+			if ( 	provider.getMaxNewConnectionsAllowed() != 0 &&
 					provider.getPendingConnectionCount() == 0 ){
 				
 				return( 5 );
