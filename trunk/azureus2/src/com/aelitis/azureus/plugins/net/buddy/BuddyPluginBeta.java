@@ -3637,6 +3637,11 @@ BuddyPluginBeta
 				sem.reserve();
 			}
 			
+			if ( isStatistics()){
+				
+				throw( new IPCException( "Private chat disabled for statistical channels" ));
+			}
+			
 			if ( private_chat_state == PRIVATE_CHAT_DISABLED ){
 				
 				throw( new IPCException( "Private chat disabled by recipient" ));
