@@ -661,6 +661,11 @@ BuddyPluginView
 
 							for ( ChatInstance chat: chats ){
 							
+								if ( chat.isInvisible()){
+									
+									continue;
+								}
+								
 								if ( !chat_uis.containsKey( chat )){
 									
 									if ( 	chat.isFavourite() || 

@@ -102,6 +102,7 @@ BuddyPluginBeta
 	public static final String 	FLAGS_MSG_ORIGIN_KEY 		= "o";
 	public static final int 	FLAGS_MSG_ORIGIN_USER 		= 0;		// def
 	public static final int 	FLAGS_MSG_ORIGIN_RATINGS 	= 1;
+	public static final int 	FLAGS_MSG_ORIGIN_SEED_REQ 	= 2;
 	
 	public static final String 	FLAGS_MSG_FLASH_OVERRIDE	= "f";
 	public static final int		FLAGS_MSG_FLASH_NO 			= 0;		// def
@@ -1757,7 +1758,7 @@ BuddyPluginBeta
 		String	network	 	= (String)reply.get( "network" );
 		Object	handler 	= reply.get( "handler" );
 		
-		return( getChat( network, key, null, handler, false ));
+		return( getChat( network, key, null, handler, false, null ));
 	}
 	
 	public ChatInstance
@@ -1813,7 +1814,18 @@ BuddyPluginBeta
 		
 		throws Exception
 	{
-		return( getChat( network, key, null, null, false ));
+		return( getChat( network, key, null, null, false, null ));
+	}
+	
+	public ChatInstance
+	getChat(
+		String					network,
+		String					key,
+		Map<String,Object>		options )
+		
+		throws Exception
+	{
+		return( getChat( network, key, null, null, false, options ));
 	}
 	
 	public ChatInstance
@@ -1824,7 +1836,7 @@ BuddyPluginBeta
 	{
 		String key = participant.getChat().getKey() + " - " + participant.getName() + " (outgoing)[" + private_chat_id.getAndIncrement() + "]";
 		
-		return( getChat( participant.getChat().getNetwork(), key, participant, null, true ));
+		return( getChat( participant.getChat().getNetwork(), key, participant, null, true, null ));
 	}
 	
 	public ChatInstance
@@ -1836,7 +1848,7 @@ BuddyPluginBeta
 	{
 		String key = parent_participant.getChat().getKey() + " - " + parent_participant.getName() + " (incoming)[" + private_chat_id.getAndIncrement() + "]";
 
-		return( getChat( parent_participant.getChat().getNetwork(), key, null, handler, true ));
+		return( getChat( parent_participant.getChat().getNetwork(), key, null, handler, true, null ));
 	}
 	
 	private ChatInstance
@@ -1845,7 +1857,8 @@ BuddyPluginBeta
 		String				key,
 		ChatParticipant		private_target,
 		Object				handler,
-		boolean				is_private_chat )
+		boolean				is_private_chat,
+		Map<String,Object>	options )
 		
 		throws Exception
 	{
@@ -1866,7 +1879,7 @@ BuddyPluginBeta
 			
 			if ( result == null ){
 							
-				result = new ChatInstance( network, key, private_target, is_private_chat );
+				result = new ChatInstance( network, key, private_target, is_private_chat, options );
 			
 				chat_instances_map.put( meta_key, result );
 				
@@ -1932,7 +1945,7 @@ BuddyPluginBeta
 					
 				}catch( Throwable e ){
 					
-					Debug.out( e );;
+					Debug.out( e );
 				}
 			}
 		}
@@ -2091,12 +2104,15 @@ BuddyPluginBeta
 	public class
 	ChatInstance
 	{
+		public static final String	OPT_INVISIBLE		= "invisible";		// Boolean
+		
 		private static final int	MSG_HISTORY_MAX	= 512;
 		
 		private final String		network;
 		private final String		key;
 		
 		private boolean				is_private_chat;
+		private boolean				is_invisible_chat;
 		
 		private final ChatParticipant		private_target;
 		
@@ -2167,7 +2183,8 @@ BuddyPluginBeta
 			String				_network,
 			String				_key,
 			ChatParticipant		_private_target,
-			boolean				_is_private_chat )
+			boolean				_is_private_chat,
+			Map<String,Object>	_options )
 		{
 			network 		= _network;
 			key				= _key;
@@ -2186,6 +2203,16 @@ BuddyPluginBeta
 				save_messages 	= BuddyPluginBeta.this.getSaveMessages( network, key );
 				log_messages 	= BuddyPluginBeta.this.getLogMessages( network, key );
 				auto_mute 		= BuddyPluginBeta.this.getAutoMute( network, key );
+			}
+			
+			if ( _options != null ){
+				
+				Boolean	invis = (Boolean)_options.get( OPT_INVISIBLE );
+				
+				if ( invis != null && invis ){
+					
+					is_invisible_chat = true;
+				}
 			}
 			
 			addReference();
@@ -2516,6 +2543,12 @@ BuddyPluginBeta
 		getPublicKey()
 		{
 			return( my_public_key );
+		}
+		
+		public boolean
+		isInvisible()
+		{
+			return( is_invisible_chat );
 		}
 		
 		public boolean
@@ -5196,6 +5229,50 @@ BuddyPluginBeta
 		
 		public void
 		updated();
+	}
+	
+	public static class
+	ChatAdapter
+		implements ChatListener
+	{
+		public void 
+		updated() 
+		{
+		}
+		
+		public void 
+		stateChanged(boolean avail) 
+		{
+		}
+		
+		public void 
+		participantRemoved(
+			ChatParticipant participant) 
+		{			
+		}
+		
+		public void 
+		participantChanged(
+			ChatParticipant participant) 
+		{
+		}
+		
+		public void 
+		participantAdded(
+			ChatParticipant participant) 
+		{
+		}
+		
+		public void 
+		messagesChanged() 
+		{
+		}
+		
+		public void 
+		messageReceived(
+			ChatMessage message) 
+		{
+		}	
 	}
 	
 	public interface

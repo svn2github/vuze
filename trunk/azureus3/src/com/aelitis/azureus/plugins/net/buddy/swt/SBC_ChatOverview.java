@@ -453,7 +453,9 @@ public class SBC_ChatOverview
 	}
 
 	public void chatAdded(ChatInstance chat) {
-		tv.addDataSource(chat);
+		if ( !chat.isInvisible()){
+			tv.addDataSource(chat);
+		}
 	}
 
 	public void chatChanged(ChatInstance chat) {

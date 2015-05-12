@@ -252,6 +252,27 @@ BuddyPluginUtils
 	
 	public static ChatInstance
 	getChat(
+		String					net,
+		String					key,
+		Map<String,Object>		options )
+	{
+		BuddyPlugin bp = getPlugin();
+		
+		if ( bp != null && bp.isBetaEnabled()){
+			
+			try{
+				return( bp.getBeta().getChat( net, key, options ));
+				
+			}catch( Throwable e ){
+				
+			}
+		}
+		
+		return( null );
+	}
+	
+	public static ChatInstance
+	getChat(
 		Download		download )
 	{
 		BuddyPlugin bp = getPlugin();

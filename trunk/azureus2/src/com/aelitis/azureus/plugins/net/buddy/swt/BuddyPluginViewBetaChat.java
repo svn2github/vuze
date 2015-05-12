@@ -3081,6 +3081,10 @@ BuddyPluginViewBetaChat
 					}
 					
 					input_area.setEnabled( avail );
+					
+						// update as key may now be available
+					
+					nickname.setMessage( chat.getDefaultNickname());
 				}
 			});
 	}
