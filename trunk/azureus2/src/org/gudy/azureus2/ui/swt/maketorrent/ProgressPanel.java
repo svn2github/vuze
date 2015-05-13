@@ -207,7 +207,7 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
  
       TorrentUtils.setDHTBackupEnabled( torrent, wizard.permitDHT );
 	  
-      TorrentUtils.setPrivate( torrent, wizard.privateTorrent );
+      TorrentUtils.setPrivate( torrent, wizard.getPrivateTorrent());
       
       LocaleTorrentUtil.setDefaultTorrentEncoding( torrent );
       

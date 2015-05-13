@@ -102,7 +102,6 @@ NewTorrentWizard
   String  initialTags		= COConfigurationManager.getStringParameter( "CreateTorrent.default.initialTags", "" );
   boolean superseed			= false;
   boolean permitDHT			= true;
-  boolean privateTorrent	= false;
   
   TOTorrentCreator creator = null;
 
@@ -272,6 +271,19 @@ NewTorrentWizard
 	  
 	  COConfigurationManager.setParameter( "CreateTorrent.default.addhashes", addOtherHashes );
 		 
+  }
+  
+  protected boolean
+  getPrivateTorrent()
+  {
+	  return( COConfigurationManager.getBooleanParameter( "CreateTorrent.default.privatetorrent", false ));
+  }
+  
+  protected void
+  setPrivateTorrent(
+	boolean	privateTorrent )
+  {	  
+	  COConfigurationManager.setParameter( "CreateTorrent.default.privatetorrent", privateTorrent );	 
   }
   
   protected boolean

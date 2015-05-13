@@ -381,17 +381,34 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
         }
       });
       
-	
+    	// terrible code, who wrote this?
+    
+    if ( wizard.getTrackerType() == NewTorrentWizard.TT_DECENTRAL ){
+    	
+    	wizard.setPrivateTorrent( false );
+    }
+    
+    boolean privateTorrent = wizard.getPrivateTorrent();
+    
+	bAllowDHT.setEnabled( !privateTorrent );
+    if ( privateTorrent ){
+  	  
+  	  bAllowDHT.setSelection( false );
+  	  wizard.permitDHT = false;
+    }
+    
 	bPrivateTorrent.addListener(SWT.Selection,new Listener() {
         public void handleEvent(Event event) {
-          wizard.privateTorrent = bPrivateTorrent.getSelection();
+          boolean privateTorrent = bPrivateTorrent.getSelection();
+          
+          wizard.setPrivateTorrent(privateTorrent);
 		  
-          if ( wizard.privateTorrent ){
+          if ( privateTorrent ){
         	  
         	  bAllowDHT.setSelection( false );
         	  wizard.permitDHT = false;
           }
-		  bAllowDHT.setEnabled( !wizard.privateTorrent );
+		  bAllowDHT.setEnabled( !privateTorrent );
         }
       });
 
@@ -399,6 +416,8 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
 
 		bAllowDHT.setEnabled( false );
 		bPrivateTorrent.setEnabled( false );
+    }else{
+    	bPrivateTorrent.setSelection( privateTorrent );
     }
   }
   
