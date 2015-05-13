@@ -1401,6 +1401,9 @@ public class SideBar
 			try {
 				UISWTViewCore view = (UISWTViewCore) views[i];
 				Composite composite = view.getComposite();
+				if ( composite == null ){
+					continue;
+				}
 				if (composite.isDisposed()) {
 					pluginViews.remove(view);
 					continue;
