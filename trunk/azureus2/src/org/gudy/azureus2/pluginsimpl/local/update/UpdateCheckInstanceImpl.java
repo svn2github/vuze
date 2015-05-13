@@ -469,6 +469,7 @@ UpdateCheckInstanceImpl
 		UpdatableComponentImpl	comp,
 		String					update_name,
 		String[]				desc,
+		String					old_version,
 		String					new_version,
 		ResourceDownloader[]	downloaders,
 		int						restart_required )
@@ -477,7 +478,7 @@ UpdateCheckInstanceImpl
 			this_mon.enter();
 		
 			UpdateImpl	update = 
-				new UpdateImpl( this, comp, update_name, desc, new_version, 
+				new UpdateImpl( this, comp, update_name, desc, old_version, new_version, 
 								downloaders, comp.isMandatory(), restart_required );
 			
 			updates.add( update );

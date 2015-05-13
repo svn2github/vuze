@@ -90,9 +90,10 @@ UpdateWindow
   private Iterator iterDownloaders;
   private BrowserWrapper browser;
   
-  private static final int COL_NAME = 0;
-  private static final int COL_VERSION = 1;
-  private static final int COL_SIZE = 2;
+  private static final int COL_NAME 		= 0;
+  private static final int COL_OLD_VERSION 	= 1;
+  private static final int COL_NEW_VERSION 	= 2;
+  private static final int COL_SIZE 		= 3;
   
   
   public 
@@ -217,10 +218,10 @@ UpdateWindow
     SashForm sash = new SashForm(updateWindow,SWT.VERTICAL);
        
     table = new Table(sash,SWT.CHECK | SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
-    String[] names = {"name" , "version" , "size"};
-    int[] sizes = {350,100,100};
+    String[] names = {"name" , "currentversion", "version" , "size"};
+    int[] sizes = {350,100,100,100};
     for(int i = 0 ; i < names.length ; i++) {
-      TableColumn column = new TableColumn(table, i == 0 ? SWT.LEFT : SWT.RIGHT);
+      TableColumn column = new TableColumn(table, i==0?SWT.LEFT:SWT.RIGHT);
       Messages.setLanguageText(column,"UpdateWindow.columns." + names[i]);
       column.setWidth(sizes[i]);
     }
@@ -339,7 +340,7 @@ UpdateWindow
     
     sash.setWeights(new int[] { 25, 75 });
     
-    updateWindow.setSize(600,450);
+    updateWindow.setSize(700,450);
     //updateWindow.open();
   }
   
@@ -414,7 +415,23 @@ UpdateWindow
         final TableItem item = new TableItem(table,SWT.NULL);
         item.setData(update);
         item.setText(COL_NAME,update.getName()==null?"Unknown":update.getName());  
-        item.setText(COL_VERSION,update.getNewVersion()==null?"Unknown":update.getNewVersion());
+        
+        String old_version = update.getOldVersion();
+        if ( old_version == null ){
+        	old_version=MessageText.getString( "SpeedView.stats.unknown" );
+        }else if ( old_version.equals( "0" ) || old_version.equals( "0.0" )){
+        	old_version = "";
+        }
+        
+        item.setText(COL_OLD_VERSION, old_version );
+
+        String new_version = update.getNewVersion();
+        if ( new_version == null ){
+        	new_version=MessageText.getString( "SpeedView.stats.unknown" );
+        }
+        
+        item.setText(COL_NEW_VERSION, new_version );
+        
         ResourceDownloader[] rds = update.getDownloaders();
         long totalLength = 0;
         for(int i = 0 ; i < rds.length ; i++) {

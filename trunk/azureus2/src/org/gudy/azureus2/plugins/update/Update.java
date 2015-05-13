@@ -67,6 +67,9 @@ Update
 	getDesciptionURL();
 
 	public String
+	getOldVersion();
+	
+	public String
 	getNewVersion();
 	
 	public ResourceDownloader[]

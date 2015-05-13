@@ -93,7 +93,7 @@ CorePatchChecker
 		
 			my_updates.put(
 				inst,
-				checker.addUpdate( "Core Patch Checker", new String[0], "",
+				checker.addUpdate( "Core Patch Checker", new String[0], "", "",
 								new ResourceDownloader[0],
 								Update.RESTART_REQUIRED_MAYBE ));
 		}finally{

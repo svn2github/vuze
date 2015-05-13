@@ -72,12 +72,13 @@ UpdateCheckerImpl
 	addUpdate(
 		String				name,
 		String[]			description,
+		String				old_version,
 		String				new_version,
 		ResourceDownloader	downloader,
 		int					restart_required )
 	{
 		return(	addUpdate(
-					name, description, new_version,
+					name, description, old_version, new_version,
 					new ResourceDownloader[]{ downloader },
 					restart_required ));
 	}
@@ -86,6 +87,7 @@ UpdateCheckerImpl
 	addUpdate(
 		String					name,
 		String[]				description,
+		String					old_version,
 		String					new_version,
 		ResourceDownloader[]	downloaders,
 		int						restart_required )
@@ -93,7 +95,7 @@ UpdateCheckerImpl
 		reportProgress( "Adding update: " + name );
 		
 		return( check_instance.addUpdate( 
-					component, name, description, new_version,
+					component, name, description, old_version, new_version,
 					downloaders, restart_required ));
 	}
 	

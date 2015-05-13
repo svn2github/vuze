@@ -227,6 +227,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 	      final Update update = 
 	    	  checker.addUpdate("SWT Library for " + versionGetter.getPlatform() + extra,
 		          new String[] {"SWT is the graphical library used by " + Constants.APP_NAME},
+		          "" + versionGetter.getCurrentVersion(),
 		          "" + versionGetter.getLatestVersion(),
 		          swtDownloader,
 		          Update.RESTART_REQUIRED_YES

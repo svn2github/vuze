@@ -386,6 +386,7 @@ FilePluginInstallerImpl
 								checker,
 								getName(),
 								new String[]{"Installation from file: " + file.toString()},
+								"",	// old version
 								version,
 								rd,
 								is_jar,

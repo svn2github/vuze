@@ -45,6 +45,7 @@ UpdateChecker
 	addUpdate(
 		String				name,
 		String[]			description,
+		String				old_version,
 		String				new_version,
 		ResourceDownloader	downloader,
 		int					restart_required );
@@ -57,6 +58,7 @@ UpdateChecker
 	addUpdate(
 		String					name,
 		String[]				description,
+		String					old_version,
 		String					new_version,
 		ResourceDownloader[]	downloaders,
 		int						restart_required );

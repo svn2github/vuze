@@ -415,6 +415,7 @@ CoreUpdateChecker
 				checker.addUpdate(
 						"Core Azureus Version",
 						desc,
+						current_version,
 						latest_version,
 						top_downloader,
 						Update.RESTART_REQUIRED_YES );

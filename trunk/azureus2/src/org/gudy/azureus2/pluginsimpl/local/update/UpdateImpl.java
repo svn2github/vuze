@@ -43,6 +43,7 @@ UpdateImpl
 	private String					name;
 	private String[]				description;
 	private String					relative_url_base	= "";
+	private String					old_version;
 	private String					new_version;
 	private ResourceDownloader[]	downloaders;
 	private boolean					mandatory;
@@ -62,6 +63,7 @@ UpdateImpl
 		UpdatableComponentImpl	_component,
 		String					_name,
 		String[]				_desc,
+		String					_old_version,
 		String					_new_version,
 		ResourceDownloader[]	_downloaders,
 		boolean					_mandatory,
@@ -71,6 +73,7 @@ UpdateImpl
 		component			= _component;
 		name				= _name;
 		description			= _desc;
+		old_version			= _old_version;
 		new_version			= _new_version;
 		downloaders			= _downloaders;
 		mandatory			= _mandatory;
@@ -145,6 +148,12 @@ UpdateImpl
 	setDescriptionURL(String url)
 	{
 		description_url = url;
+	}
+	
+	public String
+	getOldVersion()
+	{
+		return( old_version );
 	}
 	
 	public String

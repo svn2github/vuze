@@ -861,6 +861,7 @@ PluginUpdatePlugin
 								checker,
 								plugin_id + "/" + plugin_names,
 								update_d,
+								az_plugin_version,
 								sf_plugin_version,
 								alternate_rdl,
 								sf_plugin_download.toLowerCase().endsWith(".jar"),
@@ -903,7 +904,8 @@ PluginUpdatePlugin
 		final UpdateChecker				checker,
 		final String					update_name,
 		final String[]					update_details,
-		final String					version,
+		final String					old_version,
+		final String					new_version,
 		final ResourceDownloader		resource_downloader,
 		final boolean					is_jar,
 		final int						restart_type,
@@ -912,7 +914,8 @@ PluginUpdatePlugin
 		final Update update = checker.addUpdate(
 				update_name,
 				update_details,
-				version,
+				old_version,
+				new_version,
 				resource_downloader,
 				restart_type );
 
@@ -959,7 +962,8 @@ PluginUpdatePlugin
 								pi_for_update,
 								restart_type == Update.RESTART_REQUIRED_NO,
 								is_jar,
-								version, 
+								old_version,
+								new_version, 
 								data,
 								verify );
 						
@@ -995,14 +999,15 @@ PluginUpdatePlugin
 		PluginInterface		plugin,		// note this will be first one if > 1 defined
 		boolean				unloadable,
 		boolean				is_jar,		// false -> zip 
-		String				version,
+		String				old_version,
+		String				new_version,
 		InputStream			data,
 		boolean				verify )
 	{
 		log.log( LoggerChannel.LT_INFORMATION,
-				 "Installing plugin '" + update.getName() + "', version " + version );
+				 "Installing plugin '" + update.getName() + "', version " + new_version );
 
-		String	target_version = version.endsWith("_CVS")?version.substring(0,version.length()-4):version;
+		String	target_version = new_version.endsWith("_CVS")?new_version.substring(0,new_version.length()-4):new_version;
 
 		UpdateInstaller	installer	= null;
 		
@@ -1024,7 +1029,7 @@ PluginUpdatePlugin
 				
 				log.log( LoggerChannel.LT_INFORMATION, "    This is a built-in plugin, updating core" );
 
-				CorePatchChecker.patchAzureus2( update.getCheckInstance(), data, plugin.getPluginID() + "_" + version, log );
+				CorePatchChecker.patchAzureus2( update.getCheckInstance(), data, plugin.getPluginID() + "_" + new_version, log );
 				
 					// always need to restart for this
 				
@@ -1895,7 +1900,7 @@ PluginUpdatePlugin
 			
 			if ( update_txt_found || b_disable == null || !b_disable ){
 				
-				String msg =   "Version " + version + " of plugin '" + update.getName() + "' " +
+				String msg =   "Version " + new_version + " of plugin '" + update.getName() + "' " +
 								"installed successfully";
 	
 				if ( update_txt_found ){
@@ -1921,7 +1926,7 @@ PluginUpdatePlugin
 			
 		}catch( Throwable e ){
 					
-			String msg =   "Version " + version + " of plugin '" + 	update.getName() + "' " +
+			String msg =   "Version " + new_version + " of plugin '" + 	update.getName() + "' " +
 							"failed to install - " + (e.getMessage());
 		
 			log.logAlertRepeatable( LoggerChannel.LT_ERROR, msg );

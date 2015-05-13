@@ -915,6 +915,7 @@ PluginInstallerImpl
 									update_name,
 									new String[]{ "Uninstall: " + plugin_dir},
 									pi.getPluginVersion(),
+									pi.getPluginVersion(),
 									rd,
 									unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
 								

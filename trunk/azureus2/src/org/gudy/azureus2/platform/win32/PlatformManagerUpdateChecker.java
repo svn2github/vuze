@@ -220,6 +220,7 @@ PlatformManagerUpdateChecker
 					checker.addUpdate(
 						UPDATE_NAME,
 						update_d,
+						current_version,
 						target_version,
 						alternate_rdl,
 						Update.RESTART_REQUIRED_YES );
