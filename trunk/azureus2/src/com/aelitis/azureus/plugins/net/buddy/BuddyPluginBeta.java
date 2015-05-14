@@ -3733,6 +3733,25 @@ BuddyPluginBeta
 		}
 		
 		public void 
+		sendRawMessage(
+			final byte[]					message,
+			final Map<String,Object>		flags,
+			final Map<String,Object>		options )
+		{
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					
+					@Override
+					public void 
+					runSupport() 
+					{
+						sendMessageSupport( message, flags, options );
+					}
+				});
+		}
+		
+		public void 
 		sendLocalMessage(
 			final String		message,
 			final String[]		args,
@@ -3801,7 +3820,7 @@ BuddyPluginBeta
 		
 		private void 
 		sendMessageSupport(
-			String					message,
+			Object					o_message,
 			Map<String,Object>		flags,
 			Map<String,Object>		options )
 		{
@@ -3811,221 +3830,226 @@ BuddyPluginBeta
 				
 			}else{
 				
-				if ( message.equals( "!dump!" )){
+				if ( o_message instanceof String ){
 					
-					synchronized( chat_lock ){
+					String message = (String)o_message;
+					
+					if ( message.equals( "!dump!" )){
 						
-						for ( ChatMessage msg: messages ){
+						synchronized( chat_lock ){
 							
-							System.out.println( msg.getTimeStamp() + ": " + pkToString( msg.getID()) + ", " + pkToString( msg.getPreviousID()) + " - " + msg.getMessage());
+							for ( ChatMessage msg: messages ){
+								
+								System.out.println( msg.getTimeStamp() + ": " + pkToString( msg.getID()) + ", " + pkToString( msg.getPreviousID()) + " - " + msg.getMessage());
+							}
 						}
-					}
-					return;
-					
-				}else if ( message.equals( "!sort!" )){
-					
-					sortMessages( false );
-					
-					return;
-					
-				}else if ( message.equals( "!flood!" )){
-					
-					if ( DEBUG_ENABLED ){
-					
-						SimpleTimer.addPeriodicEvent(
-							"flooder",
-							1500,
-							new TimerEventPerformer() {
-								
-								public void perform(TimerEvent event) {
-								
-									sendMessage( "flood - " + SystemTime.getCurrentTime(), null );
+						return;
+						
+					}else if ( message.equals( "!sort!" )){
+						
+						sortMessages( false );
+						
+						return;
+						
+					}else if ( message.equals( "!flood!" )){
+						
+						if ( DEBUG_ENABLED ){
+						
+							SimpleTimer.addPeriodicEvent(
+								"flooder",
+								1500,
+								new TimerEventPerformer() {
 									
-								}
-							});
-					}
-					
-					return;
-					
-	
-				}else if ( message.equals( "!ftux!" )){
-					
-					plugin.getBeta().setFTUXAccepted( false );
-					
-					return;
-				}
-				
-				if ( message.startsWith( "/" )){
+									public void perform(TimerEvent event) {
+									
+										sendMessage( "flood - " + SystemTime.getCurrentTime(), null );
 										
-					String[] bits = message.split( "[\\s]+", 3 );
+									}
+								});
+						}
+						
+						return;
+						
+		
+					}else if ( message.equals( "!ftux!" )){
+						
+						plugin.getBeta().setFTUXAccepted( false );
+						
+						return;
+					}
 					
-					String command = bits[0].toLowerCase( Locale.US );
-					
-					boolean	ok = false;
-					
-					try{
-						if ( command.equals( "/help" )){
-							
-							String link = MessageText.getString( "azbuddy.dchat.link.url" );
-							
-							sendLocalMessage( "label.see.x.for.help", new String[]{ link }, ChatMessage.MT_INFO );
-
-							ok = true;
-							
-						}else if ( command.equals( "/join" )){
-							
-							if ( bits.length > 1 ){
+					if ( message.startsWith( "/" )){
+											
+						String[] bits = message.split( "[\\s]+", 3 );
+						
+						String command = bits[0].toLowerCase( Locale.US );
+						
+						boolean	ok = false;
+						
+						try{
+							if ( command.equals( "/help" )){
 								
-								bits = message.split( "[\\s]+", 2 );
+								String link = MessageText.getString( "azbuddy.dchat.link.url" );
 								
-								String key = bits[1];
-								
-								if ( key.startsWith( "\"" ) && key.endsWith( "\"" )){
-									key = key.substring(1,key.length()-1);
-								}
-								
-								getAndShowChat( getNetwork(), key );
-								
-								ok = true;
-							}
-						}else if ( command.equals( "/pjoin" )){
-							
-							if ( bits.length > 1 ){
-								
-								bits = message.split( "[\\s]+", 2 );
-								
-								String key = bits[1];
-								
-								if ( key.startsWith( "\"" ) && key.endsWith( "\"" )){
-									key = key.substring(1,key.length()-1);
-								}
-								
-								getAndShowChat( AENetworkClassifier.AT_PUBLIC, key );
-								
-								ok = true;
-							}
-						}else if ( command.equals( "/ajoin" )){
-							
-							if ( bits.length > 1 && isI2PAvailable()){
-								
-								bits = message.split( "[\\s]+", 2 );
-								
-								String key = bits[1];
-								
-								if ( key.startsWith( "\"" ) && key.endsWith( "\"" )){
-									key = key.substring(1,key.length()-1);
-								}
-								
-								getAndShowChat( AENetworkClassifier.AT_I2P, key );
-								
-								ok = true;
-							}
-						}else if ( command.equals( "/msg" ) || command.equals( "/query" )){
-							
-							if ( bits.length > 1 ){
-								
-								String nick = bits[1];
-								
-								String	pm = bits.length ==2?"":bits[2].trim();
-								
-								ChatParticipant p = getParticipant( nick );
-								
-								if ( p == null ){
-									
-									throw( new Exception( "Nick not found: " + nick ));
-									
-								}else if ( p.isMe()){
-									
-									throw( new Exception( "Can't chat to yourself" ));
-								}
-								
-								ChatInstance ci = p.createPrivateChat();
-								
-								if ( pm.length() > 0 ){
-								
-									ci.sendMessage( pm, new HashMap<String, Object>());
-								}
-								
-								showChat( ci );
-								
-								ok = true;
-							}
-						}else if ( command.equals( "/ignore" )){
-							
-							if ( bits.length > 1 ){
-								
-								String nick = bits[1];
-								
-								boolean	ignore = true;
-								
-								if ( nick.equals( "-r" ) && bits.length > 2 ){
-									
-									nick = bits[2];
-									
-									ignore = false;
-								}
-								
-								ChatParticipant p = getParticipant( nick );
-								
-								if ( p == null ){
-									
-									throw( new Exception( "Nick not found: " + nick ));
-								}
-								
-								p.setIgnored( ignore );
-								
-									// obviously the setter should do this but whatever for the mo
-								
-								updated( p );
-								
-								ok = true;
-							}
-							
-						}else if ( command.equals( "/control" )){
-							
-							if ( ipc_version >= 3 ){
-								
-								String[] bits2 = message.split( "[\\s]+", 2 );
+								sendLocalMessage( "label.see.x.for.help", new String[]{ link }, ChatMessage.MT_INFO );
 	
-								if ( bits2.length > 1 ){
+								ok = true;
+								
+							}else if ( command.equals( "/join" )){
+								
+								if ( bits.length > 1 ){
 									
-									sendControlMessage( bits2[1] );
+									bits = message.split( "[\\s]+", 2 );
+									
+									String key = bits[1];
+									
+									if ( key.startsWith( "\"" ) && key.endsWith( "\"" )){
+										key = key.substring(1,key.length()-1);
+									}
+									
+									getAndShowChat( getNetwork(), key );
 									
 									ok = true;
-									
-								}else{
-									
-									throw( new Exception( "Invalid command: " + message ));
 								}
-							}
-							
-						}else if ( command.equals( "/peek" )){
-							
-							if ( bits.length > 1 ){
+							}else if ( command.equals( "/pjoin" )){
 								
-								Map<String,Object> result = peekChat( getNetwork(), bits[1] );
+								if ( bits.length > 1 ){
+									
+									bits = message.split( "[\\s]+", 2 );
+									
+									String key = bits[1];
+									
+									if ( key.startsWith( "\"" ) && key.endsWith( "\"" )){
+										key = key.substring(1,key.length()-1);
+									}
+									
+									getAndShowChat( AENetworkClassifier.AT_PUBLIC, key );
+									
+									ok = true;
+								}
+							}else if ( command.equals( "/ajoin" )){
 								
-								sendLocalMessage( "!" + result + "!", null, ChatMessage.MT_INFO );
+								if ( bits.length > 1 && isI2PAvailable()){
+									
+									bits = message.split( "[\\s]+", 2 );
+									
+									String key = bits[1];
+									
+									if ( key.startsWith( "\"" ) && key.endsWith( "\"" )){
+										key = key.substring(1,key.length()-1);
+									}
+									
+									getAndShowChat( AENetworkClassifier.AT_I2P, key );
+									
+									ok = true;
+								}
+							}else if ( command.equals( "/msg" ) || command.equals( "/query" )){
+								
+								if ( bits.length > 1 ){
+									
+									String nick = bits[1];
+									
+									String	pm = bits.length ==2?"":bits[2].trim();
+									
+									ChatParticipant p = getParticipant( nick );
+									
+									if ( p == null ){
+										
+										throw( new Exception( "Nick not found: " + nick ));
+										
+									}else if ( p.isMe()){
+										
+										throw( new Exception( "Can't chat to yourself" ));
+									}
+									
+									ChatInstance ci = p.createPrivateChat();
+									
+									if ( pm.length() > 0 ){
+									
+										ci.sendMessage( pm, new HashMap<String, Object>());
+									}
+									
+									showChat( ci );
+									
+									ok = true;
+								}
+							}else if ( command.equals( "/ignore" )){
+								
+								if ( bits.length > 1 ){
+									
+									String nick = bits[1];
+									
+									boolean	ignore = true;
+									
+									if ( nick.equals( "-r" ) && bits.length > 2 ){
+										
+										nick = bits[2];
+										
+										ignore = false;
+									}
+									
+									ChatParticipant p = getParticipant( nick );
+									
+									if ( p == null ){
+										
+										throw( new Exception( "Nick not found: " + nick ));
+									}
+									
+									p.setIgnored( ignore );
+									
+										// obviously the setter should do this but whatever for the mo
+									
+									updated( p );
+									
+									ok = true;
+								}
+								
+							}else if ( command.equals( "/control" )){
+								
+								if ( ipc_version >= 3 ){
+									
+									String[] bits2 = message.split( "[\\s]+", 2 );
+		
+									if ( bits2.length > 1 ){
+										
+										sendControlMessage( bits2[1] );
+										
+										ok = true;
+										
+									}else{
+										
+										throw( new Exception( "Invalid command: " + message ));
+									}
+								}
+								
+							}else if ( command.equals( "/peek" )){
+								
+								if ( bits.length > 1 ){
+									
+									Map<String,Object> result = peekChat( getNetwork(), bits[1] );
+									
+									sendLocalMessage( "!" + result + "!", null, ChatMessage.MT_INFO );
+									
+									ok = true;
+								}
+							}else if ( command.equals( "/clone" )){
+								
+								getAndShowChat( getNetwork(), getKey());
 								
 								ok = true;
 							}
-						}else if ( command.equals( "/clone" )){
 							
-							getAndShowChat( getNetwork(), getKey());
+							if ( !ok ){
+								
+								throw( new Exception( "Unhandled command: " + message ));
+							}
+						}catch( Throwable e ){
 							
-							ok = true;
+							sendLocalMessage( "!" + Debug.getNestedExceptionMessage( e ) + "!", null, ChatMessage.MT_ERROR );
 						}
 						
-						if ( !ok ){
-							
-							throw( new Exception( "Unhandled command: " + message ));
-						}
-					}catch( Throwable e ){
-						
-						sendLocalMessage( "!" + Debug.getNestedExceptionMessage( e ) + "!", null, ChatMessage.MT_ERROR );
+						return;
 					}
-					
-					return;
 				}
 				
 				try{
@@ -4057,7 +4081,14 @@ BuddyPluginBeta
 					
 					Map<String,Object>	payload = new HashMap<String, Object>();
 					
-					payload.put( "msg", message.getBytes( "UTF-8" ));
+					if ( o_message instanceof String ){
+					
+						payload.put( "msg", ((String)o_message).getBytes( "UTF-8" ));
+						
+					}else{
+						
+						payload.put( "msg", (byte[])o_message );
+					}
 					
 					payload.put( "nick", getNickname().getBytes( "UTF-8" ));
 					
@@ -5041,6 +5072,46 @@ BuddyPluginBeta
 				Debug.out( e );
 					
 				return( "" );
+			}
+		}
+		
+		public byte[]
+		getRawMessage()
+		{
+			try{
+				String	report = (String)map.get( "error" );
+				
+				if ( report != null ){
+					
+					return( null );
+				}
+				
+				if ( getMessageStatus() == FLAGS_MSG_STATUS_CHAT_QUIT ){
+					
+					return( null );
+				}
+				
+					// was just a string for a while...
+				
+				Map<String,Object> payload = getPayload();
+					
+				if ( payload != null ){
+					
+					byte[] msg_bytes = (byte[])payload.get( "msg" );
+					
+					if ( msg_bytes != null ){
+					
+						return( msg_bytes );
+					}
+				}
+				
+				return( (byte[])map.get( "content" ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+					
+				return( null );
 			}
 		}
 		
