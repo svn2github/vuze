@@ -3347,8 +3347,16 @@ BuddyPluginViewBetaChat
 	
 	public void
 	messageReceived(
-		final ChatMessage	message )
+		final ChatMessage	message,
+		boolean				sort_outstanding )
 	{
+		if ( sort_outstanding ){
+		
+				// we'll pick things up on the 'messagesChanged' callback after the sort
+			
+			return;
+		}
+		
 		if ( !log.isDisposed()){
 
 			Utils.execSWTThread(

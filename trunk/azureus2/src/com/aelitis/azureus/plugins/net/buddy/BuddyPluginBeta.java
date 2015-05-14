@@ -3610,12 +3610,9 @@ BuddyPluginBeta
 				}
 			}
 			
-			if ( !sort_outstanding ){
-				
-				for ( ChatListener l: listeners ){
+			for ( ChatListener l: listeners ){
 					
-					l.messageReceived( msg );
-				}
+				l.messageReceived( msg, sort_outstanding );
 			}
 		}
 		
@@ -5282,7 +5279,8 @@ BuddyPluginBeta
 	{
 		public void
 		messageReceived(
-			ChatMessage				message );
+			ChatMessage				message,
+			boolean					sort_outstanding );
 		
 		public void
 		messagesChanged();
@@ -5317,7 +5315,8 @@ BuddyPluginBeta
 		}
 		
 		public void 
-		stateChanged(boolean avail) 
+		stateChanged(
+			boolean avail ) 
 		{
 		}
 		
@@ -5346,7 +5345,8 @@ BuddyPluginBeta
 		
 		public void 
 		messageReceived(
-			ChatMessage message) 
+			ChatMessage 	message,
+			boolean			sort_outstanding )
 		{
 		}	
 	}
