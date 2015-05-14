@@ -18,7 +18,9 @@
 
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -32,7 +34,6 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -1148,6 +1149,56 @@ public class MenuFactory
 								}
 							});
 						
+						MenuItem bencodeToJSON = new MenuItem(menu, SWT.PUSH);
+						
+						Messages.setLanguageText(bencodeToJSON, "menu.bencode.to.json" );
+																
+						bencodeToJSON.addListener(
+							SWT.Selection,
+							new Listener()
+							{
+								public void 
+								handleEvent(
+									Event arg )
+								{
+									Utils.execSWTThreadLater(
+											1,
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													BencodeToJSON();
+												}
+											});
+								}
+							});
+						
+						MenuItem JSONToBencode = new MenuItem(menu, SWT.PUSH);
+						
+						Messages.setLanguageText(JSONToBencode, "menu.json.to.bencode" );
+																
+						JSONToBencode.addListener(
+							SWT.Selection,
+							new Listener()
+							{
+								public void 
+								handleEvent(
+									Event arg )
+								{
+									Utils.execSWTThreadLater(
+											1,
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													JSONToBencode();
+												}
+											});
+								}
+							});
+						
 						MenuItem showChanges = new MenuItem(menu, SWT.PUSH);
 						
 						Messages.setLanguageText(showChanges, "show.config.changes" );
@@ -1177,6 +1228,171 @@ public class MenuFactory
 		
 		return( advancedHelpMenuItem );
 	}
+	
+	private static void
+	BencodeToJSON()
+	{
+		final Shell shell = Utils.findAnyShell();
+		
+		FileDialog dialog = new FileDialog( shell.getShell(), SWT.SYSTEM_MODAL | SWT.OPEN );
+			
+		dialog.setFilterExtensions(new String[] { "*.config", "*.torrent", "*.tor", Constants.FILE_WILDCARD });
+		
+		dialog.setFilterNames(new String[] { "*.config", "*.torrent", "*.tor", Constants.FILE_WILDCARD });
+		
+		dialog.setFilterPath( TorrentOpener.getFilterPathTorrent());
+								
+		dialog.setText(MessageText.getString( "bencode.file.browse" ));
+		
+		String str = dialog.open();
+												
+		if ( str != null ){
+			
+			try{
+				BufferedInputStream bis = new BufferedInputStream( new FileInputStream( str ));
+				
+				try{
+					Map map = BDecoder.decode( bis );
+					
+					if ( map == null ){
+						
+						throw( new Exception( "BDecode failed" ));
+					}
+					
+					final String json = BEncoder.encodeToJSON( map );
+					
+	 				Utils.execSWTThreadLater(
+						1,
+						new Runnable()
+						{
+							public void
+							run()
+							{
+				 				FileDialog dialog2 = new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
+																					
+								dialog2.setFilterPath( TorrentOpener.getFilterPathTorrent());
+														
+								dialog2.setFilterExtensions(new String[]{ "*.json" });
+								
+								String str2 = dialog2.open();
+																		
+								if ( str2 != null ){
+									
+									if ( !( str2.toLowerCase( Locale.US ).endsWith( ".json" ))){
+										
+										str2 += ".json";
+									}
+									
+									try{
+										if ( !FileUtil.writeStringAsFile( new File( str2 ), json )){
+											
+											throw( new Exception( "Failed to write output file" ));
+										}
+									}catch( Throwable e ){
+										
+										MessageBoxShell mb = new MessageBoxShell( SWT.ERROR, MessageText.getString( "ConfigView.section.security.resetkey.error.title"), Debug.getNestedExceptionMessage( e )); 
+				 						
+							 			mb.setParent( shell );
+							 				
+							 			mb.open( null );
+									}
+								}
+							}
+						});
+				}finally{
+					
+					bis.close();
+				}
+			}catch( Throwable e ){
+				
+				MessageBoxShell mb = new MessageBoxShell( SWT.ERROR, MessageText.getString( "ConfigView.section.security.resetkey.error.title"), Debug.getNestedExceptionMessage( e )); 
+	 						
+	 			mb.setParent( shell );
+	 				
+	 			mb.open( null );
+			}
+		}
+	}
+	
+	private static void
+	JSONToBencode()
+	{
+		final Shell shell = Utils.findAnyShell();
+		
+		FileDialog dialog = new FileDialog( shell.getShell(), SWT.SYSTEM_MODAL | SWT.OPEN );
+			
+		dialog.setFilterExtensions(new String[] { "*.json", Constants.FILE_WILDCARD });
+		
+		dialog.setFilterNames(new String[] { "*.json", Constants.FILE_WILDCARD });
+		
+		dialog.setFilterPath( TorrentOpener.getFilterPathTorrent());
+								
+		dialog.setText(MessageText.getString( "json.file.browse" ));
+		
+		String str = dialog.open();
+												
+		if ( str != null ){
+			
+			try{
+				String json = FileUtil.readFileAsString( new File( str ), -1, "UTF-8" );
+
+				if ( json == null ){
+					
+					throw( new Exception( "JSON decode failed" ));
+				}
+				
+				final Map map = BDecoder.decodeFromJSON( json );
+				
+ 				Utils.execSWTThreadLater(
+					1,
+					new Runnable()
+					{
+						public void
+						run()
+						{
+			 				FileDialog dialog2 = new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
+																				
+							dialog2.setFilterPath( TorrentOpener.getFilterPathTorrent());
+													
+							dialog2.setFilterExtensions(new String[]{ "*.config", "*.torrent", "*.tor", Constants.FILE_WILDCARD });
+							
+							String str2 = dialog2.open();
+																	
+							if ( str2 != null ){
+								
+								if ( !str2.contains( "." )){
+									
+									str2 += ".config";
+								}
+								
+								try{
+									byte[] bytes = BEncoder.encode( map );
+									
+									FileUtil.writeBytesAsFile( str2, bytes );
+										
+								}catch( Throwable e ){
+									
+									MessageBoxShell mb = new MessageBoxShell( SWT.ERROR, MessageText.getString( "ConfigView.section.security.resetkey.error.title"), Debug.getNestedExceptionMessage( e )); 
+			 						
+						 			mb.setParent( shell );
+						 				
+						 			mb.open( null );
+								}
+							}
+						}
+					});
+			
+			}catch( Throwable e ){
+				
+				MessageBoxShell mb = new MessageBoxShell( SWT.ERROR, MessageText.getString( "ConfigView.section.security.resetkey.error.title"), Debug.getNestedExceptionMessage( e )); 
+	 						
+	 			mb.setParent( shell );
+	 				
+	 			mb.open( null );
+			}
+		}
+	}
+	
 	
 	private static void
 	handleTorrentView()

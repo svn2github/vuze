@@ -1105,12 +1105,33 @@ public class BDecoder
     		
      	}else if ( obj instanceof String ){
       		
+ 			String s = (String)obj;
+
      		try{
-     			return(((String)obj).getBytes( "UTF-8" ));
+     			
+     			int	len = s.length();
+     			
+     			if ( len >= 6 && s.startsWith( "\\x" ) && s.endsWith( "\\x" )){			
+     				
+     				byte[]	result = new byte[(len-4)/2];
+     				
+     				int	pos = 2;
+     				
+     				for ( int i=0;i<result.length;i++){
+     					
+     					result[i] = (byte)Integer.parseInt( s.substring( pos, pos+2 ), 16 );
+     					
+     					pos += 2;
+     				}
+     				
+     				return( result );
+     			}
+     			
+     			return(s.getBytes( "UTF-8" ));
      			
      		}catch( Throwable e ){
      			
-     			return(((String)obj).getBytes());
+     			return(s.getBytes());
      		}
       		
      	}else if ( obj instanceof Long ){

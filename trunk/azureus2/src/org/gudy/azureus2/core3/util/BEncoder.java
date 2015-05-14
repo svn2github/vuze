@@ -513,7 +513,38 @@ BEncoder
        		o = String.valueOf((Double)o);
        	}else if ( o instanceof byte[] ){    		
        		try{
-       			o = new String((byte[])o,"UTF-8");			
+       			byte[] b = (byte[])o;
+       			
+       			String s = new String(b,"UTF-8");		
+       			
+       			byte[] temp = s.getBytes( "UTF-8" );
+       			
+       				// if converting the raw byte array into a UTF string and back again doesn't result in
+       				// the same bytes then things ain't gonna work dump as a demarked hex string that
+       				// can be recognized and handled in BDecoder appropriately
+       			
+       			if ( !Arrays.equals( b, temp )){
+       				
+       				StringBuffer sb = new StringBuffer( b.length * 2 + 4 );
+       				
+					sb.append("\\x");
+
+       				for ( byte x: b ){
+       					String ss=Integer.toHexString(x&0xff);
+    					for(int k=0;k<2-ss.length();k++){
+    						sb.append('0');
+    					}
+    					sb.append(ss);
+       				}
+       				
+					sb.append("\\x");
+
+       				o = sb.toString();
+       				
+       			}else{
+       			
+       				o = s;
+       			}
        		}catch( Throwable e ){
        		}
        	}
