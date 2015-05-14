@@ -583,6 +583,10 @@ AEDiagnostics
 						if ( line.startsWith( "# C" ) && line.contains( "[SWT-WIN32" )){
 							
 							swt_crash = true;
+						
+						}else if ( line.contains( "CURRENT THREAD" ) && line.contains( "SWT THREAD" )){
+							
+							swt_crash = true;
 							
 						}else if ( 	line.startsWith( "# C" ) && 
 									( 	line.contains( "[IEFRAME" ) || 
@@ -592,6 +596,8 @@ AEDiagnostics
 							swt_crash = browser_crash = true;
 
 						}else if ( 	( line.startsWith( "J " ) && line.contains( "SWT.BROWSER")) ||
+									( line.startsWith( "C " ) && line.contains( "[IEFRAME" )) ||
+									( line.startsWith( "C " ) && line.contains( "[MSHTML" )) ||
 									( line.startsWith( "C " ) && line.contains( "[JSCRIPT" ))){
 							
 							browser_crash = true;
