@@ -731,12 +731,22 @@ DownloadManagerImpl
 					 		}else if (attribute_name.equals(DownloadManagerState.AT_PARAMETERS)){
 					 			
 					 			readParameters();
-						 }
-					 }
-				 };
+					 			
+					 		}else if (attribute_name.equals(DownloadManagerState.AT_NETWORKS)){
+					 		
+					 			TRTrackerAnnouncer tc = tracker_client;
+					 			
+					 			if ( tc != null ){
+					 			
+					 				tc.resetTrackerUrl( false );
+					 			}
+							}
+						}
+					};
 
 				 download_manager_state.addListener(attr_listener, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
 				 download_manager_state.addListener(attr_listener, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN);
+				 download_manager_state.addListener(attr_listener, DownloadManagerState.AT_NETWORKS, DownloadManagerStateAttributeListener.WRITTEN);
 						
 				 torrent	= download_manager_state.getTorrent();
 				 

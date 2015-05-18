@@ -78,6 +78,8 @@ TRTrackerAnnouncerMuxer
 	private boolean								stopped;
 	private boolean								destroyed;
 	
+	private String[]							current_networks;
+	
 	private TRTrackerAnnouncerHelper			last_best_active;
 	private long								last_best_active_set_time;
 	
@@ -109,15 +111,60 @@ TRTrackerAnnouncerMuxer
 		is_manual 	= _manual;
 		f_provider	= _f_provider;
 		
-		split();
+		split( true );
 	}
 	
 	protected void
-	split()
+	split(
+		boolean	first_time )
 	
 		throws TRTrackerAnnouncerException
 	{
 		String[]	networks = f_provider==null?null:f_provider.getNetworks();
+		
+		boolean	force_recreate = false;
+		
+		if ( !first_time ){
+			
+			if ( current_networks != networks ){
+			
+				if ( current_networks == null || networks == null ){
+					
+					force_recreate = true;
+					
+				}else{
+					
+					if ( networks.length != current_networks.length ){
+						
+						force_recreate = true;
+						
+					}else{
+						
+						for ( String net1: current_networks ){
+							
+							boolean	match = false;
+							
+							for ( String net2: networks ){
+								
+								if ( net1 == net2 ){
+									
+									match = true;
+								}
+							}
+							
+							if ( !match ){
+								
+								force_recreate = true;
+								
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		current_networks = networks;
 		
 		TRTrackerAnnouncerHelper to_activate = null;
 		
@@ -272,26 +319,29 @@ TRTrackerAnnouncerMuxer
 			
 				// first look for unchanged sets
 			
-			while( ns_it.hasNext()){
+			if ( !force_recreate ){
 				
-				TOTorrentAnnounceURLSet[] ns = ns_it.next();
-				
-				Iterator<TRTrackerAnnouncerHelper> a_it = existing_announcers.iterator();
+				while( ns_it.hasNext()){
 					
-				while( a_it.hasNext()){
+					TOTorrentAnnounceURLSet[] ns = ns_it.next();
 					
-					TRTrackerAnnouncerHelper a = a_it.next();
-					
-					TOTorrentAnnounceURLSet[] os = a.getAnnounceSets();
-					
-					if ( same( ns, os )){
+					Iterator<TRTrackerAnnouncerHelper> a_it = existing_announcers.iterator();
 						
-						ns_it.remove();
-						a_it.remove();
+					while( a_it.hasNext()){
 						
-						new_announcers.add( a );
+						TRTrackerAnnouncerHelper a = a_it.next();
 						
-						break;
+						TOTorrentAnnounceURLSet[] os = a.getAnnounceSets();
+						
+						if ( same( ns, os )){
+							
+							ns_it.remove();
+							a_it.remove();
+							
+							new_announcers.add( a );
+							
+							break;
+						}
 					}
 				}
 			}
@@ -1013,7 +1063,7 @@ TRTrackerAnnouncerMuxer
 		boolean	shuffle )
 	{
 		try{
-			split();
+			split( false );
 			
 		}catch( Throwable e ){
 			

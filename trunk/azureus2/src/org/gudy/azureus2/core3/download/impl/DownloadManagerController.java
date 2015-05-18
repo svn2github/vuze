@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
@@ -186,6 +187,7 @@ DownloadManagerController
 	private boolean         		cached_values_set;
 	
 	private Set<String>				cached_networks;
+	private Object					cached_networks_lock = new Object();
 	
 	private PeerManagerRegistration	peer_manager_registration;
 	private PEPeerManager 			peer_manager;
@@ -1362,7 +1364,37 @@ DownloadManagerController
 	private void
 	cacheNetworks()
 	{
-		 cached_networks = new HashSet<String>( Arrays.asList( download_manager.getDownloadState().getNetworks()));
+		synchronized( cached_networks_lock ){
+			
+			if ( cached_networks != null ){
+				
+				return;
+			}
+		
+			DownloadManagerState state = download_manager.getDownloadState();
+			
+			cached_networks = new HashSet<String>( Arrays.asList( state.getNetworks()));
+			
+			state.addListener( 
+				new DownloadManagerStateAttributeListener()
+				{
+					public void 
+					attributeEventOccurred(
+						DownloadManager 	download,
+						String 				attribute, 
+						int 				event_type ) 
+					{
+						DownloadManagerState state = download_manager.getDownloadState();
+
+						synchronized( cached_networks_lock ){
+
+							cached_networks = new HashSet<String>( Arrays.asList( state.getNetworks()));
+						}
+					}
+				},
+				DownloadManagerState.AT_NETWORKS, 
+				DownloadManagerStateAttributeListener.WRITTEN );
+		}
 	}
 	
 	public boolean
