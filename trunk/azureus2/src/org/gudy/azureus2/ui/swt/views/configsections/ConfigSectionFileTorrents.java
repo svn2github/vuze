@@ -81,8 +81,8 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     
     int userMode = COConfigurationManager.getIntParameter("User Mode");
     
+    	// Save .Torrent files to..
     
-    // Save .Torrent files to..
     BooleanParameter saveTorrents = new BooleanParameter(cTorrent, "Save Torrent Files",
                                                          "ConfigView.label.savetorrents");
 
@@ -135,6 +135,14 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     IAdditionalActionPerformer grayPathAndButton1 = new ChangeSelectionActionPerformer(controls);
     saveTorrents.setAdditionalActionPerformer(grayPathAndButton1);
 
+   		// Delete .Torrent files
+    
+    BooleanParameter deleteTorrents = new BooleanParameter(cTorrent, "Delete Original Torrent Files",
+                                                         "ConfigView.label.deletetorrents");
+
+    
+    	// add stopped
+    
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     BooleanParameter add_stopped = new BooleanParameter(

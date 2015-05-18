@@ -366,7 +366,8 @@ public class ConfigurationDefaults {
     
     //default torrent directory option
     def.put( "Save Torrent Files", TRUE );
-    def.put("General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");
+    def.put( "General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");
+    def.put( "Delete Original Torrent Files", FALSE );
 
   
     def.put( "Bind IP", "" );

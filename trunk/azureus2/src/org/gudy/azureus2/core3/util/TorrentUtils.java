@@ -3378,9 +3378,53 @@ TorrentUtils
 			throw new IOException("File copy failed");
 		}
 
+		if ( shouldDeleteTorrentFileAfterAdd( f, persistent )){
+			
+			f.delete();
+		}
+		
 		return fDest;
 	}
 
+	public static boolean
+	shouldDeleteTorrentFileAfterAdd(
+		File		f,
+		boolean		persistent )
+	{
+		if ( !persistent ){
+			
+			return( false );
+		}
+		
+		boolean delTorrents = COConfigurationManager.getBooleanParameter("Delete Original Torrent Files");
+
+		if ( !delTorrents ){
+			
+			return( false );
+		}
+		
+		boolean saveTorrents = COConfigurationManager.getBooleanParameter("Save Torrent Files");
+		
+		if ( saveTorrents ){
+			
+			try{
+				File torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
+				
+				if ( torrentDir.isDirectory() && torrentDir.equals( f.getParentFile())){
+					
+					return( false );
+				}
+			}catch( Throwable e ){
+				
+				return( false );
+			}
+		}
+		
+		File active_dir = FileUtil.getUserFile( "active" );
+		
+		return( !active_dir.equals( f.getParentFile()));
+	}
+			
 	/**
 	 * Get the DownloadManager related to a torrent's hashBytes
 	 * 

@@ -905,6 +905,10 @@ public class GlobalManagerImpl
 				    	}
 					}
 				}
+				
+				if ( TorrentUtils.shouldDeleteTorrentFileAfterAdd( fDest, persistent )){
+					deleteDest = true;
+				}
 			}
 		} catch (IOException e) {
 			System.out.println("DownloadManager::addDownloadManager: fails - td = "
