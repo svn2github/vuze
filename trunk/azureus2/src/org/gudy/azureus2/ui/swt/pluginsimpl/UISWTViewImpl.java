@@ -655,39 +655,41 @@ public class UISWTViewImpl
 			triggerBooleanEvent(UISWTViewEvent.TYPE_CREATE, this);
 		}
 	
-		composite.setRedraw(false);
-		composite.setLayoutDeferred(true);
-		triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
-	
-		if (composite.getLayout() instanceof GridLayout) {
-			// Force children to have GridData layoutdata.
-			Control[] children = composite.getChildren();
-			for (int i = 0; i < children.length; i++) {
-				Control control = children[i];
-				Object layoutData = control.getLayoutData();
-				if (layoutData == null || !(layoutData instanceof GridData)) {
-					if (layoutData != null) {
-						Logger.log(
-								new LogEvent(LogIDs.PLUGIN, LogEvent.LT_WARNING,
-										"Plugin View '" + id + "' tried to setLayoutData of "
-												+ control + " to a "
-												+ layoutData.getClass().getName()));
+		if ( composite != null ){
+			composite.setRedraw(false);
+			composite.setLayoutDeferred(true);
+			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
+		
+			if (composite.getLayout() instanceof GridLayout) {
+				// Force children to have GridData layoutdata.
+				Control[] children = composite.getChildren();
+				for (int i = 0; i < children.length; i++) {
+					Control control = children[i];
+					Object layoutData = control.getLayoutData();
+					if (layoutData == null || !(layoutData instanceof GridData)) {
+						if (layoutData != null) {
+							Logger.log(
+									new LogEvent(LogIDs.PLUGIN, LogEvent.LT_WARNING,
+											"Plugin View '" + id + "' tried to setLayoutData of "
+													+ control + " to a "
+													+ layoutData.getClass().getName()));
+						}
+		
+						GridData gridData;
+						if (children.length == 1) {
+							gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+						} else {
+							gridData = new GridData();
+						}
+		
+						control.setLayoutData(gridData);
 					}
-	
-					GridData gridData;
-					if (children.length == 1) {
-						gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-					} else {
-						gridData = new GridData();
-					}
-	
-					control.setLayoutData(gridData);
 				}
 			}
+			composite.layout();
+			composite.setLayoutDeferred(false);
+			composite.setRedraw(true);
 		}
-		composite.layout();
-		composite.setLayoutDeferred(false);
-		composite.setRedraw(true);
 	}
 
 	/* (non-Javadoc)
