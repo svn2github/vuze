@@ -1023,7 +1023,9 @@ public abstract class BaseMdiEntry
 	
 	
 		if (_eventListener instanceof BasicPluginViewImpl) {
-			if ("image.sidebar.plugin".equals(getImageLeftID())) {
+			String existing_id = getImageLeftID();
+			
+			if (existing_id==null||"image.sidebar.plugin".equals(existing_id)) {
 				setImageLeftID("image.sidebar.logview");
 			}
 		}
