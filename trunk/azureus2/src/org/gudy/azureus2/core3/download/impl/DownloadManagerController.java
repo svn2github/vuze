@@ -1390,6 +1390,23 @@ DownloadManagerController
 
 							cached_networks = new HashSet<String>( Arrays.asList( state.getNetworks()));
 						}
+						
+						PEPeerManager	pm = peer_manager;
+						
+						if ( pm != null ){
+							
+							List<PEPeer> peers = pm.getPeers();
+							
+							for ( PEPeer peer: peers ){
+								
+								String net = AENetworkClassifier.categoriseAddress( peer.getIp());
+								
+								if ( !isNetworkEnabled( net )){
+									
+									pm.removePeer( peer, "Network not enabled" );
+								}
+							}
+						}
 					}
 				},
 				DownloadManagerState.AT_NETWORKS, 

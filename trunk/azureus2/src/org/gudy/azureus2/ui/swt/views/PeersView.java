@@ -440,7 +440,7 @@ public class PeersView
 		kick_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
 			public void run(TableRowCore row) {
 				PEPeer peer = (PEPeer) row.getDataSource(true);
-				peer.getManager().removePeer(peer);
+				peer.getManager().removePeer(peer,"Peer kicked" );
 			}
 		});
 		
@@ -453,7 +453,7 @@ public class PeersView
 				String msg = MessageText.getString("PeersView.menu.kickandban.reason");
 				IpFilterManagerFactory.getSingleton().getIPFilter().ban(peer.getIp(),
 						msg, true );
-				peer.getManager().removePeer(peer);
+				peer.getManager().removePeer(peer, "Peer kicked and banned");
 			}
 		});
 
