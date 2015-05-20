@@ -602,6 +602,9 @@ UpdateWindow
         btnOk.setEnabled(true);
         btnOk.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
+        	btnOk.setEnabled( false );
+        	btnCancel.setEnabled( false );
+        	
             finishUpdate(true, false);
           }
         });
