@@ -3537,6 +3537,8 @@ BuddyPluginViewBetaChat
 				String 	says;
 				int		stamp_len;
 				
+				int	was_len = 0;
+				
 				if ( message_type != ChatMessage.MT_NORMAL ){
 					
 					says = "[" + stamp + "]";
@@ -3549,13 +3551,17 @@ BuddyPluginViewBetaChat
 			
 					stamp_len = stamp.length() + 3;
 					
-					if ( last_message != null ){
+					if ( last_message != null && !participant.isMe()){
 						
 						String last_nick = last_message.getNickName();
 						
 						if ( !nick.equals(last_nick)){
 							
-							says += " (was " + (last_nick.length()>20?(last_nick.substring(0,16) + "..."):last_nick) + ")";
+							String was = " (was " + (last_nick.length()>20?(last_nick.substring(0,16) + "..."):last_nick) + ")";
+							
+							says += was;
+							
+							was_len = was.length();
 						}
 					}
 				}
@@ -3592,7 +3598,7 @@ BuddyPluginViewBetaChat
 						if ( rem > 0 ){
 							StyleRange styleRange = new StyleRange();
 							styleRange.start = start + stamp_len;
-							styleRange.length = rem;
+							styleRange.length = rem - was_len;
 							styleRange.foreground = colour;
 							styleRange.data = participant;
 							

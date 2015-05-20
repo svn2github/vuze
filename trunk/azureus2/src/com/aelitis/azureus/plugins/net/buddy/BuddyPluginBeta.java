@@ -3908,6 +3908,19 @@ BuddyPluginBeta
 									
 									ok = true;
 								}
+							}else if ( command.equals( "/nick" )){
+								
+								if ( bits.length > 1 ){
+
+									bits = message.split( "[\\s]+", 2 );
+									
+									setSharedNickname( false );
+									
+									setInstanceNickname( bits[1]);
+									
+									ok = true;
+								}
+
 							}else if ( command.equals( "/pjoin" )){
 								
 								if ( bits.length > 1 ){
@@ -4072,6 +4085,12 @@ BuddyPluginBeta
 					if ( options == null ){
 						
 						options = new HashMap<String, Object>();
+						
+					}else{
+						
+							// clone as we are updating
+						
+						options = new HashMap<String, Object>( options );
 					}
 					
 					options.put( "handler", handler );
