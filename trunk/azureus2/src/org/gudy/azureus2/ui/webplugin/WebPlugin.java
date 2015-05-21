@@ -1982,6 +1982,24 @@ WebPlugin
 		}
 	}
 
+	public InetAddress
+	getServerBindIP()
+	{
+		if ( tracker_context == null ){
+			
+			return( new InetSocketAddress(0).getAddress());
+		}
+		
+		InetAddress address = tracker_context.getBindIP();
+		
+		if ( address == null ){
+			
+			return( new InetSocketAddress(0).getAddress());
+		}
+		
+		return( address );
+	}
+	
 	public int
 	getServerPort()
 	{
@@ -2454,15 +2472,21 @@ WebPlugin
 			
 			try{
 				boolean valid_ip = true;
-				InetAddress ia = InetAddress.getByName( client );
+				
+				InetAddress client_ia = InetAddress.getByName( client );
 				
 				if ( ip_ranges == null ){
 					
-					if ( !ia.isLoopbackAddress()){
+					if ( !client_ia.isLoopbackAddress()){
 				
-						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' is not local, rejecting" );
+						InetAddress bind_ia = getServerBindIP();
 						
-						valid_ip = false;
+						if ( bind_ia.isAnyLocalAddress() || !bind_ia.equals( client_ia )){
+						
+							log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' is not local, rejecting" );
+						
+							valid_ip = false;
+						}
 					}
 				}else{
 					
@@ -2470,7 +2494,7 @@ WebPlugin
 					
 					for ( IPRange range: ip_ranges ){
 						
-						if ( range.isInRange( ia.getHostAddress())){
+						if ( range.isInRange( client_ia.getHostAddress())){
 						
 							ok = true;
 						}
@@ -2478,7 +2502,7 @@ WebPlugin
 					
 					if ( !ok ){
 						
-						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' (" + ia.getHostAddress() + ") is not in range, rejecting" );
+						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' (" + client_ia.getHostAddress() + ") is not in range, rejecting" );
 						
 						valid_ip = false;
 					}

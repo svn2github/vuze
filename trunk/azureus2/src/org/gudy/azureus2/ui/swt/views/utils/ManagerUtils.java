@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.utils;
 
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
 
@@ -503,6 +504,8 @@ public class ManagerUtils {
 					{
 						private Map<String,Object>	file_map = new HashMap<String,Object>();
 						
+						private String	host;
+						
 						@Override
 						public void 
 						initialize(
@@ -572,13 +575,24 @@ public class ManagerUtils {
 							
 							super.initialize( plugin_interface );
 							
+							InetAddress	bind_ip = getServerBindIP();
+														
+							if ( bind_ip.isAnyLocalAddress()){
+								
+								host = "127.0.0.1";
+								
+							}else{
+								
+								host = bind_ip.getHostAddress();
+							}
+							
 							int port = getServerPort();
 							
 							log( "Assigned port: " + port );
 							
 							String protocol = getProtocol();
 
-							String url = protocol + "://127.0.0.1:" + port + "/" + url_suffix;
+							String url = protocol + "://" + host + ":" + port + "/" + url_suffix;
 							
 							if ( launch ){
 							
@@ -839,7 +853,7 @@ public class ManagerUtils {
 								
 								os.write((
 								"  <hr></pre>" + NL +
-								"  <address>Vuze Web Server at 127.0.0.1 Port " + getServerPort() +"</address>" + NL +
+								"  <address>Vuze Web Server at " + host + " Port " + getServerPort() +"</address>" + NL +
 								" </body>" + NL +
 								"</html>" ).getBytes( "UTF-8" ));
 								
@@ -1154,7 +1168,20 @@ public class ManagerUtils {
 				
 				String protocol = plugin.getProtocol();
 				
-				String url = protocol + "://127.0.0.1:" + plugin.getServerPort() + "/" + url_suffix;
+				InetAddress	bind_ip = plugin.getServerBindIP();
+
+				String	host;
+				
+				if ( bind_ip.isAnyLocalAddress()){
+					
+					host = "127.0.0.1";
+					
+				}else{
+					
+					host = bind_ip.getHostAddress();
+				}
+				
+				String url = protocol + "://" + host+ ":" + plugin.getServerPort() + "/" + url_suffix;
 				
 				if ( launch ){
 				
