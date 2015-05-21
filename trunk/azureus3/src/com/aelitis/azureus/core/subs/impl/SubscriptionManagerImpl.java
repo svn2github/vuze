@@ -2039,6 +2039,11 @@ SubscriptionManagerImpl
 					continue;
 				}
 				
+				if ( sub.isSearchTemplate()){
+					
+					continue;
+				}
+				
 				Long data = (Long)sub.getUserData( SUBS_CHAT_KEY );
 				
 				if ( data != null ){
