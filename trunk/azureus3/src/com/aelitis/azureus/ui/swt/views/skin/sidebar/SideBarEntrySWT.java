@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -487,6 +488,18 @@ public class SideBarEntrySWT
 			
 			if ( event_listener instanceof UISWTViewCoreEventListenerEx && ((UISWTViewCoreEventListenerEx)event_listener).isCloneable()){
 				
+				final UISWTViewImpl view = new UISWTViewImpl( getParentID(), id, true );
+				
+				try{
+					view.setEventListener(((UISWTViewCoreEventListenerEx)event_listener).getClone(),false);
+					
+				}catch( Throwable e ){
+					// shouldn't happen as we aren't asking for 'create' to occur which means it can't fail
+					Debug.out( e );
+				}
+				
+				view.setDatasource( datasource );
+
 				try {
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
 							"MdiIView." + uniqueNumber++, SO_ID_ENTRY_WRAPPER,
@@ -510,12 +523,12 @@ public class SideBarEntrySWT
 						viewComposite.setLayoutData(Utils.getFilledFormData());
 					}
 
-					setPluginSkinObject(soContents);
-					initialize(viewComposite);
+					view.setPluginSkinObject(soContents);
+					view.initialize(viewComposite);
 					
 					//swtItem.setText(view.getFullTitle());
 
-					Composite iviewComposite = getComposite();
+					Composite iviewComposite = view.getComposite();
 					control = iviewComposite;
 					// force layout data of IView's composite to GridData, since we set
 					// the parent to GridLayout (most plugins use grid, so we stick with
@@ -553,7 +566,7 @@ public class SideBarEntrySWT
 					
 					soContents.setVisible( true );
 					
-					triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 					
 					return( soContents );
 					
