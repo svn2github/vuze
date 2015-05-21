@@ -476,6 +476,7 @@ public class ManagerUtils {
 			if ( plugin == null ){
 			
 				props.put( WebPlugin.PR_PORT, 0 );
+				props.put( WebPlugin.PR_BIND_IP, "127.0.0.1" );
 				props.put( WebPlugin.PR_HOME_PAGE, "" );
 				props.put( WebPlugin.PR_ROOT_DIR, root_dir );
 				props.put( WebPlugin.PR_ACCESS, "local" );
