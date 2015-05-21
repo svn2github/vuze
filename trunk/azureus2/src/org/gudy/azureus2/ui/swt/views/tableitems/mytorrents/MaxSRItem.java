@@ -132,6 +132,10 @@ public class MaxSRItem
 								}
 								
 								for (Object object : o) {
+									if (object instanceof TableRowCore) {
+										TableRowCore rowCore = (TableRowCore) object;
+										object = rowCore.getDataSource(true);
+									}
 									if (object instanceof DownloadManager) {
 										((DownloadManager)object).getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO, sr );
 									}

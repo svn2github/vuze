@@ -131,6 +131,9 @@ public class MinSRItem
 								}
 								
 								for (Object object : o) {
+									if (object instanceof TableRowCore) {
+										object = ((TableRowCore) object).getDataSource(true);
+									}
 									if (object instanceof DownloadManager) {
 										((DownloadManager)object).getDownloadState().setIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO, sr );
 									}
