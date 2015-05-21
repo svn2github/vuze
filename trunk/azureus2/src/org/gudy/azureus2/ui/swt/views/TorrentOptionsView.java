@@ -960,6 +960,17 @@ TorrentOptionsView
 		} else if (newDataSource instanceof DownloadManager[]) {
 			multi_view = true;
 			managers = (DownloadManager[]) newDataSource;
+		}else if ( newDataSource instanceof Object[]){
+			Object[] objs = (Object[])newDataSource;
+			if ( objs.length > 0 ){
+				if ( objs[0] instanceof DownloadManager ){
+					managers = new DownloadManager[objs.length];
+					for ( int i=0;i<objs.length;i++){
+						managers[i] = (DownloadManager)objs[i];
+					}
+					multi_view = true;
+				}
+			}
 		}
 		if (parent != null) {
 			Utils.execSWTThread(new AERunnable() {
