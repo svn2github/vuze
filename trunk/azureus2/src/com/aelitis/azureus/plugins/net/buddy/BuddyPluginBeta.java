@@ -3089,7 +3089,8 @@ BuddyPluginBeta
 			
 			ByteArrayHashMap<ChatMessage>	id_map 		= new ByteArrayHashMap<ChatMessage>( num_messages );
 			Map<ChatMessage,ChatMessage>	prev_map 	= new HashMap<ChatMessage,ChatMessage>( num_messages );
-			Map<ChatMessage,ChatMessage>	next_map 	= new HashMap<ChatMessage,ChatMessage>( num_messages );
+			
+			Map<ChatMessage,Object>	next_map 			= new HashMap<ChatMessage,Object>( num_messages );
 			
 				// build id map so we can lookup prev messages
 			
@@ -3121,7 +3122,26 @@ BuddyPluginBeta
 						// ordering prev_msg::msg
 					
 						prev_map.put( msg, prev_msg );
-						next_map.put( prev_msg, msg );
+						
+						Object existing = next_map.get( prev_msg );
+						
+						if ( existing == null ){
+							
+							next_map.put( prev_msg, msg );
+							
+						}else if ( existing instanceof ChatMessage ){
+							
+							List<ChatMessage> list = new ArrayList<ChatMessage>();
+							
+							list.add( (ChatMessage)existing );
+							list.add( msg );
+							
+							next_map.put( prev_msg,  list );
+							
+						}else{
+							
+							((List<ChatMessage>)existing).add( msg );
+						}
 					}
 				}
 			}
@@ -3184,6 +3204,8 @@ BuddyPluginBeta
 							prev_map.put( current, null );
 							next_map.put( prev_msg, null );
 							
+							Debug.out( "Loopage" );
+							
 							break;
 							
 						}else{
@@ -3194,9 +3216,9 @@ BuddyPluginBeta
 				}
 				
 			}
-				// find the heads of the various chains
+				// find the heads of the various trees
 			
-			Set<ChatMessage>		chain_heads = new TreeSet<ChatMessage>( message_comparator );
+			Set<ChatMessage>		tree_heads = new TreeSet<ChatMessage>( message_comparator );
 			
 			for ( ChatMessage msg: messages ){
 				
@@ -3221,7 +3243,7 @@ BuddyPluginBeta
 						
 						if ( prev_prev == null ){
 							
-							chain_heads.add( prev_msg );
+							tree_heads.add( prev_msg );
 							
 							break;
 							
@@ -3233,31 +3255,17 @@ BuddyPluginBeta
 				}
 			}
 			
-			// System.out.println( "Got chains: " + chain_heads.size());
+			// System.out.println( "Got trees: " + tree_heads.size());
 			
 			Set<ChatMessage>	remainder_set = new HashSet<BuddyPluginBeta.ChatMessage>( messages );
 			
 			List<ChatMessage> result = null;
 			
-			for ( ChatMessage head: chain_heads ){
+			for ( ChatMessage head: tree_heads ){
 				
-				List<ChatMessage>	chain = new ArrayList<ChatMessage>( num_messages );
-
-				ChatMessage msg = head;
-					
-				// System.out.println( "chain starts" );
+				List<ChatMessage>	chain = flattenTree( head, next_map, num_messages );
 				
-				while( msg != null ){
-					
-					// System.out.println( "    " + msg.getString());
-					
-					chain.add( msg );
-					
-					remainder_set.remove( msg );
-					
-					msg = next_map.get( msg );
-				}
-				
+				remainder_set.removeAll( chain );
 				
 				if ( result == null ){
 					
@@ -3368,6 +3376,70 @@ BuddyPluginBeta
 			}
 			
 			return( changed );
+		}
+		
+		private List<ChatMessage>
+		flattenTree(
+			ChatMessage					head,
+			Map<ChatMessage,Object>		next_map,
+			int							num_messages )
+		{
+			if ( num_messages <= 0 ){
+				
+					// fail safe in case for some reason we end up in a loop
+				
+				return(  new ArrayList<ChatMessage>());
+			}
+			
+			List<ChatMessage> chain = new ArrayList<ChatMessage>( num_messages );
+
+			ChatMessage msg = head;
+							
+			while( true ){
+								
+				chain.add( msg );
+					
+				num_messages--;
+				
+				Object entry = next_map.get( msg );
+				
+				if ( entry instanceof ChatMessage ){
+					
+					msg = (ChatMessage)entry;
+					
+				}else if ( entry instanceof List ){
+					
+					List<ChatMessage> list = (List<ChatMessage>)entry;
+					
+					List<ChatMessage> current = null;
+										
+					for ( ChatMessage node: list ){
+						
+						List<ChatMessage> temp = flattenTree( node, next_map, num_messages );
+												
+						num_messages -= temp.size();
+						
+						if ( current == null ){
+							
+							current = temp;
+							
+						}else{
+							
+							current = merge( current, temp );
+						}
+					}
+					
+					chain.addAll( current );
+										
+					break;
+					
+				}else{
+					
+					break;
+				}
+			}
+			
+			return( chain );
 		}
 		
 		private List<ChatMessage>
@@ -4111,6 +4183,7 @@ BuddyPluginBeta
 					if ( prev_message != null ){
 						
 						payload.put( "pre", prev_message.getID());
+						payload.put( "seq", prev_message.getSequence() + 1 );
 					}
 					
 					if ( flags != null ){
@@ -4883,7 +4956,8 @@ BuddyPluginBeta
 		private ChatParticipant					participant;
 
 		private byte[]							previous_id;
-				
+		private long							sequence;
+		
 		private boolean							is_ignored;
 		private boolean							is_duplicate;
 		private boolean							is_nick_clash;
@@ -4903,6 +4977,10 @@ BuddyPluginBeta
 			Map<String,Object> payload = getPayload();
 			
 			previous_id = (byte[])payload.get( "pre" );
+			
+			Number	l_seq = (Number)payload.get( "seq" );
+			
+			sequence = l_seq==null?0:l_seq.longValue();
 		}
 		
 		protected int
@@ -5200,6 +5278,12 @@ BuddyPluginBeta
 			byte[]		pid )
 		{
 			previous_id = pid;
+		}
+		
+		public long
+		getSequence()
+		{
+			return( sequence );
 		}
 		
 		public byte[]
