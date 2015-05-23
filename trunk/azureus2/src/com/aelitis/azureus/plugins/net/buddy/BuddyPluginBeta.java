@@ -3520,7 +3520,14 @@ BuddyPluginBeta
 			}
 			
 			ChatMessage msg = new ChatMessage( message_uid_next.incrementAndGet(), message_map );
-						
+			
+			long sequence = msg.getSequence();
+			
+			if ( sequence != 0 ){
+				
+				System.out.println( getName() + ": seq=" + sequence );
+			}
+			
 			ChatParticipant	new_participant = null;
 				
 			boolean	sort_outstanding = false;
@@ -4135,22 +4142,42 @@ BuddyPluginBeta
 				}
 				
 				try{
-					ChatMessage		prev_message = null;
+					ChatMessage		prev_message 	= null;
+					long			prev_sequence	= -1;
 					
 					synchronized( chat_lock ){
 						
 						int	pos = messages.size() - 1;
 						
+						int	 missing_seq = 0;
+						
 						while( pos >= 0 ){
 						
 							ChatMessage m = messages.get( pos-- );
-							
+														
 							if ( m.getMessageType() == ChatMessage.MT_NORMAL ){
+							
+								if ( prev_message == null ){
 								
-								prev_message = m;
+									prev_message = m;
+								}
 								
-								break;
+								prev_sequence = m.getSequence();
+							
+								if ( prev_sequence > 0 ){
+																		
+									break;
+									
+								}else{
+									
+									missing_seq++;
+								}
 							}
+						}
+						
+						if ( prev_message != null ){
+															
+							prev_sequence += missing_seq;
 						}
 					}
 					
@@ -4183,7 +4210,7 @@ BuddyPluginBeta
 					if ( prev_message != null ){
 						
 						payload.put( "pre", prev_message.getID());
-						payload.put( "seq", prev_message.getSequence() + 1 );
+						payload.put( "seq", prev_sequence + 1 );
 					}
 					
 					if ( flags != null ){
