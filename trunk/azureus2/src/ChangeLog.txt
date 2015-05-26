@@ -1,8 +1,47 @@
 VUZE CHANGELOG
 -----------------
 
-2015.xx.yy | Vuze 5.6.0.1
+2015.06.yy | Vuze 5.6.1.0
 
+FEATURE: UI   | New 'tagging' subview to allow easy download/tag assignment [TuxPaper]
+FEATURE: UI   | Many sidebar views can now be 'popped out' into a separate window [Parg]
+FEATURE: UI   | Show discovered tags when adding torrents [TuxPaper]
+FEATURE: UI   | Support escaped unicode character entry in chat UI via \unnnn [Parg]
+FEATURE: UI   | New tag settings view in Tags Overview panel [TuxPaper]
+FEATURE: UI   | Brought back client byte stats and added per-network stats [TuxPaper]
+FEATURE: UI   | Support for viewing downloads as local websites in web browser - http://wiki.vuze.com/w/Decentralized_Websites [Parg]
+FEATURE: UI   | Ability to completely disable use of the embedded browser in Vuze [Parg]
+FEATURE: UI   | Added 'torrent last active' column [TuxPaper]
+FEATURE: UI   | Additional option to edit multiple download's trackers in a single operation [Parg]
+FEATURE: UI   | Help menu option to import/export config files (etc) from bencoded <-> json format [Parg]
+FEATURE: Core | Option to delete original .torrent files after addition [Parg]
+FEATURE: Core | Automatically unzip torrents that happen to have been saved in compressed format [Parg]
+FEATURE: Core | 'action on tag assignment' to support auto removal of peers [Parg]
+FEATURE: Core | Per-peer up/down rate limiting on peer set assignment [Parg]  
+FEATURE: Core | Archival of downloads - http://wiki.vuze.com/w/Archiving_Downloads [Parg]
+
+CHANGE: UI    | Torrent hash now shown in torrent options info view [Parg]
+CHANGE: UI    | Subscriptions ca now be shown in the classic UI [TuxPaper] 
+CHANGE: UI    | More consistently handle 'do not download' file sizes when showing size/percent done/remaining [TuxPaper]
+CHANGE: UI    | Automatic closure of torrent download window when automatically invoked [Parg]
+CHANGE: UI    | Current version of components is now shown in update prompt [Parg]
+CHANGE: UI    | Latest 'private torrent' state now persisted across create-torrent operations [Parg]
+CHANGE: Core  | Treat protocol-relative URL's in RSS feeds as http:// [Parg]
+CHANGE: Core  | Changes to a download's networks are now applied directly [Parg]
+
+BUGFIX: UI    | Fix 'reset columns' not resetting all colums [TuxPaper]
+BUGFIX: UI    | Fix fancy menu bounds calculation to ensure correct visibility [TuxPaper]
+BUGFIX: UI    | Creation date in torrent options dialog was incorerctly formatted [TuxPaper]
+BUGFIX: UI    | Use updated trackers in open-torrent-options availability checker [Parg]
+BUGFIX: Core  | Fix config corruption with non-ascii chat options [Parg]
+BUGFIX: Core  | Fix edge case bug with swarm merging [Parg]
+BUGFIX: Core  | Webseed rate limits weren't always being applied correctly [Parg]
+BUGFIX: Core  | Removed small window when rate limits weren't being applied correctly [Parg]
+BUGFIX: Core  | Incorrect tags were being included when getting existing download tags [Parg]
+BUGFIX: Core  | Handle 301/302 redirects from trackers when binding to explicit IPs [Parg]
+BUGFIX: Core  | Handle UPnP device URLs that don't have final / [Parg]
+BUGFIX: Core  | Decode torrents with missing announce-urls correctly [Parg]
+BUGFIX: Core  | Unlimited per-torrent connections not being enforced correctly [Parg]
 
 2015.03.03 | Vuze 5.6.0.0
 
