@@ -3522,12 +3522,7 @@ BuddyPluginBeta
 			ChatMessage msg = new ChatMessage( message_uid_next.incrementAndGet(), message_map );
 			
 			long sequence = msg.getSequence();
-			
-			if ( sequence != 0 ){
-				
-				System.out.println( getName() + ": seq=" + sequence );
-			}
-			
+						
 			ChatParticipant	new_participant = null;
 				
 			boolean	sort_outstanding = false;
