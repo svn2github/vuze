@@ -20,11 +20,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -229,12 +228,42 @@ public class AdvRenameWindow
 		if (dm == null) {
 			return;
 		}
+		
+		boolean saveLocationIsFolder = dm.getSaveLocation().isDirectory();
+		
+		String newDisplayName 	= newName;
+		String newSavePath		= FileUtil.convertOSSpecificChars( newName, saveLocationIsFolder );
+		String newTorrentName	= FileUtil.convertOSSpecificChars( newName, false );
+
 		if ((renameDecisions & RENAME_DISPLAY) > 0) {
-			dm.getDownloadState().setDisplayName(newName);
+			dm.getDownloadState().setDisplayName(newDisplayName);
 		}
 		if ((renameDecisions & RENAME_SAVEPATH) > 0) {
 			try {
-				dm.renameDownload(newName);
+				
+				try{
+					if ( dm.getTorrent().isSimpleTorrent()){
+					
+				    	String dnd_sf = dm.getDownloadState().getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+				        
+				    	if ( dnd_sf != null ){
+				    		
+				    		dnd_sf = dnd_sf.trim();
+
+				    		String existing_name = dm.getSaveLocation().getName();
+				    		
+				    		if ( existing_name.endsWith( dnd_sf )){
+				    			
+				    			if ( !newSavePath.endsWith( dnd_sf )){
+				    				
+				    				newSavePath += dnd_sf;
+				    			}
+				    		}
+				    	}
+					}
+				}catch( Throwable e ){
+				}
+				dm.renameDownload(newSavePath);
 			} catch (Exception e) {
 				Logger.log(new LogAlert(dm, LogAlert.REPEATABLE,
 						"Download data rename operation failed", e));
@@ -242,7 +271,7 @@ public class AdvRenameWindow
 		}
 		if ((renameDecisions & RENAME_TORRENT) > 0) {
 			try {
-				dm.renameTorrentSafe(newName);
+				dm.renameTorrentSafe(newTorrentName);
   		} catch (Exception e) {
   			Logger.log(new LogAlert(dm, LogAlert.REPEATABLE,
   					"Torrent rename operation failed", e));
