@@ -1448,9 +1448,19 @@ DownloadManagerImpl
 					continue;
 				}
 				
+				try{
+					to = to.getCanonicalFile();
+				}catch( Throwable e ){
+				}
+				
 				int		file_index 	= entry.getIndex();
 				File	from 		= entry.getFromFile();
 
+				try{
+					from = from.getCanonicalFile();
+				}catch( Throwable e ){
+				}
+				
 				String  from_s  = from.getAbsolutePath();
 				String  to_s    = to.getAbsolutePath();
 		
