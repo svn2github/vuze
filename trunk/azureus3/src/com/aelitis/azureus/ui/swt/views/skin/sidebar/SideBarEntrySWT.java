@@ -471,11 +471,7 @@ public class SideBarEntrySWT
 				control.getParent().layout(true, true);
 			
 				soContents.setVisible( true );
-				
-				setPluginSkinObject(skinObject);
-				
-				initialize((Composite) control);
-			
+							
 				return( soContents );
 				
 			} finally {
