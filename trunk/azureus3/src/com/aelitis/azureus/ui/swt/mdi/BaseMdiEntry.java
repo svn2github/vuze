@@ -546,7 +546,10 @@ public abstract class BaseMdiEntry
 	@Override
 	public void setPluginSkinObject(PluginUISWTSkinObject skinObject) {
 		super.setPluginSkinObject(skinObject);
-		Object initialDataSource = getInitialDataSource();
+		Object initialDataSource = (datasource == null
+				|| ((datasource instanceof Object[])
+						&& ((Object[]) datasource).length == 0)) ? getInitialDataSource()
+								: datasource;
 		if (initialDataSource != null) {
 			if (skinObject instanceof SWTSkinObject) {
 				((SWTSkinObject) skinObject).triggerListeners(
