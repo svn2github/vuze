@@ -1507,6 +1507,7 @@ DownloadManagerImpl
 			}
 			
 			//System.out.println( "   adding " + old_path + " -> null" );
+			
 			from_indexes.add( 0 );
 			from_links.add( new File(old_path));
 			to_links.add( null );
@@ -1515,7 +1516,28 @@ DownloadManagerImpl
 				// alternate location (only a single file after all this is simplest implementation). Unfortunately links can
 				// actually still be set (e.g. to add an 'incomplete' suffix to a file) so we still need to support link-rewriting
 				// properly
-			String to_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, to_loc);
+			
+				// both old_path and new_path are the full name of the download file, that is they aren't
+				// directories they are files - grab the parent directories as the link translation needs to
+				// be relative to this
+			
+			String old_path_parent;
+			int	pos = old_path.lastIndexOf( File.separatorChar );
+			if ( pos != -1 ){
+				old_path_parent = old_path.substring( 0, pos ); 
+			}else{
+				old_path_parent = old_path;
+			}
+			
+			String new_path_parent;
+			pos = new_path.lastIndexOf( File.separatorChar );
+			if ( pos != -1 ){
+				new_path_parent = new_path.substring( 0, pos ); 
+			}else{
+				new_path_parent = new_path;
+			}
+			
+			String to_loc_to_use = FileUtil.translateMoveFilePath(old_path_parent, new_path_parent, to_loc);
 			
 			if ( to_loc_to_use == null ){
 				
