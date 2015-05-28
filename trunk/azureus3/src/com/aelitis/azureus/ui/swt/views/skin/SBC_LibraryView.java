@@ -865,8 +865,12 @@ public class SBC_LibraryView
 	public Object dataSourceChanged(SWTSkinObject skinObject, Object params) {
 		datasource = params;
 		if (soListArea != null) {
-  		soListArea.getControl().setData("DataSource",
-  				params);
+			Control control = soListArea.getControl();
+  		
+			if ( !control.isDisposed()){
+			
+				control.setData("DataSource", params);
+			}
 		}
 		
 		return null;
