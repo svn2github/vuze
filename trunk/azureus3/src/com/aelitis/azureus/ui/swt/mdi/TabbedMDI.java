@@ -20,7 +20,6 @@ package com.aelitis.azureus.ui.swt.mdi;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -474,8 +473,15 @@ public class TabbedMDI
 			 */
 			@Override
 			protected void draw(int part, int state, Rectangle bounds, GC gc) {
-				super.draw(part, state, bounds, gc);
-				if (part >= 0) {
+				try {
+					super.draw(part, state, bounds, gc);
+				} catch (Throwable t) {
+					Debug.out(t);
+				}
+				if (part < 0) {
+					return;
+				}
+				try {
 					CTabItem item = getTabFolder().getItem(part);
 					TabbedEntry entry = getEntryFromTabItem(item);
 					if (entry == null) {
@@ -571,6 +577,8 @@ public class TabbedMDI
 						}
 					}
 
+				} catch (Throwable t) {
+					Debug.out(t);
 				}
 			}
 		};
