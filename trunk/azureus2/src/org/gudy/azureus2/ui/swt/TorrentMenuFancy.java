@@ -484,7 +484,7 @@ public class TorrentMenuFancy
 					Rectangle bounds = control.getBounds();
 					int y = bounds.height - 2;
 					e.gc.drawLine(0, y, bounds.width, y);
-				} else if (e.type == SWT.MouseEnter) {
+				} else if (e.type == SWT.MouseEnter || e.type == SWT.Touch) {
 					Object data = e.widget.getData("ID");
 
 					if (data instanceof HeaderInfo) {
@@ -2233,6 +2233,7 @@ public class TorrentMenuFancy
 		control.setData("ID", headerInfo);
 
 		control.addListener(SWT.MouseEnter, headerListener);
+		control.addListener(SWT.Touch, headerListener);
 		control.addListener(SWT.MouseExit, headerListener);
 		control.addListener(SWT.Paint, headerListener);
 
