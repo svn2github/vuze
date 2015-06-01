@@ -193,7 +193,7 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 			String afterID) {
 		UISWTViewCore view = null;
 		MdiEntrySWT entry = (MdiEntrySWT) tabbedMDI.createEntryFromEventListener(
-				tv.getTableID(), listener, listener.getViewID(), false, null, afterID);
+				tv.getTableID(), listener, listener.getViewID(), true, null, afterID);
 		if (entry instanceof UISWTViewCore) {
 			view = (UISWTViewCore) entry;
 

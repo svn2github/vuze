@@ -75,7 +75,7 @@ public class TabbedMDI
 
 	private int minimumCharacters = 25;
 
-	private boolean isMainMDI;
+	protected boolean isMainMDI;
 
 	private Map mapUserClosedTabs;
 
@@ -762,7 +762,7 @@ public class TabbedMDI
 		entry.setSkinRef(configID, params);
 		entry.setViewTitleInfo(titleInfo);
 		
-		setupNewEntry(entry, id, index);
+		setupNewEntry(entry, id, index, closeable);
 		return entry;
 	}
 	
@@ -797,7 +797,7 @@ public class TabbedMDI
 		entry.setDatasource(datasource);
 		entry.setPreferredAfterID(preferredAfterID);
 
-		setupNewEntry(entry, id, -1);
+		setupNewEntry(entry, id, -1, closeable);
 
 		if (l instanceof IViewAlwaysInitialize) {
 			entry.build();
@@ -816,12 +816,12 @@ public class TabbedMDI
 	}
 
 	private void setupNewEntry(final TabbedEntry entry, final String id,
-			final int index) {
+			final int index, boolean closeable) {
 		synchronized (mapIdToEntry) {
 			mapIdToEntry.put(id, entry);
 		}
 
-		entry.setCloseable(true);
+		entry.setCloseable(closeable);
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {

@@ -24,17 +24,13 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 
@@ -249,7 +245,7 @@ public class TabbedEntry
 
 	public boolean isCloseable() {
 		// override.. we don't support non-closeable
-		return true;
+		return ((TabbedMDI) getMDI()).isMainMDI ? true : super.isCloseable();
 	}
 	
 	/* (non-Javadoc)
@@ -257,6 +253,10 @@ public class TabbedEntry
 	 */
 	@Override
 	public void setCloseable(boolean closeable) {
+		// override.. we don't support non-closeable for main
+		if (((TabbedMDI) getMDI()).isMainMDI) {
+			closeable = true;
+		}
 		super.setCloseable(closeable);
 		Utils.execSWTThread(new AERunnable() {
 			@Override
