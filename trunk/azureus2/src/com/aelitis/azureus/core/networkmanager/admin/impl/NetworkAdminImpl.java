@@ -304,7 +304,7 @@ NetworkAdminImpl
 				new LogAlert(
 					true,
 					LogAlert.AT_WARNING,
-					MessageText.getString( "network.admin.dns.spi.fail", error_str )));
+					MessageText.getString( "network.admin.dns.spi.fail", new String[]{ error_str })));
 		}
 	}
 	
