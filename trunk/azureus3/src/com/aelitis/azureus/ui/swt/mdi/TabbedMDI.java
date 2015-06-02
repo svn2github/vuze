@@ -583,6 +583,11 @@ public class TabbedMDI
 			}
 		};
 		tabFolder.setRenderer(renderer);
+		
+		if (minimizeVisible) {
+			boolean toMinimize = ConfigurationManager.getInstance().getBooleanParameter(props_prefix + ".subViews.minimized");
+			setMinimized(toMinimize);
+		}
 	}
 	
 	private String
