@@ -1,6 +1,8 @@
 VUZE CHANGELOG
 -----------------
 
+2015.xx.yy | Vuze 5.6.1.1
+
 2015.06.02 | Vuze 5.6.1.0
 
 FEATURE: UI   | New 'tagging' subview to allow easy download/tag assignment [TuxPaper]
