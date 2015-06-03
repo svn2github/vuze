@@ -50,6 +50,7 @@ import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
+import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
@@ -1367,6 +1368,26 @@ public class MainWindowImpl
 				System.out.println("---------SHOWN AT " + SystemTime.getCurrentTime()
 						+ ";" + (SystemTime.getCurrentTime() - Initializer.startTime)
 						+ "ms");
+				
+					// bring back and stand-alone shells 
+				
+				ShellManager.sharedManager().performForShells(
+						new Listener()
+						{
+							public void 
+							handleEvent(
+								Event event) 
+							{
+								Shell this_shell = (Shell)event.widget;
+								
+								if ( this_shell.getParent() == null && !this_shell.isVisible()){
+								
+									this_shell.setVisible( true );
+									
+									this_shell.moveAbove( shell );
+								}
+							}
+						});
 			}
 		});
 
@@ -1697,6 +1718,23 @@ public class MainWindowImpl
 		COConfigurationManager.setParameter("window.maximized",
 				shell.getMaximized());
 		shell.setVisible(false);
+		
+		ShellManager.sharedManager().performForShells(
+			new Listener()
+			{
+				public void 
+				handleEvent(
+					Event event) 
+				{
+					Shell shell = (Shell)event.widget;
+					
+					if ( shell.getParent() == null ){
+						
+						shell.setVisible( false );
+					}
+				}
+			});
+		
 		MiniBarManager.getManager().setAllVisible(true);
 	}
 
