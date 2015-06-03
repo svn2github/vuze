@@ -126,6 +126,7 @@ BuddyPluginBeta
 	private String					shared_anon_nickname;
 	private int						max_chat_ui_lines;
 	private int						max_chat_ui_kb;
+	private boolean					standalone_windows;
 	
 	private int						private_chat_state;
 	private boolean					shared_anon_endpoint;
@@ -210,7 +211,7 @@ BuddyPluginBeta
 		
 		max_chat_ui_lines		= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.lines", 250 );
 		max_chat_ui_kb			= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.char.kb", 10 );
-		
+		standalone_windows		= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.standalone.windows", false );
 		SimpleTimer.addPeriodicEvent(
 			"BPB:checkfave",
 			30*1000,
@@ -294,6 +295,23 @@ BuddyPluginBeta
 		COConfigurationManager.setDirty();
 	}
 	
+	public boolean
+	getStandAloneWindows()
+	{
+		return( standalone_windows );
+	}
+	
+	public void
+	setStandAloneWindows(
+		boolean		b )
+	{
+		standalone_windows			= b;
+		
+		COConfigurationManager.setParameter( "azbuddy.dchat.ui.standalone.windows", b );
+
+		COConfigurationManager.setDirty();
+	}
+
 	public boolean
 	getFavourite(
 		String		net,

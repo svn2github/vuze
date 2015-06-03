@@ -345,6 +345,26 @@ BuddyPluginViewInstance
 		
 		label = new Label( ui_area, SWT.NULL );
 		
+			// standalone windows
+		
+		final Button stand_alone = new Button( ui_area, SWT.CHECK );
+		
+		stand_alone.setText( lu.getLocalisedMessageText( "azbuddy.dchat.ui.standalone.windows" ));
+				
+		stand_alone.setSelection( plugin_beta.getStandAloneWindows());
+		
+		stand_alone.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						plugin_beta.setStandAloneWindows( stand_alone.getSelection());
+					}
+				});	
+		
+		
 			// notifications
 		
 		final Group noti_area = new Group( main, SWT.NULL );

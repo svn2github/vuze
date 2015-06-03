@@ -187,7 +187,14 @@ BuddyPluginViewBetaChat
 		
 		lu		= plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 		
-		shell = ShellFactory.createMainShell( SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN | SWT.MAX );
+		if ( beta.getStandAloneWindows()){
+			
+			shell = ShellFactory.createShell( (Shell)null, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN | SWT.MAX );
+			
+		}else{
+			
+			shell = ShellFactory.createMainShell( SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN | SWT.MAX );
+		}
 		
 		shell.addListener(
 			SWT.Show,
