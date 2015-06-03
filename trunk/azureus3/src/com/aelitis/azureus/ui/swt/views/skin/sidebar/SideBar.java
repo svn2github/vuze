@@ -221,7 +221,10 @@ public class SideBar
 				
 				if ( sbe != null ){
 					SkinnedDialog skinnedDialog = 
-							new SkinnedDialog( "skin3_dlg_sidebar_popout", "shell",
+							new SkinnedDialog( 
+									"skin3_dlg_sidebar_popout", 
+									"shell",
+									null,	// standalone
 									SWT.RESIZE | SWT.MAX | SWT.DIALOG_TRIM);
 	
 					SWTSkin skin = skinnedDialog.getSkin();

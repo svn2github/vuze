@@ -66,12 +66,23 @@ public class SkinnedDialog
 				skinFile, shellSkinObjectID, style);
 	}
 
+	public SkinnedDialog(String skinFile, String shellSkinObjectID, Shell parent, int style) {
+		this(SkinnedDialog.class.getClassLoader(), "com/aelitis/azureus/ui/skin/",
+				skinFile, shellSkinObjectID, parent, style);
+	}
+	
 	public SkinnedDialog(ClassLoader cla, String skinPath, String skinFile,
 			String shellSkinObjectID, int style) {
+		this( cla, skinPath, skinFile, shellSkinObjectID, null, style );
+	}
+	
+	public SkinnedDialog(ClassLoader cla, String skinPath, String skinFile,
+			String shellSkinObjectID, Shell parent, int style)
+	{
 		this.shellSkinObjectID = shellSkinObjectID;
 
 		mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
-		shell = ShellFactory.createShell(mainShell, style);
+		shell = ShellFactory.createShell(parent==null?mainShell:parent, style);
 
 		Utils.setShellIcon(shell);
 
