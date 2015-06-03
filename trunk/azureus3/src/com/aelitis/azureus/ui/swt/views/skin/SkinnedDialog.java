@@ -73,7 +73,7 @@ public class SkinnedDialog
 	
 	public SkinnedDialog(ClassLoader cla, String skinPath, String skinFile,
 			String shellSkinObjectID, int style) {
-		this( cla, skinPath, skinFile, shellSkinObjectID, null, style );
+		this( cla, skinPath, skinFile, shellSkinObjectID, UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(), style );
 	}
 	
 	public SkinnedDialog(ClassLoader cla, String skinPath, String skinFile,
@@ -82,7 +82,7 @@ public class SkinnedDialog
 		this.shellSkinObjectID = shellSkinObjectID;
 
 		mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
-		shell = ShellFactory.createShell(parent==null?mainShell:parent, style);
+		shell = ShellFactory.createShell(parent, style);
 
 		Utils.setShellIcon(shell);
 
