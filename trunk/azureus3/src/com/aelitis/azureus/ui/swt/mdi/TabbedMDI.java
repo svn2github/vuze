@@ -958,6 +958,10 @@ public class TabbedMDI
 	 */
 	public void setMinimizeVisible(final boolean visible) {
 		minimizeVisible = visible;
+		if (minimizeVisible) {
+			boolean toMinimize = ConfigurationManager.getInstance().getBooleanParameter(props_prefix + ".subViews.minimized");
+			setMinimized(toMinimize);
+		}
 		Utils.execSWTThread(new AERunnable() {
 			@Override
 			public void runSupport() {
