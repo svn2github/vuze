@@ -206,7 +206,7 @@ public class StatsView
 				}
 			}
 		}
-
+		
 		updateThread = new UpdateThread();
 		updateThread.setDaemon(true);
 		updateThread.start();
@@ -260,6 +260,7 @@ public class StatsView
 			case UISWTViewEvent.TYPE_CREATE:
 				swtView = (UISWTView) event.getData();
 				swtView.setTitle(getFullTitle());
+				swtView.setDestroyOnDeactivate(false);
 				break;
 
 			case UISWTViewEvent.TYPE_DESTROY:
