@@ -20,6 +20,7 @@
 package org.gudy.azureus2.core3.util.protocol.azplug;
 
 import java.util.*;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -33,6 +34,8 @@ import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 
 /**
  * @author parg
@@ -117,37 +120,57 @@ AZPluginConnection
 			plugin_str = "'" + plugin_name + "' (id " + plugin_id + ")";
 		}
 		
-		// AZPluginConnection is called via reflection
-		// Let's just assume that the Core is avail..
-		
-		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( plugin_id );
-		
-		if ( pi == null ){
+		if ( plugin_id.equals( "subscription" )){
 			
-			throw( new IOException( "Plugin " + plugin_str + " is required - go to 'Tools->Plugins->Installation Wizard' to install." ));
-		}
-		
-		IPCInterface ipc = pi.getIPC();
-		
-		try{
-			if ( ipc.canInvoke( "handleURLProtocol", new Object[]{ this, arg })){
-					
-				input_stream = (InputStream)ipc.invoke( "handleURLProtocol", new Object[]{ this, arg });
-
-			}else{
+			AZ3Functions.provider az3 = AZ3Functions.getProvider();
 			
-				input_stream = (InputStream)ipc.invoke( "handleURLProtocol", new Object[]{ arg });
-			}
-		}catch( IPCException ipce ){
-			
-			Throwable e = ipce;
-			
-			if ( e.getCause() != null ){
+			if ( az3 == null ){
 				
-				e = e.getCause();
+				throw( new IOException( "Subscriptions are not available" ));
 			}
 			
-			throw( new IOException( "Communication error with plugin '" + plugin_str + "': " + Debug.getNestedExceptionMessage(e)));
+			try{
+				az3.subscribeToSubscription( arg );
+			
+				input_stream = new ByteArrayInputStream( VuzeFileHandler.getSingleton().create().exportToBytes());
+				
+			}catch( Throwable e ){
+				
+				throw( new IOException( "Subscription addition failed: " + Debug.getNestedExceptionMessage( e )));
+			}
+		}else{
+			// AZPluginConnection is called via reflection
+			// Let's just assume that the Core is avail..
+			
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( plugin_id );
+			
+			if ( pi == null ){
+				
+				throw( new IOException( "Plugin " + plugin_str + " is required - go to 'Tools->Plugins->Installation Wizard' to install." ));
+			}
+			
+			IPCInterface ipc = pi.getIPC();
+			
+			try{
+				if ( ipc.canInvoke( "handleURLProtocol", new Object[]{ this, arg })){
+						
+					input_stream = (InputStream)ipc.invoke( "handleURLProtocol", new Object[]{ this, arg });
+	
+				}else{
+				
+					input_stream = (InputStream)ipc.invoke( "handleURLProtocol", new Object[]{ arg });
+				}
+			}catch( IPCException ipce ){
+				
+				Throwable e = ipce;
+				
+				if ( e.getCause() != null ){
+					
+					e = e.getCause();
+				}
+				
+				throw( new IOException( "Communication error with plugin '" + plugin_str + "': " + Debug.getNestedExceptionMessage(e)));
+			}
 		}
 	}
 	

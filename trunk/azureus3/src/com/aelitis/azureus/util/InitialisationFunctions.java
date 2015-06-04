@@ -34,13 +34,18 @@ import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
+import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerListener;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 
@@ -125,6 +130,56 @@ public class InitialisationFunctions
 					if ( creator_ref != null ){
 						
 						subs.setCreatorRef( creator_ref );
+					}
+				}
+				
+				public void 
+				subscribeToSubscription(
+					String uri )
+					
+					throws Exception 
+				{
+					SubscriptionManager manager = SubscriptionManagerFactory.getSingleton();
+					
+					Subscription subs =	manager.createFromURI( uri );
+											
+					if ( !subs.isSubscribed()){
+							
+						subs.setSubscribed( true );
+						
+						if ( subs.isSearchTemplate()){
+							
+							try{
+								VuzeFile vf = subs.getSearchTemplateVuzeFile();
+								
+								if ( vf != null ){
+								
+									subs.setSubscribed( true );
+									
+									VuzeFileHandler.getSingleton().handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+									
+									
+									for ( VuzeFileComponent comp: vf.getComponents()){
+										
+										Engine engine = (Engine)comp.getData( Engine.VUZE_FILE_COMPONENT_ENGINE_KEY );
+										
+										if ( engine != null && engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ){
+											
+											engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
+										}
+									}
+								}
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}else{
+						
+							subs.requestAttention();
+						}
+					}else{
+						
+						subs.requestAttention();
 					}
 				}
 				

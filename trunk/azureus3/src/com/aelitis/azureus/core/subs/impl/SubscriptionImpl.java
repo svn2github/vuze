@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.lws.LightWeightSeed;
@@ -643,6 +644,20 @@ SubscriptionImpl
 		boolean	use_local )
 	{
 		return( local_name==null?name:local_name );
+	}
+	
+	public String
+	getURI()
+	{
+		String str = "sub:?name=" + UrlUtils.encode(getName()) + "&id=" + Base32.encode(getShortID()) + "&v=" + getVersion();
+		
+		return( "azplug:?id=subscription&arg=" + UrlUtils.encode( str ));
+	}
+	
+	public void 
+	requestAttention() 
+	{
+		manager.selectSubscription( this );
 	}
 	
 	public void

@@ -222,6 +222,12 @@ Subscription
 	getResults(
 		boolean		include_deleted );
 	
+	public String
+	getURI();
+	
+	public void
+	requestAttention();
+	
 	public void
 	addListener(
 		SubscriptionListener		l );

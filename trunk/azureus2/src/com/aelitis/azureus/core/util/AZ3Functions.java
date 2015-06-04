@@ -58,6 +58,12 @@ AZ3Functions
 			throws Exception;
 		
 		public void
+		subscribeToSubscription(
+			String		uri )
+		
+			throws Exception;
+		
+		public void
 		openRemotePairingWindow();
 		
 		public boolean

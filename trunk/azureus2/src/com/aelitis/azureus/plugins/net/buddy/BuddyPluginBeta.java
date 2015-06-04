@@ -3929,7 +3929,7 @@ BuddyPluginBeta
 							
 							for ( ChatMessage msg: messages ){
 								
-								System.out.println( msg.getTimeStamp() + ": " + pkToString( msg.getID()) + ", " + pkToString( msg.getPreviousID()) + " - " + msg.getMessage());
+								System.out.println( msg.getTimeStamp() + ": " + pkToString( msg.getID()) + ", " + pkToString( msg.getPreviousID()) + ", " + msg.getSequence() + " - " + msg.getMessage());
 							}
 						}
 						return;

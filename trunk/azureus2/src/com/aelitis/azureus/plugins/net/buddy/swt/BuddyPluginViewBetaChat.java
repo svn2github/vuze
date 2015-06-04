@@ -1508,20 +1508,25 @@ BuddyPluginViewBetaChat
 											
 										}else{
 											
-												// without this backoff we end up with the text widget
-												// being left in a 'mouse down' state when returning to it :(
-											
-											Utils.execSWTThreadLater(
-												100, 
-												new Runnable() 
-												{
-													public void 
-													run()
-													{	
-														Utils.launch( url_str );
-													}
-												});
-											
+											if ( url_str.toLowerCase( Locale.US ).startsWith( "http" )){
+												
+													// without this backoff we end up with the text widget
+													// being left in a 'mouse down' state when returning to it :(
+												
+												Utils.execSWTThreadLater(
+													100, 
+													new Runnable() 
+													{
+														public void 
+														run()
+														{	
+															Utils.launch( url_str );
+														}
+													});
+											}else{
+												
+												TorrentOpener.openTorrent( url_str );
+											}
 										}
 									}
 									

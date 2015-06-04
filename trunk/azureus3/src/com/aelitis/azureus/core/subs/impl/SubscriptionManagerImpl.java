@@ -1341,6 +1341,117 @@ SubscriptionManagerImpl
 		return( createSingletonRSSSupport( name, url, true, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE, true ));
 	}
 	
+	public Subscription
+	createFromURI(
+		String		uri )
+		
+		throws SubscriptionException
+	{
+		final AESemaphore sem = new AESemaphore( "subswait" );
+		
+		final Object[] result = { null };
+		
+		byte[] 	sid 		= null;
+		int		version		= -1;
+
+		
+		int	pos = uri.indexOf( '?' );
+		
+		String[] bits = uri.substring(pos+1).split( "&" );
+		
+		for ( String bit: bits ){
+			
+			String[] temp = bit.split( "=" );
+			
+			if ( temp.length != 2 ){
+				
+				continue;
+			}
+			
+			String lhs 	= temp[0].toLowerCase( Locale.US );
+			String	rhs	= temp[1];
+			
+			if ( lhs.equals( "id" )){
+				
+				sid = Base32.decode( rhs );
+				
+			}else if ( lhs.equals( "v" )){
+				
+				version = Integer.parseInt( rhs );
+			}
+		}
+		
+		if ( sid == null || version == -1 ){
+			
+			throw( new SubscriptionException( "Invalid URI" ));
+		}
+		
+		lookupSubscription( 
+			new byte[20], 
+			sid, 
+			version, 
+			new subsLookupListener() {
+				
+				public void 
+				found(
+					byte[] 			hash, 
+					Subscription 	subscription ) 
+				{
+				}
+				
+				public void 
+				failed(
+					byte[] 					hash, 
+					SubscriptionException 	error ) 
+					
+				{	
+					synchronized( result ){
+						
+						result[0] = error;
+					}
+					
+					sem.release();
+				}
+				
+				public void 
+				complete(
+					byte[] 			hash, 
+					Subscription[] 	subscriptions )
+				{
+					synchronized( result ){
+						
+						if ( subscriptions.length > 0 ){
+						
+							result[0] = subscriptions[0];
+							
+						}else{
+							
+							result[0] = new SubscriptionException( "Subscription not found" );
+						}
+					}
+					
+					sem.release();
+				}
+				
+				public boolean 
+				isCancelled() 
+				{
+					return( false );
+				}
+			});
+		
+		sem.reserve();
+		
+		if ( result[0] instanceof Subscription ){
+			
+			return((Subscription)result[0]);
+			
+		}else{
+			
+			throw((SubscriptionException)result[0]);
+		}
+	}
+	
 	protected SubscriptionImpl
 	lookupSingletonRSS(
 		String		name,

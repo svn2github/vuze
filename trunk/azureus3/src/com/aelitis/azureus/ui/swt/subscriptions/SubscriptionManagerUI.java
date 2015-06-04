@@ -29,7 +29,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -49,6 +48,7 @@ import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -395,7 +395,7 @@ SubscriptionManagerUI
 					}
 				}
 				// hack to hide useless entries
-				if (sub != null && sub.getName().startsWith("Search Template: " )) {
+				if (sub != null && sub.isSearchTemplate()) {
 					return null;
 				}
 				return sub == null ? null : createSubscriptionMdiEntry(sub);
@@ -1568,7 +1568,14 @@ SubscriptionManagerUI
 				});
 		}
 		
-		MenuItem menuItem = menu_creator.createMenu( "Subscription.menu.export");
+		MenuItem menuItem = menu_creator.createMenu( "label.copy.uri.to.clip");
+		menuItem.addListener(new SubsMenuItemListener() {
+			public void selected( Subscription subs) {
+				ClipboardCopy.copyToClipBoard( subs.getURI());
+			}
+		});
+		
+		menuItem = menu_creator.createMenu( "Subscription.menu.export");
 		menuItem.addListener(new SubsMenuItemListener() {
 			public void selected( Subscription subs) {
 				export( subs );

@@ -57,6 +57,12 @@ SubscriptionManager
 	
 		throws SubscriptionException;
 	
+	public Subscription
+	createFromURI(
+		String		uri )
+	
+		throws SubscriptionException;
+	
 	public int
 	getKnownSubscriptionCount();
 	
