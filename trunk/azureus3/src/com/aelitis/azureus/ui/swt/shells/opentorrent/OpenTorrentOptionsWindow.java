@@ -3872,10 +3872,17 @@ public class OpenTorrentOptionsWindow
 						}
 					}
 					
-					btnSelectAll.setEnabled(  rows.length < torrentOptions.getFiles().length );
+					if ( btnSelectAll != null && !btnSelectAll.isDisposed()){						
+						btnSelectAll.setEnabled(  rows.length < torrentOptions.getFiles().length );
+					}
 					
-					btnMarkSelected.setEnabled( hasRowsSelected && !all_marked );
-					btnUnmarkSelected.setEnabled( hasRowsSelected && !all_unmarked );
+					if ( btnMarkSelected != null && !btnMarkSelected.isDisposed() ){
+						btnMarkSelected.setEnabled( hasRowsSelected && !all_marked );
+					}
+					
+					if ( btnUnmarkSelected != null && !btnUnmarkSelected.isDisposed() ){					
+						btnUnmarkSelected.setEnabled( hasRowsSelected && !all_unmarked );
+					}
 					
 					if (btnSwarmIt != null && !btnSwarmIt.isDisposed()){
 						boolean	enable=false;
