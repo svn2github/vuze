@@ -94,6 +94,23 @@ public class MapUtils
 		}
 	}
 
+	public static String
+	getString(
+		Object	obj )
+	{
+		if ( obj instanceof String ){
+			return((String)obj);
+		}else if ( obj instanceof byte[]){
+			
+			try{
+				return new String((byte[])obj, "UTF-8");
+			}catch( Throwable e ){
+				
+			}
+		}
+		return( null );
+	}
+	
 	public static void setMapString(Map map, String key, String val ){
 		if ( map == null ){
 			Debug.out( "Map is null!" );

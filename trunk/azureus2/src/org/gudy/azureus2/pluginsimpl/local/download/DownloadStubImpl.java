@@ -52,6 +52,8 @@ DownloadStubImpl
 	private final long						date_created;
 	private final String					save_path;
 	private final DownloadStubFileImpl[]	files;
+	private final String[]					manual_tags;
+	
 	private final Map<String,Object>		gm_map;
 	
 	private DownloadImpl			temp_download;
@@ -61,6 +63,7 @@ DownloadStubImpl
 	DownloadStubImpl(
 		DownloadManagerImpl		_manager,
 		DownloadImpl			_download,
+		String[]				_manual_tags,
 		Map<String,Object>		_gm_map )
 	{
 		manager			= _manager;
@@ -86,6 +89,8 @@ DownloadStubImpl
 			
 			files[i] = new DownloadStubFileImpl( this, _files[i] );
 		}
+		
+		manual_tags = _manual_tags;
 	}
 	
 	protected
@@ -118,6 +123,22 @@ DownloadStubImpl
 			}
 		}
 		
+		List<Object>	tag_list = (List<Object>)_map.get( "t" );
+		
+		if ( tag_list != null ){
+			
+			manual_tags = new String[tag_list.size()];
+			
+			for (int i=0;i<manual_tags.length;i++){
+				
+				manual_tags[i] = MapUtils.getString( tag_list.get(i));
+			}
+					
+		}else{
+			
+			manual_tags = null;
+		}
+		
 		attributes = (Map<String,Object>)_map.get( "attr" );
 	}
 	
@@ -142,6 +163,21 @@ DownloadStubImpl
 		for ( DownloadStubFileImpl file: files ){
 			
 			file_list.add( file.exportToMap());
+		}
+		
+		if ( manual_tags != null ){
+		
+			List<String>	tag_list = new ArrayList<String>( manual_tags.length );
+			
+			for ( String s: manual_tags ){
+				if ( s != null ){
+					tag_list.add( s );
+				}
+			}
+			
+			if ( tag_list.size() > 0 ){
+				map.put( "t", tag_list );
+			}
 		}
 		
 		if ( attributes != null ){
@@ -211,6 +247,12 @@ DownloadStubImpl
 	getStubFiles()
 	{
 		return( files );
+	}
+	
+	protected String[]
+	getManualTags()
+	{
+		return( manual_tags );
 	}
 	
 	public long 

@@ -58,6 +58,10 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 
@@ -88,10 +92,11 @@ DownloadManagerImpl
 		}
 	}
 	
-	//private AzureusCore				azureus_core;
-	private GlobalManager			global_manager;
-	private DownloadManagerStats	stats;
-	private DownloadEventNotifierImpl global_dl_notifier;
+
+	private final GlobalManager					global_manager;
+	private final DownloadManagerStats			stats;
+	private final DownloadEventNotifierImpl 	global_dl_notifier;
+	private final TagManager					tag_manager;
 	
 	private List<DownloadManagerListener>					listeners		= new ArrayList<DownloadManagerListener>();
 	private CopyOnWriteList<DownloadWillBeAddedListener>	dwba_listeners	= new CopyOnWriteList<DownloadWillBeAddedListener>();
@@ -105,11 +110,14 @@ DownloadManagerImpl
 	DownloadManagerImpl(
 		AzureusCore	_azureus_core )
 	{
-		//azureus_core	= _azureus_core;
+	
 		global_manager	= _azureus_core.getGlobalManager();
 		
 		stats = new DownloadManagerStatsImpl( global_manager );
+		
 		global_dl_notifier = new DownloadEventNotifierImpl(this);
+		
+		tag_manager = TagManagerFactory.getTagManager();
 		
 		readStubConfig();
 		
@@ -1164,7 +1172,7 @@ DownloadManagerImpl
 		
 		DownloadManager	core_dm = PluginCoreUtils.unwrap( download );
 		
-		Map gm_data = global_manager.exportDownloadStateToMap( core_dm );
+		Map<String,Object> gm_data = global_manager.exportDownloadStateToMap( core_dm );
 		
 			// meh, gm assumes this map is always serialised + deserialised and doesn't expect
 			// String values
@@ -1177,7 +1185,25 @@ DownloadManagerImpl
 			Debug.out( e );
 		}
 				
-		DownloadStubImpl stub = new DownloadStubImpl( this,	download, gm_data );
+		
+		String[]	manual_tags = null;
+		
+		if ( tag_manager.isEnabled()){
+			
+			List<Tag> tag_list = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTagsForTaggable( core_dm );
+			
+			if ( tag_list != null && tag_list.size() > 0 ){
+				
+				manual_tags = new String[tag_list.size()];
+				
+				for ( int i=0;i<manual_tags.length;i++){
+					
+					manual_tags[i] = tag_list.get(i).getTagName( true );
+				}
+			}
+		}
+
+		DownloadStubImpl stub = new DownloadStubImpl( this,	download, manual_tags, gm_data );
 		
 		try{		
 			informAdded( stub, true );
@@ -1268,6 +1294,34 @@ DownloadManagerImpl
 					download_stubs.remove( stub );
 					
 					writeStubConfig();
+				}
+				
+				String[] manual_tags = stub.getManualTags();
+				
+				if ( manual_tags != null && tag_manager.isEnabled()){
+					
+					TagType tt = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL );
+					
+					for ( String name: manual_tags ){
+						
+						Tag tag = tt.getTag( name, true );
+						
+						if ( tag == null ){
+							
+							try{
+								tag = tt.createTag( name, true );
+								
+							}catch( Throwable e ){
+								
+								Debug.out(e);
+							}
+						}
+						
+						if ( tag != null ){
+							
+							tag.addTaggable( core_dm );
+						}
+					}
 				}
 				
 				removed = true;

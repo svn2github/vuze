@@ -539,16 +539,14 @@ DownloadManagerStateImpl
 		
 		if ( source_state_dir.exists()){
 			
-			File	target_state_dir = new File( ACTIVE_DIR, hash_str );
-
 			try{		
-				FileUtil.copyFileOrDirectory( source_state_dir, target_state_dir );
+				FileUtil.copyFileOrDirectory( source_state_dir, ACTIVE_DIR );
 				
 			}catch( Throwable e ){
 				
 				target_state_file.delete();
 				
-				throw( new DownloadManagerException( "Failed to copy state dir: " + source_dir + " -> " + target_state_dir, e ));
+				throw( new DownloadManagerException( "Failed to copy state dir: " + source_dir + " -> " + ACTIVE_DIR, e ));
 			}
 		}		
 	}
@@ -874,10 +872,8 @@ DownloadManagerStateImpl
 			File	existing_state_dir = new File( ACTIVE_DIR, hash_str );
 			
 			if ( existing_state_dir.exists()){
-				
-				File	target_state_dir = new File( target_dir, hash_str );
-
-				FileUtil.copyFileOrDirectory( existing_state_dir, target_state_dir );
+							
+				FileUtil.copyFileOrDirectory( existing_state_dir, target_dir );
 			}
 			
 			return( true );
