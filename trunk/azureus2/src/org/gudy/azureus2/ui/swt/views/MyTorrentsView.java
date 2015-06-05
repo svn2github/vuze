@@ -2253,20 +2253,46 @@ public class MyTorrentsView
 		createTabs();
 	}
 	
+	private Set<Tag> pending_tag_changes = new HashSet<Tag>();
+	
 	public void
 	tagChanged(
-		final Tag			tag )
+		Tag			tag )
 	{	
+			// we can get a lot of hits here, limit tab rebuilds somewhat
+		
+		synchronized( pending_tag_changes ){
+			
+			pending_tag_changes.add( tag );
+		}
+		
 		Utils.execSWTThread(new AERunnable() {
 			@Override
 			public void runSupport() {
 			
 				if ( allTags != null ){
-				
-					boolean should_be_visible	= tag.isVisible();
-					boolean is_visible			= allTags.contains( tag );
+						
+					boolean create_tabs = false;
 					
-					if ( should_be_visible != is_visible ){
+					synchronized( pending_tag_changes ){
+						
+						for ( Tag t: pending_tag_changes ){
+							
+							boolean should_be_visible	= t.isVisible();
+							boolean is_visible			= allTags.contains( t );
+							
+							if ( should_be_visible != is_visible ){
+								
+								create_tabs = true;
+								
+								break;
+							}
+						}
+						
+						pending_tag_changes.clear();
+					}
+					
+					if ( create_tabs ){
 						
 						createTabs();
 					}
