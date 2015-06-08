@@ -520,11 +520,25 @@ public class SBC_ArchivedDownloadsView
 						false, 
 						new ArchiveCallback()
 						{
+							private List<DownloadManager>	targets = new ArrayList<DownloadManager>();
+							
 							@Override
 							public void 
 							success(
 								final DownloadStub source,
 								final DownloadStub target) 
+							{
+								DownloadManager dm = PluginCoreUtils.unwrap((Download)target);
+								
+								if ( dm != null ){
+									
+									targets.add( dm );
+								}
+							}
+							
+							@Override
+							public void 
+							completed() 
 							{
 								Utils.execSWTThread(
 									new Runnable() 
@@ -532,12 +546,17 @@ public class SBC_ArchivedDownloadsView
 										public void 
 										run()
 										{
+											if ( targets.size() == 0 ){
+												
+												return;
+											}
+											
 											final Menu menu = new Menu( table_parent );
 											
-											DownloadManager[] dm = { PluginCoreUtils.unwrap((Download)target )};
+											DownloadManager[] dm_list = targets.toArray( new DownloadManager[ dms.size()]);
 											
 											TorrentUtil.fillTorrentMenu(
-												menu, dm, AzureusCoreFactory.getSingleton(), table_parent, true, 0, tv);
+												menu, dm_list, AzureusCoreFactory.getSingleton(), table_parent, true, 0, tv);
 											
 											menu.addMenuListener(
 												new MenuListener() {
