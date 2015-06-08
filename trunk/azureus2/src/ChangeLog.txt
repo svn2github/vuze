@@ -1,7 +1,12 @@
 VUZE CHANGELOG
 -----------------
 
-2015.xx.yy | Vuze 5.6.1.1
+2015.06.08 | Vuze 5.6.1.2
+
+BUGFIX: UI    | Fix Stats view clearing graphs on each view (Classic UI) [TuxPaper]
+BUGFIX: UI    | Fix remembering of minimized state of subtabs [TuxPaper]
+
+
 
 2015.06.02 | Vuze 5.6.1.0
 
@@ -44,6 +49,8 @@ BUGFIX: Core  | Handle 301/302 redirects from trackers when binding to explicit 
 BUGFIX: Core  | Handle UPnP device URLs that don't have final / [Parg]
 BUGFIX: Core  | Decode torrents with missing announce-urls correctly [Parg]
 BUGFIX: Core  | Unlimited per-torrent connections not being enforced correctly [Parg]
+
+
 
 2015.03.03 | Vuze 5.6.0.0
 
