@@ -127,6 +127,7 @@ BuddyPluginBeta
 	private int						max_chat_ui_lines;
 	private int						max_chat_ui_kb;
 	private boolean					standalone_windows;
+	private boolean					hide_ratings;
 	
 	private int						private_chat_state;
 	private boolean					shared_anon_endpoint;
@@ -212,6 +213,8 @@ BuddyPluginBeta
 		max_chat_ui_lines		= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.lines", 250 );
 		max_chat_ui_kb			= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.char.kb", 10 );
 		standalone_windows		= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.standalone.windows", false );
+		hide_ratings			= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.hide.ratings", false );
+		
 		SimpleTimer.addPeriodicEvent(
 			"BPB:checkfave",
 			30*1000,
@@ -312,6 +315,23 @@ BuddyPluginBeta
 		COConfigurationManager.setDirty();
 	}
 
+	public boolean
+	getHideRatings()
+	{
+		return( hide_ratings );
+	}
+	
+	public void
+	setHideRatings(
+		boolean		b )
+	{
+		hide_ratings			= b;
+		
+		COConfigurationManager.setParameter( "azbuddy.dchat.ui.hide.ratings", b );
+
+		COConfigurationManager.setDirty();
+	}
+	
 	public boolean
 	getFavourite(
 		String		net,
@@ -5139,7 +5159,7 @@ BuddyPluginBeta
 			return( false );
 		}
 		
-		private int
+		public int
 		getFlagOrigin()
 		{
 			Map<String,Object> payload = getPayload();

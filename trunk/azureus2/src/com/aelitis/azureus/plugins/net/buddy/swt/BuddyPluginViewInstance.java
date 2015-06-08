@@ -345,6 +345,30 @@ BuddyPluginViewInstance
 		
 		label = new Label( ui_area, SWT.NULL );
 		
+			// hide ratings
+		
+		final Button hide_ratings = new Button( ui_area, SWT.CHECK );
+		
+		hide_ratings.setText( lu.getLocalisedMessageText( "azbuddy.dchat.ui.hide.ratings" ));
+				
+		hide_ratings.setSelection( plugin_beta.getHideRatings());
+		
+		hide_ratings.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						plugin_beta.setHideRatings( hide_ratings.getSelection());
+					}
+				});	
+		
+		label = new Label( ui_area, SWT.NULL );
+		grid_data = new GridData();
+		grid_data.horizontalSpan = 2;
+		label.setLayoutData(grid_data);
+		
 			// standalone windows
 		
 		final Button stand_alone = new Button( ui_area, SWT.CHECK );

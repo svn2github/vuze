@@ -3488,6 +3488,8 @@ BuddyPluginViewBetaChat
 		
 		ChatMessage	last_message_not_ours 		= null;
 		
+		boolean	ignore_ratings = beta.getHideRatings();
+		
 		for ( ChatMessage message: all_messages ){
 			
 			if ( messages.containsKey( message )){
@@ -3498,6 +3500,16 @@ BuddyPluginViewBetaChat
 			String	original_msg		= message.getMessage();
 
 			if ( !message.isIgnored() && original_msg.length() > 0 ){
+				
+				if ( ignore_ratings ){
+					
+					int origin = message.getFlagOrigin();
+					
+					if ( origin == BuddyPluginBeta.FLAGS_MSG_ORIGIN_RATINGS ){
+						
+						continue;
+					}
+				}
 				
 				long time = message.getTimeStamp();
 
