@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- TODO
+extract messagebundles
+-->
+
+<project basedir="." default="package" name="VuzeClient">
+
+	<!-- Load vars from external properties file -->
+	<condition property="using.ext.props" > <isset property="build.props.file" /> </condition>
+	<property name="build.properties" value="${build.props.file}"/>
+	<property file="${build.properties}" />	
+	<echo message="using.ext.props = ${using.ext.props}" />
+	
+	
+	<!-- Default variables -->
+	<property name="major.ver"  value="0000"/>
+	<property name="minor.ver"  value="00"/>
+	<property name="build.ver"  value="${major.ver}-${minor.ver}"/>
+	<property name="build.name" value="Vuze_${build.ver}" />
+	
+	<property name="azureus2.dir" value="azureus2"/>
+	<property name="azureus3.dir" value="azureus3"/>
+	<property name="uis.dir" value="uis"/>
+	<property name="docs.dir" value="docs"/>
+			
+	
+	<property name="build.dir" value="build"/>
+	<property name="dist.dir" value="dist"/>
+	
+	
+	<!-- REUSABLE REFERENCES -->
+	
+	<path id="build.classpath">
+		<fileset dir="${azureus2.dir}/lib" includes="*.jar" excludes="swt-carbon.jar"/>
+		<fileset dir="${azureus3.dir}/lib" includes="*.jar" />
+		<fileset dir="${uis.dir}/lib" includes="*.jar" />
+	</path>
+	
+	<patternset id="pluginapi.inc">
+		<include name="org/gudy/azureus2/plugins/**" />
+		<include name="org/gudy/azureus2/ui/swt/plugins/**" />
+		<include name="org/gudy/azureus2/ui/swt/views/*IView*" />
+		<include name="org/gudy/azureus2/ui/swt/IconBarEnabler*" />
+	</patternset>	
+	
+	<patternset id="sourcecode.exc">
+		 <exclude name="**/*.java"/>				
+		 <exclude name="**/*.jardesc"/>
+	</patternset>	
+	
+
+	<!-- METHODS -->
+
+	<target name="run" depends="clean,preprocess,package,docs,postprocess" description="For automated builds">
+		<echo message="Build DONE."/>
+	</target>
+	
+	
+	<target name="clean">
+		 <delete dir="${build.dir}"/>
+		 <delete dir="${dist.dir}"/>
+	</target>
+	
+	
+	<target name="init">
+		 <echo message="BUILDING: ${ant.project.name} [${ant.file}] [${build.props.file}]"/>
+		 <mkdir dir="${build.dir}"/>
+	 	 <mkdir dir="${dist.dir}"/>
+	</target>
+	   
+	
+	<target name="preprocess" if="using.ext.props" >	
+		 <!-- Tag source with version info -->
+		 <property name="constants.file" value="${azureus2.dir}/src/org/gudy/azureus2/core3/util/Constants.java"/>
+		 <replace file="${constants.file}" token="_CVS&quot;" value="_B${minor.ver}&quot;" summary="true" />
+		 <replace file="${constants.file}" token="@build.version@" value="${build.ver}" summary="true" />
+	</target>
+	
+	
+	<target name="build" depends="init" description="Make (class) build files">
+		<!-- Grab non-compileable assets -->
+		<copy includeemptydirs="false" todir="${build.dir}">
+			<fileset dir="${azureus2.dir}/src"> <patternset refid="sourcecode.exc"/> </fileset>
+		   <fileset dir="${azureus3.dir}/src"> <patternset refid="sourcecode.exc"/> </fileset>
+			<fileset dir="${uis.dir}/src"> 		<patternset refid="sourcecode.exc"/> </fileset>
+		</copy>
+		
+		<!-- Compile source code -->
+		<javac encoding="8859_1" includeAntRuntime="no" debug="true" debuglevel="source,lines,vars" destdir="${build.dir}" source="1.5" target="1.5" fork="yes" memoryMaximumSize="1024m" >
+			<src path="${azureus2.dir}/src"/>
+			<src path="${azureus3.dir}/src"/>
+			<src path="${uis.dir}/src"/>
+			<classpath refid="build.classpath"/>
+		</javac>
+	</target>
+	
+
+	<target name="package" depends="build" description="Make jar and zip bundles">	
+		<!-- Package client core jar -->
+	 	<jar destfile="${dist.dir}/${build.name}.jar" basedir="${build.dir}" level="9" >
+	       <manifest>
+	          <attribute name="Main-Class" value="org.gudy.azureus2.ui.common.Main" />
+	          <attribute name="Class-Path" value="swt.jar commons-cli.jar log4j.jar junit.jar" />
+	       	 <attribute name="Built-By" value="VZCB:${ant.project.name}:build.xml"/>
+	       	 <attribute name="Build-Version" value="${build.ver}"/>
+	       </manifest>
+	   </jar>
+		
+		<!-- Repack core jar for max compatibility and compression -->
+		<echo message="Pack200 repacking core jar [${build.name}.jar]." />
+		<exec executable="pack200" dir="." resolveexecutable="true" failonerror="false" failifexecutionfails="false" >
+			 <arg value="--repack" />
+			 <arg value="${dist.dir}/${build.name}.jar" />
+		</exec>
+		  
+		<!-- Package linkable plugin api jar, with embedded sources -->
+		<jar destfile="${dist.dir}/${build.name}_pluginapi.jar" level="9" >
+			<fileset dir="${build.dir}">        <patternset refid="pluginapi.inc"/> </fileset>
+			<fileset dir="${azureus2.dir}/src"> <patternset refid="pluginapi.inc"/> </fileset>
+		</jar>
+	 		
+		<!-- Package source assets -->
+		<zip destfile="${dist.dir}/${build.name}_source.zip" level="9" >
+			<fileset dir="${azureus2.dir}/src" />
+			<fileset dir="${azureus3.dir}/src" />
+			<fileset dir="${uis.dir}/src" />
+		</zip>		
+	</target>
+	
+	
+	<target name="docs" depends="init" description="Make javadocs" >
+		<!-- Make core javadoc -->
+		<javadoc destdir="${dist.dir}/${build.name}_javadoc" useexternalfile="yes" maxmemory="1000m" Encoding="8859_1" Verbose="false" >
+			 <fileset dir="${azureus2.dir}/src" />
+			 <fileset dir="${azureus3.dir}/src" />
+			 <fileset dir="${uis.dir}/src" />
+			 <classpath refid="build.classpath"/>
+			 <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+		</javadoc>
+		
+		<!-- Make plugin api javadoc -->
+		<javadoc destdir="${dist.dir}/${build.name}_plugindoc" useexternalfile="yes" maxmemory="1000m" Encoding="8859_1" Verbose="false" >
+			 <fileset dir="${azureus2.dir}/src" >
+			 	 <patternset refid="pluginapi.inc"/>
+			 </fileset>
+			
+			 <classpath refid="build.classpath"/>
+			 <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+		</javadoc>
+   </target>
+	
+	
+	<target name="postprocess" if="using.ext.props" >
+			<!-- Pickup subversion revision -->
+			<exec executable="sh" dir="." outputproperty="svn.revision.new" >
+				<arg value="-c" />
+				<arg value="svn info http://svn.vuze.com/public/client/trunk | grep Revision | sed &quot;s/Revision: //&quot;" />
+			</exec>		
+			<echo message="svn.revision.new=${svn.revision.new}" />			
+			
+			 <!-- Increment build info -->
+			 <propertyfile file="${build.properties}" >
+			 	  <entry key="minor.ver" type="int" operation="+" value="1" pattern="00" />
+			 	  <entry key="svn.revision" value="${svn.revision.new}" />
+			 	  <entry key="svn.revision" type="int" operation="+" value="1" pattern="########" />  <!-- inc to next -->
+			 	  <entry key="build.date" type="date" value="now" pattern="dd-MM-yyyy HH:mm:ss" />
+			 </propertyfile>
+		
+		    <!-- Generate changelog -->
+			 <exec executable="${svn2cl.exec}" dir="." outputproperty="changelog.text" >
+			      	<arg value="--stdout" />
+			      	<arg value="--strip-prefix=" />
+			      	<arg value="--break-before-msg" />
+			      	<arg value="-i" />
+			      	<arg value="-a" />
+			      	<arg value="-r" />
+			      	<arg value="${svn.revision}:${svn.revision.new}" />
+			      	<arg value="http://svn.vuze.com/public/client/trunk" />
+			  </exec>
+			  <echo message="changelog.text = ${changelog.text}" />
+		     <echo file="${dist.dir}/${build.name}_changelog.txt" message="${changelog.text}" />
+		
+			  <!-- Fill in templates -->
+		     <tstamp> <format property="timestamp" pattern="dd MMM yyyy hh:mm:ss aa" /> </tstamp>
+		     <property name="jar.name" value="Azureus${major.ver}-B${minor.ver}.jar" />		     
+		
+			  <replace dir="${docs.dir}" summary="true" >
+			  	  <replacefilter token="@timestamp@"      value="${timestamp}" />
+			  	  <replacefilter token="@build.name@"     value="${build.name}" />
+			  	  <replacefilter token="@jar.name@"       value="${jar.name}" />
+			  	  <replacefilter token="@changelog.text@" value="${changelog.text}" />
+			  </replace>
+		
+	        <!-- Save some build properties -->
+			  <propertyfile file="${vzbuild.props}" >
+			  	  <entry key="major.ver" value="${major.ver}" />
+			  	  <entry key="minor.ver" value="${minor.ver}" />
+				  <entry key="timestamp" value="${timestamp}" />
+			  	  <entry key="build.name" value="${build.name}" />
+				  <entry key="jar.name" value="${jar.name}" />
+			     <entry key="changelog.text" value="${changelog.text}" />
+			  </propertyfile>
+
+	    	  <!-- Run deployment script -->
+		     <echo message="Running external deploy script: ${deploy.exec}" />
+		     <exec executable="${deploy.exec}" dir="." failonerror="true" failifexecutionfails="false" >
+		     	   <arg value="${basedir}/${docs.dir}" />
+		      	<arg value="${basedir}/${dist.dir}" />
+		      	<arg value="${build.name}" />
+		      	<arg value="${jar.name}" />
+		     </exec>     
+		</target>
+	
+</project>
+
