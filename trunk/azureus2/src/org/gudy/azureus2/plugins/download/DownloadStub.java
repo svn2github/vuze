@@ -91,6 +91,9 @@ DownloadStub
 		public long
 		getCreationDate();
 		
+		public String[]
+		getManualTags();
+		
 			// could migrate to DownloadStub one day
 		
 		public void
