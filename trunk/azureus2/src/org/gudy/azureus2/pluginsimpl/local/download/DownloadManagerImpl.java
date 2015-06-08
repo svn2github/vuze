@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadWillBeRemovedListener;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -1189,16 +1190,43 @@ DownloadManagerImpl
 		String[]	manual_tags = null;
 		
 		if ( tag_manager.isEnabled()){
-			
+						
 			List<Tag> tag_list = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTagsForTaggable( core_dm );
 			
 			if ( tag_list != null && tag_list.size() > 0 ){
+
+					// hack to remove the restored tag name here as auto-added during restore
 				
-				manual_tags = new String[tag_list.size()];
+				String restored_tag_name = MessageText.getString( "label.restored" );
+
+				tag_list = new ArrayList<Tag>( tag_list );
 				
-				for ( int i=0;i<manual_tags.length;i++){
+				Iterator<Tag> it = tag_list.iterator();
+				
+				while( it.hasNext()){
 					
-					manual_tags[i] = tag_list.get(i).getTagName( true );
+					Tag t = it.next();
+					
+					if ( t.isTagAuto()){
+						
+						it.remove();
+						
+					}else if ( t.getTagName( true ).equals( restored_tag_name )){
+						
+						it.remove();
+					}
+				}
+				
+				if ( tag_list.size() > 0 ){
+					
+					manual_tags = new String[tag_list.size()];
+					
+					for ( int i=0;i<manual_tags.length;i++){
+						
+						manual_tags[i] = tag_list.get(i).getTagName( true );
+					}
+					
+					Arrays.sort( manual_tags );
 				}
 			}
 		}
