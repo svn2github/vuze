@@ -15,6 +15,8 @@ BUGFIX: UI    | Torrent options window was throwing null-pointer exceptions [Par
 BUGFIX: UI    | Reduced tab-rebuilds on tag property changes [Parg]
 BUGFIX: UI    | The 'Restore and...' option in the archive view was incorrectly firing per-download [Parg]
 
+
+
 2015.06.02 | Vuze 5.6.1.0
 
 FEATURE: UI   | New 'tagging' subview to allow easy download/tag assignment [TuxPaper]
