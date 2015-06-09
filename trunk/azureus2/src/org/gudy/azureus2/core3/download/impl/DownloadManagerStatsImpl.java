@@ -1152,7 +1152,10 @@ DownloadManagerStatsImpl
 	getPercentDoneExcludingDND()
 	{
 		long sizeExcludingDND = getSizeExcludingDND();
-		if (sizeExcludingDND <= 0) {
+		if (sizeExcludingDND == 0) {
+			return 1000;
+		}
+		if (sizeExcludingDND < 0) {
 			return 0;
 		}
 		float pct = (sizeExcludingDND - getRemainingExcludingDND()) / (float) sizeExcludingDND;
