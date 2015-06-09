@@ -43,11 +43,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginListener;
-import org.gudy.azureus2.plugins.sharing.ShareException;
-import org.gudy.azureus2.plugins.sharing.ShareManager;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
@@ -1345,6 +1340,8 @@ public class MainWindowImpl
 		}
 	}
 
+	private Set<Shell>	minimized_on_hide = new HashSet<Shell>();
+	
 	private void showMainWindow() {
 		COConfigurationManager.addAndFireParameterListener("Show Download Basket", new ParameterListener() {
 			public void parameterChanged(String parameterName) {
@@ -1382,9 +1379,23 @@ public class MainWindowImpl
 								
 								if ( this_shell.getParent() == null && !this_shell.isVisible()){
 								
+									boolean	minimize;
+									
+									synchronized( minimized_on_hide ){
+										
+										minimize = minimized_on_hide.remove( this_shell );
+									}
+									
 									this_shell.setVisible( true );
 									
-									this_shell.moveAbove( shell );
+									if ( minimize ){
+										
+										this_shell.setMinimized( true );
+
+									}else{
+									
+										this_shell.moveAbove( shell );
+									}
 								}
 							}
 						});
@@ -1726,9 +1737,31 @@ public class MainWindowImpl
 				handleEvent(
 					Event event) 
 				{
-					Shell shell = (Shell)event.widget;
+					final Shell shell = (Shell)event.widget;
 					
 					if ( shell.getParent() == null ){
+						
+						if ( shell.getMinimized()){
+							
+							synchronized( minimized_on_hide ){
+								
+								minimized_on_hide.add( shell );
+								
+								shell.addDisposeListener(
+									new DisposeListener() {
+										
+										public void 
+										widgetDisposed(
+											DisposeEvent e) 
+										{
+											synchronized( minimized_on_hide ){
+												
+												minimized_on_hide.remove( shell );
+											}
+										}
+									});
+							}
+						}
 						
 						shell.setVisible( false );
 					}
