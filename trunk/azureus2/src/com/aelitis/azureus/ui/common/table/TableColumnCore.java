@@ -185,6 +185,8 @@ public interface TableColumnCore
 	 */
 	public String getTitleLanguageKey();
 
+	public String getTitleLanguageKey( boolean with_renames );
+
 	/**
 	 * @return # of consecutive errors
 	 *

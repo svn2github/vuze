@@ -75,7 +75,8 @@ public class ColumnTC_NameInfo
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		TableColumnCore column = (TableColumnCore) cell.getDataSource();
-		String key = column.getTitleLanguageKey();
+		String raw_key 		= column.getTitleLanguageKey( false );
+		String current_key 	= column.getTitleLanguageKey( true );
 		Rectangle bounds = cell.getBounds();
 		if (bounds == null || bounds.isEmpty()) {
 			return;
@@ -94,14 +95,21 @@ public class ColumnTC_NameInfo
 		bounds.y += 3;
 		bounds.x += 7;
 		bounds.width -= 14;
-		String name = MessageText.getString(key, column.getName());
+		String name = MessageText.getString(raw_key, column.getName());
+		
+		if ( !raw_key.equals( current_key )){
+			String rename = MessageText.getString(current_key, "");
+			if ( rename.length() > 0 ){
+				name += " (->" + rename + ")";
+			}
+		}
 		GCStringPrinter sp = new GCStringPrinter(gc, name, bounds, GCStringPrinter.FLAG_SKIPCLIP, SWT.TOP);
 		sp.printString();
 
 		Point titleSize = sp.getCalculatedSize();
 
 		gc.setFont(fontDefault);
-		String info = MessageText.getString(key + ".info", "");
+		String info = MessageText.getString(raw_key + ".info", "");
 		Rectangle infoBounds = new Rectangle(bounds.x + 10, bounds.y + titleSize.y
 				+ 5, bounds.width - 15, bounds.height - 20);
 		GCStringPrinter.printString(gc, info, infoBounds, true, false);

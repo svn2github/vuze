@@ -974,6 +974,7 @@ public class TableColumnImpl
 					String s = new String((byte[]) o, "utf-8");
 					// write it back to the map, so we don't continually create new String objects
 					userData.put(key, s);
+					return( s );
 				} catch (UnsupportedEncodingException e) {
 				}
 			}
@@ -1143,14 +1144,20 @@ public class TableColumnImpl
 	}
 
 	public String getTitleLanguageKey() {
+		return( getTitleLanguageKey( true ));
+	}
+	
+	public String getTitleLanguageKey( boolean with_renames ) {
 		try {
 			this_mon.enter();
 
-			String name_override = getNameOverride();
-			
-			if ( name_override != null ){
+			if ( with_renames ){
+				String name_override = getNameOverride();
 				
-				return( "!" + name_override + "!" );
+				if ( name_override != null ){
+					
+					return( "!" + name_override + "!" );
+				}
 			}
 			
 			if (sTitleLanguageKey == null) {
