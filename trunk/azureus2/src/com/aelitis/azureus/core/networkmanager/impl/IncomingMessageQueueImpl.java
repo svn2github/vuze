@@ -177,7 +177,7 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue{
    * Notifty the queue (and its listeners) of a message received externally on the queue's behalf.
    * @param message received externally
    */
-  public void notifyOfExternallyReceivedMessage( Message message ) {
+  public void notifyOfExternallyReceivedMessage( Message message ) throws IOException{
     ArrayList listeners_ref = listeners;  //copy-on-write
     boolean handled = false;
 

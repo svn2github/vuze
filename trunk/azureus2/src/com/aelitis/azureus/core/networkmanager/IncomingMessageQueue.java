@@ -61,7 +61,7 @@ public interface IncomingMessageQueue {
    * Notifty the queue (and its listeners) of a message received externally on the queue's behalf.
    * @param message received externally
    */
-  public void notifyOfExternallyReceivedMessage( Message message );
+  public void notifyOfExternallyReceivedMessage( Message message ) throws IOException;
 
   
   /**
@@ -107,7 +107,7 @@ public interface IncomingMessageQueue {
      * @param message recevied
      * @return true if this message was accepted, false if not handled
      */
-    public boolean messageReceived( Message message );
+    public boolean messageReceived( Message message ) throws IOException;
     
     /**
      * The given number of protocol (overhead) bytes read from the connection.

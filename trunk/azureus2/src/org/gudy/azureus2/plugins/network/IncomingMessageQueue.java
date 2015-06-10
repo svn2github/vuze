@@ -19,6 +19,8 @@
 
 package org.gudy.azureus2.plugins.network;
 
+import java.io.IOException;
+
 import org.gudy.azureus2.plugins.messaging.*;
 
 
@@ -51,7 +53,7 @@ public interface IncomingMessageQueue {
    * Notifty the queue (and its listeners) of a message received externally on the queue's behalf.
    * @param message received externally
    */
-  public void notifyOfExternalReceive( Message message );
+  public void notifyOfExternalReceive( Message message ) throws IOException;
   
   public int getPercentDoneOfCurrentMessage();
   

@@ -19,6 +19,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.network;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import org.gudy.azureus2.plugins.messaging.*;
@@ -100,7 +101,7 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
   }
   
   
-  public void notifyOfExternalReceive( Message message ) {
+  public void notifyOfExternalReceive( Message message ) throws IOException{
     if( message instanceof MessageAdapter ) {
       //the message must have been originally created by core and wrapped
       //so just use original core message...i.e. unwrap out of MessageAdapter
