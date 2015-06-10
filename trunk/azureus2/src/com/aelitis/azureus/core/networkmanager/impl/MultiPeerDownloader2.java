@@ -314,7 +314,12 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 
 					if (! (e instanceof IOException )){
 
-						Debug.printStackTrace(e);
+							// one day upgrade this exception to an IOException
+						
+						if ( !Debug.getNestedExceptionMessage( e ).contains( "Incorrect mix" )){
+						
+							Debug.printStackTrace(e);
+						}
 					}
 
 					connection.notifyOfException( e );
