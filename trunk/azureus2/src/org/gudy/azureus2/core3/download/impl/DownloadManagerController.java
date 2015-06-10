@@ -1397,14 +1397,12 @@ DownloadManagerController
 							
 							List<PEPeer> peers = pm.getPeers();
 							
+								// disconnect all peers - this is required as the new network assignment can
+								// require an alternative destination to be used for peer connections 
+							
 							for ( PEPeer peer: peers ){
-								
-								String net = AENetworkClassifier.categoriseAddress( peer.getIp());
-								
-								if ( !isNetworkEnabled( net )){
-									
-									pm.removePeer( peer, "Network not enabled" );
-								}
+																	
+								pm.removePeer( peer, "Networks changed, reconnection required" );
 							}
 						}
 					}
