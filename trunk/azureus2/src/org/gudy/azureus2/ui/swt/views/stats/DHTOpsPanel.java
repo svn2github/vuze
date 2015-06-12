@@ -64,6 +64,8 @@ DHTOpsPanel
 	Canvas canvas;
 	Scale scale;
 
+	private int		min_slots	= 8;
+	
 	private boolean	unavailable;
 	
 	private boolean mouseLeftDown = false;
@@ -77,7 +79,9 @@ DHTOpsPanel
 
 	private boolean autoAlpha = false;
 
-	private DHT	current_dht;
+	private DHT				current_dht;
+	private ActivityFilter	filter;
+	
 	private Map<DHTControlActivity,ActivityDetail>	activity_map = new HashMap<DHTControlActivity,ActivityDetail>();
 
 	private TimerEventPeriodic timeout_timer;
@@ -311,6 +315,11 @@ DHTOpsPanel
 		DHTControlActivity	activity,
 		int					type )
 	{
+		if ( filter != null && !filter.accept( activity )){
+			
+			return;
+		}
+		
 		//System.out.println( activity.getString() + "/" + type + "/" + activity.getCurrentState().getString());
 		
 		if ( activity.isQueued()){
@@ -380,7 +389,40 @@ DHTOpsPanel
 		
 		refresh();
 	}
+	
+	public void
+	setFilter(
+		ActivityFilter		f )
+	{
+		filter = f;
+	}
 
+		/**
+		 * @param min things don't work well for < 4...
+		 */
+	
+	public void
+	setMinimumSlots(
+		int		min )
+	{
+		min_slots = min;
+	}
+	
+	public void
+	setScaleAndRotation(
+		float		min_x,
+		float		max_x,
+		float		min_y,
+		float		max_y,
+		double		rot )
+	{
+		scale.minX 		= min_x;
+		scale.maxX 		= max_x;
+		scale.minY 		= min_y;
+		scale.maxY 		= max_y;
+		scale.rotation 	= rot;
+	}
+	
 	public void 
 	refresh()
 	{		
@@ -429,7 +471,7 @@ DHTOpsPanel
 				
 		long	now = SystemTime.getMonotonousTime();
 		
-		int	max_slot = Math.max( activities.size(), 8 );	// always have at least 8 slots
+		int	max_slot = Math.max( activities.size(), min_slots );	
 		
 		for ( ActivityDetail details: activities ){
 			
@@ -758,5 +800,13 @@ DHTOpsPanel
 				}
 			}
 		}
+	}
+	
+	public interface
+	ActivityFilter
+	{
+		public boolean
+		accept(
+			DHTControlActivity		activity );
 	}
 }

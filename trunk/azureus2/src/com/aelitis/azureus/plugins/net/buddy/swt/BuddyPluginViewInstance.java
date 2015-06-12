@@ -640,7 +640,7 @@ BuddyPluginViewInstance
 										{
 											if ( !display.isDisposed()){
 																							
-												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( view, plugin, inst );
+												BuddyPluginViewBetaChat chat = BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
 													
 												import_button.setEnabled( true );
 												
@@ -822,7 +822,7 @@ BuddyPluginViewInstance
 											{
 												if ( !display.isDisposed()){
 																								
-													BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( view, plugin, inst );
+													BuddyPluginViewBetaChat chat = BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
 														
 													create_button.setEnabled( true );
 													
@@ -1060,7 +1060,7 @@ BuddyPluginViewInstance
 										{
 											if ( !display.isDisposed()){
 																							
-												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( view, plugin, inst );
+												BuddyPluginViewBetaChat chat = BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
 															
 												chat.addDisposeListener(
 													new DisposeListener()

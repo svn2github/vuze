@@ -132,6 +132,30 @@ BuddyPluginViewBetaChat
 	
 	private static boolean auto_ftux_popout_done	= false;
 	
+	protected static BuddyPluginViewBetaChat
+	createChatWindow(
+		BuddyPluginView	view,
+		BuddyPlugin		plugin,
+		ChatInstance	chat )	
+	{
+		for ( BuddyPluginViewBetaChat win: active_windows ){
+			
+			if ( win.getChat() == chat ){
+				
+				Shell existing = win.getShell();
+				
+				if ( existing.isVisible()){
+					
+					existing.setActive();
+				}
+				
+				return( win );
+			}
+		}
+		
+		return( new BuddyPluginViewBetaChat( view, plugin, chat ));
+	}
+	
 	private final BuddyPluginView		view;
 	private final BuddyPlugin			plugin;
 	private final BuddyPluginBeta		beta;
@@ -174,7 +198,7 @@ BuddyPluginViewBetaChat
 	private boolean	ftux_ok;
 	private boolean	build_complete;
 	
-	protected
+	private
 	BuddyPluginViewBetaChat(
 		BuddyPluginView	_view,
 		BuddyPlugin		_plugin,
@@ -386,6 +410,18 @@ BuddyPluginViewBetaChat
 		lu		= plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 		
 		build( _parent );
+	}
+	
+	private Shell
+	getShell()
+	{
+		return( shell );
+	}
+	
+	private ChatInstance
+	getChat()
+	{
+		return( chat );
 	}
 	
 	private void
@@ -617,7 +653,7 @@ BuddyPluginViewBetaChat
 								try{
 									ChatInstance inst = chat.getManagedChannel();
 									
-									new BuddyPluginViewBetaChat( view, plugin, inst );
+									BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
 									
 								}catch( Throwable e ){
 									
@@ -640,7 +676,7 @@ BuddyPluginViewBetaChat
 								try{
 									ChatInstance inst = chat.getReadOnlyChannel();
 									
-									new BuddyPluginViewBetaChat( view, plugin, inst );
+									createChatWindow( view, plugin, inst );
 									
 								}catch( Throwable e ){
 									
@@ -667,7 +703,7 @@ BuddyPluginViewBetaChat
 									
 									ChatInstance inst = beta.getChat( chat.getNetwork(), chat.getKey() + " {" + Base32.encode( rand ) + "}" );
 									
-									new BuddyPluginViewBetaChat( view, plugin, inst );
+									createChatWindow( view, plugin, inst );
 									
 								}catch( Throwable e ){
 									
@@ -689,7 +725,7 @@ BuddyPluginViewBetaChat
 									try{
 										ChatInstance inst = beta.getChat( chat.getNetwork()==AENetworkClassifier.AT_I2P?AENetworkClassifier.AT_PUBLIC:AENetworkClassifier.AT_I2P, chat.getKey());
 										
-										new BuddyPluginViewBetaChat( view, plugin, inst );
+										createChatWindow( view, plugin, inst );
 										
 									}catch( Throwable e ){
 										
@@ -1727,7 +1763,7 @@ BuddyPluginViewBetaChat
 			pop_out.addMouseListener(new MouseAdapter() {
 				public void mouseUp(MouseEvent arg0) {
 					try{
-						new BuddyPluginViewBetaChat( view, plugin, chat.getClone());
+						createChatWindow( view, plugin, chat.getClone());
 						
 					}catch( Throwable e ){
 						
@@ -2294,7 +2330,7 @@ BuddyPluginViewBetaChat
 			auto_ftux_popout_done = true;
 			
 			try{
-				new BuddyPluginViewBetaChat( view, plugin, chat.getClone());
+				createChatWindow( view, plugin, chat.getClone());
 				
 			}catch( Throwable e ){
 				
@@ -2579,7 +2615,7 @@ BuddyPluginViewBetaChat
 								try{
 									ChatInstance chat = participant.createPrivateChat();
 								
-									new BuddyPluginViewBetaChat( view, plugin, chat);
+									createChatWindow( view, plugin, chat);
 									
 								}catch( Throwable f ){
 									

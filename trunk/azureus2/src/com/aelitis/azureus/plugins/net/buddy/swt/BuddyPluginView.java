@@ -264,7 +264,7 @@ BuddyPluginView
 						return;
 					}
 				
-					new BuddyPluginViewBetaChat( BuddyPluginView.this, plugin, chat );
+					BuddyPluginViewBetaChat.createChatWindow( BuddyPluginView.this, plugin, chat );
 				}
 			});
 	}
