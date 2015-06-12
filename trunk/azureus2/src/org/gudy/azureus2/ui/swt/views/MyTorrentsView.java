@@ -2578,7 +2578,8 @@ public class MyTorrentsView
 			DownloadActivityView.MSGID_PREFIX,
 			PieceInfoView.MSGID_PREFIX,
 			FilesView.MSGID_PREFIX,
-			TaggingView.MSGID_PREFIX
+			TaggingView.MSGID_PREFIX,
+			PrivacyView.MSGID_PREFIX
 		));
 				
 		// sub-tab hacks
@@ -2647,7 +2648,8 @@ public class MyTorrentsView
 				if (hasTags) {
 					pluginUI.addView( id, TaggingView.MSGID_PREFIX, TaggingView.class, null);
 				}
-	
+				pluginUI.addView( id, PrivacyView.MSGID_PREFIX, PrivacyView.class, null);
+
 				if (Logger.isEnabled()) {
 					pluginUI.addView( id, LoggerView.MSGID_PREFIX, LoggerView.class, null);
 				}
