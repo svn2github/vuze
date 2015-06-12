@@ -31,19 +31,40 @@ public class
 DHTOperationAdapter
 	implements DHTOperationListener
 {
+	private final DHTOperationListener	delegate;
+	
+	public
+	DHTOperationAdapter()
+	{
+		delegate = null;
+	}
+	
+	public
+	DHTOperationAdapter(
+		DHTOperationListener		_delegate )
+	{
+		delegate = _delegate;
+	}
+	
 	public void
 	searching(
 		DHTTransportContact	contact,
 		int					level,
 		int					active_searches )
 	{
+		if ( delegate != null ){
+			delegate.searching(contact, level, active_searches);
+		}
 	}
 	
 	public boolean
 	diversified(
 		String		desc )
 	{
-		return( true );
+		if ( delegate != null ){
+			return( delegate.diversified(desc));
+		}else{
+			return( true );}
 	}
 		
 	public void
@@ -51,6 +72,9 @@ DHTOperationAdapter
 		DHTTransportContact	contact,
 		boolean				is_closest )
 	{
+		if ( delegate != null ){
+			delegate.found(contact, is_closest);
+		}
 	}
 	
 	public void
@@ -58,6 +82,9 @@ DHTOperationAdapter
 		DHTTransportContact	contact,
 		DHTTransportValue	value )
 	{
+		if ( delegate != null ){
+			delegate.read(contact, value);
+		}
 	}
 	
 	public void
@@ -65,11 +92,17 @@ DHTOperationAdapter
 		DHTTransportContact	contact,
 		DHTTransportValue	value )
 	{
+		if ( delegate != null ){
+			delegate.wrote(contact, value);
+		}
 	}
 	
 	public void
 	complete(
 		boolean				timeout )
 	{
+		if ( delegate != null ){
+			delegate.complete(timeout);
+		}
 	}
 }

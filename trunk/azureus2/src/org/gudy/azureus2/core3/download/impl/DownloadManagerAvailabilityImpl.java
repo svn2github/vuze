@@ -588,15 +588,18 @@ DownloadManagerAvailabilityImpl
 										
 									throws IPCException
 								{
-									synchronized( lookup_status ){
+									if ( methodName.equals( "statusUpdate" )){
 										
-										lookup_status[0] = (Integer)params[0];
-										
-										if ( params.length >= 4 ){
+										synchronized( lookup_status ){
 											
-											lookup_status[1] = (Integer)params[1];
-											lookup_status[2] = (Integer)params[2];
-											lookup_status[3] = (Integer)params[3];
+											lookup_status[0] = (Integer)params[0];
+											
+											if ( params.length >= 4 ){
+												
+												lookup_status[1] = (Integer)params[1];
+												lookup_status[2] = (Integer)params[2];
+												lookup_status[3] = (Integer)params[3];
+											}
 										}
 									}
 									

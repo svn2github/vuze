@@ -18,9 +18,7 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -29,18 +27,21 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.MenuBuildUtils;
-import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ipc.IPCException;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
-import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 
 
@@ -55,8 +56,12 @@ public class PrivacyView
 
 	private ScrolledComposite sc;
 
-	private Composite parent;
+	private Composite 	parent;
+	private Composite	lookup_comp;
+	private Button 		button;
 
+	private DownloadManager	current_dm;
+	
 	public 
 	PrivacyView() 
 	{
@@ -89,9 +94,9 @@ public class PrivacyView
 
 			case UISWTViewEvent.TYPE_FOCUSGAINED:
 				initialize();
-				//if (taggables == null) {
+				if (current_dm == null) {
 					dataSourceChanged(swtView.getDataSource());
-				//}
+				}
 				break;
 				
 			case UISWTViewEvent.TYPE_FOCUSLOST:
@@ -115,14 +120,47 @@ public class PrivacyView
 	}
 
 	private void 
-	dataSourceChanged(Object ds) {
-
-
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				swt_updateFields();
+	dataSourceChanged(
+		Object ds ) 
+	{
+		synchronized( this ){
+			
+			DownloadManager	old_dm = current_dm;
+			
+			if ( ds != current_dm ){
+							
+				if ( ds == null ){
+					
+					current_dm = null;
+					
+				}else if ( ds instanceof DownloadManager ){
+					
+					current_dm = (DownloadManager)ds;
+					
+				}else if ( ds instanceof Object[] ){
+					
+					Object[] objs = (Object[])ds;
+					
+					if ( objs.length == 1 && objs[0] instanceof DownloadManager ){
+						
+						current_dm = (DownloadManager)objs[0];
+					}
+				}
 			}
-		});
+			
+			if ( old_dm == current_dm ){
+				
+				return;
+			}
+
+			final DownloadManager dm = current_dm;
+		
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					swt_updateFields( dm );
+				}
+			});
+		}
 	}
 
 	private void 
@@ -164,6 +202,87 @@ public class PrivacyView
 		cMainComposite.setLayout(new GridLayout(1, false));
 
 
+		lookup_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		GridData gd = new GridData();
+		gd.widthHint = 300;
+		gd.heightHint = 200;
+		lookup_comp.setLayoutData( gd );
+		
+		lookup_comp.setBackground( Colors.white );
+		
+		button = new Button( cMainComposite, SWT.PUSH );
+		
+		button.setText( "Lookup" );
+		
+		button.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void 
+				widgetSelected(
+					SelectionEvent event ) 
+				{
+					Utils.disposeComposite( lookup_comp, false );
+					
+					PluginInterface i2p_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azneti2phelper", true );
+					
+					if ( i2p_pi != null ){
+						
+						IPCInterface ipc = i2p_pi.getIPC();
+						
+						Map<String,Object>	options = new HashMap<String, Object>();
+						
+						options.put( "server_id", "Scraper" );
+						options.put( "server_id_transient", true );
+						options.put( "ui_composite", lookup_comp );
+						
+						IPCInterface callback =
+							new IPCInterface()
+							{
+								public Object 
+								invoke(
+									String methodName, 
+									Object[] params) 
+										
+									throws IPCException
+								{
+									if ( methodName.equals( "statusUpdate" )){
+										
+									}
+									return( null );
+								}
+	
+								public boolean 
+								canInvoke( 
+									String methodName, 
+									Object[] params )
+								{
+									return( true );
+								}
+							};
+							
+
+						byte[] hash = (byte[])button.getData( "hash" );
+							
+						try{
+							ipc.invoke(
+								"lookupTorrent",
+								new Object[]{
+									"",
+									hash,
+									options,
+									callback 
+								});
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+				}
+			});
+		
+		button.setEnabled( false );
 		
 		sc.addControlListener(new ControlAdapter() {
 			public void controlResized(ControlEvent e) {
@@ -173,7 +292,7 @@ public class PrivacyView
 			}
 		});
 
-		swt_updateFields();
+		swt_updateFields( current_dm );
 
 		Rectangle r = sc.getClientArea();
 		Point size = cMainComposite.computeSize(r.width, SWT.DEFAULT);
@@ -187,11 +306,33 @@ public class PrivacyView
 	}
 
 	private void 
-	swt_updateFields() 
+	swt_updateFields(
+		DownloadManager		dm )
 	{
 		if ( cMainComposite == null || cMainComposite.isDisposed()){
 			return;
 		}
 		
+		byte[] hash = null;
+		
+		if ( dm != null ){
+			
+			TOTorrent torrent = dm.getTorrent();
+			
+			if ( torrent != null ){
+				
+				try{
+					hash = torrent.getHash();
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		
+		button.setData( "hash", hash );
+		button.setEnabled( hash != null );
+		
+		Utils.disposeComposite( lookup_comp, false );
 	}
 }

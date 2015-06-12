@@ -749,15 +749,17 @@ DHTOpsPanel
 		 	int text_x = scale.getX(x_end, y_end);
 			int text_y = scale.getY(x_end, y_end);
 			
+			String desc = activity.getDescription();
+			
 			if ( complete_time >= 0 && result_str.length() == 0 ){
 				
 				if ( state_maybe_null != null ){
 				
-					result_str = ": " + state_maybe_null.getResult();
+					result_str = ( desc.length()==0?"":": " ) + state_maybe_null.getResult();
 				}
 			}
 			
-			gc.drawText( activity.getDescription() + result_str, text_x, text_y );
+			gc.drawText( desc + result_str, text_x, text_y );
 			
 			//gc.drawLine(x_origin, y_origin, (int)x_end, (int)y_end );
 			
