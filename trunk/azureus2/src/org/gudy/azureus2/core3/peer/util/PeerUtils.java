@@ -483,6 +483,7 @@ public class PeerUtils {
 	private static long							country_provider_last_check;
 
 	private static Object	country_key 	= new Object();
+	private static Object	net_key 		= new Object();
 		
 	private static LocationProvider
 	getCountryProvider()
@@ -587,6 +588,27 @@ public class PeerUtils {
 		return( details );
 	}
 	
+	public static String
+	getNetwork(
+		PEPeer	peer )
+	{
+		if ( peer == null ){
+			
+			return( null );
+		}
+		
+		String net = (String)peer.getUserData( net_key );
+		
+		if ( net == null ){
+			
+			net = AENetworkClassifier.categoriseAddress( peer.getIp());
+			
+			peer.setUserData( net_key, net );
+		}
+		
+		return( net );
+	}
+
 	/*
 	public static void
 	main(

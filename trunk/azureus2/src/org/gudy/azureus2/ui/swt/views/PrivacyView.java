@@ -19,6 +19,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -28,9 +29,17 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
@@ -42,11 +51,12 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.plugins.I2PHelpers;
 
 
 
 public class PrivacyView
-	implements UISWTViewCoreEventListener
+	implements UISWTViewCoreEventListener, DownloadManagerStateAttributeListener
 {
 	public static final String MSGID_PREFIX = "PrivacyView";
 
@@ -57,14 +67,31 @@ public class PrivacyView
 	private ScrolledComposite sc;
 
 	private Composite 	parent;
-	private Composite	lookup_comp;
-	private Button 		button;
+	
+	private Composite	i2p_lookup_comp;
+	private Button 		i2p_lookup_button;
 
+	private Button[]	network_buttons;
+	
+	private Label		peer_info;
+	
+	private Label		torrent_info;
+	private Label		tracker_info;
+	
+	private Label		vpn_info;
+	private Label		socks_info;
+	
 	private DownloadManager	current_dm;
 	
 	public 
 	PrivacyView() 
 	{
+	}
+
+	private String 
+	getFullTitle() 
+	{
+		return( MessageText.getString("label.privacy"));
 	}
 
 	public boolean eventOccurred(UISWTViewEvent event) {
@@ -111,12 +138,18 @@ public class PrivacyView
 		return true;
 	}
 
-	private void delete() {
-		Utils.disposeComposite(sc);
-		dataSourceChanged(null);
+	private void 
+	delete() 
+	{
+		Utils.disposeComposite( sc );
+		
+		dataSourceChanged( null );
 	}
 
-	private void refresh() {
+	private void 
+	refresh() 
+	{
+		updatePeersEtc( current_dm );
 	}
 
 	private void 
@@ -125,7 +158,7 @@ public class PrivacyView
 	{
 		synchronized( this ){
 			
-			DownloadManager	old_dm = current_dm;
+			final DownloadManager	old_dm = current_dm;
 			
 			if ( ds != current_dm ){
 							
@@ -145,6 +178,9 @@ public class PrivacyView
 						
 						current_dm = (DownloadManager)objs[0];
 					}
+				}else{
+					
+					current_dm = null;
 				}
 			}
 			
@@ -153,11 +189,11 @@ public class PrivacyView
 				return;
 			}
 
-			final DownloadManager dm = current_dm;
+			final DownloadManager new_dm = current_dm;
 		
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					swt_updateFields( dm );
+					swt_updateFields( old_dm, new_dm );
 				}
 			});
 		}
@@ -201,28 +237,85 @@ public class PrivacyView
 		
 		cMainComposite.setLayout(new GridLayout(1, false));
 
+		GridData gd; 
+		
+			// I2P install state
+		
+		Composite i2p_install_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		i2p_install_comp.setLayoutData( gd );
 
-		lookup_comp = new Composite( cMainComposite, SWT.NULL );
+		i2p_install_comp.setLayout( new GridLayout(2, false ));
+
+		Label label = new Label( i2p_install_comp, SWT.NULL );
+		label.setText( "I2P Network Availability" );
 		
-		GridData gd = new GridData();
-		gd.widthHint = 300;
-		gd.heightHint = 200;
-		lookup_comp.setLayoutData( gd );
+		final Button i2p_install = new Button( i2p_install_comp, SWT.PUSH );
 		
-		lookup_comp.setBackground( Colors.white );
+		boolean i2p_installed = I2PHelpers.isI2PInstalled();
 		
-		button = new Button( cMainComposite, SWT.PUSH );
+		i2p_install.setText( i2p_installed?"I2P is available":"Install I2P" );
 		
-		button.setText( "Lookup" );
+		i2p_install.setEnabled( !i2p_installed );
 		
-		button.addSelectionListener(
+		i2p_install.addSelectionListener(
 			new SelectionAdapter() {
 				
 				public void 
 				widgetSelected(
 					SelectionEvent event ) 
 				{
-					Utils.disposeComposite( lookup_comp, false );
+					final boolean[] result = { false };
+					
+					I2PHelpers.installI2PHelper( 
+						null, result, 
+						new Runnable() 
+						{						
+							public void 
+							run() 
+							{								
+								Utils.execSWTThread(
+									new Runnable()
+									{
+										public void
+										run() 
+										{
+											boolean i2p_installed = result[0];																		
+
+											i2p_install.setText( i2p_installed?"I2P is available":"Install I2P" );
+											
+											i2p_install.setEnabled( !i2p_installed );
+										}
+									});
+							}
+						});
+				}
+			});
+		
+			// I2P peer lookup
+		
+		i2p_lookup_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData();
+		gd.widthHint = 300;
+		gd.heightHint = 200;
+		i2p_lookup_comp.setLayoutData( gd );
+		
+		i2p_lookup_comp.setBackground( Colors.white );
+		
+		i2p_lookup_button = new Button( cMainComposite, SWT.PUSH );
+		
+		i2p_lookup_button.setText( "Lookup I2P Peers" );
+		
+		i2p_lookup_button.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void 
+				widgetSelected(
+					SelectionEvent event ) 
+				{
+					Utils.disposeComposite( i2p_lookup_comp, false );
 					
 					PluginInterface i2p_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azneti2phelper", true );
 					
@@ -234,7 +327,7 @@ public class PrivacyView
 						
 						options.put( "server_id", "Scraper" );
 						options.put( "server_id_transient", true );
-						options.put( "ui_composite", lookup_comp );
+						options.put( "ui_composite", i2p_lookup_comp );
 						
 						IPCInterface callback =
 							new IPCInterface()
@@ -247,6 +340,13 @@ public class PrivacyView
 									throws IPCException
 								{
 									if ( methodName.equals( "statusUpdate" )){
+										
+									}else if ( methodName.equals( "peerFound")){
+										
+										String 	host		= (String)params[0];
+										int		peer_type 	= (Integer)params[1];
+										
+										System.out.println( peer_type + "/" + host );
 										
 									}
 									return( null );
@@ -262,7 +362,7 @@ public class PrivacyView
 							};
 							
 
-						byte[] hash = (byte[])button.getData( "hash" );
+						byte[] hash = (byte[])i2p_lookup_button.getData( "hash" );
 							
 						try{
 							ipc.invoke(
@@ -282,7 +382,120 @@ public class PrivacyView
 				}
 			});
 		
-		button.setEnabled( false );
+		i2p_lookup_button.setEnabled( false );
+		
+			// network selection
+		
+		Composite network_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		network_comp.setLayoutData( gd );
+
+		network_buttons = new Button[AENetworkClassifier.AT_NETWORKS.length];
+
+		network_comp.setLayout( new GridLayout( network_buttons.length, true ));
+				
+		for ( int i=0; i<network_buttons.length; i++){
+			
+			final String nn = AENetworkClassifier.AT_NETWORKS[i];
+
+			String msg_text = "ConfigView.section.connection.networks." + nn;
+
+			Button button = new Button(network_comp, SWT.CHECK);
+			Messages.setLanguageText(button, msg_text);
+			
+			network_buttons[i] = button;
+			
+			button.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					boolean selected = ((Button)e.widget).getSelection();
+					
+					if ( current_dm != null ){
+						current_dm.getDownloadState().setNetworkEnabled(nn, selected);
+					}
+				}
+			});
+
+			GridData gridData = new GridData();
+			button.setLayoutData(gridData);
+		}
+		
+			// Torrent Info
+			
+		Composite torrent_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		torrent_comp.setLayoutData( gd );
+		torrent_comp.setLayout( new GridLayout( 2, false ));
+	
+		label = new Label( torrent_comp, SWT.NULL );
+		label.setText( "Torrent:" );
+		
+		torrent_info = new Label( torrent_comp, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		torrent_info.setLayoutData( gd );
+	
+			// Tracker Info
+			
+		Composite tracker_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		tracker_comp.setLayoutData( gd );
+		tracker_comp.setLayout( new GridLayout( 2, false ));
+	
+		label = new Label( tracker_comp, SWT.NULL );
+		label.setText( "Trackers:" );
+		
+		tracker_info = new Label( tracker_comp, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		tracker_info.setLayoutData( gd );
+	
+			// VPN Info
+		
+		Composite vpn_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		vpn_comp.setLayoutData( gd );
+		vpn_comp.setLayout( new GridLayout( 2, false ));
+
+		label = new Label( vpn_comp, SWT.NULL );
+		label.setText( "VPN Status:" );
+		
+		vpn_info = new Label( vpn_comp, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		vpn_info.setLayoutData( gd );
+		
+			// SOCKS Info
+			
+		Composite socks_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		socks_comp.setLayoutData( gd );
+		socks_comp.setLayout( new GridLayout( 2, false ));
+	
+		label = new Label( socks_comp, SWT.NULL );
+		label.setText( "SOCKS Status:" );
+		
+		socks_info = new Label( socks_comp, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		socks_info.setLayoutData( gd );
+		
+			// Peer Info
+			
+		Composite peer_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		peer_comp.setLayoutData( gd );
+		peer_comp.setLayout( new GridLayout( 2, false ));
+	
+		label = new Label( peer_comp, SWT.NULL );
+		label.setText( "Peer Status:" );
+		
+		peer_info = new Label( peer_comp, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		peer_info.setLayoutData( gd );
+		
+			// the rest
 		
 		sc.addControlListener(new ControlAdapter() {
 			public void controlResized(ControlEvent e) {
@@ -292,32 +505,30 @@ public class PrivacyView
 			}
 		});
 
-		swt_updateFields( current_dm );
+		swt_updateFields( null, current_dm );
 
+		updatePeersEtc( current_dm );
+		
 		Rectangle r = sc.getClientArea();
 		Point size = cMainComposite.computeSize(r.width, SWT.DEFAULT);
 		sc.setMinSize(size);
 	}
 
-	private String 
-	getFullTitle() 
-	{
-		return( MessageText.getString("label.privacy"));
-	}
-
 	private void 
 	swt_updateFields(
-		DownloadManager		dm )
+		DownloadManager		old_dm,
+		DownloadManager		new_dm )
 	{
 		if ( cMainComposite == null || cMainComposite.isDisposed()){
+			
 			return;
 		}
 		
 		byte[] hash = null;
 		
-		if ( dm != null ){
+		if ( new_dm != null ){
 			
-			TOTorrent torrent = dm.getTorrent();
+			TOTorrent torrent = new_dm.getTorrent();
 			
 			if ( torrent != null ){
 				
@@ -330,9 +541,176 @@ public class PrivacyView
 			}
 		}
 		
-		button.setData( "hash", hash );
-		button.setEnabled( hash != null );
+		i2p_lookup_button.setData( "hash", hash );
+		i2p_lookup_button.setEnabled( hash != null );
 		
-		Utils.disposeComposite( lookup_comp, false );
+		Utils.disposeComposite( i2p_lookup_comp, false );
+		
+		if ( old_dm != null ){
+			
+			DownloadManagerState state = old_dm.getDownloadState();
+			
+			state.removeListener( this, DownloadManagerState.AT_NETWORKS, DownloadManagerStateAttributeListener.WRITTEN );
+		}
+		
+		if ( new_dm != null ){
+			
+			DownloadManagerState state = new_dm.getDownloadState();
+						
+			state.addListener( this, DownloadManagerState.AT_NETWORKS, DownloadManagerStateAttributeListener.WRITTEN );
+			
+			setupNetworks( state.getNetworks());
+			
+			setupTorrentTracker( new_dm );
+			
+		}else{
+			
+			setupNetworks( null );
+			
+			setupTorrentTracker( null );
+		}
+	}
+	
+	private void
+	setupNetworks(
+		final String[]	enabled )
+	{
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport(){
+				
+				if ( network_buttons == null || network_buttons[0].isDisposed()){
+				
+					return;
+				}
+				
+				Set<String>	enabled_set = new HashSet<String>();
+				
+				if ( enabled != null ){
+					
+					enabled_set.addAll( Arrays.asList( enabled ));
+				}
+				
+				for ( int i=0; i<AENetworkClassifier.AT_NETWORKS.length; i++){
+					
+					final String net = AENetworkClassifier.AT_NETWORKS[i];
+					
+					network_buttons[i].setEnabled( enabled != null );
+					
+					network_buttons[i].setSelection( enabled_set.contains ( net ));
+				}
+			}
+		});
+	}
+	
+	private void
+	setupTorrentTracker(
+		final DownloadManager	dm  )
+	{
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport(){
+				if ( torrent_info == null || torrent_info.isDisposed()){
+					
+					return;
+				}
+				
+				TOTorrent t = dm.getTorrent();
+				
+				if ( t == null ){
+					
+					torrent_info.setText( "" );
+					tracker_info.setText( "" );
+					
+					return;
+				}
+				
+				torrent_info.setText( "Private=" + t.getPrivate());
+				
+				tracker_info.setText( TorrentUtils.announceGroupsToText( t ));
+			}
+		});
+	}
+		
+	private void
+	updatePeersEtc(
+		DownloadManager		dm )
+	{		
+		final PEPeerManager pm;
+		
+		if ( dm != null ){
+			
+			pm = dm.getPeerManager();
+			
+		}else{
+			
+			pm = null;
+		}
+		
+		Utils.execSWTThread(new AERunnable(){
+			public void runSupport()
+			{
+				if ( peer_info == null || peer_info.isDisposed()){
+					
+					return;
+				}
+				
+				if ( pm == null ){
+					
+					peer_info.setText( "Download is not running" );
+					
+				}else{
+					
+					List<PEPeer> peers = pm.getPeers();
+					
+					String[] all_nets = AENetworkClassifier.AT_NETWORKS;
+					
+					int[]	 counts = new int[ all_nets.length];
+					
+					for ( PEPeer peer: peers ){
+						
+						String net = PeerUtils.getNetwork( peer );
+						
+						for ( int i=0;i<all_nets.length;i++ ){
+							
+							if ( all_nets[i] == net ){
+								
+								counts[i]++;
+								
+								break;
+							}
+						}
+					}
+					
+					String str = "";
+					
+					for ( int i=0;i<all_nets.length;i++ ){
+						
+						int num = counts[i];
+						
+						if ( num > 0 ){
+							
+							str += (str.length()==0?"":", ") + all_nets[i] + "=" + num;
+						}
+					}
+					
+					if ( str.length() == 0 ){
+						
+						str = "No peers connected";
+					}
+					
+					peer_info.setText( str );
+				}
+			}
+		});
+	}
+	
+	public void 
+	attributeEventOccurred(
+		DownloadManager 	download,
+		String 				attribute, 
+		int 				event_type ) 
+	{
+		DownloadManagerState state = download.getDownloadState();
+
+		setupNetworks( state.getNetworks());
 	}
 }

@@ -23,8 +23,11 @@
 package com.aelitis.azureus.plugins;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginManager;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -36,6 +39,19 @@ I2PHelpers
 	
 	private static boolean i2p_installing = false;
 	
+	public static boolean
+	isI2PInstalled()
+	{
+		if ( isInstallingI2PHelper()){
+			
+			return( true );
+		}
+	
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+					
+		return( pm.getPluginInterfaceByID( "azneti2phelper" ) != null );
+	}
+
 	public static boolean
 	isInstallingI2PHelper()
 	{
