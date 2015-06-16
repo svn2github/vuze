@@ -471,7 +471,12 @@ public class MyTorrentsView
 		    		tag.addTagListener(MyTorrentsView.this, false);
 					}
 		    }
-		    TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).addTagTypeListener(MyTorrentsView.this,false);
+		    TagManager tagManager = TagManagerFactory.getTagManager();
+		    TagType ttManual = tagManager.getTagType(TagType.TT_DOWNLOAD_MANUAL);
+		    TagType ttCat = tagManager.getTagType(TagType.TT_DOWNLOAD_CATEGORY);
+		    ttManual.addTagTypeListener(MyTorrentsView.this, false);
+		    ttCat.addTagTypeListener(MyTorrentsView.this, false);
+
 		    globalManager.addListener(MyTorrentsView.this, false);
 		    globalManager.addEventListener( gm_event_listener );
 		    DownloadManager[] dms = globalManager.getDownloadManagers().toArray(new DownloadManager[0]);
@@ -604,7 +609,11 @@ public class MyTorrentsView
 				tag.removeTagListener(this);
 			}
 		}
-    TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).removeTagTypeListener(MyTorrentsView.this);
+    TagManager tagManager = TagManagerFactory.getTagManager();
+    TagType ttManual = tagManager.getTagType(TagType.TT_DOWNLOAD_MANUAL);
+    TagType ttCat = tagManager.getTagType(TagType.TT_DOWNLOAD_CATEGORY);
+    ttManual.removeTagTypeListener(MyTorrentsView.this);
+    ttCat.removeTagTypeListener(MyTorrentsView.this);
 
     globalManager.removeListener(this);
     globalManager.removeEventListener( gm_event_listener );
@@ -2177,21 +2186,6 @@ public class MyTorrentsView
     return false;
   }
   
-
-  // categorymanagerlistener Functions
-  public void downloadManagerAdded(Category category, final DownloadManager manager)
-  {
-  	if (isOurDownloadManager(manager)) {
-      tv.addDataSource(manager);
-    }
-  }
-
-  public void downloadManagerRemoved(Category category, DownloadManager removed)
-  {
-    tv.removeDataSource(removed);
-  }
-
-
   // DownloadManagerListener Functions
   public void stateChanged(DownloadManager manager, int state) {
     final TableRowCore row = tv.getRow(manager);
@@ -2506,15 +2500,19 @@ public class MyTorrentsView
   
   
   // globalmanagerlistener Functions
+  // @see org.gudy.azureus2.core3.global.GlobalManagerListener#downloadManagerAdded(org.gudy.azureus2.core3.download.DownloadManager)
   public void downloadManagerAdded( DownloadManager dm ) {
     dm.addListener( this );
-    downloadManagerAdded(null, dm);
+  	if (isOurDownloadManager(dm)) {
+      tv.addDataSource(dm);
+    }
   }
 
+  // @see org.gudy.azureus2.core3.global.GlobalManagerListener#downloadManagerRemoved(org.gudy.azureus2.core3.download.DownloadManager)
   public void downloadManagerRemoved( DownloadManager dm ) {
     dm.removeListener( this );
     DownloadBar.close(dm);
-    downloadManagerRemoved(null, dm);
+    tv.removeDataSource(dm);
   }
 
   public void destroyInitiated() {  }
@@ -2525,7 +2523,7 @@ public class MyTorrentsView
   
 
 
-
+	// @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#updateLanguage()
 	public void updateLanguage() {
 		super.updateLanguage();
 		getComposite().layout(true, true);
