@@ -92,7 +92,7 @@ DownloadManagerController
 	private static ExternalSeedPlugin	ext_seed_plugin;
 	private static boolean				ext_seed_plugin_tried;
 	
-	protected static ExternalSeedPlugin
+	public static ExternalSeedPlugin
 	getExternalSeedPlugin()
 	{
 		if ( !ext_seed_plugin_tried ){

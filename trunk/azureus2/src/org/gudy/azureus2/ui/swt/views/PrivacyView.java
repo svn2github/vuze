@@ -18,6 +18,7 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 
@@ -31,18 +32,21 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerController;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -51,7 +55,10 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.plugins.I2PHelpers;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 
 
 
@@ -77,11 +84,13 @@ public class PrivacyView
 	
 	private Label		torrent_info;
 	private Label		tracker_info;
+	private Label		webseed_info;
 	
 	private Label		vpn_info;
 	private Label		socks_info;
 	
 	private DownloadManager	current_dm;
+	private Set<String>		enabled_networks = new HashSet<String>();
 	
 	public 
 	PrivacyView() 
@@ -450,6 +459,21 @@ public class PrivacyView
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		tracker_info.setLayoutData( gd );
 	
+			// Webseed Info
+			
+		Composite webseed_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		webseed_comp.setLayoutData( gd );
+		webseed_comp.setLayout( new GridLayout( 2, false ));
+	
+		label = new Label( webseed_comp, SWT.NULL );
+		label.setText( "Web Seeds:" );
+		
+		webseed_info = new Label( webseed_comp, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		webseed_info.setLayoutData( gd );
+	
 			// VPN Info
 		
 		Composite vpn_comp = new Composite( cMainComposite, SWT.NULL );
@@ -578,16 +602,16 @@ public class PrivacyView
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport(){
 				
+				enabled_networks.clear();
+				
 				if ( network_buttons == null || network_buttons[0].isDisposed()){
 				
 					return;
 				}
-				
-				Set<String>	enabled_set = new HashSet<String>();
-				
+								
 				if ( enabled != null ){
 					
-					enabled_set.addAll( Arrays.asList( enabled ));
+					enabled_networks.addAll( Arrays.asList( enabled ));
 				}
 				
 				for ( int i=0; i<AENetworkClassifier.AT_NETWORKS.length; i++){
@@ -596,8 +620,12 @@ public class PrivacyView
 					
 					network_buttons[i].setEnabled( enabled != null );
 					
-					network_buttons[i].setSelection( enabled_set.contains ( net ));
+					network_buttons[i].setSelection( enabled_networks.contains ( net ));
 				}
+				
+					// update info about which trackers etc are enabled
+				
+				setupTorrentTracker( current_dm );
 			}
 		});
 	}
@@ -613,19 +641,149 @@ public class PrivacyView
 					return;
 				}
 				
-				TOTorrent t = dm.getTorrent();
+				TOTorrent torrent = dm==null?null:dm.getTorrent();
 				
-				if ( t == null ){
+				if ( torrent == null ){
 					
 					torrent_info.setText( "" );
 					tracker_info.setText( "" );
+					webseed_info.setText( "" );
 					
 					return;
 				}
 				
-				torrent_info.setText( "Private=" + t.getPrivate());
+				boolean private_torrent = torrent.getPrivate();
 				
-				tracker_info.setText( TorrentUtils.announceGroupsToText( t ));
+				torrent_info.setText( "Private=" + private_torrent);
+								
+				boolean		decentralised 	= false;
+				Set<String>	tracker_nets	= new HashSet<String>();
+				
+				URL	announce_url = torrent.getAnnounceURL();
+				
+				if ( announce_url != null ){
+				
+					if ( TorrentUtils.isDecentralised(announce_url)){
+						
+						decentralised = true;
+						
+					}else{
+						
+						String net = AENetworkClassifier.categoriseAddress( announce_url.getHost());
+						
+						tracker_nets.add( net );
+					}
+				}
+				
+				TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+				
+				TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+				
+				for ( TOTorrentAnnounceURLSet set: sets ){
+																	
+					URL[]	urls = set.getAnnounceURLs();
+						
+					for ( URL u: urls ){
+						
+						if ( TorrentUtils.isDecentralised( u)){
+							
+							decentralised = true;
+							
+						}else{
+							
+							String net = AENetworkClassifier.categoriseAddress( u.getHost());
+							
+							tracker_nets.add( net );
+						}
+					}
+				}
+				
+				String tracker_str = "";
+				
+				if ( decentralised ){
+					
+					tracker_str = "Decentralised";
+					
+					String net_string = "";
+					
+					if ( !private_torrent ){
+						
+							// dht only applicable to non-private torrents
+						
+						for ( String net: new String[]{ AENetworkClassifier.AT_PUBLIC, AENetworkClassifier.AT_I2P }){
+							
+							if ( enabled_networks.contains( net )){
+								
+								net_string += (net_string.length()==0?"":", ") + net;
+							}
+						}
+					}
+					
+					if ( net_string.length() == 0 ){
+						
+						tracker_str += " (disabled)";
+						
+					}else{
+						
+						tracker_str += " [" + net_string + "]";
+					}
+				}
+				
+				for ( String net: tracker_nets ){
+					
+					if ( !enabled_networks.contains( net )){
+						
+						net += " (disabled)";
+					}
+					
+					tracker_str += (tracker_str.length()==0?"":", " ) + net;
+				}
+				
+				tracker_info.setText( tracker_str );
+				
+					// web seeds
+				
+				Set<String>	webseed_nets	= new HashSet<String>();
+
+				ExternalSeedPlugin esp = DownloadManagerController.getExternalSeedPlugin();
+				
+				if ( esp != null ){
+					  	
+					ExternalSeedReader[] seeds = esp.getManualWebSeeds( PluginCoreUtils.wrap( torrent ));
+					
+					if ( seeds != null ){
+						
+						for ( ExternalSeedReader seed: seeds ){
+							
+							URL u = seed.getURL();
+							
+							String net = AENetworkClassifier.categoriseAddress( u.getHost());
+							
+							webseed_nets.add( net );
+						}
+					}
+				}
+				
+				String webseeds_str = "";
+				
+				if ( webseed_nets.isEmpty()){
+					
+					webseeds_str = "None";
+					
+				}else{
+					
+					for ( String net: webseed_nets ){
+						
+						if ( !enabled_networks.contains( net )){
+						
+							net += " (disabled)";
+						}
+						
+						webseeds_str += (webseeds_str.length()==0?"":", " ) + net;
+					}
+				}
+				
+				webseed_info.setText( webseeds_str );
 			}
 		});
 	}
