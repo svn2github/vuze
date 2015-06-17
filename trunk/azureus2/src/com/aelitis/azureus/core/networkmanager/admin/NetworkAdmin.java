@@ -104,6 +104,9 @@ NetworkAdmin
 	public abstract boolean
 	hasMissingForcedBind();
 	
+	public abstract String
+	getBindStatus();
+	
 	public abstract NetworkAdminNetworkInterface[]
 	getInterfaces();
 	

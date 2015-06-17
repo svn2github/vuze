@@ -18,6 +18,9 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -36,26 +39,35 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerController;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.proxy.AEProxySelector;
+import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.azureus.plugins.I2PHelpers;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
@@ -79,18 +91,26 @@ public class PrivacyView
 	private Button 		i2p_lookup_button;
 
 	private Button[]	network_buttons;
+	private Button[]	source_buttons;
 	
-	private Label		peer_info;
+	private Button		ipfilter_enabled;
 	
-	private Label		torrent_info;
-	private Label		tracker_info;
-	private Label		webseed_info;
+	private BufferedLabel	peer_info;
 	
-	private Label		vpn_info;
-	private Label		socks_info;
+	private Label			torrent_info;
+	private Label			tracker_info;
+	private Label			webseed_info;
+	
+	private BufferedLabel	vpn_info;
+	
+	private BufferedLabel	socks_state;
+	private BufferedLabel 	socks_current, socks_fails;
+	private Label			socks_more;
 	
 	private DownloadManager	current_dm;
-	private Set<String>		enabled_networks = new HashSet<String>();
+	
+	private Set<String>		enabled_networks 	= new HashSet<String>();
+	private Set<String>		enabled_sources 	= new HashSet<String>();
 	
 	public 
 	PrivacyView() 
@@ -186,6 +206,10 @@ public class PrivacyView
 					if ( objs.length == 1 && objs[0] instanceof DownloadManager ){
 						
 						current_dm = (DownloadManager)objs[0];
+						
+					}else{
+						
+						current_dm = null;
 					}
 				}else{
 					
@@ -244,8 +268,13 @@ public class PrivacyView
 			Utils.disposeComposite(cMainComposite, false);
 		}
 		
-		cMainComposite.setLayout(new GridLayout(1, false));
-
+		GridLayout layout = new GridLayout(1, false);
+		layout.horizontalSpacing = 0;
+		layout.verticalSpacing = 0;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		cMainComposite.setLayout(layout);
+		
 		GridData gd; 
 		
 			// I2P install state
@@ -402,8 +431,11 @@ public class PrivacyView
 
 		network_buttons = new Button[AENetworkClassifier.AT_NETWORKS.length];
 
-		network_comp.setLayout( new GridLayout( network_buttons.length, true ));
+		network_comp.setLayout( new GridLayout( network_buttons.length+1, false ));
 				
+		label = new Label( network_comp, SWT.NULL );
+		label.setText( "Networks:" );
+		
 		for ( int i=0; i<network_buttons.length; i++){
 			
 			final String nn = AENetworkClassifier.AT_NETWORKS[i];
@@ -429,6 +461,62 @@ public class PrivacyView
 			button.setLayoutData(gridData);
 		}
 		
+			// source selection
+		
+		Composite sources_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		sources_comp.setLayoutData( gd );
+	
+		source_buttons = new Button[PEPeerSource.PS_SOURCES.length];
+	
+		sources_comp.setLayout( new GridLayout( source_buttons.length + 1, false ));
+	
+		label = new Label( sources_comp, SWT.NULL );
+		label.setText( "Peer Sources:" );
+		
+		for ( int i=0; i<source_buttons.length; i++){
+			
+			final String src = PEPeerSource.PS_SOURCES[i];
+	
+			String msg_text = "ConfigView.section.connection.peersource." + src;
+	
+			Button button = new Button(sources_comp, SWT.CHECK);
+			Messages.setLanguageText(button, msg_text);
+			
+			source_buttons[i] = button;
+			
+			button.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					boolean selected = ((Button)e.widget).getSelection();
+					
+					if ( current_dm != null ){
+						current_dm.getDownloadState().setPeerSourceEnabled(src,selected);
+					}
+				}
+			});
+	
+			GridData gridData = new GridData();
+			button.setLayoutData(gridData);
+		}
+		
+			// IP Filter
+		
+		Composite ipfilter_comp = new Composite( cMainComposite, SWT.NULL );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		ipfilter_comp.setLayoutData( gd );
+		ipfilter_comp.setLayout( new GridLayout( 2, false ));
+	
+		label = new Label( ipfilter_comp, SWT.NULL );
+		label.setText( "IP Filter:" );
+		
+		ipfilter_enabled = new Button( ipfilter_comp, SWT.CHECK );
+		ipfilter_enabled.setText( "Enabled" );
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		ipfilter_enabled.setLayoutData( gd );
+	
 			// Torrent Info
 			
 		Composite torrent_comp = new Composite( cMainComposite, SWT.NULL );
@@ -485,7 +573,7 @@ public class PrivacyView
 		label = new Label( vpn_comp, SWT.NULL );
 		label.setText( "VPN Status:" );
 		
-		vpn_info = new Label( vpn_comp, SWT.NULL );
+		vpn_info = new BufferedLabel(vpn_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		vpn_info.setLayoutData( gd );
 		
@@ -495,14 +583,58 @@ public class PrivacyView
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		socks_comp.setLayoutData( gd );
-		socks_comp.setLayout( new GridLayout( 2, false ));
+		socks_comp.setLayout( new GridLayout( 10, false ));
 	
 		label = new Label( socks_comp, SWT.NULL );
 		label.setText( "SOCKS Status:" );
 		
-		socks_info = new Label( socks_comp, SWT.NULL );
-		gd = new GridData( GridData.FILL_HORIZONTAL );
-		socks_info.setLayoutData( gd );
+		label = new Label(socks_comp,SWT.NULL);
+		label.setText( MessageText.getString( "label.proxy" ) + ":" );
+
+		socks_state =  new BufferedLabel(socks_comp,SWT.DOUBLE_BUFFERED);
+		gd = new GridData();
+		gd.widthHint = 120;
+		socks_state.setLayoutData(gd);
+
+		// current details
+
+		label = new Label(socks_comp,SWT.NULL);
+		label.setText( MessageText.getString( "PeersView.state" ) + ":" );
+
+		socks_current =  new BufferedLabel(socks_comp,SWT.DOUBLE_BUFFERED);
+		gd = new GridData();
+		gd.widthHint = 120;
+		socks_current.setLayoutData(gd);
+
+		// fail details
+
+		label = new Label(socks_comp,SWT.NULL);
+		label.setText( MessageText.getString( "label.fails" ) + ":" );
+
+		socks_fails =  new BufferedLabel(socks_comp,SWT.DOUBLE_BUFFERED);
+		gd = new GridData();
+		gd.widthHint = 120;
+		socks_fails.setLayoutData(gd);
+
+		// more info
+
+		label = new Label(socks_comp,SWT.NULL);
+
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalAlignment = GridData.HORIZONTAL_ALIGN_BEGINNING;
+		socks_more  =  new Label(socks_comp, SWT.NULL );
+		socks_more.setText( MessageText.getString( "label.more") + "..." ); 
+		socks_more.setLayoutData( gd );
+		socks_more.setCursor(socks_more.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+		socks_more.setForeground(Colors.blue);
+		socks_more.addMouseListener(new MouseAdapter() {
+			public void mouseDoubleClick(MouseEvent arg0) {
+				showSOCKSInfo();
+			}
+			public void mouseUp(MouseEvent arg0) {
+				showSOCKSInfo();
+			}
+		});	
 		
 			// Peer Info
 			
@@ -515,7 +647,7 @@ public class PrivacyView
 		label = new Label( peer_comp, SWT.NULL );
 		label.setText( "Peer Status:" );
 		
-		peer_info = new Label( peer_comp, SWT.NULL );
+		peer_info = new BufferedLabel(peer_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		peer_info.setLayoutData( gd );
 		
@@ -532,6 +664,8 @@ public class PrivacyView
 		swt_updateFields( null, current_dm );
 
 		updatePeersEtc( current_dm );
+		
+		updateVPNSocks();
 		
 		Rectangle r = sc.getClientArea();
 		Point size = cMainComposite.computeSize(r.width, SWT.DEFAULT);
@@ -575,6 +709,8 @@ public class PrivacyView
 			DownloadManagerState state = old_dm.getDownloadState();
 			
 			state.removeListener( this, DownloadManagerState.AT_NETWORKS, DownloadManagerStateAttributeListener.WRITTEN );
+			state.removeListener( this, DownloadManagerState.AT_PEER_SOURCES, DownloadManagerStateAttributeListener.WRITTEN );
+			state.removeListener( this, DownloadManagerState.AT_FLAGS, DownloadManagerStateAttributeListener.WRITTEN );
 		}
 		
 		if ( new_dm != null ){
@@ -582,50 +718,91 @@ public class PrivacyView
 			DownloadManagerState state = new_dm.getDownloadState();
 						
 			state.addListener( this, DownloadManagerState.AT_NETWORKS, DownloadManagerStateAttributeListener.WRITTEN );
+			state.addListener( this, DownloadManagerState.AT_PEER_SOURCES, DownloadManagerStateAttributeListener.WRITTEN );
+			state.addListener( this, DownloadManagerState.AT_FLAGS, DownloadManagerStateAttributeListener.WRITTEN );
 			
-			setupNetworks( state.getNetworks());
+			setupNetworksAndSources( new_dm );
 			
 			setupTorrentTracker( new_dm );
 			
 		}else{
 			
-			setupNetworks( null );
+			setupNetworksAndSources( null );
 			
 			setupTorrentTracker( null );
 		}
 	}
 	
 	private void
-	setupNetworks(
-		final String[]	enabled )
+	setupNetworksAndSources(
+		final DownloadManager	dm )
 	{
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport(){
 				
 				enabled_networks.clear();
+				enabled_sources.clear();
 				
 				if ( network_buttons == null || network_buttons[0].isDisposed()){
 				
 					return;
 				}
-								
-				if ( enabled != null ){
+				
+				DownloadManagerState state	= null;
+				
+				String[]	networks 	= null;
+				String[]	sources		= null;
+				
+				if ( dm != null ){
+				
+					state = dm.getDownloadState();
 					
-					enabled_networks.addAll( Arrays.asList( enabled ));
+					networks 	= state.getNetworks();
+					sources		= state.getPeerSources();
+				}
+				
+				if ( networks != null ){
+					
+					enabled_networks.addAll( Arrays.asList( networks ));
 				}
 				
 				for ( int i=0; i<AENetworkClassifier.AT_NETWORKS.length; i++){
 					
 					final String net = AENetworkClassifier.AT_NETWORKS[i];
 					
-					network_buttons[i].setEnabled( enabled != null );
+					network_buttons[i].setEnabled( networks != null );
 					
 					network_buttons[i].setSelection( enabled_networks.contains ( net ));
 				}
 				
+				
+				if ( sources != null ){
+					
+					enabled_sources.addAll( Arrays.asList( sources ));
+				}
+				
+				for ( int i=0; i<PEPeerSource.PS_SOURCES.length; i++){
+					
+					final String source = PEPeerSource.PS_SOURCES[i];
+					
+					source_buttons[i].setEnabled( sources != null && state.isPeerSourcePermitted( source ));
+					
+					source_buttons[i].setSelection( enabled_sources.contains ( source ));
+				}
+				
+				if ( state != null ){
+					
+					ipfilter_enabled.setEnabled( true );
+					
+					ipfilter_enabled.setSelection( !state.getFlag( DownloadManagerState.FLAG_DISABLE_IP_FILTER ));
+					
+				}else{
+					
+					ipfilter_enabled.setEnabled( false );
+				}
 					// update info about which trackers etc are enabled
 				
-				setupTorrentTracker( current_dm );
+				setupTorrentTracker( dm );
 			}
 		});
 	}
@@ -698,40 +875,40 @@ public class PrivacyView
 					}
 				}
 				
-				String tracker_str = "";
+				boolean	tracker_source_enabled 	= enabled_sources.contains( PEPeerSource.PS_BT_TRACKER );
+				boolean	dht_source_enabled 		= enabled_sources.contains( PEPeerSource.PS_DHT );
 				
-				if ( decentralised ){
+				String tracker_str = "";
+									
+				tracker_str = "Decentralised";
+				
+				String net_string = "";
+				
+				if ( dht_source_enabled && !private_torrent ){
 					
-					tracker_str = "Decentralised";
+						// dht only applicable to non-private torrents
 					
-					String net_string = "";
-					
-					if ( !private_torrent ){
+					for ( String net: new String[]{ AENetworkClassifier.AT_PUBLIC, AENetworkClassifier.AT_I2P }){
 						
-							// dht only applicable to non-private torrents
-						
-						for ( String net: new String[]{ AENetworkClassifier.AT_PUBLIC, AENetworkClassifier.AT_I2P }){
+						if ( enabled_networks.contains( net )){
 							
-							if ( enabled_networks.contains( net )){
-								
-								net_string += (net_string.length()==0?"":", ") + net;
-							}
+							net_string += (net_string.length()==0?"":", ") + net;
 						}
 					}
+				}
+				
+				if ( net_string.length() == 0 ){
 					
-					if ( net_string.length() == 0 ){
-						
-						tracker_str += " (disabled)";
-						
-					}else{
-						
-						tracker_str += " [" + net_string + "]";
-					}
+					tracker_str += " (disabled)";
+					
+				}else{
+					
+					tracker_str += " [" + net_string + "]";
 				}
 				
 				for ( String net: tracker_nets ){
 					
-					if ( !enabled_networks.contains( net )){
+					if ( !tracker_source_enabled || !enabled_networks.contains( net )){
 						
 						net += " (disabled)";
 					}
@@ -790,7 +967,7 @@ public class PrivacyView
 		
 	private void
 	updatePeersEtc(
-		DownloadManager		dm )
+		final DownloadManager		dm )
 	{		
 		final PEPeerManager pm;
 		
@@ -813,10 +990,16 @@ public class PrivacyView
 				
 				if ( pm == null ){
 					
-					peer_info.setText( "Download is not running" );
+					peer_info.setText( dm==null?"":"Download is not running" );
 					
 				}else{
 					
+				    AEProxySelector proxy_selector = AEProxySelectorFactory.getSelector();
+				    
+				    Proxy proxy = proxy_selector.getActiveProxy();
+
+				    boolean socks_bad_incoming = false;
+				    
 					List<PEPeer> peers = pm.getPeers();
 					
 					String[] all_nets = AENetworkClassifier.AT_NETWORKS;
@@ -834,6 +1017,27 @@ public class PrivacyView
 								counts[i]++;
 								
 								break;
+							}
+						}
+						
+						if ( proxy != null ){
+							
+							if ( peer.isIncoming()){
+								
+								if ( !peer.isLANLocal()){
+									
+									try{
+										if ( InetAddress.getByAddress( HostNameToIPResolver.hostAddressToBytes( peer.getIp())).isLoopbackAddress()){
+											
+											continue;
+										}
+									}catch( Throwable e ){	
+									}
+									
+									socks_bad_incoming = true;
+									
+									break;
+								}
 							}
 						}
 					}
@@ -855,10 +1059,90 @@ public class PrivacyView
 						str = "No peers connected";
 					}
 					
+					if ( socks_bad_incoming ){
+						
+						str += " (non-local incoming connection detected)";
+					}
+					
 					peer_info.setText( str );
 				}
+				
+				updateVPNSocks();
 			}
 		});
+	}
+	
+	private void
+	updateVPNSocks()
+	{
+	    AEProxySelector proxy_selector = AEProxySelectorFactory.getSelector();
+	    
+	    Proxy proxy = proxy_selector.getActiveProxy();
+	    
+	    socks_more.setEnabled( proxy != null );
+	    
+	    if ( Constants.isOSX ){
+	    	
+	    	socks_more.setForeground(proxy==null?Colors.light_grey:Colors.blue);
+	    }
+	    
+	    socks_state.setText( proxy==null?MessageText.getString( "label.inactive" ): ((InetSocketAddress)proxy.address()).getHostName());
+	    
+	    if ( proxy == null ){
+	    	
+	    	socks_current.setText( "" );
+	    	
+	    	socks_fails.setText( "" );
+	    	
+	    }else{
+	    	
+		    long	last_con 	= proxy_selector.getLastConnectionTime();
+		    long	last_fail 	= proxy_selector.getLastFailTime();
+		    int		total_cons	= proxy_selector.getConnectionCount();
+		    int		total_fails	= proxy_selector.getFailCount();
+		    
+		    long	now = SystemTime.getMonotonousTime();
+		    
+		    long	con_ago		= now - last_con;
+		    long	fail_ago 	= now - last_fail;
+		   
+		    String	state_str;
+		    
+		    if ( last_fail < 0 ){
+		    	
+		    	state_str = "PeerManager.status.ok";
+		    	
+		    }else{
+		    	
+			    if ( fail_ago > 60*1000 ){
+			    	
+			    	if ( con_ago < fail_ago ){
+			    		
+			    		state_str = "PeerManager.status.ok";
+			    		
+			    	}else{
+			    		
+			    		state_str = "SpeedView.stats.unknown";
+			    	}
+			    }else{
+			    	
+			    	state_str = "ManagerItem.error";
+			    }
+		    }
+		    
+		    socks_current.setText( MessageText.getString( state_str ) + ", con=" + total_cons );
+		    
+		    long	fail_ago_secs = fail_ago/1000;
+		    
+		    if ( fail_ago_secs == 0 ){
+		    	
+		    	fail_ago_secs = 1;
+		    }
+		    
+		    socks_fails.setText( last_fail<0?"":(DisplayFormatters.formatETA( fail_ago_secs, false ) + " " + MessageText.getString( "label.ago" ) + ", tot=" + total_fails ));
+	    }
+	    
+	    vpn_info.setText( NetworkAdmin.getSingleton().getBindStatus());
 	}
 	
 	public void 
@@ -867,8 +1151,20 @@ public class PrivacyView
 		String 				attribute, 
 		int 				event_type ) 
 	{
-		DownloadManagerState state = download.getDownloadState();
+		setupNetworksAndSources( download );
+	}
+	
+	private void
+	showSOCKSInfo()
+	{
+		AEProxySelector proxy_selector = AEProxySelectorFactory.getSelector();
 
-		setupNetworks( state.getNetworks());
+		String	info = proxy_selector.getInfo();
+
+		TextViewerWindow viewer = new TextViewerWindow(
+			MessageText.getString( "proxy.info.title" ),
+			null,
+			info, false  );
+
 	}
 }

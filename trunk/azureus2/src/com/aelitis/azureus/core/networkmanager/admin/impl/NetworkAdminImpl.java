@@ -2618,6 +2618,45 @@ addressLoop:
 		return( (Integer)status[0] == BS_ERROR );
 	}
 	
+	public String
+	getBindStatus()
+	{
+		Object[] status = getBindingStatus();
+		
+		int	state = (Integer)status[0];
+		
+		if ( state == BS_INACTIVE ){
+			
+			return( "No binding configured" );
+			
+		}else{
+			
+			String str = "";
+			
+			if ( state == BS_OK ){
+				
+				str = "Binding OK";
+				
+			}else if ( state == BS_WARNING ){
+				
+				str = "Binding warning";
+				
+			}else{
+				
+				str = "Binding error";
+			}
+			
+			String status_str = (String)status[1];
+			
+			if ( status_str.length() > 0 ){
+				
+				str += ": " + status_str;
+			}
+			
+			return( str );
+		}
+	}
+	
 		// for the icon 
 	
 	public static final int BS_INACTIVE	= 0;
