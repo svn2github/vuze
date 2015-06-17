@@ -394,8 +394,15 @@ public class ToolBarView
 				if (activationType != ACTIVATIONTYPE_NORMAL) {
 					return false;
 				}
-				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
-				TorrentUtil.stopOrStartDataSources(currentContent);
+				final ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+				Utils.getOffOfSWTThread(new AERunnable() {
+					
+					@Override
+					public void runSupport() {
+						// takes forever on swt thread if allocation needed
+						TorrentUtil.stopOrStartDataSources(currentContent);
+					}
+				});
 				return true;
 			}
 		});
@@ -737,7 +744,7 @@ public class ToolBarView
 				
 				if ( 	currentContent.length == 0 &&
 						mapStates.containsKey( "start" ) && 
-						!mapStates.containsKey( "stop" ) && 
+						(!mapStates.containsKey( "stop" ) || (mapStates.get("stop") & UIToolBarItem.STATE_ENABLED) == 0) && 
 						( mapStates.get("start") & UIToolBarItem.STATE_ENABLED) > 0 ){
 					
 					shouldStopGroup = false;
