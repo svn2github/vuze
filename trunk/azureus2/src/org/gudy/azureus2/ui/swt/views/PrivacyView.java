@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -100,6 +101,8 @@ public class PrivacyView
 	private Composite	i2p_lookup_comp;
 	private Button 		i2p_install_button;
 	private Button 		i2p_lookup_button;
+	private Label 		i2p_result_summary;
+	private StyledText	i2p_result_list;
 
 	private Button[]	network_buttons;
 	private Button[]	source_buttons;
@@ -421,7 +424,7 @@ public class PrivacyView
 		label = new Label( slider_comp, SWT.NULL );
 		
 		Composite tracker_webseed_comp = new Composite( slider_comp, SWT.NULL );
-		tracker_webseed_comp.setLayout( removeMargins( new GridLayout( 2, true )));
+		tracker_webseed_comp.setLayout( removeMarginsAndSpacing( new GridLayout( 2, true )));
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		gd.horizontalSpan = 2;
 		tracker_webseed_comp.setLayoutData( gd );
@@ -469,7 +472,7 @@ public class PrivacyView
 		peer_comp.setLayout( new GridLayout( 2, false ));
 	
 		label = new Label( peer_comp, SWT.NULL );
-		label.setText( "Peer Status:" );
+		label.setText( "Peers:" );
 		
 		peer_info = new BufferedLabel(peer_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
@@ -487,7 +490,7 @@ public class PrivacyView
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		i2p_group.setLayoutData( gd );
 
-		i2p_group.setLayout( new GridLayout(2, false ));
+		i2p_group.setLayout( new GridLayout(3, false ));
 
 		Composite i2p_button_comp = new Composite( i2p_group, SWT.NULL );
 		i2p_button_comp.setLayout( new GridLayout(2, false ));
@@ -532,7 +535,7 @@ public class PrivacyView
 		
 			// I2P peer lookup
 		
-		i2p_lookup_comp = new Composite( i2p_group, SWT.NULL );
+		i2p_lookup_comp = new Composite( i2p_group, SWT.BORDER );
 		
 		gd = new GridData();
 		gd.widthHint = 300;
@@ -541,8 +544,32 @@ public class PrivacyView
 		
 		i2p_lookup_comp.setBackground( Colors.white );
 		
+			// i2p results
 		
-			// lookup button
+		Composite i2p_results_comp = new Composite( i2p_group, SWT.NULL );
+		gd = new GridData( GridData.FILL_BOTH );
+		i2p_results_comp.setLayoutData( gd );
+
+		i2p_results_comp.setLayout( removeMarginsAndSpacing( new GridLayout( 2, false )));
+		
+		label = new Label( i2p_results_comp, SWT.NULL );
+		label.setText( "Lookup Status:" );
+
+		i2p_result_summary = new Label( i2p_results_comp, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		gd.horizontalIndent = 4;
+		i2p_result_summary.setLayoutData( gd );
+
+		i2p_result_list = new StyledText( i2p_results_comp, SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
+		gd = new GridData( GridData.FILL_BOTH );
+		gd.horizontalSpan = 2;
+		gd.verticalIndent = 4;
+		i2p_result_list.setLayoutData( gd );
+
+		i2p_result_list.setEditable( false );
+		i2p_result_list.setIndent( 4 );
+		
+			// i2p lookup button
 		
 		label = new Label( i2p_button_comp, SWT.NULL );
 		label.setText( "Lookup Peers" );
@@ -559,6 +586,10 @@ public class PrivacyView
 					SelectionEvent event ) 
 				{					
 					Utils.disposeComposite( i2p_lookup_comp, false );
+					
+					i2p_result_summary.setText( "" );
+					
+					i2p_result_list.setText( "" );
 					
 					PluginInterface i2p_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azneti2phelper", true );
 					
@@ -577,8 +608,8 @@ public class PrivacyView
 							{
 								public Object 
 								invoke(
-									String methodName, 
-									Object[] params) 
+									String 			methodName, 
+									final Object[] 	params) 
 										
 									throws IPCException
 								{
@@ -596,15 +627,45 @@ public class PrivacyView
 													run()
 													{
 														i2p_lookup_button.setEnabled( true );
+														
+														if ( i2p_result_list.getText().length() == 0 ){
+															
+															i2p_result_summary.setText( "No peers found" );
+														}
+													}
+												});
+										}
+										
+										if ( params.length == 4 ){
+			
+											Utils.execSWTThread(
+												new Runnable()
+												{
+													public void
+													run()
+													{
+														int	seeds		= (Integer)params[1];
+														int	leechers	= (Integer)params[2];
+														int	peers		= (Integer)params[3];
+														
+														i2p_result_summary.setText( "Seeds=" + seeds + ", Leechers=" + leechers + ", Peers=" + peers );
 													}
 												});
 										}
 									}else if ( methodName.equals( "peerFound")){
-										
-										String 	host		= (String)params[0];
-										int		peer_type 	= (Integer)params[1];
-										
-										System.out.println( peer_type + "/" + host );
+																				
+										Utils.execSWTThread(
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													String 	host		= (String)params[0];
+													int		peer_type 	= (Integer)params[1];
+
+													i2p_result_list.append( host + "\r\n" );
+												}
+											});
 										
 									}
 									return( null );
@@ -621,6 +682,8 @@ public class PrivacyView
 							
 
 						i2p_lookup_button.setEnabled( false );
+						
+						i2p_result_summary.setText( "Searching..." );
 
 						byte[] hash = (byte[])i2p_lookup_button.getData( "hash" );
 							
@@ -670,7 +733,7 @@ public class PrivacyView
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		torrent_comp.setLayoutData( gd );
-		torrent_comp.setLayout( new GridLayout( 2, false ));
+		torrent_comp.setLayout( removeMarginsAndSpacing( new GridLayout( 2, false )));
 			
 		torrent_info = new Label( torrent_comp, SWT.NULL );
 		gd = new GridData( GridData.FILL_HORIZONTAL );
@@ -679,7 +742,7 @@ public class PrivacyView
 			// source selection
 
 		label = new Label( bottom_comp, SWT.NULL );
-		label.setText( "Peer Sources:" );
+		label.setText( "Peers Sources:" );
 		
 		Composite sources_comp = new Composite( bottom_comp, SWT.NULL );
 		
@@ -688,7 +751,7 @@ public class PrivacyView
 	
 		source_buttons = new Button[PEPeerSource.PS_SOURCES.length];
 	
-		sources_comp.setLayout( new GridLayout( source_buttons.length + 1, false ));
+		sources_comp.setLayout( removeMargins( new GridLayout( source_buttons.length + 1, false )));
 	
 		
 		for ( int i=0; i<source_buttons.length; i++){
@@ -725,7 +788,7 @@ public class PrivacyView
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		ipfilter_comp.setLayoutData( gd );
-		ipfilter_comp.setLayout( new GridLayout( 2, false ));
+		ipfilter_comp.setLayout( removeMargins( new GridLayout( 2, false )));
 	
 		
 		ipfilter_enabled = new Button( ipfilter_comp, SWT.CHECK );
@@ -743,7 +806,7 @@ public class PrivacyView
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		vpn_comp.setLayoutData( gd );
-		vpn_comp.setLayout( new GridLayout( 2, false ));
+		vpn_comp.setLayout( removeMargins( new GridLayout( 2, false )));
 		
 		vpn_info = new BufferedLabel(vpn_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
@@ -758,7 +821,7 @@ public class PrivacyView
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		socks_comp.setLayoutData( gd );
-		socks_comp.setLayout( new GridLayout( 10, false ));
+		socks_comp.setLayout( removeMargins( new GridLayout( 10, false )));
 	
 		label = new Label(socks_comp,SWT.NULL);
 		label.setText( MessageText.getString( "label.proxy" ) + ":" );
@@ -932,6 +995,9 @@ public class PrivacyView
 		updateI2PState();
 		
 		Utils.disposeComposite( i2p_lookup_comp, false );
+		
+		i2p_result_summary.setText( "" );
+		i2p_result_list.setText( "" );
 		
 		if ( old_dm != null ){
 			
@@ -1258,6 +1324,9 @@ public class PrivacyView
 					
 					int[]	 counts = new int[ all_nets.length];
 					
+					int	incoming 	= 0;
+					int outgoing	= 0;
+					
 					for ( PEPeer peer: peers ){
 						
 						String net = PeerUtils.getNetwork( peer );
@@ -1272,9 +1341,20 @@ public class PrivacyView
 							}
 						}
 						
+						boolean is_incoming = peer.isIncoming();
+						
+						if ( is_incoming ){
+							
+							incoming++;
+							
+						}else{
+							
+							outgoing++;
+						}
+						
 						if ( proxy != null ){
 							
-							if ( peer.isIncoming()){
+							if ( is_incoming ){
 								
 								if ( !peer.isLANLocal()){
 									
@@ -1309,6 +1389,10 @@ public class PrivacyView
 					if ( str.length() == 0 ){
 						
 						str = "No peers connected";
+						
+					}else{
+						
+						str += ", Incoming=" + incoming + ", Outgoing=" + outgoing;
 					}
 					
 					if ( socks_bad_incoming ){
@@ -1438,11 +1522,21 @@ public class PrivacyView
 	}
 	
 	private GridLayout
-	removeMargins(
+	removeMarginsAndSpacing(
 		GridLayout	layout )
 	{
 		layout.horizontalSpacing = 0;
 		layout.verticalSpacing = 0;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		
+		return( layout );
+	}
+	
+	private GridLayout
+	removeMargins(
+		GridLayout	layout )
+	{
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		
