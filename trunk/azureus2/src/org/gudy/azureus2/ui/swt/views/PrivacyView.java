@@ -102,7 +102,7 @@ public class PrivacyView
 	private Button 		i2p_install_button;
 	private Button 		i2p_lookup_button;
 	private Label 		i2p_result_summary;
-	private StyledText	i2p_result_list;
+	private Text		i2p_result_list;
 
 	private Button[]	network_buttons;
 	private Button[]	source_buttons;
@@ -560,14 +560,15 @@ public class PrivacyView
 		gd.horizontalIndent = 4;
 		i2p_result_summary.setLayoutData( gd );
 
-		i2p_result_list = new StyledText( i2p_results_comp, SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
+		i2p_result_list = new Text( i2p_results_comp, SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
 		gd = new GridData( GridData.FILL_BOTH );
 		gd.horizontalSpan = 2;
 		gd.verticalIndent = 4;
+		gd.heightHint = 100;
 		i2p_result_list.setLayoutData( gd );
 
 		i2p_result_list.setEditable( false );
-		i2p_result_list.setIndent( 4 );
+		//i2p_result_list.setIndent( 4 );
 		
 			// i2p lookup button
 		
