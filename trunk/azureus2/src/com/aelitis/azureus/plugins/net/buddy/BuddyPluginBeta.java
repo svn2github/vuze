@@ -5161,7 +5161,7 @@ BuddyPluginBeta
 		
 		public int
 		getFlagOrigin()
-		{
+		{		
 			Map<String,Object> payload = getPayload();
 
 			if ( payload != null ){
@@ -5179,6 +5179,15 @@ BuddyPluginBeta
 				}
 			}
 			
+				// bah, merging message has been missing origin flag
+				
+			String msg_text = getMessage();
+			
+			if ( msg_text.startsWith( "See http://wiki.vuze.com/w/Swarm_Merging" )){
+				
+				return( FLAGS_MSG_ORIGIN_RATINGS );
+			}
+
 			return( FLAGS_MSG_ORIGIN_USER );
 		}
 		
