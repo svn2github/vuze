@@ -48,6 +48,8 @@ public interface MdiEntry extends UIPluginView
 
 	public MdiEntryVitalityImage addVitalityImage(String imageID);
 
+	public void addListeners(Object objectWithListeners);
+
 	/**
 	 * @param l
 	 *

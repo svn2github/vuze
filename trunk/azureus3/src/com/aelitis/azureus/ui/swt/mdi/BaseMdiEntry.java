@@ -244,6 +244,32 @@ public abstract class BaseMdiEntry
 		this.collapseDisabled = collapseDisabled;
 		setExpanded(true);
 	}
+	
+	// @see com.aelitis.azureus.ui.mdi.MdiEntry#addListeners(java.lang.Object)
+	public void addListeners(Object objectWithListeners) {
+		if (objectWithListeners instanceof MdiChildCloseListener) {
+			addListener((MdiChildCloseListener) objectWithListeners);
+		}
+		if (objectWithListeners instanceof MdiCloseListener) {
+			addListener((MdiCloseListener) objectWithListeners);
+		}
+		if (objectWithListeners instanceof MdiEntryDatasourceListener) {
+			addListener((MdiEntryDatasourceListener) objectWithListeners);
+		}
+		if (objectWithListeners instanceof MdiEntryDropListener) {
+			addListener((MdiEntryDropListener) objectWithListeners);
+		}
+		if (objectWithListeners instanceof MdiEntryLogIdListener) {
+			addListener((MdiEntryLogIdListener) objectWithListeners);
+		}
+		if (objectWithListeners instanceof MdiEntryOpenListener) {
+			addListener((MdiEntryOpenListener) objectWithListeners);
+		}
+
+		if (objectWithListeners instanceof MdiSWTMenuHackListener) {
+			addListener((MdiSWTMenuHackListener) objectWithListeners);
+		}
+	}
 
 	public void addListener(MdiCloseListener l) {
 		synchronized (this) {
