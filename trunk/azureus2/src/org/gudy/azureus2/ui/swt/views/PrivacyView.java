@@ -95,6 +95,7 @@ public class PrivacyView
 	private static final int PL_PUBLIC		= 0;
 	private static final int PL_MIX			= 1;
 	private static final int PL_ANONYMOUS	= 2;
+	private static final int PL_INVALID		= 3;
 
 	private int			privacy_level;
 	private Scale 		privacy_scale;
@@ -321,7 +322,7 @@ public class PrivacyView
 		label.setText( "Privacy Level:" );
 		
 		Composite slider2_comp = new Composite( slider_comp, SWT.NULL );
-		slider2_comp.setLayout( new GridLayout(3, true ));
+		slider2_comp.setLayout( new GridLayout(6, true ));
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		slider2_comp.setLayoutData( gd);
 
@@ -329,26 +330,33 @@ public class PrivacyView
 		label.setText( "Public Only" );
 		
 		label = new Label( slider2_comp, SWT.NULL );
-		label.setText( "Public/Anonymous Mix" );
-		gd = new GridData();
-		gd.horizontalAlignment = SWT.CENTER;
+		label.setText( "Public/Anon Mix" );
+		label.setAlignment( SWT.CENTER );
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = 2;
 		label.setLayoutData( gd);
 		
 		label = new Label( slider2_comp, SWT.NULL );
 		label.setText( "Anonymous Only" );
-		gd = new GridData();
-		gd.horizontalAlignment = SWT.END;
+		label.setAlignment( SWT.CENTER );
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = 2;
 		label.setLayoutData( gd);
 
+		label = new Label( slider2_comp, SWT.NULL );
+		label.setText( "Invalid" );
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalAlignment = SWT.END;
+		label.setLayoutData( gd);
 		
 		privacy_scale = new Scale(slider2_comp, SWT.HORIZONTAL);
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
-		gd.horizontalSpan = 3;
+		gd.horizontalSpan = 6;
 		privacy_scale.setLayoutData( gd);
 
 		privacy_scale.setMinimum( 0 );
-		privacy_scale.setMaximum( 20 );
+		privacy_scale.setMaximum( 30 );
 	
 		
 
@@ -954,6 +962,8 @@ public class PrivacyView
 		Rectangle r = sc.getClientArea();
 		Point size = cMainComposite.computeSize(r.width, SWT.DEFAULT);
 		sc.setMinSize(size);
+		
+		Utils.relayout(cMainComposite);
 	}
 
 	private void
@@ -992,9 +1002,13 @@ public class PrivacyView
 						
 						new_nets = AENetworkClassifier.AT_NETWORKS;
 						
-					}else{
+					}else if ( level == PL_ANONYMOUS ){
 						
 						new_nets = AENetworkClassifier.AT_NON_PUBLIC;
+						
+					}else{
+						
+						new_nets = new String[0];
 					}
 					
 						// this will result in setupNetworksAndSources being called
@@ -1139,7 +1153,14 @@ public class PrivacyView
 						}
 					}else{
 						
-						pl = PL_ANONYMOUS;
+						if ( enabled_networks.size() == 0 ){
+							
+							pl = PL_INVALID;
+							
+						}else{
+						
+							pl = PL_ANONYMOUS;
+						}
 					}
 					
 					privacy_level	= pl;
