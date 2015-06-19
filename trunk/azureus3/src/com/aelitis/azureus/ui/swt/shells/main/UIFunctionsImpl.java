@@ -1250,7 +1250,7 @@ public class UIFunctionsImpl
 
 		TorrentOpenOptions torrentOptions = new TorrentOpenOptions();
 		if (defaultToStopped) {
-			torrentOptions.iStartID = TorrentOpenOptions.STARTMODE_STOPPED;
+			torrentOptions.setStartMode( TorrentOpenOptions.STARTMODE_STOPPED );
 		}
 		if (sFilesToOpen == null) {
 			new OpenTorrentWindow(shell);
@@ -1276,7 +1276,7 @@ public class UIFunctionsImpl
 
 		TorrentOpenOptions torrentOptions = new TorrentOpenOptions();
 		if (defaultToStopped) {
-			torrentOptions.iStartID = TorrentOpenOptions.STARTMODE_STOPPED;
+			torrentOptions.setStartMode( TorrentOpenOptions.STARTMODE_STOPPED );
 		}
 		torrentOptions.setHideErrors( hideErrors );
 		

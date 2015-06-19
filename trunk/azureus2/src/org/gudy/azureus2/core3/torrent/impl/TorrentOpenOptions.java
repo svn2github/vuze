@@ -87,8 +87,7 @@ public class TorrentOpenOptions
 
 	private long	totalSize;
 	
-	/** @todo: getter/setters */
-	public int iStartID;
+	private int iStartID;
 
 	/** @todo: getter/setters */
 	public int iQueueLocation;
@@ -247,6 +246,19 @@ public class TorrentOpenOptions
 	isSimpleTorrent()
 	{
 		return( torrent.isSimpleTorrent());
+	}
+	
+	public int
+	getStartMode()
+	{
+		return( iStartID );
+	}
+	
+	public void
+	setStartMode(
+		int	m )
+	{
+		iStartID = m;
 	}
 	
 	public Map<String, Boolean>

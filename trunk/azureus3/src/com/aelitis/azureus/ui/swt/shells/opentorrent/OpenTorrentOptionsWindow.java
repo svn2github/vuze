@@ -1446,10 +1446,13 @@ public class OpenTorrentOptionsWindow
 		/* prevents loop of modifications */
 		protected boolean bSkipDataDirModify = false;
 
+		private Button btnPrivacy;
 		private Button btnCheckComments;
 		private Button btnCheckAvailability;
 		private Button btnSwarmIt;
 
+		private List<Button>	network_buttons = new ArrayList<Button>();
+		
 		private Combo cmbDataDir;
 
 		private Combo cmbQueueLocation;
@@ -2540,7 +2543,7 @@ public class OpenTorrentOptionsWindow
 			// Check for seeding
 			boolean bTorrentValid = true;
 	
-			if (torrentOptions.iStartID == TorrentOpenOptions.STARTMODE_SEEDING) {
+			if (torrentOptions.getStartMode() == TorrentOpenOptions.STARTMODE_SEEDING) {
 				// check if all selected files exist
 				TorrentOpenFileOptions[] files = torrentOptions.getFiles();
 				for (int j = 0; j < files.length; j++) {
@@ -2627,7 +2630,7 @@ public class OpenTorrentOptionsWindow
 			}
 	
 			String optionText = MessageText.getString("OpenTorrentWindow.startMode."
-					+ startModes[torrentOptions.iStartID])
+					+ startModes[torrentOptions.getStartMode()])
 					+ ", "
 					+ MessageText.getString("OpenTorrentWindow.addPosition."
 							+ queueLocations[torrentOptions.iQueueLocation]);
@@ -2674,7 +2677,7 @@ public class OpenTorrentOptionsWindow
 		}
 	
 		protected void setSelectedStartMode(int iStartID) {
-			torrentOptions.iStartID = iStartID;
+			torrentOptions.setStartMode( iStartID );
 	
 			checkSeedingMode();
 			updateStartOptionsHeader();
@@ -2731,7 +2734,7 @@ public class OpenTorrentOptionsWindow
 			line.setLayoutData(gridData);
 
 			Composite cButtonsBottom = new Composite(cButtonsArea, SWT.NULL);
-			layout = new GridLayout(3,false);
+			layout = new GridLayout(4,false);
 			layout.marginWidth = layout.marginHeight = layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
 			cButtonsBottom.setLayout(layout);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
@@ -2832,6 +2835,49 @@ public class OpenTorrentOptionsWindow
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
 			pad2.setLayoutData( gridData );
 
+				// privacy add mode
+			
+			btnPrivacy = new Button(cButtonsBottom, SWT.TOGGLE);
+			buttons.add( btnPrivacy );
+			Messages.setLanguageText(btnPrivacy, "label.privacy");
+			btnPrivacy.setToolTipText( MessageText.getString( "OpenTorrentWindow.privacy.info" ));
+			
+			btnPrivacy.addListener(SWT.Selection, new Listener(){
+				private int					saved_start_mode;
+				private Map<String,Boolean>	saved_nets;
+				
+				public void handleEvent(Event event) {
+					if ( btnPrivacy.getSelection()){
+						
+						saved_nets 			= torrentOptions.getEnabledNetworks();
+						saved_start_mode 	= torrentOptions.getStartMode();
+						
+						setSelectedStartMode( TorrentOpenOptions.STARTMODE_STOPPED );
+						
+						for ( String net: AENetworkClassifier.AT_NETWORKS ){
+							
+							torrentOptions.setNetworkEnabled( net, false );
+						}
+						
+						updateNetworkOptions();
+						
+					}else{
+						
+						if ( saved_nets != null ){
+						
+							setSelectedStartMode( saved_start_mode );
+						
+							for ( Map.Entry<String,Boolean> entry: saved_nets.entrySet()){
+								
+								torrentOptions.setNetworkEnabled( entry.getKey(), entry.getValue());
+							}
+							saved_nets = null;
+						}
+						
+						updateNetworkOptions();
+					}					
+				}
+			});
 				// ratings etc
 			
 			btnCheckComments = new Button(cButtonsBottom, SWT.PUSH);
@@ -2855,9 +2901,7 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 			
-			
 
-	
 			Utils.makeButtonsEqualWidth( buttons );
 			
 			updateFileButtons();
@@ -3657,7 +3701,7 @@ public class OpenTorrentOptionsWindow
 						}
 					});
 	
-					if ( infos.length > 1 && torrentOptions.iStartID != TorrentOpenOptions.STARTMODE_SEEDING ){
+					if ( infos.length > 1 && torrentOptions.getStartMode() != TorrentOpenOptions.STARTMODE_SEEDING ){
 						item = new MenuItem(menu, SWT.PUSH);
 						Messages.setLanguageText(item,
 								"OpenTorrentWindow.fileList.changeDestination.all", new String[]{ String.valueOf( infos.length )});
@@ -4181,7 +4225,7 @@ public class OpenTorrentOptionsWindow
 				}
 			}else{
 				for (TorrentOpenFileOptions fileInfo : infos) {
-					int style = (fileInfo.parent.iStartID == TorrentOpenOptions.STARTMODE_SEEDING)
+					int style = (fileInfo.parent.getStartMode() == TorrentOpenOptions.STARTMODE_SEEDING)
 							? SWT.OPEN : SWT.SAVE;
 					FileDialog fDialog = new FileDialog(shell, SWT.SYSTEM_MODAL
 							| style);
@@ -4216,7 +4260,7 @@ public class OpenTorrentOptionsWindow
 					if (sNewName == null)
 						return;
 		
-					if (fileInfo.parent.iStartID == TorrentOpenOptions.STARTMODE_SEEDING) {
+					if (fileInfo.parent.getStartMode() == TorrentOpenOptions.STARTMODE_SEEDING) {
 						File file = new File(sNewName);
 						if (file.length() == fileInfo.lSize)
 							fileInfo.setFullDestName(sNewName);
@@ -4434,7 +4478,7 @@ public class OpenTorrentOptionsWindow
 		
 					Button button = new Button(peer_sources_group, SWT.CHECK);
 					Messages.setLanguageText(button, msg_text);
-		
+						
 					button.setSelection(COConfigurationManager.getBooleanParameter(config_name));
 					
 					button.addSelectionListener(new SelectionAdapter() {
@@ -4470,6 +4514,8 @@ public class OpenTorrentOptionsWindow
 					Button button = new Button(network_group, SWT.CHECK);
 					Messages.setLanguageText(button, msg_text);
 		
+					network_buttons.add( button );
+
 					Map<String,Boolean> enabledNetworks = torrentOptions.getEnabledNetworks();
 
 					button.setSelection(enabledNetworks.get( nn ));
@@ -4486,6 +4532,19 @@ public class OpenTorrentOptionsWindow
 			}
 		}
 	
+		private void updateNetworkOptions() {
+			if ( network_buttons.size() != AENetworkClassifier.AT_NETWORKS.length ){
+				return;
+			}
+			
+			Map<String,Boolean> enabledNetworks = torrentOptions.getEnabledNetworks();
+
+			for (int i = 0; i < AENetworkClassifier.AT_NETWORKS.length; i++) {
+
+				network_buttons.get(i).setSelection(enabledNetworks.get( AENetworkClassifier.AT_NETWORKS[i]));
+			}
+		}
+			
 		private void updateDataDirCombo() {
 	
 			if (cmbDataDir == null) {
@@ -4642,7 +4701,7 @@ public class OpenTorrentOptionsWindow
 				sItemsText[i] = sText;
 			}
 			cmbStartMode.setItems(sItemsText);
-			cmbStartMode.select(torrentOptions.iStartID);
+			cmbStartMode.select(torrentOptions.getStartMode());
 			cmbStartMode.layout(true);
 		}
 	
