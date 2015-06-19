@@ -625,7 +625,7 @@ public class TorrentOpener {
 					} catch (TOTorrentException e1) {
 					}
 
-					int iStartState = (torrentOptions.iStartID == TorrentOpenOptions.STARTMODE_STOPPED)
+					int iStartState = (torrentOptions.getStartMode() == TorrentOpenOptions.STARTMODE_STOPPED)
 							? DownloadManager.STATE_STOPPED : DownloadManager.STATE_QUEUED;
 
 					GlobalManager gm = core.getGlobalManager();
@@ -633,7 +633,7 @@ public class TorrentOpener {
 					DownloadManager dm = gm.addDownloadManager(torrentOptions.sFileName,
 							hash, torrentOptions.getParentDir(), torrentOptions.getSubDir(),
 							iStartState, true,
-							torrentOptions.iStartID == TorrentOpenOptions.STARTMODE_SEEDING, dmia);
+							torrentOptions.getStartMode() == TorrentOpenOptions.STARTMODE_SEEDING, dmia);
 
 					// If dm is null, most likely there was an error printed.. let's hope
 					// the user was notified and skip the error quietly.
@@ -649,7 +649,7 @@ public class TorrentOpener {
 						});
 					}
 					
-					if (torrentOptions.iStartID == TorrentOpenOptions.STARTMODE_FORCESTARTED) {
+					if (torrentOptions.getStartMode() == TorrentOpenOptions.STARTMODE_FORCESTARTED) {
 						dm.setForceStart(true);
 					}
 					
