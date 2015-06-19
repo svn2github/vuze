@@ -79,8 +79,7 @@ public interface TableRowCore extends TableRow
 	 */
 	public TableCellCore getTableCellCore(String field);
 
-	/** Retreive whether the row is visible to the user.  In SWT, when the table
-	 * is not VIRTUAL, all rows are "visible"
+	/** Retreive whether the row is visible to the user. 
 	 * 
 	 * @return visibility state
 	 */
