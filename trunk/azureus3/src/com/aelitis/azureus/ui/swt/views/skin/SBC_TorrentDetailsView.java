@@ -32,9 +32,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
@@ -628,7 +626,7 @@ public class SBC_TorrentDetailsView
 
 		protected GlobalManagerAdapter gmListener;
 
-		private MdiEntry entry;
+		private BaseMdiEntry entry;
 
 		public static void register(MultipleDocumentInterfaceSWT mdi) {
 			mdi.registerEntry(SideBar.SIDEBAR_SECTION_TORRENT_DETAILS + ".*",
@@ -654,7 +652,7 @@ public class SBC_TorrentDetailsView
 			if (ds == null) {
 				return null;
 			}
-			entry = mdi.createEntryFromSkinRef(SideBar.SIDEBAR_HEADER_TRANSFERS, id,
+			entry = (BaseMdiEntry) mdi.createEntryFromSkinRef(SideBar.SIDEBAR_HEADER_TRANSFERS, id,
 					"torrentdetails", "", null, ds, true, null);
 
 			entry.addListeners(this);
@@ -666,8 +664,8 @@ public class SBC_TorrentDetailsView
 							GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 							gmListener = new GlobalManagerAdapter() {
 								public void downloadManagerRemoved(DownloadManager dm) {
-									DownloadManager manager = DataSourceUtils.getDM(
-											entry.getDatasource());
+									Object ds = entry.getDatasourceCore();
+									DownloadManager manager = DataSourceUtils.getDM(ds);
 									if (dm.equals(manager)) {
 										Utils.execSWTThread(new AERunnable() {
 											public void runSupport() {
@@ -688,7 +686,7 @@ public class SBC_TorrentDetailsView
 
 		// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoProperty(int)
 		public Object getTitleInfoProperty(int propertyID) {
-			Object ds = ((BaseMdiEntry) entry).getDatasourceCore();
+			Object ds = entry.getDatasourceCore();
 			if (propertyID == TITLE_EXPORTABLE_DATASOURCE) {
 				return DataSourceUtils.getHash(ds);
 			} else if (propertyID == TITLE_LOGID) {
@@ -731,7 +729,7 @@ public class SBC_TorrentDetailsView
 
 		// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
 		public void updateUI() {
-			DownloadManager manager = DataSourceUtils.getDM(entry.getDatasource());
+			DownloadManager manager = DataSourceUtils.getDM(entry.getDatasourceCore());
 			int completed = manager == null ? -1
 					: manager.getStats().getPercentDoneExcludingDND();
 			if (lastCompleted != completed) {
@@ -757,7 +755,7 @@ public class SBC_TorrentDetailsView
 		}
 
 		public void mdiEntryDatasourceChanged(final MdiEntry entry) {
-			Object newDataSource = entry.getDatasource();
+			Object newDataSource = ((BaseMdiEntry) entry).getDatasourceCore();
 			if (newDataSource instanceof String) {
 				final String s = (String) newDataSource;
 				if (!AzureusCoreFactory.isCoreRunning()) {
@@ -777,7 +775,7 @@ public class SBC_TorrentDetailsView
 			// todo: This even work?
 			TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
 			menuTree.setData("TableView", tv);
-			DownloadManager manager = DataSourceUtils.getDM(entry.getDatasource());
+			DownloadManager manager = DataSourceUtils.getDM(((BaseMdiEntry) entry).getDatasourceCore());
 			if (manager != null) {
 				menuTree.setData("downloads", new DownloadManager[] {
 					manager
