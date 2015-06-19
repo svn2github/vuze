@@ -653,6 +653,21 @@ public class PrivacyView
 													}
 												});
 										}
+										
+									}else if ( methodName.equals( "msgUpdate" )){
+										
+										Utils.execSWTThread(
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													String	msg		= (String)params[0];
+												
+													i2p_result_summary.setText( msg );
+												}
+											});
+										
 									}else if ( methodName.equals( "peerFound")){
 																				
 										Utils.execSWTThread(

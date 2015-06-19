@@ -367,10 +367,7 @@ public class TrackerStatus {
 
 			boolean original_bSingleHashScrapes = bSingleHashScrapes;
 
-			boolean disable_all_scrapes = !COConfigurationManager
-					.getBooleanParameter("Tracker Client Scrape Enable");
-			boolean disable_stopped_scrapes = !COConfigurationManager
-					.getBooleanParameter("Tracker Client Scrape Stopped Enable");
+			boolean disable_all_scrapes = !COConfigurationManager.getBooleanParameter("Tracker Client Scrape Enable");
 			
 			byte[]	scrape_reply = null;
 			
@@ -379,7 +376,7 @@ public class TrackerStatus {
 				// params
 
 				HashWrapper one_of_the_hashes = null;
-				TRTrackerScraperResponseImpl one_of_the_responses = null;
+				//TRTrackerScraperResponseImpl one_of_the_responses = null;
 
 				char first_separator = scrapeURL.indexOf('?') == -1 ? '?' : '&';
 
@@ -410,9 +407,9 @@ public class TrackerStatus {
 
 						scraper.scrapeReceived(response);
 
-					} else if ( !force && ( 
-								disable_all_scrapes ||
-								(disable_stopped_scrapes && !scraper.isTorrentRunning(hash)))){
+					} else if ( (!force) && 
+									( 	disable_all_scrapes ||
+										!scraper.isTorrentScrapable(hash))){
 
 						response.setNextScrapeStartTime(SystemTime.getCurrentTime()
 								+ FAULTY_SCRAPE_RETRY_INTERVAL);
@@ -460,12 +457,16 @@ public class TrackerStatus {
 						
 						hashesInQuery.add( hash );
 						
-						one_of_the_responses = response;
+							//one_of_the_responses = response;
+						
 						one_of_the_hashes = hash;
 						
-						// 28 + 16 + 70*20 -> IPv4/udp packet size of 1444 , that should go through most lines unfragmented
-						if(hashesForUDP.size() < 70)
+							// 28 + 16 + 70*20 -> IPv4/udp packet size of 1444 , that should go through most lines unfragmented
+						
+						if ( hashesForUDP.size() < 70 ){
+							
 							hashesForUDP.add(hash);
+						}
 					}
 				} // for responses
 
@@ -734,7 +735,7 @@ public class TrackerStatus {
 											+ MessageText.getString(SSErr + "nohash"));
 							// notifiy listeners
 							scraper.scrapeReceived(response);
-						} else if (!disable_stopped_scrapes || scraper.isTorrentRunning(response.getHash())) {
+						} else if ( scraper.isTorrentScrapable(response.getHash())) {
 							// This tracker doesn't support multiple hash requests.
 							// revert status to what it was
 

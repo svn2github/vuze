@@ -176,6 +176,20 @@ public class GlobalManagerImpl
 				}
 			});
 	
+	private static boolean enable_stopped_scrapes;
+	
+	
+	static{
+		 COConfigurationManager.addAndFireParameterListener(
+			"Tracker Client Scrape Stopped Enable",
+			new ParameterListener(){
+				public void parameterChanged(String parameterName) {
+					enable_stopped_scrapes = COConfigurationManager.getBooleanParameter( parameterName );
+				}
+			});	 
+	}
+				
+
 	private volatile List<DownloadManager> 		managers_cow	= new ArrayList<DownloadManager>();
 	private AEMonitor							managers_mon	= new AEMonitor( "GM:Managers" );
 	
@@ -451,30 +465,53 @@ public class GlobalManagerImpl
     trackerScraper.setClientResolver(
     	new TRTrackerScraperClientResolver()
 		{
-    		public int
-			getStatus(
+    		public boolean
+			isScrapable(
 				HashWrapper	torrent_hash )
     		{
        			DownloadManager	dm = getDownloadManager(torrent_hash);
     			
     			if ( dm == null ){
 
-    				return( TRTrackerScraperClientResolver.ST_NOT_FOUND );
+    				return( false );
     			}
-    			    			
+    			    
+
     			int	dm_state = dm.getState();
     			
     			if ( 	dm_state == DownloadManager.STATE_QUEUED ){
     				
-    				return( TRTrackerScraperClientResolver.ST_QUEUED );
+    				return( true );
     				
     			}else if ( 	dm_state == DownloadManager.STATE_DOWNLOADING ||
     						dm_state == DownloadManager.STATE_SEEDING ){
     				
-    				return( TRTrackerScraperClientResolver.ST_RUNNING );
+    				return( true );
     			}
     			
-    			return( TRTrackerScraperClientResolver.ST_OTHER );
+    				// download is stopped
+    			
+    			if ( !enable_stopped_scrapes ){
+    				
+    				return( false );
+    			}
+    			
+    				// we don't want to scrape downloads that have never been started because the user
+    				// might be working out which networks to enable and it would be bad to go ahead
+    				// and start, say, a public scrape, when they're about to set the download as
+    				// anonymous only
+    			
+    			DownloadManagerStats stats = dm.getStats();
+    			
+    				// hack atm rather than recording 'has ever been started' state just look at data
+    				// might have been added for seeding etc so don't just use bytes downloaded
+    			
+    			if ( stats.getTotalDataBytesReceived() == 0 && stats.getPercentDoneExcludingDND() == 0 ){
+    				
+    				return( false );
+    			}
+    			
+    			return( true );
     		}
     		
     		public boolean

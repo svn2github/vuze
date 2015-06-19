@@ -231,7 +231,7 @@ TRTrackerScraperImpl
 	}
 	
 	public boolean
-	isTorrentDownloading(
+	isTorrentScrapable(
 		HashWrapper		hash )
 	{
 		if ( client_resolver == null ){
@@ -239,23 +239,7 @@ TRTrackerScraperImpl
 			return( false );
 		}
 		
-		int	state = client_resolver.getStatus( hash );
-		
-		return( state == TRTrackerScraperClientResolver.ST_RUNNING );
-	}
-	
-	public boolean
-	isTorrentRunning(
-		HashWrapper		hash )
-	{
-		if ( client_resolver == null ){
-			
-			return( false );
-		}
-		
-		int	state = client_resolver.getStatus( hash );
-		
-		return( state == TRTrackerScraperClientResolver.ST_RUNNING || state == TRTrackerScraperClientResolver.ST_QUEUED );
+		return( client_resolver.isScrapable( hash ));
 	}
 	
 	public boolean

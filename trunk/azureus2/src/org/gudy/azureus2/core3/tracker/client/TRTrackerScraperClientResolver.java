@@ -31,11 +31,6 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 public interface 
 TRTrackerScraperClientResolver 
 {
-	public static final int	ST_NOT_FOUND		= 1;
-	public static final int	ST_RUNNING			= 2;	// downloading, seeding 
-	public static final int	ST_QUEUED			= 3;	
-	public static final int	ST_OTHER			= 4;
-
 	public static final Character FL_NONE					= new Character( 'n' );
 	public static final Character FL_INCOMPLETE_STOPPED		= new Character( 's' );
 	public static final Character FL_INCOMPLETE_QUEUED		= new Character( 'q' );
@@ -43,15 +38,9 @@ TRTrackerScraperClientResolver
 	public static final Character FL_COMPLETE_STOPPED		= new Character( 'S' );
 	public static final Character FL_COMPLETE_QUEUED		= new Character( 'Q' );
 	public static final Character FL_COMPLETE_RUNNING		= new Character( 'R' );
-	
-		/**
-		 * Gives access to a restricted set of states for this torrent from ST_ set
-		 * @param torrent_hash
-		 * @return
-		 */
-	
-	public int
-	getStatus(
+		
+	public boolean
+	isScrapable(
 		HashWrapper	torrent_hash );
 	
 		/**
