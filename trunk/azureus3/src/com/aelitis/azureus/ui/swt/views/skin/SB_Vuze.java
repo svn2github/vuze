@@ -20,12 +20,11 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.ArrayList;
 
-import org.eclipse.swt.SWT;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
@@ -195,7 +194,7 @@ public class SB_Vuze
 						s += "\n";
 					}
 				}
-				new MessageBoxShell(SWT.OK, "test", s).open(null);
+				UIFunctionsManager.getUIFunctions().promptUser("test", s, null, 0, null, null, false, 0, null);
 				return true;
 			}
 		});
