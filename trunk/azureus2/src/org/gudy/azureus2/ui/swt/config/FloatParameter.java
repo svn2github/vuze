@@ -55,7 +55,7 @@ public class FloatParameter {
   public void initialize(Composite composite, final String name) {
     sParamName = name;
 
-    inputField = new Text(composite, SWT.BORDER);
+    inputField = new Text(composite, SWT.BORDER | SWT.RIGHT);
     float value = COConfigurationManager.getFloatParameter(name);
     inputField.setText(String.valueOf(value));
     inputField.addListener(SWT.Verify, new Listener() {
