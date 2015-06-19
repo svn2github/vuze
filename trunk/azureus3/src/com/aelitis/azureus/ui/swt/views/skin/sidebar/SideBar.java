@@ -1419,10 +1419,10 @@ public class SideBar
 			}
 		}
 
-		if (currentEntry == null || tree.getSelectionCount() == 0) {
+		if (tree.getSelectionCount() == 0) {
 			return;
 		}
-		currentEntry.updateUI();
+		super.updateUI();
 	}
 
 	protected boolean wasEntryLoadedOnce(String id) {
