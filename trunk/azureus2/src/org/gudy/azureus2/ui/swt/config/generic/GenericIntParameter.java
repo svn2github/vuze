@@ -109,7 +109,7 @@ public class GenericIntParameter
 
 		int value = adapter.getIntValue(name, iDefaultValue);
 
-		spinner = new Spinner(composite, SWT.BORDER);
+		spinner = new Spinner(composite, SWT.BORDER | SWT.RIGHT);
 		setMinimumValue(iMinValue);
 		setMaximumValue(iMaxValue);
 		spinner.setSelection(value);
