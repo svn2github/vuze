@@ -60,6 +60,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -73,6 +74,8 @@ import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.plugins.I2PHelpers;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 
 
@@ -101,6 +104,8 @@ public class PrivacyView
 	private Composite	i2p_lookup_comp;
 	private Button 		i2p_install_button;
 	private Button 		i2p_lookup_button;
+	private Label 		i2p_options_link;
+	
 	private Label 		i2p_result_summary;
 	private Text		i2p_result_list;
 
@@ -291,13 +296,28 @@ public class PrivacyView
 		
 		GridData gd; 
 		
+			// overview
+		
+		Composite overview_comp = new Composite( cMainComposite, SWT.NULL );
+		overview_comp.setLayout(  new GridLayout(3, false ));
+		
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		overview_comp.setLayoutData( gd);
+
+		Label label = new Label( overview_comp, SWT.NULL );
+		label.setText( "The privacy view summarises download privacy information/settings and allows them to be adjusted." );
+		
+		LinkLabel link = new LinkLabel( overview_comp, "label.read.more", MessageText.getString( "privacy.view.wiki.url" ));	
+
+			// slider component
+		
 		Composite slider_comp = new Composite( cMainComposite, SWT.NULL );
 		slider_comp.setLayout( new GridLayout(3, false ));
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		slider_comp.setLayoutData( gd);
 
-		Label label = new Label( slider_comp, SWT.NULL );
+		label = new Label( slider_comp, SWT.NULL );
 		label.setText( "Privacy Level:" );
 		
 		Composite slider2_comp = new Composite( slider_comp, SWT.NULL );
@@ -723,6 +743,34 @@ public class PrivacyView
 				}
 			});
 		
+		i2p_options_link = new Label( i2p_button_comp, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		gd.horizontalSpan = 2;
+		i2p_options_link.setLayoutData( gd );
+		i2p_options_link.setText( "Check Bandwidth Settings...");
+
+		i2p_options_link.setCursor(i2p_options_link.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+		i2p_options_link.setForeground(Colors.blue);
+		i2p_options_link.addMouseListener(new MouseAdapter() {
+			public void mouseDoubleClick(MouseEvent arg0) {
+				openOptions();
+			}
+			public void mouseUp(MouseEvent arg0) {
+				openOptions();
+			}
+
+			private void
+			openOptions()
+			{
+				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+				if ( uif != null ){
+
+					uif.openView( UIFunctions.VIEW_CONFIG, "azi2phelper.name" );
+				}
+			}
+		});	
+
 		updateI2PState();
 		
 		Utils.makeButtonsEqualWidth( Arrays.asList( new Button[]{ i2p_install_button, i2p_lookup_button }));
@@ -1510,6 +1558,8 @@ public class PrivacyView
 				i2p_install_button.setEnabled( !i2p_installed );
 				
 				i2p_lookup_button.setEnabled( i2p_installed && i2p_lookup_button.getData( "hash" ) != null );
+				
+				i2p_options_link.setEnabled( i2p_installed );
 			}
 		});
 	}
