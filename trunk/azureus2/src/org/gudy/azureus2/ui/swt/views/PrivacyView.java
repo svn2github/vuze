@@ -27,7 +27,6 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -107,8 +106,8 @@ public class PrivacyView
 	private Button 		i2p_lookup_button;
 	private Label 		i2p_options_link;
 	
-	private Label 		i2p_result_summary;
-	private Text		i2p_result_list;
+	private BufferedLabel 	i2p_result_summary;
+	private Text			i2p_result_list;
 
 	private Button[]	network_buttons;
 	private Button[]	source_buttons;
@@ -117,9 +116,9 @@ public class PrivacyView
 	
 	private BufferedLabel	peer_info;
 	
-	private Label			torrent_info;
-	private Label			tracker_info;
-	private Label			webseed_info;
+	private BufferedLabel	torrent_info;
+	private BufferedLabel	tracker_info;
+	private BufferedLabel	webseed_info;
 	
 	private BufferedLabel	vpn_info;
 	
@@ -469,7 +468,7 @@ public class PrivacyView
 		label = new Label( tracker_comp, SWT.NULL );
 		label.setText( "Trackers:" );
 		
-		tracker_info = new Label( tracker_comp, SWT.NULL );
+		tracker_info = new BufferedLabel(tracker_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		tracker_info.setLayoutData( gd );
 	
@@ -485,7 +484,7 @@ public class PrivacyView
 		label = new Label( webseed_comp, SWT.NULL );
 		label.setText( "Web Seeds:" );
 		
-		webseed_info = new Label( webseed_comp, SWT.NULL );
+		webseed_info = new BufferedLabel(webseed_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		webseed_info.setLayoutData( gd );
 
@@ -583,7 +582,7 @@ public class PrivacyView
 		label = new Label( i2p_results_comp, SWT.NULL );
 		label.setText( "Lookup Status:" );
 
-		i2p_result_summary = new Label( i2p_results_comp, SWT.NULL );
+		i2p_result_summary = new BufferedLabel(i2p_results_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		gd.horizontalIndent = 4;
 		i2p_result_summary.setLayoutData( gd );
@@ -807,7 +806,7 @@ public class PrivacyView
 		torrent_comp.setLayoutData( gd );
 		torrent_comp.setLayout( removeMarginsAndSpacing( new GridLayout( 2, false )));
 			
-		torrent_info = new Label( torrent_comp, SWT.NULL );
+		torrent_info = new BufferedLabel(torrent_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		torrent_info.setLayoutData( gd );
 		
