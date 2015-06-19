@@ -94,18 +94,7 @@ public class MainMDISetup
 			setupSidebarVuzeUI(mdi);
 		}
 
-		mdi.registerEntry(SideBar.SIDEBAR_SECTION_TORRENT_DETAILS + ".*",
-				new MdiEntryCreationListener2() {
-					public MdiEntry createMDiEntry(MultipleDocumentInterface mdi,
-							String id, Object datasource, Map<?, ?> params) {
-						String hash = DataSourceUtils.getHash(datasource);
-						if (hash != null) {
-							id = MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS 
-									+ "_" + hash;
-						}
-						return createTorrentDetailEntry(mdi, id, datasource);
-					}
-				});
+		SBC_TorrentDetailsView.TorrentDetailMdiEntry.register(mdi);
 
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 
@@ -211,10 +200,10 @@ public class MainMDISetup
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
 						MdiEntry entry = mdi.createEntryFromSkinRef(
-								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
-								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS, "tagsview",
-								"{mdi.entry.tagsoverview}", null, null, true, null);
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id,
+								"tagsview", "{mdi.entry.tagsoverview}", null, null, true, null);
 						entry.setImageLeftID("image.sidebar.tag-overview");
+						entry.setDefaultExpanded(true);
 						return entry;
 					}
 				});
@@ -222,9 +211,9 @@ public class MainMDISetup
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
 						MdiEntry entry = mdi.createEntryFromSkinRef(
-								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
-								MultipleDocumentInterface.SIDEBAR_SECTION_TAG_DISCOVERY, "tagdiscoveryview",
-								"{mdi.entry.tagdiscovery}", null, null, true, null);
+								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS, id,
+								"tagdiscoveryview", "{mdi.entry.tagdiscovery}", null, null,
+								true, null);
 						entry.setImageLeftID("image.sidebar.tag-overview");
 						return entry;
 					}
@@ -749,106 +738,5 @@ public class MainMDISetup
 				false);
 		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_DEVICES, false);
 		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES, false);
-	}
-
-	protected static MdiEntry createTorrentDetailEntry(
-			MultipleDocumentInterface mdi, String id, Object ds) {
-		if (ds == null) {
-			return null;
-		}
-		final MdiEntry torrentDetailEntry = mdi.createEntryFromSkinRef(
-				SideBar.SIDEBAR_HEADER_TRANSFERS, id, "torrentdetails", "", null, ds,
-				true, null);
-
-		final ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
-
-			public Object getTitleInfoProperty(int propertyID) {
-				Object ds = ((BaseMdiEntry) torrentDetailEntry).getDatasourceCore();
-				if (propertyID == TITLE_EXPORTABLE_DATASOURCE) {
-					return DataSourceUtils.getHash(ds);
-				} else if (propertyID == TITLE_LOGID) {
-					return "DMDetails";
-				} else if (propertyID == TITLE_IMAGEID) {
-					return "image.sidebar.details";
-				}
-
-				DownloadManager manager = DataSourceUtils.getDM(ds);
-				if (manager == null) {
-					return null;
-				}
-
-				if (propertyID == TITLE_TEXT) {
-					if (Utils.isAZ2UI()) {
-						int completed = manager.getStats().getPercentDoneExcludingDND();
-						return DisplayFormatters.formatPercentFromThousands(completed)
-								+ " : " + manager.getDisplayName();
-					}
-
-					return manager.getDisplayName();
-				}
-
-				if (propertyID == TITLE_INDICATOR_TEXT && !Utils.isAZ2UI()) {
-					int completed = manager.getStats().getPercentDoneExcludingDND();
-					if (completed != 1000) {
-						return (completed / 10) + "%";
-					}
-				} else if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
-					String s = "";
-					int completed = manager.getStats().getPercentDoneExcludingDND();
-					if (completed != 1000) {
-						s = (completed / 10) + "% Complete\n";
-					}
-					String eta = DisplayFormatters.formatETA(manager.getStats().getSmoothedETA());
-					if (eta.length() > 0) {
-						s += MessageText.getString("TableColumn.header.eta") + ": " + eta
-								+ "\n";
-					}
-
-					return manager.getDisplayName() + ( s.length()==0?"":( ": " + s));
-				}
-				return null;
-			}
-		};
-
-		if (torrentDetailEntry instanceof MdiEntrySWT) {
-			((MdiEntrySWT) torrentDetailEntry).addListener(new MdiSWTMenuHackListener() {
-				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
-					// todo: This even work?
-					TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
-					menuTree.setData("TableView", tv);
-					DownloadManager manager = DataSourceUtils.getDM(torrentDetailEntry.getDatasource());
-					if (manager != null) {
-						menuTree.setData("downloads", new DownloadManager[] {
-							manager
-						});
-					}
-					menuTree.setData("is_detailed_view", new Boolean(true));
-
-					MenuFactory.buildTorrentMenu(menuTree);
-				}
-			});
-		}
-
-		torrentDetailEntry.addListener(new MdiEntryDatasourceListener() {
-			public void mdiEntryDatasourceChanged(MdiEntry entry) {
-				Object newDataSource = entry.getDatasource();
-				if (newDataSource instanceof String) {
-					final String s = (String) newDataSource;
-					if (!AzureusCoreFactory.isCoreRunning()) {
-						AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-							public void azureusCoreRunning(AzureusCore core) {
-								torrentDetailEntry.setDatasource(DataSourceUtils.getDM(s));
-							}
-						});
-						return;
-					}
-				}
-
-				ViewTitleInfoManager.refreshTitleInfo(viewTitleInfo);
-			}
-		});
-		torrentDetailEntry.setViewTitleInfo(viewTitleInfo);
-
-		return torrentDetailEntry;
 	}
 }
