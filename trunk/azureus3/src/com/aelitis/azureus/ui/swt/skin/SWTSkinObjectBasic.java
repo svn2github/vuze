@@ -522,8 +522,7 @@ public class SWTSkinObjectBasic
 						}
 						if (changed) {
   						control.setLayoutData(fd);
-  						control.getParent().layout(true);
-  						Utils.relayout(control);
+  						control.getParent().layout(true, true);
 						}
 					} else if (ld == null && !visible) {
 						FormData fd = new FormData();
