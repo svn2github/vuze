@@ -654,6 +654,11 @@ public class PrivacyView
 													public void
 													run()
 													{
+														if ( i2p_lookup_button.isDisposed()){
+															
+															return;
+														}
+														
 														i2p_lookup_button.setEnabled( true );
 														
 														if ( i2p_result_list.getText().length() == 0 ){
@@ -672,6 +677,11 @@ public class PrivacyView
 													public void
 													run()
 													{
+														if ( i2p_result_summary.isDisposed()){
+															
+															return;
+														}
+														
 														int	seeds		= (Integer)params[1];
 														int	leechers	= (Integer)params[2];
 														int	peers		= (Integer)params[3];
@@ -689,6 +699,11 @@ public class PrivacyView
 												public void
 												run()
 												{
+													if ( i2p_result_summary.isDisposed()){
+														
+														return;
+													}
+													
 													String	msg		= (String)params[0];
 												
 													i2p_result_summary.setText( msg );
@@ -703,6 +718,11 @@ public class PrivacyView
 												public void
 												run()
 												{
+													if ( i2p_result_list.isDisposed()){
+														
+														return;
+													}
+													
 													String 	host		= (String)params[0];
 													int		peer_type 	= (Integer)params[1];
 
