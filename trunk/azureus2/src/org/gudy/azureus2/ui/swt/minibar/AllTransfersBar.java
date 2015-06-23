@@ -26,9 +26,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author Allan Crooks
@@ -93,6 +94,7 @@ public class AllTransfersBar extends MiniBar {
 	private DoubleBufferedLabel down_speed;
 	private DoubleBufferedLabel up_speed;
 	private DoubleBufferedLabel next_eta;
+	private Label				icon_label;
 	
 	private AllTransfersBar(GlobalManager gmanager, Shell main) {
 		super(manager);
@@ -150,6 +152,19 @@ public class AllTransfersBar extends MiniBar {
 		
 		this.createFixedTextLabel("TableColumn.header.eta_next", true, false);
 		this.next_eta = this.createDataLabel(65);
+		
+		icon_label = createFixedLabel(16);
+	}
+	
+	public void
+	setIconImage(
+		Image		image )
+	{
+		if ( image != icon_label.getImage()){
+			icon_label.setImage( image );
+			icon_label.pack();
+			icon_label.redraw();
+		}
 	}
 	
 	public void buildMenu(Menu menu, MenuEvent menuEvent) {

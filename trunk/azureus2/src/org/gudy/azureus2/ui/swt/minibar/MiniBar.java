@@ -141,6 +141,25 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    return( result );
 	}
 	
+	protected final Label createFixedLabel(int width) {
+		assertConstructing();
+	    Label result = new Label(splash, SWT.NONE);
+	    result.setBackground(Colors.white);
+	    result.setSize(width, SWT.DEFAULT );
+	    result.setLocation(this.xSize, 0);
+	    result.addMouseListener(this.mListener);
+	    result.addMouseMoveListener(this.mMoveListener);
+	    result.setMenu(this.menu);
+	    if (this.hSize == -1) {
+	        int hSizeText = result.getSize().y;
+	        int hSizeImage = this.lDrag.getSize().y;
+	        this.hSize = hSizeText > hSizeImage ? hSizeText : hSizeImage;
+	    }
+	    this.xSize += width;
+	    
+	    return( result );
+	}
+	
 	protected final DoubleBufferedLabel createDataLabel(int width, boolean centered) {
 		width = (int)(width * width_multiplier );
 		assertConstructing();

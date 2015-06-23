@@ -73,6 +73,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
@@ -81,6 +82,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
@@ -615,7 +617,7 @@ BuddyPluginView
 					bs_chat_gray_text 	= imageLoader.getImage( "dchat_gray_text" );
 					bs_chat_green 		= imageLoader.getImage( "dchat_green" );
 					
-					beta_status.setImage( bs_chat_gray );
+					setBetaStatus( bs_chat_gray );
 					
 					mi_chat.setGraphic( ui_instance.createGraphic( bs_chat_gray ));
 				}
@@ -978,7 +980,7 @@ BuddyPluginView
 			
 			buildMenu( instances );
 			
-			beta_status.setImage( bs_chat_gray );
+			setBetaStatus( bs_chat_gray );
 		}
 	}
 	
@@ -1143,7 +1145,7 @@ BuddyPluginView
 											
 											updateIdleTT();
 											
-											beta_status.setImage( bs_chat_gray );
+											setBetaStatus( bs_chat_gray );
 											
 										}else{
 											
@@ -1165,7 +1167,7 @@ BuddyPluginView
 											
 											beta_status.setTooltipText( tt_text );
 										
-											beta_status.setImage( tick_count%2==0?bs_chat_gray_text:bs_chat_green);
+											setBetaStatus( tick_count%2==0?bs_chat_gray_text:bs_chat_green);
 										}
 										
 										prev_instances = current_instances;
@@ -1189,6 +1191,28 @@ BuddyPluginView
 					}
 				}
 			}
+		}
+	}
+	
+	private void
+	setBetaStatus(
+		final Image		image )
+	{
+		beta_status.setImage( image );	
+		
+		final AllTransfersBar bar = AllTransfersBar.getBarIfOpen(AzureusCoreFactory.getSingleton().getGlobalManager());
+		
+		if ( bar != null ){
+			
+			Utils.execSWTThread(
+				new Runnable() 
+				{	
+					public void 
+					run() 
+					{
+						bar.setIconImage( image==bs_chat_gray?null:image );
+					}
+				});
 		}
 	}
 	
