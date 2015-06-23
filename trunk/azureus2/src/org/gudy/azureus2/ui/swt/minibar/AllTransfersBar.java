@@ -45,7 +45,6 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author Allan Crooks
@@ -153,14 +152,21 @@ public class AllTransfersBar extends MiniBar {
 		this.createFixedTextLabel("TableColumn.header.eta_next", true, false);
 		this.next_eta = this.createDataLabel(65);
 		
-		icon_label = createFixedLabel(16);
+			// options icon area
+		
+		if ( COConfigurationManager.getBooleanParameter( "Transfer Bar Show Icon Area" )){
+		
+			icon_label = createFixedLabel(16);
+		}
 	}
 	
 	public void
 	setIconImage(
 		Image		image )
 	{
-		if ( image != icon_label.getImage()){
+		if ( 	icon_label != null && 
+				image != icon_label.getImage()){
+			
 			icon_label.setImage( image );
 			icon_label.pack();
 			icon_label.redraw();

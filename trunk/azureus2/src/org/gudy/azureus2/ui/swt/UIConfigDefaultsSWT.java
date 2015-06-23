@@ -75,6 +75,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("window.rectangle", "");
 		def.addParameter("Start Minimized", false);
 		def.addParameter("Open Transfer Bar On Start", false);
+		def.addParameter("Transfer Bar Show Icon Area", true );
 		
         def.addParameter("Stats Graph Dividers", false);
 		

@@ -129,7 +129,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		new BooleanParameter(cDisplay, "Remember transfer bar location", LBLKEY_PREFIX + "transferbar.remember_location");
 
 		Composite gBarTrans = new Composite(cDisplay, SWT.NULL);
-		layout = new GridLayout(2, false);
+		layout = new GridLayout(4, false);
 		layout.marginWidth = 0;
 		layout.marginHeight = 0;
 		gBarTrans.setLayout(layout);
@@ -142,6 +142,14 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 
 		new IntParameter(gBarTrans, "Bar Transparency", 0, 100 );
 
+		label = new Label(gBarTrans, SWT.NULL);
+		Messages.setLanguageText(label, "label.show.icon.area");
+
+		new BooleanParameter(gBarTrans, "Transfer Bar Show Icon Area" );
+		
+		
+		
+		
 		Group gSysTray = new Group(cDisplay, SWT.NULL);
 		Messages.setLanguageText(gSysTray, LBLKEY_PREFIX + "systray");
 		layout = new GridLayout();

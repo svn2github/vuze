@@ -519,6 +519,12 @@ public class PrivacyView
 
 		i2p_group.setLayout( new GridLayout(3, false ));
 
+		label = new Label( i2p_group, SWT.NULL );
+		label.setText( "Lookup I2P peers to see if the download may be available for anonymous download." );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		gd.horizontalSpan = 3;
+		label.setLayoutData( gd );
+		
 		Composite i2p_button_comp = new Composite( i2p_group, SWT.NULL );
 		i2p_button_comp.setLayout( new GridLayout(2, false ));
 
