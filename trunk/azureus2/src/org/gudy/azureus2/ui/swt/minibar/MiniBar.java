@@ -346,6 +346,11 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	        	splash.setAlpha( old_alpha );
 	        }
 	      }
+	      
+	      @Override
+	      public void mouseDoubleClick(MouseEvent e) {
+	    	 doubleClick();
+	      }
 
 	    };
 	    this.mMoveListener = new MouseMoveListener() {
@@ -607,6 +612,11 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	
 	protected Point getInitialLocation() {
 		return null;
+	}
+	
+	protected void
+	doubleClick()
+	{	
 	}
 	
 	protected void storeLastLocation(Point point) {

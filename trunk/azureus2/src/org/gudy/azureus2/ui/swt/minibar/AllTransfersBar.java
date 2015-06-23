@@ -45,6 +45,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * @author Allan Crooks
@@ -171,6 +173,16 @@ public class AllTransfersBar extends MiniBar {
 			icon_label.pack();
 			icon_label.redraw();
 		}
+	}
+	
+	@Override
+	protected void
+	doubleClick()
+	{
+		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (functionsSWT != null) {
+			functionsSWT.bringToFront();
+		}	
 	}
 	
 	public void buildMenu(Menu menu, MenuEvent menuEvent) {
