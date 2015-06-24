@@ -1366,6 +1366,21 @@ public class MainWindowImpl
 						+ ";" + (SystemTime.getCurrentTime() - Initializer.startTime)
 						+ "ms");
 				
+					// attempt to fix occasional missing status bar on show (running async seems to fix issue for me)
+				
+				if ( statusBar != null ){
+					Utils.execSWTThreadLater(
+						10,
+						new Runnable()
+						{
+							public void 
+							run()
+							{
+								statusBar.relayout();
+							}
+						});
+				}
+				
 					// bring back and stand-alone shells 
 				
 				ShellManager.sharedManager().performForShells(

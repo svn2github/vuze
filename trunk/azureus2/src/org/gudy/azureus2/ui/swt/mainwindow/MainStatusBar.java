@@ -82,7 +82,8 @@ public class MainStatusBar
 
 	private UpdateWindow updateWindow;
 
-	private Composite statusBar;
+	private Composite	parent;
+	private Composite 	statusBar;
 
 	private CLabel statusText;
 
@@ -207,7 +208,8 @@ public class MainStatusBar
 	 * 
 	 * @return composite holding the statusbar
 	 */
-	public Composite initStatusBar(final Composite parent) {
+	public Composite initStatusBar(final Composite _parent) {
+		this.parent = _parent;
 		this.display = parent.getDisplay();
 		this.uiFunctions = UIFunctionsManager.getUIFunctions();
 		ImageLoader imageLoader = ImageLoader.getInstance();
@@ -876,6 +878,12 @@ public class MainStatusBar
 		});
 	}
 
+	public void
+	relayout()
+	{
+		parent.layout( true, true );
+	}
+	
 	private void addFeedBack() {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {

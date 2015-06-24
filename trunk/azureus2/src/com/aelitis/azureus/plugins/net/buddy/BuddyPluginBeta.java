@@ -3677,13 +3677,25 @@ BuddyPluginBeta
 					
 					if ( msg.getFlagFlashOverride()){
 					
-						last_message_requiring_attention = msg;
+						if ( getHideRatings() && msg.getFlagOrigin() == FLAGS_MSG_ORIGIN_RATINGS ){
+
+						}else{
+							
+							last_message_requiring_attention = msg;
+						}
 					}
 				}else{
 					
 					if ( !msg.isIgnored()){
 					
-						last_message_requiring_attention = msg;
+						if ( getHideRatings() && msg.getFlagOrigin() == FLAGS_MSG_ORIGIN_RATINGS ){
+						
+							// don't mark as requiring attention else icon will end up flashing with no visible message
+							
+						}else{
+						
+							last_message_requiring_attention = msg;
+						}
 					}
 					
 					messages_not_mine_count++;
