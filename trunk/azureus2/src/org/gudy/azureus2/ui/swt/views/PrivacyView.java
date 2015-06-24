@@ -649,7 +649,7 @@ public class PrivacyView
 								{
 									if ( methodName.equals( "statusUpdate" )){
 										
-										int status = (Integer)params[0];
+										final int status = (Integer)params[0];
 										
 										if ( 	status != TrackerPeerSource.ST_INITIALISING &&
 												status != TrackerPeerSource.ST_UPDATING ){
@@ -667,7 +667,8 @@ public class PrivacyView
 														
 														i2p_lookup_button.setEnabled( true );
 														
-														if ( i2p_result_list.getText().length() == 0 ){
+														if ( 	i2p_result_list.getText().length() == 0 &&
+																status != TrackerPeerSource.ST_UNAVAILABLE){
 															
 															i2p_result_summary.setText( "No peers found" );
 														}
