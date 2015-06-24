@@ -2999,15 +2999,20 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 					String	ip = peer.getIp();
 					boolean wasIPv6;
-					try
-					{
-						
-						wasIPv6 = AddressUtils.getByName(ip) instanceof Inet6Address;
-					} catch (UnknownHostException e)
-					{
-						wasIPv6 = false;
-						// something is fishy about the old address, don't try to reconnect with v6
-						canTryIpv6 = false;
+					if ( peer.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
+						try
+						{
+							
+							wasIPv6 = AddressUtils.getByName(ip) instanceof Inet6Address;
+						} catch (UnknownHostException e)
+						{
+							wasIPv6 = false;
+							// something is fishy about the old address, don't try to reconnect with v6
+							canTryIpv6 = false;
+						}
+					}else{
+						wasIPv6 	= false;
+						canTryIpv6 	= false;
 					}
 					
 					//System.out.println("netfail="+network_failed+", connfail="+connect_failed+", can6="+canTryIpv6+", was6="+wasIPv6);

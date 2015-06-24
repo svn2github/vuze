@@ -254,6 +254,9 @@ PEPeerTransport
 	 */
 	public boolean isSafeForReconnect();
 	
+	public String
+	getNetwork();
+	
 	public void
 	generateEvidence(
 		IndentWriter	writer );

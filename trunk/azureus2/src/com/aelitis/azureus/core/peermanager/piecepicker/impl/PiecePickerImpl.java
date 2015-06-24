@@ -1016,7 +1016,8 @@ implements PiecePicker
 							maxRequests =2;
 						}
 					}else{
-						maxRequests =1;
+						
+						maxRequests = pt.getNetwork()==AENetworkClassifier.AT_PUBLIC?1:2;
 					}
 				}
 

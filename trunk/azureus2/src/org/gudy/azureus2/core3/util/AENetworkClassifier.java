@@ -54,28 +54,53 @@ AENetworkClassifier
 	public static String
 	categoriseAddress(
 		String	str )
-	{
+	{		
 		if ( str == null ){
 			
 			return( AT_PUBLIC );	// woreva
 		}
+				
+		int len = str.length();
 		
-		int	last_dot = str.lastIndexOf('.');
-		
-		if ( last_dot == -1 ){
+		if ( len < 7 ){
 			
-			return( AT_PUBLIC );	// no idea really, treat as normal
+			return( AT_PUBLIC );
 		}
 		
-		String	dom = str.substring(last_dot+1).toLowerCase(Locale.US);
+		char[] chars = str.toCharArray();
 		
-		if ( dom.equals( "i2p" )){
+		char last_char = chars[len-1];
+		
+		if ( last_char >= '0' && last_char <= '9' ){
 			
-			return( AT_I2P );
+			return( AT_PUBLIC );
 			
-		}else if ( dom.equals( "onion" )){
+		}else if ( last_char == 'p' || last_char == 'P' ){
 			
-			return( AT_TOR );
+			if ( 	chars[len-2] == '2' &&
+					chars[len-4] == '.' ){
+				
+				char c = chars[len-3];
+				
+				if ( c == 'i' || c == 'I' ){
+					
+					return( AT_I2P );
+				}
+			}
+			
+			return( AT_PUBLIC );
+			
+		}else if ( last_char == 'n' || last_char == 'N') {
+			
+			if ( chars[len-6] == '.' ){
+				
+				String temp = new String( chars, len-5, 4 ).toLowerCase( Locale.US );
+				
+				if ( temp.equals( "onio" )){
+					
+					return( AT_TOR );
+				}
+			}
 		}
 		
 		return( AT_PUBLIC );
@@ -235,5 +260,25 @@ AENetworkClassifier
 		AENetworkClassifierListener	l )
 	{
 		listeners.remove(l);
+	}
+	
+	public static void
+	main(
+		String[]		args )
+	{
+		String[] tests = {
+			null,
+			"12345",
+			"192.168.1.2",
+			"fred.i2p",
+			"fred.i2",
+			"bill.onion",
+			"bill.onio"
+		};
+		
+		for ( String str: tests ){
+			
+			System.out.println( str + " -> " + categoriseAddress( str ));
+		}
 	}
 }

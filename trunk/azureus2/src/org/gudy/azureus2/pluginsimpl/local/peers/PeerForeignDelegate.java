@@ -669,6 +669,12 @@ PeerForeignDelegate
 		return( true );
 	}
 	
+	public String
+	getNetwork()
+	{
+		return( AENetworkClassifier.categoriseAddress( getIp()));
+	}
+	
 	public PEPeerStats 
 	getStats()
 	{

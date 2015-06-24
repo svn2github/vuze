@@ -85,6 +85,7 @@ implements PEPeerTransport
 	private final String			peer_source;
 	private byte[] peer_id;
 	private final String ip;
+	private final String network;
 	protected String ip_resolved;
 	private IPToHostNameResolverRequest	ip_resolver_request;
 
@@ -409,6 +410,9 @@ implements PEPeerTransport
 		InetSocketAddress notional_address = _connection.getEndpoint().getNotionalAddress();
 
 		ip    = AddressUtils.getHostAddress( notional_address );
+		
+		network	= AENetworkClassifier.categoriseAddress( ip );
+		
 		port  = notional_address.getPort();
 		
 		peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, 0, PeerItemFactory.CRYPTO_LEVEL_1, 0 );  //this will be recreated upon az handshake decode
@@ -531,6 +535,8 @@ implements PEPeerTransport
 		crypto_level	= _crypto_level;
 		data			= _initial_user_data;
 				
+		network	= AENetworkClassifier.categoriseAddress( ip );
+
 		if ( data != null ){
 			
 			Boolean pc = (Boolean)data.get( Peer.PR_PRIORITY_CONNECTION );
@@ -5255,7 +5261,12 @@ implements PEPeerTransport
 		return( protocols[0].getType() != ProtocolEndpoint.PROTOCOL_UDP );
 	}
 
-
+	public String
+	getNetwork()
+	{
+		return( network );
+	}
+	
 	public void 
 	setUploadRateLimitBytesPerSecond( 
 		int 	bytes )

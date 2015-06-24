@@ -84,7 +84,9 @@ ExternalSeedReaderImpl
 	private ExternalSeedPlugin	plugin;
 	private Torrent				torrent;
 	
-	private String			host;
+	private final String	host;
+	private final String	host_net;
+	
 	private String			ip_use_accessor;
 	
 	private String			status;
@@ -141,6 +143,8 @@ ExternalSeedReaderImpl
 		plugin	= _plugin;
 		torrent	= _torrent;
 		host	= _host;
+		
+		host_net = AENetworkClassifier.categoriseAddress( host );
 		
 		fast_activate 		= getBooleanParam( _params, "fast_start", false );
 		min_availability 	= getIntParam( _params, "min_avail", 1 );	// default is avail based
@@ -344,7 +348,7 @@ ExternalSeedReaderImpl
 				return( false );
 			}
 			
-			if ( !PluginCoreUtils.unwrap( download ).getDownloadState().isNetworkEnabled( AENetworkClassifier.categoriseAddress( host ))){
+			if ( !PluginCoreUtils.unwrap( download ).getDownloadState().isNetworkEnabled( host_net )){
 				
 				return( false );
 			}
