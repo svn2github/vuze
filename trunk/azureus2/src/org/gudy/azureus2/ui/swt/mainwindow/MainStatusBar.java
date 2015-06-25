@@ -1608,13 +1608,21 @@ public class MainStatusBar
 				{
 					@Override
 					public void mouseEnter(MouseEvent e) {
-						CLabelPadding.super.setToolTipText( tooltip_text );
+						//CLabelPadding.super.setToolTipText( tooltip_text );
 						hovering = true;
 					}
 					
 					@Override
 					public void mouseExit(MouseEvent e) {
+						//CLabelPadding.super.setToolTipText( "" );
 						hovering = false;
+					}
+					@Override
+					public void mouseHover(MouseEvent e) {
+						String existing = CLabelPadding.super.getToolTipText();
+						if ( existing == null || !existing.equals( tooltip_text )){
+							CLabelPadding.super.setToolTipText( tooltip_text );
+						}
 					}
 				});
 		}
