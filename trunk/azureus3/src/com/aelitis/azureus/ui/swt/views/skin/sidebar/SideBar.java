@@ -184,6 +184,13 @@ public class SideBar
 					event.keyCode = 0;
 					event.character = '\0';
 					flipSideBarVisibility();
+				}else if (event.keyCode == SWT.F4 && event.stateMask == SWT.CTRL ){
+					MdiEntry entry = getCurrentEntry();
+					
+					if ( entry instanceof SideBarEntrySWT && entry.isCloseable()){
+					
+						((SideBarEntrySWT)entry).getTreeItem().dispose();
+					}
 				}
 			}
 		});
