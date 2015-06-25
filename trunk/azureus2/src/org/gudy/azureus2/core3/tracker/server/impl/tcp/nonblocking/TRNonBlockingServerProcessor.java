@@ -244,7 +244,13 @@ TRNonBlockingServerProcessor
 						
 						if ( pos != -1 ){
 													
-							int content_length = Integer.parseInt( entry.substring( pos+1 ).trim());
+							int content_length = 0;
+							
+							try{
+								content_length = Integer.parseInt( entry.substring( pos+1 ).trim());
+								
+							}catch( Throwable e ){
+							}
 							
 							if ( content_length > 0 ){
 								
