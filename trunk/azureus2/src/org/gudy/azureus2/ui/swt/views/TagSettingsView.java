@@ -169,8 +169,20 @@ public class TagSettingsView
 		initialize(null);
 
 	}
-
-	private void initialize(Composite parent) {
+	
+	private void initialize(final Composite parent) {
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void 
+				run()
+				{
+					swt_initialize( parent );
+				}
+			});
+	}
+	
+	private void swt_initialize(Composite parent) {
 		if (cMainComposite == null || cMainComposite.isDisposed()) {
 			if (parent == null || parent.isDisposed()) {
 				return;
