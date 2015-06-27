@@ -161,10 +161,7 @@ public class SWTSkinButtonUtility
 				lastDisabledState = disabled;
 				Utils.execSWTThreadLater(100, new AERunnable() {
 					public void runSupport() {
-						if (lastDisabledState == isDisabled()) {
-							return;
-						}
-						((SWTSkinObjectButton) skinObject).getControl().setEnabled(
+						((SWTSkinObjectButton) skinObject).getButton().setEnabled(
 								!lastDisabledState);
 					}
 				});
