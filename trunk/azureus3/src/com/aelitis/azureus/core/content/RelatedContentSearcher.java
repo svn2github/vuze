@@ -152,11 +152,17 @@ RelatedContentSearcher
 	RelatedContentSearcher(
 		RelatedContentManager				_manager,
 		DistributedDatabaseTransferType		_transfer_type,
-		DHTPluginInterface					_dht_plugin )
+		DHTPluginInterface					_dht_plugin,
+		boolean								_defer_ddb_check )
 	{
 		manager			= _manager;
 		transfer_type	= _transfer_type;
 		dht_plugin 		= _dht_plugin;
+		
+		if ( !_defer_ddb_check ){
+			
+			checkDDB();
+		}
 	}
 	
 	protected DHTPluginInterface
@@ -169,23 +175,8 @@ RelatedContentSearcher
 	timerTick(
 		boolean		enabled,
 		int			tick_count )
-	{
-		if ( tick_count == 1 ){
-			
-			try{
-				List<DistributedDatabase> ddbs = DDBaseImpl.getDDBs( new String[]{ dht_plugin.getNetwork() });
-			
-				if ( ddbs.size() > 0 ){
-				
-					ddb = ddbs.get( 0 );
-					
-					ddb.addTransferHandler( transfer_type, this );
-				}
-			}catch( Throwable e ){
-				
-				// Debug.out( e );
-			}
-		}
+	{			
+		checkDDB();
 		
 		if ( enabled ){
 							
@@ -205,6 +196,27 @@ RelatedContentSearcher
 		checkKeyBloom();
 		
 		testKeyBloom();
+	}
+	
+	private void
+	checkDDB()
+	{
+		if ( ddb == null ){
+			
+			try{
+				List<DistributedDatabase> ddbs = DDBaseImpl.getDDBs( new String[]{ dht_plugin.getNetwork() });
+			
+				if ( ddbs.size() > 0 ){
+				
+					ddb = ddbs.get( 0 );
+					
+					ddb.addTransferHandler( transfer_type, this );
+				}
+			}catch( Throwable e ){
+				
+				// Debug.out( e );
+			}
+		}
 	}
 	
 	protected SearchInstance

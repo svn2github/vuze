@@ -392,7 +392,7 @@ RelatedContentManager
 							
 							public_dht_plugin = dp;
 
-							RelatedContentSearcher public_searcher = new RelatedContentSearcher( RelatedContentManager.this, transfer_type, dp );
+							RelatedContentSearcher public_searcher = new RelatedContentSearcher( RelatedContentManager.this, transfer_type, dp, true );
 							
 							searchers.add( public_searcher );
 							
@@ -537,7 +537,7 @@ RelatedContentManager
 					
 					DHTPluginInterface i2p_dht = ((DDBaseImpl)ddb).getDHTPlugin();
 					
-					RelatedContentSearcher i2p_searcher = new RelatedContentSearcher( RelatedContentManager.this, transfer_type, i2p_dht );
+					RelatedContentSearcher i2p_searcher = new RelatedContentSearcher( RelatedContentManager.this, transfer_type, i2p_dht, false );
 					
 					searchers.add( i2p_searcher );
 					
