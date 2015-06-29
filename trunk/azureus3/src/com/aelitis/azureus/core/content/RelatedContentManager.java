@@ -137,6 +137,11 @@ RelatedContentManager
 	private static final int REPUBLISH_PERIOD				= 8*60*60*1000;
 	private static final int REPUBLISH_TICKS				= REPUBLISH_PERIOD/TIMER_PERIOD;
 
+	private static final int I2P_SEARCHER_CHECK_PERIOD		= 10*60*1000;
+	private static final int I2P_SEARCHER_CHECK_TICKS		= I2P_SEARCHER_CHECK_PERIOD/TIMER_PERIOD;
+
+	
+	
 	private static final int INITIAL_PUBLISH_DELAY	= 3*60*1000;
 	private static final int INITIAL_PUBLISH_TICKS	= INITIAL_PUBLISH_DELAY/TIMER_PERIOD;
 	
@@ -230,7 +235,7 @@ RelatedContentManager
 	private RCMSearchXFer			transfer_type = new RCMSearchXFer();
 
 	private final 	CopyOnWriteList<RelatedContentSearcher>	searchers = new CopyOnWriteList<RelatedContentSearcher>();
-	
+	private boolean	added_i2p_searcher;
 	
 	private static final int MAX_TRANSIENT_CACHE	= 256;
 	
@@ -428,21 +433,9 @@ RelatedContentManager
 									{
 										tick_count++;
 										
-										if ( tick_count == 1 ){
+										if ( tick_count == 1 || tick_count % I2P_SEARCHER_CHECK_TICKS == 0 ){
 											
-											List<DistributedDatabase> ddbs = DDBaseImpl.getDDBs( new String[] {AENetworkClassifier.AT_I2P });
-											
-											for ( DistributedDatabase ddb: ddbs ){
-												
-												if ( ddb.getNetwork() == AENetworkClassifier.AT_I2P ){
-													
-													DHTPluginInterface i2p_dht = ((DDBaseImpl)ddb).getDHTPlugin();
-													
-													RelatedContentSearcher i2p_searcher = new RelatedContentSearcher( RelatedContentManager.this, transfer_type, i2p_dht );
-													
-													searchers.add( i2p_searcher );
-												}
-											}
+											checkI2PSearcher( false );
 										}
 										
 										if ( enabled ){
@@ -495,6 +488,63 @@ RelatedContentManager
 				{
 				}
 			});
+	}
+	
+	private void
+	checkI2PSearcher(
+		boolean force )
+	{
+			// wanna defer adding the I2P one so we don't activate the pure destination just for rcm i2p search
+			
+		synchronized( searchers ){
+			
+			if ( added_i2p_searcher ){
+				
+				return;
+			}
+	
+			if ( !force ){
+				
+				DownloadManager dm = plugin_interface.getDownloadManager();
+				
+				Download[] downloads = dm.getDownloads();
+				
+				boolean	found = false;
+				
+				for ( Download download: downloads ){
+					
+					String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+					
+					if ( nets.length == 1 && nets[0] == AENetworkClassifier.AT_I2P ){
+						
+						found = true;
+						
+						break;
+					}
+				}
+				
+				if ( !found ){
+					
+					return;
+				}
+			}
+			
+			List<DistributedDatabase> ddbs = DDBaseImpl.getDDBs( new String[]{ AENetworkClassifier.AT_I2P });
+			
+			for ( DistributedDatabase ddb: ddbs ){
+				
+				if ( ddb.getNetwork() == AENetworkClassifier.AT_I2P ){
+					
+					DHTPluginInterface i2p_dht = ((DDBaseImpl)ddb).getDHTPlugin();
+					
+					RelatedContentSearcher i2p_searcher = new RelatedContentSearcher( RelatedContentManager.this, transfer_type, i2p_dht );
+					
+					searchers.add( i2p_searcher );
+					
+					added_i2p_searcher	= true;
+				}
+			}
+		}
 	}
 	
 	public boolean
@@ -3084,6 +3134,11 @@ RelatedContentManager
 					target_net = AENetworkClassifier.AT_I2P;
 				}
 			}
+		}
+		
+		if ( target_net == AENetworkClassifier.AT_I2P ){
+		
+			checkI2PSearcher( true );
 		}
 		
 		for ( RelatedContentSearcher searcher: searchers ){
