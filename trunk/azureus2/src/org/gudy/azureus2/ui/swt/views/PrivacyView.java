@@ -632,6 +632,8 @@ public class PrivacyView
 						options.put( "server_id_transient", true );
 						options.put( "ui_composite", i2p_lookup_comp );
 						
+						final byte[] hash = (byte[])i2p_lookup_button.getData( "hash" );
+
 						search_count++;
 						
 						final int	search_id = search_count;
@@ -664,7 +666,7 @@ public class PrivacyView
 													public void
 													run()
 													{
-														if ( i2p_lookup_button.isDisposed()){
+														if ( i2p_lookup_button.isDisposed() || hash != i2p_lookup_button.getData( "hash" )){
 															
 															return;
 														}
@@ -688,7 +690,7 @@ public class PrivacyView
 													public void
 													run()
 													{
-														if ( i2p_result_summary.isDisposed()){
+														if ( i2p_result_summary.isDisposed() || hash != i2p_lookup_button.getData( "hash" )){
 															
 															return;
 														}
@@ -716,7 +718,7 @@ public class PrivacyView
 												public void
 												run()
 												{
-													if ( i2p_result_summary.isDisposed()){
+													if ( i2p_result_summary.isDisposed() || hash != i2p_lookup_button.getData( "hash" )){
 														
 														return;
 													}
@@ -735,7 +737,7 @@ public class PrivacyView
 												public void
 												run()
 												{
-													if ( i2p_result_list.isDisposed()){
+													if ( i2p_result_list.isDisposed() || hash != i2p_lookup_button.getData( "hash" )){
 														
 														return;
 													}
@@ -767,8 +769,6 @@ public class PrivacyView
 						i2p_result_summary.setText( MessageText.getString( "label.searching" ));
 							
 						try{
-							byte[] hash = (byte[])i2p_lookup_button.getData( "hash" );
-
 							ipc.invoke(
 								"lookupTorrent",
 								new Object[]{
