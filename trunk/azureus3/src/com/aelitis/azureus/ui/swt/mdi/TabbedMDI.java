@@ -120,12 +120,6 @@ public class TabbedMDI
 
 		creatMDI();
 
-		try {
-			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-
 		return null;
 	}
 	
