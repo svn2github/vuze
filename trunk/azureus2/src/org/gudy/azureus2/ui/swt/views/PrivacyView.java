@@ -305,7 +305,7 @@ public class PrivacyView
 		overview_comp.setLayoutData( gd);
 
 		Label label = new Label( overview_comp, SWT.NULL );
-		label.setText( "The privacy view summarises download privacy information/settings and allows them to be adjusted." );
+		label.setText( MessageText.getString( "privacy.view.intro" ));
 		
 		LinkLabel link = new LinkLabel( overview_comp, "label.read.more", MessageText.getString( "privacy.view.wiki.url" ));	
 
@@ -318,7 +318,7 @@ public class PrivacyView
 		slider_comp.setLayoutData( gd);
 
 		label = new Label( slider_comp, SWT.NULL );
-		label.setText( "Privacy Level:" );
+		label.setText(  MessageText.getString( "privacy.view.level" ) + ":" );
 		
 		Composite slider2_comp = new Composite( slider_comp, SWT.NULL );
 		slider2_comp.setLayout( new GridLayout(6, true ));
@@ -326,24 +326,24 @@ public class PrivacyView
 		slider2_comp.setLayoutData( gd);
 
 		label = new Label( slider2_comp, SWT.NULL );
-		label.setText( "Public Only" );
+		label.setText( MessageText.getString( "privacy.view.public.only" ));
 		
 		label = new Label( slider2_comp, SWT.NULL );
-		label.setText( "Public/Anon Mix" );
+		label.setText( MessageText.getString( "privacy.view.public.anon" ));
 		label.setAlignment( SWT.CENTER );
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		label.setLayoutData( gd);
 		
 		label = new Label( slider2_comp, SWT.NULL );
-		label.setText( "Anonymous Only" );
+		label.setText( MessageText.getString( "privacy.view.anon.only" ));
 		label.setAlignment( SWT.CENTER );
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		label.setLayoutData( gd);
 
 		label = new Label( slider2_comp, SWT.NULL );
-		label.setText( "Invalid" );
+		label.setText(  MessageText.getString( "label.invalid" ));
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalAlignment = SWT.END;
 		label.setLayoutData( gd);
@@ -420,7 +420,7 @@ public class PrivacyView
 		network_comp.setLayout( new GridLayout( 1, false ));
 				
 		label = new Label( network_comp, SWT.NULL );
-		label.setText( "Networks:" );
+		label.setText( MessageText.getString( "ConfigView.section.connection.group.networks") + ":" );
 		
 		for ( int i=0; i<network_buttons.length; i++){
 			
@@ -466,7 +466,7 @@ public class PrivacyView
 		tracker_comp.setLayout( new GridLayout( 2, false ));
 	
 		label = new Label( tracker_comp, SWT.NULL );
-		label.setText( "Trackers:" );
+		label.setText( MessageText.getString( "label.trackers" ) + ":" );
 		
 		tracker_info = new BufferedLabel(tracker_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
@@ -482,7 +482,7 @@ public class PrivacyView
 		webseed_comp.setLayout( new GridLayout( 2, false ));
 		
 		label = new Label( webseed_comp, SWT.NULL );
-		label.setText( "Web Seeds:" );
+		label.setText( MessageText.getString( "label.webseeds" ) + ":" );
 		
 		webseed_info = new BufferedLabel(webseed_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
@@ -499,7 +499,7 @@ public class PrivacyView
 		peer_comp.setLayout( new GridLayout( 2, false ));
 	
 		label = new Label( peer_comp, SWT.NULL );
-		label.setText( "Peers:" );
+		label.setText( MessageText.getString( "TableColumn.header.peers" ) + ":" );
 		
 		peer_info = new BufferedLabel(peer_comp,SWT.DOUBLE_BUFFERED);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
@@ -517,14 +517,23 @@ public class PrivacyView
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		i2p_group.setLayoutData( gd );
 
-		i2p_group.setLayout( new GridLayout(3, false ));
+		i2p_group.setLayout( new GridLayout(4, false ));
 
 		label = new Label( i2p_group, SWT.NULL );
-		label.setText( "Lookup I2P peers to see if the download may be available for anonymous download." );
-		gd = new GridData( GridData.FILL_HORIZONTAL );
-		gd.horizontalSpan = 3;
+		label.setText( MessageText.getString( "privacy.view.lookup.info" ));
+		gd = new GridData();
+		gd.horizontalSpan = 2;
 		label.setLayoutData( gd );
 		
+		label = new Label( i2p_group, SWT.NULL );
+		label.setText( MessageText.getString( "label.lookup.status" ) + ":" );
+
+
+		i2p_result_summary = new BufferedLabel(i2p_group,SWT.DOUBLE_BUFFERED);
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		//gd.horizontalIndent = 4;
+		i2p_result_summary.setLayoutData( gd );
+
 		Composite i2p_button_comp = new Composite( i2p_group, SWT.NULL );
 		i2p_button_comp.setLayout( new GridLayout(2, false ));
 
@@ -532,7 +541,7 @@ public class PrivacyView
 		i2p_button_comp.setLayoutData( gd );
 		
 		label = new Label( i2p_button_comp, SWT.NULL );
-		label.setText( "Availability" );
+		label.setText( MessageText.getString( "GeneralView.section.availability" ));
 		
 		i2p_install_button = new Button( i2p_button_comp, SWT.PUSH );
 		
@@ -579,41 +588,27 @@ public class PrivacyView
 		
 			// i2p results
 		
-		Composite i2p_results_comp = new Composite( i2p_group, SWT.NULL );
-		gd = new GridData( GridData.FILL_BOTH );
-		i2p_results_comp.setLayoutData( gd );
-
-		i2p_results_comp.setLayout( removeMarginsAndSpacing( new GridLayout( 2, false )));
 		
-		label = new Label( i2p_results_comp, SWT.NULL );
-		label.setText( "Lookup Status:" );
-
-		i2p_result_summary = new BufferedLabel(i2p_results_comp,SWT.DOUBLE_BUFFERED);
-		gd = new GridData( GridData.FILL_HORIZONTAL );
-		gd.horizontalIndent = 4;
-		i2p_result_summary.setLayoutData( gd );
-
-		i2p_result_list = new Text( i2p_results_comp, SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
+		i2p_result_list = new Text( i2p_group, SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
 		gd = new GridData( GridData.FILL_BOTH );
 		gd.horizontalSpan = 2;
-		gd.verticalIndent = 4;
-		gd.heightHint = 100;
 		i2p_result_list.setLayoutData( gd );
 
 		i2p_result_list.setEditable( false );
-		//i2p_result_list.setIndent( 4 );
 		
 			// i2p lookup button
 		
 		label = new Label( i2p_button_comp, SWT.NULL );
-		label.setText( "Lookup Peers" );
+		label.setText( MessageText.getString( "button.lookup.peers" ));
 
 		i2p_lookup_button = new Button( i2p_button_comp, SWT.PUSH );
 		
-		i2p_lookup_button.setText( "Search DHT" );
+		i2p_lookup_button.setText( MessageText.getString( "button.search.dht" ));
 		
 		i2p_lookup_button.addSelectionListener(
-			new SelectionAdapter() {
+			new SelectionAdapter(){
+				
+				private int	search_count;
 				
 				public void 
 				widgetSelected(
@@ -637,6 +632,10 @@ public class PrivacyView
 						options.put( "server_id_transient", true );
 						options.put( "ui_composite", i2p_lookup_comp );
 						
+						search_count++;
+						
+						final int	search_id = search_count;
+						
 						IPCInterface callback =
 							new IPCInterface()
 							{
@@ -647,6 +646,11 @@ public class PrivacyView
 										
 									throws IPCException
 								{
+									if ( search_id != search_count ){
+										
+										return( null );
+									}
+									
 									if ( methodName.equals( "statusUpdate" )){
 										
 										final int status = (Integer)params[0];
@@ -670,7 +674,7 @@ public class PrivacyView
 														if ( 	i2p_result_list.getText().length() == 0 &&
 																status != TrackerPeerSource.ST_UNAVAILABLE){
 															
-															i2p_result_summary.setText( "No peers found" );
+															i2p_result_summary.setText( MessageText.getString( "label.no.peers.found" ));
 														}
 													}
 												});
@@ -693,7 +697,13 @@ public class PrivacyView
 														int	leechers	= (Integer)params[2];
 														int	peers		= (Integer)params[3];
 														
-														i2p_result_summary.setText( "Seeds=" + seeds + ", Leechers=" + leechers + ", Peers=" + peers );
+														i2p_result_summary.setText(
+															MessageText.getString(
+																"privacy.view.lookup.msg",
+																new String[]{
+																	String.valueOf( seeds ), 
+																	String.valueOf( leechers ), 
+																	String.valueOf( peers )}));
 													}
 												});
 										}
@@ -738,6 +748,7 @@ public class PrivacyView
 											});
 										
 									}
+									
 									return( null );
 								}
 	
@@ -753,11 +764,11 @@ public class PrivacyView
 
 						i2p_lookup_button.setEnabled( false );
 						
-						i2p_result_summary.setText( "Searching..." );
-
-						byte[] hash = (byte[])i2p_lookup_button.getData( "hash" );
+						i2p_result_summary.setText( MessageText.getString( "label.searching" ));
 							
 						try{
+							byte[] hash = (byte[])i2p_lookup_button.getData( "hash" );
+
 							ipc.invoke(
 								"lookupTorrent",
 								new Object[]{
@@ -781,7 +792,7 @@ public class PrivacyView
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		gd.horizontalSpan = 2;
 		i2p_options_link.setLayoutData( gd );
-		i2p_options_link.setText( "Check Bandwidth Settings...");
+		i2p_options_link.setText( MessageText.getString( "privacy.view.check.bw" ));
 
 		i2p_options_link.setCursor(i2p_options_link.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		i2p_options_link.setForeground(Colors.blue);
@@ -825,7 +836,7 @@ public class PrivacyView
 			// Torrent Info
 			
 		label = new Label( bottom_comp, SWT.NULL );
-		label.setText( "Torrent:" );
+		label.setText( MessageText.getString( "authenticator.torrent" ) + ":" );
 
 		Composite torrent_comp = new Composite( bottom_comp, SWT.NULL );
 		
@@ -840,7 +851,7 @@ public class PrivacyView
 			// source selection
 
 		label = new Label( bottom_comp, SWT.NULL );
-		label.setText( "Peers Sources:" );
+		label.setText( MessageText.getString( "ConfigView.section.connection.group.peersources" ) + ":" );
 		
 		Composite sources_comp = new Composite( bottom_comp, SWT.NULL );
 		
@@ -880,7 +891,7 @@ public class PrivacyView
 			// IP Filter
 		
 		label = new Label( bottom_comp, SWT.NULL );
-		label.setText( "IP Filter:" );
+		label.setText( MessageText.getString( "label.ip.filter" ) + ":");
 
 		Composite ipfilter_comp = new Composite( bottom_comp, SWT.NULL );
 		
@@ -890,7 +901,7 @@ public class PrivacyView
 	
 		
 		ipfilter_enabled = new Button( ipfilter_comp, SWT.CHECK );
-		ipfilter_enabled.setText( "Enabled" );
+		ipfilter_enabled.setText( MessageText.getString( "devices.contextmenu.od.enabled" ));
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		ipfilter_enabled.setLayoutData( gd );
@@ -898,7 +909,7 @@ public class PrivacyView
 			// VPN Info
 
 		label = new Label( bottom_comp, SWT.NULL );
-		label.setText( "VPN Status:" );
+		label.setText( MessageText.getString( "label.vpn.status" ) + ":" );
 
 		Composite vpn_comp = new Composite( bottom_comp, SWT.NULL );
 		
@@ -913,7 +924,7 @@ public class PrivacyView
 			// SOCKS Info
 
 		label = new Label( bottom_comp, SWT.NULL );
-		label.setText( "SOCKS Status:" );
+		label.setText( MessageText.getString(  "label.socks.status" ) + ":" );
 				
 		Composite socks_comp = new Composite( bottom_comp, SWT.NULL );
 		
@@ -1259,7 +1270,7 @@ public class PrivacyView
 				
 				boolean private_torrent = torrent.getPrivate();
 				
-				torrent_info.setText( private_torrent?"Private":"Public"  );
+				torrent_info.setText( MessageText.getString( private_torrent?"label.private":"subs.prop.is_public" ));
 								
 				boolean		decentralised 	= false;
 				
@@ -1309,7 +1320,9 @@ public class PrivacyView
 				
 				String tracker_str = "";
 									
-				tracker_str = "Decentralised";
+				tracker_str = MessageText.getString( "label.decentralised" );
+				
+				String disabled_str = MessageText.getString( "MyTorrentsView.menu.setSpeed.disabled" );
 				
 				String net_string = "";
 				
@@ -1328,7 +1341,7 @@ public class PrivacyView
 				
 				if ( net_string.length() == 0 ){
 					
-					tracker_str += " (Disabled)";
+					tracker_str += " (" + disabled_str + ")";
 					
 				}else{
 					
@@ -1339,7 +1352,7 @@ public class PrivacyView
 					
 					if ( !tracker_source_enabled || !enabled_networks.contains( net )){
 						
-						net += " (Disabled)";
+						net += " (" + disabled_str + ")";
 					}
 					
 					tracker_str += (tracker_str.length()==0?"":", " ) + net;
@@ -1374,7 +1387,7 @@ public class PrivacyView
 				
 				if ( webseed_nets.isEmpty()){
 					
-					webseeds_str = "None";
+					webseeds_str = MessageText.getString( "PeersView.uniquepiece.none" );
 					
 				}else{
 					
@@ -1382,7 +1395,7 @@ public class PrivacyView
 						
 						if ( !enabled_networks.contains( net )){
 						
-							net += " (Disabled)";
+							net += " (" + disabled_str + ")";
 						}
 						
 						webseeds_str += (webseeds_str.length()==0?"":", " ) + net;
@@ -1419,7 +1432,7 @@ public class PrivacyView
 				
 				if ( pm == null ){
 					
-					peer_info.setText( dm==null?"":"Download is not running" );
+					peer_info.setText( dm==null?"":MessageText.getString( "privacy.view.dl.not.running" ));
 					
 				}else{
 					
@@ -1499,16 +1512,17 @@ public class PrivacyView
 					
 					if ( str.length() == 0 ){
 						
-						str = "No peers connected";
+						str = MessageText.getString( "privacy.view.no.peers" );
 						
 					}else{
 						
-						str += ", Incoming=" + incoming + ", Outgoing=" + outgoing;
+						str += 	", " + MessageText.getString( "label.incoming" ) + "=" + incoming + 
+								", " + MessageText.getString( "label.outgoing" ) + "=" + outgoing;
 					}
 					
 					if ( socks_bad_incoming ){
 						
-						str += " (non-local incoming connection detected)";
+						str += " (" + MessageText.getString( "privacy.view.non.local.peer" ) + ")";
 					}
 					
 					peer_info.setText( str );
@@ -1600,7 +1614,7 @@ public class PrivacyView
 			{
 				boolean i2p_installed = I2PHelpers.isI2PInstalled();																	
 		
-				i2p_install_button.setText( i2p_installed?"Installed":"Install I2P" );
+				i2p_install_button.setText( MessageText.getString( i2p_installed?"devices.installed":"privacy.view.install.i2p" ));
 				
 				i2p_install_button.setEnabled( !i2p_installed );
 				
