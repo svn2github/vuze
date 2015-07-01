@@ -71,6 +71,9 @@ public class SideBar
 	extends BaseMDI
 	implements ObfusticateImage, AEDiagnosticsEvidenceGenerator
 {
+	protected static final boolean isGTK3 = Utils.isGTK
+			&& System.getProperty("org.eclipse.swt.internal.gtk.version", "2").startsWith("3");
+	
 	protected static final boolean END_INDENT = Constants.isLinux
 			|| Constants.isWindows2000 || Constants.isWindows9598ME;
 
@@ -386,12 +389,18 @@ public class SideBar
 		tree.setBackground(bg);
 		tree.setForeground(fg);
 		FontData[] fontData = tree.getFont().getFontData();
-
-		int fontHeight = (Constants.isOSX ? 11 : 12)
-				+ (tree.getItemHeight() > 18 ? tree.getItemHeight() - 18 : 0);
 		
-		if (Constants.isLinux && tree.getItemHeight() >= 38) {
-			fontHeight = 13;
+		int fontHeight;
+		
+		if (isGTK3) {
+			fontHeight = fontData[0].getHeight();
+		} else {
+			fontHeight = (Constants.isOSX ? 11 : 12)
+				+ (tree.getItemHeight() > 18 ? tree.getItemHeight() - 18 : 0);
+
+			if (Constants.isLinux && tree.getItemHeight() >= 38) {
+				fontHeight = 13;
+			}
 		}
 
 		fontData[0].setStyle(SWT.BOLD);

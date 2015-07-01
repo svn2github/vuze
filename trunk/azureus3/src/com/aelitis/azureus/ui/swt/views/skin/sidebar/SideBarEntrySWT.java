@@ -741,6 +741,17 @@ public class SideBarEntrySWT
 		if (drawBounds.isEmpty()) {
 			drawBounds = event.getBounds();
 		}
+		Rectangle treeArea = treeItem.getParent().getClientArea();
+		if (SideBar.isGTK3) {
+			// workaround bug
+  		if (treeArea.width > itemBounds.width) {
+  			itemBounds.width = treeArea.width;
+  		}
+  		if (treeArea.x < itemBounds.x) {
+  			itemBounds.x = treeArea.x;
+  		}
+  		drawBounds = itemBounds;
+		}
 
 		String text = getTitle();
 		if (text == null)
@@ -758,8 +769,6 @@ public class SideBarEntrySWT
 		Color fgText = swt_paintEntryBG(event.detail, gc, drawBounds);
 
 		Tree tree = (Tree) event.widget;
-
-		Rectangle treeArea = tree.getClientArea();
 
 		Font font = tree.getFont();
 		if (font != null && !font.isDisposed()) {
@@ -944,8 +953,10 @@ public class SideBarEntrySWT
 		}
 		if (imageLeft != null) {
 			Rectangle clipping = gc.getClipping();
-			gc.setClipping(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
-					itemBounds.height);
+			if (!SideBar.isGTK3) {
+				gc.setClipping(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
+						itemBounds.height);
+			}
 
 			if (greyScale) {
 				greyScale = false;
@@ -983,7 +994,9 @@ public class SideBarEntrySWT
 			}
 
 			releaseImageLeft(suffix);
-			gc.setClipping(clipping);
+			if (!SideBar.isGTK3) {
+				gc.setClipping(clipping);
+			}
 			//			0, 0, bounds.width, bounds.height,
 			//					x0IndicatorOfs, itemBounds.y
 			//							+ ((itemBounds.height - IMAGELEFT_SIZE) / 2), IMAGELEFT_SIZE,
