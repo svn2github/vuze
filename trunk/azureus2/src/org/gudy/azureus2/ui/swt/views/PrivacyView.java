@@ -312,7 +312,12 @@ public class PrivacyView
 			// slider component
 		
 		Composite slider_comp = new Composite( cMainComposite, SWT.NULL );
-		slider_comp.setLayout( new GridLayout(3, false ));
+		layout = new GridLayout(3, false );
+		layout.horizontalSpacing = 0;
+		layout.verticalSpacing = 0;
+		layout.marginHeight = 0;
+		//layout.marginWidth = 0;
+		slider_comp.setLayout( layout);
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		slider_comp.setLayoutData( gd);
@@ -450,12 +455,29 @@ public class PrivacyView
 		
 		label = new Label( slider_comp, SWT.NULL );
 		
-		Composite tracker_webseed_comp = new Composite( slider_comp, SWT.NULL );
-		tracker_webseed_comp.setLayout( removeMarginsAndSpacing( new GridLayout( 2, true )));
+		final Composite tracker_webseed_comp = new Composite( slider_comp, SWT.NULL );
+		
+		layout = new GridLayout( 2, true );
+		layout.marginTop = layout.marginBottom = layout.marginLeft = layout.marginRight = 1;
+		tracker_webseed_comp.setLayout( layout);
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		gd.horizontalSpan = 2;
 		tracker_webseed_comp.setLayoutData( gd );
 
+		tracker_webseed_comp.addPaintListener(
+			new PaintListener(){
+				public void 
+				paintControl(PaintEvent e)
+				{
+					Rectangle client_area = tracker_webseed_comp.getClientArea();
+					
+					Rectangle rect = new Rectangle(0,0, client_area.width-1, client_area.height-1);
+					
+					e.gc.setAlpha(50);
+					
+	                e.gc.drawRectangle(rect);
+				}
+			});
 
 			// Tracker Info
 			
@@ -490,9 +512,9 @@ public class PrivacyView
 
 			// Peer Info
 			
-		label = new Label( slider_comp, SWT.NULL );
+		//label = new Label( slider_comp, SWT.NULL );
 
-		Composite peer_comp = new Composite( slider_comp, SWT.NULL );
+		Composite peer_comp = new Composite( tracker_webseed_comp, SWT.NULL );
 		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		peer_comp.setLayoutData( gd );
@@ -1448,8 +1470,9 @@ public class PrivacyView
 					
 					int[]	 counts = new int[ all_nets.length];
 					
-					int	incoming 	= 0;
-					int outgoing	= 0;
+					int	incoming 			= 0;
+					int outgoing			= 0;
+					int outgoing_connected	= 0;
 					
 					for ( PEPeer peer: peers ){
 						
@@ -1474,6 +1497,11 @@ public class PrivacyView
 						}else{
 							
 							outgoing++;
+							
+							if ( peer.getPeerState() == PEPeer.TRANSFERING ){
+								
+								outgoing_connected++;
+							}
 						}
 						
 						if ( proxy != null ){
@@ -1517,7 +1545,7 @@ public class PrivacyView
 					}else{
 						
 						str += 	", " + MessageText.getString( "label.incoming" ) + "=" + incoming + 
-								", " + MessageText.getString( "label.outgoing" ) + "=" + outgoing;
+								", " + MessageText.getString( "label.outgoing" ) + "=" + outgoing_connected + "/" + outgoing;
 					}
 					
 					if ( socks_bad_incoming ){
