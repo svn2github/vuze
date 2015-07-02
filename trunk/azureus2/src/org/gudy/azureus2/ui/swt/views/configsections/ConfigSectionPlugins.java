@@ -544,6 +544,9 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 										public void
 										run()
 										{
+											if (table == null || table.isDisposed()) {
+												return;
+											}
 											pluginIFs = rebuildPluginIFs();
 											table.setItemCount(pluginIFs.size());
 											Collections.sort(pluginIFs, comparator);
