@@ -765,9 +765,11 @@ TRHostImpl
 		}
 	}
 	
+	private AsyncDispatcher dispatcher = new AsyncDispatcher( "TRHost:stopHosting" );
+	
 	protected void
 	stopHosting(
-		final TRHostTorrentHostImpl	host_torrent,
+		final TRHostTorrentHostImpl		host_torrent,
 		final TRTrackerAnnouncer 		tracker_client )
 	{				
 			// unfortunately a lot of the "stop" operations that occur when a tracker client
@@ -775,46 +777,46 @@ TRHostImpl
 			// tracker. Hence, if we switch the URL back here the "stopped" doesn't get
 			// through.
 			
-		// for the moment stick a delay in to allow any async stuff to complete
+			// for the moment stick a delay in to allow any async stuff to complete
 		
-		Thread thread = new AEThread("StopHosting")
-			{
-				public void
-				runSupport()
+		SimpleTimer.addEvent(
+			"StopHosting",
+			SystemTime.getOffsetTime( 2500 ),
+			new TimerEventPerformer() {
+				
+				public void 
+				perform(TimerEvent event)
 				{
-					try{
-						Thread.sleep(2500);
-						
-					}catch( InterruptedException e ){
-						
-					}
-					
-					try{
-						this_mon.enter();
-						
-							// got to look up the host torrent again as may have been
-							// removed and re-added
-						
-						TRHostTorrent	ht = lookupHostTorrent( host_torrent.getTorrent());
-						
-							// check it's still in stopped state and hasn't been restarted
-							
-						if ( ht == null || 
-								( 	ht == host_torrent &&
-								 	ht.getStatus() == TRHostTorrent.TS_STOPPED )){
-					
-							tracker_client.clearIPOverride();
-						}
-					}finally{
-						
-						this_mon.exit();
-					}
+					dispatcher.dispatch(
+						new AERunnable() 
+						{
+							public void
+							runSupport()
+							{
+								try{
+									this_mon.enter();
+									
+										// got to look up the host torrent again as may have been
+										// removed and re-added
+									
+									TRHostTorrent	ht = lookupHostTorrent( host_torrent.getTorrent());
+									
+										// check it's still in stopped state and hasn't been restarted
+										
+									if ( ht == null || 
+											( 	ht == host_torrent &&
+											 	ht.getStatus() == TRHostTorrent.TS_STOPPED )){
+								
+										tracker_client.clearIPOverride();
+									}
+								}finally{
+									
+									this_mon.exit();
+								}
+							}
+						});
 				}
-			};
-			
-		thread.setDaemon(true);
-		
-		thread.start();
+			});
 	}
 	
 	protected TRTrackerAnnouncer
