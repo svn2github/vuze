@@ -54,6 +54,8 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDown
 public class 
 TorrentUtils 
 {
+	public static final long MAX_TORRENT_FILE_SIZE = 64*1024*1024L;
+	
 	private static final String NO_VALID_URL_URL = "http://no.valid.urls.defined/announce";
 	
 	static{

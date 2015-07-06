@@ -2175,7 +2175,7 @@ public class OpenTorrentWindow
 				return null;
 			}
 
-			if (fOriginal.length() > (sFileName.toLowerCase(Locale.US).endsWith(".vuze")?50*1024*1024L:20*1024*1024L )) {
+			if (fOriginal.length() > TorrentUtils.MAX_TORRENT_FILE_SIZE ) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						if (shell == null)

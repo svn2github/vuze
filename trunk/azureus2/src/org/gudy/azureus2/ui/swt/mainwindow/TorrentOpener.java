@@ -705,7 +705,7 @@ public class TorrentOpener {
 				return false;
 			}
 
-			if (fOriginal.length() > (sFileName.toLowerCase(Locale.US).endsWith(".vuze")?50*1024*1024L:20*1024*1024L )) {
+			if (fOriginal.length() > TorrentUtils.MAX_TORRENT_FILE_SIZE ) {
 				UIFunctionsManager.getUIFunctions().showErrorMessage(
 						"OpenTorrentWindow.mb.openError", fOriginal.toString(),
 						new String[] {
