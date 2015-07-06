@@ -28,10 +28,13 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
@@ -810,6 +813,28 @@ public class PrivacyView
 				}
 			});
 		
+		Label i2p_options_info = new Label( i2p_button_comp, SWT.WRAP );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		gd.horizontalSpan = 2;
+		gd.widthHint = 150;
+		i2p_options_info.setLayoutData( gd );
+		
+		i2p_options_info.setText( MessageText.getString( "privacy.view.check.bw.info" ));
+		
+		if ( !COConfigurationManager.getBooleanParameter( "privacy.view.check.bw.clicked", false )){
+			
+			FontData fontData = i2p_options_info.getFont().getFontData()[0];
+			final Font bold_font = new Font( i2p_options_info.getDisplay(), new FontData( fontData.getName(), fontData.getHeight(), SWT.BOLD ));
+			i2p_options_info.setFont( bold_font);
+			
+			i2p_options_info.addDisposeListener(
+				new DisposeListener() {		
+					public void widgetDisposed(DisposeEvent e) {
+						bold_font.dispose();
+					}
+				});
+		}
+		
 		i2p_options_link = new Label( i2p_button_comp, SWT.NULL );
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		gd.horizontalSpan = 2;
@@ -829,6 +854,8 @@ public class PrivacyView
 			private void
 			openOptions()
 			{
+				COConfigurationManager.setParameter( "privacy.view.check.bw.clicked", true );
+		
 				UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
 				if ( uif != null ){

@@ -5221,7 +5221,7 @@ BuddyPluginBeta
 				
 				if ( getMessageStatus() == FLAGS_MSG_STATUS_CHAT_QUIT ){
 					
-					return( participant.getName() + " has quit" );
+					return((participant==null?"<unknown>":participant.getName()) + " has quit" );
 				}
 				
 					// was just a string for a while...
