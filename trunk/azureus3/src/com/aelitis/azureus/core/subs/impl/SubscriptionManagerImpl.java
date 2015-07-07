@@ -2749,22 +2749,16 @@ SubscriptionManagerImpl
 		}
 		
 		String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
-		
-		boolean	non_pub_found = false;
-		
+				
 		for ( String net: nets ){
 			
 			if ( net == AENetworkClassifier.AT_PUBLIC ){
 				
 				return( false );
-				
-			}else{
-			
-				non_pub_found = true;
 			}
 		}
 		
-		return( non_pub_found );
+		return( true );
 	}
 	
 	protected boolean
