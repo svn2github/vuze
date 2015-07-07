@@ -117,7 +117,7 @@ public class TrackerStatus {
 	private String					scrapeURL						= null;
  
   /** key = Torrent hash.  values = TRTrackerScraperResponseImpl */
-  private HashMap 					hashes;
+  private HashMap<HashWrapper,TRTrackerScraperResponseImpl> 					hashes;
   /** only needed to notify listeners */ 
   private TRTrackerScraperImpl		scraper;
   
@@ -144,7 +144,7 @@ public class TrackerStatus {
     
     String trackerUrl	= tracker_url.toString();
     
-    hashes = new HashMap();
+    hashes = new HashMap<HashWrapper,TRTrackerScraperResponseImpl>();
     
     try {
       trackerUrl = trackerUrl.replaceAll(" ", "");
@@ -229,7 +229,7 @@ public class TrackerStatus {
   		}
     
   		try {
-  			ArrayList responsesToUpdate = new ArrayList();
+  			ArrayList<TRTrackerScraperResponseImpl> responsesToUpdate = new ArrayList<TRTrackerScraperResponseImpl>();
 
   			TRTrackerScraperResponseImpl response;
     
@@ -322,9 +322,9 @@ public class TrackerStatus {
 	
   	protected void
   	runScrapes(
-  		final ArrayList 	responses, 
-  	    final boolean 		force, 
-  	    boolean 			async) 
+  		final ArrayList<TRTrackerScraperResponseImpl> 	responses, 
+  	    final boolean 									force, 
+  	    boolean 										async) 
   	{
   		numActiveScrapes.incrementAndGet();
   		
@@ -355,8 +355,8 @@ public class TrackerStatus {
  
   	protected void 
     runScrapesSupport(
-    	ArrayList 	responses, 
-    	boolean 	force ) 
+    	ArrayList<TRTrackerScraperResponseImpl> 	responses, 
+    	boolean 									force ) 
     {
 		try {
 			if (Logger.isEnabled()) {
@@ -371,6 +371,11 @@ public class TrackerStatus {
 			
 			byte[]	scrape_reply = null;
 			
+			List<HashWrapper> hashesInQuery = new ArrayList<HashWrapper>(responses.size());
+			List<HashWrapper> hashesForUDP 	= new ArrayList<HashWrapper>();
+			
+			List<HashWrapper> hashesActive = hashesInQuery;
+
 			try {
 				// if URL already includes a query component then just append our
 				// params
@@ -383,12 +388,9 @@ public class TrackerStatus {
 				String info_hash = "";
 
 				String flags = "";
-				
-				List<HashWrapper> hashesInQuery = new ArrayList<HashWrapper>(responses.size());
-				List<HashWrapper> hashesForUDP 	= new ArrayList<HashWrapper>();
-				
+								
 				for (int i = 0; i < responses.size(); i++) {
-					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses.get(i);
+					TRTrackerScraperResponseImpl response = responses.get(i);
 
 					HashWrapper hash = response.getHash();
 
@@ -548,6 +550,8 @@ public class TrackerStatus {
 
 			  		if ( udpScrapeURL != null){
 			  			
+			  			hashesActive = hashesForUDP;
+			  			
 			  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP, !auto_probe );
 			  			
 			  			if((!success || message.size() == 0) && !protocol.equalsIgnoreCase("udp"))
@@ -571,6 +575,8 @@ public class TrackerStatus {
 			  		scrapeCount++;
 			  		
 			  		if ( udpScrapeURL == null ){
+			  			
+			  			hashesActive = hashesInQuery;
 			  			
 			  			redirect_url = scrapeHTTP(hashesInQuery,reqUrl, message);
 			  		}
@@ -909,15 +915,15 @@ public class TrackerStatus {
 					scraper.scrapeReceived(response);
 				}
 			} catch (SocketException e) {
-				setAllError(e);
+				setAllError(hashesActive,e);
 			} catch (SocketTimeoutException e) {
-				setAllError(e);
+				setAllError(hashesActive,e);
 			} catch (UnknownHostException e) {
-				setAllError(e);
+				setAllError(hashesActive,e);
 			} catch (PRUDPPacketHandlerException e) {
-				setAllError(e);
+				setAllError(hashesActive,e);
 			} catch (BEncodingException e) {
-				setAllError(e);
+				setAllError(hashesActive,e);
 			} catch (Exception e) {
 				
 				// for apache we can get error 414 - URL too long. simplest solution
@@ -934,7 +940,7 @@ public class TrackerStatus {
 							|| error_message.indexOf(" 501 ") >= 0) {
 						// various errors that have a 99% chance of happening on
 						// any other scrape request
-						setAllError(e);
+						setAllError(hashesActive,e);
 						return;
 					}
 
@@ -995,13 +1001,22 @@ public class TrackerStatus {
   /**
 	 * @param e
 	 */
-	private void setAllError(Exception e) {
-		// Error will apply to ALL hashes, so set all
-		Object[] values;
+	private void setAllError(List<HashWrapper> hashesActive, Exception e) {
+	
+		List<TRTrackerScraperResponseImpl>	responses = new ArrayList<TRTrackerScraperResponseImpl>();
+				
 		try {
 			hashes_mon.enter();
 			
-			values = hashes.values().toArray();
+			for ( HashWrapper hash: hashesActive ){
+				
+				TRTrackerScraperResponseImpl response = hashes.get( hash );
+				
+				if ( response != null ){
+					
+					responses.add( response );
+				}
+			}
 
 		} finally {
 			hashes_mon.exit();
@@ -1026,8 +1041,7 @@ public class TrackerStatus {
 			msg =  Debug.getNestedExceptionMessage( e );
 		}
 		
-		for (int i = 0; i < values.length; i++) {
-			TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) values[i];
+		for (TRTrackerScraperResponseImpl response: responses ){
 
 			if (Logger.isEnabled()) {
 				HashWrapper hash = response.getHash();
