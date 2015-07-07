@@ -32,7 +32,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -1549,13 +1548,29 @@ public class OpenTorrentOptionsWindow
 
 				try {
 					RelatedContentManager rcm = RelatedContentManager.getSingleton();
-					String[] networks = torrentOptions.getEnabledNetworks().keySet().toArray(new String[0]);
-					rcm.lookupAttributes(hash.getBytes(), networks,
-							new RelatedAttributeLookupListener() {
-
+					
+					Map<String,Boolean> enabledNetworks = torrentOptions.getEnabledNetworks();
+					
+					List<String> networks = new ArrayList<String>();
+					
+					for ( Map.Entry<String,Boolean> entry: enabledNetworks.entrySet()){
+						
+						if ( entry.getValue()){
+							
+							networks.add( entry.getKey());
+						}			
+					}
+					
+					if ( networks.size() > 0 ){
+						
+						rcm.lookupAttributes(
+							hash.getBytes(), 
+							networks.toArray( new String[networks.size()]),
+							new RelatedAttributeLookupListener(){
+	
 								public void lookupStart() {
 								}
-
+	
 								public void tagFound(String tag, String network) {
 									if (listDiscoveredTags.contains(tag)) {
 										return;
@@ -1573,15 +1588,17 @@ public class OpenTorrentOptionsWindow
 											buildTagButtonPanel(tagButtonsArea, true);
 										}
 									});
-
+	
 								}
-
+	
 								public void lookupComplete() {
 								}
-
+	
 								public void lookupFailed(ContentException error) {
 								}
 							});
+						}
+					
 				} catch (ContentException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
