@@ -633,7 +633,7 @@ public class FilesView
 				dragSource.dispose();
 			}
 
-			dragSource = tv.createDragSource(DND.DROP_COPY);
+			dragSource = tv.createDragSource(DND.DROP_COPY | DND.DROP_MOVE);
 			if (dragSource != null) {
 				dragSource.setTransfer(types);
 				dragSource.addDragListener(new DragSourceAdapter() {
@@ -670,11 +670,12 @@ public class FilesView
   						}
 						}
 					}
+					
+					
 
 					public void dragSetData(DragSourceEvent event) {
 						if (FileTransfer.getInstance().isSupportedType(event.dataType)) {
 							event.data = eventData2;
-							event.detail = DND.DROP_COPY;
 						} else {
 							event.data = eventData1;
 						}
