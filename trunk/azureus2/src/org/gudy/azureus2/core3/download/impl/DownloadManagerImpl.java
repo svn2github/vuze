@@ -1094,7 +1094,7 @@ DownloadManagerImpl
 				
 					// make sure we know what networks to use for this download
 				
-				if ( download_manager_state.getNetworks().length == 0 && torrent != null){
+				if ( torrent != null && !download_manager_state.hasAttribute( DownloadManagerState.AT_NETWORKS )){
 					
 					String[] networks = AENetworkClassifier.getNetworks( torrent, display_name );
 					
