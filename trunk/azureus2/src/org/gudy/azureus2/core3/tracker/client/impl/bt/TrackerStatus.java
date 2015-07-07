@@ -355,13 +355,13 @@ public class TrackerStatus {
  
   	protected void 
     runScrapesSupport(
-    	ArrayList<TRTrackerScraperResponseImpl> 	responses, 
+    	ArrayList<TRTrackerScraperResponseImpl> 	allResponses, 
     	boolean 									force ) 
     {
 		try {
 			if (Logger.isEnabled()) {
 				Logger.log(new LogEvent(LOGID, "TrackerStatus: scraping '" + scrapeURL
-						+ "', for " + responses.size() + " of " + hashes.size() + " hashes"
+						+ "', for " + allResponses.size() + " of " + hashes.size() + " hashes"
 						+ ", single_hash_scrapes: " + (bSingleHashScrapes ? "Y" : "N")));
 			}
 
@@ -371,10 +371,13 @@ public class TrackerStatus {
 			
 			byte[]	scrape_reply = null;
 			
-			List<HashWrapper> hashesInQuery = new ArrayList<HashWrapper>(responses.size());
-			List<HashWrapper> hashesForUDP 	= new ArrayList<HashWrapper>();
+			List<HashWrapper> 					hashesInQuery 		= new ArrayList<HashWrapper>(allResponses.size());
+			List<TRTrackerScraperResponseImpl> 	responsesInQuery 	= new ArrayList<TRTrackerScraperResponseImpl>(allResponses.size());
 			
-			List<HashWrapper> hashesActive = hashesInQuery;
+			List<HashWrapper> 					hashesForUDP 		= new ArrayList<HashWrapper>();
+			List<TRTrackerScraperResponseImpl> 	responsesForUDP 	= new ArrayList<TRTrackerScraperResponseImpl>();
+
+			List<TRTrackerScraperResponseImpl> activeResponses = responsesInQuery;
 
 			try {
 				// if URL already includes a query component then just append our
@@ -389,8 +392,7 @@ public class TrackerStatus {
 
 				String flags = "";
 								
-				for (int i = 0; i < responses.size(); i++) {
-					TRTrackerScraperResponseImpl response = responses.get(i);
+				for ( TRTrackerScraperResponseImpl response: allResponses ){
 
 					HashWrapper hash = response.getHash();
 
@@ -423,6 +425,9 @@ public class TrackerStatus {
 
 					} else {
 
+						hashesInQuery.add( hash );
+						responsesInQuery.add( response );
+						
 						response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
 								MessageText.getString(SS + "scraping"));
 
@@ -457,10 +462,7 @@ public class TrackerStatus {
 							flags += TRTrackerScraperClientResolver.FL_NONE;
 						}
 						
-						hashesInQuery.add( hash );
-						
-							//one_of_the_responses = response;
-						
+												
 						one_of_the_hashes = hash;
 						
 							// 28 + 16 + 70*20 -> IPv4/udp packet size of 1444 , that should go through most lines unfragmented
@@ -468,13 +470,16 @@ public class TrackerStatus {
 						if ( hashesForUDP.size() < 70 ){
 							
 							hashesForUDP.add(hash);
+							responsesForUDP.add( response );
 						}
 					}
 				} // for responses
 
-				if (one_of_the_hashes == null)
+				if (one_of_the_hashes == null){
+					
 					return;
-
+				}
+				
 				String	request = scrapeURL + info_hash;
 				
 				if ( az_tracker ){
@@ -550,7 +555,7 @@ public class TrackerStatus {
 
 			  		if ( udpScrapeURL != null){
 			  			
-			  			hashesActive = hashesForUDP;
+			  			activeResponses = responsesForUDP;
 			  			
 			  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP, !auto_probe );
 			  			
@@ -576,7 +581,7 @@ public class TrackerStatus {
 			  		
 			  		if ( udpScrapeURL == null ){
 			  			
-			  			hashesActive = hashesInQuery;
+			  			activeResponses = responsesInQuery;
 			  			
 			  			redirect_url = scrapeHTTP(hashesInQuery,reqUrl, message);
 			  		}
@@ -649,10 +654,7 @@ public class TrackerStatus {
 								+ ((iMinRequestInterval == 0) ? FAULTY_SCRAPE_RETRY_INTERVAL
 										: iMinRequestInterval * 1000);
 
-						for (int i = 0; i < responses.size(); i++) {
-
-							TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
-									.get(i);
+						for ( TRTrackerScraperResponseImpl response: activeResponses ){
 
 							response.setNextScrapeStartTime(nextScrapeTime);
 
@@ -667,7 +669,7 @@ public class TrackerStatus {
 						}
 
 					} else {
-						if (responses.size() > 1) {
+						if (activeResponses.size() > 1) {
 							// multi were requested, 0 returned. Therefore, multi not
 							// supported
 							bSingleHashScrapes = true;
@@ -675,9 +677,7 @@ public class TrackerStatus {
 								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, scrapeURL
 										+ " doesn't properly support " + "multi-hash scrapes"));
 
-							for (int i = 0; i < responses.size(); i++) {
-								TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
-										.get(i);
+							for ( TRTrackerScraperResponseImpl response: activeResponses ){
 
 								response.setStatus(TRTrackerScraperResponse.ST_ERROR,
 										MessageText.getString(SS + "error")
@@ -690,8 +690,7 @@ public class TrackerStatus {
 									+ ((iMinRequestInterval == 0) ? NOHASH_RETRY_INTERVAL
 											: iMinRequestInterval * 1000);
 							// 1 was requested, 0 returned. Therefore, hash not found.
-							TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
-									.get(0);
+							TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) activeResponses.get(0);
 							response.setNextScrapeStartTime(nextScrapeTime);
 							response.setStatus(TRTrackerScraperResponse.ST_ERROR,
 									MessageText.getString(SS + "error")
@@ -709,18 +708,16 @@ public class TrackerStatus {
 				 * to Single Hash Scrapes, but continue on to process the one has that
 				 * was returned (it may be a random one from the list)
 				 */
-				if (!bSingleHashScrapes && responses.size() > 1
+				if (!bSingleHashScrapes && activeResponses.size() > 1
 						&& mapFiles.size() == 1) {
 					bSingleHashScrapes = true;
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, scrapeURL
 								+ " only returned " + mapFiles.size()
-								+ " hash scrape(s), but we asked for " + responses.size()));
+								+ " hash scrape(s), but we asked for " + activeResponses.size()));
 				}
 
-				for (int i = 0; i < responses.size(); i++) {
-					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
-							.get(i);
+				for ( TRTrackerScraperResponseImpl response: activeResponses ){
 
 					// LGLogger.log( "decoding response #" +i+ ": " +
 					// ByteFormatter.nicePrint( response.getHash(), true ) );
@@ -731,7 +728,7 @@ public class TrackerStatus {
 
 					if (scrapeMap == null) {
 						// some trackers that return only 1 hash return a random one!
-						if (responses.size() == 1 || mapFiles.size() != 1) {
+						if (activeResponses.size() == 1 || mapFiles.size() != 1) {
 
 							response.setNextScrapeStartTime(SystemTime.getCurrentTime()
 									+ NOHASH_RETRY_INTERVAL);
@@ -812,7 +809,7 @@ public class TrackerStatus {
 							// multiple hashes and returned 1 hash. However, that hash is
 							// invalid because seeds or peers was < 0. So, exit. Scrape
 							// manager will run scrapes for each individual hash.
-							if (responses.size() > 1 && bSingleHashScrapes) {
+							if (activeResponses.size() > 1 && bSingleHashScrapes) {
 
 								response.setStatus(TRTrackerScraperResponse.ST_ERROR,
 										MessageText.getString(SS + "error")
@@ -863,7 +860,7 @@ public class TrackerStatus {
 						scraper.scrapeReceived(response);
 						
 						try{
-							if ( responses.size() == 1 && redirect_url != null ){
+							if ( activeResponses.size() == 1 && redirect_url != null ){
 								
 									// we only deal with redirects for single urls - if the tracker wants to
 									// redirect one of a group is has to force single-hash scrapes anyway
@@ -891,9 +888,7 @@ public class TrackerStatus {
 				} // for responses
 
 			} catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
-				for (int i = 0; i < responses.size(); i++) {
-					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
-							.get(i);
+				for ( TRTrackerScraperResponseImpl response: activeResponses ){
 					response.setNextScrapeStartTime(SystemTime.getCurrentTime()
 							+ FAULTY_SCRAPE_RETRY_INTERVAL);
 					response.setStatus(TRTrackerScraperResponse.ST_ERROR, MessageText
@@ -903,9 +898,7 @@ public class TrackerStatus {
 					scraper.scrapeReceived(response);
 				}
 			} catch (FileNotFoundException e) {
-				for (int i = 0; i < responses.size(); i++) {
-					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
-							.get(i);
+				for ( TRTrackerScraperResponseImpl response: activeResponses ){
 					response.setNextScrapeStartTime(SystemTime.getCurrentTime()
 							+ FAULTY_SCRAPE_RETRY_INTERVAL);
 					response.setStatus(TRTrackerScraperResponse.ST_ERROR, MessageText
@@ -915,15 +908,15 @@ public class TrackerStatus {
 					scraper.scrapeReceived(response);
 				}
 			} catch (SocketException e) {
-				setAllError(hashesActive,e);
+				setAllError(activeResponses,e);
 			} catch (SocketTimeoutException e) {
-				setAllError(hashesActive,e);
+				setAllError(activeResponses,e);
 			} catch (UnknownHostException e) {
-				setAllError(hashesActive,e);
+				setAllError(activeResponses,e);
 			} catch (PRUDPPacketHandlerException e) {
-				setAllError(hashesActive,e);
+				setAllError(activeResponses,e);
 			} catch (BEncodingException e) {
-				setAllError(hashesActive,e);
+				setAllError(activeResponses,e);
 			} catch (Exception e) {
 				
 				// for apache we can get error 414 - URL too long. simplest solution
@@ -940,7 +933,7 @@ public class TrackerStatus {
 							|| error_message.indexOf(" 501 ") >= 0) {
 						// various errors that have a 99% chance of happening on
 						// any other scrape request
-						setAllError(hashesActive,e);
+						setAllError(activeResponses,e);
 						return;
 					}
 
@@ -970,10 +963,8 @@ public class TrackerStatus {
 	 				msg += " [" + trace_data + "]";
 				}
 				
-				for (int i = 0; i < responses.size(); i++) {
-					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
-							.get(i);
-
+				for ( TRTrackerScraperResponseImpl response: activeResponses ){
+				
 					if (Logger.isEnabled()) {
 						HashWrapper hash = response.getHash();
 						Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
@@ -1001,27 +992,8 @@ public class TrackerStatus {
   /**
 	 * @param e
 	 */
-	private void setAllError(List<HashWrapper> hashesActive, Exception e) {
+	private void setAllError(List<TRTrackerScraperResponseImpl> responses, Exception e) {
 	
-		List<TRTrackerScraperResponseImpl>	responses = new ArrayList<TRTrackerScraperResponseImpl>();
-				
-		try {
-			hashes_mon.enter();
-			
-			for ( HashWrapper hash: hashesActive ){
-				
-				TRTrackerScraperResponseImpl response = hashes.get( hash );
-				
-				if ( response != null ){
-					
-					responses.add( response );
-				}
-			}
-
-		} finally {
-			hashes_mon.exit();
-		}
-
 		String msg;
 		
 		if ( e instanceof BEncodingException ){
