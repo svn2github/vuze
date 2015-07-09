@@ -370,9 +370,7 @@ ExternalSeedHTTPDownloaderLinear
 									throw( error );
 								}
 							}
-							
-							listener.reportBytesRead( len );
-							
+														
 							requests_outstanding = checkRequests();
 						}
 						
@@ -530,15 +528,20 @@ ExternalSeedHTTPDownloaderLinear
 								
 								while( total < request.getLength()){
 									
-									byte[]	buffer 		= listener.getBuffer();
-									int		buffer_len	= listener.getBufferLength();
+									byte[]	buffer 				= listener.getBuffer();
+									int		buffer_position		= listener.getBufferPosition();
+									int		buffer_len			= listener.getBufferLength();
 									
-									if ( raf.read( buffer, 0, buffer_len ) != buffer_len ){
+									int	space = buffer_len - buffer_position;
+									
+									if ( raf.read( buffer, buffer_position, space ) != space ){
 										
 										throw( new IOException( "Error reading scratch file" ));
 									}
 									
-									total += buffer_len;
+									total += space;
+									
+									listener.reportBytesRead( space );
 									
 									listener.done();
 								}
