@@ -40,6 +40,10 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadStub;
@@ -69,6 +73,9 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableView;
@@ -222,11 +229,75 @@ public class MainMDISetup
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_CHAT,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
+						
+						final ViewTitleInfo title_info = 
+								new ViewTitleInfo() 
+								{
+									private BuddyPluginBeta bp = BuddyPluginUtils.getBetaPlugin();
+									
+									public Object 
+									getTitleInfoProperty(
+										int propertyID) 
+									{
+										if ( propertyID == TITLE_INDICATOR_TEXT ){
+									
+											int	num = 0;
+											
+											for ( ChatInstance chat: bp.getChats()){
+												
+												if ( chat.getMessageOutstanding()){
+													
+													num++;
+												}
+											}
+											
+											if ( num > 0 ){
+												
+												return( String.valueOf( num ));
+												
+											}else{
+												
+												return( null );
+											}
+										}
+										
+										return null;
+									}
+								};
+						
+						final TimerEventPeriodic	timer = 
+							SimpleTimer.addPeriodicEvent(
+									"sb:chatup",
+									5*1000,
+									new TimerEventPerformer()
+									{
+										
+										public void 
+										perform(
+											TimerEvent event) 
+										{
+											ViewTitleInfoManager.refreshTitleInfo( title_info );
+										}
+									});
+						
 						MdiEntry entry = mdi.createEntryFromSkinRef(
 								MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
 								MultipleDocumentInterface.SIDEBAR_SECTION_CHAT, "chatsview",
-								"{mdi.entry.chatsoverview}", null, null, true, null);
+								"{mdi.entry.chatsoverview}", title_info, null, true, null);
+						
 						entry.setImageLeftID("image.sidebar.chat-overview");
+						
+						entry.addListener(
+							new MdiCloseListener() {
+								
+								public void 
+								mdiEntryClosed(
+									MdiEntry entry, boolean userClosed) 
+								{
+									timer.cancel();
+								}
+							});
+						
 						return entry;
 					}
 				});
