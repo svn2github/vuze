@@ -21,8 +21,11 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
@@ -63,6 +66,7 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
@@ -196,6 +200,60 @@ public class SBC_ChatOverview
 		try{
 			String key = "Chat_" + chat.getNetwork() + ":" + Base32.encode( chat.getKey().getBytes( "UTF-8" ));
 			
+			BuddyPluginBeta bp = BuddyPluginUtils.getBetaPlugin();
+			
+			TreeMap<ChatInstance,String>	name_map = 
+					new TreeMap<ChatInstance,String>(
+						new Comparator<ChatInstance>()
+						{
+							public int 
+							compare(
+								ChatInstance o1, 
+								ChatInstance o2) 
+							{
+								return( o1.getName().compareTo( o2.getName()));
+							}
+						});
+
+			name_map.put( chat, key );
+			
+			List<ChatInstance> all_chats = bp.getChats();
+			
+			for ( ChatInstance c: all_chats ){
+				
+				try{
+					String k = "Chat_" + c.getNetwork() + ":" + Base32.encode( c.getKey().getBytes( "UTF-8" ));
+
+					if ( mdi.getEntry( k ) != null ){
+						
+						name_map.put( c, k );
+					}
+				}catch( Throwable e ){
+					
+				}
+			}
+			
+			String	prev_id = null;
+			
+			for ( String this_id: name_map.values()){
+						
+				if ( this_id == key ){
+					
+					break;
+				}
+				
+				prev_id = this_id;
+			}
+			
+			if ( prev_id == null && name_map.size() > 1 ){
+							
+				Iterator<String>	it = name_map.values().iterator();
+				
+				it.next();
+				
+				prev_id = "~" + it.next();
+			}
+			
 			MdiEntry entry =
 				mdi.createEntryFromEventListener(
 					MultipleDocumentInterface.SIDEBAR_SECTION_CHAT,
@@ -203,7 +261,7 @@ public class SBC_ChatOverview
 						key, 
 						ChatView.class, 
 						chat, null ),
-					key, true, chat, null);
+					key, true, chat, prev_id);
 	
 			ChatMDIEntry entryInfo = new ChatMDIEntry( chat, entry );
 			
