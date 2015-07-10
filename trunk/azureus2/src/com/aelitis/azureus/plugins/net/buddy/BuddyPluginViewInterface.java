@@ -37,6 +37,7 @@ BuddyPluginViewInterface
 	
 	public static final String	VP_SWT_COMPOSITE	= "swt_comp";
 	public static final String	VP_DOWNLOAD			= "download";		// DownloadAdapter
+	public static final String	VP_CHAT				= "chat";			// ChatInstance
 	
 	public View
 	buildView(
@@ -59,6 +60,9 @@ BuddyPluginViewInterface
 	public interface
 	View
 	{
+		public void
+		activate();
+		
 		public void
 		destroy();
 	}

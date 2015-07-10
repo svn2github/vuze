@@ -77,6 +77,11 @@ AZ3Functions
 			int					file_index );
 
 		public void
+		openChat(
+			String				network,
+			String				key );
+		
+		public void
 		setOpened(
 			DownloadManager		dm,
 			boolean				opened );

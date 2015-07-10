@@ -114,9 +114,11 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
@@ -749,6 +751,24 @@ BuddyPluginViewBetaChat
 						}
 					});
 			
+			final AZ3Functions.provider az3 = AZ3Functions.getProvider();
+			
+			if ( az3 != null ){
+				
+				final MenuItem sis_mi = new MenuItem( status_menu, SWT.PUSH );
+				sis_mi.setText( MessageText.getString( Utils.isAZ2UI()?"label.show.in.tab":"label.show.in.sidebar" ));
+				
+				sis_mi.addSelectionListener(
+						new SelectionAdapter() {				
+							public void 
+							widgetSelected(
+								SelectionEvent e ) 
+							{
+								az3.openChat( chat.getNetwork(), chat.getKey());
+							}
+						});
+			}
+			
 			final Menu advanced_menu = new Menu(status_menu.getShell(), SWT.DROP_DOWN);
 			MenuItem advanced_menu_item = new MenuItem( status_menu, SWT.CASCADE);
 			advanced_menu_item.setMenu(advanced_menu);
@@ -859,8 +879,8 @@ BuddyPluginViewBetaChat
 					}
 				});
 			
-			final MenuItem fave_mi = new MenuItem( status_menu, SWT.CHECK );
-			fave_mi.setText( MessageText.getString( "label.keep.alive" ));
+			final MenuItem keep_alive_mi = new MenuItem( status_menu, SWT.CHECK );
+			keep_alive_mi.setText( MessageText.getString( "label.keep.alive" ));
 			
 			status_menu.addMenuListener(
 				new MenuAdapter() 
@@ -869,11 +889,11 @@ BuddyPluginViewBetaChat
 					menuShown(
 						MenuEvent e ) 
 					{
-						fave_mi.setSelection( chat.getUserData( "AC:KeepAlive" ) != null );
+						keep_alive_mi.setSelection( chat.getUserData( "AC:KeepAlive" ) != null );
 					}
 				});
 			
-			fave_mi.addSelectionListener(
+			keep_alive_mi.addSelectionListener(
 					new SelectionAdapter() {				
 						public void 
 						widgetSelected(
@@ -900,8 +920,25 @@ BuddyPluginViewBetaChat
 							chat.setUserData( "AC:KeepAlive", clone );
 						}
 					});
+			
+			final AZ3Functions.provider az3 = AZ3Functions.getProvider();
+			
+			if ( az3 != null ){
+				
+				final MenuItem sis_mi = new MenuItem( status_menu, SWT.PUSH );
+				sis_mi.setText( MessageText.getString( "label.show.in.sidebar" ));
+				
+				sis_mi.addSelectionListener(
+						new SelectionAdapter() {				
+							public void 
+							widgetSelected(
+								SelectionEvent e ) 
+							{
+								az3.openChat( chat.getNetwork(), chat.getKey());
+							}
+						});
+			}
 		}
-		
 		
 		final Composite ftux_stack = new Composite(lhs, SWT.NONE);
 		grid_data = new GridData(GridData.FILL_BOTH );

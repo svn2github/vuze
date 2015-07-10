@@ -4453,6 +4453,8 @@ BuddyPluginBeta
 		setMessageOutstanding( 
 			boolean		b )
 		{
+			boolean changed = false;
+			
 			synchronized( chat_lock ){
 			
 				if ( message_outstanding == b ){
@@ -4461,6 +4463,8 @@ BuddyPluginBeta
 				}
 				
 				message_outstanding = b;
+				
+				changed = true;
 				
 				if ( !b ){
 					
@@ -4475,6 +4479,11 @@ BuddyPluginBeta
 						BuddyPluginBeta.this.setLastMessageInfo( network, key, last_info );
 					}
 				}
+			}
+			
+			if ( changed ){
+				
+				updated();
 			}
 		}
 		

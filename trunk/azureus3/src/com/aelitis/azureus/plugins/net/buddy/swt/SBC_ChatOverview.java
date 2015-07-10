@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -39,6 +41,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
@@ -52,7 +55,11 @@ import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.swt.columns.tag.*;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener2;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
@@ -74,6 +81,143 @@ public class SBC_ChatOverview
 
 	private static final String TABLE_CHAT = "ChatsView";
 
+	public static void
+	preInitialize()
+	{
+		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		
+		if ( mdi == null ){
+
+			return;
+		}
+		
+		mdi.registerEntry(
+			"Chat_.*", 
+			new MdiEntryCreationListener2() 
+			{
+				public MdiEntry 
+				createMDiEntry(
+					MultipleDocumentInterface mdi, 
+					String id,
+					Object datasource, 
+					Map<?, ?> params) 
+				{
+					ChatInstance chat = null;
+					
+					if ( datasource instanceof ChatInstance ){
+						
+						chat = (ChatInstance)datasource;
+						
+						try{
+							chat = chat.getClone();
+							
+						}catch( Throwable e ){
+							
+							chat = null;
+							
+							Debug.out( e );
+						}
+						
+					}else if ( id.length() > 7 ){
+						
+						BuddyPluginBeta beta = BuddyPluginUtils.getBetaPlugin();
+
+						if ( beta != null ){
+							
+							try{						
+								String[] bits = id.substring( 5 ).split( ":" );
+								
+								String network 	= AENetworkClassifier.internalise( bits[0] );
+								String key		= new String( Base32.decode( bits[1] ), "UTF-8" );
+								
+								chat = beta.getChat(network, key);
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					}
+
+					if ( chat != null ){
+						
+						chat.setAutoNotify( true );
+						
+						return( createChatMdiEntry( chat ));
+					}
+					
+					return( null );
+				}
+			});
+	}
+	
+	public static void
+	openChat(
+		String		network,
+		String		key )
+	{
+		BuddyPluginBeta beta = BuddyPluginUtils.getBetaPlugin();
+
+		if ( beta != null ){
+			
+			try{
+				ChatInstance chat = beta.getChat(network, key);
+			
+				chat.setAutoNotify( true );
+				
+				MdiEntry mdi_entry = createChatMdiEntry( chat );
+				
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+				if ( mdi != null ){
+					
+					mdi.showEntry( mdi_entry );
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	private static MdiEntry 
+	createChatMdiEntry(
+		ChatInstance chat ) 
+	{
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		
+		if ( mdi == null ){
+			
+				// closing down
+		
+			return( null );
+		}
+	
+		try{
+			String key = "Chat_" + chat.getNetwork() + ":" + Base32.encode( chat.getKey().getBytes( "UTF-8" ));
+			
+			MdiEntry entry =
+				mdi.createEntryFromEventListener(
+					MultipleDocumentInterface.SIDEBAR_SECTION_CHAT,
+					new UISWTViewEventListenerHolder(
+						key, 
+						ChatView.class, 
+						chat, null ),
+					key, true, chat, null);
+	
+			ChatMDIEntry entryInfo = new ChatMDIEntry( chat, entry );
+			
+			return entry;
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( null );
+		}
+	}
+	
+	
 	TableViewSWT<ChatInstance> tv;
 
 	private Text txtFilter;
@@ -84,7 +228,6 @@ public class SBC_ChatOverview
 
 	private boolean listener_added;
 	
-	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
 		if ( tv == null || !tv.isVisible()){
@@ -110,11 +253,9 @@ public class SBC_ChatOverview
 		return false;
 	}
 
-	// @see com.aelitis.azureus.ui.common.table.TableViewFilterCheck#filterSet(java.lang.String)
 	public void filterSet(String filter) {
 	}
 
-	// @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	public void refreshToolBarItems(Map<String, Long> list) {
 		if ( tv == null || !tv.isVisible()){
 			return;
@@ -135,19 +276,16 @@ public class SBC_ChatOverview
 		list.put("remove", canEnable ? UIToolBarItem.STATE_ENABLED : 0);
 	}
 
-	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
 	public void updateUI() {
 		if (tv != null) {
 			tv.refreshTable(false);
 		}
 	}
 
-	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
 	public String getUpdateUIName() {
-		return "TagsView";
+		return "ChatsView";
 	}
 
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		initColumns();
 
@@ -232,10 +370,9 @@ public class SBC_ChatOverview
 
 			});
 		
-		tableManager.setDefaultSortColumnName(TABLE_CHAT, ColumnTagName.COLUMN_ID);
+		tableManager.setDefaultSortColumnName(TABLE_CHAT, ColumnChatName.COLUMN_ID);
 	}
 
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
 
 		if (tv != null) {
@@ -262,7 +399,6 @@ public class SBC_ChatOverview
 		return super.skinObjectHidden(skinObject, params);
 	}
 
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 		SWTSkinObject so_list = getSkinObject("chats-list");
@@ -314,16 +450,12 @@ public class SBC_ChatOverview
 		return super.skinObjectDestroyed(skinObject, params);
 	}
 	
-	/**
-	 * @param control
-	 *
-	 * @since 4.6.0.5
-	 */
+
 	private void initTable(Composite control) {
 		if ( tv == null ){
 			
 			tv = TableViewFactory.createTableViewSWT(ChatInstance.class, TABLE_CHAT, TABLE_CHAT,
-					new TableColumnCore[0], ColumnTagName.COLUMN_ID, SWT.MULTI
+					new TableColumnCore[0], ColumnChatName.COLUMN_ID, SWT.MULTI
 							| SWT.FULL_SELECTION | SWT.VIRTUAL);
 			if (txtFilter != null) {
 				tv.enableFilterCheck(txtFilter, this);
@@ -361,7 +493,51 @@ public class SBC_ChatOverview
 				chats.add((ChatInstance)obj);
 			}
 		}
+			
+			// show in sidebar
+		
+		MenuItem itemSiS = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(itemSiS, Utils.isAZ2UI()?"label.show.in.tab":"label.show.in.sidebar");
+		
+		itemSiS.setEnabled(chats.size() > 0);
+
+		itemSiS.addListener(SWT.Selection, new Listener() {
+			public void 
+			handleEvent(
+				Event event ) 
+			{
+				MdiEntry	first_entry = null;
+				
+				for ( ChatInstance chat: chats ){
 					
+					try{
+						MdiEntry entry = createChatMdiEntry( chat.getClone());
+						
+						if ( first_entry == null ){
+							
+							first_entry = entry;
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+				
+				if ( first_entry != null ){
+					
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+					if ( mdi != null ){
+						
+						mdi.showEntry(first_entry);
+					}
+				}
+			}   
+		});
+			
+			
+			
 		MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
 		
 		Messages.setLanguageText(itemRemove, "MySharesView.menu.remove");
@@ -484,7 +660,6 @@ public class SBC_ChatOverview
 	{	
 	}
 	
-	// @see com.aelitis.azureus.ui.common.table.TableViewFilterCheck#filterCheck(java.lang.Object, java.lang.String, boolean)
 	public boolean filterCheck(ChatInstance ds, String filter, boolean regex) {
 		return false;
 	}

@@ -1496,15 +1496,39 @@ BuddyPluginView
 		Map<String,Object>		properties,
 		ViewListener			listener )
 	{
-		BetaSubViewHolder view = new BetaSubViewHolder();
-		
 		Composite	swt_composite = (Composite)properties.get( BuddyPluginViewInterface.VP_SWT_COMPOSITE );
 		
-		DownloadAdapter	download = (DownloadAdapter)properties.get( BuddyPluginViewInterface.VP_DOWNLOAD );
-		
-		view.initialise( swt_composite, download, listener );
-		
-		return( view );
+		ChatInstance	chat = (ChatInstance)properties.get( BuddyPluginViewInterface.VP_CHAT );
+
+		if ( chat != null ){
+			
+			final BuddyPluginViewBetaChat view = new BuddyPluginViewBetaChat( BuddyPluginView.this, plugin, chat, swt_composite );
+
+			return(
+				new View()
+				{
+					public void
+					activate()
+					{
+						view.activate();
+					}
+					
+					public void
+					destroy()
+					{
+						view.close();
+					}
+				});
+		}else{
+			BetaSubViewHolder view = new BetaSubViewHolder();
+			
+
+			DownloadAdapter	download = (DownloadAdapter)properties.get( BuddyPluginViewInterface.VP_DOWNLOAD );
+			
+			view.initialise( swt_composite, download, listener );
+			
+			return( view );
+		}
 	}
 	
 	private class
@@ -2359,7 +2383,7 @@ BuddyPluginView
 			return( scrollChild );
 		}
 		
-		private void
+		public void
 		activate()
 		{
 			if ( rebuild_outstanding ){

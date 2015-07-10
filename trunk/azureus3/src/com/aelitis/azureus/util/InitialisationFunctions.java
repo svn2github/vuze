@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.plugins.net.buddy.swt.SBC_ChatOverview;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 
@@ -92,6 +93,8 @@ public class InitialisationFunctions
 		
 		RelatedContentManager.preInitialise( core );
 
+		SBC_ChatOverview.preInitialize();
+		
 		AZ3Functions.setProvider(
 			new AZ3Functions.provider()
 			{
@@ -244,6 +247,14 @@ public class InitialisationFunctions
 						}
 					}
 				}	
+				
+				public void 
+				openChat(
+					String network, 
+					String key) 
+				{
+					SBC_ChatOverview.openChat(network, key);
+				}
 				
 				public TranscodeTarget[]
            		getTranscodeTargets()
