@@ -38,13 +38,17 @@ import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
@@ -79,19 +83,44 @@ BrowserWrapperFake
 		browser.setBackground( Colors.white );
 		
 		GridLayout layout = new GridLayout();
-		layout.numColumns = 1;
+		layout.numColumns = 3;
 		browser.setLayout(layout);
 		
 		Label label = new Label(browser, SWT.WRAP);
 		Messages.setLanguageText(label, "browser.internal.disabled.info");
-		label.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ));
+		GridData grid_data = new GridData( GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		label.setLayoutData( grid_data );
 		label.setBackground( Colors.white );
 
+		label = new Label(browser, SWT.NULL);
+		Messages.setLanguageText(label, "browser.internal.disabled.reenable");
+		
+		final Button button = new Button( browser, SWT.NULL );
+		Messages.setLanguageText(button, "label.enable");
+		
+		button.addSelectionListener(
+			new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					button.setEnabled( false );
+					COConfigurationManager.setParameter( "browser.internal.disable", false );
+				}
+			});
+		
+		label = new Label(browser, SWT.NULL);
+		grid_data = new GridData( GridData.FILL_HORIZONTAL );
+		label.setLayoutData( grid_data );
+		
+			// details
+		
 		Composite details = new Composite( browser, SWT.BORDER );
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		details.setLayout(layout);
-		details.setLayoutData( new GridData( GridData.FILL_BOTH ));
+		grid_data = new GridData( GridData.FILL_BOTH );
+		grid_data.horizontalSpan = 3;
+		details.setLayoutData( grid_data);
 		details.setBackground( Colors.white );
 		
 			// url
@@ -122,7 +151,7 @@ BrowserWrapperFake
 			}
 		});
 		
-		GridData grid_data = new GridData(GridData.FILL_HORIZONTAL);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL);
 		grid_data.horizontalIndent = 10;
 		link_label.setLayoutData(grid_data);
 		
