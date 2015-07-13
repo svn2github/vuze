@@ -22,7 +22,6 @@ import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.ILogAlertListener;
@@ -32,6 +31,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -55,13 +55,13 @@ public class Alerts
 
 	private static AEMonitor alert_history_mon = new AEMonitor("Alerts:H");
 
-	private static ArrayList<AlertHistoryListener> listMessageHistoryListeners = new ArrayList<AlertHistoryListener>(1); 
+	private static CopyOnWriteList<AlertHistoryListener> listMessageHistoryListeners = new CopyOnWriteList<AlertHistoryListener>(1); 
 
 	private static boolean initialisation_complete = false;
 
 	private static volatile boolean stopping;
 
-	private static List<AlertListener> listeners = new ArrayList<AlertListener>();
+	private static CopyOnWriteList<AlertListener> listeners = new CopyOnWriteList<AlertListener>();
 
 	private Alerts() {
 	}
