@@ -1345,6 +1345,27 @@ public class SideBar
 			oldEntry.hide();
 			oldEntry.redraw();
 		}
+		
+			// as this code isn't thread safe there is a chance we end up with multiple entries visible
+			// (well actually it happens fairly frequently) - this results in other views being rendered
+			// during switching which is nasty - hide anything that shouldn't be visible for the moment
+		
+		MdiEntrySWT[] entries = getEntriesSWT();
+		for (MdiEntrySWT entry : entries) {
+			if (entry == null) {
+				continue;
+			}
+			if ( entry != currentEntry ){
+				
+				SWTSkinObject obj = ((SideBarEntrySWT)entry).getSkinObjectMaster();
+				
+				if ( obj != null && obj.isVisible()){
+			
+					entry.hide();
+					oldEntry.redraw();
+				}
+			}
+		}
 
 		newEntry.redraw();
 
