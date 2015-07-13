@@ -1362,7 +1362,7 @@ public class SideBar
 				if ( obj != null && obj.isVisible()){
 			
 					entry.hide();
-					oldEntry.redraw();
+					entry.redraw();
 				}
 			}
 		}

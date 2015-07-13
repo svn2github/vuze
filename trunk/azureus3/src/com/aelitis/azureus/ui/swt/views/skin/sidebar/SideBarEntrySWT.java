@@ -729,6 +729,17 @@ public class SideBarEntrySWT
 		super.show();
 	}
 
+	public void hide() {
+		// if we defer the show above then we should defer the hide similarly to ensure that a caller trying
+		// to show a new view before hiding the old (to avoid an intermediate blank view) ends up executing things
+		// in teh desired order
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				SideBarEntrySWT.super.hide();
+			}
+		});
+	}
+	
 	protected void swt_paintSideBar(Event event) {
 		neverPainted = false;
 		//System.out.println(System.currentTimeMillis() + "] paint " + getId() + ";sel? " + ((event.detail & SWT.SELECTED) > 0));
