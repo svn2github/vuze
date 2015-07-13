@@ -118,7 +118,6 @@ import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
@@ -3225,34 +3224,36 @@ BuddyPluginViewBetaChat
 	private void
 	sortParticipants()
 	{
-		Collections.sort(
-			participants,
-			new Comparator<ChatParticipant>()
-			{
-				private Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
-				
-				public int 
-				compare(
-					ChatParticipant p1, 
-					ChatParticipant p2 ) 
+		synchronized( participants ){
+			Collections.sort(
+				participants,
+				new Comparator<ChatParticipant>()
 				{
-					boolean	b_p1 = p1.hasNickname();
-					boolean	b_p2 = p2.hasNickname();
+					private Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
 					
-					if ( b_p1 == b_p2 ){
-					
-						return( comp.compare( p1.getName( ftux_ok ), p2.getName( ftux_ok )));
+					public int 
+					compare(
+						ChatParticipant p1, 
+						ChatParticipant p2 ) 
+					{
+						boolean	b_p1 = p1.hasNickname();
+						boolean	b_p2 = p2.hasNickname();
 						
-					}else if ( b_p1 ){
+						if ( b_p1 == b_p2 ){
 						
-						return( -1 );
-						
-					}else{
-						
-						return( 1 );
+							return( comp.compare( p1.getName( ftux_ok ), p2.getName( ftux_ok )));
+							
+						}else if ( b_p1 ){
+							
+							return( -1 );
+							
+						}else{
+							
+							return( 1 );
+						}
 					}
-				}
-			});
+				});
+		}
 	}
 	
 	public void
