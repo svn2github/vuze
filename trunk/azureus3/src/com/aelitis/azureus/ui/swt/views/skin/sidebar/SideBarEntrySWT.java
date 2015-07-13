@@ -1056,6 +1056,12 @@ public class SideBarEntrySWT
     		clipping.y--;
   			gc.setForeground(fgText);
   		} else {
+  			if ( treeItem.getItemCount() > 0 ){
+  				Font headerFont = sidebar.getHeaderFont();
+  	  			if (headerFont != null && !headerFont.isDisposed()) {
+  	  				gc.setFont(headerFont);
+  	  			}
+  			}
   			gc.setForeground(fgText);
   		}
 			//gc.setClipping(clipping);
