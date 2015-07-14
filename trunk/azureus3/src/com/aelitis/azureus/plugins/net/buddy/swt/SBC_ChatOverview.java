@@ -81,9 +81,10 @@ public class SBC_ChatOverview
 	implements 	UIUpdatable, UIPluginViewToolBarListener, TableViewFilterCheck<ChatInstance>, 
 				ChatManagerListener, TableViewSWTMenuFillListener, TableSelectionListener
 {
-
 	private static final String TABLE_CHAT = "ChatsView";
 
+	protected static final Object	MDI_KEY = new Object();
+	
 	public static void
 	preInitialize()
 	{
@@ -262,9 +263,11 @@ public class SBC_ChatOverview
 						chat, null ),
 					key, true, chat, prev_id);
 	
-			ChatMDIEntry entryInfo = new ChatMDIEntry( chat, entry );
+			ChatMDIEntry entry_info = new ChatMDIEntry( chat, entry );
 			
-			return entry;
+			chat.setUserData( MDI_KEY, entry_info );
+			
+			return( entry );
 			
 		}catch( Throwable e ){
 			

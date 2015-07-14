@@ -19,12 +19,17 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 
+import org.gudy.azureus2.core3.util.AEThread2;
+
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatAdapter;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.MdiCloseListener;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MdiEntryDropListener;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 
 public class ChatMDIEntry implements ViewTitleInfo
@@ -32,6 +37,9 @@ public class ChatMDIEntry implements ViewTitleInfo
 	private final MdiEntry mdi_entry;
 	
 	private final ChatInstance chat;
+	
+	private ChatView		view;
+	private String			drop_outstanding;
 	
 	private final ChatAdapter adapter = 
 		new ChatAdapter()
@@ -61,6 +69,57 @@ public class ChatMDIEntry implements ViewTitleInfo
 	{
 		mdi_entry.setViewTitleInfo( this );
 		
+		MdiEntryDropListener drop_listener = 
+			new MdiEntryDropListener() 
+			{
+				public boolean 
+				mdiEntryDrop(
+					MdiEntry 	entry, 
+					Object		payload ) 
+				{
+					if ( payload instanceof String[] ){
+						
+						String[] derp = (String[])payload;
+						
+						if ( derp.length > 0 ){
+							
+							payload = derp[0];
+						}
+					}
+					
+					if (!(payload instanceof String)){
+						
+						return false;
+					}
+					
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+					if ( mdi != null ){
+						
+						String drop = (String)payload;
+						
+						if ( view == null ){
+							
+							drop_outstanding = drop;
+							
+						}else{
+							
+							view.handleDrop( drop );
+						}
+						
+						mdi.showEntry( mdi_entry );
+						
+						return( true );
+						
+					}else{
+					
+						return( false );
+					}
+				}
+			};
+
+		mdi_entry.addListener( drop_listener );
+		
 		mdi_entry.addListener(
 			new MdiCloseListener()
 			{
@@ -76,6 +135,22 @@ public class ChatMDIEntry implements ViewTitleInfo
 		chat.addListener( adapter );
 	}
 
+	protected void
+	setView(
+		ChatView		_view )
+	{
+		view = _view;
+		
+		String drop = drop_outstanding;
+		
+		if ( drop != null ){
+			
+			drop_outstanding = null;
+		
+			view.handleDrop( drop );
+		}
+	}
+	
 	private void
 	update()
 	{
@@ -90,6 +165,7 @@ public class ChatMDIEntry implements ViewTitleInfo
 	{
 		switch( propertyID ){
 		
+			case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:
 			case ViewTitleInfo.TITLE_TEXT:{
 				
 				return( chat.getName());

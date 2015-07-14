@@ -27,8 +27,6 @@ import java.util.Map;
 
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
@@ -47,7 +45,7 @@ ChatView
 	
 	private void 
 	initialize(
-		Composite _parent_composite )
+		Composite	_parent_composite )
 	{  
 		try{
 			if ( current_chat != null ){
@@ -71,6 +69,13 @@ ChatView
 	
 							}
 						});
+				
+				ChatMDIEntry	mdi_entry = (ChatMDIEntry)current_chat.getUserData( SBC_ChatOverview.MDI_KEY );
+				
+				if ( mdi_entry != null ){
+					
+					mdi_entry.setView( this );
+				}
 			}else{
 			
 				Debug.out( "No current chat" );
@@ -79,6 +84,13 @@ ChatView
 			
 			Debug.out( e );
 		}
+	}
+	
+	protected void
+	handleDrop(
+		String		drop )
+	{
+		System.out.println( drop + " -> " + chat_view );
 	}
 	
 	private void
@@ -152,6 +164,7 @@ ChatView
 
 		case UISWTViewEvent.TYPE_INITIALIZE:
 			initialize((Composite)event.getData());
+			
 			break;
 
 		case UISWTViewEvent.TYPE_LANGUAGEUPDATE:

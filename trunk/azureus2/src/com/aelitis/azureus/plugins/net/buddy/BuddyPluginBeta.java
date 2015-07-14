@@ -2892,6 +2892,13 @@ BuddyPluginBeta
 			}
 		}
 		
+		public void
+		handleDrop(
+			String		str )
+		{
+			
+		}
+		
 		public int
 		getEstimatedNodes()
 		{
