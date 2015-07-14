@@ -2850,6 +2850,13 @@ BuddyPluginViewBetaChat
 		}
 	}
 	
+	public void
+	handleExternalDrop(
+		String	payload )
+	{
+		handleDrop( payload );
+	}
+	
 	private void
 	handleDrop(
 		Object	payload )
@@ -2858,13 +2865,28 @@ BuddyPluginViewBetaChat
 			
 			String[]	files = (String[])payload;
 			
-			for ( String file: files ){
-			
-				File f = new File( file );
-
-				if ( f.exists()){
+			if ( files.length == 0 ){
 				
-					dropFile( f );
+				Debug.out( "Nothing to drop" );
+				
+			}else{
+				int hits = 0;
+				
+				for ( String file: files ){
+				
+					File f = new File( file );
+	
+					if ( f.exists()){
+					
+						dropFile( f );
+						
+						hits++;
+					}
+				}
+				
+				if ( hits == 0 ){
+					
+					Debug.out( "Nothing files found to drop" );
 				}
 			}
 		}else if ( payload instanceof String ){
@@ -2926,13 +2948,25 @@ BuddyPluginViewBetaChat
 				}
 			}else{
 				
-				String lc_stuff = stuff.toLowerCase( Locale.US );
+				File f = new File( stuff );
+
+				if ( f.exists()){
+					
+					dropFile( f );
+					
+				}else{
+					String lc_stuff = stuff.toLowerCase( Locale.US );
+					
+					if ( 	lc_stuff.startsWith( "http:" ) || 
+							lc_stuff.startsWith( "https:" ) ||
+							lc_stuff.startsWith( "magnet: ")){
 				
-				if ( 	lc_stuff.startsWith( "http:" ) || 
-						lc_stuff.startsWith( "https:" ) ||
-						lc_stuff.startsWith( "magnet: ")){
-			
-					dropURL( stuff );
+						dropURL( stuff );
+						
+					}else{
+						
+						Debug.out( "Failed to handle drop for '" + stuff + "'" );
+					}
 				}
 			}
 		}else if ( payload instanceof URLTransfer.URLType ){
@@ -2942,6 +2976,10 @@ BuddyPluginViewBetaChat
 			if ( url != null ){
 				
 				dropURL( url );
+				
+			}else{
+				
+				Debug.out( "Failed to handle drop for '" + payload + "'" );
 			}
 		}
 	}

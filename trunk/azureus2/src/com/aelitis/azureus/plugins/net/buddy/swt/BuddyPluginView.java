@@ -1513,6 +1513,13 @@ BuddyPluginView
 						view.activate();
 					}
 					
+					public void 
+					handleDrop(
+						String drop) 
+					{
+						view.handleExternalDrop( drop );
+					}
+					
 					public void
 					destroy()
 					{
@@ -2399,6 +2406,13 @@ BuddyPluginView
 			}
 			
 			activateNetwork( null );
+		}
+		
+		public void 
+		handleDrop(
+			String drop) 
+		{
+			Debug.out( "not supported" );
 		}
 		
 		private void

@@ -64,6 +64,10 @@ BuddyPluginViewInterface
 		activate();
 		
 		public void
+		handleDrop(
+			String		drop );
+		
+		public void
 		destroy();
 	}
 	

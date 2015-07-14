@@ -90,7 +90,7 @@ ChatView
 	handleDrop(
 		String		drop )
 	{
-		System.out.println( drop + " -> " + chat_view );
+		chat_view.handleDrop( drop );
 	}
 	
 	private void
