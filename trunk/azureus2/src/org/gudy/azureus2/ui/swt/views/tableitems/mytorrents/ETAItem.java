@@ -43,7 +43,7 @@ public class ETAItem
        extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
-	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
+	public static final Class<?> DATASOURCE_TYPE = DownloadTypeIncomplete.class;
 
 	public static final String COLUMN_ID = "eta";
 
@@ -65,8 +65,9 @@ public class ETAItem
 	public void refresh(TableCell cell) {
 		DownloadManager dm = (DownloadManager)cell.getDataSource();
 		long value = (dm == null) ? 0 : dm.getStats().getETA();
+		Long sortVal = value < 0 ? null : value;
 
-		if (!cell.setSortValue(value) && cell.isValid()){
+		if (!cell.setSortValue(sortVal) && cell.isValid()){
 			return;
 		}
 		
