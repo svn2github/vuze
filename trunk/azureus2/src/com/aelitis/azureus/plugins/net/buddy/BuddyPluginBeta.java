@@ -4320,6 +4320,22 @@ BuddyPluginBeta
 			}
 		}
 		
+		public boolean
+		hasUnseenMessageWithNick()
+		{
+			List<ChatMessage> messages = getUnseenMessages();
+			
+			for ( ChatMessage msg: messages ){
+				
+				if ( msg.getNickLocations().length > 0 ){
+					
+					return( true );
+				}
+			}	
+			
+			return( false );
+		}
+		
 		public List<ChatMessage>
 		getUnseenMessages()
 		{
@@ -5197,6 +5213,7 @@ BuddyPluginBeta
 		private boolean							is_nick_clash;
 		
 		private int								seen_state = SEEN_UNKNOWN;
+		private int[]							nick_locations;
 		
 		private
 		ChatMessage(
@@ -5262,6 +5279,90 @@ BuddyPluginBeta
 		getSeenState()
 		{
 			return( seen_state );
+		}
+		
+		public int[]
+		getNickLocations()
+		{
+			synchronized( this ){
+								
+				if ( nick_locations == null ){
+					
+					if ( participant == null ){
+						
+						return( new int[0] );
+					}
+					
+					String my_nick = participant.getChat().getNickname();
+					
+					int	nick_len = my_nick.length();
+					
+					String text = getMessage();
+					
+					int	text_len = text.length();
+					
+					int	pos = 0;
+					
+					List<Integer> hits = new ArrayList<Integer>();
+					
+					while( pos < text_len ){
+						
+						pos = text.indexOf( my_nick, pos );
+						
+						if ( pos >= 0 ){
+							
+							boolean	match = true;
+							
+							if ( pos > 0 ){
+								
+								if ( Character.isLetterOrDigit( text.charAt( pos-1 ))){
+									
+									match = false;
+								}
+							}
+							
+							int nick_end = pos + nick_len;
+							
+							if ( nick_end < text_len ){
+								
+								if ( Character.isLetterOrDigit( text.charAt(nick_end ))){
+									
+									match = false;
+								}
+							}
+							
+							if ( match ){
+							
+								hits.add( pos );
+							}
+							
+							pos += nick_len;
+						
+						}else{
+							
+							break;
+						}
+					}
+					
+					if ( hits.size() == 0 ){
+						
+						nick_locations = new int[0];
+						
+					}else{
+						
+						nick_locations = new int[hits.size()+1];
+						
+						nick_locations[0] = nick_len;
+						
+						for ( int i=0;i<hits.size();i++ ){
+							
+							nick_locations[i+1] = hits.get(i);
+						}
+					}
+				}
+				
+				return( nick_locations );
+			}
 		}
 		
 		private Map<String,Object>

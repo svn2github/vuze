@@ -3609,7 +3609,7 @@ BuddyPluginViewBetaChat
 				continue;
 			}
 						
-			String	original_msg		= message.getMessage();
+			final String original_msg		= message.getMessage();
 
 			if ( !message.isIgnored() && original_msg.length() > 0 ){
 				
@@ -3829,6 +3829,8 @@ BuddyPluginViewBetaChat
 										if ( url_str.startsWith( "\"" ) && url_str.endsWith( "\"" )){
 											
 											url_str = url_str.substring( 1, url_str.length()-1 );
+											
+											protocol = protocol.substring(1);
 										}
 										
 										URL	url = new URL( url_str );
@@ -3977,7 +3979,76 @@ BuddyPluginViewBetaChat
 								
 							}else{
 								
-								sb.append((String)obj);
+								String segment_str = (String)obj;
+								
+								try{
+									String my_nick = chat.getNickname();
+									
+									if ( segment_str.contains( my_nick )){
+										
+										StringBuffer temp = new StringBuffer( segment_str.length() + 1024 );
+										
+										int	nick_len = my_nick.length();
+																			
+										int	segment_len = segment_str.length();
+										
+										int	segment_pos = 0;
+																			
+										while( segment_pos < segment_len ){
+											
+											int next_pos = segment_str.indexOf( my_nick, segment_pos );
+											
+											if ( next_pos >= 0 ){
+												
+												temp.append( segment_str.substring( segment_pos, next_pos ));
+												
+												boolean	match = true;
+												
+												if ( next_pos > 0 ){
+													
+													if ( Character.isLetterOrDigit( segment_str.charAt( next_pos-1 ))){
+														
+														match = false;
+													}
+												}
+												
+												int nick_end = next_pos + nick_len;
+												
+												if ( nick_end < segment_len ){
+													
+													if ( Character.isLetterOrDigit( segment_str.charAt(nick_end ))){
+														
+														match = false;
+													}
+												}
+												
+												if ( match ){
+												
+													temp.append( "\"chat:nick[[" + UrlUtils.encode(my_nick) + "]]\"" );
+	
+												}else{
+													
+													temp.append( my_nick );
+												}
+												
+												segment_pos = next_pos + nick_len;
+											
+											}else{
+												
+												temp.append( segment_str.substring(segment_pos));
+												
+												break;
+											}
+										}
+										
+										segment_str = temp.toString();
+									}
+								}catch( Throwable e ){
+								
+									Debug.out( e );
+								}
+								
+								sb.append( segment_str );
 							}
 						}
 						
@@ -4051,6 +4122,8 @@ BuddyPluginViewBetaChat
 										if ( url_str.startsWith( "\"" ) && url_str.endsWith( "\"" )){
 											
 											url_str = url_str.substring( 1, url_str.length()-1 );
+											
+											protocol = protocol.substring(1);
 										}
 	
 										if ( protocol.equalsIgnoreCase( "chat" )){
@@ -4150,6 +4223,9 @@ BuddyPluginViewBetaChat
 														will_work = false;
 													}
 												}
+											}else if ( lc_url.startsWith( "chat:nick" )){
+												
+												will_work = false;
 											}
 										}catch( Throwable e ){
 											

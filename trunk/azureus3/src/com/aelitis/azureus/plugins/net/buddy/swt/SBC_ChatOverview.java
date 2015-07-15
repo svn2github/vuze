@@ -81,6 +81,8 @@ public class SBC_ChatOverview
 	implements 	UIUpdatable, UIPluginViewToolBarListener, TableViewFilterCheck<ChatInstance>, 
 				ChatManagerListener, TableViewSWTMenuFillListener, TableSelectionListener
 {
+	public static final int[] COLOR_MESSAGE_WITH_NICK = { 132, 16, 58 };
+	
 	private static final String TABLE_CHAT = "ChatsView";
 
 	protected static final Object	MDI_KEY = new Object();

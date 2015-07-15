@@ -76,6 +76,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
+import com.aelitis.azureus.plugins.net.buddy.swt.SBC_ChatOverview;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableView;
@@ -258,6 +259,18 @@ public class MainMDISetup
 											}else{
 												
 												return( null );
+											}
+										}else if ( propertyID == ViewTitleInfo.TITLE_INDICATOR_COLOR ){
+											
+											for ( ChatInstance chat: bp.getChats()){
+											
+												if ( chat.getMessageOutstanding()){
+												
+													if ( chat.hasUnseenMessageWithNick()){
+														
+														return( SBC_ChatOverview.COLOR_MESSAGE_WITH_NICK );
+													}
+												}
 											}
 										}
 										

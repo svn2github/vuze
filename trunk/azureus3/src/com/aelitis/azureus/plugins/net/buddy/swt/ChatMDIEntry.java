@@ -175,46 +175,10 @@ public class ChatMDIEntry implements ViewTitleInfo
 							
 				if ( chat.getMessageOutstanding()){
 					
-					String	my_nick = chat.getNickname();
-					
-					List<ChatMessage> messages = chat.getUnseenMessages();
-					
-					for ( ChatMessage msg: messages ){
-						
-						String text = msg.getMessage();
-						
-						int	text_len = text.length();
-						
-						int	pos = text.indexOf( my_nick );
-						
-						if ( pos >= 0 ){
+					if ( chat.hasUnseenMessageWithNick()){
 							
-							boolean	match = true;
-							
-							if ( pos > 0 ){
-								
-								if ( Character.isLetterOrDigit( text.charAt( pos-1 ))){
-									
-									match = false;
-								}
-							}
-							
-							int nick_end = pos + my_nick.length();
-							
-							if ( nick_end < text_len ){
-								
-								if ( Character.isLetterOrDigit( text.charAt(nick_end ))){
-									
-									match = false;
-								}
-							}
-							
-							if ( match ){
-							
-								return( new int[]{ 132, 16, 58 });
-							}
-						}
-					}	
+						return( SBC_ChatOverview.COLOR_MESSAGE_WITH_NICK );
+					}
 				}
 				
 				return( null );
