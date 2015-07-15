@@ -2136,8 +2136,9 @@ BuddyPluginBeta
 	
 	private static Pattern auto_dup_pattern1 = Pattern.compile( "File '(.*?)' is" );
 	private static Pattern auto_dup_pattern2 = Pattern.compile( ":([a-zA-Z2-7]{32})", Pattern.CASE_INSENSITIVE );
-
-	private static Pattern[] auto_dup_patterns = { auto_dup_pattern1, auto_dup_pattern2 };
+	private static Pattern auto_dup_pattern3 = Pattern.compile( "See (http://wiki.vuze.com/w/Swarm_Merging)" );
+	
+	private static Pattern[] auto_dup_patterns = { auto_dup_pattern1, auto_dup_pattern2, auto_dup_pattern3 };
 	
 	public class
 	ChatInstance
