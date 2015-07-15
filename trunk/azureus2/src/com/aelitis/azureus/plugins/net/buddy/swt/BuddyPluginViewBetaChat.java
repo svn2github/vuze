@@ -4289,6 +4289,8 @@ BuddyPluginViewBetaChat
 				
 				long last_message_not_ours_time = last_message_not_ours.getTimeStamp();
 				
+				boolean	mesages_seen = true;
+				
 				if ( build_complete ){
 				
 					if ( 	( !log.isVisible()) || 
@@ -4300,6 +4302,8 @@ BuddyPluginViewBetaChat
 							last_seen_message_pending = last_message_not_ours_time;
 							
 							view.betaMessagePending( chat, log, last_message_not_ours );
+							
+							mesages_seen = false;
 						}
 					}else{
 						
@@ -4312,6 +4316,14 @@ BuddyPluginViewBetaChat
 					if ( last_message_not_ours_time > last_seen_message ){
 					
 						last_seen_message = last_message_not_ours_time;
+					}
+				}
+				
+				if ( mesages_seen ){
+					
+					for ( ChatMessage msg: all_messages ){
+						
+						msg.setSeen( true );
 					}
 				}
 			}
@@ -4327,5 +4339,12 @@ BuddyPluginViewBetaChat
 		}
 		
 		view.betaMessagePending( chat, log, null );
+		
+		List<ChatMessage>	unseen = chat.getUnseenMessages();
+		
+		for ( ChatMessage msg: unseen ){
+			
+			msg.setSeen( true );
+		}
 	}
 }

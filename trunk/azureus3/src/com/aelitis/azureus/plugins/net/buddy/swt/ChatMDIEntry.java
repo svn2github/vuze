@@ -19,10 +19,11 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 
-import org.gudy.azureus2.core3.util.AEThread2;
+import java.util.List;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatAdapter;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatMessage;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
@@ -169,6 +170,54 @@ public class ChatMDIEntry implements ViewTitleInfo
 			case ViewTitleInfo.TITLE_TEXT:{
 				
 				return( chat.getName());
+			}
+			case ViewTitleInfo.TITLE_INDICATOR_COLOR:{
+							
+				if ( chat.getMessageOutstanding()){
+					
+					String	my_nick = chat.getNickname();
+					
+					List<ChatMessage> messages = chat.getUnseenMessages();
+					
+					for ( ChatMessage msg: messages ){
+						
+						String text = msg.getMessage();
+						
+						int	text_len = text.length();
+						
+						int	pos = text.indexOf( my_nick );
+						
+						if ( pos >= 0 ){
+							
+							boolean	match = true;
+							
+							if ( pos > 0 ){
+								
+								if ( Character.isLetterOrDigit( text.charAt( pos-1 ))){
+									
+									match = false;
+								}
+							}
+							
+							int nick_end = pos + my_nick.length();
+							
+							if ( nick_end < text_len ){
+								
+								if ( Character.isLetterOrDigit( text.charAt(nick_end ))){
+									
+									match = false;
+								}
+							}
+							
+							if ( match ){
+							
+								return( new int[]{ 132, 16, 58 });
+							}
+						}
+					}	
+				}
+				
+				return( null );
 			}
 			case ViewTitleInfo.TITLE_INDICATOR_TEXT:{
 				

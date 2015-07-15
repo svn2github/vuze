@@ -4319,6 +4319,66 @@ BuddyPluginBeta
 			}
 		}
 		
+		public List<ChatMessage>
+		getUnseenMessages()
+		{
+			synchronized( chat_lock ){
+				
+				LinkedList<ChatMessage> result = new LinkedList<ChatMessage>();
+				
+				if ( messages.size() > 0 ){
+
+					for ( int loop=0;loop<2;loop++ ){
+						
+						List<ChatMessage>	need_fixup = new ArrayList<ChatMessage>();
+
+						for ( int i=messages.size()-1;i>=0;i--){
+							
+							ChatMessage msg = messages.get(i);
+							
+							if ( msg.isIgnored() || msg.getParticipant().isMe()){
+								
+								continue;
+							}
+							
+							int seen_state =  msg.getSeenState();
+							
+							if ( seen_state == ChatMessage.SEEN_YES ){
+								
+								break;
+								
+							}else if ( seen_state == ChatMessage.SEEN_UNKNOWN ){
+								
+								need_fixup.add( msg );
+															
+							}else{
+								
+								result.addFirst( msg );
+							}
+						}
+				
+						if ( loop==0 && need_fixup.size() > 0 ){
+												
+							fixupSeenState( need_fixup );
+							
+							result.clear();
+							
+						}else{
+							
+							if ( need_fixup.size() > 0 ){
+								
+								Debug.out( "Hmm" );
+							}
+							
+							break;
+						}
+					}
+				}
+				
+				return( result );
+			}
+		}
+		
 		public ChatParticipant[]
 		getParticipants()
 		{
@@ -4562,6 +4622,87 @@ BuddyPluginBeta
 			}
 			
 			return( false );
+		}
+		
+		public void
+		fixupSeenState(
+			List<ChatMessage>			msgs )
+		{		
+			for ( ChatMessage msg: msgs ){
+				
+				msg.setSeen( false );
+			}
+			
+			synchronized( chat_lock ){
+				
+				String info = BuddyPluginBeta.this.getLastMessageInfo( network, key );
+				
+				if ( info != null ){
+					
+					String[] bits = info.split( "/" );
+					
+					try{
+						long	old_time_secs 	= Long.parseLong( bits[0] );
+						long	old_msg_secs 	= Long.parseLong( bits[1] );
+						byte[]	old_id			= Base32.decode( bits[2] );
+						
+						for ( ChatMessage msg: msgs ){
+							
+							long	msg_secs	= msg.getTimeStamp()/1000;
+							byte[]	id			= msg.getID();
+							
+							if ( Arrays.equals( id, old_id )){
+																
+								msg.setSeen( true );
+								
+							}else{
+							
+								long	old_cuttoff = old_time_secs - 5*60;
+								
+								if ( old_msg_secs > old_cuttoff ){
+									
+									old_cuttoff = old_msg_secs;
+								}
+								
+								if ( msg_secs <= old_cuttoff ){
+																		
+									msg.setSeen( true );
+								}
+							}
+						}
+						
+						if ( message_ids.containsKey( old_id )){
+							
+							Map<ChatMessage,Integer>	msg_map = new HashMap<ChatMessage, Integer>();
+							
+							int old_msg_index 	= -1;
+
+							for ( int i=0;i<messages.size();i++){
+								
+								ChatMessage m = messages.get(i);
+								
+								msg_map.put( m, i );
+								
+								if ( Arrays.equals( m.getID(), old_id )){
+									
+									old_msg_index = i;
+								}
+							}
+							
+							for ( ChatMessage msg: msgs ){
+															
+								Integer msg_index = msg_map.get( msg );
+							
+								if ( msg_index != null && msg_index <= old_msg_index ){
+																	
+									msg.setSeen( true );
+								}
+							}
+						}
+					}catch( Throwable e ){
+					}
+				}
+			}
 		}
 		
 		public InetSocketAddress
@@ -5033,6 +5174,10 @@ BuddyPluginBeta
 		public static final int MT_INFO		= 2;
 		public static final int MT_ERROR	= 3;
 		
+		protected static final int SEEN_UNKNOWN	= 0;
+		protected static final int SEEN_YES		= 1;
+		protected static final int SEEN_NO		= 2;
+		
 		private final int						uid;
 		private final Map<String,Object>		map;
 		
@@ -5049,6 +5194,8 @@ BuddyPluginBeta
 		private boolean							is_ignored;
 		private boolean							is_duplicate;
 		private boolean							is_nick_clash;
+		
+		private int								seen_state = SEEN_UNKNOWN;
 		
 		private
 		ChatMessage(
@@ -5101,6 +5248,19 @@ BuddyPluginBeta
 		isNickClash()
 		{
 			return( is_nick_clash );
+		}
+		
+		public void
+		setSeen(
+			boolean	is_seen )
+		{
+			seen_state = is_seen?SEEN_YES:SEEN_NO;
+		}
+		
+		public int
+		getSeenState()
+		{
+			return( seen_state );
 		}
 		
 		private Map<String,Object>
