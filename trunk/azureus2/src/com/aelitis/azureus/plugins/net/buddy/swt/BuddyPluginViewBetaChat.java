@@ -3984,7 +3984,7 @@ BuddyPluginViewBetaChat
 								try{
 									String my_nick = chat.getNickname();
 									
-									if ( segment_str.contains( my_nick )){
+									if ( segment_str.contains( my_nick ) && message_type ==  ChatMessage.MT_NORMAL ){
 										
 										StringBuffer temp = new StringBuffer( segment_str.length() + 1024 );
 										
