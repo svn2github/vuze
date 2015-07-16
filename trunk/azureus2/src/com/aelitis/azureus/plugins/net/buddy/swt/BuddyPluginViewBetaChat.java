@@ -1837,7 +1837,7 @@ BuddyPluginViewBetaChat
 		grid_data.horizontalSpan=1;
 		nickname.setLayoutData( grid_data );
 
-		nickname.setText( chat.getNickname());
+		nickname.setText( chat.getNickname( false ));
 		nickname.setMessage( chat.getDefaultNickname());
 		
 		label = new Label( nick_area, SWT.NULL );
@@ -3241,11 +3241,13 @@ BuddyPluginViewBetaChat
 						
 					if ( !nickname.isFocusControl()){
 						
-						String nick = nickname.getText().trim();
+						String old_nick = nickname.getText().trim();
 							
-						if ( !chat.getNickname().equals( nick )){
+						String new_nick = chat.getNickname( false );
+						
+						if ( !new_nick.equals( old_nick )){
 								
-							nickname.setText( chat.getNickname());
+							nickname.setText( new_nick );
 						}
 					}
 					
@@ -3982,9 +3984,11 @@ BuddyPluginViewBetaChat
 								String segment_str = (String)obj;
 								
 								try{
-									String my_nick = chat.getNickname();
+									String my_nick = chat.getNickname( true );
 									
-									if ( segment_str.contains( my_nick ) && message_type ==  ChatMessage.MT_NORMAL ){
+									if ( 	my_nick.length() > 0 && 
+											segment_str.contains( my_nick ) &&
+											message_type ==  ChatMessage.MT_NORMAL ){
 										
 										StringBuffer temp = new StringBuffer( segment_str.length() + 1024 );
 										

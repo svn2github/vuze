@@ -2668,16 +2668,26 @@ BuddyPluginBeta
 		}
 		
 		public String
-		getNickname()
+		getNickname(
+			boolean	use_default )
 		{
+			String	nick;
+			
 			if ( is_shared_nick ){
 				
-				return( network == AENetworkClassifier.AT_PUBLIC?shared_public_nickname:shared_anon_nickname );
+				nick = network == AENetworkClassifier.AT_PUBLIC?shared_public_nickname:shared_anon_nickname;
 				
 			}else{
 				
-				return( instance_nick );
+				nick = instance_nick;
 			}
+			
+			if ( nick.length() == 0 && use_default ){
+				
+				return( getDefaultNickname());
+			}
+			
+			return( nick );
 		}
 		
 		private Object
@@ -4258,7 +4268,7 @@ BuddyPluginBeta
 						payload.put( "msg", (byte[])o_message );
 					}
 					
-					payload.put( "nick", getNickname().getBytes( "UTF-8" ));
+					payload.put( "nick", getNickname( false ).getBytes( "UTF-8" ));
 					
 					if ( prev_message != null ){
 						
@@ -5293,54 +5303,57 @@ BuddyPluginBeta
 						return( new int[0] );
 					}
 					
-					String my_nick = participant.getChat().getNickname();
+					String my_nick = participant.getChat().getNickname( true );
 					
-					int	nick_len = my_nick.length();
-					
-					String text = getMessage();
-					
-					int	text_len = text.length();
-					
-					int	pos = 0;
+					int	nick_len = my_nick.length();				
 					
 					List<Integer> hits = new ArrayList<Integer>();
 					
-					while( pos < text_len ){
+					if ( my_nick.length() > 0 ){
 						
-						pos = text.indexOf( my_nick, pos );
+						String text = getMessage();
 						
-						if ( pos >= 0 ){
+						int	text_len = text.length();
+						
+						int	pos = 0;
+
+						while( pos < text_len ){
 							
-							boolean	match = true;
+							pos = text.indexOf( my_nick, pos );
 							
-							if ( pos > 0 ){
+							if ( pos >= 0 ){
 								
-								if ( Character.isLetterOrDigit( text.charAt( pos-1 ))){
-									
-									match = false;
-								}
-							}
-							
-							int nick_end = pos + nick_len;
-							
-							if ( nick_end < text_len ){
+								boolean	match = true;
 								
-								if ( Character.isLetterOrDigit( text.charAt(nick_end ))){
+								if ( pos > 0 ){
 									
-									match = false;
+									if ( Character.isLetterOrDigit( text.charAt( pos-1 ))){
+										
+										match = false;
+									}
 								}
+								
+								int nick_end = pos + nick_len;
+								
+								if ( nick_end < text_len ){
+									
+									if ( Character.isLetterOrDigit( text.charAt(nick_end ))){
+										
+										match = false;
+									}
+								}
+								
+								if ( match ){
+								
+									hits.add( pos );
+								}
+								
+								pos += nick_len;
+							
+							}else{
+								
+								break;
 							}
-							
-							if ( match ){
-							
-								hits.add( pos );
-							}
-							
-							pos += nick_len;
-						
-						}else{
-							
-							break;
 						}
 					}
 					
@@ -5704,7 +5717,7 @@ BuddyPluginBeta
 			
 			if ( getMessageType() != ChatMessage.MT_NORMAL ){
 				
-				String nick = participant.getChat().getNickname();
+				String nick = participant.getChat().getNickname( false );
 				
 				if ( nick.length() > 0 ){
 					
