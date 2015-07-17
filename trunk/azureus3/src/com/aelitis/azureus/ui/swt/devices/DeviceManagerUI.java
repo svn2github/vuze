@@ -155,7 +155,8 @@ DeviceManagerUI
 		
 	private List<categoryView>	categories = new ArrayList<categoryView>();
 	
-	
+	private int	last_job_count = 0;
+
 	private MenuItemListener properties_listener;
 	private MenuItemListener hide_listener;
 	private MenuItemListener rename_listener;
@@ -479,13 +480,14 @@ DeviceManagerUI
 		
 		TranscodeManager transMan = device_manager.getTranscodeManager();
 
-		TranscodeQueue transQ = transMan.getQueue();
+		final TranscodeQueue transQ = transMan.getQueue();
 
 		transQ.addListener(
 				new TranscodeQueueListener()
 				{
-					int	last_job_count = 0;
-
+					{
+						check();
+					}
 					public void
 					jobAdded(
 							TranscodeJob		job )
@@ -511,7 +513,7 @@ DeviceManagerUI
 					check()
 					{
 						try{
-							int job_count = device_manager.getTranscodeManager().getQueue().getJobCount();
+							int job_count = transQ.getJobCount();
 	
 							if ( job_count != last_job_count ){
 	
@@ -1519,6 +1521,13 @@ DeviceManagerUI
 							if ( propertyID == TITLE_INDICATOR_TEXT_TOOLTIP ){
 							
 								return( getHeaderToolTip());
+							}
+							if ( propertyID == TITLE_INDICATOR_TEXT ){
+								
+								if ( last_job_count > 0 ){
+								
+									return( String.valueOf( last_job_count ));
+								}
 							}
 							
 							return( null );
