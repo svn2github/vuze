@@ -4202,7 +4202,7 @@ BuddyPluginBeta
 								
 								if ( bits.length > 1 ){
 									
-									Map<String,Object> result = peekChat( getNetwork(), bits[1] );
+									Map<String,Object> result = peekChat( getNetwork(), message.substring( 5 ).trim());
 									
 									sendLocalMessage( "!" + result + "!", null, ChatMessage.MT_INFO );
 									
@@ -5634,11 +5634,18 @@ BuddyPluginBeta
 		public int
 		getMessageType()
 		{
+			return( getMessageType( true ));
+		}
+		
+		private int
+		getMessageType(
+			boolean	treat_quit_as_info )
+		{
 			String	report = (String)map.get( "error" );
 			
 			if ( report == null ){
 				
-				if ( getMessageStatus() == FLAGS_MSG_STATUS_CHAT_QUIT ){
+				if ( treat_quit_as_info && getMessageStatus() == FLAGS_MSG_STATUS_CHAT_QUIT ){
 					
 					return( MT_INFO );
 				}
@@ -5765,8 +5772,8 @@ BuddyPluginBeta
 			
 				// otherwise assume it is internally generated for non-normal messages
 			
-			if ( getMessageType() != ChatMessage.MT_NORMAL ){
-				
+			if ( getMessageType( false ) != ChatMessage.MT_NORMAL ){
+							
 				String nick = participant.getChat().getNickname( false );
 				
 				if ( nick.length() > 0 ){
