@@ -3594,7 +3594,7 @@ BuddyPluginViewBetaChat
 	{	
 		long	now = SystemTime.getCurrentTime();
 		
-		int	existing_length = log.getText().length();
+		final int	initial_log_length = log.getText().length();
 		
 		StringBuffer	appended = new StringBuffer( 2048 );
 		
@@ -3636,7 +3636,8 @@ BuddyPluginViewBetaChat
 					last_message_not_ours		= message;
 				}
 				
-				int	overall_start = appended.length();
+				final int message_start_appended_length 	= appended.length();
+				final int message_start_style_index			= new_ranges.size();
 				
 				String	nick 	= message.getNickName();
 				
@@ -3703,15 +3704,39 @@ BuddyPluginViewBetaChat
 						}
 					}
 				}
+						
+				Font 	default_font 	= null;
+				Color	default_colour	= null;
 				
-				says += message_type == ChatMessage.MT_NORMAL?"\n":" ";
+				if ( message_type == ChatMessage.MT_NORMAL ){
+					
+					if ( message.getFlagType() == BuddyPluginBeta.FLAGS_MSG_TYPE_ME ){
+					
+						says += " ";
+						
+						default_colour	= colour;
+						
+						if ( participant.isMe()){
+							
+							default_font = italic_font;
+						}
+						
+					}else{
+						
+						says += "\n";
+					}
+				}else{
+					
+					says += " ";
+				}
 				
+
 				if ( previous_says == null || previous_says_mt != message_type || !previous_says.equals( says )){
 					
 					previous_says 		= says;
 					previous_says_mt	= message_type;
 					
-					int	start = existing_length + appended.length();
+					int	start = initial_log_length + appended.length();
 							
 					appended.append( says );
 					
@@ -3734,6 +3759,7 @@ BuddyPluginViewBetaChat
 						int rem = says.length() - stamp_len;
 						
 						if ( rem > 0 ){
+							
 							StyleRange styleRange = new StyleRange();
 							styleRange.start = start + stamp_len;
 							styleRange.length = rem - was_len;
@@ -3750,7 +3776,7 @@ BuddyPluginViewBetaChat
 					}
 				}
 				
-				final int start = existing_length + appended.length();
+				final int start = initial_log_length + appended.length();
 				
 				String	msg = original_msg;
 				
@@ -4291,12 +4317,71 @@ BuddyPluginViewBetaChat
 					
 					Debug.out( e );
 				}
-				
+								
 				appended.append( msg ); 
 
+					// apply any default styles
+
+				if ( default_font != null || default_colour != null ){
+					
+					final int message_start_log_length 	= initial_log_length + message_start_appended_length;
+						
+					int	pos = message_start_log_length;
+					
+					for ( int i=message_start_style_index;i<new_ranges.size();i++){
+						
+						StyleRange style = new_ranges.get(i);
+						
+						int style_start 	= style.start;
+						int style_length	= style.length;
+						
+						if ( style_start > pos ){
+							
+							//System.out.println( "    " + pos + "-" + (style_start-1 ));
+							
+							StyleRange styleRange 	= new StyleRange();
+							styleRange.start 		= pos;
+							styleRange.length 		= style_start - pos;
+							
+							if ( default_colour != null ){
+								styleRange.foreground 	= default_colour;
+							}
+							if ( default_font != null ){
+								styleRange.font = default_font;
+							}
+							
+							new_ranges.add( i, styleRange);
+							
+							i++;
+						}
+						
+						pos = style_start + style_length;
+					}
+									
+					int message_end_log_length	= initial_log_length + appended.length();
+					
+					if ( pos < message_end_log_length ){
+						
+						//System.out.println( "    " + pos + "-" + (message_end_log_length-1) );
+	
+						StyleRange styleRange 	= new StyleRange();
+						styleRange.start 		= pos;
+						styleRange.length 		= message_end_log_length - pos;
+						
+						if ( default_colour != null ){
+							styleRange.foreground 	= default_colour;
+						}
+						if ( default_font != null ){
+							styleRange.font = default_font;
+						}
+						
+						new_ranges.add( styleRange);
+					}
+				}
+				
 				appended.append( "\n" ); 
 				
-				int	actual_length = appended.length() - overall_start;
+				int	actual_length = appended.length() - message_start_appended_length;
 				
 				messages.put( message, actual_length );
 			}

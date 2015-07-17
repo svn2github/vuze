@@ -108,6 +108,10 @@ BuddyPluginBeta
 	public static final int		FLAGS_MSG_FLASH_NO 			= 0;		// def
 	public static final int		FLAGS_MSG_FLASH_YES 		= 1;
 
+	public static final String 	FLAGS_MSG_TYPE_KEY			= "t";
+	public static final int 	FLAGS_MSG_TYPE_NORMAL		= 0;		// def
+	public static final int 	FLAGS_MSG_TYPE_ME			= 1;
+
 	
 	private BuddyPlugin			plugin;
 	private PluginInterface		plugin_interface;
@@ -3971,7 +3975,7 @@ BuddyPluginBeta
 				
 				if ( o_message instanceof String ){
 					
-					String message = (String)o_message;
+					final String message = (String)o_message;
 					
 					if ( message.equals( "!dump!" )){
 						
@@ -4016,6 +4020,8 @@ BuddyPluginBeta
 						
 						return;
 					}
+					
+					boolean	is_me_msg = false;
 					
 					if ( message.startsWith( "/" )){
 											
@@ -4125,6 +4131,24 @@ BuddyPluginBeta
 									
 									ok = true;
 								}
+								
+							}else if ( command.equals( "/me" )){
+								
+								if ( bits.length > 1 ){
+									
+									is_me_msg	= true;
+									
+									o_message = message.substring( 3 ).trim(); 
+										
+									if ( flags == null ){
+										
+										flags = new HashMap<String, Object>();
+									}
+									
+									flags.put( FLAGS_MSG_TYPE_KEY, FLAGS_MSG_TYPE_ME );
+									
+									ok = true;
+								}
 							}else if ( command.equals( "/ignore" )){
 								
 								if ( bits.length > 1 ){
@@ -4200,7 +4224,10 @@ BuddyPluginBeta
 							sendLocalMessage( "!" + Debug.getNestedExceptionMessage( e ) + "!", null, ChatMessage.MT_ERROR );
 						}
 						
-						return;
+						if ( !is_me_msg ){
+						
+							return;
+						}
 					}
 				}
 				
@@ -5492,6 +5519,29 @@ BuddyPluginBeta
 			}
 
 			return( FLAGS_MSG_ORIGIN_USER );
+		}
+		
+		public int
+		getFlagType()
+		{		
+			Map<String,Object> payload = getPayload();
+
+			if ( payload != null ){
+				
+				Map<String,Object>	flags = (Map<String,Object>)payload.get( "f" );
+				
+				if ( flags != null ){
+					
+					Number type = (Number)flags.get( FLAGS_MSG_TYPE_KEY );
+					
+					if ( type != null ){
+						
+						return( type.intValue());
+					}
+				}
+			}
+
+			return( FLAGS_MSG_TYPE_NORMAL );
 		}
 		
 		public String
