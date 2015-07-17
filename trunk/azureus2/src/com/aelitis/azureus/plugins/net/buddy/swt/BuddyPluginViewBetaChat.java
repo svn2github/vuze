@@ -3627,9 +3627,9 @@ BuddyPluginViewBetaChat
 				
 				long time = message.getTimeStamp();
 
-				ChatParticipant participant = message.getParticipant();
+				final ChatParticipant participant = message.getParticipant();
 
-				boolean	is_me = participant.isMe();
+				final boolean	is_me = participant.isMe();
 				
 				if ( !is_me ){
 					
@@ -3673,6 +3673,8 @@ BuddyPluginViewBetaChat
 					participant_last_message_map.put( participant, message );
 				}
 
+				boolean is_me_msg = message.getFlagType() == BuddyPluginBeta.FLAGS_MSG_TYPE_ME;
+				
 				String 	says;
 				int		stamp_len;
 				
@@ -3690,7 +3692,7 @@ BuddyPluginViewBetaChat
 			
 					stamp_len = stamp.length() + 3;
 					
-					if ( last_message != null && !participant.isMe()){
+					if ( last_message != null && !is_me ){
 						
 						String last_nick = last_message.getNickName();
 						
@@ -3710,13 +3712,13 @@ BuddyPluginViewBetaChat
 				
 				if ( message_type == ChatMessage.MT_NORMAL ){
 					
-					if ( message.getFlagType() == BuddyPluginBeta.FLAGS_MSG_TYPE_ME ){
+					if ( is_me_msg ){
 					
 						says += " ";
 						
 						default_colour	= colour;
 						
-						if ( participant.isMe()){
+						if ( is_me ){
 							
 							default_font = italic_font;
 						}
@@ -3731,7 +3733,10 @@ BuddyPluginViewBetaChat
 				}
 				
 
-				if ( previous_says == null || previous_says_mt != message_type || !previous_says.equals( says )){
+				if ( 	previous_says == null || 
+						previous_says_mt != message_type || 
+						is_me_msg || 
+						!previous_says.equals( says )){
 					
 					previous_says 		= says;
 					previous_says_mt	= message_type;
@@ -3746,7 +3751,7 @@ BuddyPluginViewBetaChat
 						styleRange.length = stamp_len;
 						styleRange.foreground = Colors.grey;
 						
-						if ( participant.isMe()){
+						if ( is_me ){
 							
 							styleRange.font = italic_font;
 						}
@@ -3766,7 +3771,7 @@ BuddyPluginViewBetaChat
 							styleRange.foreground = colour;
 							styleRange.data = participant;
 							
-							if ( participant.isMe()){
+							if ( is_me ){
 								
 								styleRange.font = italic_font;
 							}
