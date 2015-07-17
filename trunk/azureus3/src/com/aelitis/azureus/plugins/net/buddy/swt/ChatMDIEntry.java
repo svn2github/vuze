@@ -166,10 +166,13 @@ public class ChatMDIEntry implements ViewTitleInfo
 	{
 		switch( propertyID ){
 		
-			case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:
-			case ViewTitleInfo.TITLE_TEXT:{
+			case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:{
 				
 				return( chat.getName());
+			}
+			case ViewTitleInfo.TITLE_TEXT:{
+				
+				return( chat.getName( true ));
 			}
 			case ViewTitleInfo.TITLE_INDICATOR_COLOR:{
 							

@@ -2292,6 +2292,13 @@ BuddyPluginBeta
 		public String
 		getName()
 		{
+			return( getName( false ));
+		}
+		
+		public String
+		getName(
+			boolean	abbreviated )
+		{
 			String str = key;
 			
 			int pos = str.lastIndexOf( '[' );
@@ -2317,10 +2324,19 @@ BuddyPluginBeta
 				}
 			}
 			
-			return( 
-				MessageText.getString(
-					network==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon") + 
-					" - '" + str + "'" );
+			if ( abbreviated ){
+				
+				return( MessageText.getString(
+						network==AENetworkClassifier.AT_PUBLIC?"label.public.medium":"label.anon.medium") + 
+						" - '" + str + "'" );
+						
+			}else{
+				
+				return( 
+					MessageText.getString(
+						network==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon") + 
+						" - '" + str + "'" );
+			}
 		}
 		
 		public String
@@ -5562,7 +5578,11 @@ BuddyPluginBeta
 				
 				if ( getMessageStatus() == FLAGS_MSG_STATUS_CHAT_QUIT ){
 					
-					return((participant==null?"<unknown>":participant.getName()) + " has quit" );
+					return(
+						MessageText.getString(
+							"azbuddy.dchat.hasquit",
+							new String[]
+							{ participant==null?"<unknown>":participant.getName()}));
 				}
 				
 					// was just a string for a while...
