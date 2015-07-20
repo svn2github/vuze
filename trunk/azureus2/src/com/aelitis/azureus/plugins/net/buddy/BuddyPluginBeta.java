@@ -4045,7 +4045,8 @@ BuddyPluginBeta
 						
 						String command = bits[0].toLowerCase( Locale.US );
 						
-						boolean	ok = false;
+						boolean	ok 				= false;
+						boolean	missing_params 	= false;
 						
 						try{
 							if ( command.equals( "/help" )){
@@ -4071,6 +4072,10 @@ BuddyPluginBeta
 									getAndShowChat( getNetwork(), key );
 									
 									ok = true;
+									
+								}else{
+									
+									missing_params = true;
 								}
 							}else if ( command.equals( "/nick" )){
 								
@@ -4083,6 +4088,10 @@ BuddyPluginBeta
 									setInstanceNickname( bits[1]);
 									
 									ok = true;
+									
+								}else{
+									
+									missing_params = true;
 								}
 
 							}else if ( command.equals( "/pjoin" )){
@@ -4100,10 +4109,22 @@ BuddyPluginBeta
 									getAndShowChat( AENetworkClassifier.AT_PUBLIC, key );
 									
 									ok = true;
+
+								}else{
+									
+									missing_params = true;
 								}
 							}else if ( command.equals( "/ajoin" )){
 								
-								if ( bits.length > 1 && isI2PAvailable()){
+								if ( bits.length <= 1 ){
+									
+									missing_params = true;
+									
+								}else if ( !isI2PAvailable()){
+									
+									throw( new Exception( "I2P not available" ));
+									
+								}else{
 									
 									bits = message.split( "[\\s]+", 2 );
 									
@@ -4146,8 +4167,11 @@ BuddyPluginBeta
 									showChat( ci );
 									
 									ok = true;
-								}
-								
+
+								}else{
+									
+									missing_params = true;
+								}						
 							}else if ( command.equals( "/me" )){
 								
 								if ( bits.length > 1 ){
@@ -4164,6 +4188,10 @@ BuddyPluginBeta
 									flags.put( FLAGS_MSG_TYPE_KEY, FLAGS_MSG_TYPE_ME );
 									
 									ok = true;
+									
+								}else{
+									
+									missing_params = true;
 								}
 							}else if ( command.equals( "/ignore" )){
 								
@@ -4194,8 +4222,11 @@ BuddyPluginBeta
 									updated( p );
 									
 									ok = true;
+
+								}else{
+									
+									missing_params = true;
 								}
-								
 							}else if ( command.equals( "/control" )){
 								
 								if ( ipc_version >= 3 ){
@@ -4223,6 +4254,10 @@ BuddyPluginBeta
 									sendLocalMessage( "!" + result + "!", null, ChatMessage.MT_INFO );
 									
 									ok = true;
+
+								}else{
+									
+									missing_params = true;
 								}
 							}else if ( command.equals( "/clone" )){
 								
@@ -4233,7 +4268,12 @@ BuddyPluginBeta
 							
 							if ( !ok ){
 								
-								throw( new Exception( "Unhandled command: " + message ));
+								if ( missing_params ){
+									
+									throw( new Exception( "Error: Insufficient parameters for '" + command + "'" ));
+								}
+								
+								throw( new Exception( "Error: Unhandled command: " + message ));
 							}
 						}catch( Throwable e ){
 							

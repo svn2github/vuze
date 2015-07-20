@@ -3730,6 +3730,11 @@ BuddyPluginViewBetaChat
 				}else{
 					
 					says += " ";
+					
+					if ( message_type ==  ChatMessage.MT_ERROR ){
+						
+						default_colour = colour;
+					}
 				}
 				
 
