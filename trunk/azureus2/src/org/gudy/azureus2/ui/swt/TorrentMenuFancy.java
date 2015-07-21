@@ -1233,7 +1233,8 @@ public class TorrentMenuFancy
 							boolean allScanSelected = true;
 							boolean allScanNotSelected = true;
 							boolean fileMove = true;
-
+							boolean allResumeIncomplete = true;
+							
 							for (DownloadManager dm : dms) {
 								boolean stopped = ManagerUtils.isStopped(dm);
 
@@ -1250,6 +1251,10 @@ public class TorrentMenuFancy
 
 								allScanSelected = incomplete && allScanSelected && scan;
 								allScanNotSelected = incomplete && allScanNotSelected && !scan;
+								
+								if (dm.getDownloadState().isResumeDataComplete()){
+									allResumeIncomplete = false;
+								}
 							}
 
 							boolean fileRescan = allScanSelected || allScanNotSelected;
@@ -1306,6 +1311,20 @@ public class TorrentMenuFancy
 									});
 							itemFileClearResume.setEnabled(allStopped);
 
+							// set resume complete
+
+							MenuItem itemFileSetResumeComplete = new MenuItem(menu, SWT.PUSH);
+							Messages.setLanguageText(itemFileSetResumeComplete,
+									"MyTorrentsView.menu.set.resume.complete");
+							itemFileSetResumeComplete.addListener(SWT.Selection, new ListenerDMTask(dms) {
+								public void run(DownloadManager dm) {
+									TorrentUtils.setResumeDataCompletelyValid( dm.getDownloadState());
+								}
+							});
+							itemFileSetResumeComplete.setEnabled(allStopped&&allResumeIncomplete);
+							
+							
+							
 							if (userMode > 1 && isSeedingView) {
 
 								boolean canSetSuperSeed = false;

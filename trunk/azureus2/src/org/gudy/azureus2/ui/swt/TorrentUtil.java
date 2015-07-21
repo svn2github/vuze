@@ -155,8 +155,9 @@ public class TorrentUtil
 		boolean allScanSelected = true;
 		boolean allScanNotSelected = true;
 
-		boolean allStopped = true;
-
+		boolean allStopped			 = true;
+		boolean	allResumeIncomplete	 = true;
+		
 		if (hasSelection) {
 			for (int i = 0; i < dms.length; i++) {
 				DownloadManager dm = (DownloadManager) dms[i];
@@ -274,6 +275,10 @@ public class TorrentUtil
 				} else {
 					superSeedAllYes = false;
 					superSeedAllNo = false;
+				}
+				
+				if (dm.getDownloadState().isResumeDataComplete()){
+					allResumeIncomplete = false;
 				}
 			}
 
@@ -562,6 +567,18 @@ public class TorrentUtil
 		});
 		itemFileClearResume.setEnabled(allStopped);
 
+		// set resume complete
+
+		MenuItem itemFileSetResumeComplete = new MenuItem(menuFiles, SWT.PUSH);
+		Messages.setLanguageText(itemFileSetResumeComplete,
+				"MyTorrentsView.menu.set.resume.complete");
+		itemFileSetResumeComplete.addListener(SWT.Selection, new ListenerDMTask(dms) {
+			public void run(DownloadManager dm) {
+				TorrentUtils.setResumeDataCompletelyValid( dm.getDownloadState());
+			}
+		});
+		itemFileSetResumeComplete.setEnabled(allStopped&&allResumeIncomplete);
+		
 			// Advanced -> archive
 		
 		final List<Download>	ar_dms = new ArrayList<Download>();
