@@ -20,6 +20,7 @@ package org.gudy.azureus2.ui.swt;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -136,6 +137,9 @@ StartServer
       BufferedReader br = null;
       try {
         Socket sck = socket.accept();
+        
+        AzureusCoreSingleInstanceClient.sendReply( sck );
+
         String address = sck.getInetAddress().getHostAddress();
         if (address.equals("localhost") || address.equals("127.0.0.1")) {
           br = new BufferedReader(new InputStreamReader(sck.getInputStream(),Constants.DEFAULT_ENCODING));
@@ -158,6 +162,7 @@ StartServer
         	  }
           }
         }
+                
         sck.close();
 
       }

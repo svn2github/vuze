@@ -91,6 +91,11 @@ AzureusCoreSingleInstanceClient
 	    		
 	    		pw.flush();
 	    		
+	    		if ( !receiveReply( sock )){
+	    			
+	    			return( false );
+	    		}
+	    		
 	    		return( true );
 	    		
 			}catch( Throwable e ){
@@ -120,6 +125,66 @@ AzureusCoreSingleInstanceClient
 			
 	
 		}
+	}
+	
+	public static boolean
+	sendReply(
+		Socket		socket )
+	{
+       try{
+        		// added reply from 5613_b16+
+    	   
+        	OutputStream os = socket.getOutputStream();
+        	
+        	os.write( ( ACCESS_STRING + ";" ).getBytes( "UTF-8" ));
+        	
+        	os.flush();
+        	
+        	return( true );
+        	
+        }catch( Throwable e ){
+        }
+       
+       return( false );
+	}
+	
+	public static boolean
+	receiveReply(
+		Socket		socket )
+	{
+		try{
+			InputStream	is = socket.getInputStream();
+			
+			socket.setSoTimeout( 15*1000 );
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			
+			while( true ){
+				
+				int data = is.read();
+				
+				if ( data == -1 ){
+					
+					break;
+				}
+				
+				byte b = (byte)data;
+				
+				if ( b == ';' ){
+					
+					String str = new String( baos.toByteArray(), "UTF-8" );
+					
+					return( str.equals( ACCESS_STRING ));
+					
+				}else{
+					
+					baos.write( b );
+				}
+			}
+		}catch( Throwable e ){
+		}
+		
+		return( false );
 	}
 	
 	public static void

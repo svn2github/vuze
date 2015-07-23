@@ -70,6 +70,11 @@ public class StartSocket {
     		pw.println(buffer.toString());
     		pw.flush();
     		
+    		if ( !AzureusCoreSingleInstanceClient.receiveReply( sck )){
+    			
+    			return( false );
+    		}
+    		
     		return true;
     	}
     	catch(Exception e) {
