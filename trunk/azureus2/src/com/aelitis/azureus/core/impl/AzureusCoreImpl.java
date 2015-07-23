@@ -19,8 +19,13 @@
 package com.aelitis.azureus.core.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.URL;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -761,11 +766,68 @@ AzureusCoreImpl
 		return( LocaleUtil.getSingleton());
 	}
 	
+	public File
+	getLockFile()
+	{
+		return( new File(SystemProperties.getUserPath(), ".azlock" ));
+	}
+	
+	private FileLock file_lock;
+	
+	public boolean 
+	canStart() 
+	{
+		if ( System.getProperty( "azureus.instance.lock.disable", "0" ).equals( "1" )){
+			
+			return( true );
+		}
+		
+		synchronized( this ){
+	
+			if ( file_lock != null ){
+				
+				return( true );
+			}
+			
+			File lock_file = getLockFile();
+		
+			try{
+				RandomAccessFile raf = new RandomAccessFile( lock_file, "rw" );
+		
+				FileChannel channel = raf.getChannel();
+				
+				for ( int i=0;i<15;i++ ){
+					
+					file_lock = channel.tryLock();
+				
+					if ( file_lock != null ){
+						
+						return( true );
+					}
+					
+					try{
+						Thread.sleep( 1000 );
+						
+					}catch( Throwable e ){
+					}
+				}
+			}catch( Throwable e ){
+			}
+			
+			return( false );
+		}
+	}
+	
 	public void
 	start()
 	
 		throws AzureusCoreException
 	{
+		if ( !canStart()){
+			
+			throw( new AzureusCoreException( "Core: already started (alternative process)" ));
+		}
+		
 		AEThread2.setOurThread();
 		
 		try{

@@ -135,6 +135,8 @@ public class MessageBoxShell
 
 	private String instanceID;
 	
+	private boolean	modal;
+	
 	private static Map<String, MessageBoxShell> mapInstances = new HashMap<String, MessageBoxShell>(1);
 	
 	public static void open(Shell parent, String title, String text,
@@ -359,7 +361,15 @@ public class MessageBoxShell
 		// Example: 5 windows open in APPLICATION MODAL mode, 
 		// and somehow none of them show until you do a "Window->Bring To Front"
 		// which only makes ONE visible
-		shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
+		
+		int	shell_style = SWT.DIALOG_TRIM | SWT.RESIZE;
+		
+		if ( modal ){
+			
+			shell_style |= SWT.APPLICATION_MODAL;
+		}
+		
+		shell = ShellFactory.createShell(parent, shell_style);
 		if (title != null) {
 			shell.setText(title);
 		}
@@ -963,6 +973,19 @@ public class MessageBoxShell
 	 */
 	public boolean isAutoClosed() {
 		return autoClosed;
+	}
+	
+	/**
+	 * Only use this if you REALLY know what you're doing as in general it is a bad thing - check
+	 * comments in this class
+	 * @param m
+	 */
+	
+	public void
+	setModal(
+		boolean		m )
+	{
+		modal = m;
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#setRelatedObject(java.lang.Object)

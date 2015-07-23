@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
@@ -44,6 +45,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.PreUpdateChecker;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
@@ -60,6 +62,7 @@ import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
@@ -535,54 +538,97 @@ public class Initializer
   		}
 		}
 		
-		core.start();
-
-		reportPercent(50);
-
-		System.out.println("Core Initializing took "
-				+ (SystemTime.getCurrentTime() - startTime) + "ms");
-		startTime = SystemTime.getCurrentTime();
-
-		reportCurrentTaskByKey("splash.initializeUIElements");
-
-		// Ensure colors initialized
-		Colors.getInstance();
-
-		reportPercent(curPercent + 1);
-		Alerts.init();
-
-		reportPercent(curPercent + 1);
-		ProgressWindow.register(core);
-
-		reportPercent(curPercent + 1);
-		new SWTNetworkSelection();
-
-		reportPercent(curPercent + 1);
-		new AuthenticatorWindow();
-		new CryptoWindow();
-		
-		reportPercent(curPercent + 1);
-		new CertificateTrustWindow();
-
-		InstallPluginWizard.register(core, display);
-		
-			// finally check if an explicit open has been requested in case hidden in tray atm
-		
-		for (int i = 0; i < args.length; i++) {
+		if ( core.canStart()){
 			
-			String arg = args[i];
+			core.start();
+	
+			reportPercent(50);
+	
+			System.out.println("Core Initializing took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+	
+			reportCurrentTaskByKey("splash.initializeUIElements");
+	
+			// Ensure colors initialized
+			Colors.getInstance();
+	
+			reportPercent(curPercent + 1);
+			Alerts.init();
+	
+			reportPercent(curPercent + 1);
+			ProgressWindow.register(core);
+	
+			reportPercent(curPercent + 1);
+			new SWTNetworkSelection();
+	
+			reportPercent(curPercent + 1);
+			new AuthenticatorWindow();
+			new CryptoWindow();
 			
-			if ( arg.equalsIgnoreCase( "--open" )){
+			reportPercent(curPercent + 1);
+			new CertificateTrustWindow();
+	
+			InstallPluginWizard.register(core, display);
+			
+				// finally check if an explicit open has been requested in case hidden in tray atm
+			
+			for (int i = 0; i < args.length; i++) {
 				
-				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+				String arg = args[i];
 				
-				if ( uif != null ){
-				
-					uif.bringToFront();
+				if ( arg.equalsIgnoreCase( "--open" )){
+					
+					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					
+					if ( uif != null ){
+					
+						uif.bringToFront();
+					}
+					
+					break;
 				}
-				
-				break;
 			}
+		}else{
+			
+			final AESemaphore sem = new AESemaphore( "waiter" );
+			
+			Utils.execSWTThread(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						MessageBoxShell mb = 
+							new MessageBoxShell( 
+								MessageText.getString( "msgbox.force.close.title" ),
+								MessageText.getString( 
+									"msgbox.force.close.text",
+									new String[]{ core.getLockFile().getAbsolutePath() }),
+								new String[]{ MessageText.getString("Button.ok") },
+								0 );
+						
+						mb.setIconResource( "error" );
+						
+						mb.setModal( true );
+						
+						mb.open(
+							new UserPrompterResultListener() 
+							{
+								
+								public void 
+								prompterClosed(
+									int 	result ) 
+								{
+									sem.releaseForever();
+								}
+							});
+					}
+				});
+			
+			sem.reserve();
+			
+			SESecurityManager.exitVM( 1 );
 		}
 	}
 
