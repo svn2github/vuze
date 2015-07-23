@@ -263,10 +263,16 @@ Main
     	 
     	StartSocket ss = new StartSocket(args);
     	
-    	if( !ss.sendArgs() ) {  //arg passing attempt failed, so start core anyway
+    	if ( !ss.sendArgs()){  
+    		
+    			//arg passing attempt failed, so start core anyway
+    		
     		another_instance = false;
-    		String msg = "There appears to be another program process already listening on socket [127.0.0.1: "+Constants.INSTANCE_PORT+"].\nLoading of torrents via command line parameter will fail until this is fixed.";
-    		System.out.println( msg );
+    		
+    		String msg = "There appears to be another process already listening on socket [127.0.0.1:"+Constants.INSTANCE_PORT+"].\n\nLocate and terminate the other program or change the control port - <a href=\"http://wiki.vuze.com/w/Commandline_options#Changing_the_Control_Port\">see the wiki for details</a>.\n\nIf you don't then bad things will happen!";
+    		
+    		System.err.println( msg );
+    		
     		Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_WARNING, msg));
     	}
     }
