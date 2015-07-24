@@ -2830,6 +2830,11 @@ BuddyPluginBeta
 						Debug.out( e );
 					}
 				}
+				
+				if ( getKey().startsWith( "General: ")){
+				
+					sendLocalMessage( "!*" + MessageText.getString( "azbuddy.dchat.welcome.general" ) + "*!", null, ChatMessage.MT_INFO );
+				}
 			}
 		}
 		

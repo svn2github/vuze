@@ -3611,7 +3611,7 @@ BuddyPluginViewBetaChat
 				continue;
 			}
 						
-			final String original_msg		= message.getMessage();
+			String original_msg		= message.getMessage();
 
 			if ( !message.isIgnored() && original_msg.length() > 0 ){
 				
@@ -3643,12 +3643,27 @@ BuddyPluginViewBetaChat
 				
 				int	message_type = message.getMessageType();
 								
+				Font 	default_font 	= null;
+				Color	default_colour	= null;
+
+				Font 	info_font 	= null;
+				Color	info_colour	= Colors.grey;
+
 				Color colour = Colors.blues[Colors.FADED_DARKEST];
 				
 				if ( message_type ==  ChatMessage.MT_INFO ){
 					
-					colour = Colors.grey;
-					
+					if ( original_msg.startsWith( "*" ) && original_msg.endsWith( "*" )){
+						
+						original_msg = original_msg.substring( 1, original_msg.length()-1 );
+						
+						info_colour = Colors.black;
+						info_font	= bold_font;
+						
+					}else{
+						
+						colour = Colors.grey;
+					}
 				}else if ( message_type ==  ChatMessage.MT_ERROR ){
 						
 					colour = Colors.red;		
@@ -3706,10 +3721,7 @@ BuddyPluginViewBetaChat
 						}
 					}
 				}
-						
-				Font 	default_font 	= null;
-				Color	default_colour	= null;
-				
+										
 				if ( message_type == ChatMessage.MT_NORMAL ){
 					
 					if ( is_me_msg ){
@@ -4230,8 +4242,9 @@ BuddyPluginViewBetaChat
 												StyleRange styleRange 	= new StyleRange();
 												styleRange.start 		= next_style_start;
 												styleRange.length 		= this_style_start - next_style_start;
-												styleRange.foreground 	= Colors.grey;
-												
+												styleRange.foreground 	= info_colour;
+												styleRange.font			= info_font;
+											
 												new_ranges.add( styleRange);
 												
 												next_style_start = this_style_start + this_style_length;
@@ -4317,7 +4330,8 @@ BuddyPluginViewBetaChat
 								StyleRange styleRange 	= new StyleRange();
 								styleRange.start 		= next_style_start;
 								styleRange.length 		= start + msg.length() - next_style_start;
-								styleRange.foreground 	= Colors.grey;
+								styleRange.foreground 	= info_colour;
+								styleRange.font			= info_font;
 								
 								new_ranges.add( styleRange);
 							}
