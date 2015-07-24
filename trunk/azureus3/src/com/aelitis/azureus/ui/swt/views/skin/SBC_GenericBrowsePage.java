@@ -101,9 +101,11 @@ extends SkinView
 
 	private void openURL() {
 		
-		Object o = entry.getDatasource();
-		if (o instanceof String) {
-			browserSkinObject.setURL((String) o);
+		if ( entry != null ){
+			Object o = entry.getDatasource();
+			if (o instanceof String) {
+				browserSkinObject.setURL((String) o);
+			}
 		}
 	}
 }

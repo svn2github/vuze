@@ -24,14 +24,17 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.CompositeMinSize;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 
 /**
@@ -102,7 +105,7 @@ public class SWTSkinObjectContainer
 		minWidth = properties.getIntValue(sConfigID + ".minwidth", -1);
 		minHeight = properties.getIntValue(sConfigID + ".minheight", -1);
 
-		Composite parentComposite;
+		final Composite parentComposite;
 		if (skin.DEBUGLAYOUT) {
 			System.out.println("linkIDtoParent: Create Composite " + sID + " on "
 					+ createOn);
@@ -120,14 +123,32 @@ public class SWTSkinObjectContainer
   			parentComposite = new Group(createOn, style);
 			}
 		}
-		
+			
 		// setting INHERIT_FORCE here would make the BG of a text box be
 		// this parent's BG (on Win7 at least)
 		//parentComposite.setBackgroundMode(SWT.INHERIT_FORCE);
 
 		parentComposite.setLayout(new FormLayout());
+		
 		control = parentComposite;
-
+		
+		if ( properties.getBooleanValue(sConfigID + ".auto.defer.layout", false)) {
+		
+			Listener show_hide_listener = 
+				new Listener() 
+				{	
+					public void 
+					handleEvent(
+						Event event ) 
+					{
+						parentComposite.setLayoutDeferred( event.type == SWT.Hide );
+					}
+				};
+				
+			parentComposite.addListener( SWT.Show, show_hide_listener );
+			parentComposite.addListener( SWT.Hide, show_hide_listener );
+		}
+		
 		setControl(control);
 		
 		return parentComposite;

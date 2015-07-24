@@ -34,7 +34,6 @@ import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
@@ -560,48 +559,21 @@ public class UISWTViewImpl
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#initialize(org.eclipse.swt.widgets.Composite)
 	 */
-	public void initialize( Composite parent) {
+	public void initialize(Composite parent) {
 		this.masterComposite = parent; 
 		if (iControlType == UISWTView.CONTROLTYPE_SWT) {
-
+			GridData gridData;
 			Layout parentLayout = parent.getLayout();
-			
-			composite = new Composite( parent, SWT.NONE );
-			
-				// take responsibility at this point in the component hierarchy to prevent
-				// layout events from propagating to invisible child views as recalculating 
-				// lots of these unnecessarily sucks up lots of CPU
-			
-			Listener show_hide_listener = 
-				new Listener() 
-				{	
-					public void handleEvent(Event event) {
-						composite.setLayoutDeferred( event.type == SWT.Hide );
-					}
-				};
-			
-			composite.addListener( SWT.Show, show_hide_listener );
-			composite.addListener( SWT.Hide, show_hide_listener );
-						
-			if ( parentLayout instanceof FormLayout ){
-				
-				FormLayout layout = new FormLayout();
-				layout.marginHeight = 0;
-				layout.marginWidth = 0;
-				
-				composite.setLayout(layout);
-				
-				composite.setLayoutData(Utils.getFilledFormData());
-
-			}else{
-
+			if (parentLayout instanceof FormLayout) {
+				composite = parent;
+			} else {
+				composite = new Composite(parent, SWT.NONE);
 				GridLayout layout = new GridLayout(1, false);
 				layout.marginHeight = 0;
 				layout.marginWidth = 0;
-				
 				composite.setLayout(layout);
-								
-				composite.setLayoutData(new GridData(GridData.FILL_BOTH));
+				gridData = new GridData(GridData.FILL_BOTH);
+				composite.setLayoutData(gridData);
 			}
 			
 			Listener showListener = new Listener() {
