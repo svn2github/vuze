@@ -382,9 +382,7 @@ public class SBC_ActivityTableView
 		return view;
 	}
 
-	public static void setupSidebarEntry() {
-		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-
+	public static void setupSidebarEntry(final MultipleDocumentInterface mdi) {
 		// Put TitleInfo in another class
 		final ViewTitleInfo titleInfoActivityView = new ViewTitleInfo() {
 			public Object getTitleInfoProperty(int propertyID) {

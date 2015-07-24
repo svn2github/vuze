@@ -18,12 +18,12 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.mdi.MdiEntry;
-import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
-import com.aelitis.azureus.ui.mdi.MdiCloseListener;
+import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -119,5 +119,51 @@ public class WelcomeView
 		if (!waitLoadingURL && instance != null) {
 			instance.openURL();
 		}
+	}
+
+	public static void setupSidebarEntry(final MultipleDocumentInterface mdi) {
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+								MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME,
+								"main.area.welcome",
+								MessageText.getString(
+										"v3.MainWindow.menu.getting_started").replaceAll("&", ""),
+								null, null, true, "");
+						entry.setImageLeftID("image.sidebar.welcome");
+						addDropTest(entry);
+						return entry;
+					}
+				});
+	}
+
+	private static void addDropTest(MdiEntry entry) {
+		if (!Constants.isCVSVersion()) {
+			return;
+		}
+		entry.addListener(new MdiEntryDropListener() {
+			public boolean mdiEntryDrop(MdiEntry entry, Object droppedObject) {
+				String s = "You just dropped " + droppedObject.getClass() + "\n"
+						+ droppedObject + "\n\n";
+				if (droppedObject.getClass().isArray()) {
+					Object[] o = (Object[]) droppedObject;
+					for (int i = 0; i < o.length; i++) {
+						s += "" + i + ":  ";
+						Object object = o[i];
+						if (object == null) {
+							s += "null";
+						} else {
+							s += object.getClass() + ";" + object;
+						}
+						s += "\n";
+					}
+				}
+				UIFunctionsManager.getUIFunctions().promptUser("test", s, null, 0, null,
+						null, false, 0, null);
+				return true;
+			}
+		});
 	}
 }

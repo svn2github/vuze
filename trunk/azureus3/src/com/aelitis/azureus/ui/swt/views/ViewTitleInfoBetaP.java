@@ -30,6 +30,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -83,5 +84,31 @@ public class ViewTitleInfoBetaP
 	public void clearIndicator() {
 		COConfigurationManager.setParameter(PARAM_LASTPOSTCOUNT, postCount);
 		numNew = 0;
+	}
+
+	public static void setupSidebarEntry(final MultipleDocumentInterface mdi) {
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+
+						final ViewTitleInfoBetaP viewTitleInfo = new ViewTitleInfoBetaP();
+
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+								MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
+								"main.area.beta", "{Sidebar.beta.title}", viewTitleInfo, null,
+								true, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
+
+						entry.setImageLeftID("image.sidebar.beta");
+
+						entry.addListener(new MdiCloseListener() {
+							public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
+								viewTitleInfo.clearIndicator();
+							}
+						});
+
+						return entry;
+					}
+				});
 	}
 }

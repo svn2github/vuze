@@ -20,11 +20,6 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.ArrayList;
 
-
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
-
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
@@ -33,7 +28,7 @@ import com.aelitis.azureus.ui.swt.views.ViewTitleInfoBetaP;
 
 public class SB_Vuze
 {
-	private ArrayList<MdiEntry> children = new ArrayList<MdiEntry>();
+	private ArrayList<MdiEntry> children = new ArrayList<MdiEntry>(4);
 
 	private ViewTitleInfo titleInfo;
 
@@ -42,64 +37,34 @@ public class SB_Vuze
 	}
 
 	private void setup(final MultipleDocumentInterface mdi) {
-		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
-				new MdiEntryCreationListener() {
-					public MdiEntry createMDiEntry(String id) {
 
-						final ViewTitleInfoBetaP viewTitleInfo = new ViewTitleInfoBetaP();
+		ViewTitleInfoBetaP.setupSidebarEntry(mdi);
 
-						MdiEntry entry = mdi.createEntryFromSkinRef(
-								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
-								MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
-								"main.area.beta", "{Sidebar.beta.title}", viewTitleInfo, null,
-								true, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
+		WelcomeView.setupSidebarEntry(mdi);
 
-						entry.setImageLeftID("image.sidebar.beta");
+		SBC_ActivityTableView.setupSidebarEntry(mdi);
 
-						entry.addListener(new MdiCloseListener() {
-							public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
-								viewTitleInfo.clearIndicator();
-							}
-						});
-
-						return entry;
-					}
-				});
-		
-		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME, new MdiEntryCreationListener() {
-			public MdiEntry createMDiEntry(String id) {
-				MdiEntry entry = mdi.createEntryFromSkinRef(
-						MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
-						MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME,
-						"main.area.welcome",
-						MessageText.getString("v3.MainWindow.menu.getting_started").replaceAll(
-								"&", ""), null, null, true, "");
-				entry.setImageLeftID("image.sidebar.welcome");
-				addDropTest(entry);
-				return entry;
-			}
-		});
-
-		
-		SBC_ActivityTableView.setupSidebarEntry();
-
+		// Refresh the Vuze header when one of the children's title properties change
 		ViewTitleInfoManager.addListener(new ViewTitleInfoListener() {
 			public void viewTitleInfoRefresh(ViewTitleInfo titleInfo) {
+				if (SB_Vuze.this.titleInfo == null) {
+					return;
+				}
 				MdiEntry childrenArray[] = children.toArray(new MdiEntry[0]);
 				for (MdiEntry entry : childrenArray) {
 					if (entry.getViewTitleInfo() == titleInfo) {
-						if (SB_Vuze.this.titleInfo != null) {
-							ViewTitleInfoManager.refreshTitleInfo(SB_Vuze.this.titleInfo);
-						}
+						ViewTitleInfoManager.refreshTitleInfo(SB_Vuze.this.titleInfo);
 						break;
 					}
 				}
 			}
 		});
 
+		// Maintain a list of children entries; Open header on load
 		mdi.addListener(new MdiEntryLoadedListener() {
 			public void mdiEntryLoaded(MdiEntry entry) {
-				if (MultipleDocumentInterface.SIDEBAR_HEADER_VUZE.equals(entry.getParentID())) {
+				if (MultipleDocumentInterface.SIDEBAR_HEADER_VUZE.equals(
+						entry.getParentID())) {
 					children.add(entry);
 					entry.addListener(new MdiChildCloseListener() {
 						public void mdiChildEntryClosed(MdiEntry parent, MdiEntry child,
@@ -108,96 +73,77 @@ public class SB_Vuze
 						}
 					});
 				}
-				if (!entry.getId().equals(MultipleDocumentInterface.SIDEBAR_HEADER_VUZE)) {
+				if (!entry.getId().equals(
+						MultipleDocumentInterface.SIDEBAR_HEADER_VUZE)) {
 					return;
 				}
-				setupHeader(entry);
+				titleInfo = new ViewTitleInfo_Vuze(entry);
+				entry.setViewTitleInfo(titleInfo);
 			}
 		});
 	}
 
-	private void setupHeader(final MdiEntry entry) {
+	private static class ViewTitleInfo_Vuze
+		implements ViewTitleInfo
+	{
+		private MdiEntry entry;
 
-		titleInfo = new ViewTitleInfo() {
-			public Object getTitleInfoProperty(int propertyID) {
-				if (propertyID == ViewTitleInfo.TITLE_INDICATOR_TEXT) {
-					if (entry.isExpanded()) {
-						return null;
-					}
-					StringBuilder sb = new StringBuilder();
-					MdiEntry[] entries = entry.getMDI().getEntries();
-					for (MdiEntry subEntry : entries) {
-						if (entry.getId().equals(subEntry.getParentID())) {
-							ViewTitleInfo titleInfo = subEntry.getViewTitleInfo();
-							if (titleInfo != null) {
-								Object text = titleInfo.getTitleInfoProperty(TITLE_INDICATOR_TEXT);
-								if (text instanceof String) {
-									if (sb.length() > 0) {
-										sb.append(" | ");
-									}
-									sb.append(text);
-								}
-							}
-						}
-					}
-					if (sb.length() > 0) {
-						return sb.toString();
-					}
-				} else if (propertyID == ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP) {
-					if (entry.isExpanded()) {
-						return null;
-					}
-					StringBuilder sb = new StringBuilder();
-					MdiEntry[] entries = entry.getMDI().getEntries();
-					for (MdiEntry subEntry : entries) {
-						if (entry.getId().equals(subEntry.getParentID())) {
-							ViewTitleInfo titleInfo = subEntry.getViewTitleInfo();
-							if (titleInfo != null) {
-								Object text = titleInfo.getTitleInfoProperty(TITLE_INDICATOR_TEXT);
-								if (text instanceof String) {
-									if (sb.length() > 0) {
-										sb.append("\n");
-									}
-									sb.append(subEntry.getTitle() + ": " + text);
-								}
-							}
-						}
-					}
-					if (sb.length() > 0) {
-						return sb.toString();
-					}
-				}
-				return null;
-			}
-		};
-		entry.setViewTitleInfo(titleInfo);
-	}
-
-	protected void addDropTest(MdiEntry entry) {
-		if (!Constants.isCVSVersion()) {
-			return;
+		public ViewTitleInfo_Vuze(MdiEntry entry) {
+			this.entry = entry;
 		}
-		entry.addListener(new MdiEntryDropListener() {
-			public boolean mdiEntryDrop(MdiEntry entry, Object droppedObject) {
-				String s = "You just dropped " + droppedObject.getClass() + "\n"
-						+ droppedObject + "\n\n";
-				if (droppedObject.getClass().isArray()) {
-					Object[] o = (Object[]) droppedObject;
-					for (int i = 0; i < o.length; i++) {
-						s += "" + i + ":  ";
-						Object object = o[i];
-						if (object == null) {
-							s += "null";
-						} else {
-							s += object.getClass() + ";" + object;
+
+		public Object getTitleInfoProperty(int propertyID) {
+			if (propertyID == ViewTitleInfo.TITLE_INDICATOR_TEXT) {
+				if (entry.isExpanded()) {
+					return null;
+				}
+				StringBuilder sb = new StringBuilder();
+				MdiEntry[] entries = entry.getMDI().getEntries();
+				for (MdiEntry subEntry : entries) {
+					if (entry.getId().equals(subEntry.getParentID())) {
+						ViewTitleInfo titleInfo = subEntry.getViewTitleInfo();
+						if (titleInfo != null) {
+							Object text = titleInfo.getTitleInfoProperty(
+									TITLE_INDICATOR_TEXT);
+							if (text instanceof String) {
+								if (sb.length() > 0) {
+									sb.append(" | ");
+								}
+								sb.append(text);
+							}
 						}
-						s += "\n";
 					}
 				}
-				UIFunctionsManager.getUIFunctions().promptUser("test", s, null, 0, null, null, false, 0, null);
-				return true;
+				if (sb.length() > 0) {
+					return sb.toString();
+				}
+			} else if (propertyID == ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP) {
+				if (entry.isExpanded()) {
+					return null;
+				}
+				StringBuilder sb = new StringBuilder();
+				MdiEntry[] entries = entry.getMDI().getEntries();
+				for (MdiEntry subEntry : entries) {
+					if (entry.getId().equals(subEntry.getParentID())) {
+						ViewTitleInfo titleInfo = subEntry.getViewTitleInfo();
+						if (titleInfo != null) {
+							Object text = titleInfo.getTitleInfoProperty(
+									TITLE_INDICATOR_TEXT);
+							if (text instanceof String) {
+								if (sb.length() > 0) {
+									sb.append("\n");
+								}
+								sb.append(subEntry.getTitle() + ": " + text);
+							}
+						}
+					}
+				}
+				if (sb.length() > 0) {
+					return sb.toString();
+				}
 			}
-		});
+			return null;
+		}
 	}
 
 }
