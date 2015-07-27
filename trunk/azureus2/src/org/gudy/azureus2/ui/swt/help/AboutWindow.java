@@ -21,6 +21,8 @@
  */
 package org.gudy.azureus2.ui.swt.help;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.*;
@@ -28,11 +30,13 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.update.CorePatchLevel;
@@ -187,7 +191,7 @@ public class AboutWindow {
 				"!Vuze Wiki Hidden Service (Tor)",
 				"contributors",
 				"!EULA",
-				"!Privacy Policy"
+				"!Privacy Policy",
 			},
 			{
 				"http://www.vuze.com",
@@ -203,7 +207,7 @@ public class AboutWindow {
 		};
   
     for (int i = 0; i < link[0].length; i++) {
-      final CLabel linkLabel = new CLabel(gInternet, SWT.NULL);
+      final CLabel linkLabel = new CLabel(gInternet, SWT.NONE);
       if (link[0][i].startsWith("!")) {
         linkLabel.setText(link[0][i].substring(1));
       } else {
@@ -225,6 +229,22 @@ public class AboutWindow {
       });
       ClipboardCopy.addCopyToClipMenu( linkLabel );
     }
+    
+    String applicationPath = SystemProperties.getApplicationPath();
+    Composite cLicenses = new Composite(gInternet, SWT.NONE);
+    GridLayout glLicenses = new GridLayout(4, false);
+    glLicenses.marginWidth = glLicenses.marginHeight = 0;
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 1;
+    cLicenses.setLayoutData(gridData);
+
+    cLicenses.setLayout(glLicenses);
+    Label lblLicenses = new Label(cLicenses, SWT.NONE);
+    lblLicenses.setText(" Licenses: ");
+    new LinkLabel(cLicenses, "!GPL!", new File(applicationPath, "GPL.txt").getAbsolutePath());
+    new LinkLabel(cLicenses, "!GPLv3!", new File(applicationPath, "GPLv3.txt").getAbsolutePath());
+    new LinkLabel(cLicenses, "!Other!", new File(applicationPath, "LICENSES.txt").getAbsolutePath());
+
     
     Label labelOwner = new Label(window, SWT.WRAP | SWT.CENTER);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
