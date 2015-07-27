@@ -1,9 +1,39 @@
 VUZE CHANGELOG
 -----------------
 
-2015.xx.yy | Vuze 5.6.1.3
+2015.07.27 | Vuze 5.6.2.0
 
+FEATURE: UI   | New Privacy View [Parg]
+FEATURE: UI   | Added Privacy button to open-torrent-options dialog to set the download to be added in a stopped state with no networks enabled [Parg]
+FEATURE: UI   | Chats can now be added to the sidebar [Parg]
+FEATURE: UI   | Detection of outstanding messages for your nick [Parg]
+FEATURE: UI   | Remember minimized state of pop-out windows [Parg]
+FEATURE: UI   | New 'done with dnd files' column [TuxPaper]
+FEATURE: UI   | Ctrl+F4 now closes sidebar entries (in line with classic UI) [Parg]
+FEATURE: UI   | 'Internal browser disabled' display now includes button to re-enable it [Parg]
+FEATURE: UI   | Added indicator to sidebar entry for 'in progress' transcodes [Parg]
+FEATURE: Core | PS4 detection [Parg]
+FEATURE: Plug | New 'PIA' plugin to automate configuration of VPN - http://plugins.vuze.com/details/vpnpia [TuxPaper]
 
+CHANGE: UI    | Column setup window now shows non-renamed column titles [Parg]
+CHANGE: UI    | Prevent multiple pop-out chats for same chat [Parg]
+CHANGE: UI    | Double-click actions added for transfer/mini-bars [Parg]
+CHANGE: UI    | Improve performance of sidebar view switching [Parg]
+CHANGE: UI    | Sidebar entries with sub-views now distinguished [Parg]
+CHANGE: UI    | Unknown ETA values now sorted to bottom [TuxPaper]
+CHANGE: Core  | Deal with completeness of downloads with 'do not download' files more consistently [TuxPaper]
+CHANGE: Core  | Disconnect all peers on a network change [Parg]
+CHANGE: Core  | Improve performance of network decode [Parg]
+CHANGE: Core  | Create less closedown threads to improve performance [Parg]
+CHANGE: Core  | Increase maximum supported torrent size [Parg]
+CHANGE: Core  | Multiple copies of Vuze sharing the same configuration data will now refuse to start [Parg]
+CHANGE: Core  | Improved handling of use of the Vuze control port by another application [Parg]
+
+BUGFIX: UI    | Renamed columns were not being displayed correctly on initial show [Parg]
+BUGFIX: UI    | Fix category buttons not being uipdates on add/delete [TuxPaper]
+BUGFIX: UI    | Fix toolbar stop/start icon state display [TuxPaper]
+BUGFIX: UI    | Fix start/stop toolbar icon now enabling for devices views [TuxPaper]
+BUGFIX: UI    | Fix status area not drawing occasionally after restoring Vuze from tray [Parg]
 
 
 2015.06.08 | Vuze 5.6.1.2
