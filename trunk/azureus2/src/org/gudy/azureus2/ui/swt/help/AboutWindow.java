@@ -21,8 +21,6 @@
  */
 package org.gudy.azureus2.ui.swt.help;
 
-import java.io.File;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.*;
@@ -36,7 +34,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.update.CorePatchLevel;
@@ -192,17 +189,21 @@ public class AboutWindow {
 				"contributors",
 				"!EULA",
 				"!Privacy Policy",
+				"!Legal",
+				"!FOSS Licenses"
 			},
 			{
-				"http://www.vuze.com",
-				"http://forum.vuze.com/forum.jspa?forumID=124",
+				"https://www.vuze.com",
+				"http://www.vuze.com/forums/open-development",
 				"http://forum.vuze.com",
 				Constants.AZUREUS_WIKI,
 				"http://que23xpe7o3lzq6auv6stb4bha7ddavrlgqdv2cuhgd36fgfmp6q.b32.i2p/",
 				"http://dr5aamfveql2b34p.onion/",
 				Constants.AZUREUS_WIKI + "Contributors",
-				"http://www.vuze.com/corp/terms.php",
-				"http://www.vuze.com/corp/privacy.php"
+				"https://www.vuze.com/corp/terms.php",
+				"https://www.vuze.com/corp/privacy.php",
+				"https://www.vuze.com/corp/legal",
+				Constants.AZUREUS_WIKI + "Vuze_Client_FOSS_Licenses"
 			}
 		};
   
@@ -229,22 +230,6 @@ public class AboutWindow {
       });
       ClipboardCopy.addCopyToClipMenu( linkLabel );
     }
-    
-    String applicationPath = SystemProperties.getApplicationPath();
-    Composite cLicenses = new Composite(gInternet, SWT.NONE);
-    GridLayout glLicenses = new GridLayout(4, false);
-    glLicenses.marginWidth = glLicenses.marginHeight = 0;
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 1;
-    cLicenses.setLayoutData(gridData);
-
-    cLicenses.setLayout(glLicenses);
-    Label lblLicenses = new Label(cLicenses, SWT.NONE);
-    lblLicenses.setText(" Licenses: ");
-    new LinkLabel(cLicenses, "!GPL!", new File(applicationPath, "GPL.txt").getAbsolutePath());
-    new LinkLabel(cLicenses, "!GPLv3!", new File(applicationPath, "GPLv3.txt").getAbsolutePath());
-    new LinkLabel(cLicenses, "!Other!", new File(applicationPath, "LICENSES.txt").getAbsolutePath());
-
     
     Label labelOwner = new Label(window, SWT.WRAP | SWT.CENTER);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
