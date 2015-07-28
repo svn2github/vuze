@@ -20,6 +20,7 @@
 
 package org.gudy.azureus2.ui.swt;
 
+import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.CloseWindowListener;
 import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.OpenWindowListener;
@@ -54,11 +55,17 @@ BrowserWrapper
 		
 		if ( use_fake ){
 			
-			return( new BrowserWrapperFake( composite, style ));
+			return( new BrowserWrapperFake( composite, style, null ));
 			
 		}else{
 		
-			return( new BrowserWrapperSWT( composite, style ));
+			try{
+				return( new BrowserWrapperSWT( composite, style ));
+				
+			}catch( SWTError error ){
+				
+				return( new BrowserWrapperFake( composite, style, error ));
+			}
 		}
 	}
 	

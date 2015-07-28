@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.CloseWindowListener;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
@@ -75,7 +76,8 @@ BrowserWrapperFake
 	protected
 	BrowserWrapperFake(
 		Composite		_parent,
-		int				style )
+		int				style,
+		SWTError		_failure )
 	{
 		parent	= _parent;
 		
@@ -86,31 +88,43 @@ BrowserWrapperFake
 		layout.numColumns = 3;
 		browser.setLayout(layout);
 		
-		Label label = new Label(browser, SWT.WRAP);
-		Messages.setLanguageText(label, "browser.internal.disabled.info");
-		GridData grid_data = new GridData( GridData.FILL_HORIZONTAL );
-		grid_data.horizontalSpan = 3;
-		label.setLayoutData( grid_data );
-		label.setBackground( Colors.white );
-
-		label = new Label(browser, SWT.NULL);
-		Messages.setLanguageText(label, "browser.internal.disabled.reenable");
-		
-		final Button button = new Button( browser, SWT.NULL );
-		Messages.setLanguageText(button, "label.enable");
-		
-		button.addSelectionListener(
-			new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					button.setEnabled( false );
-					COConfigurationManager.setParameter( "browser.internal.disable", false );
-				}
-			});
-		
-		label = new Label(browser, SWT.NULL);
-		grid_data = new GridData( GridData.FILL_HORIZONTAL );
-		label.setLayoutData( grid_data );
+		if ( _failure == null ){
+			
+			Label label = new Label(browser, SWT.WRAP);
+			Messages.setLanguageText(label, "browser.internal.disabled.info");
+			GridData grid_data = new GridData( GridData.FILL_HORIZONTAL );
+			grid_data.horizontalSpan = 3;
+			label.setLayoutData( grid_data );
+			label.setBackground( Colors.white );
+	
+			label = new Label(browser, SWT.NULL);
+			Messages.setLanguageText(label, "browser.internal.disabled.reenable");
+			
+			final Button button = new Button( browser, SWT.NULL );
+			Messages.setLanguageText(button, "label.enable");
+			
+			button.addSelectionListener(
+				new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						button.setEnabled( false );
+						COConfigurationManager.setParameter( "browser.internal.disable", false );
+					}
+				});
+			
+			label = new Label(browser, SWT.NULL);
+			grid_data = new GridData( GridData.FILL_HORIZONTAL );
+			label.setLayoutData( grid_data );
+			
+		}else{
+			
+			Label label = new Label(browser, SWT.WRAP);
+			Messages.setLanguageText(label, "browser.internal.failed.info", new String[]{ Debug.getNestedExceptionMessage( _failure )});
+			GridData grid_data = new GridData( GridData.FILL_HORIZONTAL );
+			grid_data.horizontalSpan = 3;
+			label.setLayoutData( grid_data );
+			label.setBackground( Colors.white );
+		}
 		
 			// details
 		
@@ -118,14 +132,14 @@ BrowserWrapperFake
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		details.setLayout(layout);
-		grid_data = new GridData( GridData.FILL_BOTH );
+		GridData grid_data = new GridData( GridData.FILL_BOTH );
 		grid_data.horizontalSpan = 3;
 		details.setLayoutData( grid_data);
 		details.setBackground( Colors.white );
 		
 			// url
 		
-		label = new Label(details, SWT.NULL );
+		Label label = new Label(details, SWT.NULL );
 		label.setText( "URL" );
 		label.setLayoutData( new GridData());
 		label.setBackground( Colors.white );
