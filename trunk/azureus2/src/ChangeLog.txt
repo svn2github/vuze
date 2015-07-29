@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2015.07.27 | Vuze 5.6.2.0
+2015.07.29 | Vuze 5.6.2.0
 
 FEATURE: UI   | New Privacy View [Parg]
 FEATURE: UI   | Added Privacy button to open-torrent-options dialog to set the download to be added in a stopped state with no networks enabled [Parg]
