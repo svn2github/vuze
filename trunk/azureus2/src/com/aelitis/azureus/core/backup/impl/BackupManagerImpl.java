@@ -781,6 +781,7 @@ BackupManagerImpl
 								continue;
 							}
 						}else if ( 	name.equals( ".lock" ) ||
+									name.equals( ".azlock" ) ||
 									name.equals( "update.properties" ) ||								
 									name.endsWith( ".log" )){
 							
