@@ -34,6 +34,11 @@ BUGFIX: UI    | Fix category buttons not being uipdates on add/delete [TuxPaper]
 BUGFIX: UI    | Fix toolbar stop/start icon state display [TuxPaper]
 BUGFIX: UI    | Fix start/stop toolbar icon now enabling for devices views [TuxPaper]
 BUGFIX: UI    | Fix status area not drawing occasionally after restoring Vuze from tray [Parg]
+BUGFIX: UI    | Fix completion % not 100% when all files are do-not-download [TuxPaper]
+BUGFIX: UI    | Fix rare cases where partially complete torrents reported 0% (UI only, core still knew of the complete data) [TuxPaper]
+BUGFIX: UI    | Fixed some GTK3 issues in UI [TuxPaper]
+BUGFIX: UI    | Fixed dragging file from Files View to MediaPlayer Classic and other apps (VLC already worked) [TuxPaper]
+
 
 
 2015.06.08 | Vuze 5.6.1.2
