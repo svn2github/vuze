@@ -1,3 +1,16 @@
+**** LICENSING NOTE FROM PARG ****
+
+The version included within Vuze in LGPL version 2.1 and is an old version of the software available here:
+
+https://code.google.com/p/json-simple/downloads/detail?name=json_simple.zip&can=2&q=
+
+(archived here: https://web.archive.org/web/20140328054522/https://json-simple.googlecode.com/files/json_simple.zip )
+
+The license was subsequently updated to Apache but the Vuze copy remains LGPL.
+
+***********************************
+
+
 Simple Java toolkit for JSON (JSON.simple)
 ==========================================
 
