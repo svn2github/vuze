@@ -1114,6 +1114,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 			return( "Network '" + net_cat + "' is not enabled" );
 		}
 		
+		if ( !adapter.isPeerSourceEnabled( peer_source )){
+			
+			return( "Peer source '" + peer_source + "' is not enabled" );
+		}
+		
 			//make sure we need a new connection
 		
 		final int needed = getMaxNewConnectionsAllowed();

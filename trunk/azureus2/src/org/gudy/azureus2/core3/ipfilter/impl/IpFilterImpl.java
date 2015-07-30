@@ -58,7 +58,7 @@ IpFilterImpl
  
 	private IPAddressRangeManager	range_manager = new IPAddressRangeManager();
 	
-	private Map			bannedIps;
+	private Map<Integer,BannedIpImpl>			bannedIps;
 	 
     //Map ip blocked -> matching range
 	
@@ -422,6 +422,11 @@ IpFilterImpl
 				
 				BannedIpImpl	bip = (BannedIpImpl)it.next();
 				
+				if ( bip.isTemporary()){
+					
+					continue;
+				}
+								
 				Map	entry = new HashMap();
 				
 				entry.put( "ip", bip.getIp());
@@ -994,6 +999,16 @@ IpFilterImpl
 		String		torrent_name,
 		boolean		manual ) 
 	{
+		return( ban( ipAddress, torrent_name, manual, 0 ));
+	}
+	
+	public boolean 
+	ban(
+		String 		ipAddress,
+		String		torrent_name,
+		boolean		manual,
+		int			for_mins )
+	{
 			// always allow manual bans through
 		
 		if ( !manual ){
@@ -1017,6 +1032,8 @@ IpFilterImpl
 		
 		List	new_bans = new ArrayList();
 		
+		boolean temporary = for_mins > 0;
+		
 		try{
 			class_mon.enter();
 			
@@ -1026,12 +1043,16 @@ IpFilterImpl
 			
 			if ( bannedIps.get(i_address) == null ){
 				
-				BannedIpImpl	new_ban = new BannedIpImpl( ipAddress, torrent_name );
+				BannedIpImpl	new_ban = new BannedIpImpl( ipAddress, torrent_name, temporary );
 				
 				new_bans.add( new_ban );
 				
 				bannedIps.put( i_address, new_ban );
 				
+				if ( temporary ){
+					
+					addTemporaryBan( new_ban, for_mins );
+				}
 					// check for block-banning, but only for real addresses
 				
 				if ( !UnresolvableHostManager.isPseudoAddress( ipAddress )){
@@ -1070,11 +1091,13 @@ IpFilterImpl
 							
 							if ( bannedIps.get(a) == null ){
 								
-								BannedIpImpl	new_block_ban = new BannedIpImpl( PRHelpers.intToAddress((int)i), torrent_name + " [block ban]" );
+								BannedIpImpl	new_block_ban = new BannedIpImpl( PRHelpers.intToAddress((int)i), torrent_name + " [block ban]", temporary );
 								
 								new_bans.add( new_block_ban );
 
 								bannedIps.put( a, new_block_ban );
+								
+								addTemporaryBan( new_block_ban, for_mins );
 							}
 						}
 					}
@@ -1104,6 +1127,108 @@ IpFilterImpl
 		}
 		
 		return( block_ban );
+	}
+	
+	private TimerEventPeriodic		unban_timer;
+	private Map<Long,List<String>>	unban_map 			= new TreeMap<Long,List<String>>();
+	private Map<String,Long>		unban_map_reverse	= new HashMap<String, Long>();
+	
+	
+	private void
+	addTemporaryBan(
+		BannedIpImpl		ban,
+		int					mins )
+	{
+			// class_mon already held on entry
+		
+		if ( unban_timer == null ){
+			
+			unban_timer = 
+				SimpleTimer.addPeriodicEvent(
+					"Unbanner",
+					30*1000,
+					new TimerEventPerformer() {
+						
+						public void 
+						perform(
+							TimerEvent event) 
+						{
+							try{
+								class_mon.enter();
+								
+								long now = SystemTime.getMonotonousTime();
+								
+								Iterator<Map.Entry<Long,List<String>>> it = unban_map.entrySet().iterator();
+								
+								while( it.hasNext()){
+								
+									Map.Entry<Long,List<String>> entry = it.next();
+									
+									if ( entry.getKey() <= now ){
+										
+										it.remove();
+										
+										for ( String ip: entry.getValue()){
+											
+											unban_map_reverse.remove( ip );
+											
+											unban( ip );
+										}
+									}else{
+										
+										break;
+									}
+								}
+								
+								if ( unban_map.size() == 0 ){
+									
+									unban_timer.cancel();
+									
+									unban_timer = null;
+								}
+							}finally{
+								
+								class_mon.exit();
+							}
+						}
+					});
+		}
+		
+		String 	ip 		= ban.getIp();
+				
+		long	expiry = SystemTime.getMonotonousTime() + mins*60*1000L;
+		
+		expiry = (( expiry + 29999 ) / 30000 ) * 30000;
+				
+		Long	old_expiry = unban_map_reverse.get( ip );
+		
+		if ( old_expiry != null ){
+			
+			List<String>	list = unban_map.get( old_expiry );
+			
+			if ( list != null ){
+				
+				list.remove( ip );
+				
+				if ( list.size() == 0 ){
+					
+					unban_map.remove( old_expiry );
+				}
+			}
+		}
+		
+		unban_map_reverse.put( ip, expiry );
+		
+		List<String>	list = unban_map.get( expiry );
+		
+		if ( list == null ){
+			
+			list = new ArrayList<String>(1);
+			
+			unban_map.put( expiry, list );
+		}
+		
+		list.add( ip );
 	}
 	
 	public BannedIp[] 
@@ -1138,6 +1263,10 @@ IpFilterImpl
 		
 			bannedIps.clear();
 			
+			unban_map.clear();
+			
+			unban_map_reverse.clear();
+			
 			saveBannedIPs();
 			
 		}finally{
@@ -1156,9 +1285,14 @@ IpFilterImpl
 			
 			Integer	i_address = new Integer( address );
 			
-			if ( bannedIps.remove(i_address) != null ){
+			BannedIpImpl entry = bannedIps.remove(i_address);
 			
-				saveBannedIPs();
+			if ( entry != null ){
+			
+				if ( !entry.isTemporary()){
+				
+					saveBannedIPs();
+				}
 			}
 			
 		}finally{

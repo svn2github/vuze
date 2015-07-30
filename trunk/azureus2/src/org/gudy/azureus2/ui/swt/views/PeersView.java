@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -34,6 +35,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -58,6 +60,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -457,6 +460,80 @@ public class PeersView
 			}
 		});
 
+		final MenuItem ban_for_item = new MenuItem(menu, SWT.PUSH);
+
+		Messages.setLanguageText(ban_for_item, "PeersView.menu.kickandbanfor");
+		ban_for_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+			public boolean run(final TableRowCore[] rows){
+				
+				String text = MessageText.getString("dialog.ban.for.period.text");
+
+				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+						"dialog.ban.for.period.title", "!" + text + "!");
+
+				int def = COConfigurationManager.getIntParameter(
+						"ban.for.period.default", 60);
+
+				entryWindow.setPreenteredText(String.valueOf(def), false);
+
+				entryWindow.prompt(new UIInputReceiverListener() {
+					public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+						if (!entryWindow.hasSubmittedInput()) {
+
+							return;
+						}
+
+						String sReturn = entryWindow.getSubmittedInput();
+
+						if (sReturn == null) {
+
+							return;
+						}
+
+						int mins = -1;
+
+						try {
+
+							mins = Integer.valueOf(sReturn).intValue();
+
+						} catch (NumberFormatException er) {
+							// Ignore
+						}
+
+						if (mins <= 0) {
+
+							MessageBox mb = new MessageBox(Utils.findAnyShell(), SWT.ICON_ERROR
+									| SWT.OK);
+
+							mb.setText(MessageText.getString("MyTorrentsView.dialog.NumberError.title"));
+							mb.setMessage(MessageText.getString("MyTorrentsView.dialog.NumberError.text"));
+
+							mb.open();
+
+							return;
+						}
+
+						COConfigurationManager.setParameter("ban.for.period.default", mins);
+
+						IpFilter filter = IpFilterManagerFactory.getSingleton().getIPFilter();
+
+						for ( TableRowCore row: rows ){
+							
+							PEPeer peer = (PEPeer) row.getDataSource(true);
+							
+							String msg = MessageText.getString("PeersView.menu.kickandbanfor.reason", new String[]{ String.valueOf( mins )});
+							
+							filter.ban( peer.getIp(), msg, true, mins );
+							
+							peer.getManager().removePeer(peer, "Peer kicked and banned");
+						}
+					}
+				});
+				
+				return( true );
+			}
+		});
+		
 		// === advanced menu ===
 
 		final MenuItem itemAdvanced = new MenuItem(menu, SWT.CASCADE);

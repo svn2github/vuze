@@ -370,6 +370,7 @@ public class SystemTraySWT
 			}
 		});
 		
+		itemMoreOptions.setEnabled( uiFunctions.getVisibilityState() != UIFunctions.VS_TRAY_ONLY );
 		
 		itemExit.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {

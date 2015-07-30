@@ -115,6 +115,13 @@ IpFilter
 		String	torrent_name,
 		boolean	manual );
 	
+	public boolean 
+	ban(
+		String 	ipAddress,
+		String	torrent_name,
+		boolean	manual,
+		int		ban_for_mins );
+	
 	public void
 	unban(String ipAddress);
 	

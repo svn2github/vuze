@@ -37,12 +37,18 @@ BannedIpImpl
 	protected
 	BannedIpImpl(
 		String	_ip,
-		String	_torrent_name )
+		String	_torrent_name,
+		boolean	_temporary )
 	{
 		ip				= _ip;
 		torrent_name	= _torrent_name;
 		
 		time	= SystemTime.getCurrentTime();
+		
+		if ( _temporary ){
+			
+			time = -time;
+		}
 	}
 	
 	protected
@@ -62,10 +68,16 @@ BannedIpImpl
 		return( ip );
 	}
 	
+	public boolean
+	isTemporary()
+	{
+		return( time < 0 );
+	}
+	
 	public long 
 	getBanningTime()
 	{
-		return( time );
+		return( Math.abs( time ));
 	}
 	
 	public String 

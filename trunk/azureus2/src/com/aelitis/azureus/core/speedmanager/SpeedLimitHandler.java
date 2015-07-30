@@ -124,6 +124,8 @@ SpeedLimitHandler
 		}
 	}
 	
+	private static final int PRIORITISER_CHECK_PERIOD_BASE	= 5*1000;
+	
 	private AzureusCore			core;
 	private PluginInterface 	plugin_interface;
 	private TorrentAttribute	category_attribute;
@@ -134,6 +136,8 @@ SpeedLimitHandler
 	private List<ScheduleRule>		current_rules	= new ArrayList<ScheduleRule>();
 	private ScheduleRule			active_rule;
 	
+	private TimerEventPeriodic		prioritiser_event;
+	private List<Prioritiser>		current_prioritisers = new ArrayList<Prioritiser>();
 	
 	private Map<String,IPSet>		current_ip_sets 			= new HashMap<String,IPSet>();
 	private Map<String,RateLimiter>	ip_set_rate_limiters_up 	= new HashMap<String,RateLimiter>();
@@ -862,6 +866,8 @@ SpeedLimitHandler
 		
 		Map<Integer,List<NetLimit>> new_net_limits = new HashMap<Integer, List<NetLimit>>();
 
+		List<Prioritiser>	new_prioritisers = new ArrayList<Prioritiser>();
+		
 		boolean checked_lts_enabled = false;
 		boolean	lts_enabled	= false;
 		
@@ -1140,7 +1146,78 @@ SpeedLimitHandler
 					}
 					
 					limits.add( new NetLimit( profile, total_lim, up_lim, down_lim ));
-				}				
+				}	
+			}else if ( lc_line.startsWith( "priority_down " ) || lc_line.startsWith( "priority_up " )){
+					
+				String[] args = line.substring(lc_line.indexOf(' ')+1).split( "," );
+					
+				Prioritiser pri = new Prioritiser();
+				
+				pri.setIsDown( lc_line.startsWith( "priority_down " ));
+				
+				TagType tag_type = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+				
+				boolean	pri_ok = true;
+				
+				for ( String arg: args ){
+
+					String[]	bits = arg.split( "=" );
+	
+					boolean ok = false;
+					
+					try{
+						if ( bits.length == 2 ){
+														
+							String lhs 	= bits[0];
+							String rhs	= bits[1];
+							
+							if ( Character.isDigit( lhs.charAt(0))){
+								
+								int p = Integer.parseInt( lhs );
+
+								TagDownload tag = (TagDownload)tag_type.getTag( rhs, true );
+								
+								if ( tag != null ){
+								
+									pri.addTarget( p, tag );
+									
+									ok = true;
+								}
+							}else if ( lhs.equalsIgnoreCase( "freq" )){
+								
+								pri.setFrequency( Integer.parseInt( rhs ));
+								
+								ok = true;
+								
+							}else if ( lhs.equals( "max" )){
+								
+								pri.setMaximum((int)parseRate( rhs ));
+								
+								ok = true;
+							}
+						}
+					}catch( Throwable e ){					
+					}
+					
+					if ( !ok ){
+						
+						result.add( "'" + line + "': invalid argument: " + arg );
+						
+						pri_ok = false;
+					}
+				}
+				
+				if ( pri.getTargetCount() < 2 ){
+					
+					result.add( "'" + line + "': insufficient targets" );
+					
+				}else{
+					
+					if ( pri_ok ){
+						
+						new_prioritisers.add( pri );
+					}
+				}
 			}else{
 				
 				String[]	_bits = line.split( " " );
@@ -1410,6 +1487,39 @@ SpeedLimitHandler
 				checkSchedule();
 			}
 			
+			current_prioritisers = new_prioritisers;
+
+			if ( new_prioritisers.size() == 0 ){
+				
+				if ( prioritiser_event != null ){
+				
+					prioritiser_event.cancel();
+					
+					prioritiser_event = null;
+				}
+			}else{
+				
+								
+				if ( prioritiser_event == null ){
+					
+					prioritiser_event = 
+						SimpleTimer.addPeriodicEvent(
+								"speed handler prioritiser",
+								PRIORITISER_CHECK_PERIOD_BASE,
+								new TimerEventPerformer()
+								{
+									private int	tick_count;
+									
+									public void 
+									perform(
+										TimerEvent event) 
+									{
+										checkPrioritisers( tick_count++ );
+									}
+								});
+				}
+			}
+			
 			for( IPSet s: current_ip_sets.values()){
 				
 				s.destroy();
@@ -1537,6 +1647,8 @@ SpeedLimitHandler
 	parseRate(
 		String	str )
 	{
+		str = str.toLowerCase( Locale.US );
+		
 		int	pos = str.indexOf( "/" );
 		
 		if ( pos != -1 ){
@@ -2396,6 +2508,23 @@ SpeedLimitHandler
 		}
 	}
 	
+	private void
+	checkPrioritisers(
+		int	tick_count )
+	{
+		List<Prioritiser>	prioritisers;
+		
+		synchronized( this ){
+			
+			prioritisers = new ArrayList<Prioritiser>( current_prioritisers );
+		}
+		
+		for ( Prioritiser p: prioritisers ){
+			
+			p.check( tick_count );
+		}
+	}
+		
 	private ScheduleRule
 	getActiveRule(
 		Date		date )
@@ -4947,6 +5076,181 @@ SpeedLimitHandler
 			{
 				return( getDetailString());
 			}
+		}
+	}
+	
+	private class
+	Prioritiser
+	{
+		private boolean				is_down;
+		private List<TagDownload>	tags = new ArrayList<TagDownload>();
+		private int					freq;
+		private int					max;
+		
+		private int	check_ticks		= 1;
+		
+		private void
+		setIsDown(
+			boolean	_down )
+		{
+			is_down	= _down;
+		}
+		
+		protected void
+		addTarget(
+			int				priority,
+			TagDownload		tag )
+		{
+			tags.add( tag );
+		}
+		
+		private int
+		getTargetCount()
+		{
+			return( tags.size());
+		}
+		
+		private void
+		setFrequency(
+			int		_freq )
+		{
+			freq	= _freq;
+			
+			check_ticks = freq*1000/PRIORITISER_CHECK_PERIOD_BASE;
+			
+			if ( check_ticks < 1 ){
+				
+				check_ticks = 1;
+			}
+		}
+		
+		private void
+		setMaximum(
+			int		_max )
+		{
+			max	= _max;
+		}
+		
+		private void
+		check(
+			int		tick_count )
+		{
+			if ( tick_count % check_ticks != 0 ){
+				
+				return;
+			}
+			
+			List<TagDownload>	active_tags = new ArrayList<TagDownload>();
+			
+			for ( TagDownload tag: tags ){
+				
+				Set<DownloadManager> downloads = tag.getTaggedDownloads();
+				
+				boolean	active = false;
+				
+				for ( DownloadManager dm: downloads ){
+					
+					PEPeerManager pm = dm.getPeerManager();
+					
+					if ( pm != null ){
+						
+						if ( dm.isDownloadComplete( false )){
+							
+							if ( is_down ){
+								
+								continue;
+							}
+						}
+						
+						if ( pm.getNbPeers() + pm.getNbSeeds() > 0 ){
+							
+							active = true;
+														
+							break;
+						}
+					}
+				}
+				
+				if ( active ){
+					
+					active_tags.add( tag );
+					
+				}else{
+					
+						// not active, reset rates to unlimited
+					
+					setRate( tag, max );
+				}
+				
+				
+				int	rate;
+				int	limit;
+				
+				if ( is_down ){
+				
+					rate 	= tag.getTagCurrentDownloadRate();
+					limit	= tag.getTagDownloadLimit();
+				}else{
+					
+					rate 	= tag.getTagCurrentUploadRate();
+					limit	= tag.getTagUploadLimit();
+				}
+				
+				System.out.println( tag.getTagName(true) + ":limit=" + limit +", rate=" + rate + ", active=" + active );
+			}
+			
+			int	num_active = active_tags.size();
+			
+			if ( num_active == 0 ){
+				
+				return;
+			}
+			
+			setRate( active_tags.get(0), max );
+			
+			if ( num_active == 1 ){
+				
+				return;
+			}
+			
+			for ( int i=1;i<active_tags.size();i++){
+				
+				setRate( active_tags.get(i), -1 );
+			}
+		}
+	
+		private void
+		setRate(
+			TagDownload tag,
+			int			rate )
+		{
+			
+			if ( is_down ){
+				
+				if ( rate != tag.getTagDownloadLimit()){
+					
+					tag.setTagDownloadLimit( rate );
+					
+					log( tag, "->" + rate );
+				}
+			}else{
+				
+				if ( rate != tag.getTagUploadLimit()){
+				
+					tag.setTagUploadLimit( rate );
+					
+					log( tag, "->" + rate );
+				}
+			}	
+		}
+		
+		private void
+		log(
+			TagDownload		tag,
+			String			str )
+		{
+			logger.log( "tag_priority: " + tag.getTagName( true ) + ": " + str );
+			
 		}
 	}
 }
