@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -60,6 +61,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
@@ -98,6 +100,7 @@ import com.aelitis.azureus.core.tag.impl.TagBase;
 import com.aelitis.azureus.core.tag.impl.TagTypeWithState;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
+import com.aelitis.azureus.core.util.average.MovingAverage;
 
 public class 
 SpeedLimitHandler 
@@ -5083,11 +5086,16 @@ SpeedLimitHandler
 	Prioritiser
 	{
 		private boolean				is_down;
-		private List<TagDownload>	tags = new ArrayList<TagDownload>();
 		private int					freq;
 		private int					max;
 		
 		private int	check_ticks		= 1;
+		
+		private List<PrioritiserTagState>	tag_states = new ArrayList<PrioritiserTagState>();
+		
+		private int					phase 				= 0;
+		private PrioritiserTagState	phase_1_tag			= null;
+		private int					phase_1_tag_state	= 0;
 		
 		private void
 		setIsDown(
@@ -5101,13 +5109,19 @@ SpeedLimitHandler
 			int				priority,
 			TagDownload		tag )
 		{
-			tags.add( tag );
+				// todo sort by priority I guess, maybe handle duplicate priorities
+						
+			PrioritiserTagState tag_state = new PrioritiserTagState( tag );
+			
+			tag_states.add( tag_state );
+			
+			setLimit(tag_state, tag_states.size()==1?max:-1 );
 		}
 		
 		private int
 		getTargetCount()
 		{
-			return( tags.size());
+			return( tag_states.size());
 		}
 		
 		private void
@@ -5139,17 +5153,318 @@ SpeedLimitHandler
 				
 				return;
 			}
+						
+			List<PrioritiserTagState>	active_tags = new ArrayList<PrioritiserTagState>();
+
+			boolean	adjusting = false;
 			
-			List<TagDownload>	active_tags = new ArrayList<TagDownload>();
+			for ( PrioritiserTagState tag_state: tag_states ){
+				
+				boolean active = tag_state.update();
+
+				if ( active ){
+					
+					active_tags.add( tag_state );
+					
+					if ( tag_state.isAdjusting()){
+						
+						adjusting = true;
+					}
+				}else{
+					
+						// not active, reset rates to unlimited
+					
+					tag_state.setLimit( max );
+				}
+			}
 			
-			for ( TagDownload tag: tags ){
+			int	num_active = active_tags.size();
+			
+			if ( num_active == 0 ){
+				
+				return;
+			}
+						
+			if ( num_active == 1 ){
+				
+				active_tags.get(0).setLimit( max );
+
+				return;
+			}
+			
+			if ( adjusting ){
+				
+				return;
+			}
+			
+				// go through the active tags and make adjustments based on whether tags are
+				// achieving stable rates
+			
+				// if tag X is stable and at max then we can look to raising the limit on the next tag etc.
+			
+				// if tag X is running below max then this might be because of two things
+				//     1) it can't run faster because there's no demand
+				//     2) a lower ranked tag is grabbing bandwidth
+			
+			
+				// phase 0
+				// Get all tags with limits set and stable rates at that limit
+			
+				// phase 1
+				// Cycle through tags from high to low
+				//		find next non-max one, set to max and reduce rates of others - set limit to achieved rate
+				//   
+			
+			//System.out.println( "phase=" + phase );
+			
+			if ( phase == 0 ){
+				
+				boolean	all_good = true;
+				
+				for ( int i=0;i<active_tags.size();i++){
+					
+					PrioritiserTagState tag_state = active_tags.get(i);
+					
+					int	limit 	= tag_state.getLimit();
+					int rate	= tag_state.getRate();
+					
+					boolean	stable = tag_state.isStable();
+					
+					if ( limit == -1 ){
+						
+						limit = 0;	// no upload
+					}
+					
+					if ( stable && sameRate( limit, rate )){
+						
+						// looking good
+						
+					}else{
+						
+						all_good = false;
+						
+							// reduce limit
+						
+						if ( limit > 0 ){
+							
+							if ( stable ){
+								
+								if ( rate < 1024 ){
+									
+									rate = 1024;
+								}
+								
+								tag_state.setLimit( rate );
+								
+							}else{
+								
+								int target = rate - 2048;
+								
+								if ( rate <= 1024 ){
+									
+									rate = -1;
+								}
+								
+								tag_state.setLimit( rate );
+							}
+						}
+					}
+				}
+				
+				//System.out.println( "all good->" + all_good );
+				
+				if ( all_good ){
+					
+					phase = 1;
+					
+					phase_1_tag = active_tags.get(0);
+					
+					phase_1_tag_state = 0;
+				}
+			}else{
+			
+					// note that we only get here when things have finished 'adjusting'
+				
+				int	index = active_tags.indexOf( phase_1_tag );
+				
+				if ( index == -1 ){
+					
+					phase = 0;
+					
+				}else{
+					
+					boolean	did_something = false;
+					
+					for ( int i=index;i<active_tags.size();i++){
+					
+						PrioritiserTagState tag_state = active_tags.get(i);
+						
+						if ( tag_state.getLimit() != max ){
+							
+								// not at max, let's modify it
+							
+							tag_state.setLimit( max );
+							
+							for ( int j=i+1;j<active_tags.size();j++){
+								
+								PrioritiserTagState ts = active_tags.get(j);
+								
+								int rate = ts.getRate();
+								
+								int target = rate - 2048;
+								
+								if ( target <= 1024 ){
+									
+									target = -1;
+								}
+								
+								ts.setLimit( target );
+							}
+							
+							phase_1_tag_state = 1;
+							
+							did_something = true;
+							
+							break;
+							
+						}else{
+							
+								// is at max - might have previously been at max so ignore if so
+							
+							if ( phase_1_tag_state == 1 ){
+								
+								int rate = tag_state.getRate();
+								
+								if ( rate <= 1024 ){
+									
+									rate = -1;
+									
+								}else if ( sameRate( rate, max )){
+									
+									rate = max;
+								}
+								
+								tag_state.setLimit( rate );
+																
+								if ( i < active_tags.size() - 1 ){
+								
+									phase_1_tag			= active_tags.get( i+1 );
+									
+									phase_1_tag_state = 0;
+									
+									did_something = true;
+								}
+								
+								break;
+								
+							}else{
+								
+									// tag already at max, don't touch it and move on
+							}
+						}
+					}
+					
+					if ( !did_something ){
+						
+						phase = 0;
+					}
+				}
+			}
+		}
+	
+		private boolean
+		setLimit(
+			PrioritiserTagState 	tag_state,
+			int						rate )
+		{
+			TagDownload tag = tag_state.getTag();
+			
+			if ( is_down ){
+				
+				if ( rate != tag.getTagDownloadLimit()){
+					
+					tag.setTagDownloadLimit( rate );
+					
+					log( tag, "->" + rate );
+					
+					return( true );
+				}
+			}else{
+				
+				if ( rate != tag.getTagUploadLimit()){
+				
+					tag.setTagUploadLimit( rate );
+					
+					log( tag, "->" + rate );
+					
+					return( true );
+				}
+			}	
+			
+			return( false );
+		}
+		
+		private boolean
+		sameRate(
+			int	r1,
+			int	r2 )
+		{
+			return( Math.abs( r1 - r2 ) <= 1024 );	
+		}
+		
+		private void
+		log(
+			TagDownload		tag,
+			String			str )
+		{
+			logger.log( "tag_priority: " + tag.getTagName( true ) + ": " + str );
+			
+		}
+		
+		private class
+		PrioritiserTagState
+		{
+			private static final int STABLE_PERIODS				= 2;
+			private static final int AVERAGE_PERIODS			= 3;
+			
+			private static final int ADJUSTMENT_PERIODS			= AVERAGE_PERIODS + 1;
+			private static final int INITIAL_ADJUSTMENT_PERIODS	= ADJUSTMENT_PERIODS + 2;
+
+			private final TagDownload		tag;
+									
+			private final MovingAverage average = AverageFactory.MovingAverage( AVERAGE_PERIODS );
+			
+			private final int[] 	last_averages = new int[ STABLE_PERIODS ];
+			
+			private int		last_average_index;
+			
+			private boolean	last_stable;
+			private int		last_rate;
+			private int		last_limit;
+			
+			private int	adjusting_ticks = INITIAL_ADJUSTMENT_PERIODS;
+			
+			private
+			PrioritiserTagState(
+				TagDownload		_tag )
+			{
+				tag	= _tag;
+			}
+			
+			private boolean
+			update()
+			{
+				if ( adjusting_ticks > 0 ){
+					
+					adjusting_ticks--;
+				}
 				
 				Set<DownloadManager> downloads = tag.getTaggedDownloads();
-				
+											
 				boolean	active = false;
-				
+								
 				for ( DownloadManager dm: downloads ){
-					
+										
 					PEPeerManager pm = dm.getPeerManager();
 					
 					if ( pm != null ){
@@ -5165,92 +5480,91 @@ SpeedLimitHandler
 						if ( pm.getNbPeers() + pm.getNbSeeds() > 0 ){
 							
 							active = true;
-														
-							break;
 						}
+						
 					}
 				}
-				
-				if ( active ){
-					
-					active_tags.add( tag );
-					
-				}else{
-					
-						// not active, reset rates to unlimited
-					
-					setRate( tag, max );
-				}
-				
 				
 				int	rate;
 				int	limit;
 				
 				if ( is_down ){
-				
+					
 					rate 	= tag.getTagCurrentDownloadRate();
 					limit	= tag.getTagDownloadLimit();
 				}else{
 					
-					rate 	= tag.getTagCurrentUploadRate();
+					rate 	= tag.getTagCurrentUploadRate();	
 					limit	= tag.getTagUploadLimit();
 				}
-				
-				System.out.println( tag.getTagName(true) + ":limit=" + limit +", rate=" + rate + ", active=" + active );
-			}
 			
-			int	num_active = active_tags.size();
-			
-			if ( num_active == 0 ){
-				
-				return;
-			}
-			
-			setRate( active_tags.get(0), max );
-			
-			if ( num_active == 1 ){
-				
-				return;
-			}
-			
-			for ( int i=1;i<active_tags.size();i++){
-				
-				setRate( active_tags.get(i), -1 );
-			}
-		}
-	
-		private void
-		setRate(
-			TagDownload tag,
-			int			rate )
-		{
-			
-			if ( is_down ){
-				
-				if ( rate != tag.getTagDownloadLimit()){
+				if ( rate > limit ){
 					
-					tag.setTagDownloadLimit( rate );
-					
-					log( tag, "->" + rate );
+					rate = limit;
 				}
-			}else{
 				
-				if ( rate != tag.getTagUploadLimit()){
+				int average_rate = (int)average.update( rate );
 				
-					tag.setTagUploadLimit( rate );
-					
-					log( tag, "->" + rate );
+				boolean	 stable = true;
+				
+				for ( int la: last_averages ){
+				
+					if ( !sameRate( average_rate, la )){
+						
+						stable = false;
+					}
 				}
-			}	
-		}
-		
-		private void
-		log(
-			TagDownload		tag,
-			String			str )
-		{
-			logger.log( "tag_priority: " + tag.getTagName( true ) + ": " + str );
+				
+				last_averages[last_average_index++%last_averages.length] = average_rate;
+				
+				last_limit	= limit;
+				last_rate 	= average_rate;
+				last_stable	= stable;
+				
+				//System.out.println( tag.getTagName( true ) + " -> rate=" + average_rate + ", stable=" + stable );
+								
+				return( active );
+			}
 			
+			private TagDownload
+			getTag()
+			{
+				return( tag );
+			}
+			
+			private int
+			getLimit()
+			{
+				return( last_limit );
+			}
+			
+			private int
+			getRate()
+			{
+				return( last_rate );
+			}
+			
+			private boolean
+			isStable()
+			{
+				return( last_stable );
+			}
+			
+			private boolean
+			isAdjusting()
+			{
+				return( adjusting_ticks > 0 );
+			}
+			
+			private void
+			setLimit(
+				int		limit )
+			{
+				if ( Prioritiser.this.setLimit( this, limit )){
+					
+					adjusting_ticks = ADJUSTMENT_PERIODS;
+				}
+			}
 		}
 	}
 }
