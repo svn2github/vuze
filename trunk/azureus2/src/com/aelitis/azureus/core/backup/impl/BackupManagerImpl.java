@@ -1088,6 +1088,17 @@ BackupManagerImpl
 										}
 									}
 								}
+							}catch( Throwable e ){
+								
+								if ( f.getName().endsWith( ".bad" )){
+									
+									listener.reportProgress( "    Ignored failure to patch bad configuration file" );
+									
+								}else{
+									
+									throw( e );
+								}
+								
 							}finally{
 								
 								if ( bis != null ){
