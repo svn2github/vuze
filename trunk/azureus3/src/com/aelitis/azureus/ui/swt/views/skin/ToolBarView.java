@@ -388,37 +388,26 @@ public class ToolBarView
 		// ==startstop
 		item = createItem(this, "startstop", "image.toolbar.startstop.start",
 				"iconBar.startstop");
-		item.setDefaultActivationListener(new UIToolBarActivationListener() {
-			public boolean toolBarItemActivated(ToolBarItem item,
+		item.setDefaultActivationListener(new UIToolBarActivationListener_OffSWT(
+				UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL) {
+			@Override
+			public void toolBarItemActivated_OffSWT(ToolBarItem item,
 					long activationType, Object datasource) {
-				if (activationType != ACTIVATIONTYPE_NORMAL) {
-					return false;
-				}
-				final ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
-				Utils.getOffOfSWTThread(new AERunnable() {
-					
-					@Override
-					public void runSupport() {
-						// takes forever on swt thread if allocation needed
-						TorrentUtil.stopOrStartDataSources(currentContent);
-					}
-				});
-				return true;
+				ISelectedContent[] selected = SelectedContentManager.getCurrentlySelectedContent();
+				TorrentUtil.stopOrStartDataSources(selected);
 			}
 		});
 		tbm.addToolBarItem(item, false);
 
 		// ==remove
 		item = createItem(this, "remove", "image.toolbar.remove", "iconBar.remove");
-		item.setDefaultActivationListener(new UIToolBarActivationListener() {
-			public boolean toolBarItemActivated(ToolBarItem item,
+		item.setDefaultActivationListener(new UIToolBarActivationListener_OffSWT(
+				UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL) {
+			@Override
+			public void toolBarItemActivated_OffSWT(ToolBarItem item,
 					long activationType, Object datasource) {
-				if (activationType != ACTIVATIONTYPE_NORMAL) {
-					return false;
-				}
-				TorrentUtil.removeDataSources(
-						SelectedContentManager.getCurrentlySelectedContent());
-				return true;
+				ISelectedContent[] selected = SelectedContentManager.getCurrentlySelectedContent();
+				TorrentUtil.removeDataSources(selected);
 			}
 		});
 		tbm.addToolBarItem(item, false);
@@ -1195,4 +1184,34 @@ public class ToolBarView
 		});
 	}
 
+	public abstract class UIToolBarActivationListener_OffSWT
+		implements UIToolBarActivationListener
+	{
+		private long onlyOnActivationType;
+
+		public UIToolBarActivationListener_OffSWT(long onlyOnActivationType) {
+			this.onlyOnActivationType = onlyOnActivationType;
+		}
+
+		public UIToolBarActivationListener_OffSWT() {
+			onlyOnActivationType = -1;
+		}
+
+		public final boolean toolBarItemActivated(final ToolBarItem item,
+				final long activationType, final Object datasource) {
+			if (onlyOnActivationType >= 0 && activationType == onlyOnActivationType) {
+				return false;
+			}
+			Utils.getOffOfSWTThread(new AERunnable() {
+				@Override
+				public void runSupport() {
+					toolBarItemActivated_OffSWT(item, activationType, datasource);
+				}
+			});
+			return true;
+		}
+
+		public abstract void toolBarItemActivated_OffSWT(ToolBarItem item,
+				long activationType, Object datasource);
+	}
 }
