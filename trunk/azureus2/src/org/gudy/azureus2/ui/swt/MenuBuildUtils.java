@@ -302,7 +302,7 @@ public class MenuBuildUtils {
 					if (az_menuitem.getStyle() == MenuItem.STYLE_CHECK
 							|| az_menuitem.getStyle() == MenuItem.STYLE_RADIO) {
 						if (!menuItem.isDisposed()) {
-							az_menuitem.setData(new Boolean(menuItem.getSelection()));
+							menuItem.setSelection(az_menuitem.isSelected());
 						}
 					}
 					main_listener.handleEvent(e);
