@@ -428,6 +428,8 @@ public class SideBar
 			TreeItem lastTopItem = null;
 
 			boolean mouseDowned = false;
+			
+			Rectangle lastCloseAreaClicked = null;
 
 			private boolean wasExpanded;
 
@@ -551,6 +553,11 @@ public class SideBar
 							}
 							SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
 							if (entry != null && entry.isSelectable()) {
+								Point cursorLocation = tree.toControl(event.display.getCursorLocation());
+								if (lastCloseAreaClicked != null && lastCloseAreaClicked.contains(cursorLocation.x, cursorLocation.y)) {
+									return;
+								}
+								
 								showEntry(entry);
 							} else if (currentEntry != null) {
 								TreeItem topItem = tree.getTopItem();
@@ -604,6 +611,22 @@ public class SideBar
 
 						case SWT.MouseDown: {
 							mouseDowned = true;
+							lastCloseAreaClicked  = null;
+							if (tree.getItemCount() == 0 || event.button != 1) {
+								return;
+							}
+							int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
+							treeItem = tree.getItem(new Point(indent, event.y));
+							if (treeItem == null) {
+								return;
+							}
+							Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
+							if (closeArea != null && closeArea.contains(event.x, event.y)) {
+								lastCloseAreaClicked = closeArea;
+								treeItem.dispose();
+								// pretend we don't have a mouse down, so we don't process a showEntry
+								mouseDowned = false;
+							}
 							break;
 						}
 
@@ -624,7 +647,7 @@ public class SideBar
 
 							Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
 							if (closeArea != null && closeArea.contains(event.x, event.y)) {
-								treeItem.dispose();
+								//treeItem.dispose();
 								return;
 							} else if (currentEntry != entry && Constants.isOSX) {
 								showEntry(entry);
