@@ -23,17 +23,14 @@ package com.aelitis.azureus.ui.swt.skin;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BubbleTextBox;
 
 /**
  * Native checkbox
@@ -61,7 +58,8 @@ public class SWTSkinObjectTextbox
 		} else {
 			createOn = (Composite) parent.getControl();
 		}
-		
+
+		boolean doBubble = false;
 		int style = SWT.BORDER;
 		
 		String styleString = properties.getStringValue(sConfigID + ".style");
@@ -82,8 +80,7 @@ public class SWTSkinObjectTextbox
 			if (Arrays.binarySearch(styles, "search") >= 0) {
 				style |= SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL;
 				if (Constants.isWindows) {
-					cBubble = new Composite(createOn, SWT.DOUBLE_BUFFERED);
-					cBubble.setLayout(new FormLayout());
+					doBubble = true;
 				}
 			}
 		}
@@ -93,104 +90,12 @@ public class SWTSkinObjectTextbox
 		}
 
 
-		if (cBubble == null) {
+		if (!doBubble) {
 			textWidget = new Text(createOn, style);
 		} else {
-			textWidget = new Text(cBubble, style & ~(SWT.BORDER | SWT.SEARCH));
-			
-			FormData fd = new FormData();
-			fd.top = new FormAttachment(0, 2);
-			fd.bottom = new FormAttachment(100, -2);
-			fd.left = new FormAttachment(0, 17);
-			fd.right = new FormAttachment(100, -14);
-			textWidget.setLayoutData(fd);
-
-			cBubble.addPaintListener(new PaintListener() {
-				public void paintControl(PaintEvent e) {
-					Rectangle clientArea = cBubble.getClientArea();
-					e.gc.setBackground(textWidget.getBackground());
-					e.gc.setAdvanced(true);
-					e.gc.setAntialias(SWT.ON);
-					e.gc.fillRoundRectangle(clientArea.x, clientArea.y,
-							clientArea.width - 1, clientArea.height - 1, clientArea.height,
-							clientArea.height);
-					e.gc.setAlpha(127);
-					e.gc.drawRoundRectangle(clientArea.x, clientArea.y,
-							clientArea.width - 1, clientArea.height - 1, clientArea.height,
-							clientArea.height);
-
-					e.gc.setLineCap(SWT.CAP_ROUND);
-
-					int iconHeight = clientArea.height - 9;
-					if (iconHeight > 13) {
-						iconHeight = 13;
-					}
-					int iconY = clientArea.y + ((clientArea.height - iconHeight + 1) / 2);
-					
-					e.gc.setAlpha(120);
-					e.gc.setLineWidth(2);
-					e.gc.drawOval(clientArea.x + 6, iconY, 7, 6); 
-					e.gc.drawPolyline(new int[] {
-						clientArea.x + 12,
-						iconY + 6,
-						clientArea.x + 15,
-						iconY + iconHeight,
-					});
-					
-					boolean textIsBlank = text.length() == 0;
-					if (!textIsBlank) {
-						//e.gc.setLineWidth(1);
-						e.gc.setAlpha(80);
-						Rectangle rXArea = new Rectangle(clientArea.x + clientArea.width
-								- 16, clientArea.y + 1, 11, clientArea.height - 2);
-						cBubble.setData("XArea", rXArea);
-
-						e.gc.drawPolyline(new int[] {
-							clientArea.x + clientArea.width - 7,
-							clientArea.y + 7,
-							clientArea.x + clientArea.width - (7 + 5),
-							clientArea.y + clientArea.height - 7,
-						});
-						e.gc.drawPolyline(new int[] {
-							clientArea.x + clientArea.width - 7,
-							clientArea.y + clientArea.height - 7,
-							clientArea.x + clientArea.width - (7 + 5),
-							clientArea.y + 7,
-						});
-					}
-				}
-			});
-			
-			cBubble.addListener(SWT.MouseDown, new Listener() {
-				public void handleEvent(Event event) {
-					Rectangle r = (Rectangle) event.widget.getData("XArea");
-					if (r != null && r.contains(event.x, event.y)) {
-						textWidget.setText("");
-					}
-				}
-			});
-			
-				// pick up changes in the text control's bg color and propagate to the bubble
-			
-			textWidget.addPaintListener(
-				new PaintListener()
-				{
-					private Color existing_bg;
-					
-					public void 
-					paintControl(
-						PaintEvent arg0 )
-					{
-						Color current_bg = textWidget.getBackground();
-						
-						if ( current_bg != existing_bg ){
-							
-							existing_bg = current_bg;
-							
-							cBubble.redraw();
-						}
-					}
-				});
+			BubbleTextBox bubbleTextBox = new BubbleTextBox(createOn, style);
+			textWidget = bubbleTextBox.getTextWidget();
+			cBubble = bubbleTextBox.getParent();
 		}
 		
 		textWidget.addModifyListener(new ModifyListener() {
