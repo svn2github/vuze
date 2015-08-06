@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 
@@ -54,6 +55,8 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
  * @author TuxPaper
  *
  * @since 2.3.0.5
+ * 
+ * @note Plugin's Logging View is {@link BasicPluginViewImpl}
  */
 public class LoggerView
 	implements ILogEventListener, ParameterListener, UISWTViewCoreEventListenerEx
