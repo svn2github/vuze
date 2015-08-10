@@ -1090,7 +1090,9 @@ BackupManagerImpl
 								}
 							}catch( Throwable e ){
 								
-								if ( f.getName().endsWith( ".bad" )){
+								String name = f.getName();
+								
+								if ( name.endsWith( ".bad" ) || name.endsWith( ".bak" )){
 									
 									listener.reportProgress( "    Ignored failure to patch bad configuration file" );
 									
