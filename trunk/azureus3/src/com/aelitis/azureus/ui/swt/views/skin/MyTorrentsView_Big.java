@@ -46,6 +46,7 @@ public class MyTorrentsView_Big
 		Class<?> forDataSourceType;
 		switch (torrentFilterMode) {
 			case SBC_LibraryView.TORRENTS_COMPLETE:
+			case SBC_LibraryView.TORRENTS_UNOPENED:
 				forDataSourceType = DownloadTypeComplete.class;
 				break;
 
