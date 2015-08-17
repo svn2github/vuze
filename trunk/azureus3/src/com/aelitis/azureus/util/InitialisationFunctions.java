@@ -57,6 +57,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
@@ -93,8 +94,8 @@ public class InitialisationFunctions
 		
 		RelatedContentManager.preInitialise( core );
 
-		SBC_ChatOverview.preInitialize();
-		
+		earlySWTInitialise();
+				
 		AZ3Functions.setProvider(
 			new AZ3Functions.provider()
 			{
@@ -384,6 +385,22 @@ public class InitialisationFunctions
 			});
 	}
 
+	private static void
+	earlySWTInitialise()
+	{
+		try{
+			UIFunctions uif = UIFunctionsManager.getUIFunctions();
+	
+			if ( uif != null && uif.getUIType() == PluginManager.UI_SWT ){
+			
+				SBC_ChatOverview.preInitialize();
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
 	public static void 
 	lateInitialisation(
 		AzureusCore core ) 

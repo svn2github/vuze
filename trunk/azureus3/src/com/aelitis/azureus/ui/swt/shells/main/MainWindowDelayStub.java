@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -455,6 +456,12 @@ MainWindowDelayStub
 	UIFunctionsSWTImpl
 		implements UIFunctionsSWT
 	{
+		public int 
+		getUIType() 
+		{
+			return( PluginManager.UI_SWT );
+		}
+		
 		public void 
 		bringToFront()
 		{	

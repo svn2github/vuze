@@ -57,6 +57,9 @@ public interface UIFunctions
 	public static final int VS_MINIMIZED				= 3;		// normal minimized
 	public static final int VS_ACTIVE					= 4;		// active
 
+	public int
+	getUIType();
+
 	/**
 	 * Bring main window to the front
 	 */

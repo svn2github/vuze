@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIInstance;
@@ -135,6 +136,12 @@ public class UIFunctionsImpl
 				});
 	}
 
+	public int 
+	getUIType() 
+	{
+		return( PluginManager.UI_SWT );
+	}
+	
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener)
 	public void addPluginView(final String viewID, final UISWTViewEventListener l) {
 		try {
