@@ -320,13 +320,13 @@ GeneralUtils
 
 	
 	static{
-		COConfigurationManager.addAndFireParameterListener(
-			"Stats Smoothing Secs",
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ "Stats Smoothing Secs", "UI General Format Overrides" },
 			new ParameterListener()
 			{
 				public void 
 				parameterChanged(
-					String name ) 
+					String xxx ) 
 				{
 					SMOOTHING_UPDATE_WINDOW	= COConfigurationManager.getIntParameter( "Stats Smoothing Secs" );
 				
@@ -349,6 +349,8 @@ GeneralUtils
 						
 						SMOOTHING_UPDATE_INTERVAL = 20;
 					}
+					
+					updateFormatters( COConfigurationManager.getStringParameter( "UI General Format Overrides", "" ));
 				}
 			});
 	}
@@ -369,5 +371,42 @@ GeneralUtils
 	getSmoothAverage()
 	{
 		return( AverageFactory.MovingImmediateAverage(SMOOTHING_UPDATE_WINDOW/SMOOTHING_UPDATE_INTERVAL ));
+	}
+	
+	private static volatile Map<String,Formatter>	format_map = new HashMap<String, Formatter>();
+	
+	private static void
+	updateFormatters(
+		String	formats )
+	{
+		Map<String,Formatter> map = new HashMap<String, Formatter>();
+		
+		format_map = map;
+	}
+	
+	public static String
+	formatCustomRate(
+		String		key,
+		long		value )
+	{
+		Formatter formatter = format_map.get( key );
+		
+		if ( formatter != null ){
+			
+			return( formatter.format( value ));
+		}
+		
+		return( null );
+	}
+	
+	private static class
+	Formatter
+	{
+		public String
+		format(
+			long		value )
+		{
+			return( String.valueOf( value ));
+		}
 	}
 }

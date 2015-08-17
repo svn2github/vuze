@@ -74,6 +74,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.FeatureAvailability;
+import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -1043,49 +1044,54 @@ public class MainWindowImpl
 	formatRateCompact(
 		int		rate )
 	{
-		String str = DisplayFormatters.formatByteCountToKiBEtc( rate, false, true, 2, DisplayFormatters.UNIT_KB );
+		String str = GeneralUtils.formatCustomRate( "window.title.rate", rate );
 		
-		String[] bits = str.split( " " );
-	
-		if ( bits.length == 2 ){
-	
-			String sep = String.valueOf( DisplayFormatters.getDecimalSeparator());
-			
-			String num 	= bits[0];
-			String unit = bits[1];
-			
-			int	num_len = num.length();
-			
-			if ( num_len < 4 ){
+		if ( str == null ){
+		
+			str = DisplayFormatters.formatByteCountToKiBEtc( rate, false, true, 2, DisplayFormatters.UNIT_KB );
+		
+			String[] bits = str.split( " " );
+		
+			if ( bits.length == 2 ){
+		
+				String sep = String.valueOf( DisplayFormatters.getDecimalSeparator());
 				
-				if ( !num.contains( sep )){
+				String num 	= bits[0];
+				String unit = bits[1];
+				
+				int	num_len = num.length();
+				
+				if ( num_len < 4 ){
 					
-					num += sep;
+					if ( !num.contains( sep )){
+						
+						num += sep;
+						
+						num_len++;
+					}
 					
-					num_len++;
+					while( num_len < 4 ){
+						
+						num += "0";
+						
+						num_len++;
+					}
+				}else{
+					if ( num_len > 4 ){
+						
+						num = num.substring( 0, 4 );
+						
+						num_len = 4;
+					}
 				}
 				
-				while( num_len < 4 ){
-					
-					num += "0";
-					
-					num_len++;
+				if ( num.endsWith( sep )){
+	
+					num = num.substring( 0, num_len - 1 ) + " ";
 				}
-			}else{
-				if ( num_len > 4 ){
-					
-					num = num.substring( 0, 4 );
-					
-					num_len = 4;
-				}
+				
+				str = num + " " + unit.charAt(0);
 			}
-			
-			if ( num.endsWith( sep )){
-
-				num = num.substring( 0, num_len - 1 ) + " ";
-			}
-			
-			str = num + " " + unit.charAt(0);
 		}
 		
 		return( str );

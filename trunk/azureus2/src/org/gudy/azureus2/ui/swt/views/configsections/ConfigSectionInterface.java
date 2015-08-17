@@ -80,6 +80,8 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 
 
 	public Composite configSectionCreate(final Composite parent) {
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+		
 		GridData gridData;
 		GridLayout layout;
 		Label label;
@@ -215,6 +217,23 @@ public class ConfigSectionInterface implements UISWTConfigSection {
         	bp.setAdditionalActionPerformer(iaap);
         }
 
+        	// formatters
+        
+        if ( userMode > 0 ){
+	        Group formatters_group = new Group(cDisplay, SWT.NULL);
+	        Messages.setLanguageText(formatters_group, LBLKEY_PREFIX + "general.formatters");
+	        layout = new GridLayout();
+	        layout.numColumns = 1;
+	        formatters_group.setLayout(layout);
+	        formatters_group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	        StringAreaParameter formatters = new StringAreaParameter(formatters_group, "UI General Format Overrides" );
+	        gridData = new GridData(GridData.FILL_HORIZONTAL);
+	        gridData.heightHint = formatters.getPreferredHeight( 3 );
+	        formatters.setLayoutData( gridData );
+        }
+        
+        	// send version
+        
 		new BooleanParameter(cDisplay, "Send Version Info", LBLKEY_PREFIX
 				+ "allowSendVersion");
 
