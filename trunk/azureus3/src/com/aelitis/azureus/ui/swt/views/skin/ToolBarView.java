@@ -1199,7 +1199,7 @@ public class ToolBarView
 
 		public final boolean toolBarItemActivated(final ToolBarItem item,
 				final long activationType, final Object datasource) {
-			if (onlyOnActivationType >= 0 && activationType == onlyOnActivationType) {
+			if (onlyOnActivationType >= 0 && activationType != onlyOnActivationType) {
 				return false;
 			}
 			Utils.getOffOfSWTThread(new AERunnable() {
