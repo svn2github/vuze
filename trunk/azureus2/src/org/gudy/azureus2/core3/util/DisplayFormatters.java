@@ -27,9 +27,14 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.text.NumberFormat;
@@ -39,6 +44,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.internat.*;
+
 
 
 public class
@@ -84,8 +90,10 @@ DisplayFormatters
     
     private static boolean	separate_prot_data_stats;
     private static boolean	data_stats_only;
-		private static char decimalSeparator;
+	private static char decimalSeparator;
     
+	private static volatile Map<String,Formatter>	format_map = new HashMap<String, Formatter>();
+
 	static{
 		COConfigurationManager.addAndFireParameterListeners( 
 				new String[]{
@@ -93,6 +101,7 @@ DisplayFormatters
 					"config.style.forceSIValues",
 					"config.style.useUnitsRateBits",
 					"config.style.doNotUseGB",
+					"config.style.formatOverrides",
 				},
 				new ParameterListener()
 				{
@@ -100,14 +109,16 @@ DisplayFormatters
 					parameterChanged(
 						String	x )
 					{
-						use_si_units 		= COConfigurationManager.getBooleanParameter("config.style.useSIUnits");
+						use_si_units 			= COConfigurationManager.getBooleanParameter("config.style.useSIUnits");
 						force_si_values 		= COConfigurationManager.getBooleanParameter("config.style.forceSIValues");
-						use_units_rate_bits = COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits");
-			            not_use_GB_TB 		= COConfigurationManager.getBooleanParameter("config.style.doNotUseGB");
+						use_units_rate_bits 	= COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits");
+			            not_use_GB_TB 			= COConfigurationManager.getBooleanParameter("config.style.doNotUseGB");
 			            
 			            unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
 
 						setUnits();
+						
+						updateFormatOverrides( COConfigurationManager.getStringParameter( "config.style.formatOverrides", "" ));
 					}
 				});
 
@@ -127,7 +138,7 @@ DisplayFormatters
 		COConfigurationManager.addAndFireParameterListeners( 
 				new String[]{ 
 						"config.style.dataStatsOnly", 
-						"config.style.separateProtDataStats" 
+						"config.style.separateProtDataStats", 
 				},
 				new ParameterListener()
 				{
@@ -1157,9 +1168,167 @@ DisplayFormatters
   		}
   	}
   	
-  	// Used to test fractions and displayformatter.
+
+	public static char getDecimalSeparator() {
+		return decimalSeparator;
+	}
+		
+	private static void
+	updateFormatOverrides(
+		String	formats )
+	{
+		Map<String,Formatter> map = new HashMap<String, Formatter>();
+		
+		String[] lines = formats.split( "\n" );
+		
+		List<String>	errors = new ArrayList<String>(); 
+				
+		for ( String line: lines ){
+			
+			String error = null;
+			
+			line = line.trim();
+			
+			if ( line.length() == 0 ){
+				
+				continue;
+			}
+			
+			String[] key_value = line.split( ":", 2 );
+			
+			if ( key_value.length != 2 ){
+				
+				error = "is missing ':'";
+				
+			}else{
+				
+				String	key 	= key_value[0].trim();
+				String	value 	= key_value[1].trim();
+				
+				Formatter formatter = new Formatter();
+				
+				error = formatter.parse( value );
+				
+				if ( error == null ){
+				
+					map.put( key, formatter );
+				}
+			}
+			
+			if ( error != null ){
+				
+				errors.add( "'" + line + "' " + error ); 
+			}
+		}
+		
+		String status_msg;
+		
+		if ( errors.size() > 0 ){
+			
+			status_msg = "Format parsing failed: " + errors;
+			
+		}else{
+			
+			status_msg = "";
+		}
+		
+		COConfigurationManager.setParameter( "config.style.formatOverrides.status", status_msg );
+		
+		format_map = map;
+	}
+	
+	public static String
+	formatCustomRate(
+		String		key,
+		long		value )
+	{
+		Formatter formatter = format_map.get( key );
+		
+		if ( formatter != null ){
+			
+			return( formatter.format( value ));
+		}
+		
+		return( null );
+	}
+	
+	private static class
+	Formatter
+	{
+		private String
+		parse(
+			String	str )
+		{
+			String[] args = str.split( "," );
+			
+			for ( String arg: args ){
+				
+				arg = arg.trim();
+				
+				if ( arg.length() == 0 ){
+					
+					continue;
+				}
+				
+				String[] sub_args = arg.split( ";" );
+				
+				if ( sub_args.length == 0 ){
+					
+					return( "invalid argument '" + arg + "'" );
+				}
+				
+				String main_arg = null;
+				
+				for ( String sub_arg: sub_args ){
+					
+					sub_arg = sub_arg.trim();
+				
+					String[] bits = sub_arg.split( "=" );
+					
+					if ( bits.length != 2 ){
+						
+						return( "invalid argument '" + arg + "'" );
+					}
+					
+					String arg_name 	= bits[0].trim().toLowerCase( Locale.US );
+					String arg_value	= bits[1].trim();
+					
+					if ( main_arg == null ){
+						
+						main_arg = arg_name;
+						
+						if ( main_arg.equals( "units" )){
+							
+							String[] x = arg_value.split( "&" );
+							
+						}else{
+							
+							
+						}
+					}else{
+						
+					}
+				}
+			}
+			
+			return( null );
+		}
+		
+		private String
+		format(
+			long		value )
+		{
+			return( String.valueOf( value ));
+		}
+	}
+	
+	
+	
+ 	// Used to test fractions and displayformatter.
   	// Keep until everything works okay.
-  	public static void main(String[] args) {
+  	public static void 
+  	main(String[] args) 
+  	{
   		// set decimal display to ","
   		//Locale.setDefault(Locale.GERMAN);
   		
@@ -1186,9 +1355,5 @@ DisplayFormatters
   		// should display 123456
 			System.out.println("123456:" + DisplayFormatters.formatDecimal(123456.999, 0));
 			System.out.println(DisplayFormatters.formatDecimal(0.0/0, 3));
-		}
-
-	public static char getDecimalSeparator() {
-		return decimalSeparator;
 	}
 }

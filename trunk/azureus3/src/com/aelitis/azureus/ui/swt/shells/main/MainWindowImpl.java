@@ -1044,7 +1044,7 @@ public class MainWindowImpl
 	formatRateCompact(
 		int		rate )
 	{
-		String str = GeneralUtils.formatCustomRate( "window.title.rate", rate );
+		String str = DisplayFormatters.formatCustomRate( "title.rate", rate );
 		
 		if ( str == null ){
 		

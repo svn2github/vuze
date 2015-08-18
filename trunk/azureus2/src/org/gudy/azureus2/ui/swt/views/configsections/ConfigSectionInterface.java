@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.impl.StringListImpl;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -223,13 +224,30 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 	        Group formatters_group = new Group(cDisplay, SWT.NULL);
 	        Messages.setLanguageText(formatters_group, LBLKEY_PREFIX + "general.formatters");
 	        layout = new GridLayout();
-	        layout.numColumns = 1;
 	        formatters_group.setLayout(layout);
 	        formatters_group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	        StringAreaParameter formatters = new StringAreaParameter(formatters_group, "UI General Format Overrides" );
+	        StringAreaParameter formatters = new StringAreaParameter(formatters_group, "config.style.formatOverrides" );
 	        gridData = new GridData(GridData.FILL_HORIZONTAL);
 	        gridData.heightHint = formatters.getPreferredHeight( 3 );
 	        formatters.setLayoutData( gridData );
+	        
+	        Composite format_info = new Composite(formatters_group, SWT.NULL);
+			layout = new GridLayout();
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			layout.numColumns = 3;
+			format_info.setLayout(layout);
+			format_info.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	        
+	    	new LinkLabel(format_info, LBLKEY_PREFIX + "general.formatters.link", MessageText.getString( LBLKEY_PREFIX + "general.formatters.link.url" ));
+				
+	    	label = new Label(format_info, SWT.NULL);
+			Messages.setLanguageText(label, "GeneralView.label.status");
+	    	
+	        InfoParameter	info_param = new InfoParameter(format_info, "config.style.formatOverrides.status" );
+	        gridData = new GridData(GridData.FILL_HORIZONTAL);
+	       
+	        info_param.setLayoutData( gridData );
         }
         
         	// send version
