@@ -2730,6 +2730,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 	 *   0 = download is complete.
 	 * < 0 = download is complete and it took -xxx time to complete.
 	 * Constants.CRAPPY_INFINITE_AS_LONG = incomplete and 0 average speed   
+	 *
+	 * @note eta will be zero for incomplete torrent in the following case:<br>
+	 * * Torrent has DND files
+	 * * non-DND files are all downloaded, however, the last piece is incomplete.
+	 *   The blocks for the file are downloaded, but the piece is not hash checked,
+	 *   and therefore potentially incomplete. 
 	 */
 	public long 
 	getETA( boolean smoothed ) 
