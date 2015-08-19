@@ -1287,21 +1287,24 @@ DisplayFormatters
 	private static class
 	Formatter
 	{
-		private final int FORMAT_UNIT_B	= 0x0001;
-		private final int FORMAT_UNIT_K	= 0x0002;
-		private final int FORMAT_UNIT_M	= 0x0004;
-		private final int FORMAT_UNIT_G	= 0x0008;
-		private final int FORMAT_UNIT_T	= 0x0010;
+		private final static int FORMAT_UNIT_B	= 0x0001;
+		private final static int FORMAT_UNIT_K	= 0x0002;
+		private final static int FORMAT_UNIT_M	= 0x0004;
+		private final static int FORMAT_UNIT_G	= 0x0008;
+		private final static int FORMAT_UNIT_T	= 0x0010;
 		
-		private final int FORMAT_UNIT_NONE	= 0x0000;
-		private final int FORMAT_UNIT_ALL	= 0xffff;
+		private final static int FORMAT_UNIT_NONE	= 0x0000;
+		private final static int FORMAT_UNIT_ALL	= 0xffff;
+		
+		private final static int[] tens = { 1, 10, 100, 1000, 10000, 100000, 1000000 };
 		
 		private int 	unit_formats 	= FORMAT_UNIT_ALL;
 		private boolean	hide_units		= false;
 		private boolean	short_units		= false;
 		private Boolean	rate_units		= null;
 		
-		private NumberFormat number_format = null;
+		private NumberFormat 	number_format 		= null;
+		private long			number_format_fact	= 1;
 		
 		private int rounding = BigDecimal.ROUND_HALF_EVEN;	// decimal format default
 		
@@ -1422,6 +1425,22 @@ DisplayFormatters
 									
 									Debug.out( "Number pattern isn't a DecimalFormat: " + number_format );
 								}
+								
+								int max_fd = number_format.getMaximumFractionDigits();
+
+								if ( max_fd < tens.length ){
+									
+									number_format_fact = tens[max_fd];
+									
+								}else{
+									
+									number_format_fact = 1;
+									
+									for (int i=0;i<max_fd;i++){
+										
+										number_format_fact *= 10;
+									}
+								}
 							}else{
 								
 								Debug.out( "TODO: " + main_arg );
@@ -1531,17 +1550,13 @@ DisplayFormatters
 					if ( rounding != BigDecimal.ROUND_HALF_EVEN ){
 					
 							// meh, DecimalFormat doesn't support rounding modes so we have to pre-calculate and hope
-						
-						int max_fd = number_format.getMaximumFractionDigits();
-						
+												
 						double	l_value = (long)value;	
 						
 						double	fraction = value - l_value;
-												
-						for ( int i=0;i<max_fd;i++){
-							fraction *= 10;
-						}
-							
+														
+						fraction *= number_format_fact;
+
 						double l_fraction = (long)fraction;
 						
 						double rem = fraction - l_fraction;
@@ -1568,11 +1583,9 @@ DisplayFormatters
 							}
 						}
 						
-						for ( int i=0;i<max_fd;i++){
-							l_fraction /= 10;
-						}
-												
-						// System.out.println( value + " -> " + l_value + "/" + l_fraction + "/" + rem );
+						l_fraction /= number_format_fact;
+																	
+						//System.out.println( value + " -> " + l_value + "/" + l_fraction + "/" + rem );
 						
 						value = l_value + l_fraction;
 					}
