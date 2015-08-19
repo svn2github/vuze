@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.text.NumberFormat;
@@ -72,6 +73,8 @@ DisplayFormatters
 	
 	private static NumberFormat	percentage_format;
 
+	private static final String[]	all_units = new String[5];
+	
 	private static String[] units;
 	private static String[] units_bits;
 	private static String[] units_rate;
@@ -167,53 +170,66 @@ DisplayFormatters
     units_rate 	= new String[unitsStopAt + 1];
     
     if ( use_si_units ){
-      // fall through intentional
+      all_units[UNIT_TB] = getUnit("TiB");
+      all_units[UNIT_GB] = getUnit("GiB");
+      all_units[UNIT_MB] = getUnit("MiB");
+      all_units[UNIT_KB] = getUnit("KiB");
+      all_units[UNIT_B]  = getUnit("B");
+      
+      	// fall through intentional
+      
       switch (unitsStopAt) {
         case UNIT_TB:
-         units[UNIT_TB] = getUnit("TiB");
+         units[UNIT_TB] = all_units[UNIT_TB];
          units_bits[UNIT_TB] = getUnit("Tibit");
          units_rate[UNIT_TB] = (use_units_rate_bits) ? getUnit("Tibit")  : getUnit("TiB");
         case UNIT_GB:
-          units[UNIT_GB]= getUnit("GiB");
+          units[UNIT_GB]= all_units[UNIT_GB];
           units_bits[UNIT_GB]= getUnit("Gibit");
           units_rate[UNIT_GB] = (use_units_rate_bits) ? getUnit("Gibit")  : getUnit("GiB");
         case UNIT_MB:
-          units[UNIT_MB] = getUnit("MiB");
+          units[UNIT_MB] = all_units[UNIT_MB];
           units_bits[UNIT_MB] = getUnit("Mibit");
           units_rate[UNIT_MB] = (use_units_rate_bits) ? getUnit("Mibit")  : getUnit("MiB");
         case UNIT_KB:
           // can be upper or lower case k
-          units[UNIT_KB] = getUnit("KiB"); 
+          units[UNIT_KB] = all_units[UNIT_KB];
           units_bits[UNIT_KB] = getUnit("Kibit"); 
 
           // can be upper or lower case k, upper more consistent
           units_rate[UNIT_KB] = (use_units_rate_bits) ? getUnit("Kibit")  : getUnit("KiB");
         case UNIT_B:
-          units[UNIT_B] = getUnit("B");
+          units[UNIT_B] =all_units[UNIT_B];
           units_bits[UNIT_B] = getUnit("bit");
           units_rate[UNIT_B] = (use_units_rate_bits)  ?   getUnit("bit")  :   getUnit("B");
       }
     }else{
+      all_units[UNIT_TB] = getUnit("TB");
+      all_units[UNIT_GB] = getUnit("GB");
+      all_units[UNIT_MB] = getUnit("MB");
+      all_units[UNIT_KB] = getUnit("kB");
+      all_units[UNIT_B]  = getUnit("B");
+        
       switch (unitsStopAt) {
         case UNIT_TB:
-          units[UNIT_TB] = getUnit("TB");
+          units[UNIT_TB] = all_units[UNIT_TB];
           units_bits[UNIT_TB] = getUnit("Tbit");
           units_rate[UNIT_TB] = (use_units_rate_bits) ? getUnit("Tbit")  : getUnit("TB");
         case UNIT_GB:
-          units[UNIT_GB]= getUnit("GB");
+          units[UNIT_GB]= all_units[UNIT_GB];
           units_bits[UNIT_GB]= getUnit("Gbit");
           units_rate[UNIT_GB] = (use_units_rate_bits) ? getUnit("Gbit")  : getUnit("GB");
         case UNIT_MB:
-          units[UNIT_MB] = getUnit("MB");
+          units[UNIT_MB] = all_units[UNIT_MB];
           units_bits[UNIT_MB] = getUnit("Mbit");
           units_rate[UNIT_MB] = (use_units_rate_bits) ? getUnit("Mbit")  : getUnit("MB");
         case UNIT_KB:
           // yes, the k should be lower case
-          units[UNIT_KB] = getUnit("kB");
+          units[UNIT_KB] = all_units[UNIT_KB];
           units_bits[UNIT_KB] = getUnit("kbit");
           units_rate[UNIT_KB] = (use_units_rate_bits) ? getUnit("kbit")  : getUnit("kB");
         case UNIT_B:
-          units[UNIT_B] = getUnit("B");
+          units[UNIT_B] = all_units[UNIT_B];
           units_bits[UNIT_B] = getUnit("bit");
           units_rate[UNIT_B] = (use_units_rate_bits)  ?  getUnit("bit")  :  getUnit("B");
       }
@@ -1246,7 +1262,7 @@ DisplayFormatters
 		
 		if ( formatter != null ){
 			
-			return( formatter.format( value ));
+			return( formatter.format( value, true ));
 		}
 		
 		return( null );
@@ -1255,70 +1271,255 @@ DisplayFormatters
 	private static class
 	Formatter
 	{
+		private final int FORMAT_UNIT_B	= 0x0001;
+		private final int FORMAT_UNIT_K	= 0x0002;
+		private final int FORMAT_UNIT_M	= 0x0004;
+		private final int FORMAT_UNIT_G	= 0x0008;
+		private final int FORMAT_UNIT_T	= 0x0010;
+		
+		private final int FORMAT_UNIT_NONE	= 0x0000;
+		private final int FORMAT_UNIT_ALL	= 0xffff;
+		
+		private int 	unit_formats 	= FORMAT_UNIT_ALL;
+		private boolean	hide_units		= false;
+		private boolean	short_units		= false;
+		private Boolean	rate_units		= null;
+		
+		private NumberFormat number_format = null;
+		
 		private String
 		parse(
 			String	str )
 		{
-			String[] args = str.split( "," );
-			
-			for ( String arg: args ){
+			try{
+				String[] args = str.split( "," );
 				
-				arg = arg.trim();
-				
-				if ( arg.length() == 0 ){
+				for ( String arg: args ){
 					
-					continue;
-				}
-				
-				String[] sub_args = arg.split( ";" );
-				
-				if ( sub_args.length == 0 ){
+					arg = arg.trim();
 					
-					return( "invalid argument '" + arg + "'" );
-				}
-				
-				String main_arg = null;
-				
-				for ( String sub_arg: sub_args ){
+					if ( arg.length() == 0 ){
+						
+						continue;
+					}
 					
-					sub_arg = sub_arg.trim();
-				
-					String[] bits = sub_arg.split( "=" );
+					String[] sub_args = arg.split( ";" );
 					
-					if ( bits.length != 2 ){
+					if ( sub_args.length == 0 ){
 						
 						return( "invalid argument '" + arg + "'" );
 					}
 					
-					String arg_name 	= bits[0].trim().toLowerCase( Locale.US );
-					String arg_value	= bits[1].trim();
+					String main_arg = null;
 					
-					if ( main_arg == null ){
+					for ( String sub_arg: sub_args ){
 						
-						main_arg = arg_name;
+						sub_arg = sub_arg.trim();
+					
+						String[] bits = sub_arg.split( "=" );
 						
-						if ( main_arg.equals( "units" )){
+						if ( bits.length != 2 ){
 							
-							String[] x = arg_value.split( "&" );
+							return( "invalid argument '" + arg + "'" );
+						}
+						
+						String arg_name 	= bits[0].trim().toLowerCase( Locale.US );
+						String arg_value	= bits[1].trim();
+						
+						if ( main_arg == null ){
 							
+							main_arg = arg_name;
+							
+							if ( main_arg.equals( "units" )){
+								
+								int	mask = arg_value.contains( "-" )?FORMAT_UNIT_ALL:FORMAT_UNIT_NONE;
+								
+								String[] units = arg_value.toLowerCase( Locale.US ).split( "&" );
+								
+								for ( String unit: units ){
+									
+									boolean	remove;
+									
+									if ( unit.startsWith( "-" )){
+										
+										unit = unit.substring(1);
+										
+										remove = true;
+										
+									}else{
+										
+										remove = false;
+									}
+									
+									char c = unit.charAt(0);
+									
+									int	m;
+									
+									if ( c == 'b' ){
+										
+										m = FORMAT_UNIT_B;
+										
+									}else if ( c == 'k' ){
+										
+										m = FORMAT_UNIT_K;
+										
+									}else if ( c == 'm' ){
+										
+										m = FORMAT_UNIT_M;
+										
+									}else if ( c == 'g' ){
+										
+										m = FORMAT_UNIT_G;
+										
+									}else if ( c == 't' ){
+										
+										m = FORMAT_UNIT_T;
+										
+									}else{
+										
+										return( "Invalid unit: " + unit );
+									}
+									
+									if ( remove ){
+										
+										mask = mask & ~m;
+										
+									}else{
+										
+										mask = mask | m;
+									}
+								}
+								
+								unit_formats = mask;
+								
+							}else if ( main_arg.equals( "format" )){
+								
+								number_format = NumberFormat.getInstance();
+								
+								if ( number_format instanceof DecimalFormat ){
+									
+									((DecimalFormat)number_format).applyPattern( arg_value );
+									
+								}else{
+									
+									Debug.out( "Number pattern isn't a DecimalFormat: " + number_format );
+								}
+							}else{
+								
+								Debug.out( "TODO: " + main_arg );
+							}
 						}else{
 							
-							
+							if ( main_arg.equals( "units" )){
+								
+								if ( arg_name.equals( "hide" )){
+									
+									hide_units = arg_value.toLowerCase( Locale.US ).startsWith( "y" );
+								
+								}else if ( arg_name.equals( "short" )){
+									
+									short_units = arg_value.toLowerCase( Locale.US ).startsWith( "y" );
+									
+								}else if ( arg_name.equals( "rate" )){
+									
+									rate_units = arg_value.toLowerCase( Locale.US ).startsWith( "y" );
+
+								}else{
+									
+									Debug.out( "TODO: " + arg_name );
+								}
+							}else{
+								
+								Debug.out( "TODO: " + arg_name );
+							}
 						}
-					}else{
-						
 					}
 				}
+				
+				return( null );
+				
+			}catch( Throwable e ){
+				
+				return( Debug.getNestedExceptionMessage( e ));
 			}
-			
-			return( null );
 		}
 		
 		private String
 		format(
-			long		value )
+			long		_value,
+			boolean		is_rate )
 		{
-			return( String.valueOf( value ));
+			try{
+				double value = _value;
+				
+				String	unit_str = "";
+				
+				if ( unit_formats == FORMAT_UNIT_K ){
+					
+					value = value/1024;
+					
+					unit_str = all_units[ UNIT_KB ];
+					
+				}else if ( unit_formats == FORMAT_UNIT_M ){
+					
+					value = value/(1024*1024);
+					
+					unit_str = all_units[ UNIT_MB ];
+					
+				}else if ( unit_formats == FORMAT_UNIT_G ){
+					
+					value = value/(1024*1024*1024L);
+					
+					unit_str = all_units[ UNIT_GB ];
+					
+				}else if ( unit_formats == FORMAT_UNIT_T ){
+					
+					value = value/(1024*1024*1024*1024L);
+					
+					unit_str = all_units[ UNIT_TB ];
+				}
+				
+				String result;
+				
+				if ( number_format != null ){
+					
+					result = number_format.format( value );
+					
+				}else{
+				
+					result = String.valueOf( value );
+				}
+				
+				if ( hide_units ){
+					
+					return( result );
+				}
+				
+				if ( unit_str.length() > 0 ){
+				
+					if ( short_units ){
+						
+						result += " " + unit_str.charAt(1);
+						
+					}else{
+					
+						result += unit_str;
+					}
+				}
+				
+				if ( is_rate && ( rate_units == null || rate_units )){
+					
+					result += per_sec;
+				}
+				
+				return( result );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+				
+				return( String.valueOf( _value ));
+			}
 		}
 	}
 	
