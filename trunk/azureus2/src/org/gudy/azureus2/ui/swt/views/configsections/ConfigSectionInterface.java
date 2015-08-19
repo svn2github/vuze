@@ -80,9 +80,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 	}
 
 
-	public Composite configSectionCreate(final Composite parent) {
-		int userMode = COConfigurationManager.getIntParameter("User Mode");
-		
+	public Composite configSectionCreate(final Composite parent) {		
 		GridData gridData;
 		GridLayout layout;
 		Label label;
@@ -216,38 +214,6 @@ public class ConfigSectionInterface implements UISWTConfigSection {
             sp.setLayoutData(gridData);
         	iaap.performAction();
         	bp.setAdditionalActionPerformer(iaap);
-        }
-
-        	// formatters
-        
-        if ( userMode > 0 ){
-	        Group formatters_group = new Group(cDisplay, SWT.NULL);
-	        Messages.setLanguageText(formatters_group, LBLKEY_PREFIX + "general.formatters");
-	        layout = new GridLayout();
-	        formatters_group.setLayout(layout);
-	        formatters_group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	        StringAreaParameter formatters = new StringAreaParameter(formatters_group, "config.style.formatOverrides" );
-	        gridData = new GridData(GridData.FILL_HORIZONTAL);
-	        gridData.heightHint = formatters.getPreferredHeight( 3 );
-	        formatters.setLayoutData( gridData );
-	        
-	        Composite format_info = new Composite(formatters_group, SWT.NULL);
-			layout = new GridLayout();
-			layout.marginHeight = 0;
-			layout.marginWidth = 0;
-			layout.numColumns = 3;
-			format_info.setLayout(layout);
-			format_info.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	        
-	    	new LinkLabel(format_info, LBLKEY_PREFIX + "general.formatters.link", MessageText.getString( LBLKEY_PREFIX + "general.formatters.link.url" ));
-				
-	    	label = new Label(format_info, SWT.NULL);
-			Messages.setLanguageText(label, "GeneralView.label.status");
-	    	
-	        InfoParameter	info_param = new InfoParameter(format_info, "config.style.formatOverrides.status" );
-	        gridData = new GridData(GridData.FILL_HORIZONTAL);
-	       
-	        info_param.setLayoutData( gridData );
         }
         
         	// send version

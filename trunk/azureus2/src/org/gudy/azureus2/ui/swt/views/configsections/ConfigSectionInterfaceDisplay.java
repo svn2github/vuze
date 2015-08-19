@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -260,6 +261,38 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			new BooleanParameter(cUnits, "config.style.separateProtDataStats",
 					MSG_PREFIX + "separateProtDataStats");
 		}
+		
+      	// formatters
+        
+        if ( userMode > 0 ){
+	        Group formatters_group = new Group(cSection, SWT.NULL);
+	        Messages.setLanguageText(formatters_group, "ConfigView.label.general.formatters");
+	        layout = new GridLayout();
+	        formatters_group.setLayout(layout);
+	        formatters_group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	        StringAreaParameter formatters = new StringAreaParameter(formatters_group, "config.style.formatOverrides" );
+	        gridData = new GridData(GridData.FILL_HORIZONTAL);
+	        gridData.heightHint = formatters.getPreferredHeight( 3 );
+	        formatters.setLayoutData( gridData );
+	        
+	        Composite format_info = new Composite(formatters_group, SWT.NULL);
+			layout = new GridLayout();
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			layout.numColumns = 3;
+			format_info.setLayout(layout);
+			format_info.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	        
+	    	new LinkLabel(format_info, "ConfigView.label.general.formatters.link", MessageText.getString( "ConfigView.label.general.formatters.link.url" ));
+				
+	    	label = new Label(format_info, SWT.NULL);
+			Messages.setLanguageText(label, "GeneralView.label.status");
+	    	
+	        InfoParameter	info_param = new InfoParameter(format_info, "config.style.formatOverrides.status" );
+	        gridData = new GridData(GridData.FILL_HORIZONTAL);
+	       
+	        info_param.setLayoutData( gridData );
+        }
 		
 			// external browser
 			
