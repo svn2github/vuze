@@ -92,7 +92,12 @@ public class SizeItem
 
 		cell.setSortValue(value);
 
-		String s = DisplayFormatters.formatByteCountToKiBEtc(value.size);
+		String s = DisplayFormatters.formatCustomSize( "column.size", value.size );
+		
+		if ( s == null ){
+			
+			s = DisplayFormatters.formatByteCountToKiBEtc(value.size);
+		}
 
 		if (DO_MULTILINE && cell.getMaxLines() > 1 && value.remaining > 0) {
 			s += "\n"

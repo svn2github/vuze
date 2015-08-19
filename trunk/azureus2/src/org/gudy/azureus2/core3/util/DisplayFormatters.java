@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -1268,6 +1269,21 @@ DisplayFormatters
 		return( null );
 	}
 	
+	public static String
+	formatCustomSize(
+		String		key,
+		long		value )
+	{
+		Formatter formatter = format_map.get( key );
+		
+		if ( formatter != null ){
+			
+			return( formatter.format( value, false ));
+		}
+		
+		return( null );
+	}
+	
 	private static class
 	Formatter
 	{
@@ -1286,6 +1302,8 @@ DisplayFormatters
 		private Boolean	rate_units		= null;
 		
 		private NumberFormat number_format = null;
+		
+		private int rounding = BigDecimal.ROUND_HALF_EVEN;	// decimal format default
 		
 		private String
 		parse(
@@ -1428,6 +1446,33 @@ DisplayFormatters
 									
 									Debug.out( "TODO: " + arg_name );
 								}
+							}else if ( main_arg.equals( "format" )){
+								
+								if ( arg_name.equals( "round" )){
+									
+									String r = arg_value.toLowerCase( Locale.US );
+									
+									if ( r.equals( "up" )){
+										
+										rounding = BigDecimal.ROUND_UP;
+										
+									}else if ( r.equals( "down" )){
+										
+										rounding = BigDecimal.ROUND_DOWN;
+										
+									}else if ( r.equals( "halfup" )){
+										
+										rounding = BigDecimal.ROUND_HALF_UP;
+										
+									}else if ( r.equals( "halfdown" )){
+										
+										rounding = BigDecimal.ROUND_HALF_DOWN;
+										
+									}else{
+										
+										return( "Invald round mode: " + r );
+									}
+								}
 							}else{
 								
 								Debug.out( "TODO: " + arg_name );
@@ -1483,7 +1528,59 @@ DisplayFormatters
 				
 				if ( number_format != null ){
 					
-					result = number_format.format( value );
+					if ( rounding != BigDecimal.ROUND_HALF_EVEN ){
+					
+							// meh, DecimalFormat doesn't support rounding modes so we have to pre-calculate and hope
+						
+						int max_fd = number_format.getMaximumFractionDigits();
+						
+						double	l_value = (long)value;	
+						
+						double	fraction = value - l_value;
+												
+						for ( int i=0;i<max_fd;i++){
+							fraction *= 10;
+						}
+							
+						double l_fraction = (long)fraction;
+						
+						double rem = fraction - l_fraction;
+						
+						if ( rounding == BigDecimal.ROUND_DOWN ){
+							
+						}else if ( rounding == BigDecimal.ROUND_UP ){
+							
+							if ( rem > 0 ){
+								
+								l_fraction++;
+							}
+						}else if ( rounding == BigDecimal.ROUND_HALF_UP ){
+							
+							if ( rem >= 0.5 ){
+								
+								l_fraction++;
+							}
+						}else if ( rounding == BigDecimal.ROUND_HALF_DOWN ){
+								
+							if ( rem > 0.5 ){
+								
+								l_fraction++;
+							}
+						}
+						
+						for ( int i=0;i<max_fd;i++){
+							l_fraction /= 10;
+						}
+												
+						// System.out.println( value + " -> " + l_value + "/" + l_fraction + "/" + rem );
+						
+						value = l_value + l_fraction;
+					}
+					
+					synchronized( number_format ){
+						
+						result = number_format.format( value );
+					}
 					
 				}else{
 				
