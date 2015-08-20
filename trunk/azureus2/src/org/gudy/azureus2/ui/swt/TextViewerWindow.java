@@ -22,6 +22,8 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -112,6 +114,26 @@ public class TextViewerWindow {
     gridData.horizontalSpan = 2;
     txtInfo.setLayoutData(gridData);
     txtInfo.setText(sText);
+    
+    txtInfo.addKeyListener(new KeyListener() {
+
+			public void keyPressed(KeyEvent e) {
+				int key = e.character;
+				if (key <= 26 && key > 0) {
+					key += 'a' - 1;
+				}
+				
+				if (key == 'a' && e.stateMask == SWT.MOD1) {
+					if (txtInfo != null) {
+						txtInfo.selectAll();
+					}
+				}
+			}
+
+			public void keyReleased(KeyEvent e) {
+			}
+    	
+    });
 
     label = new Label(shell, SWT.NONE);
     gridData = new GridData( GridData.FILL_HORIZONTAL );
