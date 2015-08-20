@@ -28,6 +28,7 @@ package org.gudy.azureus2.plugins;
  */
 
 import java.io.File;
+import java.net.NetworkInterface;
 import java.util.List;
 import java.util.Map;
 
@@ -86,6 +87,11 @@ PluginConfig
 	public static final String CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP				= "Newly Seeding Torrents Get First Priority";
 	
 	/**
+	 * Semicolon seperated list containing:
+	 * IP<br>
+	 * {@link NetworkInterface} name (ex. eth10) <br>
+	 * NetworkInterface name with IP index in square brackets (ex. eth6[0])
+	 * 
 	 * @since 2.3.0.5
 	 */
 	public static final String CORE_PARAM_STRING_LOCAL_BIND_IP							= "CORE_PARAM_STRING_LOCAL_BIND_IP";
