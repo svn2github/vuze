@@ -41,7 +41,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-
+import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
@@ -280,7 +280,7 @@ public class PeersGraphicView
     display = composite.getDisplay();
     
     panel = new Canvas(composite,SWT.NO_BACKGROUND);
-        
+            
     panel.addListener(SWT.MouseHover, new Listener() {
 		public void handleEvent(Event event) {
 			
@@ -345,6 +345,58 @@ public class PeersGraphicView
     panel.addMouseListener(
     	new MouseAdapter()
     	{
+    		@Override
+    		public void 
+    		mouseUp(
+    			MouseEvent event) 
+    		{
+    			if ( event.button == 3 ){
+    				
+    	   			int	x = event.x;
+        			int y = event.y;
+        							
+        			PEPeer target = null;
+        			
+    				for( Map.Entry<PEPeer,int[]> entry: peer_hit_map.entrySet()){
+    					
+    					int[] loc = entry.getValue();
+    					
+    					int	loc_x = loc[0];
+    					int loc_y = loc[1];
+    					
+    					if ( 	x >= loc_x && x <= loc_x+PEER_SIZE &&
+    							y >= loc_y && y <= loc_y+PEER_SIZE ){
+    						
+    						target = entry.getKey();
+    						
+    						break;
+    					}
+    				}
+    				
+    				if ( target == null ){
+    					
+    					return;
+    				}
+    				
+    				Menu menu = panel.getMenu();
+    				
+    				if ( menu != null && !menu.isDisposed()){
+    					
+    					menu.dispose();
+    				}
+    				
+    				menu = new Menu( panel );
+    				
+    				PeersView.fillMenu( menu, target, manager );
+								
+					final Point cursorLocation = Display.getCurrent().getCursorLocation();
+					
+					menu.setLocation( cursorLocation.x, cursorLocation.y );
+
+    				menu.setVisible( true );
+    			}
+    		}
+    		
     		public void 
     		mouseDoubleClick(
     			MouseEvent event )

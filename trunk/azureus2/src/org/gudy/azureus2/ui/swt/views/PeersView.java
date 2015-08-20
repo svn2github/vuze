@@ -20,6 +20,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -45,7 +46,6 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
-import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -54,20 +54,17 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.peer.PeerFilesView;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
-import org.gudy.azureus2.ui.swt.views.table.TableSelectedRowsListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.util.IdentityHashSet;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -301,13 +298,37 @@ public class PeersView
 
 	public static void 
 	fillMenu(
+		Menu				menu,
+		PEPeer				peer,
+		DownloadManager 	download_specific )
+	{
+		PEPeer[] peers = {peer};
+		
+		fillMenu( menu, peers, menu.getShell(), download_specific );
+	}
+	
+	public static void 
+	fillMenu(
 		final Menu menu, 
-		final TableView<?> tv, 
+		final TableView<PEPeer> tv, 
 		final Shell shell, 
 		DownloadManager download_specific ) 
 	{
-		Object[] peers = tv.getSelectedDataSources().toArray();
+		List<PEPeer>	o_peers = (List<PEPeer>)(Object)tv.getSelectedDataSources();
 		
+		PEPeer[]	peers	= o_peers.toArray( new PEPeer[o_peers.size()]);
+		
+		fillMenu( menu, peers, shell, download_specific );
+		
+	}
+	
+	private static void 
+	fillMenu(
+		final Menu 				menu, 
+		final PEPeer[]			peers,
+		final Shell 			shell, 
+		DownloadManager 		download_specific ) 
+	{		
 		boolean hasSelection = (peers.length > 0);
 
 		boolean downSpeedDisabled	= false;
@@ -328,7 +349,7 @@ public class PeersView
 		if ( hasSelection ){
 			
 			for (int i = 0; i < peers.length; i++) {
-				PEPeer peer = (PEPeer)peers[i];
+				PEPeer peer = peers[i];
 
 				PEPeerManager m = peer.getManager();
 				
@@ -387,7 +408,7 @@ public class PeersView
 		
 		if (download_specific != null) {
 			final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
-			PEPeer peer = (PEPeer) tv.getFirstSelectedDataSource();
+			PEPeer peer = peers.length==0?null:peers[0];
 	
 			if ( peer == null || peer.getManager().getDiskManager().getRemainingExcludingDND() > 0 ){
 				// disallow peer upload blocking when downloading
@@ -403,9 +424,8 @@ public class PeersView
   			final boolean newSnubbedValue = !peer.isSnubbed();
   	
   			Messages.setLanguageText(block_item, "PeersView.menu.blockupload");
-  			block_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-  				public void run(TableRowCore row) {
-  					PEPeer peer = ((PEPeer) row.getDataSource(true));
+  			block_item.addListener(SWT.Selection, new PeersRunner(peers) {
+  				public void run(PEPeer peer) {
   					peer.setSnubbed(newSnubbedValue);
   				}
   			});
@@ -440,9 +460,8 @@ public class PeersView
 		final MenuItem kick_item = new MenuItem(menu, SWT.PUSH);
 
 		Messages.setLanguageText(kick_item, "PeersView.menu.kick");
-		kick_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-			public void run(TableRowCore row) {
-				PEPeer peer = (PEPeer) row.getDataSource(true);
+		kick_item.addListener(SWT.Selection, new PeersRunner(peers) {
+			public void run(PEPeer peer) {
 				peer.getManager().removePeer(peer,"Peer kicked" );
 			}
 		});
@@ -450,9 +469,8 @@ public class PeersView
 		final MenuItem ban_item = new MenuItem(menu, SWT.PUSH);
 
 		Messages.setLanguageText(ban_item, "PeersView.menu.kickandban");
-		ban_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-			public void run(TableRowCore row) {
-				PEPeer peer = (PEPeer) row.getDataSource(true);
+		ban_item.addListener(SWT.Selection, new PeersRunner(peers) {
+			public void run(PEPeer peer) {
 				String msg = MessageText.getString("PeersView.menu.kickandban.reason");
 				IpFilterManagerFactory.getSingleton().getIPFilter().ban(peer.getIp(),
 						msg, true );
@@ -463,8 +481,8 @@ public class PeersView
 		final MenuItem ban_for_item = new MenuItem(menu, SWT.PUSH);
 
 		Messages.setLanguageText(ban_for_item, "PeersView.menu.kickandbanfor");
-		ban_for_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-			public boolean run(final TableRowCore[] rows){
+		ban_for_item.addListener(SWT.Selection, new PeersRunner(peers) {
+			public boolean run(final PEPeer[] peers){
 				
 				String text = MessageText.getString("dialog.ban.for.period.text");
 
@@ -517,10 +535,8 @@ public class PeersView
 
 						IpFilter filter = IpFilterManagerFactory.getSingleton().getIPFilter();
 
-						for ( TableRowCore row: rows ){
-							
-							PEPeer peer = (PEPeer) row.getDataSource(true);
-							
+						for ( PEPeer peer: peers ){
+														
 							String msg = MessageText.getString("PeersView.menu.kickandbanfor.reason", new String[]{ String.valueOf( mins )});
 							
 							filter.ban( peer.getIp(), msg, true, mins );
@@ -572,14 +588,33 @@ public class PeersView
 				setDownSpeed(
 					int speed ) 
 				{
-					setSelectedPeersDownSpeed( speed, tv );	
+					if(peers.length > 0) {            
+						for (int i = 0; i < peers.length; i++) {
+							try {
+								PEPeer peer = (PEPeer)peers[i];
+								peer.getStats().setDownloadRateLimitBytesPerSecond(speed);
+							} catch (Exception e) {
+								Debug.printStackTrace( e );
+							}
+						}
+					}
 				}
 				
 				public void 
 				setUpSpeed(
 					int speed ) 
 				{
-					setSelectedPeersUpSpeed( speed, tv );
+					
+					if(peers.length > 0) {            
+						for (int i = 0; i < peers.length; i++) {
+							try {
+								PEPeer peer = (PEPeer)peers[i];
+								peer.getStats().setUploadRateLimitBytesPerSecond(speed);
+							} catch (Exception e) {
+								Debug.printStackTrace( e );
+							}
+						}
+					}
 				}
 			});
 				
@@ -701,34 +736,6 @@ public class PeersView
 				});
 		
 		return( true );
-	}
-	
-	private static void setSelectedPeersUpSpeed(int speed, TableView<?> tv) {      
-		Object[] peers = tv.getSelectedDataSources().toArray();
-		if(peers.length > 0) {            
-			for (int i = 0; i < peers.length; i++) {
-				try {
-					PEPeer peer = (PEPeer)peers[i];
-					peer.getStats().setUploadRateLimitBytesPerSecond(speed);
-				} catch (Exception e) {
-					Debug.printStackTrace( e );
-				}
-			}
-		}
-	}
-
-	private static void setSelectedPeersDownSpeed(int speed, TableView<?> tv) {      
-		Object[] peers = tv.getSelectedDataSources().toArray();
-		if(peers.length > 0) {            
-			for (int i = 0; i < peers.length; i++) {
-				try {
-					PEPeer peer = (PEPeer)peers[i];
-					peer.getStats().setDownloadRateLimitBytesPerSecond(speed);
-				} catch (Exception e) {
-					Debug.printStackTrace( e );
-				}
-			}
-		}
 	}
   
   /* DownloadManagerPeerListener implementation */
@@ -868,4 +875,45 @@ public class PeersView
 	    
 	    return( super.eventOccurred(event));
 	}	
+	
+	private static abstract class
+	PeersRunner
+		implements Listener
+	{
+		private PEPeer[]		peers;
+		
+		private
+		PeersRunner(
+			PEPeer[]	_peers )
+		{
+			peers = _peers;
+		}
+		
+		public void 
+		handleEvent(
+			Event e) 
+		{
+			if ( !run( peers )){
+				
+				for ( PEPeer peer: peers ){
+					
+					run( peer );
+				}
+			}
+		}
+		
+		public void 
+		run(
+			PEPeer peer)
+		{
+			
+		}
+		
+		public boolean
+		run(
+			PEPeer[]	peers )
+		{
+			return( false );
+		}
+	}
 }
