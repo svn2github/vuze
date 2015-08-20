@@ -1989,7 +1989,15 @@ public class TorrentUtil
 
 			DirectoryDialog dd = new DirectoryDialog(shell);
 
-			dd.setFilterPath(TorrentOpener.getFilterPathData());
+			String filter_path = TorrentOpener.getFilterPathTorrent();
+
+			// If we don't have a decent path, default to the path of the first
+			// torrent.
+			if (filter_path == null || filter_path.trim().length() == 0) {
+				filter_path = new File(dms[0].getTorrentFileName()).getParent();
+			}
+
+			dd.setFilterPath(filter_path);
 
 			dd.setText(MessageText.getString("MyTorrentsView.menu.movedata.dialog"));
 
@@ -2187,6 +2195,8 @@ public class TorrentUtil
 			File fSavePath = new File(sSavePath);
 			for (int i = 0; i < dms.length; i++) {
 				DownloadManager dm = dms[i];
+				
+				String displayName = dm.getDisplayName();
 
 				int state = dm.getState();
 				if (state != DownloadManager.STATE_ERROR) {
@@ -2197,7 +2207,9 @@ public class TorrentUtil
 
 				if (state == DownloadManager.STATE_ERROR) {
 
+					File oldSaveLocation = dm.getSaveLocation();
 					dm.setTorrentSaveDir(sSavePath);
+					
 
 					boolean found = dm.filesExist(true);
 					if (!found && dm.getTorrent() != null
@@ -2207,7 +2219,17 @@ public class TorrentUtil
 							dm.setTorrentSaveDir(parentPath);
 							found = dm.filesExist(true);
 							if (!found) {
-								dm.setTorrentSaveDir(sSavePath);
+								dm.setTorrentSaveDir(parentPath, fSavePath.getName());
+								
+								found = dm.filesExist(true);
+								if (!found) {
+									dm.setTorrentSaveDir(sSavePath, dm.getDisplayName());
+									
+									found = dm.filesExist(true);
+									if (!found) {
+										dm.setTorrentSaveDir(sSavePath);
+									}
+								}
 							}
 						}
 					}
@@ -2270,6 +2292,8 @@ public class TorrentUtil
 
 	/**
 	 * @param datasources DownloadManager, DiskManagerFileInfo, SelectedContent
+	 * 
+	 * @note Takes a long time with large list
 	 */
 	public static void removeDataSources(final Object[] datasources) {
 		DownloadManager[] dms = toDMS(datasources);
