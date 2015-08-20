@@ -1101,7 +1101,21 @@ WebPlugin
 					
 					if ( !new File(file_root).exists()){
 						
-						file_root = null;
+						// try relative to plugin classpath
+						try {
+							String pluginClass = plugin_interface.getPluginProperties().getProperty(
+									"plugin.class");
+							file_root = new File(
+									Class.forName(
+											pluginClass).getProtectionDomain().getCodeSource().getLocation().getPath(),
+									root_dir).getAbsolutePath();
+							if (!new File(file_root).exists()) {
+								
+								file_root = null;
+							}
+						} catch (Throwable e) {
+						}
+						
 					}
 				}
 				
