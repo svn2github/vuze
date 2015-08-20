@@ -665,15 +665,21 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			}
 		}
 
-		if (dataSourcesAdd != null && dataSourcesAdd.length > 0) {
+		boolean hasAdd = dataSourcesAdd != null && dataSourcesAdd.length > 0; 
+		if (hasAdd) {
 			reallyAddDataSources(dataSourcesAdd);
 			if (DEBUGADDREMOVE && dataSourcesAdd.length > 1) {
 				debug("Streamlined adding " + dataSourcesAdd.length + " rows");
 			}
 		}
 
-		if (dataSourcesRemove != null && dataSourcesRemove.length > 0) {
+		boolean hasRemove = dataSourcesRemove != null && dataSourcesRemove.length > 0; 
+		if (hasRemove) {
 			reallyRemoveDataSources(dataSourcesRemove);
+		}
+		
+		if (hasAdd || hasRemove) {
+			tableMutated();
 		}
 	}
 
@@ -928,6 +934,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			reallyRemoveDataSources(new Object[] {
 				dataSource
 			});
+			tableMutated();
 			return;
 		}
 
@@ -966,6 +973,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 		if (DataSourceCallBackUtil.IMMEDIATE_ADDREMOVE_DELAY == 0) {
 			reallyRemoveDataSources(dataSources);
+			tableMutated();
 			return;
 		}
 
@@ -1201,10 +1209,6 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 					+ mapDataSourceToRow.size() + "ds");
 		}
 
-		if ( rows_removed > 0 ){
-			
-			tableMutated();
-		}
 	}
 
 	private void
