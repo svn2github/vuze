@@ -1345,14 +1345,18 @@ DiskManagerUtil
 			for (int i=0; i < files.length; i++) {
 				DiskManagerFileInfo file = files[i];
 				if (file == null) return;
-				int priority = ((Long)file_priorities.get( i )).intValue();
-				if ( priority == 0 ){
-					toSkip[i] = true;
-				}else{
-					if ( priority < 0 ){
-						priority++;
-					}
-					prio[i] = priority;
+				try {
+  				int priority = ((Long)file_priorities.get( i )).intValue();
+  				if ( priority == 0 ){
+  					toSkip[i] = true;
+  				}else{
+  					if ( priority < 0 ){
+  						priority++;
+  					}
+  					prio[i] = priority;
+  				}
+				} catch (Throwable t2) {
+					Debug.printStackTrace(t2);
 				}
 			}
 
