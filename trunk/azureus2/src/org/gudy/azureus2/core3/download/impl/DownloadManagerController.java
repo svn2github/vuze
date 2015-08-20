@@ -178,7 +178,7 @@ DownloadManagerController
 	
 	private volatile DiskManager 			disk_manager_use_accessors;
 	private DiskManagerListener				disk_manager_listener_use_accessors;
-	
+
 	private FileInfoFacadeSet		fileFacadeSet = new FileInfoFacadeSet();
 	private boolean					files_facade_destroyed;
 	
@@ -651,133 +651,11 @@ DownloadManagerController
 
 	public void 
 	initializeDiskManager(
-		final boolean	open_for_seeding )
+		boolean	open_for_seeding )
 	{
 		initializeDiskManagerSupport(
 			DownloadManager.STATE_INITIALIZED,
-			new DiskManagerListener()
-	  			{
-	  				public void
-	  				stateChanged(
-	  					int 	oldDMState,
-	  					int		newDMState )
-	  				{
-	  					DiskManager	dm;
-	  					
-	  					try{
-	  						control_mon.enter();
-	  					
-		  					dm = getDiskManager();
-
-		  					if ( dm == null ){
-	  						
-	  								// already been cleared down
-	  							
-		  						return;
-		  					}
-		  					
-	  					}finally{
-	  						
-	  						control_mon.exit();
-	  					}
-	  					
-	  					try{
-			  				if ( newDMState == DiskManager.FAULTY ){
-			  					
-			  					setFailed( dm.getErrorMessage());						
-			   				}
-			  					
-			  				if ( oldDMState == DiskManager.CHECKING && newDMState != DiskManager.CHECKING ){
-			  						
-			  						// good time to trigger minimum file info fixup as the disk manager's
-		  							// files are now in a good state
-
-			  					fileFacadeSet.makeSureFilesFacadeFilled(true);
-
-			  					stats.recalcDownloadCompleteBytes();
-			  						
-			  					download_manager.setAssumedComplete(isDownloadComplete(false));
-			  				}
-			  					  
-			  				if ( newDMState == DiskManager.READY ){
-			  					
-			  					int	completed = stats.getDownloadCompleted(false);
-			  								  					
-			  					if ( 	stats.getTotalDataBytesReceived() == 0 &&
-			  							stats.getTotalDataBytesSent() == 0 &&
-			  							stats.getSecondsDownloading() == 0 ){
-
-			  						if ( completed < 1000 ){
-		  							
-			  							if ( open_for_seeding ){
-			  								
-			  								setFailed( "File check failed" );
-			  								
-			  								download_manager.getDownloadState().clearResumeData();
-			  								
-			  							}else{
-			  								
-					  						// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
-					  						// and resumed 
-					  				
-					  									  										 
-				  								// assume downloaded = uploaded, optimistic but at least results in
-				  								// future share ratios relevant to amount up/down from now on
-				  								// see bug 1077060 
-				  								
-				  							long	amount_downloaded = (completed*dm.getTotalLength())/1000;
-				  								
-				 							stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
-			  							}
-			  						}else{		  					
-			  								// see GlobalManager for comment on this
-			  							
-			  							int	dl_copies = COConfigurationManager.getIntParameter("StartStopManager_iAddForSeedingDLCopyCount");
-			  		              
-										if ( dl_copies > 0 ){
-											
-			  								stats.setSavedDownloadedUploaded( download_manager.getSize()*dl_copies, stats.getTotalDataBytesSent());
-			  							}
-										
-							        	download_manager.getDownloadState().setFlag( DownloadManagerState.FLAG_ONLY_EVER_SEEDED, true );
-			  						}
-			  		        	}
-			  					
-			  					/* all initialization should be done here (Disk- and DownloadManager).
-			  					 * assume this download is complete and won't recieve any modifications until it is stopped again
-			  					 * or the user fiddles on the knobs
-			  					 * discard fluff once tentatively, will save memory for many active, seeding torrent-cases
-			  					 */
-			  					if(completed == 1000) 			  					
-			  						download_manager.getDownloadState().discardFluff();
-			  				}
-	  					}finally{
-	  							  						
-	  						download_manager.informStateChanged();
-	  					}
-	  				}
-
-	                public void 
-					filePriorityChanged(
-						DiskManagerFileInfo	file ) 
-	                {  
-	                	download_manager.informPriorityChange( file );
-	                }
-	                
-	               	public void
-	            	pieceDoneChanged(
-	            		DiskManagerPiece	piece )
-	            	{           		
-	            	}
-	               	
-	            	public void
-	            	fileAccessModeChanged(
-	            		DiskManagerFileInfo		file,
-	            		int						old_mode,
-	            		int						new_mode )
-	            	{
-	            	}
-	  			});
+			new DiskManagerListener_Default(open_for_seeding));
 	}
 	
 	protected void 
@@ -2635,7 +2513,7 @@ DownloadManagerController
 			// too early in initialisation sequence to action this - it'll get reinvoked later anyway
 			if (info.length == 0) return;
 			
-			final List delayed_prio_changes = new ArrayList(0);
+			final List<DiskManagerFileInfo> delayed_prio_changes = new ArrayList<DiskManagerFileInfo>(0);
 			
 			try {
 				facade_mon.enter();
@@ -3158,5 +3036,136 @@ DownloadManagerController
 		public void fileAccessModeChanged(DiskManagerFileInfo file, int old_mode,
 				int new_mode) {
 		}
+	}
+	
+	private class DiskManagerListener_Default implements DiskManagerListener {
+		private boolean open_for_seeding;
+
+		public DiskManagerListener_Default(boolean open_for_seeding) {
+			this.open_for_seeding = open_for_seeding;
+		}
+
+		public void
+		stateChanged(
+			int 	oldDMState,
+			int		newDMState )
+		{
+			DiskManager	dm;
+
+			try{
+				control_mon.enter();
+
+				dm = getDiskManager();
+
+				if ( dm == null ){
+
+					// already been cleared down
+
+					return;
+				}
+
+			}finally{
+
+				control_mon.exit();
+			}
+			
+			try{
+				if ( newDMState == DiskManager.FAULTY ){
+
+					setFailed( dm.getErrorMessage());						
+				}
+
+				if ( oldDMState == DiskManager.CHECKING && newDMState != DiskManager.CHECKING ){
+
+					// good time to trigger minimum file info fixup as the disk manager's
+					// files are now in a good state
+
+					fileFacadeSet.makeSureFilesFacadeFilled(true);
+
+					stats.recalcDownloadCompleteBytes();
+
+					download_manager.setAssumedComplete(isDownloadComplete(false));
+				}
+
+				if ( newDMState == DiskManager.READY ){
+
+					int	completed = stats.getDownloadCompleted(false);
+
+					if ( 	stats.getTotalDataBytesReceived() == 0 &&
+							stats.getTotalDataBytesSent() == 0 &&
+							stats.getSecondsDownloading() == 0 ){
+
+						if ( completed < 1000 ){
+
+							if ( open_for_seeding ){
+
+								setFailed( "File check failed" );
+
+								download_manager.getDownloadState().clearResumeData();
+
+							}else{
+
+								// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
+								// and resumed 
+
+
+								// assume downloaded = uploaded, optimistic but at least results in
+								// future share ratios relevant to amount up/down from now on
+								// see bug 1077060 
+
+								long	amount_downloaded = (completed*dm.getTotalLength())/1000;
+
+								stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
+							}
+						}else{		  					
+							// see GlobalManager for comment on this
+
+							int	dl_copies = COConfigurationManager.getIntParameter("StartStopManager_iAddForSeedingDLCopyCount");
+
+							if ( dl_copies > 0 ){
+
+								stats.setSavedDownloadedUploaded( download_manager.getSize()*dl_copies, stats.getTotalDataBytesSent());
+							}
+
+							download_manager.getDownloadState().setFlag( DownloadManagerState.FLAG_ONLY_EVER_SEEDED, true );
+						}
+					}
+
+					/* all initialization should be done here (Disk- and DownloadManager).
+					 * assume this download is complete and won't recieve any modifications until it is stopped again
+					 * or the user fiddles on the knobs
+					 * discard fluff once tentatively, will save memory for many active, seeding torrent-cases
+					 */
+					if ( completed == 1000 ){
+						download_manager.getDownloadState().discardFluff();
+					}
+				}
+			}finally{
+
+				download_manager.informStateChanged();
+			}
+		}
+
+		public void 
+		filePriorityChanged(
+			DiskManagerFileInfo	file ) 
+		{  
+			download_manager.informPriorityChange( file );
+		}
+
+		public void
+		pieceDoneChanged(
+			DiskManagerPiece	piece )
+		{           		
+		}
+
+		public void
+		fileAccessModeChanged(
+			DiskManagerFileInfo		file,
+			int						old_mode,
+			int						new_mode )
+		{
+		}
+
 	}
 }
