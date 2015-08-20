@@ -388,7 +388,7 @@ public class PeersGraphicView
 									
 									for ( CTabItem item: items ){
 										
-										UISWTViewCore view = (UISWTViewCore)item.getData("IView");
+										UISWTViewCore view = (UISWTViewCore)item.getData("TabbedEntry");
 										
 										UISWTViewEventListener listener = view.getEventListener();
 										
