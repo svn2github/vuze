@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
@@ -2711,6 +2712,7 @@ SpeedLimitHandler
 		result.add( "#        extension: (start_tag|stop_tag|pause_tag|resume_tag):<tag_name>" );
 		result.add( "#    peer_set <set_name>=[<CIDR_specs...>|CC list|Network List|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [,cat=<cat names>] [,tag=<tag names>]" );
 		result.add( "#    net_limit (daily|weekly|monthly)[:<profile>] [total=<limit>] [up=<limit>] [down=<limit>] [peer_up=<limit>] [peer_down=<limit>]");
+		result.add( "#    priority_(up|down) <id>=<tag_name> [,<id>=<tag_name>]+ [,freq=<secs>] [,max=<limit>]" );
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
 		result.add( "#" );
@@ -3674,7 +3676,9 @@ SpeedLimitHandler
 		    int	total_cat_limits_up 	= 0;
 		    int	total_cat_limits_down 	= 0;
 
-			for ( Map.Entry<String,int[]> entry: category_limits.entrySet()){
+		    Map<String,int[]> sorted_category_limits = new TreeMap<String, int[]>( category_limits );
+		    
+			for ( Map.Entry<String,int[]> entry: sorted_category_limits.entrySet()){
 		    	
 		    	String cat_name = entry.getKey();
 		    	
@@ -3726,7 +3730,9 @@ SpeedLimitHandler
 		    
 		    TagManager tm = TagManagerFactory.getTagManager();
 		    
-			for ( Map.Entry<String,int[]> entry: tag_limits.entrySet()){
+		    Map<String,int[]> sorted_tag_limts = new TreeMap<String, int[]>( tag_limits );
+		    
+			for ( Map.Entry<String,int[]> entry: sorted_tag_limts.entrySet()){
 		    	
 		    	String tag_key = entry.getKey();
 		    	
@@ -5084,11 +5090,13 @@ SpeedLimitHandler
 	private class
 	Prioritiser
 	{
-		private boolean				is_down;
-		private int					freq;
-		private int					max;
+		private final int		FREQ_DEFAULT	= 5;
+		private final int		MAX_DEFAULT		= 100*1024*1024;
 		
-		private int	log_ticks		= 1;
+		private boolean				is_down;
+		private int					freq		= FREQ_DEFAULT;
+		private int					max			= MAX_DEFAULT;
+		
 		private int	check_ticks		= 1;
 		
 		private List<PrioritiserTagState>	tag_states = new ArrayList<PrioritiserTagState>();
@@ -5100,7 +5108,7 @@ SpeedLimitHandler
 		private
 		Prioritiser()
 		{
-			setFrequency( 5 );	// default
+			setFrequency( FREQ_DEFAULT );
 		}
 		
 		private void
@@ -5397,7 +5405,7 @@ SpeedLimitHandler
 				
 				return( "x" );
 				
-			}else if ( rate == 0 && is_limit ){
+			}else if ( ( rate == 0 || rate >= MAX_DEFAULT ) && is_limit ){
 				
 				return( Constants.INFINITY_STRING );
 				
