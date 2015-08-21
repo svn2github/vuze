@@ -163,98 +163,106 @@ MagnetPlugin
 					MenuItem		_menu,
 					Object			_target )
 				{
-					Torrent torrent;
-					String name;
-					Object ds = ((TableRow)_target).getDataSource();
+					TableRow[] rows = (TableRow[])_target;
 					
-					Download download = null;
+					String cb_all_data = "";
 					
-					if (ds instanceof ShareResourceFile) {
-						try {
-							torrent = ((ShareResourceFile) ds).getItem().getTorrent();
-						} catch (ShareException e) {
-							return;
-						}
-						name = ((ShareResourceFile) ds).getName();
-					}else if (ds instanceof ShareResourceDir) {
+					for ( TableRow row: rows ){
+						Torrent torrent;
+						String name;
+						Object ds = row.getDataSource();
+						
+						Download download = null;
+						
+						if (ds instanceof ShareResourceFile) {
 							try {
-								torrent = ((ShareResourceDir) ds).getItem().getTorrent();
+								torrent = ((ShareResourceFile) ds).getItem().getTorrent();
 							} catch (ShareException e) {
-								return;
+								continue;
 							}
-							name = ((ShareResourceDir) ds).getName();
-					} else if (ds instanceof Download) {
-						download = (Download)((TableRow)_target).getDataSource();
-						torrent = download.getTorrent();
-						name = download.getName();
-					} else {
-						return;
-					}
-				  
-					
-					String cb_data = download==null?UrlUtils.getMagnetURI( name, torrent ):UrlUtils.getMagnetURI( download);
-					
-					if ( download != null ){
-						
-						List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( download ));
-						
-						for ( Tag tag: tags ){
-							
-							if ( tag.isPublic()){
-								
-								cb_data += "&tag=" + UrlUtils.encode( tag.getTagName( true ));
-							}
+							name = ((ShareResourceFile) ds).getName();
+						}else if (ds instanceof ShareResourceDir) {
+								try {
+									torrent = ((ShareResourceDir) ds).getItem().getTorrent();
+								} catch (ShareException e) {
+									continue;
+								}
+								name = ((ShareResourceDir) ds).getName();
+						} else if (ds instanceof Download) {
+							download = (Download)ds;
+							torrent = download.getTorrent();
+							name = download.getName();
+						} else {
+							continue;
 						}
-					}
-					
-					// removed this as well - nothing wrong with allowing magnet copy
-					// for private torrents - they still can't be tracked if you don't
-					// have permission
-					
-					
-					/*if ( torrent.isPrivate()){
+					  
 						
-						cb_data = getMessageText( "private_torrent" );
+						String cb_data = download==null?UrlUtils.getMagnetURI( name, torrent ):UrlUtils.getMagnetURI( download);
 						
-					}else if ( torrent.isDecentralised()){
-					*/	
-						// ok
-						
-						/* relaxed this as we allow such torrents to be downloaded via magnet links
-						 * (as opposed to tracked in the DHT)
-						 
-					}else if ( torrent.isDecentralisedBackupEnabled()){
+						if ( download != null ){
 							
-						TorrentAttribute ta_peer_sources 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_PEER_SOURCES );
-
-						String[]	sources = download.getListAttribute( ta_peer_sources );
-		
-						boolean	ok = false;
+							List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( download ));
+							
+							for ( Tag tag: tags ){
 								
-						for (int i=0;i<sources.length;i++){
+								if ( tag.isPublic()){
 									
-							if ( sources[i].equalsIgnoreCase( "DHT")){
-										
-								ok	= true;
-										
-								break;
+									cb_data += "&tag=" + UrlUtils.encode( tag.getTagName( true ));
+								}
 							}
 						}
-		
-						if ( !ok ){
-							
-							cb_data = getMessageText( "decentral_disabled" );
-						}
-					}else{
 						
-						cb_data = getMessageText( "decentral_backup_disabled" );
-						*/
-					// }
-					
-					// System.out.println( "MagnetPlugin: export = " + url );
+						// removed this as well - nothing wrong with allowing magnet copy
+						// for private torrents - they still can't be tracked if you don't
+						// have permission
+						
+						
+						/*if ( torrent.isPrivate()){
+							
+							cb_data = getMessageText( "private_torrent" );
+							
+						}else if ( torrent.isDecentralised()){
+						*/	
+							// ok
+							
+							/* relaxed this as we allow such torrents to be downloaded via magnet links
+							 * (as opposed to tracked in the DHT)
+							 
+						}else if ( torrent.isDecentralisedBackupEnabled()){
+								
+							TorrentAttribute ta_peer_sources 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_PEER_SOURCES );
+	
+							String[]	sources = download.getListAttribute( ta_peer_sources );
+			
+							boolean	ok = false;
+									
+							for (int i=0;i<sources.length;i++){
+										
+								if ( sources[i].equalsIgnoreCase( "DHT")){
+											
+									ok	= true;
+											
+									break;
+								}
+							}
+			
+							if ( !ok ){
+								
+								cb_data = getMessageText( "decentral_disabled" );
+							}
+						}else{
+							
+							cb_data = getMessageText( "decentral_backup_disabled" );
+							*/
+						// }
+						
+						// System.out.println( "MagnetPlugin: export = " + url );
+						
+						cb_all_data += (cb_all_data.length()==0?"":"\n") + cb_data;
+					}
 					
 					try{
-						plugin_interface.getUIManager().copyToClipBoard( cb_data );
+						plugin_interface.getUIManager().copyToClipBoard( cb_all_data );
 						
 					}catch( Throwable  e ){
 						
@@ -267,9 +275,9 @@ MagnetPlugin
 		final TableContextMenuItem menu2 = plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, 	"MagnetPlugin.contextmenu.exporturi" );
 		final TableContextMenuItem menu3 = plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYSHARES, 	"MagnetPlugin.contextmenu.exporturi" );
 			
-		menu1.addListener( listener );
-		menu2.addListener( listener );
-		menu3.addListener( listener );
+		menu1.addMultiListener( listener );
+		menu2.addMultiListener( listener );
+		menu3.addMultiListener( listener );
 
 		uri_handler.addListener(
 			new MagnetURIHandlerListener()
