@@ -53,6 +53,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
@@ -5087,6 +5088,7 @@ SpeedLimitHandler
 		private int					freq;
 		private int					max;
 		
+		private int	log_ticks		= 1;
 		private int	check_ticks		= 1;
 		
 		private List<PrioritiserTagState>	tag_states = new ArrayList<PrioritiserTagState>();
@@ -5094,6 +5096,12 @@ SpeedLimitHandler
 		private int					phase 				= 0;
 		private PrioritiserTagState	phase_1_tag			= null;
 		private int					phase_1_tag_state	= 0;
+		
+		private
+		Prioritiser()
+		{
+			setFrequency( 5 );	// default
+		}
 		
 		private void
 		setIsDown(
@@ -5113,7 +5121,7 @@ SpeedLimitHandler
 			
 			tag_states.add( tag_state );
 			
-			setLimit(tag_state, tag_states.size()==1?max:-1 );
+			setLimit(tag_state, tag_states.size()==1?max:-1, "initial" );
 		}
 		
 		private int
@@ -5172,10 +5180,10 @@ SpeedLimitHandler
 					
 						// not active, reset rates to unlimited
 					
-					tag_state.setLimit( max );
+					tag_state.setLimit( max, "inactive" );
 				}
 			}
-			
+						
 			int	num_active = active_tags.size();
 			
 			if ( num_active == 0 ){
@@ -5185,7 +5193,7 @@ SpeedLimitHandler
 						
 			if ( num_active == 1 ){
 				
-				active_tags.get(0).setLimit( max );
+				active_tags.get(0).setLimit( max, "only one active" );
 
 				return;
 			}
@@ -5194,6 +5202,16 @@ SpeedLimitHandler
 				
 				return;
 			}
+			
+			String str = "";
+			
+			for ( PrioritiserTagState tag_state: active_tags ){
+			
+				str += (str.length()==0?"":", ") + tag_state.getTag().getTagName(true) + "=" + formatRate( tag_state.getRate(), false) + " (" + formatRate( tag_state.getLimit(), true ) + ")";
+			}
+			
+			log( str );
+
 			
 				// go through the active tags and make adjustments based on whether tags are
 				// achieving stable rates
@@ -5252,18 +5270,18 @@ SpeedLimitHandler
 									rate = 1024;
 								}
 								
-								tag_state.setLimit( rate );
+								tag_state.setLimit( rate, "0: reducing to current" );
 								
 							}else{
 								
 								int target = rate - 2048;
 								
-								if ( rate <= 1024 ){
+								if ( target <= 1024 ){
 									
-									rate = -1;
+									target = -1;
 								}
 								
-								tag_state.setLimit( rate );
+								tag_state.setLimit( target, "0: reducing, unstable" );
 							}
 						}
 					}
@@ -5301,7 +5319,7 @@ SpeedLimitHandler
 							
 								// not at max, let's modify it
 							
-							tag_state.setLimit( max );
+							tag_state.setLimit( max, "1: raising to max" );
 							
 							for ( int j=i+1;j<active_tags.size();j++){
 								
@@ -5316,7 +5334,7 @@ SpeedLimitHandler
 									target = -1;
 								}
 								
-								ts.setLimit( target );
+								ts.setLimit( target, "1: decreasing lower priority" );
 							}
 							
 							phase_1_tag_state = 1;
@@ -5342,7 +5360,7 @@ SpeedLimitHandler
 									rate = max;
 								}
 								
-								tag_state.setLimit( rate );
+								tag_state.setLimit( rate, "1: setting to current" );
 																
 								if ( i < active_tags.size() - 1 ){
 								
@@ -5370,10 +5388,30 @@ SpeedLimitHandler
 			}
 		}
 	
+		private String
+		formatRate(
+			int			rate,
+			boolean		is_limit )
+		{
+			if ( rate == -1 ){
+				
+				return( "x" );
+				
+			}else if ( rate == 0 && is_limit ){
+				
+				return( Constants.INFINITY_STRING );
+				
+			}else{
+				
+				return( DisplayFormatters.formatByteCountToKiBEtcPerSec(rate));
+			}
+		}
+		
 		private boolean
 		setLimit(
 			PrioritiserTagState 	tag_state,
-			int						rate )
+			int						rate,
+			String					reason )
 		{
 			TagDownload tag = tag_state.getTag();
 			
@@ -5383,7 +5421,7 @@ SpeedLimitHandler
 					
 					tag.setTagDownloadLimit( rate );
 					
-					log( tag, "->" + rate );
+					log( tag, "->" + formatRate( rate, true ) + " (" + reason + ")");
 					
 					return( true );
 				}
@@ -5393,7 +5431,7 @@ SpeedLimitHandler
 				
 					tag.setTagUploadLimit( rate );
 					
-					log( tag, "->" + rate );
+					log( tag, "->" + formatRate( rate, true ) + " (" + reason + ")");
 					
 					return( true );
 				}
@@ -5415,10 +5453,16 @@ SpeedLimitHandler
 			TagDownload		tag,
 			String			str )
 		{
-			logger.log( "tag_priority: " + tag.getTagName( true ) + ": " + str );
+			log( tag.getTagName( true ) + ": " + str );
 			
 		}
-		
+		private void
+		log(
+			String			str )
+		{
+			logger.log( "tag_priority: " + str );
+			
+		}
 		private class
 		PrioritiserTagState
 		{
@@ -5556,9 +5600,10 @@ SpeedLimitHandler
 			
 			private void
 			setLimit(
-				int		limit )
+				int		limit,
+				String	reason )
 			{
-				if ( Prioritiser.this.setLimit( this, limit )){
+				if ( Prioritiser.this.setLimit( this, limit, reason )){
 					
 					adjusting_ticks = ADJUSTMENT_PERIODS;
 				}
