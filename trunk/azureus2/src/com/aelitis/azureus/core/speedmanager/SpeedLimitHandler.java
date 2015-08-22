@@ -5104,6 +5104,8 @@ SpeedLimitHandler
 		private int					phase 				= 0;
 		private PrioritiserTagState	phase_1_tag			= null;
 		private int					phase_1_tag_state	= 0;
+		private int					phase_1_tag_rate;
+		private int					phase_1_higher_pri_rates;
 		
 		private
 		Prioritiser()
@@ -5322,12 +5324,23 @@ SpeedLimitHandler
 					for ( int i=index;i<active_tags.size();i++){
 					
 						PrioritiserTagState tag_state = active_tags.get(i);
+					
+						int current_rate = tag_state.getRate();
+						
+						int higher_pri_rates = 0;
+						
+						for ( int j=0;j<index;j++){
+							
+							higher_pri_rates += active_tags.get(j).getRate();
+						}
 						
 						if ( tag_state.getLimit() != max ){
 							
 								// not at max, let's modify it
 							
 							tag_state.setLimit( max, "1: raising to max" );
+							
+							int	decrease = 0;
 							
 							for ( int j=i+1;j<active_tags.size();j++){
 								
@@ -5340,12 +5353,20 @@ SpeedLimitHandler
 								if ( target <= 1024 ){
 									
 									target = -1;
+									
+									decrease += rate;
+									
+								}else{
+									
+									decrease += 2048;
 								}
 								
-								ts.setLimit( target, "1: decreasing lower priority" );
+								ts.setLimit( target, "1: decreasing lower priority (dec=" + formatRate(decrease,false) + ")");
 							}
 							
-							phase_1_tag_state = 1;
+							phase_1_tag_state 			= 1;
+							phase_1_tag_rate			= current_rate;
+							phase_1_higher_pri_rates	= higher_pri_rates;
 							
 							did_something = true;
 							
@@ -5356,27 +5377,48 @@ SpeedLimitHandler
 								// is at max - might have previously been at max so ignore if so
 							
 							if ( phase_1_tag_state == 1 ){
+									
+								int	diff 	= current_rate - phase_1_tag_rate;
+								int	hp_diff = higher_pri_rates - phase_1_higher_pri_rates;
 								
-								int rate = tag_state.getRate();
+								int target = current_rate;
 								
-								if ( rate <= 1024 ){
+								if ( target <= 1024 ){
 									
-									rate = -1;
+									target = -1;
 									
-								}else if ( sameRate( rate, max )){
+								}else if ( sameRate( target, max )){
 									
-									rate = max;
+									target = max;
 								}
 								
-								tag_state.setLimit( rate, "1: setting to current" );
-																
-								if ( i < active_tags.size() - 1 ){
+								if ( hp_diff <= -2048 ){
+									
+										// higher priorities total rate has dropped as a result on increasing the limit on this tag (and depressing the lower priorities a bit)
+										// so we don't want to carry on probing the limits of lower priority tags
+										// we want to try and shunt bandwidth from this tag back to the higher priority ones
+									
+									target = current_rate + hp_diff;
+									
+									if ( target < phase_1_tag_rate ){
+										
+										target = phase_1_tag_rate;
+									}
+									
+									tag_state.setLimit( target, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ")" );
+
+								}else{
 								
-									phase_1_tag			= active_tags.get( i+1 );
+									tag_state.setLimit( target, "1: setting to current (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ")" );
+																	
+									if ( i < active_tags.size() - 1 ){
 									
-									phase_1_tag_state = 0;
-									
-									did_something = true;
+										phase_1_tag			= active_tags.get( i+1 );
+										
+										phase_1_tag_state = 0;
+										
+										did_something = true;
+									}
 								}
 								
 								break;
@@ -5401,9 +5443,13 @@ SpeedLimitHandler
 			int			rate,
 			boolean		is_limit )
 		{
-			if ( rate == -1 ){
+			if ( rate == -1 && is_limit ){
 				
 				return( "x" );
+				
+			}else if ( rate < 0 ){
+				
+				return( "-" + DisplayFormatters.formatByteCountToKiBEtcPerSec(-rate));
 				
 			}else if ( ( rate == 0 || rate >= MAX_DEFAULT ) && is_limit ){
 				
@@ -5548,7 +5594,11 @@ SpeedLimitHandler
 					limit	= tag.getTagUploadLimit();
 				}
 			
-				if ( rate > limit ){
+				if ( limit == -1 ){
+					
+					rate = 0;
+					
+				}else  if ( rate > limit ){
 					
 					rate = limit;
 				}
