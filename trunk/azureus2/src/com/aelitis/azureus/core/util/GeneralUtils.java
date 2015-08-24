@@ -22,10 +22,7 @@ package com.aelitis.azureus.core.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -369,5 +366,19 @@ GeneralUtils
 	getSmoothAverage()
 	{
 		return( AverageFactory.MovingImmediateAverage(SMOOTHING_UPDATE_WINDOW/SMOOTHING_UPDATE_INTERVAL ));
+	}
+	
+	public static String stringJoin(Collection list, String delim) {
+		StringBuilder sb = new StringBuilder();
+		for (Object s : list) {
+			if (s == null) {
+				continue;
+			}
+			if (sb.length() > 0) {
+				sb.append(delim);
+			}
+			sb.append(s.toString());
+		}
+		return sb.toString();
 	}
 }
