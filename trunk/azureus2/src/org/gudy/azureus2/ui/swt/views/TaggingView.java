@@ -309,18 +309,31 @@ public class TaggingView
 
 		buttons = new ArrayList<Button>();
 		for (int tagType : tagTypesWanted) {
-			Composite c = new Composite(cMainComposite, SWT.DOUBLE_BUFFERED);
-			c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-			RowLayout rowLayout = new RowLayout();
-			rowLayout.pack = false;
-			rowLayout.spacing = 5;
-			c.setLayout(rowLayout);
 			
 			TagType tt = tm.getTagType(tagType);
 			List<Tag> tags = tt.getTags();
 			tags = TagUIUtils.sortTags(tags);
+			Composite g = null;
+			String group = null;
 			for (Tag tag : tags) {
-				Composite p = new Composite(c, SWT.DOUBLE_BUFFERED);
+				String newGroup = tag.getGroup();
+				if (g == null || (group != null && !group.equals(newGroup))
+						|| (group == null && newGroup != null)) {
+					group = newGroup;
+
+					g = group == null ? new Composite(cMainComposite, SWT.DOUBLE_BUFFERED)
+							: new Group(cMainComposite, SWT.DOUBLE_BUFFERED);
+					if (group != null) {
+						((Group) g).setText(group);
+					}
+					g.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+					RowLayout rowLayout = new RowLayout();
+					rowLayout.pack = false;
+					rowLayout.spacing = 5;
+					g.setLayout(rowLayout);
+				}
+
+				Composite p = new Composite(g, SWT.DOUBLE_BUFFERED);
 				GridLayout layout = new GridLayout(1, false);
 				layout.marginHeight = 3;
 				if (Constants.isWindows) {
