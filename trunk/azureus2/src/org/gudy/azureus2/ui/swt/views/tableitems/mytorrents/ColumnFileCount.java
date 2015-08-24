@@ -115,7 +115,10 @@ public class ColumnFileCount
 	private void openFilesMiniView(DownloadManager dm, TableCell cell) {
 		Shell shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.SHELL_TRIM);
 
-		shell.setLayout(new FillLayout());
+		FillLayout fillLayout = new FillLayout();
+		fillLayout.marginHeight = 2;
+		fillLayout.marginWidth = 2;
+		shell.setLayout(fillLayout);
 
 		Rectangle bounds = ((TableCellSWT) cell).getBoundsOnDisplay();
 		bounds.y += bounds.height;
@@ -142,7 +145,7 @@ public class ColumnFileCount
 
 		Composite composite = view.getComposite();
 		//composite.setLayoutData(null);
-		shell.setLayout(new FillLayout());
+		//shell.setLayout(new FillLayout());
 
 		view.viewActivated();
 		view.refresh();
