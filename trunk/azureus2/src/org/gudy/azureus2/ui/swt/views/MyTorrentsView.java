@@ -2248,6 +2248,8 @@ public class MyTorrentsView
 	}
 	
 	private Set<Tag> pending_tag_changes = new HashSet<Tag>();
+
+	private boolean currentTagsAny = true;
 	
 	public void
 	tagChanged(
@@ -2361,8 +2363,12 @@ public class MyTorrentsView
 	}
 
 			// tags 
+	
+	protected Tag[] getCurrentTags() {
+		return currentTags;
+	}
 
-	private void setCurrentTags(Tag[] tags) {
+	protected void setCurrentTags(Tag[] tags) {
 		if (currentTags != null) {
 			for (Tag tag : currentTags) {
 				tag.removeTagListener(this);
@@ -2432,12 +2438,21 @@ public class MyTorrentsView
   			return true;
   		}
   		
-  		for (Tag tag : tags) {
-				if (tag.hasTaggable(manager)) {
-					return true;
-				}
-			}
-  		return false;
+  		if (currentTagsAny) {
+    		for (Tag tag : tags) {
+  				if (tag.hasTaggable(manager)) {
+  					return true;
+  				}
+  			}
+    		return false;
+  		} else {
+    		for (Tag tag : tags) {
+  				if (!tag.hasTaggable(manager)) {
+  					return false;
+  				}
+  			}
+    		return true;
+  		}
   	}
   	
   	public boolean 
@@ -2798,5 +2813,17 @@ public class MyTorrentsView
   		}
 		}
 		return false;
+	}
+
+	public boolean isCurrentTagsAny() {
+		return currentTagsAny;
+	}
+
+	public void setCurrentTagsAny(boolean currentTagsAny) {
+		if (this.currentTagsAny == currentTagsAny) {
+			return;
+		}
+		this.currentTagsAny = currentTagsAny;
+		setCurrentTags(currentTags);
 	}
 }
