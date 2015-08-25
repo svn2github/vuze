@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.plugins.net.buddy.swt.columns.ColumnChatMessageCount;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCoreCreationListener;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
@@ -446,7 +447,8 @@ public class TableColumnCreatorV3
 	 * @since 3.1.1.1
 	 */
 	public static void initCoreColumns() {
-		TableColumnCreator.initCoreColumns();
+		
+ 		TableColumnCreator.initCoreColumns();
 
 		// short variable names to reduce wrapping
 		final Map<String, cInfo> c = new LightHashMap<String, cInfo>(7);
@@ -463,6 +465,8 @@ public class TableColumnCreatorV3
 				DateCompletedItem.DATASOURCE_TYPE));
 		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class,
 				ColumnProgressETA.DATASOURCE_TYPE));
+		c.put(ColumnChatMessageCount.COLUMN_ID, new cInfo(
+				ColumnChatMessageCount.class, Download.class));
 
 		/////////
 
@@ -492,14 +496,20 @@ public class TableColumnCreatorV3
 					String tableID, String columnID) {
 				cInfo info = c.get(columnID);
 
+				if (info.cla.isAssignableFrom(TableColumnCore.class)) {
+					return null;
+				}
+
 				try {
-					Constructor constructor = info.cla.getDeclaredConstructor(new Class[] {
-						String.class
+					Constructor<TableColumnCore> constructor = info.cla.getDeclaredConstructor(
+							new Class[] {
+								String.class
 					});
-					TableColumnCore column = (TableColumnCore) constructor.newInstance(new Object[] {
+					TableColumnCore column = constructor.newInstance(new Object[] {
 						tableID
 					});
 					return column;
+				} catch (NoSuchMethodException e) {
 				} catch (Exception e) {
 					Debug.out(e);
 				}
@@ -508,6 +518,25 @@ public class TableColumnCreatorV3
 			}
 
 			public void tableColumnCreated(TableColumn column) {
+				cInfo info = c.get(column.getName());
+				if (column.getClass().equals(info.cla)){
+					return;
+				}
+
+				try {
+					Constructor constructor = info.cla.getDeclaredConstructor(new Class[] {
+						TableColumn.class
+					});
+					if (constructor != null) {
+  					constructor.newInstance(new Object[] {
+  						column
+  					});
+					}
+				} catch (NoSuchMethodException e) {
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+
 			}
 		};
 

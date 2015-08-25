@@ -17,8 +17,11 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt.columns;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
 
 public class ColumnChatMessageCount
@@ -36,13 +39,24 @@ public class ColumnChatMessageCount
 	/** Default Constructor */
 	public ColumnChatMessageCount(TableColumn column) {
 		column.setWidth(60);
-		column.setAlignment( TableColumn.ALIGN_CENTER );
+		column.setAlignment( TableColumn.ALIGN_TRAIL );
 		column.setRefreshInterval( TableColumn.INTERVAL_LIVE );
 		column.addListeners(this);
 	}
 
 	public void refresh(TableCell cell) {
-		ChatInstance chat = (ChatInstance) cell.getDataSource();
+		ChatInstance chat;
+
+		Object dataSource = cell.getDataSource();
+		if (dataSource instanceof Download) {
+			Download dl = (Download) dataSource;
+			BuddyPluginBeta beta = BuddyPluginUtils.getBetaPlugin();
+
+			chat = beta.getChat(dl);
+		} else {
+			chat = (ChatInstance) cell.getDataSource();
+		}
+
 		int num = -1;
 		if (chat != null) {
 			num = chat.getMessageCount( true );
