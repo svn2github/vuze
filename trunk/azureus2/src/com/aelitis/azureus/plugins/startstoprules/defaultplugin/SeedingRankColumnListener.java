@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 
@@ -48,6 +49,8 @@ public class SeedingRankColumnListener implements
 	private int iRankType;
 
 	private boolean bDebugLog;
+
+	private int iTimed_MinSeedingTimeWithPeers;
 
 	public SeedingRankColumnListener(Map _downloadDataMap, PluginConfig pc) {
 		downloadDataMap = _downloadDataMap;
@@ -85,12 +88,25 @@ public class SeedingRankColumnListener implements
 				if (sr > DefaultRankCalculator.SR_TIMED_QUEUED_ENDS_AT) {
 					long timeStarted = dl.getStats().getTimeStartedSeeding();
 					long timeLeft;
+
+					long lMsTimeToSeedFor = minTimeAlive;
+					if (iTimed_MinSeedingTimeWithPeers > 0) {
+  					PeerManager peerManager = dl.getPeerManager();
+  					if (peerManager != null) {
+  						int connectedLeechers = peerManager.getStats().getConnectedLeechers();
+  						if (connectedLeechers > 0) {
+  							lMsTimeToSeedFor = iTimed_MinSeedingTimeWithPeers;
+  						}
+  					}
+					}
+
 					if (dl.isForceStart())
 						timeLeft = Constants.CRAPPY_INFINITY_AS_INT;
 					else if (timeStarted <= 0)
-						timeLeft = minTimeAlive;
+						timeLeft = lMsTimeToSeedFor;
 					else
-						timeLeft = (minTimeAlive - (SystemTime.getCurrentTime() - timeStarted));
+						timeLeft = (lMsTimeToSeedFor - (SystemTime.getCurrentTime() - timeStarted));
+
 					sText += TimeFormatter.format(timeLeft / 1000);
 				} else if (sr > 0) {
 					sText += MessageText.getString("StartStopRules.waiting");
@@ -133,6 +149,8 @@ public class SeedingRankColumnListener implements
 	public void configurationSaved() {
 		minTimeAlive = pluginConfig
 				.getUnsafeIntParameter("StartStopManager_iMinSeedingTime") * 1000;
+		iTimed_MinSeedingTimeWithPeers = pluginConfig
+				.getUnsafeIntParameter("StartStopManager_iTimed_MinSeedingTimeWithPeers") * 1000;
 		iRankType = pluginConfig.getUnsafeIntParameter("StartStopManager_iRankType");
 		bDebugLog = pluginConfig.getUnsafeBooleanParameter("StartStopManager_bDebugLog");
 	}

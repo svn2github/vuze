@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 /**
@@ -81,7 +82,7 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 	public static final int SR_COMPLETE_STARTS_AT = 1000000000; // billion
 
 	/** Maximimum ranking for time queue mode. 1 unit is a second */
-	public static final int SR_TIMED_QUEUED_ENDS_AT = 999999; // 11.57 days
+	public static final int SR_TIMED_QUEUED_ENDS_AT =199999999;
 
 	/** Ranks below this value are for torrents to be ignored (moved to bottom & queued) */
 	public static final int SR_IGNORED_LESS_THAN = -1;
@@ -172,6 +173,8 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 
 	private static boolean bAutoStart0Peers;
 
+	private static int iTimed_MinSeedingTimeWithPeers;
+
 	//
 	// Class variables
 
@@ -195,7 +198,9 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 
 	private int	dlSpecificMinShareRatio;
 	private int	dlSpecificMaxShareRatio;
-	
+
+	private long dlLastActiveTime;
+
 	/** Public for tooltip to access it */
 	public String sExplainFP = "";
 
@@ -236,6 +241,10 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 		
 		dlSpecificMinShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO );
 		dlSpecificMaxShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO );
+		dlLastActiveTime = dm_state.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_LAST_ACTIVE_TIME);
+		if (dlLastActiveTime <= 0) {
+			dlLastActiveTime = dm_state.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+		}
 
 		dm_state.addListener( this, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN );
 		
@@ -270,6 +279,10 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 		
 		dlSpecificMinShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO );
 		dlSpecificMaxShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO );
+		dlLastActiveTime = dm_state.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_LAST_ACTIVE_TIME);
+		if (dlLastActiveTime <= 0) {
+			dlLastActiveTime = dm_state.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+		}
 	}
 	
 	protected void
@@ -329,6 +342,8 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 				+ "bFirstPriority_ignore0Peer");
 		iFirstPriorityIgnoreIdleHours = cfg.getUnsafeIntParameter(PREFIX
 				+ "iFirstPriority_ignoreIdleHours");
+		iTimed_MinSeedingTimeWithPeers = cfg.getUnsafeIntParameter(PREFIX
+				+ "iTimed_MinSeedingTimeWithPeers") * 1000;
 	}
 
 	/** Sort first by SeedingRank Descending, then by Position Ascending.
@@ -529,7 +544,7 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 			int	oldSR = dl.getSeedingRank();
 			
 			int newSR = _recalcSeedingRankSupport( oldSR );
-			
+
 			if ( newSR != oldSR ){
 				
 				dl.setSeedingRank( newSR );
@@ -683,11 +698,22 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 					|| state == Download.ST_WAITING || state == Download.ST_PREPARING) {
 				// force sort to top
 				long lMsElapsed = 0;
-				if (state == Download.ST_SEEDING && !dl.isForceStart())
+				long lMsTimeToSeedFor = minTimeAlive;
+				if (state == Download.ST_SEEDING && !dl.isForceStart()) {
 					lMsElapsed = (SystemTime.getCurrentTime() - stats
 							.getTimeStartedSeeding());
+					if (iTimed_MinSeedingTimeWithPeers > 0) {
+  					PeerManager peerManager = dl.getPeerManager();
+  					if (peerManager != null) {
+  						int connectedLeechers = peerManager.getStats().getConnectedLeechers();
+  						if (connectedLeechers > 0) {
+  							lMsTimeToSeedFor = iTimed_MinSeedingTimeWithPeers;
+  						}
+  					}
+					}
+				}
 
-				if (lMsElapsed >= minTimeAlive) {
+				if (lMsElapsed >= lMsTimeToSeedFor) {
 					newSR = 1;
 					if (oldSR > SR_TIMED_QUEUED_ENDS_AT) {
 						rules.requestProcessCycle(null);
@@ -706,14 +732,23 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 				}
 				return newSR;
 			} else { // ST_QUEUED
-				if (oldSR <= 0) {
-					newSR = SR_TIMED_QUEUED_ENDS_AT - dl.getPosition();
-					rules.requestProcessCycle(null);
-					if (rules.bDebugLog)
-						rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-								"somethingChanged: NotIgnored");
+				// priority goes to ones who haven't been seeded for long
+				// maybe share ratio might work well too
+				long diff;
+				if (dlLastActiveTime == 0) {
+					diff = dl.getStats().getSecondsOnlySeeding();
+					if (diff > SR_TIMED_QUEUED_ENDS_AT - 100000) {
+						// close to overrunning.. so base off position
+						diff = SR_TIMED_QUEUED_ENDS_AT - 100000 + dl.getPosition();
+					}
+					newSR = SR_TIMED_QUEUED_ENDS_AT - (int) diff;
 				} else {
-					newSR = oldSR;
+					diff = ((System.currentTimeMillis() / 1000) - (dlLastActiveTime / 1000));
+					if (diff >= SR_TIMED_QUEUED_ENDS_AT) {
+						newSR = SR_TIMED_QUEUED_ENDS_AT - 1;
+					} else {
+						newSR = (int) diff;
+					}
 				}
 				return newSR;
 			}

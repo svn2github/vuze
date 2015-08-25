@@ -281,7 +281,6 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		pi.getUtilities().createDelayedTask(r).queue();
 
 		log = pi.getLogger().getTimeStampedChannel("StartStopRules");
-		
 		log.log(LoggerChannel.LT_INFORMATION,
 				"Default StartStopRules Plugin Initialisation");
 
@@ -359,6 +358,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				StartStopRulesDefaultPlugin.RANK_SPRATIO);
 		configModel.addIntParameter2("StartStopManager_iRankTypeSeedFallback",
 				"ConfigView.label.seeding.rankType.seed.fallback", 0);
+		configModel.addIntParameter2("StartStopManager_iTimed_MinSeedingTimeWithPeers",
+				"ConfigView.label.seeding.rankType.timed.minTimeWithPeers", 0);
 
 		configModel.addBooleanParameter2("StartStopManager_bAutoReposition",
 				"ConfigView.label.seeding.autoReposition", false);
@@ -889,6 +890,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				// shorten recalc for timed rank type, since the calculation is fast and we want to stop on the second
 				if (iRankType == RANK_TIMED) {
 					if (recalcSeedingRanksTask == null) {
+						recalcAllSeedingRanks(false);
 						recalcSeedingRanksTask = new RecalcSeedingRanksTask();
 						SimpleTimer.addPeriodicEvent("StartStop:recalcSR", 1000,
 								recalcSeedingRanksTask);
@@ -2151,11 +2153,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					//&& (!isFP || (isFP && ((vars.numWaitingOrSeeding >= totals.maxSeeders) || (!bActivelySeeding && (vars.numWaitingOrSeeding + totals.totalStalledSeeders) >= totals.maxSeeders))) )
 					&& (!download.isForceStart());
 			
-			// in RANK_TIMED mode, we use minTimeAlive for rotation time, so
-			// skip check
 			// XXX do we want changes to take effect immediately  ?
-			if (okToQueue && (state == Download.ST_SEEDING)
-					&& iRankType != RANK_TIMED) {
+			if (okToQueue && (state == Download.ST_SEEDING)) {
 				long timeAlive = (SystemTime.getCurrentTime() - download.getStats().getTimeStarted());
 				okToQueue = (timeAlive >= minTimeAlive);
 
@@ -2384,25 +2383,6 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 					state = download.getState();
 				}
-			}
-
-			// move completed timed rank types to bottom of the list
-			if (vars.bStopAndQueued && iRankType == RANK_TIMED) {
-				for (int j = 0; j < dlDataArray.length; j++) {
-					Download dl = dlDataArray[j].getDownloadObject();
-					int sr = dl.getSeedingRank();
-					if (sr > 0 && sr < DefaultRankCalculator.SR_TIMED_QUEUED_ENDS_AT) {
-						// Move everyone up
-						// We always start by setting SR to SR_TIMED_QUEUED_ENDS_AT - position
-						// then, the torrent with the biggest starts seeding which is
-						// (SR_TIMED_QUEUED_ENDS_AT - 1), leaving a gap.
-						// when it's time to stop the torrent, move everyone up, and put 
-						// us at the end
-						dl.setSeedingRank(sr + 1);
-					}
-				}
-				rank = DefaultRankCalculator.SR_TIMED_QUEUED_ENDS_AT - totals.complete;
-				download.setSeedingRank(rank);
 			}
 
 			state = download.getState();

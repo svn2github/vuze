@@ -130,7 +130,7 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     rparamSeedCount.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsSeedCount));
 
     
-    // timed rotation ranking type
+    // weigted peer count ranking type
     RadioParameter rparamPeer =
         new RadioParameter(cRankType, "StartStopManager_iRankType", 
                            StartStopRulesDefaultPlugin.RANK_PEERCOUNT);
@@ -148,7 +148,26 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     rparamTimed.setLayoutData(gridData);
 
-    new Label(cRankType, SWT.NULL);
+    Group gTimed = new Group(cRankType, SWT.NULL);
+    layout = new GridLayout();
+    layout.marginHeight = 2;
+    layout.marginWidth = 2;
+    layout.numColumns = 2;
+    gTimed.setLayout(layout);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.verticalSpan = 1;
+    gTimed.setLayoutData(gridData);
+    Messages.setLanguageText(gTimed, "ConfigView.label.seeding.rankType.timed.options");
+
+    label = new Label(gTimed, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.seeding.rankType.timed.minTimeWithPeers");
+
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    IntParameter intParamTimedPeersMinTime = new IntParameter(gTimed, "StartStopManager_iTimed_MinSeedingTimeWithPeers");
+    intParamTimedPeersMinTime.setLayoutData(gridData);
+
+    Control[] controlsTimed = { gTimed };
+    rparamTimed.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsTimed));
 
 
     // No Ranking
