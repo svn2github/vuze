@@ -1994,14 +1994,65 @@ BuddyPluginBeta
 		
 		return( result );
 	}
+		
 	
-	/**
-	 * returns existing chat if found without adding a reference to it. If create_if_missing supplied
-	 * then this will create a new chat (and add a reference to it) so use this parameter with
-	 * caution
-	 */
+	public ChatInstance
+	peekChatInstance(
+		String				network,
+		String				key )
+	{
+		return( peekChatInstance( network, key, false ));
+	}
 	
-	private ChatInstance
+	public ChatInstance
+	peekChatInstance(
+		Download		download )
+	{
+		String	key = BuddyPluginUtils.getChatKey( download );
+
+		if ( key != null ){
+			
+			String[] networks = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+			
+			boolean	has_i2p = false;
+			
+			for ( String net: networks ){
+				
+				if ( net == AENetworkClassifier.AT_PUBLIC ){
+					
+					try{
+						return( peekChatInstance( net, key ));
+												
+					}catch( Throwable e ){
+						
+					}
+				}else if ( net == AENetworkClassifier.AT_I2P ){
+					
+					has_i2p = true;
+				}
+			}
+			
+			if ( has_i2p ){
+				
+				try{
+					return( peekChatInstance( AENetworkClassifier.AT_I2P, key ));
+															
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
+		/**
+		 * returns existing chat if found without adding a reference to it. If create_if_missing supplied
+		 * then this will create a new chat (and add a reference to it) so use this parameter with
+		 * caution
+		 */
+
+	public ChatInstance
 	peekChatInstance(
 		String				network,
 		String				key,
@@ -2027,41 +2078,115 @@ BuddyPluginBeta
 		}
 	}
 	
+	private static final Object	DOWNLOAD_PEEK_CACHE_KEY = new Object();
+	
+	private static AsyncDispatcher dl_peek_dispatcher = new AsyncDispatcher( "dl:peeker" );
+
 	public Map<String,Object>
 	peekChat(
-		Download		download )
+		final Download		download,
+		boolean				async )
 	{
 		String	key = BuddyPluginUtils.getChatKey( download );
 
 		if ( key != null ){
 			
-			String[] networks = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
-			
-			boolean	has_i2p = false;
-			
-			for ( String net: networks ){
+			if ( async ){
+								
+				synchronized( DOWNLOAD_PEEK_CACHE_KEY ){
+					
+					Map<String,Object> map = (Map<String,Object>)download.getUserData( DOWNLOAD_PEEK_CACHE_KEY );
+					
+					if ( map != null ){
+						
+							// TODO: could timeout?
+						
+						return( map );
+					}
+					
+					if ( dl_peek_dispatcher.getQueueSize() > 200 ){
+						
+							// we'll get back here sometime
+						
+						return( null );
+					}
+						
+					map = new HashMap<String, Object>();
+					
+					download.setUserData( DOWNLOAD_PEEK_CACHE_KEY, map );
+					
+					dl_peek_dispatcher.dispatch(
+						new AERunnable() {
+							
+							@Override
+							public void 
+							runSupport() 
+							{
+								try{
+									Map<String,Object> map = peekChat( download, false );
+												
+									if ( map != null && map.isEmpty()){
+										
+										map = null;
+									}
+									
+									if ( map == null ){
+										
+											// nost likely things not initialised
+										
+										try{
+											Thread.sleep(1000);
+											
+										}catch( Throwable e ){
+										}
+									}else{
+																				
+										if ( !map.containsKey( "m" )){
+											
+											map.put( "m", 0 );
+										}
+									}
+									
+									synchronized( DOWNLOAD_PEEK_CACHE_KEY ){
+											
+										download.setUserData( DOWNLOAD_PEEK_CACHE_KEY, map );
+									}
+								}catch( Throwable e ){
+									
+								}
+							}
+						});
+				}
+			}else{
 				
-				if ( net == AENetworkClassifier.AT_PUBLIC ){
+				String[] networks = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+				
+				boolean	has_i2p = false;
+				
+				for ( String net: networks ){
+					
+					if ( net == AENetworkClassifier.AT_PUBLIC ){
+						
+						try{
+							return( peekChat( net, key ));
+													
+						}catch( Throwable e ){
+							
+						}
+					}else if ( net == AENetworkClassifier.AT_I2P ){
+						
+						has_i2p = true;
+					}
+				}
+				
+				if ( has_i2p ){
 					
 					try{
-						return( peekChat( net, key ));
-												
+						return( peekChat( AENetworkClassifier.AT_I2P, key ));
+																
 					}catch( Throwable e ){
 						
 					}
-				}else if ( net == AENetworkClassifier.AT_I2P ){
-					
-					has_i2p = true;
-				}
-			}
-			
-			if ( has_i2p ){
-				
-				try{
-					return( peekChat( AENetworkClassifier.AT_I2P, key ));
-															
-				}catch( Throwable e ){
-					
 				}
 			}
 		}

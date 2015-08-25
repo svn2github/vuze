@@ -17,6 +17,8 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt.columns;
 
+import java.util.Map;
+
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -45,22 +47,48 @@ public class ColumnChatMessageCount
 	}
 
 	public void refresh(TableCell cell) {
-		ChatInstance chat;
 
 		Object dataSource = cell.getDataSource();
-		if (dataSource instanceof Download) {
+		
+		int num = -1;
+
+		if ( dataSource instanceof Download ){
+			
 			Download dl = (Download) dataSource;
+			
 			BuddyPluginBeta beta = BuddyPluginUtils.getBetaPlugin();
 
-			chat = beta.getChat(dl);
+			ChatInstance chat = beta.peekChatInstance(dl);
+			
+			if (chat != null){
+				
+				num = chat.getMessageCount( true );
+				
+			}else{
+								
+				Map<String,Object> peek_data = beta.peekChat( dl, true );
+				
+				if ( peek_data != null ){
+					
+					Number	message_count 	= (Number)peek_data.get( "m" );
+
+					if ( message_count != null ){
+						
+						num = message_count.intValue();
+					}
+				}
+			}
+			
 		} else {
-			chat = (ChatInstance) cell.getDataSource();
+			
+			ChatInstance chat = (ChatInstance) cell.getDataSource();
+
+			if (chat != null){
+				
+				num = chat.getMessageCount( true );
+			}
 		}
 
-		int num = -1;
-		if (chat != null) {
-			num = chat.getMessageCount( true );
-		}
 		
 		if (!cell.setSortValue(num) && cell.isValid()) {
 			return;

@@ -155,7 +155,7 @@ BuddyPluginUtils
 		
 		if ( bp != null && bp.isBetaEnabled()){
 			
-			return( bp.getBeta().peekChat( download ));
+			return( bp.getBeta().peekChat( download, false ));
 		}
 		
 		return( null );
