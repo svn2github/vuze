@@ -75,14 +75,17 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 				});
 	}
 
+	@Override
 	public int getIntValue(String key) {
 		return (COConfigurationManager.getIntParameter(key));
 	}
 
+	@Override
 	public int getIntValue(String key, int def) {
 		return (COConfigurationManager.getIntParameter(key, def));
 	}
 
+	@Override
 	public void setIntValue(String key, int value) {
 		if (changingCount == 0) {
 			changedExternally = false;
@@ -113,6 +116,7 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 		}
 	}
 
+	@Override
 	public boolean resetIntDefault(String key) {
 		if (COConfigurationManager.doesParameterDefaultExist(key)) {
 			COConfigurationManager.removeParameter(key);
@@ -122,14 +126,17 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 		return (false);
 	}
 
-	public boolean getBooleanValue(String key) {
+	@Override
+	public Boolean getBooleanValue(String key) {
 		return (COConfigurationManager.getBooleanParameter(key));
 	}
 
-	public boolean getBooleanValue(String key, boolean def) {
+	@Override
+	public Boolean getBooleanValue(String key, Boolean def) {
 		return (COConfigurationManager.getBooleanParameter(key, def));
 	}
 
+	@Override
 	public void setBooleanValue(String key, boolean value) {
 		if (changingCount == 0) {
 			changedExternally = false;

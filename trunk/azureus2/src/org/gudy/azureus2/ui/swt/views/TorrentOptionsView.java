@@ -739,6 +739,7 @@ TorrentOptionsView
 	adhocParameterAdapter
 		extends GenericParameterAdapter
 	{
+		@Override
 		public int
 		getIntValue(
 			String	key )
@@ -746,6 +747,7 @@ TorrentOptionsView
 			return( getIntValue( key, 0 ));
 		}
 		
+		@Override
 		public int
 		getIntValue(
 			String	key,
@@ -786,6 +788,7 @@ TorrentOptionsView
 			}
 		}
 		
+		@Override
 		public void
 		setIntValue(
 			String	key,
@@ -821,6 +824,7 @@ TorrentOptionsView
 	downloadStateParameterAdapter
 		extends GenericParameterAdapter
 	{
+		@Override
 		public int
 		getIntValue(
 			String	key )
@@ -828,6 +832,7 @@ TorrentOptionsView
 			return( getIntValue( key, 0 ));
 		}
 		
+		@Override
 		public int
 		getIntValue(
 			String	key,
@@ -848,6 +853,7 @@ TorrentOptionsView
 			return( result );
 		}
 		
+		@Override
 		public void
 		setIntValue(
 			String	key,
@@ -864,17 +870,19 @@ TorrentOptionsView
 			}
 		}	
 		
-		public boolean
+		@Override
+		public Boolean
 		getBooleanValue(
 			String	key )
 		{
 			return( getBooleanValue(key,false));
 		}
 		
-		public boolean
+		@Override
+		public Boolean
 		getBooleanValue(
 			String		key,
-			boolean		def )
+			Boolean		def )
 		{
 			boolean	result = def;
 			
@@ -891,6 +899,7 @@ TorrentOptionsView
 			return( result );		
 		}
 		
+		@Override
 		public void
 		setBooleanValue(
 			String		key,
@@ -907,6 +916,7 @@ TorrentOptionsView
 			}
 		}
 		
+		@Override
 		public float
 		getFloatValue(
 			String		key )
@@ -926,6 +936,7 @@ TorrentOptionsView
 			return( result/1000.0f );
 		}
 		
+		@Override
 		public void
 		setFloatValue(
 			String		key,

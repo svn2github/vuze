@@ -55,6 +55,8 @@ public class GenericIntParameter
 	private TimerEventPerformer timerEventSave;
 
 	private final boolean delayIntialSet = Utils.isCarbon && System.getProperty("os.version", "").startsWith("10.6");
+	
+	private boolean isZeroHidden = false;
 
 	public GenericIntParameter(GenericParameterAdapter adapter,
 			Composite composite, final String name) {
@@ -112,12 +114,12 @@ public class GenericIntParameter
 		spinner = new Spinner(composite, SWT.BORDER | SWT.RIGHT);
 		setMinimumValue(iMinValue);
 		setMaximumValue(iMaxValue);
-		spinner.setSelection(value);
+		swt_setSpinnerValue(value);
 		
 		if (delayIntialSet) {
   		Utils.execSWTThreadLater(0, new AERunnable() {
   			public void runSupport() {
-  				spinner.setSelection(adapter.getIntValue(sParamName, iDefaultValue));
+  				swt_setSpinnerValue(adapter.getIntValue(sParamName, iDefaultValue));
   			}
   		});
 		}
@@ -168,6 +170,15 @@ public class GenericIntParameter
 				}
 			}
 		});
+	}
+
+	private void swt_setSpinnerValue(int value) {
+		spinner.setSelection(value);
+		if (isZeroHidden) {
+			Display display = spinner.getDisplay();
+			spinner.setBackground(value == 0 ? display.getSystemColor(SWT.COLOR_INFO_BACKGROUND) : null);
+			spinner.setForeground(value == 0 ? display.getSystemColor(SWT.COLOR_INFO_FOREGROUND) : null);
+		}
 	}
 
 	private void cancelTimedSaveEvent() {
@@ -234,7 +245,7 @@ public class GenericIntParameter
 						if (DEBUG) {
 							debug("spinner.setSelection(" + finalNewValue + ")");
 						}
-						spinner.setSelection(finalNewValue);
+						swt_setSpinnerValue(finalNewValue);
 					}
 					if (DEBUG) {
 						debug("setIntValue to " + spinner.getSelection()
@@ -255,7 +266,7 @@ public class GenericIntParameter
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (spinner.getSelection() != value) {
-						spinner.setSelection(value);
+						swt_setSpinnerValue(value);
 					}
 				}
 			});
@@ -288,5 +299,22 @@ public class GenericIntParameter
 
 	public void setGenerateIntermediateEvents(boolean generateIntermediateEvents) {
 		bGenerateIntermediateEvents = generateIntermediateEvents;
+	}
+
+	public boolean isZeroHidden() {
+		return isZeroHidden;
+	}
+
+	public void setZeroHidden(boolean isZeroHidden) {
+		if (this.isZeroHidden == isZeroHidden) {
+			return;
+		}
+		this.isZeroHidden = isZeroHidden;
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_setSpinnerValue(adapter.getIntValue(sParamName, iDefaultValue));
+			}
+		});
 	}
 }

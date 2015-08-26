@@ -52,17 +52,17 @@ GenericParameterAdapter
 		throw( new RuntimeException( "Not implemented" ));
 	}
 	
-	public boolean
+	public Boolean
 	getBooleanValue(
 		String	key )
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}
 	
-	public boolean
+	public Boolean
 	getBooleanValue(
 		String		key,
-		boolean		def )
+		Boolean		def )
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}

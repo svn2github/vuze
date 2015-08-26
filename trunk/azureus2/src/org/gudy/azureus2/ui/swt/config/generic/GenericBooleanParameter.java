@@ -45,7 +45,7 @@ public class GenericBooleanParameter
 
 	Button checkBox;
 
-	boolean defaultValue;
+	Boolean defaultValue;
 
 	List performers = new ArrayList();
 
@@ -60,18 +60,18 @@ public class GenericBooleanParameter
 	}
 
 	public GenericBooleanParameter(GenericParameterAdapter adapter,
-			Composite composite, final String name, boolean defaultValue,
+			Composite composite, final String name, Boolean defaultValue,
 			String textKey) {
 		this(adapter, composite, name, defaultValue, textKey, null);
 	}
 
 	public GenericBooleanParameter(GenericParameterAdapter adapter,
-			Composite composite, final String name, boolean defaultValue) {
+			Composite composite, final String name, Boolean defaultValue) {
 		this(adapter, composite, name, defaultValue, null, null);
 	}
 
 	public GenericBooleanParameter(GenericParameterAdapter _adapter,
-			Composite composite, final String _name, boolean _defaultValue,
+			Composite composite, final String _name, Boolean _defaultValue,
 			String textKey, IAdditionalActionPerformer actionPerformer) {
 		adapter = _adapter;
 		name = _name;
@@ -79,11 +79,17 @@ public class GenericBooleanParameter
 		if (actionPerformer != null) {
 			performers.add(actionPerformer);
 		}
-		boolean value = adapter.getBooleanValue(name, defaultValue);
+		Boolean value = adapter.getBooleanValue(name, defaultValue);
 		checkBox = new Button(composite, SWT.CHECK);
 		if (textKey != null)
 			Messages.setLanguageText(checkBox, textKey);
-		checkBox.setSelection(value);
+		if (value != null) {
+			checkBox.setGrayed(false);
+			checkBox.setSelection(value);
+		} else {
+			checkBox.setGrayed(true);
+			checkBox.setSelection(true);
+		}
 
 		checkBox.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -99,7 +105,10 @@ public class GenericBooleanParameter
 	public void setAdditionalActionPerformer(
 			IAdditionalActionPerformer actionPerformer) {
 		performers.add(actionPerformer);
-		actionPerformer.setSelected(isSelected());
+		Boolean selected = isSelected();
+		if (selected != null) {
+			actionPerformer.setSelected(selected);
+		}
 		actionPerformer.performAction();
 	}
 
@@ -115,7 +124,7 @@ public class GenericBooleanParameter
 		name = newName;
 	}
 
-	public boolean isSelected() {
+	public Boolean isSelected() {
 		return adapter.getBooleanValue(name);
 	}
 
@@ -172,9 +181,15 @@ public class GenericBooleanParameter
 	public void refresh() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				boolean selected = isSelected();
-				if (checkBox.getSelection() != selected) {
-					checkBox.setSelection(selected);
+				Boolean selected = isSelected();
+				if (selected == null) {
+					checkBox.setGrayed(true);
+					checkBox.setSelection(true);
+				} else {
+					checkBox.setGrayed(false);
+  				if (checkBox.getSelection() != selected) {
+  					checkBox.setSelection(selected);
+  				}
 				}
 			}
 		});

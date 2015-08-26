@@ -97,7 +97,7 @@ public class BooleanParameter extends Parameter{
   	delegate.setName( newName );
   }
 
-  public boolean
+  public Boolean
   isSelected()
   {
   	return(delegate.isSelected());
@@ -117,6 +117,6 @@ public class BooleanParameter extends Parameter{
   }
   
   public Object getValueObject() {
-  	return new Boolean(isSelected());
+  	return isSelected();
   }
 }

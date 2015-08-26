@@ -3395,7 +3395,7 @@ public class OpenTorrentOptionsWindow
 					tagChanged(
 						Tag tag) 
 					{
-						rebuild();
+						//rebuild();
 					}
 					
 					public void 
@@ -5061,6 +5061,7 @@ public class OpenTorrentOptionsWindow
 	IntAdapter
 		extends GenericParameterAdapter
 	{
+		@Override
 		public int
 		getIntValue(
 			String	key )
@@ -5068,6 +5069,7 @@ public class OpenTorrentOptionsWindow
 			return( 0 );
 		}
 		
+		@Override
 		public int
 		getIntValue(
 			String	key,
@@ -5077,6 +5079,7 @@ public class OpenTorrentOptionsWindow
 		}
 		
 		
+		@Override
 		public boolean
 		resetIntDefault(
 			String	key )
