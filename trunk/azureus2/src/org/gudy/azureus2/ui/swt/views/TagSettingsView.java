@@ -19,15 +19,24 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.bouncycastle.util.Arrays;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -35,14 +44,18 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.config.generic.*;
+import org.gudy.azureus2.ui.swt.config.ColorParameter;
+import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
+import org.gudy.azureus2.ui.swt.config.generic.GenericFloatParameter;
+import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
+import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
+import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
@@ -61,7 +74,7 @@ public class TagSettingsView
 
 	private ScrolledComposite sc;
 
-	private Tag tag;
+	private Tag[] tags;
 
 	public static class Params
 	{
@@ -144,27 +157,34 @@ public class TagSettingsView
 
 	private void dataSourceChanged(Object ds) {
 
-		if (tag != null) {
-			TagType tagType = tag.getTagType();
-			tagType.removeTagTypeListener(this);
+		if (tags != null) {
+			for (Tag tag : tags) {
+  			TagType tagType = tag.getTagType();
+  			tagType.removeTagTypeListener(this);
+			}
 		}
 
 		if (ds instanceof Tag) {
-			tag = (Tag) ds;
+			tags = new Tag[] { (Tag) ds };
 		} else if (ds instanceof Object[]) {
 			Object[] objects = (Object[]) ds;
-			if (objects.length == 1 && objects[0] instanceof Tag) {
-				tag = (Tag) objects[0];
+			if (objects[0] instanceof Tag) {
+				tags = new Tag[objects.length];
+				System.arraycopy(objects, 0, tags, 0, tags.length);
 			} else {
-				tag = null;
+				tags = null;
 			}
 		} else {
-			tag = null;
+			tags = null;
 		}
 
-		if (tag != null) {
-			TagType tagType = tag.getTagType();
-			tagType.addTagTypeListener(this, true);
+		if (tags != null) {
+			for (Tag tag : tags) {
+  			TagType tagType = tag.getTagType();
+  			// Lazy way to ensure only one listener per type gets added
+  			tagType.removeTagTypeListener(this);
+  			tagType.addTagTypeListener(this, false);
+			}
 		}
 		initialize(null);
 
@@ -206,12 +226,41 @@ public class TagSettingsView
 			Utils.disposeComposite(cMainComposite, false);
 		}
 
-		if (tag == null) {
+		if (tags == null) {
 			params = null;
 			cMainComposite.setLayout(new FillLayout());
 			Label label = new Label(cMainComposite, SWT.NONE);
 			label.setText("Select one tag to see the tag's settings");
 		} else {
+			final int numTags = tags.length;
+
+
+			int isTagVisible = -1;
+			int canBePublic = -1;
+			int[] tagColor = tags[0].getColor();
+			boolean tagsAreTagFeatureRateLimit = true;
+			Set<String> listTagTypes = new HashSet<String>();
+			for (Tag tag : tags) {
+				TagType tt = tag.getTagType();
+				String s = tt.getTagTypeName(true);
+				listTagTypes.add(s);
+				
+				if (tagsAreTagFeatureRateLimit && !(tag instanceof TagFeatureRateLimit)) {
+					tagsAreTagFeatureRateLimit = false;
+				}
+				
+				isTagVisible = updateIntBoolean(tag.isVisible(), isTagVisible);
+				canBePublic = updateIntBoolean(tag.canBePublic(), canBePublic);
+				
+				if (tagColor != null) {
+  				int[] color = tag.getColor();
+  				if (!Arrays.areEqual(tagColor, color)) {
+  					tagColor = null;
+  				}
+				}
+			}
+			String tagTypes = GeneralUtils.stringJoin(listTagTypes, ", ");
+
 			params = new Params();
 
 			GridData gd;
@@ -238,19 +287,19 @@ public class TagSettingsView
 
 			// Field: Tag Type
 			label = new Label(cSection1, SWT.NONE);
-			label.setText(tag.getTagType().getTagTypeName(true));
 			FontUtils.setFontHeight(label, 12, SWT.BOLD);
 			gd = new GridData();
 			gd.horizontalSpan = 4;
 			label.setLayoutData(gd);
-
+			label.setText(tagTypes);
+			
 			// Field: Name
 			label = new Label(cSection1, SWT.NONE);
 			Messages.setLanguageText(label, "MinimizedWindow.name");
 			gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
 			label.setLayoutData(gd);
 
-			if (!tag.getTagType().isTagTypeAuto()) {
+			if (numTags == 1 && !tags[0].getTagType().isTagTypeAuto()) {
 				Text txtName = new Text(cSection1, SWT.BORDER);
 				params.cName = txtName;
 				gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
@@ -260,8 +309,8 @@ public class TagSettingsView
 					public void modifyText(ModifyEvent e) {
 						try {
 							String newName = ((Text) e.widget).getText();
-							if (!tag.getTagName(true).equals(newName)) {
-								tag.setTagName(newName);
+							if (!tags[0].getTagName(true).equals(newName)) {
+								tags[0].setTagName(newName);
 							}
 						} catch (TagException e1) {
 							Debug.out(e1);
@@ -278,33 +327,41 @@ public class TagSettingsView
 			// Field: Color
 			label = new Label(cSection1, SWT.NONE);
 			Messages.setLanguageText(label, "label.color");
-			int[] color = tag.getColor();
-			params.tagColor = new ColorParameter(cSection1, null, color[0], color[1],
-					color[2]) {
+			if (tagColor == null) {
+				tagColor = new int[] { 0, 0, 0 };
+			}
+			params.tagColor = new ColorParameter(cSection1, null, tagColor[0], tagColor[1],
+					tagColor[2]) {
 				// @see org.gudy.azureus2.ui.swt.config.ColorParameter#newColorChosen(org.eclipse.swt.graphics.RGB)
 				public void newColorChosen(RGB newColor) {
-					tag.setColor(new int[] {
-						newColor.red,
-						newColor.green,
-						newColor.blue
-					});
+					for (Tag tag : tags) {
+  					tag.setColor(new int[] {
+  						newColor.red,
+  						newColor.green,
+  						newColor.blue
+  					});
+					}
 				}
 			};
 
 			// Field: Visible
 
 			params.viewInSideBar = new GenericBooleanParameter(
-					new GenericParameterAdapter() {
-						public boolean getBooleanValue(String key) {
-							return tag.isVisible();
+					new BooleanParameterAdapter() {
+						@Override
+						public Boolean getBooleanValue(String key) {
+							int isTagVisible = -1;
+							for (Tag tag : tags) {
+								isTagVisible = updateIntBoolean(tag.isVisible(), isTagVisible);
+							}
+							return isTagVisible == 2 ? null : (isTagVisible == 1);
 						}
-
-						public boolean getBooleanValue(String key, boolean def) {
-							return tag.isVisible();
-						}
-
+						
+						@Override
 						public void setBooleanValue(String key, boolean value) {
-							tag.setVisible(value);
+							for (Tag tag : tags) {
+								tag.setVisible(value);
+							}
 						}
 					}, cSection2, null, "TagSettings.viewInSideBar");
 			gd = new GridData();
@@ -312,19 +369,21 @@ public class TagSettingsView
 			params.viewInSideBar.setLayoutData(gd);
 
 			// Field: Public
-			if (tag.canBePublic()) {
+			if (canBePublic == 1) {
 				params.isPublic = new GenericBooleanParameter(
-						new GenericParameterAdapter() {
-							public boolean getBooleanValue(String key) {
-								return tag.isPublic();
-							}
-
-							public boolean getBooleanValue(String key, boolean def) {
-								return tag.isPublic();
+						new BooleanParameterAdapter() {
+							public Boolean getBooleanValue(String key) {
+								int val = -1;
+								for (Tag tag : tags) {
+									val = updateIntBoolean(tag.isPublic(), val);
+								}
+								return val == 2 ? null : (val == 1);
 							}
 
 							public void setBooleanValue(String key, boolean value) {
-								tag.setPublic(value);
+								for (Tag tag : tags) {
+									tag.setPublic(value);
+								}
 							}
 						}, cSection2, null, "TagAddWindow.public.checkbox");
 				gd = new GridData();
@@ -342,52 +401,72 @@ public class TagSettingsView
 			gd = new GridData(SWT.NONE, SWT.NONE, false, false, 4, 1);
 			gTransfer.setLayoutData(gd);
 
-			if (tag instanceof TagFeatureRateLimit) {
-				final TagFeatureRateLimit rl = (TagFeatureRateLimit) tag;
+			if (tagsAreTagFeatureRateLimit) {
+				final TagFeatureRateLimit rls[] = new TagFeatureRateLimit[tags.length];
+				System.arraycopy(tags, 0, rls, 0, tags.length);
+				
+				boolean supportsTagDownloadLimit = true;
+				boolean supportsTagUploadLimit = true;
+				boolean hasTagUploadPriority = true;
+				for (TagFeatureRateLimit rl : rls) {
+					supportsTagDownloadLimit &= rl.supportsTagDownloadLimit();
+					supportsTagUploadLimit &= rl.supportsTagUploadLimit();
+					hasTagUploadPriority &= rl.getTagUploadPriority() >= 0;
+				}
+				
 				String k_unit = DisplayFormatters.getRateUnitBase10(
 						DisplayFormatters.UNIT_KB).trim();
 
-				if (rl.supportsTagDownloadLimit()) {
-					// Field: Download Limit
-					if (rl.supportsTagDownloadLimit()) {
+				// Field: Download Limit
+				if (supportsTagDownloadLimit) {
 
-						gd = new GridData();
-						label = new Label(gTransfer, SWT.NULL);
-						label.setLayoutData(gd);
-						label.setText(k_unit + " " + MessageText.getString(
-								"GeneralView.label.maxdownloadspeed.tooltip"));
+					gd = new GridData();
+					label = new Label(gTransfer, SWT.NULL);
+					label.setLayoutData(gd);
+					label.setText(k_unit + " " + MessageText.getString(
+							"GeneralView.label.maxdownloadspeed.tooltip"));
 
-						gd = new GridData();
-						//gd.horizontalSpan = 3;
-						params.maxDownloadSpeed = new GenericIntParameter(
-								new GenericParameterAdapter() {
-									public int getIntValue(String key) {
-										int limit = rl.getTagDownloadLimit();
-										return limit < 0 ? limit : limit / 1024;
-									}
-
-									public int getIntValue(String key, int def) {
-										return getIntValue(key);
-									}
-
-									public void setIntValue(String key, int value) {
-										if (value == -1) {
-											rl.setTagDownloadLimit(-1);
-										} else {
-											rl.setTagDownloadLimit(value * 1024);
+					gd = new GridData();
+					//gd.horizontalSpan = 3;
+					params.maxDownloadSpeed = new GenericIntParameter(
+							new GenericParameterAdapter() {
+								public int getIntValue(String key) {
+									int limit = rls[0].getTagDownloadLimit();
+									if (numTags > 1) {
+										for (int i = 1; i < rls.length; i++) {
+											int nextLimit = rls[i].getTagDownloadLimit();
+											if (nextLimit != limit) {
+												return 0;
+											}
 										}
 									}
+									return limit < 0 ? limit : limit / 1024;
+								}
 
-									public boolean resetIntDefault(String key) {
-										return false;
+								public int getIntValue(String key, int def) {
+									return getIntValue(key);
+								}
+
+								public void setIntValue(String key, int value) {
+									for (TagFeatureRateLimit rl : rls) {
+  									if (value == -1) {
+  										rl.setTagDownloadLimit(-1);
+  									} else {
+  										rl.setTagDownloadLimit(value * 1024);
+  									}
 									}
-								}, gTransfer, null, -1, Integer.MAX_VALUE);
-						params.maxDownloadSpeed.setLayoutData(gd);
-					}
+								}
+
+								public boolean resetIntDefault(String key) {
+									return false;
+								}
+							}, gTransfer, null, -1, Integer.MAX_VALUE);
+					params.maxDownloadSpeed.setLayoutData(gd);
+					params.maxDownloadSpeed.setZeroHidden(numTags > 1);
 				}
 
 				// Upload Limit
-				if (rl.supportsTagUploadLimit()) {
+				if (supportsTagUploadLimit) {
 					gd = new GridData();
 					label = new Label(gTransfer, SWT.NULL);
 					label.setLayoutData(gd);
@@ -399,7 +478,15 @@ public class TagSettingsView
 					params.maxUploadSpeed = new GenericIntParameter(
 							new GenericParameterAdapter() {
 								public int getIntValue(String key) {
-									int limit = rl.getTagUploadLimit();
+									int limit = rls[0].getTagUploadLimit();
+									if (numTags > 1) {
+										for (int i = 1; i < rls.length; i++) {
+											int nextLimit = rls[i].getTagUploadLimit();
+											if (nextLimit != limit) {
+												return 0;
+											}
+										}
+									}
 									return limit < 0 ? limit : limit / 1024;
 								}
 
@@ -408,11 +495,12 @@ public class TagSettingsView
 								}
 
 								public void setIntValue(String key, int value) {
+									for (TagFeatureRateLimit rl : rls) {
 									if (value == -1) {
 										rl.setTagUploadLimit(value);
 									} else {
 										rl.setTagUploadLimit(value * 1024);
-									}
+									}}
 								}
 
 								public boolean resetIntDefault(String key) {
@@ -420,22 +508,27 @@ public class TagSettingsView
 								}
 							}, gTransfer, null, -1, Integer.MAX_VALUE);
 					params.maxUploadSpeed.setLayoutData(gd);
+					params.maxUploadSpeed.setZeroHidden(numTags > 1);
 				}
 
 				// Field: Upload Priority
-				if (rl.getTagUploadPriority() >= 0) {
+				if (hasTagUploadPriority) {
 					params.uploadPriority = new GenericBooleanParameter(
-							new GenericParameterAdapter() {
-								public boolean getBooleanValue(String key) {
-									return rl.getTagUploadPriority() > 0;
+							new BooleanParameterAdapter() {
+								@Override
+								public Boolean getBooleanValue(String key) {
+									int value = -1;
+									for (TagFeatureRateLimit rl : rls) {
+										value = updateIntBoolean(rl.getTagUploadPriority() > 0, value);
+									}
+									return value == 2 ? null : value == 1;
 								}
 
-								public boolean getBooleanValue(String key, boolean def) {
-									return getBooleanValue(key);
-								}
-
+								@Override
 								public void setBooleanValue(String key, boolean value) {
-									rl.setTagUploadPriority(value ? 1 : 0);
+									for (TagFeatureRateLimit rl : rls) {
+										rl.setTagUploadPriority(value ? 1 : 0);
+									}
 								}
 							}, gTransfer, null, "cat.upload.priority");
 					gd = new GridData();
@@ -444,7 +537,7 @@ public class TagSettingsView
 				}
 
 				// Field: Min Share
-				if (rl.getTagMinShareRatio() >= 0) {
+				if (numTags == 1 && rls[0].getTagMinShareRatio() >= 0) {
 					label = new Label(gTransfer, SWT.NONE);
 					Messages.setLanguageText(label, "TableColumn.header.min_sr");
 					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
@@ -453,11 +546,11 @@ public class TagSettingsView
 					params.min_sr = new GenericFloatParameter(
 							new GenericParameterAdapter() {
 								public float getFloatValue(String key) {
-									return rl.getTagMinShareRatio() / 1000f;
+									return rls[0].getTagMinShareRatio() / 1000f;
 								}
 
 								public void setFloatValue(String key, float value) {
-									rl.setTagMinShareRatio((int) (value * 1000));
+									rls[0].setTagMinShareRatio((int) (value * 1000));
 								}
 							}, gTransfer, null, 0, Float.MAX_VALUE, true, 3);
 					gd = new GridData();
@@ -467,7 +560,7 @@ public class TagSettingsView
 				}
 
 				// Field: Max Share
-				if (rl.getTagMaxShareRatio() >= 0) {
+				if (numTags == 1 && rls[0].getTagMaxShareRatio() >= 0) {
 					label = new Label(gTransfer, SWT.NONE);
 					Messages.setLanguageText(label, "TableColumn.header.max_sr");
 					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
@@ -475,12 +568,14 @@ public class TagSettingsView
 
 					params.max_sr = new GenericFloatParameter(
 							new GenericParameterAdapter() {
+								@Override
 								public float getFloatValue(String key) {
-									return rl.getTagMaxShareRatio() / 1000f;
+									return rls[0].getTagMaxShareRatio() / 1000f;
 								}
 
+								@Override
 								public void setFloatValue(String key, float value) {
-									rl.setTagMaxShareRatio((int) (value * 1000));
+									rls[0].setTagMaxShareRatio((int) (value * 1000));
 								}
 							}, gTransfer, null, 0, Float.MAX_VALUE, true, 3);
 					gd = new GridData();
@@ -489,11 +584,10 @@ public class TagSettingsView
 					params.max_sr.setLayoutData(gd);
 				}
 			}
-
 			/////////////////////////////////
 
-			if (tag instanceof TagFeatureFileLocation) {
-				final TagFeatureFileLocation fl = (TagFeatureFileLocation) tag;
+			if (numTags == 1 && (tags[0] instanceof TagFeatureFileLocation)) {
+				final TagFeatureFileLocation fl = (TagFeatureFileLocation) tags[0];
 
 				if (fl.supportsTagCopyOnComplete() || fl.supportsTagInitialSaveFolder()
 						|| fl.supportsTagMoveOnComplete()) {
@@ -549,9 +643,9 @@ public class TagSettingsView
 
 			///////////////////////////////
 
-			if (tag.getTagType().hasTagTypeFeature(TagFeature.TF_PROPERTIES)
-					&& (tag instanceof TagFeatureProperties)) {
-				TagFeatureProperties tfp = (TagFeatureProperties) tag;
+			if (numTags == 1 && tags[0].getTagType().hasTagTypeFeature(TagFeature.TF_PROPERTIES)
+					&& (tags[0] instanceof TagFeatureProperties)) {
+				TagFeatureProperties tfp = (TagFeatureProperties) tags[0];
 
 				final TagProperty propConstraint = tfp.getProperty(
 						TagFeatureProperties.PR_CONSTRAINT);
@@ -616,9 +710,17 @@ public class TagSettingsView
 
 			swt_updateFields();
 		}
-
 		cMainComposite.layout();
 		sc.setMinSize(cMainComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+	}
+
+	private int updateIntBoolean(boolean b, int intB) {
+		if (intB == -1) {
+			intB = b ? 1 : 0;
+		} else if ((intB == 1) != b) {
+			intB = 2;
+		}
+		return intB;
 	}
 
 	private static abstract class folderOption
@@ -698,13 +800,28 @@ public class TagSettingsView
 	}
 
 	private void swt_updateFields() {
-		if (tag == null || params == null) {
+		if (tags == null || params == null) {
 			initialize(null);
 			return;
 		}
 
+		int[] tagColor = tags[0].getColor();
+		Set<String> listTagNames = new HashSet<String>();
+		for (Tag tag : tags) {
+			TagType tt = tag.getTagType();
+			String s = tag.getTagName(true);
+			listTagNames.add(s);
+			
+			if (tagColor != null) {
+				int[] color = tag.getColor();
+				if (!Arrays.areEqual(tagColor, color)) {
+					tagColor = null;
+				}
+			}
+		}
+		String name = GeneralUtils.stringJoin(listTagNames, ", ");
+
 		if (params.cName != null && !params.cName.isDisposed()) {
-			String name = tag.getTagName(true);
 			if (params.cName instanceof Text) {
 				Text txt = (Text) params.cName;
 				if (!txt.getText().equals(name)) {
@@ -716,9 +833,8 @@ public class TagSettingsView
 			}
 		}
 
-		if (params.tagColor != null) {
-			int[] color = tag.getColor();
-			params.tagColor.setColor(color[0], color[1], color[2]);
+		if (params.tagColor != null && tagColor != null) {
+			params.tagColor.setColor(tagColor[0], tagColor[1], tagColor[2]);
 		}
 
 		if (params.viewInSideBar != null) {
@@ -755,6 +871,7 @@ public class TagSettingsView
 		if (params.copyOnCompleteFolder != null) {
 			params.copyOnCompleteFolder.update();
 		}
+		/*
 		if (params.constraints != null
 				&& params.constraints.getData("skipset") == null) {
 			String text = "";
@@ -774,26 +891,29 @@ public class TagSettingsView
 			}
 			params.constraints.setText(text);
 		}
+		*/
 	}
 
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagTypeChanged(com.aelitis.azureus.core.tag.TagType)
 	public void tagTypeChanged(TagType tag_type) {
-		// TODO Auto-generated method stub
-
 	}
 
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagAdded(com.aelitis.azureus.core.tag.Tag)
 	public void tagAdded(Tag tag) {
-		// TODO Auto-generated method stub
-
 	}
 
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagChanged(com.aelitis.azureus.core.tag.Tag)
 	public void tagChanged(final Tag changedTag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (changedTag.equals(tag)) {
-					swt_updateFields();
+				if (tags == null) {
+					return;
+				}
+				for (Tag tag : tags) {
+					if (changedTag.equals(tag)) {
+						swt_updateFields();
+						break;
+					}
 				}
 			}
 		});
@@ -801,8 +921,18 @@ public class TagSettingsView
 
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagRemoved(com.aelitis.azureus.core.tag.Tag)
 	public void tagRemoved(Tag tag) {
-		// TODO Auto-generated method stub
-
 	}
 
+	private static abstract class BooleanParameterAdapter extends GenericParameterAdapter {
+		@Override
+		public abstract Boolean getBooleanValue(String key);
+		
+		@Override
+		public Boolean getBooleanValue(String key, Boolean def) {
+			return getBooleanValue(key);
+		}
+		
+		@Override
+		public abstract void setBooleanValue(String key, boolean value);
+	}
 }
