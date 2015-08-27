@@ -25,8 +25,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
@@ -63,25 +66,41 @@ TagDownloadWithState
 	private boolean	supports_xcode;
 	private boolean	supports_file_location;
 	
+	private Object	rate_lock = new Object();
+	
 	private LimitedRateGroup upload_limiter = 
 		new LimitedRateGroup()
 		{
 			public String 
 			getName() 
 			{
-				return( "tag_up: " + getTagName( true ));
+				String str = "tag_up: " + getTagName( true );
+				
+				if ( upload_rate_limit < 0 ){
+					
+					str += ": disabled";
+				}
+				
+				return( str );
 			}
+			
 			public int 
 			getRateLimitBytesPerSecond()
 			{
-				return( upload_rate_limit );
+				int	res = upload_rate_limit;
+				
+				if ( res < 0 ){
+					
+					res = 0;	// disabled upload handled by per-peer limits
+				}
+				
+				return( res );
 			}
 	
 			public void
 			updateBytesUsed(
-					int	used )
+				int	used )
 			{
-	
 			}
 		};
 
@@ -91,19 +110,33 @@ TagDownloadWithState
 			public String 
 			getName() 
 			{
-				return( "tag_down: " + getTagName( true ));
+				String str = "tag_down: " + getTagName( true );
+				
+				if ( download_rate_limit < 0 ){
+					
+					str += ": disabled";
+				}
+				
+				return( str );
 			}
+			
 			public int 
 			getRateLimitBytesPerSecond()
 			{
-				return( download_rate_limit );
+				int	res = download_rate_limit;
+				
+				if ( res < 0 ){
+					
+					res = 0;	// disabled upload handled by per-peer limits
+				}
+				
+				return( res );
 			}
 	
 			public void
 			updateBytesUsed(
 					int	used )
 			{
-	
 			}
 		}; 
 		
@@ -167,12 +200,12 @@ TagDownloadWithState
 		
 		if ( do_up ){
 			
-			upload_rate_limit 	= (int)readLongAttribute( AT_RATELIMIT_UP, 0 );
+			setRateLimit((int)readLongAttribute( AT_RATELIMIT_UP, 0 ), true );
 		}
 		
 		if ( do_down ){
 			
-			download_rate_limit = (int)readLongAttribute( AT_RATELIMIT_DOWN, 0 );
+			setRateLimit((int)readLongAttribute( AT_RATELIMIT_DOWN, 0 ), false );
 		}
 		
 		upload_priority		= (int)readLongAttribute( AT_RATELIMIT_UP_PRI, 0 );
@@ -189,8 +222,7 @@ TagDownloadWithState
 				{
 					DownloadManager manager = (DownloadManager)tagged;
 					
-					manager.addRateLimiter( upload_limiter, true );
-					manager.addRateLimiter( download_limiter, false );
+					setRateLimit( manager, true );
 					
 					if ( upload_priority > 0 ){
 														
@@ -221,8 +253,7 @@ TagDownloadWithState
 				{
 					DownloadManager manager = (DownloadManager)tagged;
 					
-					manager.removeRateLimiter( upload_limiter, true );
-					manager.removeRateLimiter( download_limiter, false );
+					setRateLimit( manager, false );
 					
 					if ( upload_priority > 0 ){
 						
@@ -356,6 +387,175 @@ TagDownloadWithState
 	{
 		return((Set<DownloadManager>)(Object)getTagged());
 	}
+
+	private DownloadManagerPeerListener 
+		peer_listener =
+			new DownloadManagerPeerListener()
+			{
+				public void
+				peerManagerWillBeAdded(
+					PEPeerManager	manager )
+				{					
+				}
+		
+				public void
+				peerManagerAdded(
+					PEPeerManager	manager )
+				{					
+				}
+				
+				public void
+				peerManagerRemoved(
+					PEPeerManager	manager )
+				{					
+				}
+				
+				public void
+				peerAdded(
+					PEPeer 			peer )
+				{	
+					synchronized( rate_lock ){
+						
+						if ( upload_rate_limit < 0 ){
+							
+							peer.setUploadDisabled( this, true );
+						}
+						
+						if ( download_rate_limit < 0 ){
+							
+							peer.setDownloadDisabled( this, true );
+						}
+					}
+				}
+					
+				public void
+				peerRemoved(
+					PEPeer			peer )
+				{					
+				}
+			};
+			
+	private void
+	setRateLimit(
+		DownloadManager	manager,
+		boolean			added )
+	{
+		synchronized( rate_lock ){
+			
+			if ( added ){
+				
+				manager.addPeerListener( peer_listener, true );
+				
+				manager.addRateLimiter( upload_limiter, true );
+				
+				manager.addRateLimiter( download_limiter, false );
+				
+			}else{
+				
+				manager.removeRateLimiter( upload_limiter, true );
+				
+				manager.removeRateLimiter( download_limiter, false );
+				
+				manager.removePeerListener( peer_listener );
+				
+				PEPeerManager pm = manager.getPeerManager();
+				
+				if ( pm != null ){
+					
+					List<PEPeer> peers = pm.getPeers();
+					
+					if ( upload_rate_limit < 0 || download_rate_limit < 0 ){
+						
+						for ( PEPeer peer: peers ){
+								
+							if ( upload_rate_limit < 0 ){
+								
+								peer.setUploadDisabled( peer_listener, false );
+							}
+							
+							if ( download_rate_limit < 0 ){
+								
+								peer.setDownloadDisabled( peer_listener, false );
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private void
+	setRateLimit(
+		int			limit,
+		boolean		is_up )
+	{
+		if ( limit < 0 ){
+			
+			limit = -1;
+		}
+		
+		synchronized( rate_lock ){
+			
+			if ( is_up ){
+				
+				if ( limit == upload_rate_limit ){
+					
+					return;
+				}
+				
+				if ( limit < 0 || upload_rate_limit < 0 ){
+					
+					Set<DownloadManager> downloads = getTaggedDownloads();
+					
+					for ( DownloadManager dm: downloads ){
+						
+						PEPeerManager pm = dm.getPeerManager();
+						
+						if ( pm != null ){
+							
+							List<PEPeer> peers = pm.getPeers();
+							
+							for ( PEPeer peer: peers ){
+								
+								peer.setUploadDisabled( peer_listener, limit < 0 );
+							}
+						}
+					}
+				}
+					
+				upload_rate_limit = limit;
+				
+			}else{
+								
+				if ( limit == download_rate_limit ){
+					
+					return;
+				}
+				
+				if ( limit < 0 || download_rate_limit < 0 ){
+					
+					Set<DownloadManager> downloads = getTaggedDownloads();
+					
+					for ( DownloadManager dm: downloads ){
+						
+						PEPeerManager pm = dm.getPeerManager();
+						
+						if ( pm != null ){
+							
+							List<PEPeer> peers = pm.getPeers();
+							
+							for ( PEPeer peer: peers ){
+								
+								peer.setDownloadDisabled( peer_listener, limit < 0 );
+							}
+						}
+					}
+				}
+				
+				download_rate_limit = limit;
+			}
+		}
+	}
 	
 	public boolean
 	supportsTagRates()
@@ -380,7 +580,7 @@ TagDownloadWithState
 	{
 		return( upload_rate_limit );
 	}
-	
+
 	public void
 	setTagUploadLimit(
 		int		bps )
@@ -397,7 +597,7 @@ TagDownloadWithState
 			return;
 		}
 		
-		upload_rate_limit	= bps;
+		setRateLimit( bps, true );
 		
 		writeLongAttribute( AT_RATELIMIT_UP, upload_rate_limit );
 
@@ -434,8 +634,8 @@ TagDownloadWithState
 			return;
 		}
 		
-		download_rate_limit	= bps;
-		
+		setRateLimit( bps, false );
+				
 		writeLongAttribute( AT_RATELIMIT_DOWN, download_rate_limit );
 
 		getTagType().fireChanged( this );
