@@ -501,6 +501,8 @@ public class OpenTorrentOptionsWindow
 					
 					int	num_active_windows = active_windows.size();
 					
+					Shell shell = dlg.getShell();
+
 					if ( num_active_windows > 1 ){
 						
 						int	max_x = 0;
@@ -518,18 +520,20 @@ public class OpenTorrentOptionsWindow
 							max_x = Math.max( max_x, rect.x );
 							max_y = Math.max( max_y, rect.y );
 						}
-						
-						Shell shell = dlg.getShell();
-						
+												
 						Rectangle rect = shell.getBounds();
 										
 						rect.x = max_x + 16;
 						rect.y = max_y + 16;
 						
 						shell.setBounds( rect );
-												
-						Utils.verifyShellRect( shell, true );
-					}
+					}					
+					
+					String before = "disp="+shell.getDisplay().getBounds()+",shell=" + shell.getBounds();
+					
+					Utils.verifyShellRect( shell, true );
+					
+					Debug.outNoStack( "Opening torrent options dialog: " + before + " -> " + shell.getBounds());
 				}
 				
 				dlg.addCloseListener(new SkinnedDialogClosedListener() {
