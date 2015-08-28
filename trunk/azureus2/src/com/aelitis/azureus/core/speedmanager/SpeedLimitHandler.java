@@ -5107,6 +5107,8 @@ SpeedLimitHandler
 		private int					phase_1_tag_rate;
 		private int					phase_1_higher_pri_rates;
 		
+		private int					consec_limits_hit = 0;
+		
 		private
 		Prioritiser()
 		{
@@ -5340,6 +5342,18 @@ SpeedLimitHandler
 							
 							tag_state.setLimit( max, "1: raising to max" );
 							
+							int	decrease_by = 2048;
+							
+							for ( int j=0;j<consec_limits_hit;j++){
+								
+								decrease_by = decrease_by*2;
+								
+								if ( decrease_by > 100*1024 ){
+									
+									break;
+								}
+							}
+							
 							int	decrease = 0;
 							
 							for ( int j=i+1;j<active_tags.size();j++){
@@ -5348,7 +5362,7 @@ SpeedLimitHandler
 								
 								int rate = ts.getRate();
 								
-								int target = rate - 2048;
+								int target = rate - decrease_by;
 								
 								if ( target <= 1024 ){
 									
@@ -5358,7 +5372,7 @@ SpeedLimitHandler
 									
 								}else{
 									
-									decrease += 2048;
+									decrease += decrease_by;
 								}
 								
 								ts.setLimit( target, "1: decreasing lower priority (dec=" + formatRate(decrease,false) + ")");
@@ -5405,7 +5419,9 @@ SpeedLimitHandler
 										target = phase_1_tag_rate;
 									}
 									
-									tag_state.setLimit( target, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ")" );
+									consec_limits_hit++;
+									
+									tag_state.setLimit( target, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ", consec=" + consec_limits_hit + ")" );
 
 								}else{
 								
@@ -5418,6 +5434,12 @@ SpeedLimitHandler
 										phase_1_tag_state = 0;
 										
 										did_something = true;
+										
+									}else{
+										
+											// got to end of tags without hitting limit
+										
+										consec_limits_hit = 0;
 									}
 								}
 								
