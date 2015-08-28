@@ -336,8 +336,7 @@ TagDownloadWithState
 	{
 		for ( DownloadManager dm: getTaggedDownloads()){
 			
-			dm.removeRateLimiter( upload_limiter, true );
-			dm.removeRateLimiter( download_limiter, false );
+			setRateLimit( dm, false );
 			
 			if ( upload_priority > 0 ){
 				
