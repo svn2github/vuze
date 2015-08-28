@@ -129,6 +129,8 @@ public class UISWTViewImpl
 		this.titleID = CFG_PREFIX + this.id + ".title";
 		if (!MessageText.keyExists(titleID) && MessageText.keyExists(this.id)){
 			this.titleID = id;
+		}else if ( id.contains( " " )){	// hack to fix HD Video Player which is using the expanded name as the id at the moment :(
+			this.titleID = "!" + id + "!";
 		}
 	}
 
