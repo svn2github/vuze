@@ -447,9 +447,13 @@ SubscriptionSchedulerImpl
 									
 									Download	download;
 									
+										// if we're assigning a tag then we need to add it stopped in case the tag has any pre-start actions (e.g. set initial save location)
+									
+									long	tag_id = subs.getTagID();
+									
 									boolean auto_start = manager.shouldAutoStart( torrent );
 									
-									if ( auto_start ){
+									if ( auto_start && tag_id < 0 ){
 									
 										download = dm.addDownload( torrent );
 										
@@ -461,6 +465,11 @@ SubscriptionSchedulerImpl
 									log( subs.getName() + ": added download " + download.getName()+ ": auto-start=" + auto_start );
 
 									subs.addAssociation( torrent.getHash());
+									
+									if ( auto_start && tag_id >= 0 ){
+										
+										download.restart();
+									}
 									
 									result.setRead( true );
 																		
