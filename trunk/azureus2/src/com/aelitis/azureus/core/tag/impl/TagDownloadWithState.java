@@ -443,38 +443,47 @@ TagDownloadWithState
 			
 			if ( added ){
 				
-				manager.addPeerListener( peer_listener, true );
+				if ( manager.getUserData( rate_lock ) == null ){
 				
-				manager.addRateLimiter( upload_limiter, true );
-				
-				manager.addRateLimiter( download_limiter, false );
-				
+					manager.setUserData( rate_lock, "" );
+					
+					manager.addPeerListener( peer_listener, true );
+					
+					manager.addRateLimiter( upload_limiter, true );
+					
+					manager.addRateLimiter( download_limiter, false );
+				}
 			}else{
 				
-				manager.removeRateLimiter( upload_limiter, true );
-				
-				manager.removeRateLimiter( download_limiter, false );
-				
-				manager.removePeerListener( peer_listener );
-				
-				PEPeerManager pm = manager.getPeerManager();
-				
-				if ( pm != null ){
+				if ( manager.getUserData( rate_lock ) != null ){
 					
-					List<PEPeer> peers = pm.getPeers();
+					manager.setUserData( rate_lock, null );
 					
-					if ( upload_rate_limit < 0 || download_rate_limit < 0 ){
+					manager.removeRateLimiter( upload_limiter, true );
+					
+					manager.removeRateLimiter( download_limiter, false );
+					
+					manager.removePeerListener( peer_listener );
+					
+					PEPeerManager pm = manager.getPeerManager();
+					
+					if ( pm != null ){
 						
-						for ( PEPeer peer: peers ){
-								
-							if ( upload_rate_limit < 0 ){
-								
-								peer.setUploadDisabled( peer_listener, false );
-							}
+						List<PEPeer> peers = pm.getPeers();
+						
+						if ( upload_rate_limit < 0 || download_rate_limit < 0 ){
 							
-							if ( download_rate_limit < 0 ){
+							for ( PEPeer peer: peers ){
+									
+								if ( upload_rate_limit < 0 ){
+									
+									peer.setUploadDisabled( peer_listener, false );
+								}
 								
-								peer.setDownloadDisabled( peer_listener, false );
+								if ( download_rate_limit < 0 ){
+									
+									peer.setDownloadDisabled( peer_listener, false );
+								}
 							}
 						}
 					}
