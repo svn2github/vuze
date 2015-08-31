@@ -591,6 +591,7 @@ AEDiagnostics
 						}else if ( 	line.startsWith( "# C" ) && 
 									( 	line.contains( "[IEFRAME" ) || 
 										line.contains( "[JSCRIPT" ) ||
+										line.contains( "[FLASH" ) ||
 										line.contains( "[MSHTML" ))){
 								
 							swt_crash = browser_crash = true;
@@ -598,6 +599,7 @@ AEDiagnostics
 						}else if ( 	( line.startsWith( "J " ) && line.contains( "SWT.BROWSER")) ||
 									( line.startsWith( "C " ) && line.contains( "[IEFRAME" )) ||
 									( line.startsWith( "C " ) && line.contains( "[MSHTML" )) ||
+									( line.startsWith( "C " ) && line.contains( "[FLASH" )) ||
 									( line.startsWith( "C " ) && line.contains( "[JSCRIPT" ))){
 							
 							browser_crash = true;
