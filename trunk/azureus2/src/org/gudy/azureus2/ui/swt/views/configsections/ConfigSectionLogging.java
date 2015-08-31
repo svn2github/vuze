@@ -300,6 +300,74 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     udp_transport.setLayoutData(gridData);
     */
     
+    if (userMode > 1){
+
+	    	// advanced option
+	    
+	    Group cAO = new Group(gLogging, SWT.NULL);
+	    cAO.setText( MessageText.getString("dht.advanced.group"));
+	    layout = new GridLayout();
+	    layout.marginHeight = 0;
+	    layout.marginWidth = 0;
+	    layout.numColumns = 5;
+	    cAO.setLayout(layout);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.horizontalSpan = 2;
+	    cAO.setLayoutData(gridData);
+	
+	    	// name
+	    
+    	Label aoName = new Label(cAO, SWT.NULL);
+    	Messages.setLanguageText(aoName, "TableColumn.header.name");
+    	aoName.setLayoutData(new GridData());
+    	final StringParameter name = new StringParameter(cAO,"Advanced Option Name");
+    	gridData = new GridData();
+    	gridData.widthHint = 150;
+    	name.setLayoutData(gridData);
+    	
+    	// value
+	    
+		Label aoValue = new Label(cAO, SWT.NULL);
+		Messages.setLanguageText(aoValue, "ConfigView.label.seeding.ignore.header.value");
+		aoName.setLayoutData(new GridData());
+		final StringParameter value = new StringParameter(cAO,"Advanced Option Value");
+		gridData = new GridData();
+		gridData.widthHint = 150;
+		value.setLayoutData(gridData);
+	
+	    	// set
+	    
+		Button set_option = new Button(cAO, SWT.PUSH);
+		Messages.setLanguageText(set_option, "Button.set");
+		
+		set_option.addListener(
+			SWT.Selection, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(Event event) 
+				{
+					String key = name.getValue().trim();
+					
+					if ( key.length() > 0 ){
+						
+						key = "adv.setting." + key;
+						
+						String val = value.getValue().trim();
+						
+						if ( val.length() == 0 ){
+							
+							COConfigurationManager.removeParameter( key );
+							
+						}else{
+							
+							COConfigurationManager.setParameter( key, val );
+						}
+					}
+				
+				}
+			});
+    }
 		// network diagnostics
 	
 	Label generate_net_info = new Label(gLogging, SWT.NULL);

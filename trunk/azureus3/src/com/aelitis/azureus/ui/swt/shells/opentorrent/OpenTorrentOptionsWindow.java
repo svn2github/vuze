@@ -529,11 +529,11 @@ public class OpenTorrentOptionsWindow
 						shell.setBounds( rect );
 					}					
 					
-					String before = "disp="+shell.getDisplay().getBounds()+",shell=" + shell.getBounds();
+					//String before = "disp="+shell.getDisplay().getBounds()+",shell=" + shell.getBounds();
 					
 					Utils.verifyShellRect( shell, true );
 					
-					Debug.outNoStack( "Opening torrent options dialog: " + before + " -> " + shell.getBounds());
+					//Debug.outNoStack( "Opening torrent options dialog: " + before + " -> " + shell.getBounds());
 				}
 				
 				dlg.addCloseListener(new SkinnedDialogClosedListener() {
@@ -1234,32 +1234,41 @@ public class OpenTorrentOptionsWindow
 	private void
 	updateDialogTitle()
 	{
-		int num = open_instances.size();
-		
 		String text;
-		
-		if ( num == 1 ){
-			
-				// use a display name consistent with core
-			
-			TorrentOpenOptions options = open_instances.get(0).getOptions();
 
-			text = options.getTorrentName();
+		String hide = COConfigurationManager.getStringParameter( "adv.setting.ui.torrent.options.title.hide", "" );
+		
+		if ( hide.equals( "1" )){
 			
-			TOTorrent t = options.getTorrent();
+			text = "rand=" + Math.abs( new Random().nextLong());
 			
-			if ( t != null ){
-			
-				String str = PlatformTorrentUtils.getContentTitle( t );
-				
-				if ( str != null && str.length() > 0 ){
-					
-					text = str;
-				}
-			}
 		}else{
+			int num = open_instances.size();
 			
-			text =  MessageText.getString("label.num.torrents",new String[]{ String.valueOf( open_instances.size())});
+			
+			if ( num == 1 ){
+				
+					// use a display name consistent with core
+				
+				TorrentOpenOptions options = open_instances.get(0).getOptions();
+	
+				text = options.getTorrentName();
+				
+				TOTorrent t = options.getTorrent();
+				
+				if ( t != null ){
+				
+					String str = PlatformTorrentUtils.getContentTitle( t );
+					
+					if ( str != null && str.length() > 0 ){
+						
+						text = str;
+					}
+				}
+			}else{
+				
+				text =  MessageText.getString("label.num.torrents",new String[]{ String.valueOf( open_instances.size())});
+			}
 		}
 		
 		dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + text + "]");
