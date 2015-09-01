@@ -1192,10 +1192,23 @@ SpeedLimitHandler
 								
 								ok = true;
 								
+							}else if ( lhs.equals( "min" )){
+								
+								int min = (int)parseRate( rhs );
+								
+								if ( min == 0 ){
+									
+									min = -1;
+								}
+								
+								pri.setMinimum( min );
+								
+								ok = true;							
+							
 							}else if ( lhs.equals( "max" )){
-								
+									
 								pri.setMaximum((int)parseRate( rhs ));
-								
+									
 								ok = true;
 							}
 						}
@@ -1219,6 +1232,8 @@ SpeedLimitHandler
 					if ( pri_ok ){
 						
 						new_prioritisers.add( pri );
+						
+						pri.initialised();
 					}
 				}
 			}else{
@@ -5091,10 +5106,12 @@ SpeedLimitHandler
 	Prioritiser
 	{
 		private final int		FREQ_DEFAULT	= 5;
+		private final int		MIN_DEFAULT		= 1024;
 		private final int		MAX_DEFAULT		= 100*1024*1024;
 		
 		private boolean				is_down;
 		private int					freq		= FREQ_DEFAULT;
+		private int					min			= MIN_DEFAULT;
 		private int					max			= MAX_DEFAULT;
 		
 		private int	check_ticks		= 1;
@@ -5122,7 +5139,7 @@ SpeedLimitHandler
 			is_down	= _down;
 		}
 		
-		protected void
+		private void
 		addTarget(
 			int				priority,
 			TagDownload		tag )
@@ -5134,6 +5151,12 @@ SpeedLimitHandler
 			tag_states.add( tag_state );
 			
 			setLimit(tag_state, tag_states.size()==1?max:-1, "initial" );
+		}
+		
+		private void
+		initialised()
+		{
+			
 		}
 		
 		private int
@@ -5154,6 +5177,13 @@ SpeedLimitHandler
 				
 				check_ticks = 1;
 			}
+		}
+		
+		private void
+		setMinimum(
+			int		_min )
+		{
+			min	= _min;
 		}
 		
 		private void
@@ -5348,7 +5378,7 @@ SpeedLimitHandler
 								
 								decrease_by = decrease_by*2;
 								
-								if ( decrease_by > 100*1024 ){
+								if ( decrease_by > Math.min( max/2, 100*1024 )){
 									
 									break;
 								}
@@ -5683,7 +5713,18 @@ SpeedLimitHandler
 				int		limit,
 				String	reason )
 			{
+				if ( limit < min ){
+					
+					limit	= min;
+					
+				}else if ( limit > max ){
+					
+					limit 	= max;
+				}
+					
 				if ( Prioritiser.this.setLimit( this, limit, reason )){
+					
+					last_limit		= limit;
 					
 					adjusting_ticks = ADJUSTMENT_PERIODS;
 				}
