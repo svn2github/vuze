@@ -5366,11 +5366,26 @@ SpeedLimitHandler
 							higher_pri_rates += active_tags.get(j).getRate();
 						}
 						
-						if ( tag_state.getLimit() != max ){
+						if ( tag_state.getLimit() != max && phase_1_tag_state == 0 ){
 							
 								// not at max, let's modify it
 							
-							tag_state.setLimit( max, "1: raising to max" );
+							int	limits_hit = tag_state.getLimitsHit();
+							
+							int	raise_to;
+							
+							if ( limits_hit == 0 ){
+								
+								raise_to = max;
+								
+							}else{
+								
+								int	diff = max - current_rate;
+								
+								raise_to = current_rate + ( diff/(limits_hit+1));
+							}
+							
+							tag_state.setLimit( raise_to, "1: raising to " + (raise_to==max?"max":formatRate( raise_to, true )));
 							
 							int	decrease_by = 2048;
 							
@@ -5378,7 +5393,7 @@ SpeedLimitHandler
 								
 								decrease_by = decrease_by*2;
 								
-								if ( decrease_by > Math.min( max/2, 100*1024 )){
+								if ( decrease_by > Math.min( max/4, 10*1024 )){
 									
 									break;
 								}
@@ -5451,10 +5466,14 @@ SpeedLimitHandler
 									
 									consec_limits_hit++;
 									
-									tag_state.setLimit( target, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ", consec=" + consec_limits_hit + ")" );
+									tag_state.hitLimit( true );
+									
+									tag_state.setLimit( target, true, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ", consec=" + consec_limits_hit + ")" );
 
 								}else{
 								
+									tag_state.hitLimit( false );
+									
 									tag_state.setLimit( target, "1: setting to current (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ")" );
 																	
 									if ( i < active_tags.size() - 1 ){
@@ -5592,6 +5611,8 @@ SpeedLimitHandler
 			
 			private int	adjusting_ticks = INITIAL_ADJUSTMENT_PERIODS;
 			
+			private int	tag_limits_hit;
+			
 			private
 			PrioritiserTagState(
 				TagDownload		_tag )
@@ -5708,9 +5729,38 @@ SpeedLimitHandler
 				return( adjusting_ticks > 0 );
 			}
 			
+			private int
+			getLimitsHit()
+			{
+				return( tag_limits_hit );
+			}
+			
+			private void
+			hitLimit(
+				boolean	b )
+			{
+				if ( b ){
+					
+					tag_limits_hit++;
+					
+				}else{
+					
+					tag_limits_hit = 0;
+				}
+			}
+			
 			private void
 			setLimit(
 				int		limit,
+				String	reason )
+			{
+				setLimit( limit, false, reason );
+			}
+			
+			private void
+			setLimit(
+				int		limit,
+				boolean	major_change,
 				String	reason )
 			{
 				if ( limit < min ){
@@ -5727,6 +5777,11 @@ SpeedLimitHandler
 					last_limit		= limit;
 					
 					adjusting_ticks = ADJUSTMENT_PERIODS;
+					
+					if ( major_change  ){
+						
+						adjusting_ticks = adjusting_ticks * 2;
+					}
 				}
 			}
 		}
