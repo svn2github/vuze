@@ -79,6 +79,7 @@ import com.aelitis.azureus.core.content.RelatedAttributeLookupListener;
 import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
@@ -276,7 +277,8 @@ public class OpenTorrentOptionsWindow
 	
 	private OpenTorrentInstance			multi_selection_instance;
 
-	protected List<String> listDiscoveredTags = new ArrayList<String>();
+	protected CopyOnWriteList<String> listDiscoveredTags = new CopyOnWriteList<String>();
+	
 	protected List<String> listTagsToCreate = new ArrayList<String>();
 	
 	public static OpenTorrentOptionsWindow
@@ -1585,13 +1587,17 @@ public class OpenTorrentOptionsWindow
 								}
 	
 								public void tagFound(String tag, String network) {
-									if (listDiscoveredTags.contains(tag)) {
-										return;
-									}
+								
 									if (checkAlreadyHaveTag(torrentOptions.getInitialTags(), tag)) {
 										return;
 									}
-									listDiscoveredTags.add(tag);
+									synchronized( listDiscoveredTags ){
+										if (listDiscoveredTags.contains(tag)) {
+											return;
+										}
+										listDiscoveredTags.add(tag);
+									}
+									
 									Utils.execSWTThread(new Runnable() {
 										public void run() {
 											if (tagButtonsArea == null
@@ -3235,40 +3241,124 @@ public class OpenTorrentOptionsWindow
 			final 	Composite	parent,
 			boolean	is_rebuild )
 		{
-			if ( parent.isDisposed()){
-				
-				return;
-			}
-			
-			final String SP_KEY = "oto:tag:initsp";
+			try{
+				if ( parent.isDisposed()){
 					
-			if ( is_rebuild ){
+					return;
+				}
 				
-				Utils.disposeComposite( parent, false );
+				final String SP_KEY = "oto:tag:initsp";
+						
+				if ( is_rebuild ){
+					
+					Utils.disposeComposite( parent, false );
+					
+				}else{
+					
+					parent.setData( SP_KEY, getSavePath());
+				}
 				
-			}else{
+				final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
 				
-				parent.setData( SP_KEY, getSavePath());
-			}
-			
-			final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
-			
-			List<Tag> initialTags = torrentOptions.getInitialTags();
-			
-			for ( final Tag tag: TagUIUtils.sortTags( tt.getTags())){
+				List<Tag> initialTags = torrentOptions.getInitialTags();
 				
-				if ( tag.canBePublic() && !tag.isTagAuto()){
+				for ( final Tag tag: TagUIUtils.sortTags( tt.getTags())){
+					
+					if ( tag.canBePublic() && !tag.isTagAuto()){
+						
+						final Button but = new Button( parent, SWT.TOGGLE );
+					
+						but.setText( tag.getTagName( true ));
+						
+						but.setToolTipText( TagUIUtils.getTagTooltip(tag));
+						
+						if ( initialTags.contains( tag )){
+							
+							but.setSelection( true );
+						}
+						
+						but.addSelectionListener(
+							new SelectionAdapter() {
+								
+								public void 
+								widgetSelected(
+									SelectionEvent e) 
+								{
+									List<Tag>  tags = torrentOptions.getInitialTags();
+									
+									if ( but.getSelection()){
+										
+										tags.add( tag );
+										
+										TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+		
+										if ( fl.supportsTagInitialSaveFolder()){
+											
+											File save_loc = fl.getTagInitialSaveFolder();
+											
+											if ( save_loc != null ){
+												
+												setSavePath( save_loc.getAbsolutePath());
+											}
+										}
+									}else{
+										
+										tags.remove( tag );
+										
+										TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+		
+										if ( fl.supportsTagInitialSaveFolder()){
+											
+											File save_loc = fl.getTagInitialSaveFolder();
+											
+											if ( save_loc != null && getSavePath().equals( save_loc.getAbsolutePath())){
+												
+												String old = (String)parent.getData( SP_KEY );
+												
+												if ( old != null ){
+												
+													setSavePath( old );
+												}
+											}
+										}
+									}
+									
+									torrentOptions.setInitialTags( tags );
+									
+									updateStartOptionsHeader();
+								}
+							});
+						
+						Menu menu = new Menu( but );
+						
+						but.setMenu( menu );
+						MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuilder() {
+							public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
+								TagUIUtils.createSideBarMenuItems(root_menu, tag);
+							}
+						});
+						
+					}
+				}
+				
+				for (final String tagName : listDiscoveredTags) {
+					boolean alreadyHave = checkAlreadyHaveTag(initialTags, tagName);
+					if (alreadyHave) {
+						break;
+					}
 					
 					final Button but = new Button( parent, SWT.TOGGLE );
-				
-					but.setText( tag.getTagName( true ));
+					but.setImage(ImageLoader.getInstance().getImage("image.sidebar.rcm"));
+	
 					
-					but.setToolTipText( TagUIUtils.getTagTooltip(tag));
-					
-					if ( initialTags.contains( tag )){
-						
+					if ( listTagsToCreate.contains( tagName )){
 						but.setSelection( true );
 					}
+	
+					
+					but.setText( tagName );
+					
+					but.setToolTipText(MessageText.getString("tagtype.discovered"));
 					
 					but.addSelectionListener(
 						new SelectionAdapter() {
@@ -3281,163 +3371,84 @@ public class OpenTorrentOptionsWindow
 								
 								if ( but.getSelection()){
 									
-									tags.add( tag );
+									listTagsToCreate.add(tagName);
 									
-									TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
-	
-									if ( fl.supportsTagInitialSaveFolder()){
-										
-										File save_loc = fl.getTagInitialSaveFolder();
-										
-										if ( save_loc != null ){
-											
-											setSavePath( save_loc.getAbsolutePath());
-										}
-									}
 								}else{
 									
-									tags.remove( tag );
+									listTagsToCreate.remove(tagName);
 									
-									TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
-	
-									if ( fl.supportsTagInitialSaveFolder()){
-										
-										File save_loc = fl.getTagInitialSaveFolder();
-										
-										if ( save_loc != null && getSavePath().equals( save_loc.getAbsolutePath())){
-											
-											String old = (String)parent.getData( SP_KEY );
-											
-											if ( old != null ){
-											
-												setSavePath( old );
-											}
-										}
-									}
 								}
 								
-								torrentOptions.setInitialTags( tags );
 								
 								updateStartOptionsHeader();
 							}
 						});
 					
-					Menu menu = new Menu( but );
+				}
+				
+				if ( is_rebuild ){
+				
+					parent.getParent().layout( true,  true );
 					
-					but.setMenu( menu );
-					MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuilder() {
-						public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
-							TagUIUtils.createSideBarMenuItems(root_menu, tag);
-						}
-					});
-					
-				}
-			}
-			
-			String[] discoveredTags = listDiscoveredTags.toArray(new String[0]);
-			for (final String tagName : discoveredTags) {
-				boolean alreadyHave = checkAlreadyHaveTag(initialTags, tagName);
-				if (alreadyHave) {
-					break;
+					return;
 				}
 				
-				final Button but = new Button( parent, SWT.TOGGLE );
-				but.setImage(ImageLoader.getInstance().getImage("image.sidebar.rcm"));
-
-				
-				if ( listTagsToCreate.contains( tagName )){
-					but.setSelection( true );
-				}
-
-				
-				but.setText( tagName );
-				
-				but.setToolTipText(MessageText.getString("tagtype.discovered"));
-				
-				but.addSelectionListener(
-					new SelectionAdapter() {
+				tt.addTagTypeListener(
+					new TagTypeListener()
+					{
 						
 						public void 
-						widgetSelected(
-							SelectionEvent e) 
+						tagTypeChanged(
+							TagType tag_type) 
+						{					
+						}
+						
+						public void 
+						tagRemoved(
+							Tag tag ) 
 						{
-							List<Tag>  tags = torrentOptions.getInitialTags();
-							
-							if ( but.getSelection()){
+							rebuild();
+						}
+						
+						public void 
+						tagChanged(
+							Tag tag) 
+						{
+							//rebuild();
+						}
+						
+						public void 
+						tagAdded(
+							Tag tag) 
+						{
+							rebuild();
+						}
+						
+						private void
+						rebuild()
+						{
+							if ( parent.isDisposed()){
 								
-								listTagsToCreate.add(tagName);
-								
+								tt.removeTagTypeListener( this );
 							}else{
 								
-								listTagsToCreate.remove(tagName);
-								
-							}
-							
-							
-							updateStartOptionsHeader();
-						}
-					});
-				
-			}
-			
-			if ( is_rebuild ){
-			
-				parent.getParent().layout( true,  true );
-				
-				return;
-			}
-			
-			tt.addTagTypeListener(
-				new TagTypeListener()
-				{
-					
-					public void 
-					tagTypeChanged(
-						TagType tag_type) 
-					{					
-					}
-					
-					public void 
-					tagRemoved(
-						Tag tag ) 
-					{
-						rebuild();
-					}
-					
-					public void 
-					tagChanged(
-						Tag tag) 
-					{
-						//rebuild();
-					}
-					
-					public void 
-					tagAdded(
-						Tag tag) 
-					{
-						rebuild();
-					}
-					
-					private void
-					rebuild()
-					{
-						if ( parent.isDisposed()){
-							
-							tt.removeTagTypeListener( this );
-						}else{
-							
-							Utils.execSWTThread(
-								new Runnable()
-								{
-									public void
-									run()
+								Utils.execSWTThread(
+									new Runnable()
 									{
-										buildTagButtonPanel( parent, true );
-									}
-								});
+										public void
+										run()
+										{
+											buildTagButtonPanel( parent, true );
+										}
+									});
+							}
 						}
-					}
-				}, false );
+					}, false );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e);
+			}
 		}
 	
 		private void setupTVFiles(SWTSkinObjectContainer soFilesTable, SWTSkinObjectTextbox soFilesFilter ) {

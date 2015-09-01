@@ -849,6 +849,11 @@ public class Utils
 			} catch (NullPointerException e) {
 				// If the display is being disposed of, asyncExec may give a null
 				// pointer error
+				
+				if ( Constants.isCVSVersion()){
+					Debug.out( e );
+				}
+				
 				return false;
 			}
 		} else {
