@@ -942,6 +942,8 @@ public class GeneralView
 				      
 		      if (piecesState != null && piecesState.length != 0) {
 		        
+		    	int[] boundariesHandled = new int[piecesState.length]; 
+		    	
 		        for (int i = 0; i < xMax; i++) {
 		          int a0 = (i * nbPieces) / xMax;
 		          int a1 = ((i + 1) * nbPieces) / xMax;
@@ -962,7 +964,11 @@ public class GeneralView
 		              nbSkipped++;
 		            }
 		            if ( (ps & PS_FILE_BOUNDARY ) != 0 ) {
-		            	hasFileBoundary = true;
+		            	if ( boundariesHandled[j] < 2 ){
+		            		boundariesHandled[j]++;
+		            	
+		            		hasFileBoundary = true;
+		            	}
 		            }
 		          }
 		          if ( nbAvailable == 0 && nbSkipped > 0 ){
@@ -976,7 +982,7 @@ public class GeneralView
 		         
 		          if ( hasFileBoundary ){
 		        	  gcImage.setBackground(Colors.green);
-			          gcImage.fillRectangle(i+1,7+yMax-5,1,5); 
+			          gcImage.fillRectangle(i+1,7+yMax-6,1,6); 
 		          }
 		        }
 		      }
