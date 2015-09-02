@@ -173,6 +173,14 @@ public class DiskManagerPieceImpl
 		return false;
 	}
 
+	public int			
+	getFirstFileIndex()
+	{
+		DMPieceList pieceList = diskManager.getPieceList(pieceNumber);
+		
+		return( pieceList.get(0).getFile().getIndex());
+	}
+	 
 	public void clearNeeded()
 	{
 		statusFlags &=~PIECE_STATUS_NEEDED;

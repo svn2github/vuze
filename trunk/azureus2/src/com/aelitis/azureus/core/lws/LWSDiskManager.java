@@ -772,6 +772,7 @@ LWSDiskManager
 	{
 		public void			clearChecking(){throw( new RuntimeException( "clearChecking not implemented" ));}
 		public boolean		isNeedsCheck(){throw( new RuntimeException( "isNeedsCheck not implemented" ));}
+		public int			getFirstFileIndex(){throw( new RuntimeException( "getFirstFileIndex not implemented" ));}
 		public int			getLength(){throw( new RuntimeException( "getLength not implemented" ));}
 		public int			getNbBlocks(){throw( new RuntimeException( "getNbBlocks not implemented" ));}
 		public int			getPieceNumber(){throw( new RuntimeException( "getPieceNumber not implemented" ));}

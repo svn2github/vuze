@@ -28,6 +28,7 @@ import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -79,7 +80,7 @@ public class GeneralView
 
   private Display display;
   private DownloadManager manager = null;
-  boolean pieces[];
+  int piecesState[];
   int loopFactor;
 
   Composite genComposite;
@@ -221,7 +222,7 @@ public class GeneralView
   	
   	Utils.disposeComposite(genComposite, false);
   	
-    pieces = new boolean[manager.getNbPieces()];
+    piecesState = new int[manager.getNbPieces()];
 
     this.display = parent.getDisplay();
 
@@ -864,38 +865,58 @@ public class GeneralView
 	    
 	    DiskManager	dm = manager.getDiskManager();
 
-	    boolean valid = !bForce;
+	    boolean valid;
 	    
-        boolean[] new_pieces = new boolean[manager.getNbPieces()];
-	        	
-	    if ( dm != null ){
-	      		      	
-	      	DiskManagerPiece[]	dm_pieces = dm.getPieces();
-	      	
-	 		for (int i=0;i<pieces.length;i++){
-	      		 	
-	 			new_pieces[i] = dm_pieces[i].isDone();
-	       }
-	    }
-
-	    if ( pieces == null ){
+	    if ( piecesState == null ){
 	    	
 	    	valid	= false;
 	    	
 	    }else{
 	    	
-		    for (int i = 0; i < pieces.length; i++) {
-		    
-		    	if (pieces[i] != new_pieces[i]){
-		    		
-		            valid = false;
-		            
-		            break;
-		        }
-		    }
+	    	valid = !bForce;
+	    }
+	    
+	    int	nbPieces = manager.getNbPieces();
+	    
+        int[] newPiecesState 	= new int[nbPieces];
+        
+        final int PS_NONE			= 0x00000000;
+        final int PS_DONE			= 0x00000001;
+        final int PS_SKIPPED		= 0x00000002;
+        final int PS_FILE_BOUNDARY	= 0x00000004;
+        
+	    if ( dm != null ){
+	      		      	
+	      	DiskManagerPiece[]	dm_pieces = dm.getPieces();
+	      	
+	      	int	fileIndex = 0;
+	      	
+	 		for (int i=0;i<nbPieces;i++){
+	      		 	
+	 			DiskManagerPiece	piece = dm_pieces[i];
+	 			
+	 			int state = piece.isDone()?PS_DONE:PS_NONE;
+	 			
+	 			if (piece.isSkipped()){
+	 				state |= PS_SKIPPED;
+	 			}
+	 			
+	 			int ffi = piece.getFirstFileIndex();
+	 			
+	 			if ( ffi != fileIndex ){
+	 				state |= PS_FILE_BOUNDARY;
+	 				fileIndex = ffi;
+	 			}
+	 			newPiecesState[i] = state;
+	 			
+	 			if ( piecesState != null && piecesState[i] != state ){
+	 				
+	 				valid	= false;
+	 			}
+	       }
 	    }
 
-	    pieces	= new_pieces;
+	    piecesState	= newPiecesState;
 	    
 	    if (!valid) {
 	      Rectangle bounds = piecesImage.getClientArea();
@@ -918,9 +939,8 @@ public class GeneralView
 		      gcImage.setForeground(Colors.grey);
 		      gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
 		      gcImage.drawLine(1,6,xMax,6);
-		
-		      if (pieces != null && pieces.length != 0) {
-		        int nbPieces = pieces.length;
+				      
+		      if (piecesState != null && piecesState.length != 0) {
 		        
 		        for (int i = 0; i < xMax; i++) {
 		          int a0 = (i * nbPieces) / xMax;
@@ -930,13 +950,33 @@ public class GeneralView
 		          if (a1 > nbPieces)
 		            a1 = nbPieces;
 		          int nbAvailable = 0;
+		          int nbSkipped   = 0;
+		          boolean	hasFileBoundary = false;
+		          
 		          for (int j = a0; j < a1; j++) {
-		            if (pieces[j]) {
+		        	int ps = piecesState[j];
+		            if ( (ps & PS_DONE ) != 0 ) {
 		              nbAvailable++;
 		            }
-		            int index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
-		            gcImage.setBackground(Colors.blues[index]);
-		            gcImage.fillRectangle(i+1,7,1,yMax);
+		            if ( (ps & PS_SKIPPED ) != 0 ) {
+		              nbSkipped++;
+		            }
+		            if ( (ps & PS_FILE_BOUNDARY ) != 0 ) {
+		            	hasFileBoundary = true;
+		            }
+		          }
+		          if ( nbAvailable == 0 && nbSkipped > 0 ){
+		        	  gcImage.setBackground(Colors.grey);
+			          gcImage.fillRectangle(i+1,7,1,yMax);
+		          }else{
+			          int index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
+			          gcImage.setBackground(Colors.blues[index]);
+			          gcImage.fillRectangle(i+1,7,1,yMax);
+		          }
+		         
+		          if ( hasFileBoundary ){
+		        	  gcImage.setBackground(Colors.green);
+			          gcImage.fillRectangle(i+1,7+yMax-5,1,5); 
 		          }
 		        }
 		      }
