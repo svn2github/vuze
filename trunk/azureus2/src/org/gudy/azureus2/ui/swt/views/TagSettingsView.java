@@ -877,10 +877,10 @@ public class TagSettingsView
 		if (params.copyOnCompleteFolder != null) {
 			params.copyOnCompleteFolder.update();
 		}
-		/*
 		if (params.constraints != null
 				&& params.constraints.getData("skipset") == null) {
 			String text = "";
+			Tag tag = tags[0];
 			if (tag.getTagType().hasTagTypeFeature(TagFeature.TF_PROPERTIES)
 					&& (tag instanceof TagFeatureProperties)) {
 				TagFeatureProperties tfp = (TagFeatureProperties) tag;
@@ -897,7 +897,6 @@ public class TagSettingsView
 			}
 			params.constraints.setText(text);
 		}
-		*/
 	}
 
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagTypeChanged(com.aelitis.azureus.core.tag.TagType)
