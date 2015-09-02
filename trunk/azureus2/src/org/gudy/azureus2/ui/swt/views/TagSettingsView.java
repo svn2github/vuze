@@ -675,9 +675,15 @@ public class TagSettingsView
 					Button btnSave = new Button(gConstraint, SWT.PUSH);
 					btnSave.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
-							propConstraint.setStringList(new String[] {
-								params.constraints.getText()
-							});
+							String constraint = params.constraints.getText().trim();
+							
+							if ( constraint.length() == 0 ){
+								propConstraint.setStringList( null );
+							}else{
+								propConstraint.setStringList(new String[] {
+										constraint
+								});
+							}
 						}
 					});
 					Messages.setLanguageText(btnSave, "Button.save");
