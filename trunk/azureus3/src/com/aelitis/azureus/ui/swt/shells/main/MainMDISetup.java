@@ -233,13 +233,18 @@ public class MainMDISetup
 						
 						final ViewTitleInfo title_info = 
 								new ViewTitleInfo() 
-								{
-									private BuddyPluginBeta bp = BuddyPluginUtils.getBetaPlugin();
-									
+								{									
 									public Object 
 									getTitleInfoProperty(
 										int propertyID) 
 									{
+										BuddyPluginBeta bp = BuddyPluginUtils.getBetaPlugin();
+
+										if ( bp == null ){
+											
+											return( null );
+										}
+										
 										if ( propertyID == TITLE_INDICATOR_TEXT ){
 									
 											int	num = 0;
