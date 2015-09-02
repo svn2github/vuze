@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
@@ -528,5 +529,37 @@ TagTypeBase
 		String[]	value )
 	{
 		return( manager.writeStringListAttribute( this, tag, attr, value ));
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( tag_type_name );
+		
+		try{
+			writer.indent();
+			
+			manager.generate( writer, this );
+			
+			List<Tag>	tags = getTags();
+			
+			for ( Tag t: tags ){
+				
+				((TagBase)t).generate( writer );
+			}
+			
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	
+	protected void
+	generateConfig(
+		IndentWriter		writer,
+		TagBase				tag )
+	{
+		manager.generate( writer, this, tag );
 	}
 }

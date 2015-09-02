@@ -21,10 +21,12 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -1211,4 +1213,21 @@ TagBase
 			}
 		}
  	}
+ 	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( tag_name );
+		
+		try{
+			writer.indent();
+			
+			tag_type.generateConfig( writer, this );
+			
+		}finally{
+			
+			writer.exdent();
+		}
+	}
 }

@@ -37,15 +37,19 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
@@ -78,7 +82,7 @@ import com.aelitis.azureus.util.MapUtils;
 
 public class 
 TagManagerImpl
-	implements TagManager, DownloadCompletionListener
+	implements TagManager, DownloadCompletionListener, AEDiagnosticsEvidenceGenerator
 {
 	private static final String	CONFIG_FILE 				= "tag.config";
 	
@@ -106,7 +110,7 @@ TagManagerImpl
 		return( singleton );
 	}
 	
-	private CopyOnWriteList<TagType>	tag_types = new CopyOnWriteList<TagType>();
+	private CopyOnWriteList<TagTypeBase>	tag_types = new CopyOnWriteList<TagTypeBase>();
 	
 	private Map<Integer,TagType>	tag_type_map = new HashMap<Integer, TagType>();
 	
@@ -616,6 +620,7 @@ TagManagerImpl
 	private
 	TagManagerImpl()
 	{
+		AEDiagnostics.addEvidenceGenerator( this );
 	}
 	
 	public boolean
@@ -994,7 +999,7 @@ TagManagerImpl
 		
 	public void
 	addTagType(
-		TagType		tag_type )
+		TagTypeBase		tag_type )
 	{
 		if ( !enabled ){
 		
@@ -1037,7 +1042,7 @@ TagManagerImpl
 	
 	protected void
 	removeTagType(
-		TagType		tag_type )
+		TagTypeBase		tag_type )
 	{
 		synchronized( tag_type_map ){
 			
@@ -1063,7 +1068,7 @@ TagManagerImpl
 	public List<TagType>
 	getTagTypes()
 	{
-		return( tag_types.getList());
+		return((List<TagType>)(Object)tag_types.getList());
 	}
 	
 	public void
@@ -2244,4 +2249,50 @@ TagManagerImpl
 			}
 		}
 	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Tag Manager" );
+			
+		try{
+			writer.indent();
+			
+			for ( TagTypeBase tag_type: tag_types ){
+				
+				tag_type.generate( writer );
+			}
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer,
+		TagTypeBase			tag_type )
+	{
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer,
+		TagTypeBase			tag_type,
+		TagBase				tag )
+	{
+		synchronized( this ){
+			
+			Map conf = getConf( tag_type, tag, false );
+			
+			if ( conf != null ){
+				
+				conf = BDecoder.decodeStrings( BEncoder.cloneMap( conf ));
+				
+				writer.println( BEncoder.encodeToJSON( conf ));
+			}
+		}
+	}
+	
 }

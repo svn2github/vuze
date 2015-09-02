@@ -5382,7 +5382,14 @@ SpeedLimitHandler
 								
 								int	diff = max - current_rate;
 								
-								raise_to = current_rate + ( diff/(limits_hit+1));
+								int bump = diff/(limits_hit+1);
+								
+								if ( bump < 2048 ){
+									
+									bump = 2048;
+								}
+								
+								raise_to = Math.min( current_rate + bump, max );
 							}
 							
 							tag_state.setLimit( raise_to, "1: raising to " + (raise_to==max?"max":formatRate( raise_to, true )));

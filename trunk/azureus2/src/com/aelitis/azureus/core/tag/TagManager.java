@@ -28,10 +28,6 @@ TagManager
 	public boolean
 	isEnabled();
 	
-	public void
-	addTagType(
-		TagType		tag_type );
-	
 	public TagType
 	getTagType(
 		int			tag_type );
