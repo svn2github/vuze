@@ -107,6 +107,10 @@ public class TagSettingsView
 
 	private Params params = null;
 
+	private Button btnSaveConstraint;
+
+	private Button btnResetConstraint;
+
 	public TagSettingsView() {
 	}
 
@@ -669,11 +673,16 @@ public class TagSettingsView
 
 						public void keyPressed(KeyEvent e) {
 							params.constraints.setData("skipset", 1);
+							if (btnSaveConstraint != null && !btnSaveConstraint.isDisposed()) {
+								btnSaveConstraint.setEnabled(true);
+								btnResetConstraint.setEnabled(true);
+							}
 						}
 					});
 
-					Button btnSave = new Button(gConstraint, SWT.PUSH);
-					btnSave.addListener(SWT.Selection, new Listener() {
+					btnSaveConstraint = new Button(gConstraint, SWT.PUSH);
+					btnSaveConstraint.setEnabled(false);
+					btnSaveConstraint.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
 							String constraint = params.constraints.getText().trim();
 							
@@ -684,18 +693,27 @@ public class TagSettingsView
 										constraint
 								});
 							}
+							if (btnSaveConstraint != null && !btnSaveConstraint.isDisposed()) {
+								btnSaveConstraint.setEnabled(false);
+								btnResetConstraint.setEnabled(false);
+							}
 						}
 					});
-					Messages.setLanguageText(btnSave, "Button.save");
+					Messages.setLanguageText(btnSaveConstraint, "Button.save");
 
-					Button btnReset = new Button(gConstraint, SWT.PUSH);
-					btnReset.addListener(SWT.Selection, new Listener() {
+					btnResetConstraint = new Button(gConstraint, SWT.PUSH);
+					btnResetConstraint.setEnabled(false);
+					btnResetConstraint.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
 							params.constraints.setData("skipset", null);
 							swt_updateFields();
+							if (btnSaveConstraint != null && !btnSaveConstraint.isDisposed()) {
+								btnSaveConstraint.setEnabled(false);
+								btnResetConstraint.setEnabled(false);
+							}
 						}
 					});
-					Messages.setLanguageText(btnReset, "Button.reset");
+					Messages.setLanguageText(btnResetConstraint, "Button.reset");
 
 					Link lblAboutConstraint = new Link(gConstraint, SWT.WRAP);
 					lblAboutConstraint.setLayoutData(
