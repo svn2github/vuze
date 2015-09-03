@@ -1819,6 +1819,61 @@ public class Utils
 		return( null );
 	}
 	
+	public static void
+	dump(
+		Control	comp )
+	{
+		StringBuffer sb = new StringBuffer( 4096 );
+		
+		Set<Object>		done = new HashSet<Object>();
+		
+		dump( comp, done, sb );
+		
+		Debug.out( sb.toString());
+	}
+	
+	private static void
+	dump(
+		Control			comp,
+		Set<Object>		done,
+		StringBuffer	sb )
+	{
+		if ( done.contains( comp )){
+			
+			sb.append( "<recursive: " + comp );
+			
+			return;
+		}	
+		
+		done.add( comp );
+		
+		sb.append( comp + "[" + comp.isVisible() + "," + comp.getBounds() + "]" );
+		
+		if ( comp instanceof Composite ){
+			
+			Control[] children = ((Composite)comp).getChildren();
+			
+			if ( children.length > 0 ){
+				
+				sb.append( "{" );
+	
+				int	num = 0;
+				
+				for ( Control kid: children ){
+						
+					if ( num++ > 0 ){
+						
+						sb.append( "," );
+					}
+					
+					dump( kid, done, sb );
+				}
+				
+				sb.append( "}" );
+			}
+		}
+	}
+	
 	/**
 	 * @param area
 	 * @param event id

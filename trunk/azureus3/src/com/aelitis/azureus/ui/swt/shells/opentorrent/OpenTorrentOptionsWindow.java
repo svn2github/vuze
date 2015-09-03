@@ -1392,7 +1392,23 @@ public class OpenTorrentOptionsWindow
 		
 		if ( !shell.isDisposed()){
 		
+			if ( !shell.isVisible()){
+				
+				shell.setVisible( true );
+			}
+			
 			shell.forceActive();
+			
+				// trying to debug some weird hidden dialog issue - on second opening revalidate 
+				// everything to see if this fixes things
+						
+			shell.layout( true,  true );
+						
+			Utils.verifyShellRect( shell, true );
+			
+			Utils.centreWindow( shell );
+			
+			Utils.dump( shell );
 		}
 	}
 	
