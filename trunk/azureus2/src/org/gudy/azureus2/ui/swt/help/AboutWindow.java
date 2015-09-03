@@ -166,7 +166,7 @@ public class AboutWindow {
 
     Text txtSysInfo = new Text(gSys, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP);
     txtSysInfo.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-    txtSysInfo.setText("Java " + System.getProperty("java.version") + "\n "
+    txtSysInfo.setText("Java " + System.getProperty("java.version") + " (" + (Constants.isJava64Bit?64:32) + " bit)\n "
 				+ System.getProperty("java.vendor") + "\n"
 				+ "SWT v" + SWT.getVersion() + ", " + SWT.getPlatform() + swt + "\n"
 				+ System.getProperty("os.name") + " v"

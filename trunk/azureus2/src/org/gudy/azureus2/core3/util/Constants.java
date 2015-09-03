@@ -177,6 +177,7 @@ Constants
 	
   
   public static final boolean is64Bit;
+  public static final boolean isJava64Bit;
   
   static{
 	  boolean _is64Bit;
@@ -190,6 +191,24 @@ Constants
 	  }
 	  
 	  is64Bit = _is64Bit;
+	  
+	  	// extended test which is supposedly better than the above
+	  
+      boolean _isJava64Bit = "64".equals(System.getProperty("sun.arch.data.model")) || System.getProperty("os.arch").contains("64");
+     
+      if ( isWindows && !_isJava64Bit ){
+    	  
+    	  try{
+    		  String pa 	= System.getenv("PROCESSOR_ARCHITECTURE");
+	    	  String wow_pa = System.getenv("PROCESSOR_ARCHITEW6432");
+	    	  
+	    	  _isJava64Bit = ( pa != null && pa.endsWith( "64" )) || ( wow_pa != null && wow_pa.endsWith( "64" ));
+	    	  
+    	  }catch( Throwable e ){
+    	  }
+      }
+      
+      isJava64Bit = _isJava64Bit; 
 	  
 	  if ( isWindows ){
 
