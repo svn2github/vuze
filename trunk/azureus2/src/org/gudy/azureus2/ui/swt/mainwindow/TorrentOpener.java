@@ -724,6 +724,9 @@ public class TorrentOpener {
 		} catch (IOException e1) {
 			// Use torrent in wherever it is and hope for the best
 			// XXX Should error instead?
+			
+			Debug.out( e1 );
+			
 			torrentFile = new File(sFileName);
 		}
 
