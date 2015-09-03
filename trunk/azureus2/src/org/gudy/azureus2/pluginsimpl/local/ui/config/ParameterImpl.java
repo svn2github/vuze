@@ -22,6 +22,7 @@
  
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
+import java.nio.file.attribute.GroupPrincipal;
 import java.util.*;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
@@ -82,10 +83,24 @@ ParameterImpl
 	}
 	
 	 public void addDisabledOnSelection(Parameter parameter) {
+	  	if (parameter instanceof ParameterGroupImpl) {
+	  		ParameterImpl[] parameters = ((ParameterGroupImpl) parameter).getParameters();
+	  		for (ParameterImpl param : parameters) {
+	  			toDisable.add(param);
+				}
+	  		return;
+	  	}
 	    toDisable.add(parameter);
 	  }
 	  
-	  public void addEnabledOnSelection(Parameter parameter) {    
+	  public void addEnabledOnSelection(Parameter parameter) {
+	  	if (parameter instanceof ParameterGroupImpl) {
+	  		ParameterImpl[] parameters = ((ParameterGroupImpl) parameter).getParameters();
+	  		for (ParameterImpl param : parameters) {
+					toEnable.add(param);
+				}
+	  		return;
+	  	}
 	    toEnable.add(parameter);
 	  }
 	  
