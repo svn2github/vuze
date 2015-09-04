@@ -593,6 +593,7 @@ public class PieceInfoView
 			gc.fillRectangle(bounds);
 			gc.dispose();
 			topLabelLHS = MessageText.getString("view.one.download.only");
+			topLabelRHS = "";
 			updateTopLabel();
 			
 			return;
