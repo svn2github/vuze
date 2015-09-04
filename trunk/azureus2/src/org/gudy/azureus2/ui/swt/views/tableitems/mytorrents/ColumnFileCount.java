@@ -164,6 +164,7 @@ public class ColumnFileCount
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				UIUpdaterSWT.getInstance().removeUpdater(viewUpdater);
+				view.delete();
 			}
 		});
 

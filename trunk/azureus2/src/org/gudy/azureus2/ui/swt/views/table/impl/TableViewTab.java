@@ -100,7 +100,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		}
 	}
 
-	private final void delete() {
+	public final void delete() {
 		if (tv != null) {
 			tv.delete();
 		}
