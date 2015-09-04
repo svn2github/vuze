@@ -150,6 +150,28 @@ public class GeneralView
 				} else if (temp instanceof DiskManagerFileInfo) {
 					newManager = ((DiskManagerFileInfo) temp).getDownloadManager();
 				}
+			}else{				
+				for ( Object o: newDataSources ){
+					if (o instanceof DownloadManager){
+						if ( newManager == null ){
+							newManager = (DownloadManager)o;
+						}else if ( newManager != o ){
+							newManager = null;
+							break;
+						}
+					}else if ( o instanceof DiskManagerFileInfo ){
+						DownloadManager temp = ((DiskManagerFileInfo)o).getDownloadManager();
+						if ( newManager == null ){
+							newManager = temp;
+						}else if ( newManager != temp ){
+							newManager = null;
+							break;
+						}
+					}else{
+						newManager = null;
+						break;
+					}
+				}
 			}
 		} else {
 			if (newDataSource instanceof DownloadManager) {
