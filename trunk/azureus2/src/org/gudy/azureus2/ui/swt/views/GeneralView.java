@@ -140,46 +140,7 @@ public class GeneralView
   }
 
 	public void dataSourceChanged(Object newDataSource) {
-		DownloadManager newManager = null;
-		if (newDataSource instanceof Object[]) {
-			Object[] newDataSources = (Object[]) newDataSource;
-			if (newDataSources.length == 1) {
-				Object temp = ((Object[]) newDataSource)[0];
-				if (temp instanceof DownloadManager) {
-					newManager = (DownloadManager) temp;
-				} else if (temp instanceof DiskManagerFileInfo) {
-					newManager = ((DiskManagerFileInfo) temp).getDownloadManager();
-				}
-			}else{				
-				for ( Object o: newDataSources ){
-					if (o instanceof DownloadManager){
-						if ( newManager == null ){
-							newManager = (DownloadManager)o;
-						}else if ( newManager != o ){
-							newManager = null;
-							break;
-						}
-					}else if ( o instanceof DiskManagerFileInfo ){
-						DownloadManager temp = ((DiskManagerFileInfo)o).getDownloadManager();
-						if ( newManager == null ){
-							newManager = temp;
-						}else if ( newManager != temp ){
-							newManager = null;
-							break;
-						}
-					}else{
-						newManager = null;
-						break;
-					}
-				}
-			}
-		} else {
-			if (newDataSource instanceof DownloadManager) {
-				newManager = (DownloadManager) newDataSource;
-			} else if (newDataSource instanceof DiskManagerFileInfo) {
-				newManager = ((DiskManagerFileInfo) newDataSource).getDownloadManager();
-			}
-		}
+		DownloadManager newManager = ViewUtils.getDownloadManagerFromDataSource( newDataSource );
 	
 		if (newManager == manager) {
 			return;

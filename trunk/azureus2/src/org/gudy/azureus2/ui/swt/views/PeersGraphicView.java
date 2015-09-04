@@ -196,51 +196,34 @@ public class PeersGraphicView
 		  focus_pending_ds = newDataSource;
 		  return;
 	  }
-	  
-	  	// defer this util here so that a blocking call to get the IP doesn't hang UI construction
-	  
+
+	  // defer this util here so that a blocking call to get the IP doesn't hang UI construction
+
 	  if ( my_flag == null ){
-		  
+
 		  InetAddress ia = NetworkAdmin.getSingleton().getDefaultPublicAddress();
-	
+
 		  if ( ia != null ){
-	
+
 			  my_flag = ImageRepository.getCountryFlag( ia, false );
 		  }
 	  }
 
-		DownloadManager newManager = null;
-		if (newDataSource instanceof Object[]) {
-			Object[] newDataSources = (Object[]) newDataSource;
-			if (newDataSources.length == 1) {
-				Object temp = ((Object[]) newDataSource)[0];
-				if (temp instanceof DownloadManager) {
-					newManager = (DownloadManager) temp;
-				} else if (temp instanceof DiskManagerFileInfo) {
-					newManager = ((DiskManagerFileInfo) temp).getDownloadManager();
-				}
-			}
-		} else {
-			if (newDataSource instanceof DownloadManager) {
-				newManager = (DownloadManager) newDataSource;
-			} else if (newDataSource instanceof DiskManagerFileInfo) {
-				newManager = ((DiskManagerFileInfo) newDataSource).getDownloadManager();
-			}
-		}
-	
-		if (newManager == manager) {
-			return;
-		}
+	  DownloadManager newManager = ViewUtils.getDownloadManagerFromDataSource( newDataSource );
 
-		if (manager != null) {
-			manager.removePeerListener(this);
-		}
-		
-		manager = newManager;
+	  if (newManager == manager) {
+		  return;
+	  }
+
+	  if (manager != null) {
+		  manager.removePeerListener(this);
+	  }
+
+	  manager = newManager;
 
 	  try {
 		  peers_mon.enter();
-		  
+
 		  peers.clear();
 	  } finally {
 		  peers_mon.exit();
@@ -248,16 +231,15 @@ public class PeersGraphicView
 	  if (manager != null){
 		  manager.addPeerListener(this);
 	  }
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
+	  Utils.execSWTThread(new AERunnable() {
+		  public void runSupport() {
 			  if (manager != null){
-			  	Utils.disposeComposite(panel, false);
+				  Utils.disposeComposite(panel, false);
 			  } else {
-			  	ViewUtils.setViewRequiresOneDownload(panel);
+				  ViewUtils.setViewRequiresOneDownload(panel);
 			  }
-			}
-		});
-
+		  }
+	  });
   }
 
   private void delete() {

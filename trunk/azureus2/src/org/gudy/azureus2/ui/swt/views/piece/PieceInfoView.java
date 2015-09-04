@@ -58,6 +58,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.PiecesView;
+import org.gudy.azureus2.ui.swt.views.ViewUtils;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.util.MapUtils;
@@ -140,23 +141,13 @@ public class PieceInfoView
 
 	private void dataSourceChanged(Object newDataSource) {
 		//System.out.println( "dsc: dlm=" + dlm + ", new=" + (newDataSource instanceof Object[]?((Object[])newDataSource)[0]:newDataSource));
-		if ( newDataSource == null ){
-			synchronized( this ){
-				if (dlm != null) {
-					dlm.removePieceListener(this);
-				}
-				dlm = null;
-			}
-		}else if (newDataSource instanceof DownloadManager) {
+			
+		DownloadManager newManager = ViewUtils.getDownloadManagerFromDataSource( newDataSource );
+
+		if ( newManager != null ){
+			
 			oldBlockInfo = null;
-			synchronized( this ){
-				if (dlm != null) {
-					dlm.removePieceListener(this);
-				}
-				dlm = (DownloadManager)newDataSource;
-				dlm.addPieceListener(this, false);
-			}
-			fillPieceInfoSection();
+
 		}else if (newDataSource instanceof Object[]) {
 			Object[] objects = (Object[]) newDataSource;
 			if (objects.length > 0 && (objects[0] instanceof PEPiece)) {
@@ -164,40 +155,23 @@ public class PieceInfoView
 				DiskManager diskManager = piece.getDMPiece().getManager();
 				if (diskManager instanceof DiskManagerImpl) {
 					DiskManagerImpl dmi = (DiskManagerImpl) diskManager;
-					synchronized( this ){
-						if (dlm != null) {
-							dlm.removePieceListener(this);
-						}
-						dlm = dmi.getDownloadManager();
-						dlm.addPieceListener(this, false);
-					}
-					fillPieceInfoSection();
-				}
-			} else 	if (objects.length == 1 && (objects[0] instanceof DownloadManager)) {
-				oldBlockInfo = null;
-				synchronized( this ){
-					if (dlm != null) {
-						dlm.removePieceListener(this);
-					}
-					dlm = (DownloadManager)objects[0];
-					dlm.addPieceListener(this, false);
-				}
-				fillPieceInfoSection();
-			} else {
-				synchronized( this ){
-	  			if (dlm != null) {
-	  				dlm.removePieceListener(this);
-	  			}
-	  			dlm = null;
+					newManager = dmi.getDownloadManager();
 				}
 			}
-		} else {
-			synchronized( this ){
-  			if (dlm != null) {
-  				dlm.removePieceListener(this);
-  			}
-  			dlm = null;
+		}
+		
+		synchronized( this ){
+			if (dlm != null) {
+				dlm.removePieceListener(this);
 			}
+			dlm = newManager;
+			if ( dlm != null ){
+				dlm.addPieceListener(this, false);
+			}
+		}
+		
+		if ( newManager != null ){
+			fillPieceInfoSection();		
 		}
 	}
 

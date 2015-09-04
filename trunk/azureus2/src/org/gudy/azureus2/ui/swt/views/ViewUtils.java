@@ -34,9 +34,10 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -648,6 +649,53 @@ ViewUtils
 			scrolled_comp.setMinSize(genComposite.computeSize(r.width, SWT.DEFAULT ));
 		}
 
+	}
+	
+	public static DownloadManager
+	getDownloadManagerFromDataSource(
+		Object dataSource )
+	{
+		DownloadManager manager = null;
+		if (dataSource instanceof Object[]) {
+			Object[] newDataSources = (Object[]) dataSource;
+			if (newDataSources.length == 1) {
+				Object temp = ((Object[]) dataSource)[0];
+				if (temp instanceof DownloadManager) {
+					manager = (DownloadManager) temp;
+				} else if (temp instanceof DiskManagerFileInfo) {
+					manager = ((DiskManagerFileInfo) temp).getDownloadManager();
+				}
+			}else{				
+				for ( Object o: newDataSources ){
+					if (o instanceof DownloadManager){
+						if ( manager == null ){
+							manager = (DownloadManager)o;
+						}else if ( manager != o ){
+							manager = null;
+							break;
+						}
+					}else if ( o instanceof DiskManagerFileInfo ){
+						DownloadManager temp = ((DiskManagerFileInfo)o).getDownloadManager();
+						if ( manager == null ){
+							manager = temp;
+						}else if ( manager != temp ){
+							manager = null;
+							break;
+						}
+					}else{
+						manager = null;
+						break;
+					}
+				}
+			}
+		} else {
+			if (dataSource instanceof DownloadManager) {
+				manager = (DownloadManager) dataSource;
+			} else if (dataSource instanceof DiskManagerFileInfo) {
+				manager = ((DiskManagerFileInfo) dataSource).getDownloadManager();
+			}
+		}
+		return( manager );
 	}
 	
 	public interface

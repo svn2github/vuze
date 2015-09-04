@@ -29,7 +29,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -142,7 +143,17 @@ public class TaggingView
 			for (Object o : objects) {
 				if (o instanceof Taggable) {
 					Taggable taggable = (Taggable) o;
-					taggables.add(taggable);
+					if ( !taggables.contains( taggable )){
+						taggables.add(taggable);
+					}
+				}else if ( o instanceof DiskManagerFileInfo ){
+					DownloadManager temp = ((DiskManagerFileInfo)o).getDownloadManager();
+					if (temp instanceof Taggable) {
+						Taggable taggable = (Taggable)temp;
+						if ( !taggables.contains( taggable )){
+							taggables.add(taggable);
+						}
+					}
 				}
 			}
 			if (taggables.size() == 0) {

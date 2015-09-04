@@ -205,50 +205,26 @@ public class PrivacyView
 
 	private void 
 	dataSourceChanged(
-		Object ds ) 
+		Object newDataSource ) 
 	{
 		synchronized( this ){
 			
-			final DownloadManager	old_dm = current_dm;
+			DownloadManager new_dm = ViewUtils.getDownloadManagerFromDataSource( newDataSource );
 			
-			if ( ds != current_dm ){
-							
-				if ( ds == null ){
-					
-					current_dm = null;
-					
-				}else if ( ds instanceof DownloadManager ){
-					
-					current_dm = (DownloadManager)ds;
-					
-				}else if ( ds instanceof Object[] ){
-					
-					Object[] objs = (Object[])ds;
-					
-					if ( objs.length == 1 && objs[0] instanceof DownloadManager ){
-						
-						current_dm = (DownloadManager)objs[0];
-						
-					}else{
-						
-						current_dm = null;
-					}
-				}else{
-					
-					current_dm = null;
-				}
-			}
-			
-			if ( old_dm == current_dm ){
+			if ( new_dm == current_dm ){
 				
 				return;
 			}
+			
+			final DownloadManager f_old_dm = current_dm;
 
-			final DownloadManager new_dm = current_dm;
+			current_dm = new_dm;
+			
+			final DownloadManager f_new_dm = current_dm;
 		
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					swt_updateFields( old_dm, new_dm );
+					swt_updateFields( f_old_dm, f_new_dm );
 				}
 			});
 		}

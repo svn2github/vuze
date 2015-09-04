@@ -231,24 +231,7 @@ public class PeersView
 			return;
 		}
 		
-		DownloadManager newManager = null;
-		if (newDataSource instanceof Object[]) {
-			Object[] newDataSources = (Object[]) newDataSource;
-			if (newDataSources.length == 1) {
-				Object temp = ((Object[]) newDataSource)[0];
-				if (temp instanceof DownloadManager) {
-					newManager = (DownloadManager) temp;
-				} else if (temp instanceof DiskManagerFileInfo) {
-					newManager = ((DiskManagerFileInfo) temp).getDownloadManager();
-				}
-			}
-		} else {
-			if (newDataSource instanceof DownloadManager) {
-				newManager = (DownloadManager) newDataSource;
-			} else if (newDataSource instanceof DiskManagerFileInfo) {
-				newManager = ((DiskManagerFileInfo) newDataSource).getDownloadManager();
-			}
-		}
+		DownloadManager newManager = ViewUtils.getDownloadManagerFromDataSource( newDataSource );
 	
 		if (newManager == manager) {
 			tv.setEnabled(manager != null);
