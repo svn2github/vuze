@@ -760,6 +760,11 @@ LWSDiskManager
 		return( download_state );
 	}
 	
+	public long getPriorityChangeMarker() 
+	{
+		return 0;
+	}
+	
 	public void
 	generateEvidence(
 		IndentWriter		writer )

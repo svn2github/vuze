@@ -80,7 +80,11 @@ public class GeneralView
 
   private Display display;
   private DownloadManager manager = null;
-  int piecesState[];
+  
+  int 		piecesStateCache[];
+  long 		piecesStateSkippedMarker;
+  boolean 	piecesStateFileBoundariesDone;
+  
   int loopFactor;
 
   Composite genComposite;
@@ -222,8 +226,11 @@ public class GeneralView
   	
   	Utils.disposeComposite(genComposite, false);
   	
-    piecesState = new int[manager.getNbPieces()];
-
+  	piecesStateCache = new int[manager.getNbPieces()];
+    
+    piecesStateSkippedMarker		= 0;
+    piecesStateFileBoundariesDone	= false;
+    
     this.display = parent.getDisplay();
 
     gFile = new Composite(genComposite, SWT.SHADOW_OUT);
@@ -865,9 +872,13 @@ public class GeneralView
 	    
 	    DiskManager	dm = manager.getDiskManager();
 
+	    int	nbPieces = manager.getNbPieces();
+
 	    boolean valid;
 	    
-	    if ( piecesState == null ){
+	    int[] oldPiecesState	= piecesStateCache;
+	    
+	    if ( oldPiecesState == null || oldPiecesState.length != nbPieces ){
 	    	
 	    	valid	= false;
 	    	
@@ -876,7 +887,6 @@ public class GeneralView
 	    	valid = !bForce;
 	    }
 	    
-	    int	nbPieces = manager.getNbPieces();
 	    
         int[] newPiecesState 	= new int[nbPieces];
         
@@ -889,6 +899,28 @@ public class GeneralView
 	      		      	
 	      	DiskManagerPiece[]	dm_pieces = dm.getPieces();
 	      	
+	      	boolean	update_skipped;
+	      	boolean	update_boundaries;
+	      	
+	      	if ( !valid ){
+	      		update_skipped 		= true;
+	      		update_boundaries	= true;
+	      	}else{
+	      		if ( piecesStateFileBoundariesDone ){
+	      			update_boundaries = false;
+	      		}else{
+	      			piecesStateFileBoundariesDone = true;
+	      			update_boundaries = true;
+	      		}
+	      		long marker = dm.getPriorityChangeMarker();
+	      		if ( marker == piecesStateSkippedMarker ){
+	      			update_skipped = false;
+	      		}else{
+	      			piecesStateSkippedMarker = marker;
+	      			update_skipped = true;
+	      		}
+	      	}
+	      	
 	      	int	fileIndex = 0;
 	      	
 	 		for (int i=0;i<nbPieces;i++){
@@ -897,26 +929,38 @@ public class GeneralView
 	 			
 	 			int state = piece.isDone()?PS_DONE:PS_NONE;
 	 			
-	 			if (piece.isSkipped()){
-	 				state |= PS_SKIPPED;
+	 			if ( update_skipped ){
+		 			if (piece.isSkipped()){
+		 				state |= PS_SKIPPED;
+		 			}
+	 			}else{
+	 				state |= oldPiecesState[i]&PS_SKIPPED;
 	 			}
 	 			
-	 			int ffi = piece.getFirstFileIndex();
-	 			
-	 			if ( ffi != fileIndex ){
-	 				state |= PS_FILE_BOUNDARY;
-	 				fileIndex = ffi;
+	 			if ( update_boundaries ){
+		 			int ffi = piece.getFirstFileIndex();
+		 			
+		 			if ( ffi != fileIndex ){
+		 				state |= PS_FILE_BOUNDARY;
+		 				fileIndex = ffi;
+		 			}
+	 			}else{
+	 				state |= oldPiecesState[i]&PS_FILE_BOUNDARY;
 	 			}
+	 			
 	 			newPiecesState[i] = state;
 	 			
-	 			if ( piecesState != null && piecesState[i] != state ){
+	 			if ( valid ){
 	 				
-	 				valid	= false;
+	 				if ( oldPiecesState[i] != state ){
+	 				
+	 					valid	= false;
+	 				}
 	 			}
 	       }
 	    }
 
-	    piecesState	= newPiecesState;
+	    piecesStateCache	= newPiecesState;
 	    
 	    if (!valid) {
 	      Rectangle bounds = piecesImage.getClientArea();
@@ -940,9 +984,9 @@ public class GeneralView
 		      gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
 		      gcImage.drawLine(1,6,xMax,6);
 				      
-		      if (piecesState != null && piecesState.length != 0) {
+		      if (newPiecesState != null && newPiecesState.length != 0) {
 		        
-		    	int[] boundariesHandled = new int[piecesState.length]; 
+		    	int[] boundariesHandled = new int[newPiecesState.length]; 
 		    	
 		        for (int i = 0; i < xMax; i++) {
 		          int a0 = (i * nbPieces) / xMax;
@@ -956,7 +1000,7 @@ public class GeneralView
 		          boolean	hasFileBoundary = false;
 		          
 		          for (int j = a0; j < a1; j++) {
-		        	int ps = piecesState[j];
+		        	int ps = newPiecesState[j];
 		            if ( (ps & PS_DONE ) != 0 ) {
 		              nbAvailable++;
 		            }

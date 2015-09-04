@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -195,6 +196,13 @@ DiskManagerImpl
     private long                skipped_file_set_size;
     private long                skipped_but_downloaded;
 
+    private AtomicLong			priority_change_marker = new AtomicLong( RandomUtils.nextLong());
+    {
+	    if ( priority_change_marker.get() == 0 ){
+	    	priority_change_marker.incrementAndGet();
+	    }
+    }
+    
     private boolean				checking_enabled = true;
 
     private volatile boolean	move_in_progress;
@@ -3141,6 +3149,9 @@ DiskManagerImpl
         DiskManagerFileInfo file )
     {
         skipped_file_set_changed    = true;
+        if ( priority_change_marker.incrementAndGet() == 0 ){
+        	priority_change_marker.incrementAndGet();
+        }
         listeners.dispatch(LDT_PRIOCHANGED, file);
     }
 
@@ -3148,6 +3159,9 @@ DiskManagerImpl
     priorityChanged(
         DiskManagerFileInfo file )
     {
+        if ( priority_change_marker.incrementAndGet() == 0 ){
+        	priority_change_marker.incrementAndGet();
+        }
         listeners.dispatch(LDT_PRIOCHANGED, file);
     }
 
@@ -3354,6 +3368,12 @@ DiskManagerImpl
         return pieces[pieceNumber].isDone();
     }
 
+	public long
+	getPriorityChangeMarker()
+	{
+		return( priority_change_marker.get());
+	}
+	
 	public void
 	generateEvidence(
 		IndentWriter		writer )

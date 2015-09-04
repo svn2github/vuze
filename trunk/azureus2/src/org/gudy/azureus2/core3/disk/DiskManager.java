@@ -360,4 +360,7 @@ DiskManager
 	public long getSizeExcludingDND();
 
 	public int getPercentDoneExcludingDND();
+	
+	public long
+	getPriorityChangeMarker();
 }
