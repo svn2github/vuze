@@ -1392,6 +1392,8 @@ public class OpenTorrentOptionsWindow
 		
 		if ( !shell.isDisposed()){
 		
+			Utils.dump( shell );
+			
 			if ( !shell.isVisible()){
 				
 				shell.setVisible( true );
