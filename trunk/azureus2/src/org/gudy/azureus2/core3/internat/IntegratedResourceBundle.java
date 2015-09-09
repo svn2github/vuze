@@ -379,17 +379,27 @@ IntegratedResourceBundle
 				
 				if ( bundle instanceof IntegratedResourceBundle ){
 					
+					Map<String,String> m = ((IntegratedResourceBundle)bundle).getMessages();
+
 					if ( upper_case ){
-						
-						Map<String,String> m = ((IntegratedResourceBundle)bundle).getMessages();
 						
 						for ( Map.Entry<String,String> entry: m.entrySet()){
 							
-							messages.put( entry.getKey(), toUpperCase( entry.getValue()));
+							String key = entry.getKey();
+							messages.put( key, toUpperCase( entry.getValue()));
 						}
 					}else{
 					
-						messages.putAll(((IntegratedResourceBundle)bundle).getMessages());
+						messages.putAll(m);
+					}
+
+					if (used_messages != null) {
+
+						used_messages.keySet().removeAll(m.keySet());
+					}
+
+					if (null_values != null) {
+						null_values.removeAll(m.keySet());
 					}
 				}else{
 					
@@ -404,10 +414,18 @@ IntegratedResourceBundle
 						
 							messages.put(key, bundle.getObject(key));
 						}
+
+						if (used_messages != null) {
+							used_messages.remove(key);
+						}
+						if (null_values != null) {
+							null_values.remove(key);
+						}
 					}
 				}
 			}			
 		}
+		
 //		System.out.println("after addrb; IRB Size = " + messages.size() + "/cap=" + initCapacity + ";" + Debug.getCompressedStackTrace());
 	}
 	
