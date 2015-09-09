@@ -257,6 +257,9 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	public void setVisible(boolean visible) {
 		checkDestroyed();
 		this_mon.enter();
+		if ( is_visible != visible ){
+			needs_layout = true;
+		}
 		this.is_visible = visible;
 		this.needs_update = true;
 		this_mon.exit();
