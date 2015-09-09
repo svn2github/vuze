@@ -1919,4 +1919,24 @@ public class ManagerUtils {
 				}
 			});
 	}
+	
+	public static DownloadManager[]
+	cleanUp(
+		DownloadManager[]	dms )
+	{
+		List<DownloadManager>	result = new ArrayList<DownloadManager>();
+				
+		if ( dms != null ){
+			
+			for ( DownloadManager dm: dms ){
+				
+				if ( dm != null && !dm.isDestroyed()){
+					
+					result.add( dm );
+				}
+			}
+		}
+
+		return( result.toArray( new DownloadManager[ result.size()]));
+	}
 }

@@ -179,9 +179,13 @@ public class MenuFactory
 
 	public static void buildTorrentMenu(Menu menu) {
 		DownloadManager[] current_dls = (DownloadManager[]) menu.getData("downloads");
-		if (current_dls == null || current_dls[0] == null) {
+		
+		current_dls = ManagerUtils.cleanUp( current_dls );
+
+		if (current_dls.length == 0 ) {
 			return;
 		}
+		
 
 		if (AzureusCoreFactory.isCoreRunning()) {
 			boolean is_detailed_view = ((Boolean) menu.getData("is_detailed_view")).booleanValue();
