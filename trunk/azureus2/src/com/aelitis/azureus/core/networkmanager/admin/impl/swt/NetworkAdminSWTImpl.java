@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -167,13 +168,54 @@ NetworkAdminSWTImpl
 												}
 											});
 											
+										MenuItem mi_sep1 =
+												default_pi.getUIManager().getMenuManager().addMenuItem(
+																	status.getMenuContext(),
+																	"sep1" );
+				
+										mi_sep1.setStyle( MenuItem.STYLE_SEPARATOR );
 										
-										MenuItem mi_sep =
+										MenuItem mi_reset =
 											default_pi.getUIManager().getMenuManager().addMenuItem(
 																status.getMenuContext(),
-																"" );
+																"menu.remove.net.binding" );
 			
-										mi_sep.setStyle( MenuItem.STYLE_SEPARATOR );
+										mi_reset.addFillListener(
+											new MenuItemFillListener() {
+												
+												public void 
+												menuWillBeShown(
+													MenuItem 	mi, 
+													Object 		data) 
+												{
+													mi.setText( 
+														MessageText.getString(
+															"menu.remove.net.binding",
+															new String[]{
+																	COConfigurationManager.getStringParameter( "Bind IP", "" )
+															}));
+												}
+											});
+										
+										mi_reset.addListener(
+											new MenuItemListener()
+											{
+												public void
+												selected(
+													MenuItem			menu,
+													Object 				target )
+												{
+													COConfigurationManager.setParameter( "Enforce Bind IP", false );
+													COConfigurationManager.setParameter( "Bind IP", "" );
+												}
+											});
+										
+										MenuItem mi_sep2 =
+											default_pi.getUIManager().getMenuManager().addMenuItem(
+																status.getMenuContext(),
+																"sep2" );
+			
+										mi_sep2.setStyle( MenuItem.STYLE_SEPARATOR );
 										
 										MenuItem mi_options =
 											default_pi.getUIManager().getMenuManager().addMenuItem(
