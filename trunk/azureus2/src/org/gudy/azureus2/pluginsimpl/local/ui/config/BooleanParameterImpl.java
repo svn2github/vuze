@@ -62,4 +62,13 @@ BooleanParameterImpl
 	public void setValue(boolean b) {
 		config.setUnsafeBooleanParameter(getKey(), b);
 	}
+	
+	public void
+	setDefaultValue(
+		boolean		defaultValue )
+	{
+		default_value	= defaultValue;
+		
+		COConfigurationManager.setBooleanDefault( getKey(), defaultValue );
+	}
 }

@@ -309,6 +309,12 @@ ParameterImpl
 		return( key );
 	}
 	
+	public boolean
+	hasBeenSet()
+	{
+		return( COConfigurationManager.doesParameterNonDefaultExist( key ));
+	}
+	
 	private void triggerLabelChanged(String text, boolean isKey) {
 		// toArray() since listener trigger may remove listeners
 		Object[] listenersArray = impl_listeners.toArray();

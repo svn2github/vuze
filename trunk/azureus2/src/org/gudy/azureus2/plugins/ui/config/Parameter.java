@@ -185,4 +185,7 @@ Parameter
 	public void setLabelKey(String sLabelKey);
 	
 	public String getConfigKeyName();
+	
+	public boolean
+	hasBeenSet();
 }

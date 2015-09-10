@@ -74,13 +74,14 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 public class 
 MagnetPluginMDDownloader 
 {
-	private static Set<String>	active_set = new HashSet<String>();
+	final private static Set<String>	active_set = new HashSet<String>();
 	
-	private PluginInterface		plugin_interface;
-	private byte[]				hash;
-	private Set<String>			networks;
-	private InetSocketAddress[]	addresses;
-	private String				args;
+	final private PluginInterface		plugin_interface;
+	final private MagnetPlugin			plugin;
+	final private byte[]				hash;
+	final private Set<String>			networks;
+	final private InetSocketAddress[]	addresses;
+	final private String				args;
 	
 	private volatile boolean		started;
 	private volatile boolean		cancelled;
@@ -93,12 +94,14 @@ MagnetPluginMDDownloader
 
 	protected 
 	MagnetPluginMDDownloader(
+		MagnetPlugin		_plugin,
 		PluginInterface		_plugin_interface,
 		byte[]				_hash,
 		Set<String>			_networks,
 		InetSocketAddress[]	_addresses,
 		String				_args )
 	{
+		plugin				= _plugin;
 		plugin_interface	= _plugin_interface;
 		hash				= _hash;
 		networks			= _networks;
@@ -373,7 +376,7 @@ MagnetPluginMDDownloader
 				// if user has specifically disabled the public network then remove this too
 				// as this gives them a way to control metadata download network usage
 			
-			if ( !COConfigurationManager.getBooleanParameter( "Network Selection Default." + AENetworkClassifier.AT_PUBLIC )){
+			if ( !plugin.isNetworkEnabled( AENetworkClassifier.AT_PUBLIC )){
 				
 				state.setNetworkEnabled( AENetworkClassifier.AT_PUBLIC, false );
 			}

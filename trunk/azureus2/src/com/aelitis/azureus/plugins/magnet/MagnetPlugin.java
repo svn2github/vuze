@@ -26,6 +26,7 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +75,8 @@ import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.IntParameter;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -127,6 +130,9 @@ MagnetPlugin
 	private BooleanParameter md_lookup;
 	private IntParameter	 md_lookup_delay;
 	
+	private Map<String,BooleanParameter> net_params = new HashMap<String, BooleanParameter>();
+	
+	
 	public static void
 	load(
 		PluginInterface		plugin_interface )
@@ -154,6 +160,41 @@ MagnetPlugin
 		md_lookup_delay		= config.addIntParameter2( "MagnetPlugin.use.md.download.delay", "MagnetPlugin.use.md.download.delay", MD_LOOKUP_DELAY_SECS_DEFAULT );
 		
 		md_lookup.addEnabledOnSelection( md_lookup_delay );
+			
+		Parameter[] nps = new Parameter[ AENetworkClassifier.AT_NETWORKS.length ];
+		
+		for ( int i=0; i<nps.length; i++ ){
+
+			String nn = AENetworkClassifier.AT_NETWORKS[i];
+
+			String config_name = "Network Selection Default." + nn;
+			
+			String msg_text = "ConfigView.section.connection.networks." + nn;
+
+			final BooleanParameter param 	= 
+				config.addBooleanParameter2( 
+						config_name, 
+						msg_text, 
+						COConfigurationManager.getBooleanParameter( config_name ));
+			
+			COConfigurationManager.addParameterListener(
+					config_name,
+					new org.gudy.azureus2.core3.config.ParameterListener()
+					{	
+						public void 
+						parameterChanged(
+							String name ) 
+						{
+							param.setDefaultValue( COConfigurationManager.getBooleanParameter( name ));
+						}
+					});
+			
+			nps[i] = param;
+			
+			net_params.put( nn, param );
+		}
+				
+		config.createGroup( "label.default.nets", nps );
 		
 		MenuItemListener	listener = 
 			new MenuItemListener()
@@ -564,6 +605,13 @@ MagnetPlugin
 		}
 	}
 	
+	public boolean
+	isNetworkEnabled(
+		String		net )
+	{
+		return( net_params.get( net ).getValue());
+	}
+	
 	public URL
 	getMagnetURL(
 		Download		d )
@@ -939,7 +987,7 @@ MagnetPlugin
 		TimerEvent							md_delay_event = null;
 		final MagnetPluginMDDownloader[]	md_downloader = { null };
 		
-		boolean	net_pub_default = COConfigurationManager.getBooleanParameter( "Network Selection Default." + AENetworkClassifier.AT_PUBLIC );
+		boolean	net_pub_default = isNetworkEnabled( AENetworkClassifier.AT_PUBLIC );
 		
 		final Set<String>	networks_enabled;
 		
@@ -1005,17 +1053,24 @@ MagnetPlugin
 				}
 			}
 			
-			networks_enabled = explicit_networks.size()>0?explicit_networks:tr_networks;
-			
-			if ( net_pub_default ){
+			if ( explicit_networks.size() > 0 ){
 				
-				if ( networks_enabled.size() == 0 ){
-					
-					networks_enabled.add( AENetworkClassifier.AT_PUBLIC );
-				}
+				networks_enabled = explicit_networks;
+				
 			}else{
 				
-				networks_enabled.remove( AENetworkClassifier.AT_PUBLIC );
+				networks_enabled = tr_networks;
+				
+				if ( net_pub_default ){
+					
+					if ( networks_enabled.size() == 0 ){
+						
+						networks_enabled.add( AENetworkClassifier.AT_PUBLIC );
+					}
+				}else{
+					
+					networks_enabled.remove( AENetworkClassifier.AT_PUBLIC );
+				}
 			}
 			
 			if ( fl_args.size() > 0 ){
@@ -1131,7 +1186,7 @@ MagnetPlugin
 									return;
 								}
 								
-								md_downloader[0] = mdd = new MagnetPluginMDDownloader( plugin_interface, hash, networks_enabled, sources, args );
+								md_downloader[0] = mdd = new MagnetPluginMDDownloader( MagnetPlugin.this, plugin_interface, hash, networks_enabled, sources, args );
 							}
 							
 							listener.reportActivity( getMessageText( "report.md.starts" ));

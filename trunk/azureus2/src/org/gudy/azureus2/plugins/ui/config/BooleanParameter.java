@@ -33,4 +33,8 @@ BooleanParameter
 	public void
 	setValue(
 		boolean	b );
+	
+	public void
+	setDefaultValue(
+		boolean		b );
 }
