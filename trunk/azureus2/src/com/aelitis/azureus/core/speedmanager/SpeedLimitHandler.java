@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.core.speedmanager;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -128,6 +129,9 @@ SpeedLimitHandler
 	}
 	
 	private static final int PRIORITISER_CHECK_PERIOD_BASE	= 5*1000;
+	
+	private static final String	NET_IPV4		= "IPv4";
+	private static final String	NET_IPV6		= "IPv6";
 	
 	private AzureusCore			core;
 	private PluginInterface 	plugin_interface;
@@ -1158,7 +1162,7 @@ SpeedLimitHandler
 				
 				pri.setIsDown( lc_line.startsWith( "priority_down " ));
 				
-				TagType tag_type = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+				TagType tag_type_dm = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
 				
 				boolean	pri_ok = true;
 				
@@ -1178,11 +1182,25 @@ SpeedLimitHandler
 								
 								int p = Integer.parseInt( lhs );
 
-								TagDownload tag = (TagDownload)tag_type.getTag( rhs, true );
+								TagType	tag_type = null;
 								
-								if ( tag != null ){
+								TagFeatureRateLimit tag_dm = (TagFeatureRateLimit)tag_type_dm.getTag( rhs, true );
 								
-									pri.addTarget( p, tag );
+								if ( tag_dm != null ){
+									
+									tag_type = tag_type_dm;
+									
+								}else{
+									
+									if ( ip_sets.get( rhs ) != null ){
+										
+										tag_type = ip_set_tag_type;
+									}
+								}
+								
+								if ( tag_type != null ){
+								
+									pri.addTarget( p, tag_type, rhs );
 									
 									ok = true;
 								}
@@ -1232,8 +1250,6 @@ SpeedLimitHandler
 					if ( pri_ok ){
 						
 						new_prioritisers.add( pri );
-						
-						pri.initialised();
 					}
 				}
 			}else{
@@ -1505,39 +1521,6 @@ SpeedLimitHandler
 				checkSchedule();
 			}
 			
-			current_prioritisers = new_prioritisers;
-
-			if ( new_prioritisers.size() == 0 ){
-				
-				if ( prioritiser_event != null ){
-				
-					prioritiser_event.cancel();
-					
-					prioritiser_event = null;
-				}
-			}else{
-				
-								
-				if ( prioritiser_event == null ){
-					
-					prioritiser_event = 
-						SimpleTimer.addPeriodicEvent(
-								"speed handler prioritiser",
-								PRIORITISER_CHECK_PERIOD_BASE,
-								new TimerEventPerformer()
-								{
-									private int	tick_count;
-									
-									public void 
-									perform(
-										TimerEvent event) 
-									{
-										checkPrioritisers( tick_count++ );
-									}
-								});
-				}
-			}
-			
 			for( IPSet s: current_ip_sets.values()){
 				
 				s.destroy();
@@ -1614,6 +1597,43 @@ SpeedLimitHandler
 					net_limit_listener_added = false;
 					
 					StatsFactory.getLongTermStats().removeListener( this );
+				}
+			}
+			
+			current_prioritisers = new_prioritisers;
+
+			if ( new_prioritisers.size() == 0 ){
+				
+				if ( prioritiser_event != null ){
+				
+					prioritiser_event.cancel();
+					
+					prioritiser_event = null;
+				}
+			}else{
+				
+				for ( Prioritiser p: new_prioritisers ){
+					
+					p.initialise();
+				}
+				
+				if ( prioritiser_event == null ){
+					
+					prioritiser_event = 
+						SimpleTimer.addPeriodicEvent(
+								"speed handler prioritiser",
+								PRIORITISER_CHECK_PERIOD_BASE,
+								new TimerEventPerformer()
+								{
+									private int	tick_count;
+									
+									public void 
+									perform(
+										TimerEvent event) 
+									{
+										checkPrioritisers( tick_count++ );
+									}
+								});
 				}
 			}
 		}else{
@@ -2354,6 +2374,20 @@ SpeedLimitHandler
 				
 				if ( peer_net != null ){
 					
+					String	pub_peer_net = null;
+					
+					if ( peer_net == AENetworkClassifier.AT_PUBLIC ){
+					
+						try{
+							byte[]	address = InetAddress.getByName( peer.getIp() ).getAddress();
+							
+							pub_peer_net = address.length==4?NET_IPV4:NET_IPV6;
+							
+						}catch( Throwable e ){
+							
+						}
+					}
+					
 					for ( int i=0;i<set_nets.length;i++ ){
 						
 						IPSet set = sets[i];
@@ -2377,7 +2411,15 @@ SpeedLimitHandler
 						if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
 												
 							boolean	hit = nets.contains( peer_net );
-																
+								
+							if ( !hit ){
+								
+								if ( pub_peer_net != null ){
+									
+									hit = nets.contains( pub_peer_net );
+								}
+							}
+							
 							if ( hit == not_inverse ){
 								
 								addLimiters( peer_manager, peer, set, rlu_tbr, rld_tbr );
@@ -4498,6 +4540,21 @@ SpeedLimitHandler
 					}
 				}
 				
+				if ( cidr_or_cc_etc.equalsIgnoreCase( "IPv4" )){
+					
+					networks.add( NET_IPV4 );
+					
+					return( true );
+					
+				}else if ( cidr_or_cc_etc.equalsIgnoreCase( "IPv6" )){
+					
+					networks.add( NET_IPV6 );
+					
+					return( true );
+				}
+					
+					// hack these in a country code for the moment
+					
 					// special case for matching everything
 				
 				if ( cidr_or_cc_etc.equalsIgnoreCase( "all" )){
@@ -5116,6 +5173,8 @@ SpeedLimitHandler
 		
 		private int	check_ticks		= 1;
 		
+		private List<Object[]>				temp_states = new ArrayList<Object[]>();
+		
 		private List<PrioritiserTagState>	tag_states = new ArrayList<PrioritiserTagState>();
 		
 		private int					phase 				= 0;
@@ -5142,27 +5201,45 @@ SpeedLimitHandler
 		private void
 		addTarget(
 			int				priority,
-			TagDownload		tag )
+			TagType			tag_type,
+			String			tag_name )
 		{
 				// todo sort by priority I guess, maybe handle duplicate priorities
 						
-			PrioritiserTagState tag_state = new PrioritiserTagState( tag );
-			
-			tag_states.add( tag_state );
-			
-			setLimit(tag_state, tag_states.size()==1?max:-1, "initial" );
+			temp_states.add( new Object[]{ tag_type, tag_name });
 		}
 		
 		private void
-		initialised()
+		initialise()
 		{
+				// we have to delay resolution of peer-set tags until they have been setup...
 			
+			for ( Object[] entry: temp_states ){
+				
+				TagType 	tag_type 	= (TagType)entry[0];
+				String		tag_name	= (String)entry[1];
+			
+				TagFeatureRateLimit tag = (TagFeatureRateLimit)tag_type.getTag( tag_name, true );
+				
+				if ( tag == null ){
+					
+					Debug.out( "Hmm, tag '" + tag_name + "' not found for " + tag_type.getTagTypeName(true));
+					
+				}else{
+					
+					PrioritiserTagState tag_state = new PrioritiserTagState( tag );
+					
+					tag_states.add( tag_state );
+					
+					setLimit(tag_state, tag_states.size()==1?max:-1, "initial" );
+				}
+			}
 		}
 		
 		private int
 		getTargetCount()
 		{
-			return( tag_states.size());
+			return( temp_states.size());
 		}
 		
 		private void
@@ -5249,7 +5326,7 @@ SpeedLimitHandler
 			
 			for ( PrioritiserTagState tag_state: active_tags ){
 			
-				str += (str.length()==0?"":", ") + tag_state.getTag().getTagName(true) + "=" + formatRate( tag_state.getRate(), false) + " (" + formatRate( tag_state.getLimit(), true ) + ")";
+				str += (str.length()==0?"":", ") + tag_state.getTagName() + "=" + formatRate( tag_state.getRate(), false) + " (" + formatRate( tag_state.getLimit(), true ) + ")";
 			}
 			
 			log( str );
@@ -5545,7 +5622,7 @@ SpeedLimitHandler
 			int						rate,
 			String					reason )
 		{
-			TagDownload tag = tag_state.getTag();
+			TagFeatureRateLimit tag = tag_state.getTag();
 			
 			if ( is_down ){
 				
@@ -5553,7 +5630,7 @@ SpeedLimitHandler
 					
 					tag.setTagDownloadLimit( rate );
 					
-					log( tag, "->" + formatRate( rate, true ) + " (" + reason + ")");
+					log( tag_state, "->" + formatRate( rate, true ) + " (" + reason + ")");
 					
 					return( true );
 				}
@@ -5563,7 +5640,7 @@ SpeedLimitHandler
 				
 					tag.setTagUploadLimit( rate );
 					
-					log( tag, "->" + formatRate( rate, true ) + " (" + reason + ")");
+					log( tag_state, "->" + formatRate( rate, true ) + " (" + reason + ")");
 					
 					return( true );
 				}
@@ -5582,10 +5659,10 @@ SpeedLimitHandler
 		
 		private void
 		log(
-			TagDownload		tag,
-			String			str )
+			PrioritiserTagState		tag_state,
+			String					str )
 		{
-			log( tag.getTagName( true ) + ": " + str );
+			log( tag_state.getTagName() + ": " + str );
 			
 		}
 		private void
@@ -5595,6 +5672,7 @@ SpeedLimitHandler
 			logger.log( "tag_priority: " + str );
 			
 		}
+		
 		private class
 		PrioritiserTagState
 		{
@@ -5604,7 +5682,7 @@ SpeedLimitHandler
 			private static final int ADJUSTMENT_PERIODS			= AVERAGE_PERIODS + 1;
 			private static final int INITIAL_ADJUSTMENT_PERIODS	= ADJUSTMENT_PERIODS + 2;
 
-			private final TagDownload		tag;
+			private final TagFeatureRateLimit		tag;
 									
 			private final MovingAverage average = AverageFactory.MovingAverage( AVERAGE_PERIODS );
 			
@@ -5622,9 +5700,15 @@ SpeedLimitHandler
 			
 			private
 			PrioritiserTagState(
-				TagDownload		_tag )
+				TagFeatureRateLimit		_tag )
 			{
 				tag	= _tag;
+			}
+			
+			private String
+			getTagName()
+			{
+				return( tag.getTag().getTagName( true ));
 			}
 			
 			private boolean
@@ -5635,30 +5719,38 @@ SpeedLimitHandler
 					adjusting_ticks--;
 				}
 				
-				Set<DownloadManager> downloads = tag.getTaggedDownloads();
-											
+				Tag t = tag.getTag();
+				
 				boolean	active = false;
-								
-				for ( DownloadManager dm: downloads ){
-										
-					PEPeerManager pm = dm.getPeerManager();
+
+				if ( t instanceof TagDownload ){
 					
-					if ( pm != null ){
+					Set<DownloadManager> downloads = ((TagDownload)tag).getTaggedDownloads();
+																					
+					for ( DownloadManager dm: downloads ){
+											
+						PEPeerManager pm = dm.getPeerManager();
 						
-						if ( dm.isDownloadComplete( false )){
+						if ( pm != null ){
 							
-							if ( is_down ){
+							if ( dm.isDownloadComplete( false )){
 								
-								continue;
+								if ( is_down ){
+									
+									continue;
+								}
 							}
-						}
-						
-						if ( pm.getNbPeers() + pm.getNbSeeds() > 0 ){
 							
-							active = true;
+							if ( pm.getNbPeers() + pm.getNbSeeds() > 0 ){
+								
+								active = true;
+							}
+							
 						}
-						
 					}
+				}else{
+					
+					active = ((TagPeer)tag).getTaggedCount() > 0;
 				}
 				
 				int	rate;
@@ -5706,7 +5798,7 @@ SpeedLimitHandler
 				return( active );
 			}
 			
-			private TagDownload
+			private TagFeatureRateLimit
 			getTag()
 			{
 				return( tag );

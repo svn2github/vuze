@@ -32,4 +32,7 @@ TagFeature
 	public static final int TF_PROPERTIES		= 0x00000020;
 	public static final int TF_EXEC_ON_ASSIGN	= 0x00000040;
 	
+	public Tag
+	getTag();
+	
 }

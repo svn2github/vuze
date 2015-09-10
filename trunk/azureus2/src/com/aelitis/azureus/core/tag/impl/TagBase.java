@@ -152,6 +152,12 @@ TagBase
 		}
 	}
 	
+	public Tag
+	getTag()
+	{
+		return( this );
+	}
+	
 	protected void
 	addTag()
 	{
