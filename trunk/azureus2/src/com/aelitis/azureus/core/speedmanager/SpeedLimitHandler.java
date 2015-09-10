@@ -5177,7 +5177,10 @@ SpeedLimitHandler
 		
 		private List<PrioritiserTagState>	tag_states = new ArrayList<PrioritiserTagState>();
 		
-		private int					phase 				= 0;
+		private int					phase 					= 0;
+		private int					phase_0_stable_waits	= 0;
+		
+		
 		private PrioritiserTagState	phase_1_tag			= null;
 		private int					phase_1_tag_state	= 0;
 		private int					phase_1_tag_rate;
@@ -5356,51 +5359,56 @@ SpeedLimitHandler
 				
 				boolean	all_good = true;
 				
-				for ( int i=0;i<active_tags.size();i++){
+				if ( phase_0_stable_waits < 2 ){
 					
-					PrioritiserTagState tag_state = active_tags.get(i);
-					
-					int	limit 	= tag_state.getLimit();
-					int rate	= tag_state.getRate();
-					
-					boolean	stable = tag_state.isStable();
-					
-					if ( limit == -1 ){
+					phase_0_stable_waits++;
+				
+					for ( int i=0;i<active_tags.size();i++){
 						
-						limit = 0;	// no upload
-					}
-					
-					if ( stable && sameRate( limit, rate )){
+						PrioritiserTagState tag_state = active_tags.get(i);
 						
-						// looking good
+						int	limit 	= tag_state.getLimit();
+						int rate	= tag_state.getRate();
 						
-					}else{
+						boolean	stable = tag_state.isStable();
 						
-						all_good = false;
-						
-							// reduce limit
-						
-						if ( limit > 0 ){
+						if ( limit == -1 ){
 							
-							if ( stable ){
+							limit = 0;	// no upload
+						}
+						
+						if ( stable && sameRate( limit, rate )){
+							
+							// looking good
+							
+						}else{
+							
+							all_good = false;
+							
+								// reduce limit
+							
+							if ( limit > 0 ){
 								
-								if ( rate < 1024 ){
+								if ( stable ){
 									
-									rate = 1024;
-								}
-								
-								tag_state.setLimit( rate, "0: reducing to current" );
-								
-							}else{
-								
-								int target = rate - 2048;
-								
-								if ( target <= 1024 ){
+									if ( rate < 1024 ){
+										
+										rate = 1024;
+									}
 									
-									target = -1;
+									tag_state.setLimit( rate, "0: reducing to current" );
+									
+								}else{
+									
+									int target = rate - 2048;
+									
+									if ( target <= 1024 ){
+										
+										target = -1;
+									}
+									
+									tag_state.setLimit( target, "0: reducing, unstable" );
 								}
-								
-								tag_state.setLimit( target, "0: reducing, unstable" );
 							}
 						}
 					}
@@ -5410,6 +5418,8 @@ SpeedLimitHandler
 				
 				if ( all_good ){
 					
+					phase_0_stable_waits = 0;	// ready for next time
+
 					phase = 1;
 					
 					phase_1_tag = active_tags.get(0);
@@ -5524,15 +5534,15 @@ SpeedLimitHandler
 								int	diff 	= current_rate - phase_1_tag_rate;
 								int	hp_diff = higher_pri_rates - phase_1_higher_pri_rates;
 								
-								int target = current_rate;
+								int my_target = current_rate;
 								
-								if ( target <= 1024 ){
+								if ( my_target <= 1024 ){
 									
-									target = -1;
+									my_target = -1;
 									
-								}else if ( sameRate( target, max )){
+								}else if ( sameRate( my_target, max )){
 									
-									target = max;
+									my_target = max;
 								}
 								
 								if ( hp_diff <= -2048 ){
@@ -5541,24 +5551,42 @@ SpeedLimitHandler
 										// so we don't want to carry on probing the limits of lower priority tags
 										// we want to try and shunt bandwidth from this tag back to the higher priority ones
 									
-									target = current_rate + hp_diff;
+									my_target = current_rate + hp_diff;
 									
-									if ( target < phase_1_tag_rate ){
+									if ( my_target < phase_1_tag_rate ){
 										
-										target = phase_1_tag_rate;
+										my_target = phase_1_tag_rate;
 									}
 									
 									consec_limits_hit++;
 									
 									tag_state.hitLimit( true );
 									
-									tag_state.setLimit( target, true, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ", consec=" + consec_limits_hit + ")" );
+									tag_state.setLimit( my_target, true, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ", consec=" + consec_limits_hit + ")" );
 
+										// decrease lower priority limits agressively as any bandwidth they are consuming
+										// needs to be pushed our way
+									
+									for ( int j=i+1;j<active_tags.size();j++){
+										
+										PrioritiserTagState ts = active_tags.get(j);
+										
+										int rate = ts.getRate();
+										
+										int target = rate/2;
+										
+										if ( target <= 1024 ){
+											
+											target = -1;	 																					
+										}
+										
+										ts.setLimit( target, "1: decreasing lower priority by 50%" );
+									}
 								}else{
 								
 									tag_state.hitLimit( false );
 									
-									tag_state.setLimit( target, "1: setting to current (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ")" );
+									tag_state.setLimit( my_target, "1: setting to current (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ")" );
 																	
 									if ( i < active_tags.size() - 1 ){
 									
