@@ -275,7 +275,7 @@ BasicPluginConfigImpl
 							Messages.setLanguageText( tab_item, tab_name );
 						}
 						
-						tab_composite = new Composite( tf, SWT.NULL );
+						tab_composite = new Composite( tf, SWT.NONE );
 						tab_item.setControl( tab_composite );
 						
 						layout = new GridLayout();
@@ -318,7 +318,7 @@ BasicPluginConfigImpl
 					
 					boolean use_composite = resource_name == null || tab_folder != null;
 					
-					current_composite = use_composite?new Composite( group_parent, SWT.NULL ):new Group( group_parent, SWT.NULL);
+					current_composite = use_composite?new Composite( group_parent, SWT.NONE ):new Group( group_parent, SWT.NULL);
 					
 					if ( !use_composite ){
 					
@@ -327,6 +327,7 @@ BasicPluginConfigImpl
 					
 					GridData grid_data = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 					
+					grid_data.grabExcessHorizontalSpace = true;
 					grid_data.horizontalSpan = 2;
 					
 					if ( pg.getMinimumRequiredUserMode() > userMode ){
