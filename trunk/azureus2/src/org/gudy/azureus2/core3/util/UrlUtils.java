@@ -501,17 +501,38 @@ public class UrlUtils
 			return parseTextForMagnets(text);
 		}
 
+			// hack to support appending args to raw hashes
+		
+		String text_prefix = text;
+		String text_suffix = "";
+		
+		int a_pos = text_prefix.indexOf( '?' );
+		if ( a_pos == -1 ){
+			a_pos = text_prefix.indexOf( '&' );
+		}
+		if ( a_pos != -1 ){
+			String args = text_prefix.substring( a_pos+1 ).trim();
+			if ( args.contains( "=" )){
+				int s_pos = args.indexOf(' ');
+				if ( s_pos != -1 ){
+					args = args.substring( 0, s_pos );
+				}
+				text_prefix = text_prefix.substring( 0, a_pos );
+				text_suffix = "&" + args;
+			}
+		}
+		
 		// accept raw hash of 40 hex chars
-		if (accept_magnets && text.matches("^[a-fA-F0-9]{40}$")) {
+		if (accept_magnets && text_prefix.matches("^[a-fA-F0-9]{40}$")) {
 			// convert from HEX to raw bytes
-			byte[] infohash = ByteFormatter.decodeString(text.toUpperCase());
+			byte[] infohash = ByteFormatter.decodeString(text_prefix.toUpperCase());
 			// convert to BASE32
-			return "magnet:?xt=urn:btih:" + Base32.encode(infohash);
+			return "magnet:?xt=urn:btih:" + Base32.encode(infohash) + text_suffix;
 		}
 
 		// accept raw hash of 32 base-32 chars
-		if (accept_magnets && text.matches("^[a-zA-Z2-7]{32}$")) {
-			return "magnet:?xt=urn:btih:" + text;
+		if (accept_magnets && text_prefix.matches("^[a-zA-Z2-7]{32}$")) {
+			return "magnet:?xt=urn:btih:" + text_prefix + text_suffix;
 		}
 		
 		// javascript:loadOrAlert('WVOPRHRPFSCLAW7UWHCXCH7QNQIU6TWG')
