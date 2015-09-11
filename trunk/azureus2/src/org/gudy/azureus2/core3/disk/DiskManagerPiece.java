@@ -74,7 +74,7 @@ DiskManagerPiece
     
     public boolean		isNeedsCheck();
 
-    public int			getFirstFileIndex();
+    public boolean		spansFiles();
     
 	public boolean		calcDone();
 	/** @return true when the hash check has passed and the DiskManager has asyncronously updated the Done status.

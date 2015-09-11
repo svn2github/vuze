@@ -177,12 +177,12 @@ public class DiskManagerPieceImpl
 		return false;
 	}
 
-	public int			
-	getFirstFileIndex()
+	public boolean			
+	spansFiles()
 	{
 		DMPieceList pieceList = diskManager.getPieceList(pieceNumber);
 		
-		return( pieceList.get(0).getFile().getIndex());
+		return( pieceList.size() > 1 );
 	}
 	 
 	public void clearNeeded()

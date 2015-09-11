@@ -914,9 +914,7 @@ public class GeneralView
 	    		update_skipped 		= false;
 	      		update_boundaries	= false;
 	    	}
-	    	
-	      	int	fileIndex = 0;
-	      	
+	    		      	
 	 		for (int i=0;i<nbPieces;i++){
 	      		 	
 	 			DiskManagerPiece	piece = dm_pieces[i];
@@ -932,11 +930,9 @@ public class GeneralView
 	 			}
 	 			
 	 			if ( update_boundaries ){
-		 			int ffi = piece.getFirstFileIndex();
 		 			
-		 			if ( ffi != fileIndex ){
+	 				if ( piece.spansFiles()){
 		 				state |= PS_FILE_BOUNDARY;
-		 				fileIndex = ffi;
 		 			}
 	 			}else{
 	 				state |= oldPiecesState[i]&PS_FILE_BOUNDARY;
