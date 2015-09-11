@@ -879,31 +879,42 @@ public class GeneralView
         final int PS_FILE_BOUNDARY	= 0x00000004;
         
 	    if ( dm != null ){
-	      		      	
+	      		     	    		    		    		
 	      	DiskManagerPiece[]	dm_pieces = dm.getPieces();
 	      	
 	      	boolean	update_skipped;
 	      	boolean	update_boundaries;
 	      	
-	      	if ( !valid ){
-	      		update_skipped 		= true;
-	      		update_boundaries	= true;
-	      	}else{
-	      		if ( piecesStateFileBoundariesDone ){
-	      			update_boundaries = false;
-	      		}else{
-	      			piecesStateFileBoundariesDone = true;
-	      			update_boundaries = true;
-	      		}
-	      		long marker = dm.getPriorityChangeMarker();
-	      		if ( marker == piecesStateSkippedMarker ){
-	      			update_skipped = false;
-	      		}else{
-	      			piecesStateSkippedMarker = marker;
-	      			update_skipped = true;
-	      		}
-	      	}
-	      	
+	      		// ensure disk manager is in a decent state before we start poking about as during 
+	      		// allocation the checking of skipped status is not reliable
+
+	    	int dm_state = dm.getState();
+
+	    	if ( dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY ){
+
+		      	if ( !valid ){
+		      		update_skipped 		= true;
+		      		update_boundaries	= true;
+		      	}else{
+		      		if ( piecesStateFileBoundariesDone ){
+		      			update_boundaries = false;
+		      		}else{
+		      			piecesStateFileBoundariesDone = true;
+		      			update_boundaries = true;
+		      		}
+		      		long marker = dm.getPriorityChangeMarker();
+		      		if ( marker == piecesStateSkippedMarker ){
+		      			update_skipped = false;
+		      		}else{
+		      			piecesStateSkippedMarker = marker;
+		      			update_skipped = true;
+		      		}
+		      	}
+	    	}else{
+	    		update_skipped 		= false;
+	      		update_boundaries	= false;
+	    	}
+	    	
 	      	int	fileIndex = 0;
 	      	
 	 		for (int i=0;i<nbPieces;i++){
@@ -940,7 +951,7 @@ public class GeneralView
 	 					valid	= false;
 	 				}
 	 			}
-	       }
+	 		}
 	    }
 
 	    piecesStateCache	= newPiecesState;
