@@ -142,7 +142,11 @@ public class DiskManagerPieceImpl
     {
 		final DMPieceList pieceList =diskManager.getPieceList(pieceNumber);
 		for (int i =0; i <pieceList.size(); i++){
-			if ( !pieceList.get(i).getFile().isSkipped()){
+			final DiskManagerFileInfoImpl file =pieceList.get(i).getFile();
+			if ( file == null ){
+				return( false );	// can be null during diskmanager startup
+			}
+			if ( !file.isSkipped()){
 				return( false );
 			}
 		}
