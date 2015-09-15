@@ -1635,6 +1635,9 @@ public class TableColumnImpl
 		setNameOverride( null );
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.table.TableColumnCore#addDataSourceType(java.lang.Class)
+	 */
 	public void addDataSourceType(Class<?> cla) {
 		if (cla == null) {
 			return;
@@ -1664,6 +1667,9 @@ public class TableColumnImpl
 		return false;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.tables.TableColumn#getForDataSourceType()
+	 */
 	public Class getForDataSourceType() {
 		Class[] forPluginDataSourceTypes = getForDataSourceTypes();
 		return forPluginDataSourceTypes.length > 0 ? forPluginDataSourceTypes[0] : null;
