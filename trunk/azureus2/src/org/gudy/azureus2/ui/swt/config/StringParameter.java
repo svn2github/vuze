@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
@@ -80,7 +81,11 @@ public class StringParameter extends Parameter{
     	}
     };
     String value = COConfigurationManager.getStringParameter(name, defaultValue);
-    inputField.setText(value);
+    try {
+    	inputField.setText(value);
+    } catch (IllegalArgumentException e) {
+    	Debug.out("IllegalArgumentException for value of " + name);
+    }
     inputField.addListener(SWT.Verify, new Listener() {
         public void handleEvent(Event e) {
           e.doit = COConfigurationManager.verifyParameter(name, e.text );
