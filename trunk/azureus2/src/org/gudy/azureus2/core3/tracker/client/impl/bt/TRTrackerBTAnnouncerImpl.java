@@ -3430,7 +3430,14 @@ TRTrackerBTAnnouncerImpl
 				     	
 			     			// explicit failure from the tracker
 			     	
-						failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
+						if (failure_reason_bytes == null) {
+				 			Debug.printStackTrace( e );
+							
+							failure_reason = "error: " + e.getMessage();
+
+						} else {
+  						failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
+						}
                         				
 						return( 
 								new TRTrackerAnnouncerResponseImpl( 
