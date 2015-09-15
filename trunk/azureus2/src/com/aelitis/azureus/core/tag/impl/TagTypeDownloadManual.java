@@ -74,7 +74,7 @@ TagTypeDownloadManual
 	
 		throws TagException
 	{
-		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
+		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, true, true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
 			
 		new_tag.setSupportsTagTranscode( true );
 		new_tag.setSupportsFileLocation( true );
@@ -92,7 +92,7 @@ TagTypeDownloadManual
 		int		tag_id,
 		Map		details )
 	{
-		TagDownloadWithState new_tag = new TagDownloadWithState( this, tag_id, details, true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
+		TagDownloadWithState new_tag = new TagDownloadWithState( this, tag_id, details, true, true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
 		
 		new_tag.setSupportsTagTranscode( true );
 		new_tag.setSupportsFileLocation( true );

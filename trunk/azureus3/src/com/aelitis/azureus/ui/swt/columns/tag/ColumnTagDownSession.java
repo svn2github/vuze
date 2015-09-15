@@ -58,24 +58,25 @@ public class ColumnTagDownSession
 				
 				long[] up = rl.getTagSessionDownloadTotal();
 		
-				long tot = 0;
-				
 				if ( up != null ){
+
+					long tot = 0;
+					
 					for ( long l: up ){
 						
 						tot += l;
 					}
+					
+					if (!cell.setSortValue(tot) && cell.isValid()) {
+						return;
+					}
+			
+					if (!cell.isShown()) {
+						return;
+					}
+					
+					cell.setText( DisplayFormatters.formatByteCountToKiBEtc( tot ));
 				}
-				
-				if (!cell.setSortValue(tot) && cell.isValid()) {
-					return;
-				}
-		
-				if (!cell.isShown()) {
-					return;
-				}
-				
-				cell.setText( DisplayFormatters.formatByteCountToKiBEtc( tot ));
 			}
 		}
 	}

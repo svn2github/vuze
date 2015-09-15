@@ -149,6 +149,7 @@ TagDownloadWithState
 	private boolean	do_rates;
 	private boolean	do_up;
 	private boolean	do_down;
+	private boolean	do_bytes;
 	
 	private int		run_states;
 	
@@ -170,11 +171,12 @@ TagDownloadWithState
 		boolean			do_rates,
 		boolean			do_up,
 		boolean			do_down,
+		boolean			do_bytes,
 		int				run_states )
 	{
 		super( tt, tag_id, name );
 		
-		init( do_rates, do_up, do_down, run_states );
+		init( do_rates, do_up, do_down, do_bytes, run_states );
 	}
 	
 	protected
@@ -185,11 +187,12 @@ TagDownloadWithState
 		boolean			do_rates,
 		boolean			do_up,
 		boolean			do_down,
+		boolean			do_bytes,
 		int				run_states )
 	{
 		super( tt, tag_id, details );
 		
-		init( do_rates, do_up, do_down, run_states );
+		init( do_rates, do_up, do_down, do_bytes, run_states );
 	}
 	
 	private void
@@ -197,11 +200,14 @@ TagDownloadWithState
 		boolean		_do_rates,
 		boolean		_do_up,
 		boolean		_do_down,
+		boolean		_do_bytes,
 		int			_run_states )
 	{
 		do_rates	= _do_rates;
 		do_up		= _do_up;
 		do_down		= _do_down;
+		do_bytes	= _do_bytes;
+		
 		run_states	= _run_states;
 		
 		if ( do_up ){
@@ -673,24 +679,28 @@ TagDownloadWithState
 	protected long[]
 	getTagSessionUploadTotalCurrent()
 	{	
-		if ( getTagType().getTagType() == TagType.TT_DOWNLOAD_STATE ){
+		if ( do_bytes && do_up ){
+					
+			return( new long[]{ session_up });
+			
+		}else{
 			
 			return( null );
 		}
-		
-		return( new long[]{ session_up });
 	}
 	
 	@Override
 	protected long[]
 	getTagSessionDownloadTotalCurrent()
 	{	
-		if ( getTagType().getTagType() == TagType.TT_DOWNLOAD_STATE ){
+		if ( do_bytes && do_down ){
+		
+			return( new long[]{ session_down });
+
+		}else{
 			
 			return( null );
 		}
-		
-		return( new long[]{ session_down });
 	}
 	
 	public void
