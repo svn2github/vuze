@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperClientResolver;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperImpl;
@@ -53,6 +54,7 @@ import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
+import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -222,7 +224,7 @@ public class TrackerStatus {
   		if ( scrapeURL == null ){
   			if (Logger.isEnabled()) {
 					Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
-						"TrackerStatus: scrape cancelled.. url null"));
+						"TrackerStatus: " + scrapeURL + ": scrape cancelled.. url null"));
   			}
       
   			return;
@@ -253,7 +255,7 @@ public class TrackerStatus {
 	    	if( !force && lMainNextScrapeStartTime > SystemTime.getCurrentTime() ) {
 	  			if (Logger.isEnabled()) {
 						Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
-							"TrackerStatus: scrape cancelled.. not forced and still "
+							"TrackerStatus: " + scrapeURL + ": scrape cancelled.. not forced and still "
 									+ (lMainNextScrapeStartTime - SystemTime.getCurrentTime())
 									+ "ms"));
 	  			}
@@ -267,7 +269,7 @@ public class TrackerStatus {
 					MessageText.getString(SS + "scraping.queued"));
   			if (Logger.isEnabled()) {
 					Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
-						"TrackerStatus: setting to scraping"));
+						"TrackerStatus: " + scrapeURL + ": setting to scraping"));
   			}
 
 	    	responsesToUpdate.add(response);
@@ -299,7 +301,7 @@ public class TrackerStatus {
 			    						MessageText.getString(SS + "scraping.queued"));
 			      			if (Logger.isEnabled()) {
 			    					Logger.log(new LogEvent(TorrentUtils.getDownloadManager(r.getHash()), LOGID,
-			    						"TrackerStatus: setting to scraping via group scrape"));
+			    						"TrackerStatus:" + scrapeURL + ": setting to scraping via group scrape"));
 			      			}
 			            
 			            responsesToUpdate.add(r);
@@ -398,7 +400,7 @@ public class TrackerStatus {
 
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
-								"TrackerStatus: scraping, single_hash_scrapes = "
+								"TrackerStatus: " + scrapeURL + ": scraping, single_hash_scrapes = "
 										+ bSingleHashScrapes));
 
 					if (!scraper.isNetworkEnabled(hash, tracker_url)) {
@@ -642,7 +644,30 @@ public class TrackerStatus {
 				}
 
 				if (mapFiles == null || mapFiles.size() == 0) {
+					
+					if (bSingleHashScrapes && map.containsKey("complete") && map.containsKey("incomplete")) {
+						int complete = MapUtils.getMapInt(map, "complete", 0);
+						int incomplete = MapUtils.getMapInt(map, "incomplete", 0);
+						TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) activeResponses
+								.get(0);
+						response.setPeers(incomplete);
+						response.setSeeds(complete);
+						
+						int minRequestInterval = MapUtils.getMapInt(map, "interval", FAULTY_SCRAPE_RETRY_INTERVAL);
 
+						int scrapeInterval = TRTrackerScraperResponseImpl
+								.calcScrapeIntervalSecs(minRequestInterval, complete);
+
+						long nextScrapeTime = SystemTime.getCurrentTime()
+								+ (scrapeInterval * 1000);
+						response.setNextScrapeStartTime(nextScrapeTime);
+						response.setStatus(TRTrackerScraperResponse.ST_ONLINE, "Tracker returned Announce from scrape call");
+						response.setScrapeStartTime(scrapeStartTime);
+						
+						scraper.scrapeReceived(response);
+						return;
+					}
+					
 					// azureus extension here to handle "failure reason" returned for
 					// scrapes
 
