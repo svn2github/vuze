@@ -2344,7 +2344,36 @@ public class GlobalManagerImpl
 
 		  if ( persistent ){
 
-			  List file_priorities = (List) mDownload.get("file_priorities");
+		  	List file_priorities;
+			  Map map_file_priorities = (Map) mDownload.get("file_priorities_c");
+			  
+			  if (map_file_priorities != null) {
+					// We don't know how many files, so we need to build array
+					Long[] array_file_priorities = new Long[0];
+			  	for (Object key : map_file_priorities.keySet()) {
+						long priority = Long.parseLong(key.toString());
+						String indexRanges = new String((byte[]) map_file_priorities.get(key), "utf-8");
+						String[] rangesStrings = indexRanges.split(",");
+						
+						if (array_file_priorities.length == 0 && rangesStrings.length > 1) {
+							// going to be at least the length of # of ranges
+							array_file_priorities = new Long[rangesStrings.length];
+						}
+						
+						for (String rangeString : rangesStrings) {
+							String[] ranges = rangeString.split("-");
+							int start = Integer.parseInt(ranges[0]);
+							int end = ranges.length == 1 ? start : Integer.parseInt(ranges[1]);
+							if (end >= array_file_priorities.length) {
+								array_file_priorities = enlargeLongArray(array_file_priorities, end + 1);
+							}
+							Arrays.fill(array_file_priorities, start, end + 1, priority);
+						}
+					}
+			  	file_priorities = Arrays.asList(array_file_priorities);
+			  } else {
+			  	file_priorities = (List) mDownload.get("file_priorities");
+			  }
 
 			  final DownloadManager dm = 
 				  DownloadManagerFactory.create(
@@ -2367,7 +2396,17 @@ public class GlobalManagerImpl
 	  }
 	  
 	  return( null );
-  }  
+  }
+  
+  public static Long[] enlargeLongArray(Long[] array, int expandTo) {
+		Long[] new_array = new Long[expandTo];
+		if (array.length > 0) {
+			System.arraycopy(array, 0,
+					new_array, 0,
+					array.length);
+		}
+		return new_array;
+  }
   
   public Map
   exportDownloadStateToMap(
@@ -2467,7 +2506,33 @@ public class GlobalManagerImpl
 	  dm.saveDownload();
 
 	  List file_priorities = (List)dm.getData( "file_priorities" );
-	  if ( file_priorities != null ) dmMap.put( "file_priorities" , file_priorities );
+	  if ( file_priorities != null ) {
+	  	int count = file_priorities.size();
+	  	Map<String, String> map_file_priorities = new HashMap<String, String>();
+	  	Long priority = (Long) file_priorities.get(0);
+	  	int posStart = 0;
+	  	int posEnd = 0;
+	  	while (posStart < count) {
+	  		priority = (Long) file_priorities.get(posStart);
+	  		while (posEnd + 1 < count && (Long) file_priorities.get(posEnd + 1) == priority) {
+	  			posEnd++;
+	  		}
+	  		String key = priority.toString();
+	  		String val = map_file_priorities.get(key);
+	  		if (val == null) {
+	  			val = "" + posStart;
+	  		} else {
+	  			val += "," + posStart;
+	  		}
+	  		if (posStart != posEnd) {
+	  			 val += "-" + posEnd;
+	  		}
+	  		map_file_priorities.put(key, val);
+	  		posStart = posEnd + 1;
+	  	}
+	  	//dmMap.put( "file_priorities" , file_priorities );
+	  	dmMap.put( "file_priorities_c" , map_file_priorities );
+	  }
 
 	  dmMap.put( "allocated", new Long( dm.isDataAlreadyAllocated() == true ? 1 : 0 ) );
 

@@ -25,6 +25,8 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -40,7 +42,10 @@ import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
@@ -257,7 +262,7 @@ public class FilesViewMenuUtil
 
 		boolean open 			= true;
 		boolean all_compact 	= true;
-		boolean all_skipped 	= true;
+		boolean all_dnd_not_deleted 	= true;
 		boolean all_high_pri 	= true;
 		boolean all_normal_pri 	= true;
 		boolean all_low_pri 	= true;
@@ -274,15 +279,19 @@ public class FilesViewMenuUtil
 				open = false;
 			}
 
-			if (all_compact && storage_types[i] != DiskManagerFileInfo.ST_COMPACT && storage_types[i] != DiskManagerFileInfo.ST_REORDER_COMPACT ) {
+			boolean isCompact = storage_types[i] == DiskManagerFileInfo.ST_COMPACT || storage_types[i] == DiskManagerFileInfo.ST_REORDER_COMPACT;
+			if (all_compact && !isCompact) {
 				all_compact = false;
 			}
 
-			if (all_skipped || all_high_pri || all_normal_pri || all_low_pri ) {
+			if (all_dnd_not_deleted || all_high_pri || all_normal_pri || all_low_pri ) {
 				if (file_info.isSkipped()) {
 					all_high_pri = all_normal_pri = all_low_pri = false;
+					if (isCompact) {
+						all_dnd_not_deleted = false;
+					}
 				} else {
-					all_skipped = false;
+					all_dnd_not_deleted = false;
 
 					// Only do this check if we need to.
 					if ( all_high_pri || all_normal_pri || all_low_pri ) {
@@ -324,7 +333,7 @@ public class FilesViewMenuUtil
 		
 		itemPersonalShare.setEnabled( all_complete && dmi_array.length == 1 );
 		
-		itemSkipped.setEnabled(!all_skipped);
+		itemSkipped.setEnabled(!all_dnd_not_deleted);
 
 		itemHigh.setEnabled(!all_high_pri);
 
@@ -423,7 +432,11 @@ public class FilesViewMenuUtil
 
 		String save_dir = null;
 		if (!rename_it && retarget_it) {
-			save_dir = askForSaveDirectory((DiskManagerFileInfo) datasources[0]);
+			// better count (text based on rename/retarget)
+			String s = MessageText.getString("label.num_selected", new String[] {
+				Integer.toString(datasources.length)
+			});
+			save_dir = askForSaveDirectory((DiskManagerFileInfo) datasources[0], s);
 			if (save_dir == null) {
 				return;
 			}
@@ -575,25 +588,26 @@ public class FilesViewMenuUtil
 				mapDMtoDMFI.put(dm, listFileInfos);
 			}
 			listFileInfos.add(file_infos[i]);
-
-			if ( type == PRIORITY_NORMAL ){
-				
-				file_infos[i].setPriority( 0 );
-	
-			}else if (type == PRIORITY_HIGH ){
-				
-				file_infos[i].setPriority( 1 );
-				
-			}else if (type == PRIORITY_LOW ){
-				
-				file_infos[i].setPriority( -1 );
-			}
 		}
 		boolean skipped = (type == PRIORITY_SKIPPED || type == PRIORITY_DELETE);
 		boolean delete_action = (type == PRIORITY_DELETE);
 		for (DownloadManager dm : mapDMtoDMFI.keySet()) {
 			ArrayList<DiskManagerFileInfo> list = mapDMtoDMFI.get(dm);
 			DiskManagerFileInfo[] fileInfos = list.toArray(new DiskManagerFileInfo[0]);
+			
+			if ( type == PRIORITY_NORMAL ){
+				
+				dm.setFilePriorities(fileInfos, 0);
+	
+			}else if (type == PRIORITY_HIGH ){
+				
+				dm.setFilePriorities(fileInfos, 1);
+				
+			}else if (type == PRIORITY_LOW ){
+				
+				dm.setFilePriorities(fileInfos, -1);
+			}
+			
 			boolean paused = setSkipped(dm, fileInfos, skipped, delete_action);
 
 			if (paused) {
@@ -777,13 +791,28 @@ public class FilesViewMenuUtil
 		return fDialog.open();
 	}
 
-	private static String askForSaveDirectory(DiskManagerFileInfo fileInfo) {
-		DirectoryDialog dDialog = new DirectoryDialog(Utils.findAnyShell(),
+	private static String askForSaveDirectory(DiskManagerFileInfo fileInfo, String message) {
+		// On Windows, Directory dialog doesn't seem to get mouse scroll focus
+		// unless we have a shell.
+		Shell anyShell = Utils.findAnyShell();
+		Shell shell = new Shell(anyShell.getDisplay(), SWT.NO_TRIM);
+		shell.setSize(1, 1);
+		shell.open();
+		
+		DirectoryDialog dDialog = new DirectoryDialog(shell,
 				SWT.SYSTEM_MODAL | SWT.SAVE);
 		File current_dir = fileInfo.getFile(true).getParentFile();
+		if (!current_dir.isDirectory()) {
+			current_dir = fileInfo.getDownloadManager().getSaveLocation();
+		}
 		dDialog.setFilterPath(current_dir.getPath());
 		dDialog.setText(MessageText.getString("FilesView.rename.choose.path.dir"));
-		return dDialog.open();
+		if (message != null) {
+			dDialog.setMessage(message);
+		}
+		String open = dDialog.open();
+		shell.close();
+		return open;
 	}
 
 	private static boolean askCanOverwrite(File file) {
@@ -827,6 +856,7 @@ public class FilesViewMenuUtil
 
 			FileUtil.runAsTask(new AzureusCoreOperationTask() {
 				public void run(AzureusCoreOperation operation) {
+					// xxx download must be stoppped
 					result[0] = fileInfo.setLink(target);
 
 					manager.setUserData("is_changing_links", false);

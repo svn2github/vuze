@@ -778,4 +778,13 @@ DownloadManager
     public void
     fireGlobalManagerEvent(
     	int		event_type );
+
+		/**
+		 * Sets the priority for an array for files
+		 * 
+		 * @param fileInfos
+		 * @param type
+		 * @since 5.6.2.1
+		 */
+		public void setFilePriorities(DiskManagerFileInfo[] fileInfos, int type);
 }

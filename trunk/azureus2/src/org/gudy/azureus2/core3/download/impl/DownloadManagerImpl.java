@@ -2241,7 +2241,7 @@ DownloadManagerImpl
 	}
 
 	public void setTorrentSaveDir(String new_dir, String dl_name) {
-		File old_location = torrent_save_location;
+		File old_location = getSaveLocation(); // torrent_save_location;
 		File new_location = new File(new_dir, dl_name);
 		
 		if (new_location.equals(old_location)){
@@ -2254,6 +2254,10 @@ DownloadManagerImpl
   		// The UI can call it as long as the torrent is stopped.
   		// Calling it while a download is active will in general result in unpredictable behaviour!
  
+		if (torrent.isSimpleTorrent()) {
+			DiskManagerFileInfo fileInfo = controller.getDiskManagerFileInfoSet().getFiles()[0];
+			fileInfo.setLinkAtomic(new_location);
+		}
 		updateFileLinks( old_location, new_location);
 
 		torrent_save_location = new_location;
@@ -3857,7 +3861,6 @@ DownloadManagerImpl
 		  } else if (torrent.isSimpleTorrent()) {
 			  
 			  
-			  
 			  if (controller.getDiskManagerFileInfo()[0].setLinkAtomic(new_save_location)) {
 				  setTorrentSaveDir( new_save_location.getParentFile().toString(), new_save_location.getName());
 			  } else {throw new DownloadManagerException( "rename operation failed");}
@@ -5396,5 +5399,16 @@ DownloadManagerImpl
 		int eventType ) 
 	{
 		globalManager.fireGlobalManagerEvent( eventType, this );
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.download.DownloadManager#setFilePriorities(org.gudy.azureus2.core3.disk.DiskManagerFileInfo[], int)
+	 */
+	public void setFilePriorities(DiskManagerFileInfo[] fileInfos, int priority) {
+		// TODO: Insted of looping, which fires off a lot of events, 
+		//       do it more directly, and fire needed events once, at end
+		for (DiskManagerFileInfo fileInfo : fileInfos) {
+			fileInfo.setPriority(priority);
+		}
 	}
 }
