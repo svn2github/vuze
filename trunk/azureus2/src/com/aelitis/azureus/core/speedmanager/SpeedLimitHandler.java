@@ -179,6 +179,11 @@ SpeedLimitHandler
 
 		logger = plugin_interface.getLogger().getTimeStampedChannel( "Speed Limit Handler" );
 		
+		if ( Constants.isCVSVersion()){
+			
+			logger.setDiagnostic( 1024*1024, true);
+		}
+		
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
 		final BasicPluginViewModel model = 
@@ -5553,9 +5558,14 @@ SpeedLimitHandler
 									
 									my_target = current_rate + hp_diff;
 									
-									if ( my_target < phase_1_tag_rate ){
+										// make sure that the new target is definitely a bit lower than it used to be
+										// so that some bandwidth from this tag gets hopefully shunted 'left'
+									
+									my_target = Math.min( my_target, phase_1_tag_rate - 2048 );
+									
+									if ( my_target <= 1024 ){
 										
-										my_target = phase_1_tag_rate;
+										my_target = -1;	 																					
 									}
 									
 									consec_limits_hit++;
