@@ -695,6 +695,8 @@ public abstract class BaseMdiEntry
 		}
 
 		try {
+			// In theory, c.setVisible() will trigger TYPE_FOCUSGAINED, but let's
+			// call it anyway (it will be ignored if focus is already gained)
 			triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 		} catch (Exception e) {
 			Debug.out(e);
