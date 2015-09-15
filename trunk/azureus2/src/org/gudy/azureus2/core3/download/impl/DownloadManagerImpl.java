@@ -2241,7 +2241,7 @@ DownloadManagerImpl
 	}
 
 	public void setTorrentSaveDir(String new_dir, String dl_name) {
-		File old_location = getSaveLocation(); // torrent_save_location;
+		File old_location = torrent_save_location;
 		File new_location = new File(new_dir, dl_name);
 		
 		if (new_location.equals(old_location)){
