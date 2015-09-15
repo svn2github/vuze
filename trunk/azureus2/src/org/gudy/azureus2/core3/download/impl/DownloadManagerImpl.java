@@ -2254,10 +2254,6 @@ DownloadManagerImpl
   		// The UI can call it as long as the torrent is stopped.
   		// Calling it while a download is active will in general result in unpredictable behaviour!
  
-		if (torrent.isSimpleTorrent()) {
-			DiskManagerFileInfo fileInfo = controller.getDiskManagerFileInfoSet().getFiles()[0];
-			fileInfo.setLinkAtomic(new_location);
-		}
 		updateFileLinks( old_location, new_location);
 
 		torrent_save_location = new_location;
