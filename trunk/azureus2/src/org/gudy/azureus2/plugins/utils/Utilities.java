@@ -336,10 +336,11 @@ Utilities
 	 * Returns a negative integer, zero, or a positive integer as the first 
 	 * argument is less than, equal to, or greater than the second.
 	 * <p>
-	 * Example:<br>
+	 * Example:<pre>
 	 * compareVersions("1.1.0.0", "1.1.2.0"); // -
 	 * compareVersions("1.1.0.0", "1.1.0"); // 0
 	 * compareVersions("1.1.1.1", "1.1.1"); // +
+	 * </pre>
 	 * 
 	 * @param v1 the first version string to be compared 
 	 * @param v2 the second version string to be compared
