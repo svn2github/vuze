@@ -252,6 +252,20 @@ public class SBC_TagsOverview
 					}
 				});
 
+		tableManager.registerColumn(Tag.class, ColumnTagUpSession.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagUpSession(column);
+					}
+				});
+		
+		tableManager.registerColumn(Tag.class, ColumnTagDownSession.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagDownSession(column);
+					}
+				});
+		
 		tableManager.registerColumn(Tag.class, ColumnTagRSSFeed.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {

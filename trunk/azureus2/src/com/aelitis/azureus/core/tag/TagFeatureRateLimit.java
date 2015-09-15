@@ -53,6 +53,12 @@ TagFeatureRateLimit
 	public int
 	getTagCurrentDownloadRate();
 	
+	public long[]
+	getTagSessionUploadTotal();
+	
+	public long[]
+	getTagSessionDownloadTotal();
+
 	public void
 	setRecentHistoryRetention(
 		boolean	enable );

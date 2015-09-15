@@ -235,6 +235,17 @@ TagTypeBase
 		}
 	}
 	
+	protected void
+	closing()
+	{
+		List<Tag>	tags = getTags();
+		
+		for ( Tag t: tags ){
+			
+			((TagBase)t).closing();
+		}
+	}
+	
 	public Tag
 	getTag(
 		int	tag_id )

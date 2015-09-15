@@ -43,6 +43,7 @@ import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagListener;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 
 public class 
@@ -55,6 +56,9 @@ TagDownloadWithState
 	
 	private int	upload_rate		= -1;
 	private int	download_rate	= -1;
+	
+	private long session_up;
+	private long session_down;
 	
 	private long last_rate_update;
 	
@@ -101,6 +105,7 @@ TagDownloadWithState
 			updateBytesUsed(
 				int	used )
 			{
+				session_up += used;
 			}
 		};
 
@@ -137,6 +142,7 @@ TagDownloadWithState
 			updateBytesUsed(
 					int	used )
 			{
+				session_down += used;
 			}
 		}; 
 		
@@ -661,6 +667,30 @@ TagDownloadWithState
 	getTagUploadPriority()
 	{
 		return( upload_priority );
+	}
+	
+	@Override
+	protected long[]
+	getTagSessionUploadTotalCurrent()
+	{	
+		if ( getTagType().getTagType() == TagType.TT_DOWNLOAD_STATE ){
+			
+			return( null );
+		}
+		
+		return( new long[]{ session_up });
+	}
+	
+	@Override
+	protected long[]
+	getTagSessionDownloadTotalCurrent()
+	{	
+		if ( getTagType().getTagType() == TagType.TT_DOWNLOAD_STATE ){
+			
+			return( null );
+		}
+		
+		return( new long[]{ session_down });
 	}
 	
 	public void

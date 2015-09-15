@@ -1566,6 +1566,11 @@ TagManagerImpl
 	private void
 	destroy()
 	{
+		for ( TagType tt: tag_types ){
+			
+			((TagTypeBase)tt).closing();
+		}
+		
 		writeConfig();
 	}
 	

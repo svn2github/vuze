@@ -21,7 +21,9 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -161,6 +163,10 @@ TagBase
 	protected void
 	addTag()
 	{
+			// grab initial value
+		
+		loadTransientStuff();
+		
 		if ( getManager().isEnabled()){
 		
 			tag_type.addTag( this );
@@ -786,6 +792,12 @@ TagBase
 		tag_type.taggableSync( this );
 	}
 	
+	protected void
+	closing()
+	{
+		
+	}
+	
 	public void
 	removeTag()
 	{
@@ -797,6 +809,10 @@ TagBase
 		
 			tag_type.getTagManager().checkRSSFeeds( this, false );
 		}
+		
+			// capture any last value in case tag gets recreated (ipsets come to mind...)
+		
+		saveTransientStuff();
 	}
 	
 	public String
@@ -905,6 +921,110 @@ TagBase
 		String[]	value )
 	{
 		return( tag_type.writeStringListAttribute( this, attr, value ));
+	}
+	
+	private static Map<Long,long[][]>	session_cache = new HashMap<Long, long[][]>();
+	
+	private long[]						session_up;
+	private long[]						session_down;
+	
+	private void
+	loadTransientStuff()
+	{
+		if ( tag_rl != null && tag_rl.supportsTagRates()){
+			
+			synchronized( session_cache ){
+				
+				long[][] entry = session_cache.get( getTagUID());
+				
+				if ( entry != null ){
+					
+					session_up 		= entry[0];
+					session_down 	= entry[1];
+				}
+			}
+		}
+	}
+	
+	private void
+	saveTransientStuff()
+	{
+		if ( tag_rl != null && tag_rl.supportsTagRates()){
+
+			long[] ups 		= getTagSessionUploadTotal();
+			long[] downs 	= getTagSessionDownloadTotal();
+					
+			synchronized( session_cache ){
+				
+				session_cache.put( getTagUID(), new long[][]{ ups, downs });
+			}
+		}
+	}
+	
+	public long[]
+	getTagSessionUploadTotal()
+	{
+		if ( tag_rl == null || !tag_rl.supportsTagRates()){
+			
+			return( null );
+		}
+				
+		long[] result =  getTagSessionUploadTotalCurrent();
+		
+		if ( result != null && session_up != null ){
+			
+			if ( result.length == session_up.length ){
+				
+				for ( int i=0;i<result.length;i++){
+					
+					result[i] += session_up[i];
+				}
+			}else{
+				
+				Debug.out( "derp" );
+			}
+		}
+		
+		return( result );
+	}
+	
+	protected long[]
+	getTagSessionUploadTotalCurrent()
+	{	
+		return( null );
+	}
+
+	public long[]
+	getTagSessionDownloadTotal()
+	{
+		if ( tag_rl == null || !tag_rl.supportsTagRates()){
+			
+			return( null );
+		}
+				
+		long[] result =  getTagSessionDownloadTotalCurrent();
+		
+		if ( result != null && session_down != null ){
+			
+			if ( result.length == session_down.length ){
+				
+				for ( int i=0;i<result.length;i++){
+					
+					result[i] += session_down[i];
+				}
+			}else{
+				
+				Debug.out( "derp" );
+			}
+		}
+		
+		return( result );
+	}
+	
+	protected long[]
+	getTagSessionDownloadTotalCurrent()
+	{	
+		return( null );
 	}
 	
 	private static final int HISTORY_MAX_SECS = 30*60;

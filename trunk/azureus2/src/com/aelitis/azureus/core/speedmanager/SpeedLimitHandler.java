@@ -5061,6 +5061,20 @@ SpeedLimitHandler
 				return( (int)send_rate.getAverage());
 			}
 			
+			@Override
+			protected long[]
+			getTagSessionUploadTotalCurrent()
+			{	
+				return( new long[]{ last_send_total });
+			}
+			
+			@Override
+			protected long[]
+			getTagSessionDownloadTotalCurrent()
+			{	
+				return( new long[]{ last_recv_total });
+			}
+			
 			public int
 			getTagDownloadLimit()
 			{
@@ -5102,6 +5116,7 @@ SpeedLimitHandler
 			{
 				return( false );
 			}
+			
 			
 			public int
 			getTagUploadPriority()
