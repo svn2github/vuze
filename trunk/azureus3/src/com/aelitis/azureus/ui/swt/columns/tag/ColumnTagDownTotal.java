@@ -23,10 +23,10 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 
-public class ColumnTagDownSession
+public class ColumnTagDownTotal
 	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
-	public static String COLUMN_ID = "tag.downsession";
+	public static String COLUMN_ID = "tag.downtotal";
 
 	public void 
 	fillTableColumnInfo(
@@ -40,7 +40,7 @@ public class ColumnTagDownSession
 	}
 
 	public 
-	ColumnTagDownSession(
+	ColumnTagDownTotal(
 		TableColumn column) 
 	{
 		column.setWidth(60);
@@ -56,7 +56,7 @@ public class ColumnTagDownSession
 			
 			if (rl.supportsTagRates()){
 				
-				long[] down = rl.getTagSessionDownloadTotal();
+				long[] down = rl.getTagDownloadTotal();
 		
 				if ( down != null ){
 

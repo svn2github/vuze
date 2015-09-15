@@ -69,6 +69,9 @@ TagBase
 	protected static final String	AT_RATELIMIT_MAX_SR	= "rl.maxsr";
 	protected static final String	AT_PROPERTY_PREFIX	= "pp.";
 	protected static final String	AT_EOA_PREFIX		= "eoa.";
+	protected static final String	AT_BYTES_UP			= "b.up";
+	protected static final String	AT_BYTES_DOWN		= "b.down";
+
 
 	private static final String[] EMPTY_STRING_LIST = {};
 	
@@ -150,8 +153,16 @@ TagBase
 			if ( this instanceof TagFeatureFileLocation ){
 				
 				tag_fl = (TagFeatureFileLocation)this;
-			}
+			}			
 		}
+	}
+		
+	protected void
+	initialized()
+	{
+		loadPersistentStuff();
+				
+		loadTransientStuff();
 	}
 	
 	public Tag
@@ -162,11 +173,7 @@ TagBase
 	
 	protected void
 	addTag()
-	{
-			// grab initial value
-		
-		loadTransientStuff();
-		
+	{		
 		if ( getManager().isEnabled()){
 		
 			tag_type.addTag( this );
@@ -790,12 +797,14 @@ TagBase
 		t_listeners.dispatch( TL_SYNC, null );
 		
 		tag_type.taggableSync( this );
+		
+		savePersistentStuff();
 	}
 	
 	protected void
 	closing()
 	{
-		
+		savePersistentStuff();
 	}
 	
 	public void
@@ -809,9 +818,7 @@ TagBase
 		
 			tag_type.getTagManager().checkRSSFeeds( this, false );
 		}
-		
-			// capture any last value in case tag gets recreated (ipsets come to mind...)
-		
+				
 		saveTransientStuff();
 	}
 	
@@ -925,6 +932,9 @@ TagBase
 	
 	private static Map<Long,long[][]>	session_cache = new HashMap<Long, long[][]>();
 	
+	private long[]						total_up_at_start;
+	private long[]						total_down_at_start;
+	
 	private long[]						session_up;
 	private long[]						session_down;
 	
@@ -939,8 +949,10 @@ TagBase
 				
 				if ( entry != null ){
 					
-					session_up 		= entry[0];
-					session_down 	= entry[1];
+					total_up_at_start	= entry[0];
+					total_down_at_start	= entry[1];
+					session_up 			= entry[2];
+					session_down 		= entry[3];
 				}
 			}
 		}
@@ -949,16 +961,130 @@ TagBase
 	private void
 	saveTransientStuff()
 	{
+			// ipset tags get removed and then re-added when the schedule is updated so we need to
+			// stash away their state and reload it when they get added back
+		
 		if ( tag_rl != null && tag_rl.supportsTagRates()){
 
-			long[] ups 		= getTagSessionUploadTotal();
-			long[] downs 	= getTagSessionDownloadTotal();
+			long[] session_up 		= getTagSessionUploadTotal();
+			long[] session_down 	= getTagSessionDownloadTotal();
 					
 			synchronized( session_cache ){
 				
-				session_cache.put( getTagUID(), new long[][]{ ups, downs });
+				session_cache.put( getTagUID(), new long[][]{ total_up_at_start, total_down_at_start, session_up, session_down });
 			}
 		}
+	}
+	
+	private void
+	loadPersistentStuff()
+	{
+		if ( tag_rl != null && tag_rl.supportsTagRates()){
+
+			String[] ups = readStringListAttribute( AT_BYTES_UP, null );
+			
+			if ( ups != null ){
+				
+				total_up_at_start = new long[ups.length];
+				
+				for ( int i=0;i<ups.length;i++){
+					
+					try{					
+						total_up_at_start[i] = Long.parseLong( ups[i] );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+			
+			String[] downs = readStringListAttribute( AT_BYTES_DOWN, null );
+			
+			if ( downs != null ){
+				
+				total_down_at_start = new long[downs.length];
+				
+				for ( int i=0;i<downs.length;i++){
+					
+					try{					
+						total_down_at_start[i] = Long.parseLong( downs[i] );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}
+	}
+	
+	private void
+	savePersistentStuff()
+	{
+		if ( tag_rl != null && tag_rl.supportsTagRates()){
+			
+			long[] session_up = getTagSessionUploadTotal();
+			
+			if ( session_up != null ){
+				
+				String[] ups = new String[session_up.length];
+				
+				for ( int i=0;i<ups.length;i++ ){
+					
+					long l = session_up[i];
+					
+					if ( total_up_at_start != null && total_up_at_start.length > i ){
+						
+						l += total_up_at_start[i];
+					}
+					
+					ups[i] = String.valueOf( l );
+				}
+				
+				writeStringListAttribute( AT_BYTES_UP, ups );
+			}
+			
+			long[] session_down = getTagSessionDownloadTotal();
+			
+			if ( session_down != null ){
+				
+				String[] downs = new String[session_down.length];
+				
+				for ( int i=0;i<downs.length;i++ ){
+					
+					long l = session_down[i];
+					
+					if ( total_down_at_start != null && total_down_at_start.length > i ){
+						
+						l += total_down_at_start[i];
+					}
+					
+					downs[i] = String.valueOf( l );
+				}
+				
+				writeStringListAttribute( AT_BYTES_DOWN, downs );
+			}
+		}
+	}
+	
+	public long[]
+	getTagUploadTotal()
+	{
+		long[] result = getTagSessionUploadTotal();
+		
+		if ( result != null ){
+			
+			if ( total_up_at_start != null && total_up_at_start.length == result.length ){
+				
+				for ( int i=0;i<result.length;i++ ){
+					
+					result[i] += total_up_at_start[i];
+				}
+			}
+		}
+		
+		return( result );
 	}
 	
 	public long[]
@@ -994,6 +1120,25 @@ TagBase
 		return( null );
 	}
 
+	public long[]
+	getTagDownloadTotal()
+	{
+		long[] result = getTagSessionDownloadTotal();
+		
+		if ( result != null ){
+			
+			if ( total_down_at_start != null && total_down_at_start.length == result.length ){
+				
+				for ( int i=0;i<result.length;i++ ){
+					
+					result[i] += total_down_at_start[i];
+				}
+			}
+		}
+		
+		return( result );
+	}
+	
 	public long[]
 	getTagSessionDownloadTotal()
 	{

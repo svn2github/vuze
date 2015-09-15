@@ -266,6 +266,20 @@ public class SBC_TagsOverview
 					}
 				});
 		
+		tableManager.registerColumn(Tag.class, ColumnTagUpTotal.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagUpTotal(column);
+					}
+				});
+		
+		tableManager.registerColumn(Tag.class, ColumnTagDownTotal.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagDownTotal(column);
+					}
+				});
+		
 		tableManager.registerColumn(Tag.class, ColumnTagRSSFeed.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {

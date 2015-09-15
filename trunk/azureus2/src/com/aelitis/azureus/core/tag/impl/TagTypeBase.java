@@ -204,6 +204,8 @@ TagTypeBase
 	addTag(
 		Tag	t )
 	{
+		((TagBase)t).initialized();
+		
 		tt_listeners.dispatch( TTL_ADD, t );
 	}
 	
