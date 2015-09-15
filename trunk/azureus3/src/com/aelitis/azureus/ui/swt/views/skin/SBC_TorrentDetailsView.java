@@ -25,27 +25,24 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.PeersView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -54,10 +51,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableView;
-import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
-import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
@@ -68,8 +62,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.DataSourceUtils;
 
@@ -90,16 +82,6 @@ public class SBC_TorrentDetailsView
 	private TabbedMdiInterface tabbedMDI;
 
 	private Composite parent;
-
-	private FilterCheckHandler filter_check_handler;
-
-	private volatile int selection_count = 0;
-	private volatile long selection_size;
-	private volatile long selection_done;
-	
-	private SWTSkinObjectTextbox soFilterTextBox;
-
-	private SWTSkinObjectText soInfoArea;
 
 	private MdiEntrySWT mdi_entry;
 
@@ -228,64 +210,7 @@ public class SBC_TorrentDetailsView
 				MenuFactory.buildTorrentMenu(menuTree);
 			}
 		});
-		
-		tabbedMDI.addListener(new MdiListener() {
-			public void mdiEntrySelected(MdiEntry newEntry, MdiEntry oldEntry) {
-				// TODO Auto-generated method stub
-				if (oldEntry != null) {
-  				MdiEntrySWT oldEntrySWT = ((MdiEntrySWT) oldEntry);
-  				UISWTViewEventListener listener = oldEntrySWT.getEventListener();
-  				if (listener instanceof UISWTViewEventListenerHolder) {
-  					listener = ((UISWTViewEventListenerHolder) listener).getDelegatedEventListener(oldEntrySWT);
-  				}
-  
-  				// unhook filtering
-  
-  				if (listener instanceof TableViewTab<?>
-  						&& listener instanceof TableViewFilterCheck<?>) {
-  
-  					TableViewTab<?> tvt = (TableViewTab<?>) listener;
-  
-  					TableViewSWT tv = tvt.getTableView();
-  
-  					if (tv != null) {
-  						tv.disableFilterCheck();
-  					}
-  				}
-				}
 
-				// hook in filtering
-
-				MdiEntrySWT newEntrySWT = ((MdiEntrySWT) newEntry);
-				UISWTViewEventListener listener = newEntrySWT.getEventListener();
-				if (listener instanceof TableViewTab
-						&& listener instanceof TableViewFilterCheck) {
-
-					TableViewTab tvt = (TableViewTab) listener;
-
-					TableViewFilterCheck delegate = (TableViewFilterCheck) tvt;
-
-					soFilterTextBox.setVisible(true);
-
-					filter_check_handler = new FilterCheckHandler(tvt, delegate);
-
-					tvt.enableFilterCheck(soFilterTextBox.getTextControl(),
-							filter_check_handler);
-
-				} else {
-					filter_check_handler = null;
-
-					soFilterTextBox.setVisible(false);
-				}
-
-				refresh();
-				if ( mdi_entry != null ){
-					mdi_entry.redraw();
-					ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());
-				}
-			}
-		});
-		
 		if (dataSource instanceof Object[]
 				&& ((Object[]) dataSource)[0] instanceof PEPeer) {
 			tabbedMDI.showEntryByID(PeersView.MSGID_PREFIX);
@@ -300,96 +225,8 @@ public class SBC_TorrentDetailsView
 
 	public void currentlySelectedContentChanged(
 			ISelectedContent[] currentContent, String viewId) {
-		selection_count = currentContent.length;
-
-		long	total_size 	= 0;
-		long	total_done	= 0;
-		
-		for ( ISelectedContent sc: currentContent ){
-			
-			DownloadManager dm = sc.getDownloadManager();
-			
-			if ( dm != null ){
-				
-				int	file_index = sc.getFileIndex();
-				
-				if ( file_index == -1 ){
-				
-					DiskManagerFileInfo[] file_infos = dm.getDiskManagerFileInfoSet().getFiles();
-					
-					for ( DiskManagerFileInfo file_info: file_infos ){
-						
-						if ( !file_info.isSkipped()){
-							
-							total_size 	+= file_info.getLength();
-							total_done	+= file_info.getDownloaded();
-						}
-					}
-				}else{
-					
-					DiskManagerFileInfo file_info = dm.getDiskManagerFileInfoSet().getFiles()[file_index];
-					
-					if ( !file_info.isSkipped()){
-					
-						total_size 	+= file_info.getLength();
-						total_done	+= file_info.getDownloaded();
-					}
-				}
-			}
-		}
-		
-		selection_size	= total_size;
-		selection_done	= total_done;
-		
-		if (filter_check_handler != null) {
-
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					filter_check_handler.updateHeader();
-				}
-			});
-		} else if (soInfoArea != null) {
-			TableView view = SelectedContentManager.getCurrentlySelectedTableView();
-			String s = "";
-			if (view != null) {
-				int total = view.size(false);
-
-				s = MessageText.getString("library.unopened.header"
-						+ (total > 1 ? ".p" : ""), new String[] {
-					String.valueOf(total)
-				});
-
-				if (selection_count > 1) {
-
-					s += getSelectionText();
-				}
-			}
-
-			soInfoArea.setText(s);
-		}
 	}
 	
-	private String
-	getSelectionText()
-	{
-		String str = ", " + 
-				MessageText.getString(
-				"label.num_selected", new String[]{ String.valueOf( selection_count )});
-		
-		if ( selection_size > 0 ){
-			
-			if ( selection_size == selection_done ){
-				
-				str += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
-			}else{
-				str += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_done ) + "/" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
-
-			}
-		}
-		
-		return( str );
-	}
-
 	/**
 	 * Called when view is visible
 	 */
@@ -481,101 +318,12 @@ public class SBC_TorrentDetailsView
 		refresh();
 	}
 
-	private class FilterCheckHandler
-		implements TableViewFilterCheck.TableViewFilterCheckEx<Object>
-	{
-		private TableViewTab<Object> tvt;
-
-		private TableViewFilterCheck delegate;
-
-		boolean enabled;
-
-		int value;
-
-		private FilterCheckHandler(TableViewTab<Object> _tvt,
-				TableViewFilterCheck _delegate)
-
-		{
-			tvt = _tvt;
-			delegate = _delegate;
-
-			updateHeader();
-		}
-
-		/* (non-Javadoc)
-		 * @see com.aelitis.azureus.ui.common.table.TableViewFilterCheck#filterCheck(java.lang.Object, java.lang.String, boolean)
-		 */
-		public boolean filterCheck(Object ds, String filter, boolean regex) {
-			return (delegate.filterCheck(ds, filter, regex));
-		};
-
-		public void filterSet(String filter) {
-			boolean was_enabled = enabled;
-
-			enabled = filter != null && filter.length() > 0;
-
-			delegate.filterSet(filter);
-
-			if (enabled != was_enabled) {
-
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						updateHeader();
-					}
-				});
-			}
-		}
-
-		public void viewChanged(TableView<Object> view) {
-			value = view.size(false);
-
-			if (enabled) {
-
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						updateHeader();
-					}
-				});
-			}
-		}
-
-		private void updateHeader() {
-			int total = manager.getNumFileInfos();
-
-			String s = MessageText.getString("library.unopened.header"
-					+ (total > 1 ? ".p" : ""), new String[] {
-				String.valueOf(total)
-			});
-
-			if (enabled) {
-
-				String extra = MessageText.getString("filter.header.matches1",
-						new String[] {
-							String.valueOf(value)
-						});
-
-				s += " " + extra;
-			}
-
-			if (selection_count > 1) {
-
-				s += getSelectionText();
-			}
-
-			if (soInfoArea != null) {
-				soInfoArea.setText(s);
-			}
-		}
-	}
-
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		SWTSkinObject soListArea = getSkinObject("torrentdetails-list-area");
 		if (soListArea == null) {
 			return null;
 		}
-		soFilterTextBox = (SWTSkinObjectTextbox) getSkinObject("torrentdetails-filter");
-		soInfoArea = (SWTSkinObjectText) getSkinObject("torrentdetails-info");
 
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 

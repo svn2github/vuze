@@ -30,22 +30,30 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BubbleTextBox;
+import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
@@ -57,14 +65,19 @@ import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.AlertsItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableViewFilterCheck.TableViewFilterCheckEx;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 
 
 /**
@@ -77,7 +90,7 @@ public class FilesView
 	implements TableDataSourceChangedListener, TableSelectionListener,
 	TableViewSWTMenuFillListener, TableRefreshListener, 
 	DownloadManagerStateAttributeListener, DownloadManagerListener,
-	TableLifeCycleListener, TableViewFilterCheck<DiskManagerFileInfo>, KeyListener
+	TableLifeCycleListener, TableViewFilterCheckEx<DiskManagerFileInfo>, KeyListener, ParameterListener
 {
 	private static boolean registeredCoreSubViews = false;
 	boolean refreshing = false;
@@ -122,7 +135,10 @@ public class FilesView
   private boolean	enable_tabs = true;
   
   public static boolean show_full_path;
-  public static boolean hide_dnd_files;
+  public boolean hide_dnd_files;
+
+	private volatile long selection_size;
+	private volatile long selection_done;
 
   static{
 	  COConfigurationManager.addAndFireParameterListener(
@@ -142,6 +158,10 @@ public class FilesView
 
   private TableViewSWT<DiskManagerFileInfo> tv;
 	private final boolean allowTabViews;
+	private Composite cTop;
+	private BubbleTextBox bubbleTextBox;
+	private Button btnShowDND;
+	private Label lblHeader;
   
 
   /**
@@ -168,10 +188,6 @@ public class FilesView
 	  		tv.setEnableTabViews(enable_tabs,true,null);
 		}
 		
-			// default filter to support meta-filter operations (e.g. hide dnd files)
-		
-		tv.enableFilterCheck( null, this );
-		
   		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
   		if (uiFunctions != null) {
   			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
@@ -193,6 +209,76 @@ public class FilesView
 		tv.addKeyListener(this);
 
 		return tv;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initComposite(org.eclipse.swt.widgets.Composite)
+	 */
+	@Override
+	public Composite initComposite(Composite composite) {
+		Composite parent = new Composite(composite, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		layout.marginHeight = layout.marginWidth = 0;
+		parent.setLayout(layout);
+
+		Layout compositeLayout = composite.getLayout();
+		if (compositeLayout instanceof GridLayout) {
+			parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		} else if (compositeLayout instanceof FormLayout) {
+			parent.setLayoutData(Utils.getFilledFormData());
+		}
+		
+		cTop = new Composite(parent, SWT.NONE);
+		
+		cTop.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
+		cTop.setLayout(new FormLayout());
+		
+		btnShowDND = new Button(cTop, SWT.CHECK);
+		Messages.setLanguageText(btnShowDND, "FilesView.hide.dnd");
+		btnShowDND.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				COConfigurationManager.setParameter("FilesView.hide.dnd", !hide_dnd_files);
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+    hide_dnd_files = COConfigurationManager.getBooleanParameter("FilesView.hide.dnd");
+		btnShowDND.setSelection(hide_dnd_files);
+		
+		lblHeader = new Label(cTop, SWT.CENTER);
+
+		bubbleTextBox = new BubbleTextBox(cTop, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL | SWT.SINGLE);
+		bubbleTextBox.getTextWidget().setMessage(MessageText.getString("TorrentDetailsView.filter"));
+		
+		FormData fd = Utils.getFilledFormData();
+		fd.left = null;
+		bubbleTextBox.getParent().setLayoutData(fd);
+		
+		fd = new FormData();
+		fd.top = new FormAttachment(bubbleTextBox.getParent(), 10, SWT.CENTER);
+		fd.left = new FormAttachment(0, 0);
+		btnShowDND.setLayoutData(fd);
+
+		fd = new FormData();
+		fd.top = new FormAttachment(bubbleTextBox.getParent(), 10, SWT.CENTER);
+		fd.left = new FormAttachment(btnShowDND, 10);
+		fd.right = new FormAttachment(bubbleTextBox.getParent(), -10);
+		lblHeader.setLayoutData(fd);
+
+		tv.enableFilterCheck(bubbleTextBox.getTextWidget(), this);
+		
+		Composite tableParent = new Composite(parent, SWT.NONE);
+		
+		tableParent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		GridLayout gridLayout = new GridLayout();
+		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = 0;
+		gridLayout.marginHeight = gridLayout.marginWidth = 0;
+		tableParent.setLayout(gridLayout);
+		
+		parent.setTabList(new Control[] {tableParent, cTop});
+
+		return tableParent;
 	}
 
   
@@ -326,7 +412,17 @@ public class FilesView
 		// System.out.println( filter );
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.table.TableViewFilterCheck.TableViewFilterCheckEx#viewChanged(com.aelitis.azureus.ui.common.table.TableView)
+	 */
+	public void viewChanged(TableView<DiskManagerFileInfo> view) {
+		updateHeader();
+	}
+	
 	public void updateSelectedContent() {
+		long	total_size 	= 0;
+		long	total_done	= 0;
+		
 		Object[] dataSources = tv.getSelectedDataSources(true);
 		List<SelectedContent> listSelected = new ArrayList<SelectedContent>(
 				dataSources.length);
@@ -335,8 +431,21 @@ public class FilesView
 				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
 				listSelected.add(new SelectedContent(fileInfo.getDownloadManager(),
 						fileInfo.getIndex()));
+				if ( !fileInfo.isSkipped()){
+					
+					total_size 	+= fileInfo.getLength();
+					total_done	+= fileInfo.getDownloaded();
+				}
 			}
 		}
+		
+		
+		
+		selection_size	= total_size;
+		selection_done	= total_done;
+
+		updateHeader();
+		
 		SelectedContent[] sc = listSelected.toArray(new SelectedContent[0]);
 		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(),
 				sc, tv);
@@ -543,7 +652,6 @@ public class FilesView
           public void handleEvent(Event e) {
         	  hide_dnd_files = item.getSelection();
         	  COConfigurationManager.setParameter( "FilesView.hide.dnd", hide_dnd_files );
-        	  tv.refilter();
           }
         });
     }
@@ -570,6 +678,9 @@ public class FilesView
   
   public void tableViewInitialized() {
     createDragDrop();
+    
+    hide_dnd_files = COConfigurationManager.getBooleanParameter("FilesView.hide.dnd");
+    COConfigurationManager.addParameterListener("FilesView.hide.dnd", this);
   }
   
   public void tableViewTabInitComplete() {
@@ -578,6 +689,7 @@ public class FilesView
   }
   
   public void tableViewDestroyed() {
+  	COConfigurationManager.removeParameterListener("FilesView.hide.dnd", this);
   	Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
@@ -700,4 +812,86 @@ public class FilesView
 	// @see org.eclipse.swt.events.KeyListener#keyReleased(org.eclipse.swt.events.KeyEvent)
 	public void keyReleased(KeyEvent e) {
 	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
+	 */
+	public void parameterChanged(String parameterName) {
+		if ("FilesView.hide.dnd".equals(parameterName)) {
+			hide_dnd_files = COConfigurationManager.getBooleanParameter(parameterName);
+			if (btnShowDND != null && !btnShowDND.isDisposed()) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (btnShowDND != null && !btnShowDND.isDisposed()) {
+							btnShowDND.setSelection(hide_dnd_files);
+						}
+					}
+				});
+			}
+			if (tv == null || tv.isDisposed()) {
+				return;
+			}
+			tv.refilter();
+		}
+	}
+
+	private void updateHeader() {
+		int total = manager.getNumFileInfos();
+		int numInList = tv.getRowCount();
+
+		String s;
+		
+		s = MessageText.getString("library.unopened.header"
+				+ (total > 1 ? ".p" : ""), new String[] {
+					String.valueOf(total)
+				});
+		if (total != numInList) {
+			s = MessageText.getString("v3.MainWindow.xofx", new String[] {
+				String.valueOf(numInList),
+				s
+			});
+		}
+
+		s += getSelectionText();
+		
+		final String sHeader = s;
+		
+		if (lblHeader != null) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (lblHeader == null || lblHeader.isDisposed()) {
+						return;
+					}
+					lblHeader.setText(sHeader);
+				}
+			});
+		}
+	}
+
+	private String
+	getSelectionText()
+	{
+		int selection_count = tv.getSelectedRowsSize();
+		if (selection_count == 0) {
+			return "";
+		}
+
+		String str = ", " + 
+				MessageText.getString(
+				"label.num_selected", new String[]{ String.valueOf( selection_count )});
+		
+		if ( selection_size > 0 ){
+			
+			if ( selection_size == selection_done ){
+				
+				str += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
+			}else{
+				str += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_done ) + "/" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
+
+			}
+		}
+		
+		return( str );
+	}
+
 }
