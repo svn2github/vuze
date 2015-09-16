@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -79,7 +78,6 @@ import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableResolver;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
-import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.LinkFileMap;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
@@ -1517,32 +1515,32 @@ DownloadManagerImpl
 				// actually still be set (e.g. to add an 'incomplete' suffix to a file) so we still need to support link-rewriting
 				// properly
 			
-				// both old_path and new_path are the full name of the download file, that is they aren't
-				// directories they are files - grab the parent directories as the link translation needs to
-				// be relative to this
+				// so the only valid linking on a simple torrent is to rename the file, not to point to a file in an
+				// alternative directory. Thus fixing up the link becomes a case of taking the target file name from the old link
+				// and making it the target file naem of the new link within the new path's parent folder
 			
-			String old_path_parent;
-			int	pos = old_path.lastIndexOf( File.separatorChar );
-			if ( pos != -1 ){
-				old_path_parent = old_path.substring( 0, pos ); 
-			}else{
-				old_path_parent = old_path;
-			}
-			
+		
 			String new_path_parent;
-			pos = new_path.lastIndexOf( File.separatorChar );
+			int pos = new_path.lastIndexOf( File.separatorChar );
 			if ( pos != -1 ){
 				new_path_parent = new_path.substring( 0, pos ); 
 			}else{
+				Debug.out( "new_path " + new_path + " missing file separator, not good" );
+				
 				new_path_parent = new_path;
 			}
 			
-			String to_loc_to_use = FileUtil.translateMoveFilePath(old_path_parent, new_path_parent, to_loc);
-			
-			if ( to_loc_to_use == null ){
-				
-				to_loc_to_use = new_path; 
+			String to_loc_name;
+			pos = to_loc.lastIndexOf( File.separatorChar );
+			if ( pos != -1 ){
+				to_loc_name = to_loc.substring( pos+1 ); 
+			}else{
+				Debug.out( "to_loc " + to_loc + " missing file separator, not good" );
+
+				to_loc_name = to_loc;
 			}
+			
+			String to_loc_to_use = new_path_parent + File.separatorChar + to_loc_name;
 			
 			//System.out.println( "   adding " + new_path + " -> " + to_loc_to_use );
 			from_indexes.add( 0 );
