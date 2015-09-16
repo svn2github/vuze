@@ -25,8 +25,6 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -166,18 +164,21 @@ public class FilesViewMenuUtil
 		
 		MenuItem itemRenameOrRetarget = null, itemRename = null, itemRetarget = null;
 
+		// "Rename or Retarget" -- Opens up file chooser (can choose new dir and new name)
 		itemRenameOrRetarget = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemRenameOrRetarget, "FilesView.menu.rename");
 		itemRenameOrRetarget.setData("rename", Boolean.valueOf(true));
 		itemRenameOrRetarget.setData("retarget", Boolean.valueOf(true));
 
+		// "Quick Rename" -- opens up input box with name
 		itemRename = new MenuItem(menu, SWT.PUSH);
-		itemRetarget = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemRename, "FilesView.menu.rename_only");
-		Messages.setLanguageText(itemRetarget, "FilesView.menu.retarget");
-
 		itemRename.setData("rename", Boolean.valueOf(true));
 		itemRename.setData("retarget", Boolean.valueOf(false));
+
+		// "Move Files" -- opens up directory chooser
+		itemRetarget = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemRetarget, "FilesView.menu.retarget");
 		itemRetarget.setData("rename", Boolean.valueOf(false));
 		itemRetarget.setData("retarget", Boolean.valueOf(true));
 
