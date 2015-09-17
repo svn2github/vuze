@@ -121,7 +121,13 @@ SpeedLimitHandler
 			
 			if ( singleton == null ){
 				
-				singleton = new SpeedLimitHandler( core );
+				try{
+					singleton = new SpeedLimitHandler( core );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
 			}
 			
 			return( singleton );
@@ -502,9 +508,7 @@ SpeedLimitHandler
 		}
 		
 		final String profile = net_limit.getProfile();
-		
-		System.out.println( "getLongTermUsage:" + profile );
-		
+				
 		return( 
 			lts.getTotalUsageInPeriod( 
 				type,
@@ -1059,8 +1063,10 @@ SpeedLimitHandler
 				
 				String[] args = line.split( " " );
 				
-				int		type		 = -1;
+				int		type		= -1;
 				String	profile		= null;
+				
+				TagFeatureRateLimit		tag			= null;
 				
 				long	total_lim	= 0;
 				long	up_lim		= 0;
@@ -1093,10 +1099,39 @@ SpeedLimitHandler
 							arg = arg.substring( 0, sep );
 						}
 						
-						if ( arg.equalsIgnoreCase( "daily" )){
+						sep = arg.indexOf( "$" );
+
+						if ( sep != -1 ){
 							
+							String tag_name = arg.substring( sep+1 ).trim();
+							
+							TagType tag_type_dm = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+
+							Tag _tag = tag_type_dm.getTag( tag_name, true );
+							
+							if ( _tag instanceof TagFeatureRateLimit ){
+							
+								tag = (TagFeatureRateLimit)_tag;
+								
+							}else{
+								
+								result.add( "net_limit tag '" + tag_name + "' not defined or invalid" );
+
+								break;
+							}
+							
+							arg = arg.substring( 0, sep );
+						}
+						
+						
+						if ( arg.equalsIgnoreCase( "hourly" )){
+							
+							type = LongTermStats.PT_CURRENT_HOUR;
+							
+						}else if ( arg.equalsIgnoreCase( "daily" )){
+								
 							type = LongTermStats.PT_CURRENT_DAY;
-							
+								
 						}else if ( arg.equalsIgnoreCase( "weekly" )){
 							
 							type = LongTermStats.PT_CURRENT_WEEK;
@@ -1107,7 +1142,7 @@ SpeedLimitHandler
 							
 						}else{
 							
-							result.add( "net_limit type of '" + arg + "' not recognised - use daily, weekly or monthly" );
+							result.add( "net_limit type of '" + arg + "' not recognised - use hourly, daily, weekly or monthly" );
 							
 							break;
 						}
@@ -1157,7 +1192,7 @@ SpeedLimitHandler
 						new_net_limits.put( type, limits );
 					}
 					
-					limits.add( new NetLimit( profile, total_lim, up_lim, down_lim ));
+					limits.add( new NetLimit( profile, tag, total_lim, up_lim, down_lim ));
 				}	
 			}else if ( lc_line.startsWith( "priority_down " ) || lc_line.startsWith( "priority_up " )){
 					
@@ -2671,8 +2706,10 @@ SpeedLimitHandler
 				
 				active_rule = null;
 				
-				resetRules();
+				if ( current_rule != null ){
 				
+					resetRules();
+				}
 			}else{
 				
 				String	profile_name = latest_match.profile_name;
@@ -2710,7 +2747,7 @@ SpeedLimitHandler
 					
 						loadProfile( profile_name );
 						
-					}else{
+					}else if ( active_rule != null ){
 						
 						active_rule = null;
 						
@@ -2772,8 +2809,8 @@ SpeedLimitHandler
 		result.add( "#            day_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
 		result.add( "#        extension: (start_tag|stop_tag|pause_tag|resume_tag):<tag_name>" );
-		result.add( "#    peer_set <set_name>=[<CIDR_specs...>|CC list|Network List|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [,cat=<cat names>] [,tag=<tag names>]" );
-		result.add( "#    net_limit (daily|weekly|monthly)[:<profile>] [total=<limit>] [up=<limit>] [down=<limit>] [peer_up=<limit>] [peer_down=<limit>]");
+		result.add( "#    peer_set <set_name>=[<CIDR_specs...>|CC list|Network List|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [peer_up=<limit>] [peer_down=<limit>] [,cat=<cat names>] [,tag=<tag names>]" );
+		result.add( "#    net_limit (hourly|daily|weekly|monthly)[(:<profile>|$<tag>)] [total=<limit>] [up=<limit>] [down=<limit>]");
 		result.add( "#    priority_(up|down) <id>=<tag_name> [,<id>=<tag_name>]+ [,freq=<secs>] [,max=<limit>]" );
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
@@ -2902,6 +2939,15 @@ SpeedLimitHandler
 			int	type = entry.getKey();
 			
 			for ( NetLimit limit: entry.getValue()){
+				
+				LongTermStats net_lts = limit.getLongTermStats();
+				
+				if ( net_lts != null ){
+					
+					System.out.println( net_lts.getTotalUsageInPeriod(LongTermStats.PT_CURRENT_HOUR)[LongTermStats.ST_DATA_DOWNLOAD]);
+					
+					continue;
+				}
 				
 				String profile = limit.getProfile();
 				
@@ -4307,25 +4353,85 @@ SpeedLimitHandler
 	
 	private static class
 	NetLimit
+		implements LongTermStats.GenericStatsSource
 	{
-		private String		profile;
-		private long[]		limits;
+		final private String						profile;
+		final private TagFeatureRateLimit			tag;
+		final private long[]						limits;
+		
+		private LongTermStats lt_stats;
 		
 		private
 		NetLimit(
-			String		_profile,
-			long		_total_lim, 
-			long		_up_lim, 
-			long		_down_lim )
+			String					_profile,
+			TagFeatureRateLimit		_tag,
+			long					_total_lim, 
+			long					_up_lim, 
+			long					_down_lim )
 		{
 			profile		= _profile;
+			tag			= _tag;
 			limits		= new long[]{ _total_lim, _up_lim, _down_lim };
+			
+			if ( tag != null ){
+				
+				try{
+					lt_stats = StatsFactory.getGenericLongTermStats( "tag" + "." + tag.getTag().getTagUID(), this );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+		
+		public int
+		getEntryCount()
+		{
+			return( 4 );
+		}
+		
+		private LongTermStats
+		getLongTermStats()
+		{
+			return( lt_stats );
+		}
+		
+		public long[]
+		getStats(
+			String		id )
+		{
+				// currently protocol/data isn't separated so lump it all in as data
+			
+			long[] up 	= tag.getTagUploadTotal();
+			long[] down = tag.getTagDownloadTotal();
+			
+			long[] result = new long[4];
+			
+			if ( up != null ){
+				
+				result[LongTermStats.ST_DATA_UPLOAD] = up[0];
+				
+			}
+			if ( down != null ){
+				
+				result[LongTermStats.ST_DATA_DOWNLOAD] = down[0];
+				
+			}
+			
+			return( result );
 		}
 		
 		private String
 		getProfile()
 		{
 			return( profile );
+		}
+		
+		private TagFeatureRateLimit
+		getTag()
+		{
+			return( tag );
 		}
 		
 		private long[]

@@ -31,8 +31,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
@@ -45,21 +43,22 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
+
+
+
+
+
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreComponent;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
-import com.aelitis.azureus.core.dht.DHT;
-import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
+
 
 public class 
-LongTermStatsImpl 
+LongTermStatsGenericImpl 
 	implements LongTermStats
 {
 	private static final int VERSION = 1;
@@ -71,41 +70,20 @@ LongTermStatsImpl
 	public static final int RT_SESSION_START	= 1;
 	public static final int RT_SESSION_STATS	= 2;
 	public static final int RT_SESSION_END		= 3;
-	
-	private AzureusCore			core;
-	private GlobalManagerStats	gm_stats;
-	private DHT[]				dhts;
-	
-	private final int STAT_ENTRY_COUNT	= 6;
+		
+	private final int STAT_ENTRY_COUNT;
 	
 		// totals at start of session
 	
-	private long	st_p_sent;
-	private long	st_d_sent;
-	private long	st_p_received;
-	private long	st_d_received;
-	private long	st_dht_sent;
-	private long	st_dht_received;
+	private long[]	st;
 	
 		// session offsets at start of session
 	
-	private long	ss_p_sent;
-	private long	ss_d_sent;
-	private long	ss_p_received;
-	private long	ss_d_received;
-	private long	ss_dht_sent;
-	private long	ss_dht_received;
+	private long[]	ss;
 	
-	private long[] line_stats_prev = new long[STAT_ENTRY_COUNT];
+	private long[] line_stats_prev;
 	
-	private Average[] stat_averages = new Average[STAT_ENTRY_COUNT];
-
-	{
-		for ( int i=0;i<STAT_ENTRY_COUNT;i++){
-			
-			stat_averages[i] = AverageFactory.MovingImmediateAverage( 3 );
-		}
-	}
+	private Average[] stat_averages;
 	
 	private boolean				active;
 	private boolean				closing;
@@ -137,7 +115,7 @@ LongTermStatsImpl
 		utc_date_format.setTimeZone( TimeZone.getTimeZone( "UTC" ));
 	}
 	
-	private final File stats_dir;
+	private File stats_dir;
 	
 	private long	session_total;
 	
@@ -148,22 +126,35 @@ LongTermStatsImpl
 	private int	start_of_week 	= -1;
 	private int start_of_month	= -1;
 	
-	private
-	LongTermStatsImpl(
-		File	_stats_dir )
-	{	
-		stats_dir = _stats_dir;
-	}
+
+	private final String				generic_id;
+	private final GenericStatsSource	generic_source;
 	
 	public
-	LongTermStatsImpl(
-		AzureusCore			_core,
-		GlobalManagerStats	_gm_stats )
-	{
-		core		= _core;
-		gm_stats 	= _gm_stats;
+	LongTermStatsGenericImpl(
+		String				id,
+		GenericStatsSource	source )
+	{		
+		generic_id		= id;
+		generic_source	= source;
 		
-		stats_dir		= FileUtil.getUserFile( "stats" );
+		STAT_ENTRY_COUNT	= source.getEntryCount();
+		
+		ss = new long[STAT_ENTRY_COUNT];
+		st = new long[STAT_ENTRY_COUNT];
+		
+		line_stats_prev = new long[STAT_ENTRY_COUNT];
+		
+		stat_averages = new Average[STAT_ENTRY_COUNT];
+
+		for ( int i=0;i<STAT_ENTRY_COUNT;i++){
+				
+			stat_averages[i] = AverageFactory.MovingImmediateAverage( 3 );
+		}		
+		
+		stats_dir	= FileUtil.getUserFile( "stats" );
+		
+		stats_dir	= new File( stats_dir, "gen."  + id );
 		
 		COConfigurationManager.addParameterListener(
 			"long.term.stats.enable",
@@ -175,7 +166,7 @@ LongTermStatsImpl
 				{
 					boolean	enabled = COConfigurationManager.getBooleanParameter( name );
 					
-					synchronized( LongTermStatsImpl.this ){
+					synchronized( LongTermStatsGenericImpl.this ){
 												
 						if ( enabled ){
 							
@@ -194,28 +185,16 @@ LongTermStatsImpl
 				}
 			});
 		
-	    _core.addLifecycleListener(
+		sessionStart();
+
+	    AzureusCoreFactory.getSingleton().addLifecycleListener(
 	        	new AzureusCoreLifecycleAdapter()
-	        	{
-	        		public void
-	        		componentCreated(
-	        			AzureusCore				core,
-	        			AzureusCoreComponent	component )
-	        		{
-	        			if ( component instanceof GlobalManager ){
-	        				
-	        				synchronized( LongTermStatsImpl.this ){
-	        					
-	        					sessionStart();
-	        				}
-	        			}
-	        		}
-	        		
+	        	{        		
 	        		public void
 	        		stopped(
 	        			AzureusCore		core )
 	        		{
-	        			synchronized( LongTermStatsImpl.this ){
+	        			synchronized( LongTermStatsGenericImpl.this ){
 	        				
 	        				closing	= true;
 	        				
@@ -237,53 +216,11 @@ LongTermStatsImpl
 		}
 	}
 	
-	private DHT[]
-	getDHTs()
-	{
-	    if ( dhts == null ){
-	    	
-		    try{
-		    	PluginManager pm = core.getPluginManager();
-		    	
-		    	if ( pm.isInitialized()){
 
-			        PluginInterface dht_pi = pm.getPluginInterfaceByClass( DHTPlugin.class );
-			          
-			        if ( dht_pi == null ){
-			           
-			        	dhts = new DHT[0];
-			        	
-			        }else{
-			        	
-			        	DHTPlugin plugin = (DHTPlugin)dht_pi.getPlugin();
-			        	
-			        	if ( !plugin.isInitialising()){
-			        		
-				        	if ( plugin.isEnabled()){
-				        	
-				        		dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
-				        		
-				        	}else{
-				        		
-				        		dhts = new DHT[0];
-				        	}
-			        	}
-			        }
-		    	}
-		    }catch( Throwable e ){
-		    	
-		    	dhts = new DHT[0];
-		    }
-	    }
-	    
-	    return( dhts );
-	}
 	
 	private void
 	sessionStart()
 	{
-		OverallStatsImpl stats = (OverallStatsImpl)StatsFactory.getStats();
-
 		synchronized( this ){
 			
 			if ( closing ){
@@ -299,55 +236,24 @@ LongTermStatsImpl
 			}
 			
 			active = true;
-			
-			long[] snap = stats.getLastSnapshot();
-			
-			ss_d_received 	= gm_stats.getTotalDataBytesReceived();
-			ss_p_received 	= gm_stats.getTotalProtocolBytesReceived();
-
-			ss_d_sent		= gm_stats.getTotalDataBytesSent();
-			ss_p_sent		= gm_stats.getTotalProtocolBytesSent();
-			    
-			ss_dht_sent		= 0;
-			ss_dht_received	= 0;
-			
-			if ( core.isStarted()){
-				
-				DHT[]	dhts = getDHTs();
-				
-				if ( dhts != null ){
-					
-					for ( DHT dht: dhts ){
 						
-				    	DHTTransportStats dht_stats = dht.getTransport().getStats();
-				    	
-				    	ss_dht_sent 		+= dht_stats.getBytesSent();
-				    	ss_dht_received 	+= dht_stats.getBytesReceived();
-					}
-				}
+			long[] current = generic_source.getStats( generic_id );
+			
+			for ( int i=0;i<current.length;i++){
+				
+				ss[i] = current[i];
+			
+				st[i] = ss[i];
 			}
 			
-			st_p_sent 		= snap[0] + ( ss_p_sent - snap[6]);
-			st_d_sent 		= snap[1] + ( ss_d_sent - snap[7]);
-			st_p_received 	= snap[2] + ( ss_p_received - snap[8]);
-			st_d_received 	= snap[3] + ( ss_d_received - snap[9]);
-			st_dht_sent		= snap[4] + ( ss_dht_sent - snap[10]);
-			st_dht_received = snap[5] + ( ss_dht_received - snap[11]);
-			
-			write( 	RT_SESSION_START,  
-					new long[]{ 
-						st_p_sent,
-						st_d_sent,
-						st_p_received,
-						st_d_received,
-						st_dht_sent,
-						st_dht_received });
+			write( RT_SESSION_START, st ); 
+
 			
 			if ( event == null ){	// should always be null but hey ho
 				
 			    event = 
 			    	SimpleTimer.addPeriodicEvent(
-				    	"LongTermStats", 
+				    	"LongTermStats:" + generic_id, 
 				    	MIN_IN_MILLIS, 
 				    	new TimerEventPerformer()
 				    	{
@@ -393,37 +299,17 @@ LongTermStatsImpl
 	private void
 	updateStats(
 		int	record_type )
-	{	    
-	    long	current_d_received 	= gm_stats.getTotalDataBytesReceived();
-	    long	current_p_received 	= gm_stats.getTotalProtocolBytesReceived();
+	{	   
+		long[] current = generic_source.getStats( generic_id );
 
-	    long	current_d_sent		= gm_stats.getTotalDataBytesSent();
-	    long	current_p_sent		= gm_stats.getTotalProtocolBytesSent();
-   
-		long	current_dht_sent		= 0;
-		long	current_dht_received	= 0;
-
-		DHT[]	dhts = getDHTs();
+		long[]	diffs = new long[STAT_ENTRY_COUNT];
 		
-		if ( dhts != null ){
+		for ( int i=0; i<STAT_ENTRY_COUNT;i++){
 			
-			for ( DHT dht: dhts ){
-				
-		    	DHTTransportStats dht_stats = dht.getTransport().getStats();
-		    	
-		    	current_dht_sent 		+= dht_stats.getBytesSent();
-		    	current_dht_received 	+= dht_stats.getBytesReceived();
-			}
+			diffs[i] = current[i] - ss[i];
 		}
 		
-	    write(	record_type,
-	    		new long[]{
-		    		( current_p_sent - ss_p_sent ),
-		    		( current_d_sent - ss_d_sent ),
-		    		( current_p_received - ss_p_received ),
-		    		( current_d_received - ss_d_received ),
-		    		( current_dht_sent - ss_dht_sent ),
-		    		( current_dht_received - ss_dht_received )});
+	    write( record_type, diffs );
 	}
 		
 	private void
@@ -549,23 +435,14 @@ LongTermStatsImpl
 								// first entry in a new file, files always start with a session-start so they
 								// can be processed in isolation so reset the session data and start a new one
 							
-							st_p_sent		+= line_stats[0];
-							st_d_sent		+= line_stats[1];
-							st_p_received	+= line_stats[2];
-							st_d_received	+= line_stats[3];
-							st_dht_sent		+= line_stats[4];
-							st_dht_received	+= line_stats[5];
-							
-							ss_p_sent		+= line_stats[0];
-							ss_d_sent		+= line_stats[1];
-							ss_p_received	+= line_stats[2];
-							ss_d_received	+= line_stats[3];
-							ss_dht_sent		+= line_stats[4];
-							ss_dht_received	+= line_stats[5];
+							for ( int i=0;i<STAT_ENTRY_COUNT;i++){
+								st[i] += line_stats[i];
+								ss[i] += line_stats[i];
+							}
 														
 							stats_str = "";
 							
-							long[] st_stats =  new long[]{ st_p_sent,st_d_sent, st_p_received,st_d_received, st_dht_sent, st_dht_received };
+							long[] st_stats =  st;
 							
 							for ( int i=0;i<st_stats.length; i++ ){
 								
@@ -644,7 +521,7 @@ LongTermStatsImpl
 							for ( LongTermStatsListener l: to_fire ){
 								
 								try{
-									l.updated( LongTermStatsImpl.this );
+									l.updated( LongTermStatsGenericImpl.this );
 									
 								}catch( Throwable e ){
 									
@@ -859,7 +736,7 @@ LongTermStatsImpl
 							
 							String[] fields = line.split( "," );
 							
-							if ( fields.length < 6 ){
+							if ( fields.length < STAT_ENTRY_COUNT ){
 								
 								continue;
 							}
@@ -881,7 +758,7 @@ LongTermStatsImpl
 								
 								session_start_stats = new long[STAT_ENTRY_COUNT];
 								
-								for ( int i=3;i<9;i++){
+								for ( int i=3;i<3+STAT_ENTRY_COUNT;i++){
 									
 									session_start_stats[i-3] = Long.parseLong( fields[i] );
 								}
@@ -898,7 +775,7 @@ LongTermStatsImpl
 								
 								long[] line_stats = new long[STAT_ENTRY_COUNT];
 								
-								for ( int i=0;i<6;i++){
+								for ( int i=0;i<STAT_ENTRY_COUNT;i++){
 									
 									line_stats[i] = Long.parseLong( fields[i+field_offset] );
 									
@@ -910,7 +787,7 @@ LongTermStatsImpl
 									
 									if ( accepter == null ||	accepter.acceptRecord( session_time )){
 										
-										for ( int i=0;i<6;i++){
+										for ( int i=0;i<STAT_ENTRY_COUNT;i++){
 											
 											result[i] += line_stats[i];
 											
@@ -1035,7 +912,7 @@ LongTermStatsImpl
 			
 			Calendar calendar = new GregorianCalendar();
 			
-			calendar.setTimeInMillis( SystemTime.getCurrentTime());
+			calendar.setTimeInMillis( now );
 			
 			calendar.set( Calendar.MILLISECOND, 0 );
 			calendar.set( Calendar.MINUTE, 0 );
@@ -1119,7 +996,7 @@ LongTermStatsImpl
 				public void
 				runSupport()
 				{
-					listener.updated( LongTermStatsImpl.this );
+					listener.updated( LongTermStatsGenericImpl.this );
 				}
 			});
 	}
@@ -1374,46 +1251,6 @@ LongTermStatsImpl
 			FileUtil.writeResilientFile( file, contents );
 			
 			dirty = false;
-		}
-	}
-	
-	public static void
-	main(
-		String[]	args )
-	{
-		try{
-			LongTermStatsImpl impl = new LongTermStatsImpl( new File( "C:\\Test\\plus2\\stats" ));
-			
-			SimpleDateFormat local_format = new SimpleDateFormat( "yyyy,MM,dd" );
-			
-			Date start_date = local_format.parse( "2013,07,10" );
-			Date end_date 	= local_format.parse( "2013,07,16" );
-			
-			long[] usage = 
-				impl.getTotalUsageInPeriod( 
-					start_date, 
-					end_date,
-					new RecordAccepter()
-					{
-						public boolean 
-						acceptRecord(
-							long timestamp) 
-						{
-							System.out.println( new Date( timestamp ));
-							
-							return( false );
-						}
-					});
-			
-			System.out.println( getString( usage ));
-		
-			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_DAY )));
-			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_WEEK )));
-			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_MONTH )));
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
 		}
 	}
 }

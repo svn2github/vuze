@@ -21,7 +21,11 @@
  */
 package org.gudy.azureus2.core3.stats.transfer;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
+import org.gudy.azureus2.core3.stats.transfer.impl.LongTermStatsGenericImpl;
 import org.gudy.azureus2.core3.stats.transfer.impl.LongTermStatsImpl;
 import org.gudy.azureus2.core3.stats.transfer.impl.OverallStatsImpl;
 
@@ -36,6 +40,8 @@ StatsFactory
 {
 	private static OverallStats 	overall_stats;
 	private static LongTermStats	longterm_stats;
+	
+	private static Map<String,LongTermStats> generic_longterm_stats = new HashMap<String, LongTermStats>();
 	
 	public static OverallStats 
 	getStats() 
@@ -56,5 +62,25 @@ StatsFactory
 	{
 		overall_stats 	= new OverallStatsImpl( core, stats );
 		longterm_stats	= new LongTermStatsImpl( core, stats );
+	}
+	
+	public static LongTermStats 
+	getGenericLongTermStats(
+		String									id,
+		LongTermStats.GenericStatsSource		source )
+	{	
+		synchronized( generic_longterm_stats ){
+			
+			LongTermStats result = generic_longterm_stats.get( id );
+			
+			if ( result == null ){
+				
+				result = new LongTermStatsGenericImpl( id, source );
+				
+				generic_longterm_stats.put( id,  result );
+			}
+			
+			return( result );
+		}
 	}
 }

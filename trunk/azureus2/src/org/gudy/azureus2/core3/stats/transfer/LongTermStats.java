@@ -32,6 +32,7 @@ LongTermStats
 	public static final int ST_DHT_UPLOAD			= 4;
 	public static final int ST_DHT_DOWNLOAD			= 5;
 	
+	public static final int PT_CURRENT_HOUR			= 0;
 	public static final int PT_CURRENT_DAY			= 1;
 	public static final int PT_CURRENT_WEEK			= 2;	// sun is start of week
 	public static final int PT_CURRENT_MONTH		= 3;
@@ -71,5 +72,16 @@ LongTermStats
 		public boolean
 		acceptRecord(
 			long		timestamp );
+	}
+	
+	public interface
+	GenericStatsSource
+	{
+		public int
+		getEntryCount();
+		
+		public long[]
+		getStats(
+			String		id );
 	}
 }
