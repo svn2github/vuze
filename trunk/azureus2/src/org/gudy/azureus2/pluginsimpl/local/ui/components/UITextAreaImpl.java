@@ -25,6 +25,8 @@ package org.gudy.azureus2.pluginsimpl.local.ui.components;
  */
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -320,7 +322,7 @@ UITextAreaImpl
 					if ( poop_file != null ){
 						
 						try{
-							pw = new PrintWriter( poop_file );
+							pw = new PrintWriter( new OutputStreamWriter( new FileOutputStream( poop_file ), "UTF-8" ));
 						
 							pw.print( buffer.toString());
 							
@@ -346,7 +348,7 @@ UITextAreaImpl
 			}else{
 				
 				try{
-					return( FileUtil.readFileEndAsString( poop_file, max_size ));
+					return( FileUtil.readFileEndAsString( poop_file, max_size, "UTF-8" ));
 					
 				}catch( Throwable e ){
 					

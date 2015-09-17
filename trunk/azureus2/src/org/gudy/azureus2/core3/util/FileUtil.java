@@ -1946,15 +1946,15 @@ public class FileUtil {
 
 	public static String
 	readInputStreamAsString(
-		InputStream is,
-		int		size_limit,
-		String charSet)
+		InputStream 	is,
+		int				size_limit,
+		String 			charSet)
 	
 		throws IOException
 	{
 		StringBuffer result = new StringBuffer(1024);
 
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[64*1024];
 
 		while (true) {
 
@@ -1987,7 +1987,7 @@ public class FileUtil {
 	{
 		StringBuffer result = new StringBuffer(1024);
 
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[64*1024];
 
 		try{
 			while (true) {
@@ -2021,16 +2021,30 @@ public class FileUtil {
 	
 		throws IOException
 	{
+		return( readFileEndAsString( file, size_limit, "ISO-8859-1" ));
+	}
+	
+	public static String
+	readFileEndAsString(
+		File	file,
+		int		size_limit,
+		String	charset )
+	
+		throws IOException
+	{
 		FileInputStream	fis = new FileInputStream( file );
 		
 		try{
-			if (file.length() > size_limit) {
+			if ( file.length() > size_limit){
+				
+					// doesn't really work with multi-byte chars but woreva
+				
 				fis.skip(file.length() - size_limit);
 			}
 			
 			StringBuffer	result = new StringBuffer(1024);
 			
-			byte[]	buffer = new byte[1024];
+			byte[]	buffer = new byte[64*1024];
 			
 			while( true ){
 			
@@ -2041,7 +2055,9 @@ public class FileUtil {
 					break;
 				}
 			
-				result.append( new String( buffer, 0, len, "ISO-8859-1" ));
+					// doesn't really work with multi-byte chars but woreva
+				
+				result.append( new String( buffer, 0, len, charset ));
 				
 				if ( result.length() > size_limit ){
 					
