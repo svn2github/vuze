@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
@@ -456,6 +457,11 @@ SpeedLimitHandler
 			
 			if ( net_limit != null ){
 			
+				if ( net_limit.getTag() != null ){
+					
+					continue;
+				}
+				
 				profile = net_limit.getProfile();
 				
 				long[] limits = net_limit.getLimits();
@@ -1539,27 +1545,8 @@ SpeedLimitHandler
 			
 			current_rules = rules;
 			
-			if ( schedule_event == null && ( rules.size() > 0 || net_limits.size() > 0 )){
-				
-				schedule_event = 
-					SimpleTimer.addPeriodicEvent(
-						"speed handler scheduler",
-						30*1000,
-						new TimerEventPerformer()
-						{
-							public void 
-							perform(
-								TimerEvent event) 
-							{
-								checkSchedule();
-							}
-						});
-			}
-			
-			if ( active_rule != null || rules.size() > 0 || net_limits.size() > 0 ){
-			
-				checkSchedule();
-			}
+				// need to do ip-sets early as other things (netlimits, prioritizers) can refer to ipset tag types
+				// and these are created here
 			
 			for( IPSet s: current_ip_sets.values()){
 				
@@ -1612,6 +1599,8 @@ SpeedLimitHandler
 			
 			checkIPSets();
 			
+				// net limits
+			
 			if ( !lts_enabled ){
 				
 				new_net_limits.clear();
@@ -1639,6 +1628,8 @@ SpeedLimitHandler
 					StatsFactory.getLongTermStats().removeListener( this );
 				}
 			}
+			
+				// prioritizers
 			
 			current_prioritisers = new_prioritisers;
 
@@ -1676,6 +1667,31 @@ SpeedLimitHandler
 								});
 				}
 			}
+			
+				// setup scheduler if needed
+			
+			if ( schedule_event == null && ( rules.size() > 0 || net_limits.size() > 0 )){
+				
+				schedule_event = 
+					SimpleTimer.addPeriodicEvent(
+						"speed handler scheduler",
+						30*1000,
+						new TimerEventPerformer()
+						{
+							public void 
+							perform(
+								TimerEvent event) 
+							{
+								checkSchedule();
+							}
+						});
+			}
+			
+			if ( active_rule != null || rules.size() > 0 || net_limits.size() > 0 ){
+			
+				checkSchedule();
+			}
+
 		}else{
 	
 			current_rules.clear();
@@ -2780,9 +2796,18 @@ SpeedLimitHandler
 			active_rule.checkExtensions();
 		}
 		
-		if ( current_rule != active_rule && net_limits.size() > 0 ){
+		if ( net_limits.size() > 0 ){
+		
+			checkTagNetLimits();
+		}
+		
+		if ( 	( current_rule != active_rule && net_limits.size() > 0 ) ||
+				net_limit_pause_all_active ){
 			
 				// net_limits can depend on the active rule, recalc
+			
+				// also have to periodically recheck stats if everything's paused as the stats won't in general
+				// naturally update and trigger an update that way...
 			
 			updated( StatsFactory.getLongTermStats());
 		}
@@ -2943,9 +2968,7 @@ SpeedLimitHandler
 				LongTermStats net_lts = limit.getLongTermStats();
 				
 				if ( net_lts != null ){
-					
-					System.out.println( net_lts.getTotalUsageInPeriod(LongTermStats.PT_CURRENT_HOUR)[LongTermStats.ST_DATA_DOWNLOAD]);
-					
+										
 					continue;
 				}
 				
@@ -2994,6 +3017,67 @@ SpeedLimitHandler
 		if ( net_limit_pause_all_active != exceeded ){
 			
 			setNetLimitPauseAllActive( exceeded );
+		}
+	}
+	
+	private void
+	checkTagNetLimits()
+	{
+		for (Map.Entry<Integer,List<NetLimit>> entry: net_limits.entrySet()){
+			
+			int	type = entry.getKey();
+			
+			for ( NetLimit limit: entry.getValue()){
+				
+				LongTermStats stats = limit.getLongTermStats();
+				
+				if ( stats == null ){
+					
+					continue;
+				}
+				
+				long[] usage = getLongTermUsage( stats, type, limit );
+							
+				long total_up = usage[LongTermStats.ST_PROTOCOL_UPLOAD] + usage[LongTermStats.ST_DATA_UPLOAD];
+				long total_do = usage[LongTermStats.ST_PROTOCOL_DOWNLOAD] + usage[LongTermStats.ST_DATA_DOWNLOAD];
+				
+				long[]	limits = limit.getLimits();
+	
+				boolean exceeded_up 	= false;
+				boolean exceeded_down 	= false;
+				
+				if ( limits[0] > 0 ){
+					
+					exceeded_up = exceeded_down = total_up + total_do >= limits[0];
+				}
+				
+				if ( limits[1] > 0 && !exceeded_up){
+					
+					exceeded_up = total_up >= limits[1];
+				}
+			
+				if ( limits[2] > 0 && !exceeded_down){
+					
+					exceeded_down = total_do >= limits[2];
+				}
+				
+				int target_up 	= exceeded_up?-1:0;
+				int target_down = exceeded_down?-1:0;
+
+				TagFeatureRateLimit tag = limit.getTag();
+				
+				int up_lim	 = tag.getTagUploadLimit();
+				int down_lim = tag.getTagDownloadLimit();
+				
+				if ( up_lim != target_up || down_lim != target_down ){
+					
+					logger.log( "netlimit: setting rates to " + format( target_up ) + "/" + format( target_down ) + " on tag " + tag.getTag().getTagName( true ));
+					
+					tag.setTagUploadLimit( target_up );
+					
+					tag.setTagDownloadLimit( target_down );
+				}
+			}
 		}
 	}
 	
@@ -5458,7 +5542,11 @@ SpeedLimitHandler
 				str += (str.length()==0?"":", ") + tag_state.getTagName() + "=" + formatRate( tag_state.getRate(), false) + " (" + formatRate( tag_state.getLimit(), true ) + ")";
 			}
 			
-			log( str );
+			GlobalManagerStats gm_stats = core.getGlobalManager().getStats();
+			
+			long glob = is_down?gm_stats.getSmoothedReceiveRate():gm_stats.getSmoothedSendRate();
+			
+			log( "* " + str + " [global=" + formatRate(glob,false) + "]");
 
 			
 				// go through the active tags and make adjustments based on whether tags are
@@ -5657,8 +5745,8 @@ SpeedLimitHandler
 							
 							if ( phase_1_tag_state == 1 ){
 									
-								int	diff 	= current_rate - phase_1_tag_rate;
-								int	hp_diff = higher_pri_rates - phase_1_higher_pri_rates;
+								int	my_diff 	= current_rate - phase_1_tag_rate;
+								int	hp_diff 	= higher_pri_rates - phase_1_higher_pri_rates;
 								
 								int my_target = current_rate;
 								
@@ -5677,12 +5765,32 @@ SpeedLimitHandler
 										// so we don't want to carry on probing the limits of lower priority tags
 										// we want to try and shunt bandwidth from this tag back to the higher priority ones
 									
-									my_target = current_rate + hp_diff;
-									
+								
 										// make sure that the new target is definitely a bit lower than it used to be
 										// so that some bandwidth from this tag gets hopefully shunted 'left'
 									
-									my_target = Math.min( my_target, phase_1_tag_rate - 2048 );
+										// actually the above logic isn't great as it can cause a tag to get stuck at a low rate
+									
+									int	overall_gain = my_diff + hp_diff;
+									
+									if ( overall_gain > 4*1024 ){
+										
+											// reasonable gain, nudge the rate up from what it was before the experiment
+											// by a bit
+										
+										my_target = phase_1_tag_rate + (overall_gain/4);
+										
+									}else{
+									
+											// initial target is what we're currently achieving minus whatever
+											// was lost by the higher priority tags
+										
+										my_target = current_rate + hp_diff;
+										
+											// not a good gain so make sure we're below the original 
+										
+										my_target = Math.min( my_target, phase_1_tag_rate - 2048 );
+									}
 									
 									if ( my_target <= 1024 ){
 										
@@ -5693,7 +5801,7 @@ SpeedLimitHandler
 									
 									tag_state.hitLimit( true );
 									
-									tag_state.setLimit( my_target, true, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ", consec=" + consec_limits_hit + ")" );
+									tag_state.setLimit( my_target, true, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( my_diff, false ) + ", consec=" + consec_limits_hit + ")" );
 
 										// decrease lower priority limits agressively as any bandwidth they are consuming
 										// needs to be pushed our way
@@ -5717,7 +5825,7 @@ SpeedLimitHandler
 								
 									tag_state.hitLimit( false );
 									
-									tag_state.setLimit( my_target, "1: setting to current (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( diff, false ) + ")" );
+									tag_state.setLimit( my_target, "1: setting to current (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( my_diff, false ) + ")" );
 																	
 									if ( i < active_tags.size() - 1 ){
 									
@@ -5754,7 +5862,7 @@ SpeedLimitHandler
 	
 		private String
 		formatRate(
-			int			rate,
+			long		rate,
 			boolean		is_limit )
 		{
 			if ( rate == -1 && is_limit ){

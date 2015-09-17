@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
-import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
@@ -613,7 +612,7 @@ LongTermStatsGenericImpl
 			
 			boolean	offset_cachable = start_offset % 60 == 0;
 			
-			System.out.println( "start=" + debug_utc_format.format( start_date ) + ", end=" + debug_utc_format.format( end_date ) + ", offset=" + start_offset);
+			//System.out.println( "start=" + debug_utc_format.format( start_date ) + ", end=" + debug_utc_format.format( end_date ) + ", offset=" + start_offset);
 			
 			MonthCache	month_cache = null;
 			
@@ -805,7 +804,7 @@ LongTermStatsGenericImpl
 							file_totals = new long[0];
 						}
 						
-						System.out.println( "File total: start=" + debug_utc_format.format(file_start_time) + ", end=" + debug_utc_format.format(session_time) + " - " + getString( file_totals ));
+						//System.out.println( "File total: start=" + debug_utc_format.format(file_start_time) + ", end=" + debug_utc_format.format(session_time) + " - " + getString( file_totals ));
 						
 						if ( can_cache ){
 							
@@ -823,7 +822,7 @@ LongTermStatsGenericImpl
 									
 									if ( day_cache == null ){
 										
-										System.out.println( "Creating day cache" );
+										//System.out.println( "Creating day cache" );
 										
 										day_cache = new DayCache( year_str, month_str, day_str );
 									}
@@ -864,7 +863,7 @@ LongTermStatsGenericImpl
 				}
 			}
 			
-			System.out.println( "    -> " + getString( result ));
+			//System.out.println( "    -> " + getString( result ));
 			
 			return( result );
 		}
@@ -1122,7 +1121,7 @@ LongTermStatsGenericImpl
 				
 				if ( file.exists()){
 					
-					System.out.println( "Reading cache: " + file );
+					//System.out.println( "Reading cache: " + file );
 					
 					contents = FileUtil.readResilientFile( file );
 					
@@ -1246,7 +1245,7 @@ LongTermStatsGenericImpl
 
 			file.getParentFile().mkdirs();
 			
-			System.out.println( "Writing cache: " + file );
+			//System.out.println( "Writing cache: " + file );
 			
 			FileUtil.writeResilientFile( file, contents );
 			
