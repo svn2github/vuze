@@ -21,7 +21,7 @@ package org.gudy.azureus2.core3.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
@@ -354,7 +354,7 @@ AEDiagnosticsLogger
 				
 			if ( current_writer == null ){
 			
-				current_writer = new PrintWriter(new FileWriter( log_file, true ));
+				current_writer = new PrintWriter( new OutputStreamWriter( new FileOutputStream( log_file, true ), "UTF-8" ));
 			}
 			
 			current_writer.println( str );
@@ -414,7 +414,7 @@ AEDiagnosticsLogger
 					
 				if ( current_writer == null ){
 					
-					current_writer = new PrintWriter(new FileWriter( log_file, true ));
+					current_writer = new PrintWriter( new OutputStreamWriter( new FileOutputStream( log_file, true ), "UTF-8" ));
 				}
 				
 				for ( StringBuilder str: pending ){
