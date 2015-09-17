@@ -1656,13 +1656,11 @@ SpeedLimitHandler
 								PRIORITISER_CHECK_PERIOD_BASE,
 								new TimerEventPerformer()
 								{
-									private int	tick_count;
-									
 									public void 
 									perform(
 										TimerEvent event) 
 									{
-										checkPrioritisers( tick_count++ );
+										checkPrioritisers();
 									}
 								});
 				}
@@ -2625,8 +2623,7 @@ SpeedLimitHandler
 	}
 	
 	private void
-	checkPrioritisers(
-		int	tick_count )
+	checkPrioritisers()
 	{
 		List<Prioritiser>	prioritisers;
 		
@@ -2637,7 +2634,7 @@ SpeedLimitHandler
 		
 		for ( Prioritiser p: prioritisers ){
 			
-			p.check( tick_count );
+			p.check();
 		}
 	}
 		
@@ -5381,7 +5378,10 @@ SpeedLimitHandler
 		private int					min			= MIN_DEFAULT;
 		private int					max			= MAX_DEFAULT;
 		
+		private int	tick_count		= 0;
+		
 		private int	check_ticks		= 1;
+		private int skip_ticks		= 0;
 		
 		private List<Object[]>				temp_states = new ArrayList<Object[]>();
 		
@@ -5484,9 +5484,17 @@ SpeedLimitHandler
 		}
 		
 		private void
-		check(
-			int		tick_count )
+		check()
 		{
+			if ( skip_ticks > 0 ){
+				
+				skip_ticks--;
+				
+				return;
+			}
+			
+			tick_count++;
+			
 			if ( tick_count % check_ticks != 0 ){
 				
 				return;
@@ -5737,6 +5745,12 @@ SpeedLimitHandler
 							
 							did_something = true;
 							
+								// when raising a limit things tend to bounce for a short time (bytes queued in Vuze ready
+								// for delivery get flushed to OS buffers and give the appearance of an increase in delivery rate
+								// that exceeds the peer's actual capacity - same true for incoming data queued in OS )
+							
+							skip_ticks = 1;
+							
 							break;
 							
 						}else{
@@ -5955,6 +5969,8 @@ SpeedLimitHandler
 			
 			private final int[] 	last_averages = new int[ STABLE_PERIODS ];
 			
+			private int		active_ticks	= 0;
+			
 			private int		last_average_index;
 			
 			private boolean	last_stable;
@@ -6061,8 +6077,19 @@ SpeedLimitHandler
 				last_stable	= stable;
 				
 				//System.out.println( tag.getTagName( true ) + " -> rate=" + average_rate + ", stable=" + stable );
-								
-				return( active );
+					
+				if ( active ){
+					
+					active_ticks++;
+					
+					return( active_ticks > 1 );
+					
+				}else{
+					
+					active_ticks = 0;
+				
+					return( false );
+				}
 			}
 			
 			private TagFeatureRateLimit
