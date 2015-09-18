@@ -31,8 +31,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
+import org.gudy.azureus2.core3.stats.transfer.impl.LongTermStatsWrapper.LongTermStatsWrapperHelper;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
@@ -42,6 +42,8 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+
+
 
 
 
@@ -58,7 +60,7 @@ import com.aelitis.azureus.core.util.average.AverageFactory;
 
 public class 
 LongTermStatsGenericImpl 
-	implements LongTermStats
+	implements LongTermStatsWrapperHelper
 {
 	private static final int VERSION = 1;
 	
@@ -125,7 +127,8 @@ LongTermStatsGenericImpl
 	private int	start_of_week 	= -1;
 	private int start_of_month	= -1;
 	
-
+	private volatile boolean	destroyed;
+	
 	private final String				generic_id;
 	private final GenericStatsSource	generic_source;
 	
@@ -163,6 +166,13 @@ LongTermStatsGenericImpl
 				parameterChanged(
 					String name) 
 				{
+					if ( destroyed ){
+						
+						COConfigurationManager.removeParameterListener( "long.term.stats.enable", this );
+						
+						return;
+					}
+					
 					boolean	enabled = COConfigurationManager.getBooleanParameter( name );
 					
 					synchronized( LongTermStatsGenericImpl.this ){
@@ -193,6 +203,13 @@ LongTermStatsGenericImpl
 	        		stopped(
 	        			AzureusCore		core )
 	        		{
+	        			if ( destroyed ){
+	        				
+	        				core.removeLifecycleListener( this );
+	        				
+	        				return;
+	        			}
+	        			
 	        			synchronized( LongTermStatsGenericImpl.this ){
 	        				
 	        				closing	= true;
@@ -215,7 +232,43 @@ LongTermStatsGenericImpl
 		}
 	}
 	
-
+	public void
+	reset()
+	{
+		Debug.out( "eh?" );
+	}
+	
+	public void 
+	destroyAndDeleteData() 
+	{
+		synchronized( this ){
+			
+			destroyed = true;
+			
+			if ( writer != null ){
+				
+				writer.close();
+				
+				writer = null;
+			}
+			
+			for ( int i=0;i<4;i++){
+				
+				if ( FileUtil.recursiveDeleteNoCheck( stats_dir )){
+					
+					return;
+				}
+				
+				try{
+					Thread.sleep( 250 );
+					
+				}catch( Throwable e ){
+				}
+			}
+			
+			Debug.out( "Failed to delete " + stats_dir );
+		}
+	}
 	
 	private void
 	sessionStart()
@@ -259,6 +312,13 @@ LongTermStatsGenericImpl
 				    		public void 
 				    		perform(TimerEvent event) 
 				    		{
+				    			if ( destroyed ){
+				    				
+				    				event.cancel();
+				    				
+				    				return;
+				    			}
+
 				    			updateStats();
 				    		}
 				    	});
@@ -318,6 +378,11 @@ LongTermStatsGenericImpl
 	{
 		synchronized( this ){
 
+			if ( destroyed ){
+				
+				return;
+			}
+			
 			try{
 				final long	now = SystemTime.getCurrentTime();
 				

@@ -66,6 +66,9 @@ LongTermStats
 	removeListener(
 		LongTermStatsListener		listener );
 	
+	public void
+	reset();
+	
 	public interface
 	RecordAccepter
 	{

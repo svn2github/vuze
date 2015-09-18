@@ -33,9 +33,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.stats.transfer.impl.LongTermStatsWrapper.LongTermStatsWrapperHelper;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
@@ -60,7 +60,7 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 public class 
 LongTermStatsImpl 
-	implements LongTermStats
+	implements LongTermStatsWrapperHelper
 {
 	private static final int VERSION = 1;
 	
@@ -148,6 +148,8 @@ LongTermStatsImpl
 	private int	start_of_week 	= -1;
 	private int start_of_month	= -1;
 	
+	private volatile boolean	destroyed;
+	
 	private
 	LongTermStatsImpl(
 		File	_stats_dir )
@@ -173,6 +175,13 @@ LongTermStatsImpl
 				parameterChanged(
 					String name) 
 				{
+					if ( destroyed ){
+						
+						COConfigurationManager.removeParameterListener( "long.term.stats.enable", this );
+						
+						return;
+					}
+					
 					boolean	enabled = COConfigurationManager.getBooleanParameter( name );
 					
 					synchronized( LongTermStatsImpl.this ){
@@ -202,6 +211,13 @@ LongTermStatsImpl
 	        			AzureusCore				core,
 	        			AzureusCoreComponent	component )
 	        		{
+	        			if ( destroyed ){
+	        				
+	        				core.removeLifecycleListener( this );
+	        				
+	        				return;
+	        			}
+	        			
 	        			if ( component instanceof GlobalManager ){
 	        				
 	        				synchronized( LongTermStatsImpl.this ){
@@ -215,6 +231,13 @@ LongTermStatsImpl
 	        		stopped(
 	        			AzureusCore		core )
 	        		{
+	        			if ( destroyed ){
+	        				
+	        				core.removeLifecycleListener( this );
+	        				
+	        				return;
+	        			}
+
 	        			synchronized( LongTermStatsImpl.this ){
 	        				
 	        				closing	= true;
@@ -234,6 +257,55 @@ LongTermStatsImpl
 		synchronized( this ){
 		
 			return( active );
+		}
+	}
+	
+	public void
+	reset()
+	{
+		Debug.out( "eh?" );
+	}
+	
+	public void 
+	destroyAndDeleteData() 
+	{
+		synchronized( this ){
+		
+			destroyed = true;
+			
+			if ( writer != null ){
+				
+				writer.close();
+				
+				writer = null;
+			}
+			
+			File[] files = stats_dir.listFiles();
+			
+outer:
+			for ( File file: files ){
+				
+				String name = file.getName();
+				
+				if ( name.length() == 4 && Character.isDigit( name.charAt(0))){
+					
+					for ( int i=0;i<4;i++){
+						
+						if ( FileUtil.recursiveDeleteNoCheck( file )){
+							
+							continue outer;
+						}
+						
+						try{
+							Thread.sleep( 250 );
+							
+						}catch( Throwable e ){
+						}
+					}
+					
+					Debug.out( "Failed to delete " + file );
+				}
+			}
 		}
 	}
 	
@@ -354,6 +426,13 @@ LongTermStatsImpl
 				    		public void 
 				    		perform(TimerEvent event) 
 				    		{
+				    			if ( destroyed ){
+				    				
+				    				event.cancel();
+				    				
+				    				return;
+				    			}
+				    			
 				    			updateStats();
 				    		}
 				    	});
@@ -433,6 +512,11 @@ LongTermStatsImpl
 	{
 		synchronized( this ){
 
+			if ( destroyed ){
+				
+				return;
+			}
+			
 			try{
 				final long	now = SystemTime.getCurrentTime();
 				

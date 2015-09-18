@@ -5557,6 +5557,7 @@ SpeedLimitHandler
 		private int					phase_1_tag_state	= 0;
 		private int					phase_1_tag_rate;
 		private int					phase_1_higher_pri_rates;
+		private int					phase_1_lower_pri_decrease;
 		
 		private int					consec_limits_hit = 0;
 		
@@ -5876,34 +5877,57 @@ SpeedLimitHandler
 									break;
 								}
 							}
+														
+								// move from lowest priority to highest distributing the rate decrease
+								// as we go
 							
-							int	decrease = 0;
+							int	total_decrease = 0;
 							
-							for ( int j=i+1;j<active_tags.size();j++){
+							for ( int j=active_tags.size()-1;j>i;j--){
 								
 								PrioritiserTagState ts = active_tags.get(j);
 								
 								int rate = ts.getRate();
 								
-								int target = rate - decrease_by;
+								int target;
+								int decrease;
+								
+								if ( rate >= decrease_by ){
+									
+									decrease = decrease_by;
+									
+									target = rate - decrease_by;
+									
+									decrease_by = 0;
+									
+								}else{
+									
+									decrease = rate;
+									
+									target = 0;
+									
+									decrease_by -= rate;
+								}
+									
+								total_decrease += decrease;
 								
 								if ( target <= 1024 ){
 									
 									target = -1;
-									
-									decrease += rate;
-									
-								}else{
-									
-									decrease += decrease_by;
 								}
 								
 								ts.setLimit( target, "1: decreasing lower priority (dec=" + formatRate(decrease,false) + ")");
+								
+								if ( decrease_by <= 0 ){
+									
+									break;
+								}
 							}
 							
 							phase_1_tag_state 			= 1;
 							phase_1_tag_rate			= current_rate;
 							phase_1_higher_pri_rates	= higher_pri_rates;
+							phase_1_lower_pri_decrease	= total_decrease;
 							
 							did_something = true;
 							
@@ -5935,7 +5959,39 @@ SpeedLimitHandler
 									my_target = max;
 								}
 								
-								if ( hp_diff <= -2048 ){
+								int	overall_gain = my_diff + hp_diff - phase_1_lower_pri_decrease;
+								
+								boolean limit_hit = hp_diff < 0;
+								
+								if ( limit_hit ){
+									
+									// higher priority has dropped, need to assess as to whether or not this is significant
+									// as they can be volatile if few peers
+									
+									// if overall stuff went up by 100k while hp dropped by 2k then even if this has
+									// pushed us to saturation it is a pretty good bet that clamping our limit to something a 
+									// bit lower will bring us back under saturation and push the higher priorities back up
+									
+									int hp_drop = -hp_diff;
+									
+									if ( hp_drop <= 2048 ){
+										
+										limit_hit = false;	// ignore very small drops
+										
+									}else if ( overall_gain >= 3 * hp_drop ){
+										
+										limit_hit = false;
+										
+										my_target = my_target - 3 * hp_drop;
+										
+										if ( my_target <= 1024 ){
+											
+											my_target = -1;
+										}
+									}
+								}
+								
+								if ( limit_hit ){
 									
 										// higher priorities total rate has dropped as a result on increasing the limit on this tag (and depressing the lower priorities a bit)
 										// so we don't want to carry on probing the limits of lower priority tags
@@ -5946,9 +6002,7 @@ SpeedLimitHandler
 										// so that some bandwidth from this tag gets hopefully shunted 'left'
 									
 										// actually the above logic isn't great as it can cause a tag to get stuck at a low rate
-									
-									int	overall_gain = my_diff + hp_diff;
-									
+																		
 									if ( overall_gain > 4*1024 ){
 										
 											// reasonable gain, nudge the rate up from what it was before the experiment

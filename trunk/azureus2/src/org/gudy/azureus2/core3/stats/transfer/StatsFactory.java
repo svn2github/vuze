@@ -25,8 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.stats.transfer.impl.LongTermStatsGenericImpl;
-import org.gudy.azureus2.core3.stats.transfer.impl.LongTermStatsImpl;
+import org.gudy.azureus2.core3.stats.transfer.impl.LongTermStatsWrapper;
 import org.gudy.azureus2.core3.stats.transfer.impl.OverallStatsImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -61,7 +60,7 @@ StatsFactory
 		GlobalManagerStats	stats )
 	{
 		overall_stats 	= new OverallStatsImpl( core, stats );
-		longterm_stats	= new LongTermStatsImpl( core, stats );
+		longterm_stats	= new LongTermStatsWrapper( core, stats );
 	}
 	
 	public static LongTermStats 
@@ -75,12 +74,26 @@ StatsFactory
 			
 			if ( result == null ){
 				
-				result = new LongTermStatsGenericImpl( id, source );
+				result = new LongTermStatsWrapper( id, source );
 				
 				generic_longterm_stats.put( id,  result );
 			}
 			
 			return( result );
+		}
+	}
+	
+	public static void
+	clearLongTermStats()
+	{
+		longterm_stats.reset();
+		
+		synchronized( generic_longterm_stats ){
+			
+			for ( LongTermStats lts: generic_longterm_stats.values()){
+				
+				lts.reset();
+			}
 		}
 	}
 }

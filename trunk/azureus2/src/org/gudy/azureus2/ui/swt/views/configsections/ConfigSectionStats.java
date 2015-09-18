@@ -23,8 +23,10 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -47,11 +49,14 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.AERunnable;
 
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class ConfigSectionStats implements UISWTConfigSection {
@@ -286,6 +291,8 @@ public class ConfigSectionStats implements UISWTConfigSection {
 	gXfer.setLayout(layout);
 	gXfer.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
 	
+	List<Button> buttons = new ArrayList<Button>();
+	
 		// set mark
 	
     Label set_mark_label = new Label(gXfer, SWT.NULL );
@@ -293,6 +300,8 @@ public class ConfigSectionStats implements UISWTConfigSection {
     
     Button set_mark_button = new Button(gXfer, SWT.PUSH);
 
+    buttons.add( set_mark_button );
+    
     Messages.setLanguageText(set_mark_button, "Button.set" );
 
     set_mark_button.addListener(SWT.Selection, 
@@ -309,6 +318,8 @@ public class ConfigSectionStats implements UISWTConfigSection {
         
     Button clear_mark_button = new Button(gXfer, SWT.PUSH);
 
+    buttons.add( clear_mark_button );
+    
     Messages.setLanguageText(clear_mark_button, "Button.clear" );
 
     clear_mark_button.addListener(SWT.Selection, 
@@ -370,6 +381,52 @@ public class ConfigSectionStats implements UISWTConfigSection {
     enableLongStats.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( week_start, month_start ));
     	
 
+    	// reset
+    
+    Label lt_reset_label = new Label(gLong, SWT.NULL );
+    Messages.setLanguageText(lt_reset_label, "ConfigView.section.transfer.lts.reset" );
+    
+    Button lt_reset_button = new Button(gLong, SWT.PUSH);
+
+    buttons.add( lt_reset_button );
+    
+    Messages.setLanguageText(lt_reset_button, "Button.clear" );
+
+    lt_reset_button.addListener(SWT.Selection, 
+		new Listener() 
+		{
+	        public void 
+			handleEvent(Event event) 
+	        {
+	        	MessageBoxShell mb = new MessageBoxShell(
+	        			SWT.ICON_WARNING | SWT.OK | SWT.CANCEL,
+	        			MessageText.getString("ConfigView.section.security.resetcerts.warning.title"),
+	        			MessageText.getString("ConfigView.section.transfer.ltsreset.warning.msg"));
+	        	mb.setDefaultButtonUsingStyle(SWT.CANCEL);
+	        	mb.setParent(parent.getShell());
+
+	        	mb.open(new UserPrompterResultListener() {
+	        		public void prompterClosed(int returnVal) {
+	        			if (returnVal != SWT.OK) {
+	        				return;
+	        			}
+	        			
+	        			Utils.getOffOfSWTThread(
+	        				new AERunnable() {
+								
+								@Override
+								public void runSupport() {
+									StatsFactory.clearLongTermStats();
+								}
+							});
+	        		
+	        		}
+	        	});
+	        }
+		});
+    
+    Utils.makeButtonsEqualWidth(buttons);
+    
     return gOutter;
   }
 }
