@@ -966,8 +966,8 @@ TagBase
 		
 		if ( tag_rl != null && tag_rl.supportsTagRates()){
 
-			long[] session_up 		= getTagSessionUploadTotal();
-			long[] session_down 	= getTagSessionDownloadTotal();
+			long[] session_up 		= getTagSessionUploadTotalRaw();
+			long[] session_down 	= getTagSessionDownloadTotalRaw();
 					
 			synchronized( session_cache ){
 				
@@ -1024,7 +1024,7 @@ TagBase
 	{
 		if ( tag_rl != null && tag_rl.supportsTagRates()){
 			
-			long[] session_up = getTagSessionUploadTotal();
+			long[] session_up = getTagSessionUploadTotalRaw();
 			
 			if ( session_up != null ){
 				
@@ -1045,7 +1045,7 @@ TagBase
 				writeStringListAttribute( AT_BYTES_UP, ups );
 			}
 			
-			long[] session_down = getTagSessionDownloadTotal();
+			long[] session_down = getTagSessionDownloadTotalRaw();
 			
 			if ( session_down != null ){
 				
@@ -1071,7 +1071,7 @@ TagBase
 	public long[]
 	getTagUploadTotal()
 	{
-		long[] result = getTagSessionUploadTotal();
+		long[] result = getTagSessionUploadTotalRaw();
 		
 		if ( result != null ){
 			
@@ -1087,8 +1087,33 @@ TagBase
 		return( result );
 	}
 	
+	private long[] session_up_reset;
+	private long[] session_down_reset;
+	
 	public long[]
 	getTagSessionUploadTotal()
+	{
+		long[] result = getTagSessionUploadTotalRaw();
+		
+		if ( result != null && session_up_reset != null && result.length == session_up_reset.length ){
+			
+			for ( int i=0;i<result.length;i++){
+				
+				result[i] -= session_up_reset[i];
+			}
+		}
+		
+		return( result );
+	}
+	
+	public void
+	resetTagSessionUploadTotal()
+	{
+		session_up_reset = getTagSessionUploadTotalRaw();
+	}
+	
+	private long[]
+	getTagSessionUploadTotalRaw()
 	{
 		if ( tag_rl == null || !tag_rl.supportsTagRates()){
 			
@@ -1123,7 +1148,7 @@ TagBase
 	public long[]
 	getTagDownloadTotal()
 	{
-		long[] result = getTagSessionDownloadTotal();
+		long[] result = getTagSessionDownloadTotalRaw();
 		
 		if ( result != null ){
 			
@@ -1141,6 +1166,28 @@ TagBase
 	
 	public long[]
 	getTagSessionDownloadTotal()
+	{
+		long[] result = getTagSessionDownloadTotalRaw();
+		
+		if ( result != null && session_down_reset != null && result.length == session_down_reset.length ){
+			
+			for ( int i=0;i<result.length;i++){
+				
+				result[i] -= session_down_reset[i];
+			}
+		}
+		
+		return( result );
+	}
+	
+	public void
+	resetTagSessionDownloadTotal()
+	{
+		session_down_reset = getTagSessionDownloadTotalRaw();
+	}
+	
+	private long[]
+	getTagSessionDownloadTotalRaw()
 	{
 		if ( tag_rl == null || !tag_rl.supportsTagRates()){
 			

@@ -27,15 +27,19 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSubView;
 import org.gudy.azureus2.ui.swt.views.TagSettingsView;
@@ -528,14 +532,66 @@ public class SBC_TagsOverview
 	{
 		List<Object>	ds = tv.getSelectedDataSources();
 		
-		List<Tag>	tags = new ArrayList<Tag>();
+		List<Tag>	tags 			= new ArrayList<Tag>();
 		
+		final List<TagFeatureRateLimit>	tags_su 	= new ArrayList<TagFeatureRateLimit>();
+		final List<TagFeatureRateLimit>	tags_sd 	= new ArrayList<TagFeatureRateLimit>();
+
 		for ( Object obj: ds ){
 			
 			if ( obj instanceof Tag ){
 				
-				tags.add((Tag)obj);
+				Tag tag = (Tag)obj;
+				
+				tags.add( tag );
+				
+				if ( tag instanceof TagFeatureRateLimit ){
+					
+					TagFeatureRateLimit rl = (TagFeatureRateLimit)tag;
+					
+					if (rl.supportsTagRates()){
+						
+						long[] up = rl.getTagSessionUploadTotal();
+						
+						if ( up != null ){
+							
+							tags_su.add( rl );
+						}
+						
+						long[] down = rl.getTagSessionDownloadTotal();
+						
+						if ( down != null ){
+							
+							tags_sd.add( rl );
+						}
+					}
+				}
 			}
+		}
+		
+		if ( 	( sColumnName.equals( ColumnTagUpSession.COLUMN_ID ) && tags_su.size() > 0 ) ||
+				( sColumnName.equals( ColumnTagDownSession.COLUMN_ID ) && tags_sd.size() > 0 )){
+			
+			final boolean is_up = sColumnName.equals( ColumnTagUpSession.COLUMN_ID );
+			
+			MenuItem mi = new MenuItem(menu, SWT.PUSH);
+			
+			Messages.setLanguageText(mi, "menu.reset.session.stats");
+			
+			mi.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					for ( TagFeatureRateLimit rl: is_up?tags_su:tags_sd ){
+						
+						if ( is_up ){
+							rl.resetTagSessionUploadTotal();
+						}else{
+							rl.resetTagSessionDownloadTotal();
+						}
+					}
+				}
+			});
+			
+			MenuFactory.addSeparatorMenuItem(menu);
 		}
 		
 		if ( tags.size() == 1 ){
@@ -550,7 +606,6 @@ public class SBC_TagsOverview
 		String 	sColumnName, 
 		Menu	menuThisColumn )
 	{
-		
 	}
 	
 	public void 

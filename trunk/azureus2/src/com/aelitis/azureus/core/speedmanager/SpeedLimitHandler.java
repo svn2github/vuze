@@ -92,6 +92,7 @@ import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureExecOnAssign;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
+import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
@@ -400,6 +401,67 @@ SpeedLimitHandler
 			for( Map.Entry<String,IPSet> entry: current_ip_sets.entrySet()){
 				lines.add( "    " + entry.getValue().getDetailString());
 			}
+		}
+		
+		List<Object[]> tag_nls = new ArrayList<Object[]>();
+		
+		for ( Map.Entry<Integer, List<NetLimit>> entry: net_limits.entrySet()){
+			
+			for ( NetLimit nl: entry.getValue()){
+				
+				if ( nl.getTag() != null ){
+					
+					tag_nls.add( new Object[]{ entry.getKey(), nl });
+				}
+			}
+		}
+		
+		if ( tag_nls.size() > 0 ){
+			
+			lines.add( "" );
+			lines.add( "Tag/Peer Set Net Limits" );
+			
+			for (Object[] entry: tag_nls ){
+				
+				int 		type 	= (Integer)entry[0];
+				NetLimit	nl 		= (NetLimit)entry[1];
+				
+				String tag_name = nl.getTag().getTag().getTagName( true );
+				
+				long[] stats = nl.getLongTermStats().getTotalUsageInPeriod( type );
+				
+				long[] limits = nl.getLimits();
+				
+				long total_up = stats[LongTermStats.ST_PROTOCOL_UPLOAD] + stats[LongTermStats.ST_DATA_UPLOAD];
+				long total_do = stats[LongTermStats.ST_PROTOCOL_DOWNLOAD] + stats[LongTermStats.ST_DATA_DOWNLOAD];
+				
+				String	lim_str = "";
+					
+				long total_lim 	= limits[0];
+				long up_lim		= limits[1];
+				long down_lim	= limits[2];
+					
+				if ( total_lim > 0 ){
+					
+					lim_str += "Total limit=" + DisplayFormatters.formatByteCountToKiBEtc( total_lim ) + ", used=" + DisplayFormatters.formatByteCountToKiBEtc( total_up+total_do ) + " - " + (100*(total_up+total_do)/total_lim) + "%";
+				}
+				if ( up_lim > 0 ){
+					
+					lim_str += (lim_str.length()==0?"":", ") + "Up limit=" + DisplayFormatters.formatByteCountToKiBEtc( up_lim ) + ", used=" + DisplayFormatters.formatByteCountToKiBEtc( total_up ) + " - " + (100*(total_up)/up_lim) + "%";
+				}
+				if ( down_lim > 0 ){
+					
+					lim_str += (lim_str.length()==0?"":", ") + "Down limit=" + DisplayFormatters.formatByteCountToKiBEtc( down_lim ) + ", used=" + DisplayFormatters.formatByteCountToKiBEtc( total_do ) + " - " + (100*(total_do)/down_lim) + "%";
+				}
+				
+				lines.add( "    " + tag_name + ": " + lim_str);
+			}
+			
+		}
+		
+		if ( current_prioritisers.size() > 0 ){
+			lines.add( "" );
+			lines.add( "Prioritizers: " + current_prioritisers.size());
 		}
 		
 		ScheduleRule rule = active_rule;
@@ -1065,14 +1127,15 @@ SpeedLimitHandler
 					}
 				}
 				
-				line = lc_line.substring(9).replace( ",", " " );
+				line = line.substring(9).replace( ",", " " );
 				
 				String[] args = line.split( " " );
 				
 				int		type		= -1;
 				String	profile		= null;
 				
-				TagFeatureRateLimit		tag			= null;
+				TagType		tag_type 	= null;
+				String		tag_name	= null;
 				
 				long	total_lim	= 0;
 				long	up_lim		= 0;
@@ -1103,32 +1166,40 @@ SpeedLimitHandler
 							}
 							
 							arg = arg.substring( 0, sep );
-						}
+						}else{
 						
-						sep = arg.indexOf( "$" );
-
-						if ( sep != -1 ){
-							
-							String tag_name = arg.substring( sep+1 ).trim();
-							
-							TagType tag_type_dm = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
-
-							Tag _tag = tag_type_dm.getTag( tag_name, true );
-							
-							if ( _tag instanceof TagFeatureRateLimit ){
-							
-								tag = (TagFeatureRateLimit)_tag;
+							sep = arg.indexOf( "$" );
+	
+							if ( sep != -1 ){
 								
-							}else{
+								tag_name = arg.substring( sep+1 ).trim();
 								
-								result.add( "net_limit tag '" + tag_name + "' not defined or invalid" );
-
-								break;
+								TagType tag_type_dm = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+	
+								TagFeatureRateLimit tag_dm = (TagFeatureRateLimit)tag_type_dm.getTag( tag_name, true );
+								
+								if ( tag_dm != null ){
+									
+									tag_type = tag_type_dm;
+									
+								}else{
+									
+									if ( ip_sets.get( tag_name ) != null ){
+										
+										tag_type = ip_set_tag_type;
+									}
+								}
+								
+								if ( tag_type == null ){
+									
+									result.add( "net_limit tag/peer set '" + tag_name + "' not defined or invalid" );
+	
+									break;
+								}
+								
+								arg = arg.substring( 0, sep );
 							}
-							
-							arg = arg.substring( 0, sep );
 						}
-						
 						
 						if ( arg.equalsIgnoreCase( "hourly" )){
 							
@@ -1198,7 +1269,7 @@ SpeedLimitHandler
 						new_net_limits.put( type, limits );
 					}
 					
-					limits.add( new NetLimit( profile, tag, total_lim, up_lim, down_lim ));
+					limits.add( new NetLimit( profile, tag_type, tag_name, total_lim, up_lim, down_lim ));
 				}	
 			}else if ( lc_line.startsWith( "priority_down " ) || lc_line.startsWith( "priority_up " )){
 					
@@ -1609,6 +1680,14 @@ SpeedLimitHandler
 			net_limits = new_net_limits;
 
 			if ( net_limits.size() > 0 ){
+				
+				for ( List<NetLimit> l: new_net_limits.values()){
+					
+					for ( NetLimit n: l ){
+						
+						n.initialise();
+					}
+				}
 				
 				if ( !net_limit_listener_added ){
 					
@@ -3058,21 +3137,51 @@ SpeedLimitHandler
 					exceeded_down = total_do >= limits[2];
 				}
 				
-				int target_up 	= exceeded_up?-1:0;
-				int target_down = exceeded_down?-1:0;
+				TagFeatureRateLimit tag_rl = limit.getTag();
 
-				TagFeatureRateLimit tag = limit.getTag();
+				Tag tag = tag_rl.getTag();
 				
-				int up_lim	 = tag.getTagUploadLimit();
-				int down_lim = tag.getTagDownloadLimit();
+				boolean	handled = false;
 				
-				if ( up_lim != target_up || down_lim != target_down ){
+				if ( tag instanceof TagFeatureRunState ){
+				
+					TagFeatureRunState rs = (TagFeatureRunState)tag;
+
+					if ( rs.hasRunStateCapability( TagFeatureRunState.RSC_PAUSE )){
+								
+						boolean pause = exceeded_up&&exceeded_down;
+						
+						int op = pause?TagFeatureRunState.RSC_PAUSE:TagFeatureRunState.RSC_RESUME;
+						
+						boolean[] result = rs.getPerformableOperations( new int[]{ op });
+						
+						if ( result[0] ){
+							
+							logger.log( "netlimit: " + (pause?"pausing":"resuming") + " tag " + tag.getTagName( true ));
+
+							rs.performOperation( op );
+						}
+						
+						handled = pause;
+					}
+				}
+				
+				if ( !handled ){
 					
-					logger.log( "netlimit: setting rates to " + format( target_up ) + "/" + format( target_down ) + " on tag " + tag.getTag().getTagName( true ));
+					int target_up 	= exceeded_up?-1:0;
+					int target_down = exceeded_down?-1:0;
 					
-					tag.setTagUploadLimit( target_up );
+					int up_lim	 = tag_rl.getTagUploadLimit();
+					int down_lim = tag_rl.getTagDownloadLimit();
 					
-					tag.setTagDownloadLimit( target_down );
+					if ( up_lim != target_up || down_lim != target_down ){
+							
+						logger.log( "netlimit: setting rates to " + format( target_up ) + "/" + format( target_down ) + " on tag " + tag.getTagName( true ));
+						
+						tag_rl.setTagUploadLimit( target_up );
+						
+						tag_rl.setTagDownloadLimit( target_down );
+					}
 				}
 			}
 		}
@@ -4432,44 +4541,56 @@ SpeedLimitHandler
 		}
 	}
 	
-	private static class
+	private class
 	NetLimit
-		implements LongTermStats.GenericStatsSource
 	{
-		final private String						profile;
-		final private TagFeatureRateLimit			tag;
-		final private long[]						limits;
+		final private String			profile;
+		final private TagType			tag_type;
+		final private String			tag_name; 
+		final private long[]			limits;
 		
-		private LongTermStats lt_stats;
+		private TagFeatureRateLimit			tag;
+		private LongTermStats 				lt_stats;
 		
 		private
 		NetLimit(
 			String					_profile,
-			TagFeatureRateLimit		_tag,
+			TagType					_tag_type,
+			String					_tag_name,
 			long					_total_lim, 
 			long					_up_lim, 
 			long					_down_lim )
 		{
 			profile		= _profile;
-			tag			= _tag;
+			tag_type	= _tag_type;
+			tag_name	= _tag_name;
 			limits		= new long[]{ _total_lim, _up_lim, _down_lim };
-			
-			if ( tag != null ){
-				
-				try{
-					lt_stats = StatsFactory.getGenericLongTermStats( "tag" + "." + tag.getTag().getTagUID(), this );
-					
-				}catch( Throwable e ){
-					
-					Debug.out( e );
-				}
-			}
 		}
 		
-		public int
-		getEntryCount()
+		private void
+		initialise()
 		{
-			return( 4 );
+			if ( tag_type != null ){
+				
+				tag = (TagFeatureRateLimit)tag_type.getTag( tag_name, true );
+
+				if ( tag == null ){
+					
+					Debug.out( "hmm, tag " + tag_name + " not found" );
+					
+				}else{
+					
+					try{
+						lt_stats = StatsFactory.getGenericLongTermStats( 
+								"tag" + "." + tag.getTag().getTagUID(), 
+								new NetLimitStatsProvider( tag ));
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
 		}
 		
 		private LongTermStats
@@ -4478,30 +4599,6 @@ SpeedLimitHandler
 			return( lt_stats );
 		}
 		
-		public long[]
-		getStats(
-			String		id )
-		{
-				// currently protocol/data isn't separated so lump it all in as data
-			
-			long[] up 	= tag.getTagUploadTotal();
-			long[] down = tag.getTagDownloadTotal();
-			
-			long[] result = new long[4];
-			
-			if ( up != null ){
-				
-				result[LongTermStats.ST_DATA_UPLOAD] = up[0];
-				
-			}
-			if ( down != null ){
-				
-				result[LongTermStats.ST_DATA_DOWNLOAD] = down[0];
-				
-			}
-			
-			return( result );
-		}
 		
 		private String
 		getProfile()
@@ -4519,6 +4616,71 @@ SpeedLimitHandler
 		getLimits()
 		{
 			return( limits );
+		}
+	
+		private class
+		NetLimitStatsProvider
+			implements LongTermStats.GenericStatsSource
+		{
+			private final TagType			tag_type;
+			private final String			tag_name;
+			
+			private TagFeatureRateLimit		tag_rl;
+			
+			private 
+			NetLimitStatsProvider(
+				TagFeatureRateLimit		_tag_rl )
+			{
+				tag_rl	= _tag_rl;
+				
+				Tag tag = tag_rl.getTag();
+				
+				tag_type	= tag.getTagType();
+				tag_name	= tag.getTagName( true );
+			}
+			
+			public int
+			getEntryCount()
+			{
+				return( 4 );
+			}
+			
+			public long[]
+			getStats(
+				String		id )
+			{
+				if ( tag_type == ip_set_tag_type ){
+					
+						// need to re-resolve this
+					
+					TagFeatureRateLimit t = (TagFeatureRateLimit)ip_set_tag_type.getTag( tag_name, true );
+					
+					if ( t != tag_rl ){
+						
+						tag_rl = t;
+					}
+					
+				}
+					// currently protocol/data isn't separated so lump it all in as data
+				
+				long[] up 	= tag_rl.getTagUploadTotal();
+				long[] down = tag_rl.getTagDownloadTotal();
+				
+				long[] result = new long[4];
+				
+				if ( up != null ){
+					
+					result[LongTermStats.ST_DATA_UPLOAD] = up[0];
+					
+				}
+				if ( down != null ){
+					
+					result[LongTermStats.ST_DATA_DOWNLOAD] = down[0];
+					
+				}
+				
+				return( result );
+			}
 		}
 	}
 	

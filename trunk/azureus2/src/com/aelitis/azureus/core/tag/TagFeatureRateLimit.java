@@ -56,9 +56,15 @@ TagFeatureRateLimit
 	public long[]
 	getTagSessionUploadTotal();
 	
+	public void
+	resetTagSessionUploadTotal();
+	
 	public long[]
 	getTagSessionDownloadTotal();
 
+	public void
+	resetTagSessionDownloadTotal();
+	
 	public long[]
 	getTagUploadTotal();
 	
