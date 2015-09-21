@@ -19,8 +19,6 @@
 package com.aelitis.azureus.core.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.URL;
@@ -213,6 +211,10 @@ AzureusCoreImpl
 	private boolean ca_shutdown_computer_after_stop	= false;
 	private long	ca_last_time_downloading 		= -1;
 	private long	ca_last_time_seeding 			= -1;
+	
+	private boolean	ra_restarting		= false;
+	private long	ra_last_total_data	= -1;
+	private long	ra_last_data_time	= 0;
 	
 	private boolean prevent_sleep_remove_trigger	= false;
 	
@@ -2020,7 +2022,8 @@ AzureusCoreImpl
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
 					"On Downloading Complete Do",
-					"On Seeding Complete Do"
+					"On Seeding Complete Do",
+					"Auto Restart When Idle"
 			},
 			new ParameterListener()
 			{
@@ -2032,6 +2035,8 @@ AzureusCoreImpl
 				{
 					String	dl_act = COConfigurationManager.getStringParameter( "On Downloading Complete Do" );
 					String	se_act = COConfigurationManager.getStringParameter( "On Seeding Complete Do" );
+					
+					int		restart_after = COConfigurationManager.getIntParameter( "Auto Restart When Idle" );
 					
 					synchronized( this ){
 						
@@ -2048,7 +2053,7 @@ AzureusCoreImpl
 							ca_last_time_seeding	= -1;
 						}
 				
-						if ( dl_nothing && se_nothing ){
+						if ( dl_nothing && se_nothing && restart_after == 0 ){
 							
 							if ( timer_event != null ){
 								
@@ -2072,7 +2077,10 @@ AzureusCoreImpl
 												{
 													if ( !stopped ){
 													
-														checkCloseActions();
+														if ( !checkRestartAction()){
+														
+															checkCloseActions();
+														}
 													}
 												}
 											});
@@ -2266,6 +2274,100 @@ AzureusCoreImpl
 			
 			Debug.out( e );
 		}
+	}
+	
+	protected boolean
+	checkRestartAction()
+	{		
+		if ( ra_restarting ){
+			
+			return( true );
+		}
+		
+		int		restart_after = COConfigurationManager.getIntParameter( "Auto Restart When Idle" );
+	
+		if ( restart_after > 0 ){
+			
+			List<DownloadManager> managers = getGlobalManager().getDownloadManagers();
+
+			boolean	active = false;
+			
+			for ( DownloadManager manager: managers ){
+
+				int state = manager.getState();
+
+				if ( 	state == DownloadManager.STATE_DOWNLOADING ||
+						state == DownloadManager.STATE_SEEDING ){
+					
+					active = true;
+					
+					break;
+				}
+			}
+			
+			if ( active ){
+				
+				GlobalManagerStats stats = global_manager.getStats();
+				
+				long totals = stats.getTotalDataBytesReceived() + stats.getTotalDataBytesSent();
+				
+				long	now = SystemTime.getMonotonousTime();
+				
+				if ( totals == ra_last_total_data ){
+					
+					if ( now - ra_last_data_time >= 60*1000*restart_after ){
+						
+						ra_restarting = true;
+						
+						String message = 
+								MessageText.getString( 
+									"core.restart.alert",
+									new String[]{
+										String.valueOf( restart_after ),
+									});
+						
+						UIFunctions ui_functions = UIFunctionsManager.getUIFunctions();
+						
+						if ( ui_functions != null ){
+						
+							ui_functions.forceNotify( UIFunctions.STATUSICON_NONE, null, message, null, new Object[0], -1 );
+						}
+						
+						Logger.log( 
+							new LogAlert( 
+								LogAlert.UNREPEATABLE, 
+								LogEvent.LT_INFORMATION,
+								message ));
+
+						new DelayedEvent(
+							"CoreRestart",
+							10*1000,
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									requestRestart();
+								}
+							});
+						
+						return( true );
+					}
+				}else{
+					
+					ra_last_total_data 	= totals;
+					ra_last_data_time	= now;
+				}
+			}else{
+				
+				ra_last_total_data = -1;
+			}
+		}else{
+			
+			ra_last_total_data = -1;
+		}
+		
+		return( false );
 	}
 	
 	protected void

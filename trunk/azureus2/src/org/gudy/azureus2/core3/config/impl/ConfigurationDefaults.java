@@ -250,6 +250,7 @@ public class ConfigurationDefaults {
     def.put("Stop Triggers Auto Reset", TRUE );
     def.put("Prevent Sleep Downloading", TRUE );
     def.put("Prevent Sleep FP Seeding", FALSE );
+    def.put("Auto Restart When Idle", ZERO );
     
     // SWT GUI Settings
     

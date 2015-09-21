@@ -229,6 +229,20 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			resetOnTrigger.setLayoutData(gridData);
 		}
 		
+		if ( userMode > 0 ){
+			
+			Group gRestart = new Group(cDisplay, SWT.NULL);
+			Messages.setLanguageText(gRestart, "label.restart");
+			layout = new GridLayout(2, false);
+			gRestart.setLayout(layout);
+			gRestart.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+
+			label = new Label(gRestart, SWT.NULL);
+			Messages.setLanguageText(label, "ConfigView.label.restart.auto");
+
+			new IntParameter(gRestart, "Auto Restart When Idle", 0, 100000 );
+		}
+		
 		if ( userMode > 0 && platform.hasCapability( PlatformManagerCapabilities.AccessExplicitVMOptions )){
 			
 			Group gJVM = new Group(cDisplay, SWT.NULL);
