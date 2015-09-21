@@ -67,6 +67,7 @@ LongTermStatsGenericImpl
 	private static final long MIN_IN_MILLIS		= 60*1000;
 	private static final long HOUR_IN_MILLIS	= 60*60*1000;
 	private static final long DAY_IN_MILLIS		= 24*60*60*1000;
+	private static final long WEEK_IN_MILLIS	= 7*24*60*60*1000;
 
 	public static final int RT_SESSION_START	= 1;
 	public static final int RT_SESSION_STATS	= 2;
@@ -773,7 +774,7 @@ LongTermStatsGenericImpl
 					LineNumberReader lnr = null;
 					
 					try{
-						System.out.println( "Reading " + stats_file );
+						// System.out.println( "Reading " + stats_file );
 						
 						lnr = new LineNumberReader( new FileReader( stats_file ));
 						
@@ -971,6 +972,21 @@ LongTermStatsGenericImpl
 			
 			bottom_time = (now/HOUR_IN_MILLIS)*HOUR_IN_MILLIS;
 			top_time	= bottom_time + HOUR_IN_MILLIS - 1;
+			
+		}else if ( period_type == PT_SLIDING_HOUR ){
+			
+			bottom_time = now - HOUR_IN_MILLIS;
+			top_time	= now;
+			
+		}else if ( period_type == PT_SLIDING_DAY ){
+			
+			bottom_time = now - DAY_IN_MILLIS;
+			top_time	= now;
+			
+		}else if ( period_type == PT_SLIDING_WEEK ){
+			
+			bottom_time = now - WEEK_IN_MILLIS;
+			top_time	= now;
 			
 		}else{
 			

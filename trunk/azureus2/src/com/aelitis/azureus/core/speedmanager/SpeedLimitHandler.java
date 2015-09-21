@@ -136,6 +136,10 @@ SpeedLimitHandler
 		}
 	}
 	
+	private static final int SCHEDULER_PERIOD			= 30*1000;
+	private static final int NETLIMIT_TAG_LOG_PERIOD	= 60*1000;
+	private static final int NETLIMIT_TAG_LOG_TICKS		= NETLIMIT_TAG_LOG_PERIOD/SCHEDULER_PERIOD;
+	
 	private static final int PRIORITISER_CHECK_PERIOD_BASE	= 5*1000;
 	
 	private static final String	NET_IPV4		= "IPv4";
@@ -1205,13 +1209,25 @@ SpeedLimitHandler
 							
 							type = LongTermStats.PT_CURRENT_HOUR;
 							
-						}else if ( arg.equalsIgnoreCase( "daily" )){
+						}else if ( arg.equalsIgnoreCase( "shourly" )){
+							
+							type = LongTermStats.PT_SLIDING_HOUR;
 								
+						}else if ( arg.equalsIgnoreCase( "daily" )){
+							
 							type = LongTermStats.PT_CURRENT_DAY;
+								
+						}else if ( arg.equalsIgnoreCase( "sdaily" )){
+							
+							type = LongTermStats.PT_SLIDING_DAY;
 								
 						}else if ( arg.equalsIgnoreCase( "weekly" )){
 							
 							type = LongTermStats.PT_CURRENT_WEEK;
+								
+						}else if ( arg.equalsIgnoreCase( "sweekly" )){
+							
+							type = LongTermStats.PT_SLIDING_WEEK;
 							
 						}else if ( arg.equalsIgnoreCase( "monthly" )){
 							
@@ -1752,21 +1768,25 @@ SpeedLimitHandler
 				schedule_event = 
 					SimpleTimer.addPeriodicEvent(
 						"speed handler scheduler",
-						30*1000,
+						SCHEDULER_PERIOD,
 						new TimerEventPerformer()
 						{
+							private int tick_count;
+							
 							public void 
 							perform(
 								TimerEvent event) 
 							{
-								checkSchedule();
+								tick_count++;
+								
+								checkSchedule( tick_count );
 							}
 						});
 			}
 			
 			if ( active_rule != null || rules.size() > 0 || net_limits.size() > 0 ){
 			
-				checkSchedule();
+				checkSchedule(0);
 			}
 
 		}else{
@@ -2782,7 +2802,8 @@ SpeedLimitHandler
 	}
 	
 	private void
-	checkSchedule()
+	checkSchedule(
+		int		tick_count )
 	{
 		GlobalManager gm = core.getGlobalManager();
 
@@ -2874,7 +2895,7 @@ SpeedLimitHandler
 		
 		if ( net_limits.size() > 0 ){
 		
-			checkTagNetLimits();
+			checkTagNetLimits( tick_count );
 		}
 		
 		if ( 	( current_rule != active_rule && net_limits.size() > 0 ) ||
@@ -3097,8 +3118,13 @@ SpeedLimitHandler
 	}
 	
 	private void
-	checkTagNetLimits()
+	checkTagNetLimits(
+		int	tick_count )
 	{
+		boolean	do_log = tick_count % NETLIMIT_TAG_LOG_TICKS == 0;
+		
+		String log_str = "";
+		
 		for (Map.Entry<Integer,List<NetLimit>> entry: net_limits.entrySet()){
 			
 			int	type = entry.getKey();
@@ -3112,10 +3138,18 @@ SpeedLimitHandler
 					continue;
 				}
 				
+				TagFeatureRateLimit tag_rl = limit.getTag();
+
+				Tag tag = tag_rl.getTag();
+
 				long[] usage = getLongTermUsage( stats, type, limit );
 							
 				long total_up = usage[LongTermStats.ST_PROTOCOL_UPLOAD] + usage[LongTermStats.ST_DATA_UPLOAD];
 				long total_do = usage[LongTermStats.ST_PROTOCOL_DOWNLOAD] + usage[LongTermStats.ST_DATA_DOWNLOAD];
+				
+				log_str += (log_str.length()==0?"":"; ") +
+						tag.getTagName( true ) + ": up=" + DisplayFormatters.formatByteCountToKiBEtc( total_up ) + 
+						", down=" + DisplayFormatters.formatByteCountToKiBEtc( total_do );
 				
 				long[]	limits = limit.getLimits();
 	
@@ -3137,9 +3171,6 @@ SpeedLimitHandler
 					exceeded_down = total_do >= limits[2];
 				}
 				
-				TagFeatureRateLimit tag_rl = limit.getTag();
-
-				Tag tag = tag_rl.getTag();
 				
 				boolean	handled = false;
 				
@@ -3158,7 +3189,9 @@ SpeedLimitHandler
 						if ( result[0] ){
 							
 							logger.log( "netlimit: " + (pause?"pausing":"resuming") + " tag " + tag.getTagName( true ));
-
+							
+							do_log = true;
+							
 							rs.performOperation( op );
 						}
 						
@@ -3178,12 +3211,19 @@ SpeedLimitHandler
 							
 						logger.log( "netlimit: setting rates to " + format( target_up ) + "/" + format( target_down ) + " on tag " + tag.getTagName( true ));
 						
+						do_log = true;
+						
 						tag_rl.setTagUploadLimit( target_up );
 						
 						tag_rl.setTagDownloadLimit( target_down );
 					}
 				}
 			}
+		}
+		
+		if ( log_str.length() > 0 && do_log ){
+			
+			logger.log( "netlimit: current: " + log_str );
 		}
 	}
 	

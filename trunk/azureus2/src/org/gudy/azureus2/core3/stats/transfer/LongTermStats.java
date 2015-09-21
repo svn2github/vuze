@@ -37,6 +37,10 @@ LongTermStats
 	public static final int PT_CURRENT_WEEK			= 2;	// sun is start of week
 	public static final int PT_CURRENT_MONTH		= 3;
 	
+	public static final int PT_SLIDING_HOUR			= 10;
+	public static final int PT_SLIDING_DAY			= 11;
+	public static final int PT_SLIDING_WEEK			= 12;
+
 	public boolean
 	isEnabled();
 	

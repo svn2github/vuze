@@ -67,6 +67,7 @@ LongTermStatsImpl
 	private static final long MIN_IN_MILLIS		= 60*1000;
 	private static final long HOUR_IN_MILLIS	= 60*60*1000;
 	private static final long DAY_IN_MILLIS		= 24*60*60*1000;
+	private static final long WEEK_IN_MILLIS	= 7*24*60*60*1000;
 
 	public static final int RT_SESSION_START	= 1;
 	public static final int RT_SESSION_STATS	= 2;
@@ -820,7 +821,7 @@ outer:
 			
 			boolean	offset_cachable = start_offset % 60 == 0;
 			
-			System.out.println( "start=" + debug_utc_format.format( start_date ) + ", end=" + debug_utc_format.format( end_date ) + ", offset=" + start_offset);
+			//System.out.println( "start=" + debug_utc_format.format( start_date ) + ", end=" + debug_utc_format.format( end_date ) + ", offset=" + start_offset);
 			
 			MonthCache	month_cache = null;
 			
@@ -916,7 +917,7 @@ outer:
 					LineNumberReader lnr = null;
 					
 					try{
-						System.out.println( "Reading " + stats_file );
+						//System.out.println( "Reading " + stats_file );
 						
 						lnr = new LineNumberReader( new FileReader( stats_file ));
 						
@@ -1012,7 +1013,7 @@ outer:
 							file_totals = new long[0];
 						}
 						
-						System.out.println( "File total: start=" + debug_utc_format.format(file_start_time) + ", end=" + debug_utc_format.format(session_time) + " - " + getString( file_totals ));
+						//System.out.println( "File total: start=" + debug_utc_format.format(file_start_time) + ", end=" + debug_utc_format.format(session_time) + " - " + getString( file_totals ));
 						
 						if ( can_cache ){
 							
@@ -1030,7 +1031,7 @@ outer:
 									
 									if ( day_cache == null ){
 										
-										System.out.println( "Creating day cache" );
+										//System.out.println( "Creating day cache" );
 										
 										day_cache = new DayCache( year_str, month_str, day_str );
 									}
@@ -1071,7 +1072,7 @@ outer:
 				}
 			}
 			
-			System.out.println( "    -> " + getString( result ));
+			//System.out.println( "    -> " + getString( result ));
 			
 			return( result );
 		}
@@ -1114,6 +1115,21 @@ outer:
 			
 			bottom_time = (now/HOUR_IN_MILLIS)*HOUR_IN_MILLIS;
 			top_time	= bottom_time + HOUR_IN_MILLIS - 1;
+		
+		}else if ( period_type == PT_SLIDING_HOUR ){
+			
+			bottom_time = now - HOUR_IN_MILLIS;
+			top_time	= now;
+			
+		}else if ( period_type == PT_SLIDING_DAY ){
+			
+			bottom_time = now - DAY_IN_MILLIS;
+			top_time	= now;
+			
+		}else if ( period_type == PT_SLIDING_WEEK ){
+			
+			bottom_time = now - WEEK_IN_MILLIS;
+			top_time	= now;
 			
 		}else{
 			
@@ -1329,7 +1345,7 @@ outer:
 				
 				if ( file.exists()){
 					
-					System.out.println( "Reading cache: " + file );
+					//System.out.println( "Reading cache: " + file );
 					
 					contents = FileUtil.readResilientFile( file );
 					
@@ -1453,7 +1469,7 @@ outer:
 
 			file.getParentFile().mkdirs();
 			
-			System.out.println( "Writing cache: " + file );
+			//System.out.println( "Writing cache: " + file );
 			
 			FileUtil.writeResilientFile( file, contents );
 			
@@ -1466,7 +1482,7 @@ outer:
 		String[]	args )
 	{
 		try{
-			LongTermStatsImpl impl = new LongTermStatsImpl( new File( "C:\\Test\\plus2\\stats" ));
+			LongTermStatsImpl impl = new LongTermStatsImpl( new File( "C:\\Test\\plus6b\\stats" ));
 			
 			SimpleDateFormat local_format = new SimpleDateFormat( "yyyy,MM,dd" );
 			
@@ -1485,13 +1501,14 @@ outer:
 						{
 							System.out.println( new Date( timestamp ));
 							
-							return( false );
+							return( true );
 						}
 					});
 			
 			System.out.println( getString( usage ));
 		
-			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_DAY )));
+			System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_HOUR )));
+			System.out.println( getString(impl.getTotalUsageInPeriod( PT_SLIDING_HOUR )));
 			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_WEEK )));
 			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_MONTH )));
 			
