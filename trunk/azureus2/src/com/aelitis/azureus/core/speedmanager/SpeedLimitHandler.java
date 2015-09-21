@@ -1343,6 +1343,12 @@ SpeedLimitHandler
 								
 								ok = true;
 								
+							}else if ( lhs.equalsIgnoreCase( "probe" )){
+								
+								pri.setProbePeriod( Integer.parseInt( rhs ));
+								
+								ok = true;
+								
 							}else if ( lhs.equals( "min" )){
 								
 								int min = (int)parseRate( rhs );
@@ -5574,11 +5580,14 @@ SpeedLimitHandler
 		private final int		FREQ_DEFAULT	= 5;
 		private final int		MIN_DEFAULT		= 1024;
 		private final int		MAX_DEFAULT		= 100*1024*1024;
+		private final int		PROBE_DEFAULT	= 0;
 		
 		private boolean				is_down;
-		private int					freq		= FREQ_DEFAULT;
-		private int					min			= MIN_DEFAULT;
-		private int					max			= MAX_DEFAULT;
+		private int					freq			= FREQ_DEFAULT;
+		private int					min				= MIN_DEFAULT;
+		private int					max				= MAX_DEFAULT;
+		private int					probe_period	= PROBE_DEFAULT;
+		
 		
 		private int	tick_count		= 0;
 		
@@ -5591,6 +5600,7 @@ SpeedLimitHandler
 		
 		private int					phase 					= 0;
 		private int					phase_0_stable_waits	= 0;
+		private int					phase_0_count			= 0;
 		
 		
 		private PrioritiserTagState	phase_1_tag			= null;
@@ -5600,6 +5610,9 @@ SpeedLimitHandler
 		private int					phase_1_lower_pri_decrease;
 		
 		private int					consec_limits_hit = 0;
+		
+		private Map<PrioritiserTagState,Integer>	phase_2_limits = new HashMap<PrioritiserTagState, Integer>();
+		private int									phase_2_rate;
 		
 		private
 		Prioritiser()
@@ -5684,6 +5697,13 @@ SpeedLimitHandler
 			int		_max )
 		{
 			max	= _max;
+		}
+		
+		private void
+		setProbePeriod(
+			int		_period )
+		{
+			probe_period = _period;
 		}
 		
 		private void
@@ -5851,7 +5871,7 @@ SpeedLimitHandler
 					
 					phase_1_tag_state = 0;
 				}
-			}else{
+			}else if ( phase == 1 ){
 			
 					// note that we only get here when things have finished 'adjusting'
 				
@@ -6125,8 +6145,75 @@ SpeedLimitHandler
 					if ( !did_something ){
 						
 						phase = 0;
+						
+						phase_0_count++;
+						
+						if ( probe_period > 0 && phase_0_count % probe_period == 0 ){
+							
+								// periodic raise to max and see if overall throughput changed
+							
+							phase_2_limits.clear();
+							
+							int	total_rate = 0;
+							
+							boolean	changed = false;
+							
+							for ( PrioritiserTagState tag: active_tags ){
+								
+								phase_2_limits.put( tag, tag.getLimit());
+								
+								total_rate += tag.getRate();
+								
+								if ( tag.setLimit( max, "1: probing" )){
+									
+									changed = true;
+								}
+							}
+							
+							if ( changed ){
+								
+								phase = 2;
+
+								phase_2_rate	= total_rate;
+								
+								skip_ticks = 1;
+							}
+						}
 					}
 				}
+			}else if ( phase == 2 ){
+				
+				int	total_rate = 0;
+
+				for ( PrioritiserTagState tag: active_tags ){
+
+					total_rate += tag.getRate();
+				}
+				
+				int	diff = total_rate - phase_2_rate;
+				
+				log( "2: before=" + formatRate( phase_2_rate, false ) + ", after=" + formatRate( total_rate, false ));
+				
+				int	inc = diff/phase_2_limits.size();
+				
+				for ( Map.Entry<PrioritiserTagState,Integer> entry: phase_2_limits.entrySet()){
+				
+					int	limit = entry.getValue();
+					
+					if ( inc > 0 ){
+						
+						limit += inc;
+						
+						if ( limit > max ){
+							
+							limit = max;
+						}
+					}
+					
+					entry.getKey().setLimit( limit, "probe result" );
+				}
+				
+				phase = 0;
 			}
 		}
 	
@@ -6398,15 +6485,15 @@ SpeedLimitHandler
 				}
 			}
 			
-			private void
+			private boolean
 			setLimit(
 				int		limit,
 				String	reason )
 			{
-				setLimit( limit, false, reason );
+				return( setLimit( limit, false, reason ));
 			}
 			
-			private void
+			private boolean
 			setLimit(
 				int		limit,
 				boolean	major_change,
@@ -6431,6 +6518,12 @@ SpeedLimitHandler
 						
 						adjusting_ticks = adjusting_ticks * 2;
 					}
+					
+					return( true );
+					
+				}else{
+					
+					return( false );
 				}
 			}
 		}
