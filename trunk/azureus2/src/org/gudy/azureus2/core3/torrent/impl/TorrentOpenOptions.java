@@ -680,6 +680,24 @@ public class TorrentOpenOptions
 			
 			List<String> network_cache = TorrentUtils.getNetworkCache( torrent );
 
+			if ( network_cache.size() > 0 ){
+				
+					// If the network cache doesn't have some networks enabled then we propagate this 
+					// onto the defaults for this torrent. Use case: user has I2P only magnet download but
+					// the resulting torrent file happens to have public trackers - don't surprise the user
+					// by leaving 'Public' enabled
+				
+				for ( String net: enabledNetworks.keySet()){
+					
+					boolean enabled = network_cache.contains( net );
+					
+					if ( !enabled ){
+						
+						enabledNetworks.put( net, false );
+					}
+				}
+			}
+			
 			networks.addAll( network_cache );
 			
 				// could do something here if multiple networks to get user to decide what to do...
