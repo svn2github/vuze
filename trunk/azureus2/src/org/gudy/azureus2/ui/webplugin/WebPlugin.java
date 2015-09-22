@@ -44,6 +44,8 @@ import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.json.simple.JSONObject;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.pairing.PairedService;
 import com.aelitis.azureus.core.pairing.PairedServiceRequestHandler;
 import com.aelitis.azureus.core.pairing.PairingConnectionData;
@@ -177,6 +179,8 @@ WebPlugin
 	
 	private boolean				plugin_enabled;
 	
+	private boolean				na_intf_listener_added;
+	
 	private String				home_page;
 	private String				file_root;
 	private String				resource_root;
@@ -206,7 +210,9 @@ WebPlugin
 	private static final String	GRACE_PERIOD_MARKER	= "<grace_period>";
 	
 	private Map<String,Long>	logout_timer 		= new HashMap<String, Long>();
-		
+	
+	private boolean	unloaded;
+	
 	public 
 	WebPlugin()
 	{
@@ -504,11 +510,17 @@ WebPlugin
 		
 		param_port = config_model.addIntParameter2(		CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
 		
+		param_port.setGenerateIntermediateEvents( false );
+
 		param_bind = config_model.addStringParameter2(	CONFIG_BIND_IP, "webui.bindip", CONFIG_BIND_IP_DEFAULT );
+		
+		param_bind.setGenerateIntermediateEvents( false );
 		
 		param_protocol = 
 			config_model.addStringListParameter2(
 					CONFIG_PROTOCOL, "webui.protocol", new String[]{ "http", "https" }, CONFIG_PROTOCOL_DEFAULT );
+				
+		param_protocol.setGenerateIntermediateEvents( false );
 		
 		ParameterListener update_server_listener = 
 			new ParameterListener()
@@ -1039,6 +1051,8 @@ WebPlugin
 			
 			pairing_listener = null;
 		}
+		
+		unloaded = true;
 	}
 	
 	private void
@@ -1240,21 +1254,70 @@ WebPlugin
 			
 			final int port	= param_port.getValue();
 
-			String	protocol_str = param_protocol.getValue().trim();
+			String protocol_str = param_protocol.getValue().trim();
 			
-			String bind_ip_str = param_bind.getValue().trim();
+			String bind_str = param_bind.getValue().trim();
 			
 			InetAddress	bind_ip = null;
 			
-			if ( bind_ip_str.length() > 0 ){
-				
+			if ( bind_str.length() > 0 ){
+									
 				try{
-					bind_ip = InetAddress.getByName( bind_ip_str );
-					
+					bind_ip = InetAddress.getByName( bind_str );
+						
 				}catch( Throwable  e ){
+				}
+				
+				if ( bind_ip == null ){
 					
-					log.log( LoggerChannel.LT_ERROR, "Bind IP parameter '" + bind_ip_str + "' is invalid" );
-		
+						// might be an interface name, see if we can resolve it
+					
+					final NetworkAdmin na = NetworkAdmin.getSingleton();
+					
+					InetAddress[] addresses = na.resolveBindAddresses( bind_str );
+					
+					if ( addresses.length > 0 ){
+						
+						bind_ip = addresses[0];
+						
+						if ( !na_intf_listener_added ){
+							
+							na_intf_listener_added = true;
+							
+							na.addPropertyChangeListener(
+								new NetworkAdminPropertyChangeListener()
+								{
+									public void 
+									propertyChanged(
+										String property) 
+									{
+										if ( unloaded ){
+											
+											na.removePropertyChangeListener( this );
+											
+										}else{
+
+											if ( property == NetworkAdmin.PR_NETWORK_INTERFACES ){
+												
+												new AEThread2( "setupserver" )
+												{
+													public void
+													run()
+													{
+														setupServer();
+													}
+												}.start();
+											}
+										}
+									}
+								});
+						}
+					}
+				}
+				
+				if ( bind_ip == null ){
+					
+					log.log( LoggerChannel.LT_ERROR, "Bind IP parameter '" + bind_str + "' is invalid" );
 				}
 			}
 			
@@ -1293,7 +1356,7 @@ WebPlugin
 			
 			log.log( 	LoggerChannel.LT_INFORMATION, 
 						"Server initialisation: port=" + port +
-						(bind_ip == null?"":(", bind=" + bind_ip_str + ")")) +
+						(bind_ip == null?"":(", bind=" + bind_str + "->" + bind_ip + ")")) +
 						", protocol=" + protocol_str + 
 						(root_dir.length()==0?"":(", root=" + root_dir )) + 
 						(properties.size()==0?"":(", props=" + properties )));

@@ -617,6 +617,13 @@ NetworkAdminImpl
 		}
 	}
 	
+	public InetAddress[]
+	resolveBindAddresses(
+		String	bind_to )
+	{
+		return( calcBindAddresses( bind_to, false ));
+	}
+	
 	private InetAddress[] calcBindAddresses(final String addressString, boolean enforceBind)
 	{
 		ArrayList<InetAddress> addrs = new ArrayList<InetAddress>();

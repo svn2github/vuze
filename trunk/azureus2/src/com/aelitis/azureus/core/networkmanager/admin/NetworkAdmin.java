@@ -80,6 +80,16 @@ NetworkAdmin
 	getAllBindAddresses(
 		boolean	include_wildcard );
 
+	/**
+	 * Given an interface name etc this will return the corresponding ip addresses
+	 * @param bind_to
+	 * @return
+	 */
+	
+	public abstract InetAddress[]
+	resolveBindAddresses(
+		String	bind_to );
+	
 	public abstract InetAddress
 	guessRoutableBindAddress();
 	
