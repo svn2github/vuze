@@ -5611,8 +5611,7 @@ SpeedLimitHandler
 		
 		private int					consec_limits_hit = 0;
 		
-		private Map<PrioritiserTagState,Integer>	phase_2_limits = new HashMap<PrioritiserTagState, Integer>();
-		private int									phase_2_rate;
+		private Map<PrioritiserTagState,int[]>		phase_2_limits = new HashMap<PrioritiserTagState, int[]>();
 		
 		private
 		Prioritiser()
@@ -6153,17 +6152,15 @@ SpeedLimitHandler
 								// periodic raise to max and see if overall throughput changed
 							
 							phase_2_limits.clear();
-							
-							int	total_rate = 0;
-							
+														
 							boolean	changed = false;
 							
 							for ( PrioritiserTagState tag: active_tags ){
 								
-								phase_2_limits.put( tag, tag.getLimit());
+								int	rate = tag.getRate();
 								
-								total_rate += tag.getRate();
-								
+								phase_2_limits.put( tag, new int[]{ tag.getLimit(), rate, rate });
+																
 								if ( tag.setLimit( max, "1: probing" )){
 									
 									changed = true;
@@ -6173,8 +6170,6 @@ SpeedLimitHandler
 							if ( changed ){
 								
 								phase = 2;
-
-								phase_2_rate	= total_rate;
 								
 								skip_ticks = 1;
 							}
@@ -6183,34 +6178,67 @@ SpeedLimitHandler
 				}
 			}else if ( phase == 2 ){
 				
-				int	total_rate = 0;
-
+				int	old_total_rate	= 0;
+				int	new_total_rate	= 0;
+				
+				int	total_inc	= 0;
+				
 				for ( PrioritiserTagState tag: active_tags ){
 
-					total_rate += tag.getRate();
+					int[] entry = phase_2_limits.get( tag );
+						
+					if ( entry != null ){
+						
+						int	old_rate	= entry[1];
+						
+						old_total_rate += old_rate;
+						
+						int new_rate	= tag.getRate();
+						
+						new_total_rate += new_rate;
+						
+						entry[2] = new_rate;
+						
+						int	inc = new_rate - old_rate;
+						
+						if ( inc > 0 ){
+							
+							total_inc += inc;
+						}
+					}
 				}
 				
-				int	diff = total_rate - phase_2_rate;
+				int	diff = new_total_rate - old_total_rate;
 				
-				log( "2: before=" + formatRate( phase_2_rate, false ) + ", after=" + formatRate( total_rate, false ));
+				log( "2: before=" + formatRate( old_total_rate, false ) + ", after=" + formatRate( new_total_rate, false ));
+								
+				for ( Map.Entry<PrioritiserTagState,int[]> entry: phase_2_limits.entrySet()){
 				
-				int	inc = diff/phase_2_limits.size();
-				
-				for ( Map.Entry<PrioritiserTagState,Integer> entry: phase_2_limits.entrySet()){
-				
-					int	limit = entry.getValue();
+					PrioritiserTagState tag = entry.getKey();
 					
-					if ( inc > 0 ){
+					int[]	vals = entry.getValue();
+					
+					int	limit 		= vals[0];
+					
+					if ( diff > 0 && total_inc > 0 ){
 						
-						limit += inc;
-						
-						if ( limit > max ){
-							
-							limit = max;
+						int	old_rate	= vals[1];
+						int	new_rate	= vals[2];
+					
+						int	inc = new_rate - old_rate;
+					
+						if ( inc > 0 ){
+								
+							limit += (inc*diff)/total_inc;
+								
+							if ( limit > max ){
+								
+								limit = max;
+							}
 						}
 					}
 					
-					entry.getKey().setLimit( limit, "probe result" );
+					tag.setLimit( limit, "probe result" );
 				}
 				
 				phase = 0;
