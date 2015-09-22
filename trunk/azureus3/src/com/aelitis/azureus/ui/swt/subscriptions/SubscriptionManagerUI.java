@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -1187,16 +1188,57 @@ SubscriptionManagerUI
 				// closing down
 		
 			return( null );
-		}
+		}	
 	
 		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
+				
+		String subs_name = subs.getName();
+		
+		TreeMap<String,String>	name_map = new TreeMap<String,String>( new FormattersImpl().getAlphanumericComparator( true ));
+		
+		name_map.put( subs_name, key );	
+		
+		MdiEntry[] existing = mdi.getEntries();
+		
+		for ( MdiEntry e: existing ){
+			
+			String id = e.getId();
+			
+			if ( id.startsWith( "Subscription_" )){
+				
+				name_map.put( e.getTitle(), id );
+			}
+		}
+		
+		String	prev_id = null;
+		
+		for ( String this_id: name_map.values()){
+					
+			if ( this_id == key ){
+				
+				break;
+			}
+			
+			prev_id = this_id;
+		}
+		
+		if ( prev_id == null && name_map.size() > 1 ){
+						
+			Iterator<String>	it = name_map.values().iterator();
+			
+			it.next();
+			
+			prev_id = "~" + it.next();
+		}
+		
 		
 		MdiEntry entry = mdi.createEntryFromEventListener(
 				MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
 				new UISWTViewEventListenerHolder(key, SubscriptionView.class, subs, null),
-				key, true, subs, null);
+				key, true, subs, prev_id);
 
-		// This sets up the entry (menu, etc)
+			// This sets up the entry (menu, etc)
+		
 		SubscriptionMDIEntry entryInfo = new SubscriptionMDIEntry(subs, entry);
 		subs.setUserData(SUB_ENTRYINFO_KEY, entryInfo);
 
