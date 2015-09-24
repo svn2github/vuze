@@ -88,17 +88,19 @@ LongTermStatsWrapper
 	
 	public synchronized long[]
 	getTotalUsageInPeriod(
-		int	period_type )
+		int		period_type,
+		double	multiplier )
 	{
-		return( delegate.getTotalUsageInPeriod(period_type));
+		return( delegate.getTotalUsageInPeriod(period_type,multiplier));
 	}
 	
 	public synchronized long[]
 	getTotalUsageInPeriod(
 		int					period_type,
+		double				multiplier,
 		RecordAccepter		accepter )
 	{
-		return( delegate.getTotalUsageInPeriod(period_type, accepter));
+		return( delegate.getTotalUsageInPeriod(period_type, multiplier, accepter));
 	}
 	
 	public synchronized void

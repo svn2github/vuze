@@ -1080,14 +1080,16 @@ outer:
 	
 	public long[]
 	getTotalUsageInPeriod(
-		int	period_type )
+		int		period_type,
+		double	multiplier )
 	{
-		return( getTotalUsageInPeriod( period_type, null ));
+		return( getTotalUsageInPeriod( period_type, multiplier, null ));
 	}
 	
 	public long[]
 	getTotalUsageInPeriod(
 		int					period_type,
+		double				multiplier, 
 		RecordAccepter		accepter )
 	{
 		if ( start_of_week == -1 ){
@@ -1118,17 +1120,17 @@ outer:
 		
 		}else if ( period_type == PT_SLIDING_HOUR ){
 			
-			bottom_time = now - HOUR_IN_MILLIS;
+			bottom_time = now - (long)(HOUR_IN_MILLIS*multiplier);
 			top_time	= now;
 			
 		}else if ( period_type == PT_SLIDING_DAY ){
 			
-			bottom_time = now - DAY_IN_MILLIS;
+			bottom_time = now - (long)(DAY_IN_MILLIS*multiplier);
 			top_time	= now;
 			
 		}else if ( period_type == PT_SLIDING_WEEK ){
 			
-			bottom_time = now - WEEK_IN_MILLIS;
+			bottom_time = now - (long)(WEEK_IN_MILLIS*multiplier);
 			top_time	= now;
 			
 		}else{
@@ -1507,8 +1509,8 @@ outer:
 			
 			System.out.println( getString( usage ));
 		
-			System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_HOUR )));
-			System.out.println( getString(impl.getTotalUsageInPeriod( PT_SLIDING_HOUR )));
+			System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_HOUR, 1 )));
+			System.out.println( getString(impl.getTotalUsageInPeriod( PT_SLIDING_HOUR, 1 )));
 			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_WEEK )));
 			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_MONTH )));
 			

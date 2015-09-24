@@ -937,14 +937,16 @@ LongTermStatsGenericImpl
 	
 	public long[]
 	getTotalUsageInPeriod(
-		int	period_type )
+		int			period_type,
+		double		multiplier )
 	{
-		return( getTotalUsageInPeriod( period_type, null ));
+		return( getTotalUsageInPeriod( period_type, multiplier, null ));
 	}
 	
 	public long[]
 	getTotalUsageInPeriod(
 		int					period_type,
+		double				multiplier,
 		RecordAccepter		accepter )
 	{
 		if ( start_of_week == -1 ){
@@ -975,17 +977,17 @@ LongTermStatsGenericImpl
 			
 		}else if ( period_type == PT_SLIDING_HOUR ){
 			
-			bottom_time = now - HOUR_IN_MILLIS;
+			bottom_time = now - (long)(multiplier*HOUR_IN_MILLIS);
 			top_time	= now;
 			
 		}else if ( period_type == PT_SLIDING_DAY ){
 			
-			bottom_time = now - DAY_IN_MILLIS;
+			bottom_time = now - (long)(multiplier*DAY_IN_MILLIS);
 			top_time	= now;
 			
 		}else if ( period_type == PT_SLIDING_WEEK ){
 			
-			bottom_time = now - WEEK_IN_MILLIS;
+			bottom_time = now - (long)(multiplier*WEEK_IN_MILLIS);
 			top_time	= now;
 			
 		}else{

@@ -155,6 +155,7 @@ SpeedLimitHandler
 	private List<ScheduleRule>		current_rules	= new ArrayList<ScheduleRule>();
 	private ScheduleRule			active_rule;
 	
+	private boolean					prioritiser_enabled = true;
 	private TimerEventPeriodic		prioritiser_event;
 	private List<Prioritiser>		current_prioritisers = new ArrayList<Prioritiser>();
 	
@@ -170,6 +171,7 @@ SpeedLimitHandler
 	private List<String> predefined_profile_names = new ArrayList<String>();
 	
 	{
+		predefined_profile_names.add( "null" );
 		predefined_profile_names.add( "pause_all" );
 		predefined_profile_names.add( "resume_all" );
 	}
@@ -178,6 +180,9 @@ SpeedLimitHandler
 	private boolean net_limit_pause_all_active;
 	
 	private final IPSetTagType	ip_set_tag_type = TagManagerFactory.getTagManager().isEnabled()?new IPSetTagType():null;
+	
+	private Object extensions_lock = new Object();
+	
 	
 	private
 	SpeedLimitHandler(
@@ -429,10 +434,8 @@ SpeedLimitHandler
 				
 				int 		type 	= (Integer)entry[0];
 				NetLimit	nl 		= (NetLimit)entry[1];
-				
-				String tag_name = nl.getTag().getTag().getTagName( true );
-				
-				long[] stats = nl.getLongTermStats().getTotalUsageInPeriod( type );
+								
+				long[] stats = nl.getLongTermStats().getTotalUsageInPeriod( type, nl.getMultiplier());
 				
 				long[] limits = nl.getLimits();
 				
@@ -441,24 +444,40 @@ SpeedLimitHandler
 				
 				String	lim_str = "";
 					
+				lim_str += LongTermStats.PT_NAMES[type] + ", mult=" + nl.getMultiplier() + ": ";
+				
 				long total_lim 	= limits[0];
 				long up_lim		= limits[1];
 				long down_lim	= limits[2];
 					
+				String sep = "";
+				
 				if ( total_lim > 0 ){
 					
 					lim_str += "Total limit=" + DisplayFormatters.formatByteCountToKiBEtc( total_lim ) + ", used=" + DisplayFormatters.formatByteCountToKiBEtc( total_up+total_do ) + " - " + (100*(total_up+total_do)/total_lim) + "%";
+					
+					sep = ", ";
 				}
 				if ( up_lim > 0 ){
 					
-					lim_str += (lim_str.length()==0?"":", ") + "Up limit=" + DisplayFormatters.formatByteCountToKiBEtc( up_lim ) + ", used=" + DisplayFormatters.formatByteCountToKiBEtc( total_up ) + " - " + (100*(total_up)/up_lim) + "%";
+					lim_str += sep + "Up limit=" + DisplayFormatters.formatByteCountToKiBEtc( up_lim ) + ", used=" + DisplayFormatters.formatByteCountToKiBEtc( total_up ) + " - " + (100*(total_up)/up_lim) + "%";
+					
+					sep = ", ";
 				}
 				if ( down_lim > 0 ){
 					
-					lim_str += (lim_str.length()==0?"":", ") + "Down limit=" + DisplayFormatters.formatByteCountToKiBEtc( down_lim ) + ", used=" + DisplayFormatters.formatByteCountToKiBEtc( total_do ) + " - " + (100*(total_do)/down_lim) + "%";
+					lim_str += sep + "Down limit=" + DisplayFormatters.formatByteCountToKiBEtc( down_lim ) + ", used=" + DisplayFormatters.formatByteCountToKiBEtc( total_do ) + " - " + (100*(total_do)/down_lim) + "%";
 				}
 				
-				lines.add( "    " + tag_name + ": " + lim_str);
+				lim_str += sep + "enabled=" + nl.isEnabled();
+				
+				String tag_name = nl.getTag().getTag().getTagName( true );
+
+				String name = nl.getName();
+				
+				name += (name.length()==0?"":" ") + tag_name;
+				
+				lines.add( "    " + name + ": " + lim_str);
 			}
 			
 		}
@@ -574,16 +593,18 @@ SpeedLimitHandler
 		int				type,
 		NetLimit		net_limit )
 	{
+		double multiplier=net_limit==null?1:net_limit.getMultiplier();
+		
 		if ( net_limit == null || net_limit.getProfile() == null ){
 		
-			return( lts.getTotalUsageInPeriod( type ));
+			return( lts.getTotalUsageInPeriod( type, multiplier ));
 		}
 		
 		final String profile = net_limit.getProfile();
 				
 		return( 
 			lts.getTotalUsageInPeriod( 
-				type,
+				type, multiplier,
 				new LongTermStats.RecordAccepter()
 				{
 					public boolean 
@@ -952,8 +973,9 @@ SpeedLimitHandler
 		List<ScheduleRule>	rules 	= new ArrayList<ScheduleRule>();
 		Map<String,IPSet>	ip_sets	= new HashMap<String, IPSet>();
 		
-		Map<Integer,List<NetLimit>> new_net_limits = new HashMap<Integer, List<NetLimit>>();
-
+		Map<Integer,List<NetLimit>> new_net_limits	= new HashMap<Integer, List<NetLimit>>();
+		List<NetLimit>				net_limits_list = new ArrayList<SpeedLimitHandler.NetLimit>();
+		
 		List<Prioritiser>	new_prioritisers = new ArrayList<Prioritiser>();
 		
 		boolean checked_lts_enabled = false;
@@ -1135,7 +1157,9 @@ SpeedLimitHandler
 				
 				String[] args = line.split( " " );
 				
+				String	name		= "";
 				int		type		= -1;
+				double	mult 		= 1;
 				String	profile		= null;
 				
 				TagType		tag_type 	= null;
@@ -1170,6 +1194,7 @@ SpeedLimitHandler
 							}
 							
 							arg = arg.substring( 0, sep );
+							
 						}else{
 						
 							sep = arg.indexOf( "$" );
@@ -1205,6 +1230,17 @@ SpeedLimitHandler
 							}
 						}
 						
+						int	pos = arg.indexOf( "*" );
+												
+						if ( pos != -1 ){
+							
+							mult = Double.parseDouble( arg.substring( pos+1 ));
+							
+							arg = arg.substring( 0, pos );
+						}
+						
+						boolean	sliding = false;
+						
 						if ( arg.equalsIgnoreCase( "hourly" )){
 							
 							type = LongTermStats.PT_CURRENT_HOUR;
@@ -1213,6 +1249,8 @@ SpeedLimitHandler
 							
 							type = LongTermStats.PT_SLIDING_HOUR;
 								
+							sliding	= true;
+							
 						}else if ( arg.equalsIgnoreCase( "daily" )){
 							
 							type = LongTermStats.PT_CURRENT_DAY;
@@ -1220,7 +1258,9 @@ SpeedLimitHandler
 						}else if ( arg.equalsIgnoreCase( "sdaily" )){
 							
 							type = LongTermStats.PT_SLIDING_DAY;
-								
+							
+							sliding	= true;
+							
 						}else if ( arg.equalsIgnoreCase( "weekly" )){
 							
 							type = LongTermStats.PT_CURRENT_WEEK;
@@ -1228,6 +1268,8 @@ SpeedLimitHandler
 						}else if ( arg.equalsIgnoreCase( "sweekly" )){
 							
 							type = LongTermStats.PT_SLIDING_WEEK;
+							
+							sliding	= true;
 							
 						}else if ( arg.equalsIgnoreCase( "monthly" )){
 							
@@ -1238,6 +1280,12 @@ SpeedLimitHandler
 							result.add( "net_limit type of '" + arg + "' not recognised - use hourly, daily, weekly or monthly" );
 							
 							break;
+						}
+						
+						if ( mult != 1 && !sliding ){
+							
+							result.add( "'" + line + "': invalid net_limit specification. multiplier only supported for sliding windows." );
+
 						}
 					}else{
 					
@@ -1252,23 +1300,29 @@ SpeedLimitHandler
 							String lhs = bits[0];
 							String rhs = bits[1];
 							
-							long lim = parseRate( rhs );
+							if ( lhs.equalsIgnoreCase( "name" )){
 							
-							if ( lhs.equalsIgnoreCase( "total" )){
-								
-								total_lim = lim;
-								
-							}else if ( lhs.equalsIgnoreCase( "up" )){
-									
-								up_lim = lim;
-								
-							}else if ( lhs.equalsIgnoreCase( "down" )){
-								
-								down_lim = lim;
+								name = rhs;
 								
 							}else{
+								long lim = parseRate( rhs );
 								
-								result.add( "'" + line + "': invalid net_limit specification" );
+								if ( lhs.equalsIgnoreCase( "total" )){
+									
+									total_lim = lim;
+									
+								}else if ( lhs.equalsIgnoreCase( "up" )){
+										
+									up_lim = lim;
+									
+								}else if ( lhs.equalsIgnoreCase( "down" )){
+									
+									down_lim = lim;
+															
+								}else{
+									
+									result.add( "'" + line + "': invalid net_limit specification" );
+								}
 							}
 						}
 					}
@@ -1285,7 +1339,11 @@ SpeedLimitHandler
 						new_net_limits.put( type, limits );
 					}
 					
-					limits.add( new NetLimit( profile, tag_type, tag_name, total_lim, up_lim, down_lim ));
+					NetLimit limit = new NetLimit( name, mult, profile, tag_type, tag_name, total_lim, up_lim, down_lim );
+					
+					limits.add( limit );
+					
+					net_limits_list.add( limit );
 				}	
 			}else if ( lc_line.startsWith( "priority_down " ) || lc_line.startsWith( "priority_up " )){
 					
@@ -1308,8 +1366,8 @@ SpeedLimitHandler
 					try{
 						if ( bits.length == 2 ){
 														
-							String lhs 	= bits[0];
-							String rhs	= bits[1];
+							String lhs 	= bits[0].trim();
+							String rhs	= bits[1].trim();
 							
 							if ( Character.isDigit( lhs.charAt(0))){
 								
@@ -1366,6 +1424,12 @@ SpeedLimitHandler
 									
 								pri.setMaximum((int)parseRate( rhs ));
 									
+								ok = true;
+								
+							}else if ( lhs.equals( "name" )){
+								
+								pri.setName( rhs );
+								
 								ok = true;
 							}
 						}
@@ -1507,7 +1571,34 @@ SpeedLimitHandler
 						boolean	ok 		= false;
 						String	extra 	= "";
 						
-						if ( temp.length == 2 ){
+						if ( temp.length == 1 ){
+							
+							String	ext_cmd 	= temp[0];
+							
+							if ( 	ext_cmd.equals( "enable_priority" ) || 
+									ext_cmd.equals( "disable_priority" )){							
+									
+								if ( extensions == null ){
+									
+									extensions = new ArrayList<SpeedLimitHandler.ScheduleRuleExtensions>( bits.size()-6 );
+								}
+								
+								int	et;
+								
+								if ( ext_cmd.equals( "enable_priority" )){
+									
+									et = ScheduleRuleExtensions.ET_ENABLE_PRIORITY;
+									
+								}else{
+									
+									et = ScheduleRuleExtensions.ET_DISABLE_PRIORITY;
+								}									
+								
+								extensions.add( new ScheduleRuleExtensions( et ));
+								
+								ok = true;
+							}
+						}else if ( temp.length == 2 ){
 							
 							String	ext_cmd 	= temp[0];
 							String	ext_param	= temp[1];
@@ -1557,6 +1648,64 @@ SpeedLimitHandler
 									extensions.add( new ScheduleRuleExtensions( et, tag ));
 									
 									ok = true;
+								}
+							}else if ( 	ext_cmd.equals( "enable_net_limit" ) || 
+										ext_cmd.equals( "disable_net_limit" )){
+								
+								List<NetLimit>	limits = new ArrayList<SpeedLimitHandler.NetLimit>();
+								
+								String[] nls = ext_param.split( ";" );
+								
+								List<String> missing = new ArrayList<String>();
+								
+								for ( String nl: nls ){
+									
+									nl = nl.trim();
+									
+									boolean found = false;
+									
+									for ( NetLimit x: net_limits_list ){
+										
+										if ( x.getName().equals( nl )){
+											
+											limits.add( x );
+											
+											found = true;
+											
+											break;
+										}
+									}
+									if ( !found ){
+										
+										missing.add( nl );
+									}
+								}
+								
+								if ( missing.size() == 0 ){
+									
+									int	et;
+									
+									if ( ext_cmd.equals( "enable_net_limit" )){
+										
+										et = ScheduleRuleExtensions.ET_ENABLE_NET_LIMIT;
+										
+									}else{
+										
+										et = ScheduleRuleExtensions.ET_DISABLE_NET_LIMIT;
+									}									
+									
+									ok = true;
+									
+									if ( extensions == null ){
+										
+										extensions = new ArrayList<SpeedLimitHandler.ScheduleRuleExtensions>( bits.size()-6 );
+									}
+	
+									extensions.add( new ScheduleRuleExtensions( et, limits ));
+									
+								}else{
+									
+									extra = ", net_limit(s) '" + missing + "' not found";
 								}
 							}
 						}
@@ -2737,9 +2886,12 @@ SpeedLimitHandler
 			prioritisers = new ArrayList<Prioritiser>( current_prioritisers );
 		}
 		
-		for ( Prioritiser p: prioritisers ){
+		synchronized( extensions_lock ){
 			
-			p.check();
+			for ( Prioritiser p: prioritisers ){
+				
+				p.check();
+			}
 		}
 	}
 		
@@ -2855,6 +3007,10 @@ SpeedLimitHandler
 							
 							setRulePauseAllActive( false );
 							
+						}else if ( lc_profile_name.equals( "null" )){
+
+							active_rule = latest_match;
+							
 						}else{
 							
 							Debug.out( "Unknown pre-def name '" + profile_name + "'" );
@@ -2873,6 +3029,8 @@ SpeedLimitHandler
 						resetRules();
 					}
 				}else{
+					
+					active_rule = latest_match;	// must update because might have reloaded and the old rule may reference old stuff (e.g. old net limit)
 					
 					is_rule_pause_all = rule_pause_all_active;	// same rule as before
 				}
@@ -2894,9 +3052,24 @@ SpeedLimitHandler
 			}
 		}
 		
-		if ( active_rule != null ){
+			// default is for everything to be enabled, extension can then disable if needed
+		
+		synchronized( extensions_lock ){
 			
-			active_rule.checkExtensions();
+			prioritiser_enabled = true;
+			
+			for ( List<NetLimit> l: net_limits.values()){
+				
+				for ( NetLimit n: l ){
+					
+					n.setEnabled( true );
+				}
+			}
+			
+			if ( active_rule != null ){
+				
+				active_rule.checkExtensions();
+			}
 		}
 		
 		if ( net_limits.size() > 0 ){
@@ -2936,10 +3109,10 @@ SpeedLimitHandler
 		result.add( "#        frequency: daily|weekdays|weekends|<day_of_week>" );
 		result.add( "#            day_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
-		result.add( "#        extension: (start_tag|stop_tag|pause_tag|resume_tag):<tag_name>" );
+		result.add( "#        extension: (start_tag|stop_tag|pause_tag|resume_tag):<tag_name> (enable_priority|disable_priority)" );
 		result.add( "#    peer_set <set_name>=[<CIDR_specs...>|CC list|Network List|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [peer_up=<limit>] [peer_down=<limit>] [,cat=<cat names>] [,tag=<tag names>]" );
 		result.add( "#    net_limit (hourly|daily|weekly|monthly)[(:<profile>|$<tag>)] [total=<limit>] [up=<limit>] [down=<limit>]");
-		result.add( "#    priority_(up|down) <id>=<tag_name> [,<id>=<tag_name>]+ [,freq=<secs>] [,max=<limit>]" );
+		result.add( "#    priority_(up|down) <id>=<tag_name> [,<id>=<tag_name>]+ [,freq=<secs>] [,max=<limit>] [,probe=<cycles>]" );
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
 		result.add( "#" );
@@ -3128,7 +3301,7 @@ SpeedLimitHandler
 		int	tick_count )
 	{
 		boolean	do_log = tick_count % NETLIMIT_TAG_LOG_TICKS == 0;
-		
+				
 		String log_str = "";
 		
 		for (Map.Entry<Integer,List<NetLimit>> entry: net_limits.entrySet()){
@@ -3136,7 +3309,16 @@ SpeedLimitHandler
 			int	type = entry.getKey();
 			
 			for ( NetLimit limit: entry.getValue()){
+		
+				String name_str = "net_limit";
 				
+				String name = limit.getName();
+				
+				if ( name.length() > 0 ){
+					
+					name_str += " " + name;
+				}
+
 				LongTermStats stats = limit.getLongTermStats();
 				
 				if ( stats == null ){
@@ -3153,55 +3335,59 @@ SpeedLimitHandler
 				long total_up = usage[LongTermStats.ST_PROTOCOL_UPLOAD] + usage[LongTermStats.ST_DATA_UPLOAD];
 				long total_do = usage[LongTermStats.ST_PROTOCOL_DOWNLOAD] + usage[LongTermStats.ST_DATA_DOWNLOAD];
 				
-				log_str += (log_str.length()==0?"":"; ") +
+				boolean	enabled = limit.isEnabled();
+				
+				log_str += (log_str.length()==0?"":"; ") + (name.length()==0?"":(name + " " )) +
 						tag.getTagName( true ) + ": up=" + DisplayFormatters.formatByteCountToKiBEtc( total_up ) + 
-						", down=" + DisplayFormatters.formatByteCountToKiBEtc( total_do );
+						", down=" + DisplayFormatters.formatByteCountToKiBEtc( total_do ) + ", enabled=" + enabled;
 				
 				long[]	limits = limit.getLimits();
 	
 				boolean exceeded_up 	= false;
 				boolean exceeded_down 	= false;
 				
-				if ( limits[0] > 0 ){
-					
-					exceeded_up = exceeded_down = total_up + total_do >= limits[0];
-				}
-				
-				if ( limits[1] > 0 && !exceeded_up){
-					
-					exceeded_up = total_up >= limits[1];
-				}
-			
-				if ( limits[2] > 0 && !exceeded_down){
-					
-					exceeded_down = total_do >= limits[2];
-				}
-				
-				
 				boolean	handled = false;
-				
-				if ( tag instanceof TagFeatureRunState ){
-				
-					TagFeatureRunState rs = (TagFeatureRunState)tag;
 
-					if ( rs.hasRunStateCapability( TagFeatureRunState.RSC_PAUSE )){
+				if ( enabled ){
+					
+					if ( limits[0] > 0 ){
+						
+						exceeded_up = exceeded_down = total_up + total_do >= limits[0];
+					}
+					
+					if ( limits[1] > 0 && !exceeded_up){
+						
+						exceeded_up = total_up >= limits[1];
+					}
+				
+					if ( limits[2] > 0 && !exceeded_down){
+						
+						exceeded_down = total_do >= limits[2];
+					}
+						
+					if ( tag instanceof TagFeatureRunState ){
+					
+						TagFeatureRunState rs = (TagFeatureRunState)tag;
+	
+						if ( rs.hasRunStateCapability( TagFeatureRunState.RSC_PAUSE )){
+									
+							boolean pause = exceeded_up&&exceeded_down;
+							
+							int op = pause?TagFeatureRunState.RSC_PAUSE:TagFeatureRunState.RSC_RESUME;
+							
+							boolean[] result = rs.getPerformableOperations( new int[]{ op });
+							
+							if ( result[0] ){
 								
-						boolean pause = exceeded_up&&exceeded_down;
-						
-						int op = pause?TagFeatureRunState.RSC_PAUSE:TagFeatureRunState.RSC_RESUME;
-						
-						boolean[] result = rs.getPerformableOperations( new int[]{ op });
-						
-						if ( result[0] ){
+								logger.log( name_str + " : " + (pause?"pausing":"resuming") + " tag " + tag.getTagName( true ));
+								
+								do_log = true;
+								
+								rs.performOperation( op );
+							}
 							
-							logger.log( "netlimit: " + (pause?"pausing":"resuming") + " tag " + tag.getTagName( true ));
-							
-							do_log = true;
-							
-							rs.performOperation( op );
+							handled = pause;
 						}
-						
-						handled = pause;
 					}
 				}
 				
@@ -3215,7 +3401,7 @@ SpeedLimitHandler
 					
 					if ( up_lim != target_up || down_lim != target_down ){
 							
-						logger.log( "netlimit: setting rates to " + format( target_up ) + "/" + format( target_down ) + " on tag " + tag.getTagName( true ));
+						logger.log( name_str + ": setting rates to " + format( target_up ) + "/" + format( target_down ) + " on tag " + tag.getTagName( true ));
 						
 						do_log = true;
 						
@@ -3229,7 +3415,7 @@ SpeedLimitHandler
 		
 		if ( log_str.length() > 0 && do_log ){
 			
-			logger.log( "netlimit: current: " + log_str );
+			logger.log( "net_limit: current: " + log_str );
 		}
 	}
 	
@@ -4487,8 +4673,25 @@ SpeedLimitHandler
 		private static final int ET_PAUSE_TAG 	= 3;
 		private static final int ET_RESUME_TAG 	= 4;
 		
-		private int				extension_type;
-		private TagDownload		tag;
+		private static final int ET_ENABLE_PRIORITY 	= 5;
+		private static final int ET_DISABLE_PRIORITY 	= 6;
+
+		private static final int ET_ENABLE_NET_LIMIT 	= 7;
+		private static final int ET_DISABLE_NET_LIMIT 	= 8;
+
+		private final int				extension_type;
+		private final TagDownload		tag;
+		private final List<NetLimit>	net_limits;
+		
+		
+		private
+		ScheduleRuleExtensions(
+			int				_et )
+		{
+			extension_type		= _et;
+			tag					= null;
+			net_limits			= null;
+		}
 		
 		private
 		ScheduleRuleExtensions(
@@ -4497,55 +4700,86 @@ SpeedLimitHandler
 		{
 			extension_type		= _et;
 			tag					= _tag;
+			net_limits			= null;
+		}
+		
+		private
+		ScheduleRuleExtensions(
+			int				_et,
+			List<NetLimit>	_net_limits )
+		{
+			extension_type		= _et;
+			tag					= null;
+			net_limits			= _net_limits;
 		}
 		
 		private void
 		checkExtension()
 		{
-			Set<DownloadManager> downloads = tag.getTaggedDownloads();
-			
-			for ( DownloadManager download: downloads ){
-								
-				if ( download.isPaused()){
+			if ( net_limits != null ){
 				
-					if ( extension_type == ET_RESUME_TAG ){
-						
-						if ( rule_pause_all_active || net_limit_pause_all_active ){
-						
-								// things are going to get messy if we do this
-							
-						}else{
-						
-							download.resume();
-						}
-					}
+				boolean enable = extension_type == ET_ENABLE_NET_LIMIT;
+
+				for ( NetLimit nl: net_limits ){
 					
-					continue;
+					nl.setEnabled( enable );
 				}
+			}else if ( tag == null ){
 				
-				int	state = download.getState();
-				
-				if ( extension_type == ET_START_TAG ){
+				if ( extension_type == ET_ENABLE_PRIORITY ){
 					
-					if ( state == DownloadManager.STATE_STOPPED ){
-						
-						download.setStateWaiting();
-					}
+					prioritiser_enabled	= true;
+					
 				}else{
 					
-					if ( extension_type == ET_PAUSE_TAG ){
-						
-						if ( !download.isPaused()){
+					prioritiser_enabled = false;
+				}
+			}else{
+				Set<DownloadManager> downloads = tag.getTaggedDownloads();
+				
+				for ( DownloadManager download: downloads ){
+									
+					if ( download.isPaused()){
+					
+						if ( extension_type == ET_RESUME_TAG ){
 							
-							download.pause();
+							if ( rule_pause_all_active || net_limit_pause_all_active ){
+							
+									// things are going to get messy if we do this
+								
+							}else{
+							
+								download.resume();
+							}
 						}
-					}else if ( extension_type == ET_STOP_TAG ){
 						
-						if ( 	state != Download.ST_ERROR &&
-								state != Download.ST_STOPPED &&
-								state != Download.ST_STOPPING ){
+						continue;
+					}
+					
+					int	state = download.getState();
+					
+					if ( extension_type == ET_START_TAG ){
+						
+						if ( state == DownloadManager.STATE_STOPPED ){
 							
-							download.stopIt( DownloadManager.STATE_STOPPED, false, false );
+							download.setStateWaiting();
+						}
+					}else{
+						
+						if ( extension_type == ET_PAUSE_TAG ){
+							
+							if ( !download.isPaused()){
+								
+								download.pause();
+							}
+						}else if ( extension_type == ET_STOP_TAG ){
+							
+							if ( 	state != Download.ST_ERROR &&
+									state != Download.ST_STOPPED &&
+									state != Download.ST_STOPPING ){
+								
+								download.stopIt( DownloadManager.STATE_STOPPED, false, false );
+							}
 						}
 					}
 				}
@@ -4576,13 +4810,40 @@ SpeedLimitHandler
 
 				str = "resume_tag";
 				
-			}else{
+			}else if ( extension_type == ET_PAUSE_TAG ){
 				
 				str = "pause_tag";
+				
+			}else if ( extension_type == ET_ENABLE_PRIORITY ){
+				
+				str = "enable_priority";
+				
+			}else if ( extension_type == ET_DISABLE_PRIORITY ){
+				
+				str = "disable_priority";
+				
+			}else if ( extension_type == ET_ENABLE_NET_LIMIT ){
+				
+				str = "enable_net_limit";
+				
+			}else if ( extension_type == ET_DISABLE_NET_LIMIT ){
+				
+				str = "disable_net_limit";
+				
+			}else{
+				
+				str = "eh?";
 			}
 			
-			str += ":" + tag.getTagName( true );
+			if ( tag != null ){
+				
+				str += ":" + tag.getTagName( true );
+			}
 			
+			if ( net_limits != null ){
+				
+				str += ":netlimits=" + net_limits.size();
+			}
 			return( str );
 		}
 	}
@@ -4590,16 +4851,22 @@ SpeedLimitHandler
 	private class
 	NetLimit
 	{
+		final private String			name;
+		final private double			multiplier;
 		final private String			profile;
 		final private TagType			tag_type;
 		final private String			tag_name; 
 		final private long[]			limits;
+		
+		private boolean						enabled = true;
 		
 		private TagFeatureRateLimit			tag;
 		private LongTermStats 				lt_stats;
 		
 		private
 		NetLimit(
+			String					_name,
+			double					_mult,
 			String					_profile,
 			TagType					_tag_type,
 			String					_tag_name,
@@ -4607,6 +4874,8 @@ SpeedLimitHandler
 			long					_up_lim, 
 			long					_down_lim )
 		{
+			name		= _name;
+			multiplier	= _mult;
 			profile		= _profile;
 			tag_type	= _tag_type;
 			tag_name	= _tag_name;
@@ -4637,6 +4906,31 @@ SpeedLimitHandler
 					}
 				}
 			}
+		}
+		
+		private String
+		getName()
+		{
+			return( name );
+		}
+		
+		private boolean
+		isEnabled()
+		{
+			return( enabled );
+		}
+		
+		private void
+		setEnabled(
+			boolean	_b )
+		{
+			enabled = _b;
+		}
+		
+		private double
+		getMultiplier()
+		{
+			return( multiplier );
 		}
 		
 		private LongTermStats
@@ -5587,7 +5881,7 @@ SpeedLimitHandler
 		private int					min				= MIN_DEFAULT;
 		private int					max				= MAX_DEFAULT;
 		private int					probe_period	= PROBE_DEFAULT;
-		
+		private String				name			= "";
 		
 		private int	tick_count		= 0;
 		
@@ -5706,8 +6000,31 @@ SpeedLimitHandler
 		}
 		
 		private void
+		setName(
+			String	str )
+		{
+			name	= str;
+		}
+		
+		private String
+		getName()
+		{
+			return( name );
+		}
+		
+		private void
 		check()
 		{
+			if ( !prioritiser_enabled ){
+				
+				for ( PrioritiserTagState tag_state: tag_states ){
+					
+					tag_state.setLimit( Integer.MAX_VALUE, "disabled" );
+				}
+				
+				return;
+			}
+			
 			if ( skip_ticks > 0 ){
 				
 				skip_ticks--;
@@ -6178,10 +6495,12 @@ SpeedLimitHandler
 				}
 			}else if ( phase == 2 ){
 				
-				int	old_total_rate	= 0;
-				int	new_total_rate	= 0;
+				long	old_total_rate	= 0;
+				long	new_total_rate	= 0;
 				
-				int	total_inc	= 0;
+				long	total_inc	= 0;
+				
+				String probe_str = "";
 				
 				for ( PrioritiserTagState tag: active_tags ){
 
@@ -6204,13 +6523,15 @@ SpeedLimitHandler
 						if ( inc > 0 ){
 							
 							total_inc += inc;
+							
+							probe_str += (probe_str.length()==0?"":", ") + tag.getTagName() + " +" + formatRate( inc, false );
 						}
 					}
 				}
 				
-				int	diff = new_total_rate - old_total_rate;
+				long	diff = new_total_rate - old_total_rate;
 				
-				log( "2: before=" + formatRate( old_total_rate, false ) + ", after=" + formatRate( new_total_rate, false ));
+				log( "Probe result: before=" + formatRate( old_total_rate, false ) + ", after=" + formatRate( new_total_rate, false ) + ", inc=" + formatRate( total_inc, false ) + " [" + probe_str + "]" );
 								
 				for ( Map.Entry<PrioritiserTagState,int[]> entry: phase_2_limits.entrySet()){
 				
@@ -6229,7 +6550,7 @@ SpeedLimitHandler
 					
 						if ( inc > 0 ){
 								
-							limit += (inc*diff)/total_inc;
+							limit = limit + (int)((inc*diff)/total_inc);
 								
 							if ( limit > max ){
 								
@@ -6321,7 +6642,14 @@ SpeedLimitHandler
 		log(
 			String			str )
 		{
-			logger.log( "tag_priority: " + str );
+			if ( name.length() > 0 ){
+				
+				logger.log( "priority " + name + ": " + str );
+				
+			}else{
+				
+				logger.log( "priority: " + str );
+			}
 			
 		}
 		
@@ -6527,7 +6855,11 @@ SpeedLimitHandler
 				boolean	major_change,
 				String	reason )
 			{
-				if ( limit < min ){
+				if ( limit == Integer.MAX_VALUE ){
+					
+					limit = 0;
+					
+				}else if ( limit < min ){
 					
 					limit	= min;
 					

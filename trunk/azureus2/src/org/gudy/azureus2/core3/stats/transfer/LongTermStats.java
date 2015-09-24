@@ -41,6 +41,11 @@ LongTermStats
 	public static final int PT_SLIDING_DAY			= 11;
 	public static final int PT_SLIDING_WEEK			= 12;
 
+	public static final String[] PT_NAMES = 
+		{ "hour", "day", "week", "month", "", "", "", "", "", "",
+		  "sliding hour", "sliding day", "sliding week"
+		};
+	
 	public boolean
 	isEnabled();
 	
@@ -54,11 +59,13 @@ LongTermStats
 	
 	public long[]
 	getTotalUsageInPeriod(
-		int	period_type );
+		int			period_type,
+		double		multiplier );
 	
 	public long[]
 	getTotalUsageInPeriod(
 		int					period_type,
+		double				multiplier,
 		RecordAccepter		accepter );
 	
 	public void
