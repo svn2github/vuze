@@ -64,6 +64,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
@@ -104,6 +105,7 @@ import com.aelitis.azureus.core.tag.impl.TagTypeWithState;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.core.util.average.MovingAverage;
+import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
 
 public class 
 SpeedLimitHandler 
@@ -5900,6 +5902,7 @@ SpeedLimitHandler
 		private PrioritiserTagState	phase_1_tag			= null;
 		private int					phase_1_tag_state	= 0;
 		private int					phase_1_tag_rate;
+		private boolean				phase_1_limit_hit;
 		private int					phase_1_higher_pri_rates;
 		private int					phase_1_lower_pri_decrease;
 		
@@ -6024,10 +6027,15 @@ SpeedLimitHandler
 				
 				return;
 			}
-			
+						
 			if ( skip_ticks > 0 ){
 				
 				skip_ticks--;
+				
+				for ( PrioritiserTagState tag_state: tag_states ){
+
+					tag_state.updateAverage( true );
+				}
 				
 				return;
 			}
@@ -6044,6 +6052,8 @@ SpeedLimitHandler
 			boolean	adjusting = false;
 			
 			for ( PrioritiserTagState tag_state: tag_states ){
+				
+				tag_state.updateAverage( false );
 				
 				boolean active = tag_state.update();
 
@@ -6120,7 +6130,7 @@ SpeedLimitHandler
 				
 				boolean	all_good = true;
 				
-				if ( phase_0_stable_waits < 2 ){
+				if ( phase_0_stable_waits < 1 ){
 					
 					phase_0_stable_waits++;
 				
@@ -6186,6 +6196,8 @@ SpeedLimitHandler
 					phase_1_tag = active_tags.get(0);
 					
 					phase_1_tag_state = 0;
+					
+					phase_1_limit_hit = false;
 				}
 			}else if ( phase == 1 ){
 			
@@ -6337,7 +6349,7 @@ SpeedLimitHandler
 								
 								int	overall_gain = my_diff + hp_diff - phase_1_lower_pri_decrease;
 								
-								boolean limit_hit = hp_diff < 0;
+								boolean limit_hit = hp_diff < 0 && my_diff > 0;
 								
 								if ( limit_hit ){
 									
@@ -6350,7 +6362,7 @@ SpeedLimitHandler
 									
 									int hp_drop = -hp_diff;
 									
-									if ( hp_drop <= 2048 ){
+									if ( hp_drop <= 1048 || hp_drop <= ( 5*phase_1_higher_pri_rates/100 )){
 										
 										limit_hit = false;	// ignore very small drops
 										
@@ -6369,66 +6381,86 @@ SpeedLimitHandler
 								
 								if ( limit_hit ){
 									
-										// higher priorities total rate has dropped as a result on increasing the limit on this tag (and depressing the lower priorities a bit)
-										// so we don't want to carry on probing the limits of lower priority tags
-										// we want to try and shunt bandwidth from this tag back to the higher priority ones
+										// verify the limit hitting is real and not just a fluctuation
 									
-								
-										// make sure that the new target is definitely a bit lower than it used to be
-										// so that some bandwidth from this tag gets hopefully shunted 'left'
+									if ( phase_1_limit_hit ){
+																			
+											// higher priorities total rate has dropped as a result on increasing the limit on this tag (and depressing the lower priorities a bit)
+											// so we don't want to carry on probing the limits of lower priority tags
+											// we want to try and shunt bandwidth from this tag back to the higher priority ones
+										
 									
-										// actually the above logic isn't great as it can cause a tag to get stuck at a low rate
-																		
-									if ( overall_gain > 4*1024 ){
+											// make sure that the new target is definitely a bit lower than it used to be
+											// so that some bandwidth from this tag gets hopefully shunted 'left'
 										
-											// reasonable gain, nudge the rate up from what it was before the experiment
-											// by a bit
-										
-										my_target = phase_1_tag_rate + (overall_gain/4);
-										
-									}else{
-									
-											// initial target is what we're currently achieving minus whatever
-											// was lost by the higher priority tags
-										
-										my_target = current_rate + hp_diff;
-										
-											// not a good gain so make sure we're below the original 
-										
-										my_target = Math.min( my_target, phase_1_tag_rate - 2048 );
-									}
-									
-									if ( my_target <= 1024 ){
-										
-										my_target = -1;	 																					
-									}
-									
-									consec_limits_hit++;
-									
-									tag_state.hitLimit( true );
-									
-									tag_state.setLimit( my_target, true, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( my_diff, false ) + ", consec=" + consec_limits_hit + ")" );
-
-										// decrease lower priority limits agressively as any bandwidth they are consuming
-										// needs to be pushed our way
-									
-									for ( int j=i+1;j<active_tags.size();j++){
-										
-										PrioritiserTagState ts = active_tags.get(j);
-										
-										int rate = ts.getRate();
-										
-										int target = rate/2;
-										
-										if ( target <= 1024 ){
+											// actually the above logic isn't great as it can cause a tag to get stuck at a low rate
+																			
+										if ( overall_gain > 4*1024 ){
 											
-											target = -1;	 																					
+												// reasonable gain, nudge the rate up from what it was before the experiment
+												// by a bit
+											
+											my_target = phase_1_tag_rate + (overall_gain/4);
+											
+										}else{
+										
+												// initial target is what we're currently achieving minus whatever
+												// was lost by the higher priority tags
+											
+											my_target = current_rate + hp_diff;
+											
+												// not a good gain so make sure we're below the original 
+											
+											my_target = Math.min( my_target, phase_1_tag_rate - 2048 );
 										}
 										
-										ts.setLimit( target, "1: decreasing lower priority by 50%" );
+										if ( my_target <= 1024 ){
+											
+											my_target = -1;	 																					
+										}
+										
+										consec_limits_hit++;
+										
+										tag_state.hitLimit( true );
+										
+										tag_state.setLimit( my_target, true, "1: adjusting after limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( my_diff, false ) + ", consec=" + consec_limits_hit + ")" );
+	
+											// decrease lower priority limits agressively as any bandwidth they are consuming
+											// needs to be pushed our way
+										
+										for ( int j=i+1;j<active_tags.size();j++){
+											
+											PrioritiserTagState ts = active_tags.get(j);
+											
+											int rate = ts.getRate();
+											
+											int target = rate/2;
+											
+											if ( target <= 1024 ){
+												
+												target = -1;	 																					
+											}
+											
+											ts.setLimit( target, "1: decreasing lower priority by 50%" );
+										}
+									}else{
+										
+											// hit limit for the first time, verify
+										
+										phase_1_limit_hit = true;
+										
+										tag_state.hitLimit( true );
+
+										tag_state.setLimit( phase_1_tag_rate, true, "1: limit hit (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( my_diff, false ) + ", verifying" );
+
+										phase_1_tag_state = 0;
+										
+										did_something = true;
 									}
 								}else{
 								
+									phase_1_limit_hit = false;
+									
 									tag_state.hitLimit( false );
 									
 									tag_state.setLimit( my_target, "1: setting to current (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( my_diff, false ) + ")" );
@@ -6627,7 +6659,18 @@ SpeedLimitHandler
 			int	r1,
 			int	r2 )
 		{
-			return( Math.abs( r1 - r2 ) <= 1024 );	
+			int	diff =  Math.abs( r1 - r2 );
+			
+			if ( diff <= 1024 ){
+				
+				return( true );
+			}
+			
+			int max = Math.max( r1, r2 );
+			
+				// within 3%
+			
+			return( max*3/100 >= diff );
 		}
 		
 		private void
@@ -6659,12 +6702,12 @@ SpeedLimitHandler
 			private static final int STABLE_PERIODS				= 2;
 			private static final int AVERAGE_PERIODS			= 3;
 			
-			private static final int ADJUSTMENT_PERIODS			= AVERAGE_PERIODS + 1;
-			private static final int INITIAL_ADJUSTMENT_PERIODS	= ADJUSTMENT_PERIODS + 2;
+			private static final int ADJUSTMENT_PERIODS			= 2;
+			private static final int INITIAL_ADJUSTMENT_PERIODS	= 4;
 
 			private final TagFeatureRateLimit		tag;
 									
-			private final MovingAverage average = AverageFactory.MovingAverage( AVERAGE_PERIODS );
+			private final MovingImmediateAverage average = AverageFactory.MovingImmediateAverage( AVERAGE_PERIODS );
 			
 			private final int[] 	last_averages = new int[ STABLE_PERIODS ];
 			
@@ -6695,12 +6738,7 @@ SpeedLimitHandler
 			
 			private boolean
 			update()
-			{
-				if ( adjusting_ticks > 0 ){
-					
-					adjusting_ticks--;
-				}
-				
+			{				
 				Tag t = tag.getTag();
 				
 				boolean	active = false;
@@ -6733,6 +6771,30 @@ SpeedLimitHandler
 				}else{
 					
 					active = ((TagPeer)tag).getTaggedCount() > 0;
+				}
+									
+				if ( active ){
+					
+					active_ticks++;
+					
+					return( active_ticks > 1 );
+					
+				}else{
+					
+					active_ticks = 0;
+				
+					return( false );
+				}
+			}
+			
+			/*
+			private void
+			updateAverageOld(
+				boolean		is_skip_cycle )
+			{
+				if ( is_skip_cycle ){
+					
+					return;
 				}
 				
 				int	rate;
@@ -6776,18 +6838,100 @@ SpeedLimitHandler
 				last_stable	= stable;
 				
 				//System.out.println( tag.getTagName( true ) + " -> rate=" + average_rate + ", stable=" + stable );
+	
+			}
+			*/
+			
+			private long	last_byte_count 	= -1;
+			private long	last_average_time	= 0;
+			
+			private void
+			updateAverage(
+				boolean		is_skip_cycle )
+			{
+				long	now = SystemTime.getMonotonousTime();
+				
+				long[]	current_byte_counts;
+				
+				int	rate;
+				int	limit;
+				
+				if ( is_down ){
 					
-				if ( active ){
-					
-					active_ticks++;
-					
-					return( active_ticks > 1 );
+					current_byte_counts = tag.getTagDownloadTotal();
+					limit				= tag.getTagDownloadLimit();
 					
 				}else{
 					
-					active_ticks = 0;
+					current_byte_counts	= tag.getTagUploadTotal();
+					limit				= tag.getTagUploadLimit();
+				}
+			
+				long	current_byte_count	= 0;
 				
-					return( false );
+				for ( long l: current_byte_counts ){
+					
+					current_byte_count += l;
+				}
+				
+				
+				if ( last_byte_count == -1 ){
+					
+					rate	= 0;
+					
+				}else{
+					
+					long	diff_bytes 	= current_byte_count - last_byte_count;
+					long	diff_time	= now - last_average_time;
+					
+					if ( diff_time <= 0 ){
+						
+						rate = 0;
+						
+					}else{
+						
+						rate = (int)((diff_bytes*1000)/diff_time);
+					}
+				}
+				
+				last_byte_count		= current_byte_count;
+				last_average_time	= now;
+				
+				if ( !is_skip_cycle ){
+					
+					if ( adjusting_ticks > 0 ){
+						
+						adjusting_ticks--;
+					}
+
+					if ( limit == -1 ){
+						
+						rate = 0;
+						
+					}else  if ( rate > limit ){
+						
+						rate = limit;
+					}
+					
+					int average_rate = (int)average.update( rate );
+					
+					boolean	 stable = true;
+					
+					for ( int la: last_averages ){
+					
+						if ( !sameRate( average_rate, la )){
+							
+							stable = false;
+						}
+					}
+					
+					last_averages[last_average_index++%last_averages.length] = average_rate;
+					
+					last_limit	= limit;
+					last_rate 	= average_rate;
+					last_stable	= stable;
+					
+					//System.out.println( tag.getTag().getTagName( true ) + " -> rate=" + average_rate + ", stable=" + stable );
 				}
 			}
 			
@@ -6871,6 +7015,8 @@ SpeedLimitHandler
 				if ( Prioritiser.this.setLimit( this, limit, reason )){
 					
 					last_limit		= limit;
+					
+					average.reset();
 					
 					adjusting_ticks = ADJUSTMENT_PERIODS;
 					
