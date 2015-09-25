@@ -6428,20 +6428,60 @@ SpeedLimitHandler
 											// decrease lower priority limits agressively as any bandwidth they are consuming
 											// needs to be pushed our way
 										
-										for ( int j=i+1;j<active_tags.size();j++){
+										int	low_pri_rates = 0;
+										
+										for ( int j=active_tags.size()-1;j>i;j--){
+											
+											PrioritiserTagState ts = active_tags.get(j);
+											
+											low_pri_rates += ts.getRate();
+										}
+										
+										int	decrease_by = low_pri_rates/4;
+										
+										decrease_by = Math.min( decrease_by, 32*1024 );									
+										
+										int	total_decrease = 0;
+
+										for ( int j=active_tags.size()-1;j>i;j--){
 											
 											PrioritiserTagState ts = active_tags.get(j);
 											
 											int rate = ts.getRate();
 											
-											int target = rate/2;
+											int target;
+											int decrease;
+											
+											if ( rate >= decrease_by ){
+												
+												decrease = decrease_by;
+												
+												target = rate - decrease_by;
+												
+												decrease_by = 0;
+												
+											}else{
+												
+												decrease = rate;
+												
+												target = 0;
+												
+												decrease_by -= rate;
+											}
+												
+											total_decrease += decrease;
 											
 											if ( target <= 1024 ){
 												
-												target = -1;	 																					
+												target = -1;
 											}
 											
-											ts.setLimit( target, "1: decreasing lower priority by 50%" );
+											ts.setLimit( target, "1: decreasing lower priority (dec=" + formatRate(decrease,false) + ")");
+											
+											if ( decrease_by <= 0 ){
+												
+												break;
+											}
 										}
 									}else{
 										
@@ -6591,7 +6631,7 @@ SpeedLimitHandler
 						}
 					}
 					
-					tag.setLimit( limit, "probe result" );
+					tag.setLimit( limit, "2: probe result" );
 				}
 				
 				phase = 0;
