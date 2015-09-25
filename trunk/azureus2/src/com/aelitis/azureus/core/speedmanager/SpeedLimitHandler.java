@@ -6445,6 +6445,11 @@ SpeedLimitHandler
 
 										for ( int j=active_tags.size()-1;j>i;j--){
 											
+											if ( decrease_by <= 0 ){
+												
+												break;
+											}
+							
 											PrioritiserTagState ts = active_tags.get(j);
 											
 											int rate = ts.getRate();
@@ -6477,11 +6482,6 @@ SpeedLimitHandler
 											}
 											
 											ts.setLimit( target, "1: decreasing lower priority (dec=" + formatRate(decrease,false) + ")");
-											
-											if ( decrease_by <= 0 ){
-												
-												break;
-											}
 										}
 									}else{
 										
