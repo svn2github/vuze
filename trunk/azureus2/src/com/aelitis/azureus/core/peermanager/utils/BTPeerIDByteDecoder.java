@@ -133,10 +133,6 @@ public class BTPeerIDByteDecoder {
 
 	public static String decode0(byte[] peer_id_bytes) {
 
-		final String UNKNOWN = MessageText.getString("PeerSocket.unknown");
-		final String FAKE = MessageText.getString("PeerSocket.fake_client");
-		final String BAD_PEER_ID = MessageText.getString("PeerSocket.bad_peer_id");
-		
 		String peer_id = null;
 		try {peer_id = new String(peer_id_bytes, Constants.BYTE_ENCODING);}
 		catch (UnsupportedEncodingException uee) {return "";}
@@ -153,6 +149,7 @@ public class BTPeerIDByteDecoder {
 			if (client != null) {return client;}
 			client = decodeBitCometClient(peer_id, peer_id_bytes);
 			if (client != null) {return client;}
+			String BAD_PEER_ID = MessageText.getString("PeerSocket.bad_peer_id");
 			return "BitSpirit? (" + BAD_PEER_ID + ")";
 		}
 
@@ -170,6 +167,8 @@ public class BTPeerIDByteDecoder {
 				 */ 
 				if (client.startsWith("ZipTorrent") && peer_id.startsWith("bLAde", 8)) {
 					String client_name = (client_with_version == null) ? client : client_with_version; 
+					String UNKNOWN = MessageText.getString("PeerSocket.unknown");
+					String FAKE = MessageText.getString("PeerSocket.fake_client");
 					return UNKNOWN + " [" + FAKE  + ": " + client_name + "]";
 				}
 				
