@@ -105,14 +105,14 @@ public class TextViewerWindow {
     GridData gridData = new GridData(  GridData.FILL_HORIZONTAL );
     gridData.widthHint = 200;
     gridData.horizontalSpan = 2;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
 
     txtInfo = new Text(shell, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
     gridData = new GridData(  GridData.FILL_BOTH );
     gridData.widthHint = 600;
     gridData.heightHint = 400;
     gridData.horizontalSpan = 2;
-    txtInfo.setLayoutData(gridData);
+    Utils.setLayoutData(txtInfo, gridData);
     txtInfo.setText(sText);
     
     txtInfo.addKeyListener(new KeyListener() {
@@ -137,13 +137,13 @@ public class TextViewerWindow {
 
     label = new Label(shell, SWT.NONE);
     gridData = new GridData( GridData.FILL_HORIZONTAL );
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     ok = new Button(shell, SWT.PUSH);
     ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData();
     gridData.widthHint = 70;
-    ok.setLayoutData(gridData);
+    Utils.setLayoutData(ok, gridData);
     shell.setDefaultButton(ok);
     ok.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {

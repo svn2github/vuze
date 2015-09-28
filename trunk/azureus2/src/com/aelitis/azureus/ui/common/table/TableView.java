@@ -242,9 +242,13 @@ public interface TableView<DATASOURCETYPE>
 	Object getParentDataSource();
 
 	/**
-	 * @param iHeight
+	 * @param iHeight Height will be adjusted for larger DPI
 	 */
 	void setRowDefaultHeight(int iHeight);
+
+	void setRowDefaultHeightEM(float lineHeight);
+
+	void setRowDefaultHeightPX(int realPX);
 
 	void setSelectedRows(TableRowCore[] rows);
 

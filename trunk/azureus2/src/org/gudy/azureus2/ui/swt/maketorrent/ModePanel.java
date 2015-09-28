@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -71,7 +72,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
 
     Composite panel = new Composite(rootPanel, SWT.NO_RADIO_GROUP);
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 4;
     panel.setLayout(layout);
@@ -83,13 +84,13 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     Messages.setLanguageText(btnLocalTracker, "wizard.tracker.local");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    btnLocalTracker.setLayoutData(gridData);    
+    Utils.setLayoutData(btnLocalTracker, gridData);    
 
     final Button btnSSL = new Button(panel, SWT.CHECK);
     Messages.setLanguageText(btnSSL, "wizard.tracker.ssl"); 
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.horizontalSpan = 2;
-    btnSSL.setLayoutData( gridData );
+    Utils.setLayoutData(btnSSL,  gridData );
         
     //Line :
     //Announce URL : <local announce>
@@ -139,7 +140,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
       gridData.horizontalSpan = 4;
     }
     
-    localTrackerValue.setLayoutData(gridData);
+    Utils.setLayoutData(localTrackerValue, gridData);
 
     int	tracker_type = wizard.getTrackerType();
     
@@ -163,7 +164,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     Messages.setLanguageText(btnExternalTracker, "wizard.tracker.external");
     gridData = new GridData();
     gridData.horizontalSpan = 4;
-    btnExternalTracker.setLayoutData(gridData);
+    Utils.setLayoutData(btnExternalTracker, gridData);
 
     //Line:
     // [External Tracker Url ]V
@@ -183,7 +184,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     tracker = new Combo(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    tracker.setLayoutData(gridData);
+    Utils.setLayoutData(tracker, gridData);
     List trackers = TrackersUtil.getInstance().getTrackersList();
     Iterator iter = trackers.iterator();
     while (iter.hasNext()) {
@@ -246,7 +247,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     Messages.setLanguageText(btnDHTTracker, "wizard.tracker.dht");
     gridData = new GridData();
     gridData.horizontalSpan = 4;
-    btnDHTTracker.setLayoutData(gridData);
+    Utils.setLayoutData(btnDHTTracker, gridData);
     
     btnDHTTracker.setSelection(tracker_type==NewTorrentWizard.TT_DECENTRAL);
 
@@ -254,7 +255,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     // add another panel due to control oversize issues
     panel = new Composite(rootPanel, SWT.NO_RADIO_GROUP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 4;
     panel.setLayout(layout);
@@ -265,7 +266,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     Label label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 4;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
 
     //Line:
     // [] add Multi-tracker information [] webseed
@@ -274,7 +275,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     Messages.setLanguageText(btnMultiTracker, "wizard.multitracker");
     gridData = new GridData();
     gridData.horizontalSpan = 4;
-    btnMultiTracker.setLayoutData(gridData);
+    Utils.setLayoutData(btnMultiTracker, gridData);
     btnMultiTracker.addListener(SWT.Selection, new Listener() {
 
 	    public void handleEvent(Event arg0) {
@@ -289,7 +290,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     Messages.setLanguageText(btnWebSeed, "wizard.webseed");
     gridData = new GridData();
     gridData.horizontalSpan = 4;
-    btnWebSeed.setLayoutData(gridData);
+    Utils.setLayoutData(btnWebSeed, gridData);
     btnWebSeed.addListener(SWT.Selection, new Listener() {
 
 	    public void handleEvent(Event arg0) {
@@ -305,7 +306,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     Messages.setLanguageText(btnExtraHashes, "wizard.createtorrent.extrahashes");
     gridData = new GridData();
     gridData.horizontalSpan = 4;
-    btnExtraHashes.setLayoutData(gridData);
+    Utils.setLayoutData(btnExtraHashes, gridData);
     btnExtraHashes.addListener(SWT.Selection, new Listener() {
 
     	public void handleEvent(Event arg0) {
@@ -318,7 +319,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     // the "hack" is staying until a more satisfactory solution can be found
     panel = new Composite(rootPanel, SWT.NONE);
     gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 6;
     panel.setLayout(layout);
@@ -412,7 +413,7 @@ public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
     final Text comment = new Text(panel, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 5;
-    comment.setLayoutData(gridData);
+    Utils.setLayoutData(comment, gridData);
     comment.setText(((NewTorrentWizard) wizard).getComment());
 
     comment.addListener(SWT.Modify, new Listener() {

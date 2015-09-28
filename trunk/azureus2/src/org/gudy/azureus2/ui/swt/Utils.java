@@ -40,6 +40,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -61,6 +62,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -1934,11 +1936,15 @@ public class Utils
 		try {
 			bMetricsOk = false;
 			Point ptTopLeft = shell.getLocation();
+			Point size = shell.getSize();
+			Point ptBottomRight = shell.getLocation();
+			ptBottomRight.x += size.x;
+			ptBottomRight.y += size.y;
 
 			Monitor[] monitors = shell.getDisplay().getMonitors();
 			for (int j = 0; j < monitors.length && !bMetricsOk; j++) {
 				Rectangle bounds = monitors[j].getBounds();
-				bMetricsOk = bounds.contains(ptTopLeft);
+				bMetricsOk = bounds.contains(ptTopLeft) && bounds.contains(ptBottomRight);
 			}
 		} catch (NoSuchMethodError e) {
 			Rectangle bounds = shell.getDisplay().getBounds();
@@ -2252,7 +2258,7 @@ public class Utils
 		return gridData;
 	}
 
-    private static Image createAlphaImage(Device device, int width, int height) {
+  public static Image createAlphaImage(Device device, int width, int height) {
 		return createAlphaImage(device, width, height, (byte) 0);
 	}
 
@@ -2904,6 +2910,8 @@ public class Utils
 
 	private static Set<DiskManagerFileInfo>	quick_view_active = new HashSet<DiskManagerFileInfo>();
 	private static TimerEventPeriodic		quick_view_event;
+
+	private static Point dpi;
 	
 	public static boolean
 	isQuickViewSupported(
@@ -3608,4 +3616,138 @@ public class Utils
 		comp.addListener(SWT.Resize, sash_listener );
 	    sash.addListener(SWT.Resize, sash_listener );
 	}
+	
+	private static Point getDPI() {
+		if (dpi == null) {
+			boolean enableForceDPI = COConfigurationManager.getBooleanParameter("enable.ui.forceDPI");
+			if (enableForceDPI) {
+				int forceDPI = COConfigurationManager.getIntParameter("Force DPI");
+				if (forceDPI > 0) {
+					dpi = new Point(forceDPI, forceDPI);
+					return dpi;
+				}
+			}
+			Display display = getDisplay();
+			if (display == null) {
+				return new Point(96, 96);
+			}
+			dpi = display.getDPI();
+			COConfigurationManager.setIntDefault("Force DPI", dpi.x);
+		}
+		return dpi;
+	}
+
+	public static int adjustPXForDPI(int dpi) {
+		if (dpi == 0) {
+			return dpi;
+		}
+		int xDPI = getDPI().x;
+		if (xDPI == 96) {
+			return dpi;
+		}
+		return (int) (dpi / 96.0 * xDPI);
+	}
+
+	public static Rectangle adjustPXForDPI(Rectangle bounds) {
+		Point dpi = getDPI();
+		if (dpi.x == 96 && dpi.y == 96) {
+			return bounds;
+		}
+		return new Rectangle(bounds.x * dpi.x / 96, bounds.y * dpi.y / 96,
+				bounds.width * dpi.x / 96, bounds.height * dpi.y / 96);
+	}
+
+	public static Point adjustPXForDPI(Point size) {
+		Point dpi = getDPI();
+		if (dpi.x == 96 && dpi.y == 96) {
+			return size;
+		}
+		return new Point(size.x * dpi.x / 96, size.y * dpi.y / 96);
+	}
+
+	public static void adjustPXForDPI(FormData fd) {
+		adjustPXForDPI(fd.left);
+		adjustPXForDPI(fd.right);
+		adjustPXForDPI(fd.top);
+		adjustPXForDPI(fd.bottom);
+		if (fd.width > 0) {
+			fd.width = adjustPXForDPI(fd.width);
+		}
+		if (fd.height > 0) {
+			fd.height = adjustPXForDPI(fd.height);
+		}
+	}
+
+	public static void adjustPXForDPI(FormAttachment fa) {
+		if (fa == null) {
+			return;
+		}
+		if (fa.offset != 0) {
+			fa.offset = adjustPXForDPI(fa.offset);
+		}
+	}
+
+	public static void setLayoutData(Control widget, GridData layoutData) {
+		adjustPXForDPI(layoutData);
+		widget.setLayoutData(layoutData);
+	}
+
+	private static void adjustPXForDPI(GridData layoutData) {
+		Point dpi = getDPI();
+		if (dpi.x == 96 && dpi.y == 96) {
+			return;
+		}
+		if (layoutData.heightHint > 0) {
+			layoutData.heightHint = adjustPXForDPI(layoutData.heightHint);
+		}
+		if (layoutData.horizontalIndent > 0) {
+			layoutData.horizontalIndent = adjustPXForDPI(layoutData.horizontalIndent);
+		}
+		if (layoutData.minimumHeight > 0) {
+			layoutData.minimumHeight = adjustPXForDPI(layoutData.minimumHeight);
+		}
+		if (layoutData.verticalIndent > 0) {
+			layoutData.verticalIndent = adjustPXForDPI(layoutData.verticalIndent);
+		}
+		if (layoutData.minimumWidth > 0) {
+			layoutData.minimumWidth = adjustPXForDPI(layoutData.minimumWidth);
+		}
+		if (layoutData.widthHint > 0) {
+			layoutData.widthHint = adjustPXForDPI(layoutData.widthHint);
+		}
+	}
+
+	public static void setLayoutData(Control widget, FormData layoutData) {
+		adjustPXForDPI(layoutData);
+		widget.setLayoutData(layoutData);
+	}
+
+	public static void setLayoutData(Control item, RowData rowData) {
+		if (rowData.height > 0) {
+			rowData.height = adjustPXForDPI(rowData.height);
+		}
+		if (rowData.width > 0) {
+			rowData.width = adjustPXForDPI(rowData.width);
+		}
+		item.setLayoutData(rowData);
+	}
+
+	public static void setLayoutData(BufferedLabel label, GridData gridData) {
+		adjustPXForDPI(gridData);
+		label.setLayoutData(gridData);
+	}
+
+	public static void adjustPXForDPI(Object layoutData) {
+		if (layoutData instanceof GridData) {
+			GridData gd = (GridData) layoutData;
+			adjustPXForDPI(gd);
+		} else if (layoutData instanceof FormData) {
+			FormData fd = (FormData) layoutData;
+			adjustPXForDPI(fd);
+		} else if (layoutData instanceof RowData) {
+			RowData fd = (RowData) layoutData;
+			adjustPXForDPI(fd);
+		}
+	}
+
 }

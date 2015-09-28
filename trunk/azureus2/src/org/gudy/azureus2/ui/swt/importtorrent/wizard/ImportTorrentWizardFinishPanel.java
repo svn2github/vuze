@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.*;
 
 public class 
@@ -57,7 +58,7 @@ ImportTorrentWizardFinishPanel
 
 	Composite panel = new Composite(rootPanel, SWT.NULL);
 	GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-	panel.setLayoutData(gridData);
+	Utils.setLayoutData(panel, gridData);
 	layout = new GridLayout();
 	layout.numColumns = 3;
 	panel.setLayout(layout);
@@ -66,7 +67,7 @@ ImportTorrentWizardFinishPanel
 	gridData = new GridData();
 	gridData.horizontalSpan = 3;
 	gridData.widthHint = 380;
-	label.setLayoutData(gridData);
+	Utils.setLayoutData(label, gridData);
 	Messages.setLanguageText(label, "importTorrentWizard.finish.message");
   }
 

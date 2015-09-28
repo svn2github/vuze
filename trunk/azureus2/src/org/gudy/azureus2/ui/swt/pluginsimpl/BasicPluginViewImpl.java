@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeEvent;
 import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -159,7 +160,7 @@ BasicPluginViewImpl
     gridLayout.numColumns = 2;
     panel.setLayout(gridLayout);
 	gridData = new GridData(GridData.FILL_BOTH);
-	panel.setLayoutData(gridData);
+	Utils.setLayoutData(panel, gridData);
     
     /*
      * Status       : [Status Text]
@@ -182,7 +183,7 @@ BasicPluginViewImpl
 	if (sConfigSectionID == null){
 		gridData.horizontalSpan = 2;
 	}
-	topSection.setLayoutData(gridData);
+	Utils.setLayoutData(topSection, gridData);
     
     if(model.getStatus().getVisible()) {
       Label statusTitle = new Label(topSection,SWT.NULL);
@@ -190,7 +191,7 @@ BasicPluginViewImpl
     
       status = new BufferedLabel(topSection,SWT.NULL);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
-      status.setLayoutData(gridData);
+      Utils.setLayoutData(status, gridData);
     }
     
     if(model.getActivity().getVisible()) {
@@ -199,7 +200,7 @@ BasicPluginViewImpl
     
       task = new BufferedLabel(topSection,SWT.NULL);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
-      task.setLayoutData(gridData);
+      Utils.setLayoutData(task, gridData);
     }
     
     if(model.getProgress().getVisible()) {
@@ -210,7 +211,7 @@ BasicPluginViewImpl
       progress.setMaximum(100);
       progress.setMinimum(0);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
-      progress.setLayoutData(gridData);
+      Utils.setLayoutData(progress, gridData);
     }
     
     if (sConfigSectionID != null) {
@@ -221,10 +222,10 @@ BasicPluginViewImpl
         gridLayout.marginWidth = 2;
         configSection.setLayout(gridLayout);
         gridData = new GridData(GridData.END | GridData.VERTICAL_ALIGN_END );
-        configSection.setLayoutData(gridData);
+        Utils.setLayoutData(configSection, gridData);
         //Label padding = new Label(configSection,SWT.NULL);
         //gridData = new GridData(GridData.FILL_HORIZONTAL);
-        //padding.setLayoutData(gridData);
+        //Utils.setLayoutData(padding, gridData);
     	Button btnConfig = new Button(configSection, SWT.PUSH);
     	Messages.setLanguageText(btnConfig, "plugins.basicview.config");
     	btnConfig.addSelectionListener(new SelectionAdapter() {
@@ -237,7 +238,7 @@ BasicPluginViewImpl
 	      	 }
     		}
     	});
-    	btnConfig.setLayoutData(new GridData());
+    	Utils.setLayoutData(btnConfig, new GridData());
     }
     
     if(model.getLogArea().getVisible()) {
@@ -245,7 +246,7 @@ BasicPluginViewImpl
     	Messages.setLanguageText(logTitle,"plugins.basicview.log");
     	//  gridData = new GridData(GridData.FILL_HORIZONTAL);
     	//  gridData.horizontalSpan = 1;
-    	//  logTitle.setLayoutData(gridData);
+    	//  Utils.setLayoutData(logTitle, gridData);
 
     	Button button = new Button( topSection, SWT.PUSH );
     	Messages.setLanguageText(button,"plugins.basicview.clear");
@@ -259,7 +260,7 @@ BasicPluginViewImpl
     	log = new StyledText(panel,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
     	gridData = new GridData(GridData.FILL_BOTH);
     	gridData.horizontalSpan = 2;
-    	log.setLayoutData(gridData);
+    	Utils.setLayoutData(log, gridData);
     	
 		ClipboardCopy.addCopyToClipMenu(
 				log,
@@ -285,18 +286,18 @@ BasicPluginViewImpl
         bottomSection.setLayout(gridLayout);
     	gridData = new GridData(GridData.FILL_HORIZONTAL);
    		gridData.horizontalSpan = 2;
-   		bottomSection.setLayoutData(gridData);
+   		Utils.setLayoutData(bottomSection, gridData);
 
    			// include 
    		
     	Label label = new Label(bottomSection, SWT.NONE);
-    	label.setLayoutData(new GridData());
+    	Utils.setLayoutData(label, new GridData());
     	Messages.setLanguageText(label, "LoggerView.includeOnly");
 
     	final Text inclText = new Text(bottomSection, SWT.BORDER);
     	gridData = new GridData();
     	gridData.widthHint = 200;
-    	inclText.setLayoutData(gridData);
+    	Utils.setLayoutData(inclText, gridData);
     	inclText.addModifyListener(new ModifyListener()
     	{
     		public void modifyText(ModifyEvent e) {
@@ -322,13 +323,13 @@ BasicPluginViewImpl
     		// exclude 
     	
     	label = new Label(bottomSection, SWT.NONE);
-    	label.setLayoutData(new GridData());
+    	Utils.setLayoutData(label, new GridData());
     	Messages.setLanguageText(label, "LoggerView.excludeAll");
 
     	final Text exclText = new Text(bottomSection, SWT.BORDER);
     	gridData = new GridData();
     	gridData.widthHint = 200;
-    	exclText.setLayoutData(gridData);
+    	Utils.setLayoutData(exclText, gridData);
     	exclText.addModifyListener(new ModifyListener()
     	{
     		public void modifyText(ModifyEvent e) {
@@ -356,7 +357,7 @@ BasicPluginViewImpl
 		Button buttonPause = new Button(bottomSection, SWT.CHECK);
 		Messages.setLanguageText(buttonPause, "LoggerView.pause");
 		gridData = new GridData();
-		buttonPause.setLayoutData(gridData);
+		Utils.setLayoutData(buttonPause, gridData);
 		buttonPause.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				if (e.widget == null || !(e.widget instanceof Button))

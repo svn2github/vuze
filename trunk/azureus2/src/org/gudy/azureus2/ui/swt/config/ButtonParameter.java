@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.swt.config;
 import org.eclipse.swt.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 
 public class 
@@ -59,6 +60,7 @@ ButtonParameter
   }
 
   public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
     button.setLayoutData(layoutData);
   }
 

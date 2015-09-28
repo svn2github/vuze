@@ -120,9 +120,9 @@ public class ClientStatsView
 		parent.setLayout(new FormLayout());
 		Layout layout = composite.getLayout();
 		if (layout instanceof GridLayout) {
-			parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			Utils.setLayoutData(parent, new GridData(SWT.FILL, SWT.FILL, true, true));
 		} else if (layout instanceof FormLayout) {
-			parent.setLayoutData(Utils.getFilledFormData());
+			Utils.setLayoutData(parent, Utils.getFilledFormData());
 		}
 
 		return parent;
@@ -134,14 +134,14 @@ public class ClientStatsView
 		FormData fd;
 		fd = Utils.getFilledFormData();
 		fd.bottom = new FormAttachment(cBottom);
-		cTV.setLayoutData(fd);
+		Utils.setLayoutData(cTV, fd);
 		fd = Utils.getFilledFormData();
 		fd.top = null;
-		cBottom.setLayoutData(fd);
+		Utils.setLayoutData(cBottom, fd);
 		cBottom.setLayout(new FormLayout());
 
 		Button btnCopy = new Button(cBottom, SWT.PUSH);
-		btnCopy.setLayoutData(new FormData());
+		Utils.setLayoutData(btnCopy, new FormData());
 		btnCopy.setText("Copy");
 		btnCopy.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -173,7 +173,7 @@ public class ClientStatsView
 		});
 
 		Button btnCopyShort = new Button(cBottom, SWT.PUSH);
-		btnCopyShort.setLayoutData(new FormData());
+		Utils.setLayoutData(btnCopyShort, new FormData());
 		btnCopyShort.setText("Copy > 1%");
 		btnCopyShort.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -336,7 +336,7 @@ public class ClientStatsView
 		});
 		fd = new FormData();
 		fd.left = new FormAttachment(btnCopy, 5);
-		btnCopyShort.setLayoutData(fd);
+		Utils.setLayoutData(btnCopyShort, fd);
 	}
 
 	public TableViewSWT<ClientStatsDataSource> initYourTableView() {

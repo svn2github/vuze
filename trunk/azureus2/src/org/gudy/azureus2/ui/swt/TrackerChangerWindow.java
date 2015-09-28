@@ -55,21 +55,21 @@ public class TrackerChangerWindow {
     Messages.setLanguageText(label, "TrackerChangerWindow.newtracker");    
     GridData gridData = new GridData();
     gridData.widthHint = 400;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
 
     final Text url = new Text(shell, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint = 400;
-    url.setLayoutData(gridData);
+    Utils.setLayoutData(url, gridData);
     Utils.setTextLinkFromClipboard(shell, url, false, false);
 
     Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    labelSeparator.setLayoutData(gridData);
+    Utils.setLayoutData(labelSeparator, gridData);
 
     Composite panel = new Composite(shell, SWT.NONE);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
     panel.setLayout(layout);        
@@ -78,14 +78,14 @@ public class TrackerChangerWindow {
     
     label = new Label( panel, SWT.NONE );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    label.setLayoutData(gridData );
+    Utils.setLayoutData(label, gridData );
     
     Button ok = new Button(panel, SWT.PUSH);
     ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData();
     gridData.widthHint = 70;
     gridData.horizontalAlignment = GridData.END;
-    ok.setLayoutData(gridData);
+    Utils.setLayoutData(ok, gridData);
     shell.setDefaultButton(ok);
     ok.addListener(SWT.Selection, new Listener() {
    
@@ -148,7 +148,7 @@ public class TrackerChangerWindow {
     gridData = new GridData();
     gridData.widthHint = 70;
     gridData.horizontalAlignment = GridData.END;
-    cancel.setLayoutData(gridData);
+    Utils.setLayoutData(cancel, gridData);
     cancel.addListener(SWT.Selection, new Listener() {
    
       public void handleEvent(Event event) {

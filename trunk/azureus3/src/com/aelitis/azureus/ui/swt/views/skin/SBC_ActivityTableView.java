@@ -121,7 +121,7 @@ public class SBC_ActivityTableView
 				tableID, tableID, columns, "name", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
 
-		view.setRowDefaultHeight(big ? 50 : 32);
+		view.setRowDefaultHeightEM(big ? 3 : 2);
 
 		view.addKeyListener(new KeyListener() {
 			public void keyReleased(KeyEvent e) {

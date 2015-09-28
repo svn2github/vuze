@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -63,7 +64,7 @@ public class ConfigSectionQueue implements UISWTConfigSection
 
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
 				| GridData.HORIZONTAL_ALIGN_FILL);
-		cSection.setLayoutData(gridData);
+		Utils.setLayoutData(cSection, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		layout.marginHeight = 0;
@@ -95,13 +96,13 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		gridData = new GridData();
 		gridData.horizontalIndent = 15;
 		gridData.horizontalSpan = 2;
-		cMaxActiveOptionsArea.setLayoutData(gridData);
+		Utils.setLayoutData(cMaxActiveOptionsArea, gridData);
 
 		ImageLoader imageLoader = ImageLoader.getInstance();
 		label = new Label(cMaxActiveOptionsArea, SWT.NULL);
 		imageLoader.setLabelImage(label, "subitem");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-		label.setLayoutData(gridData);
+		Utils.setLayoutData(label, gridData);
 
 		gridData = new GridData();
 		BooleanParameter maxActiveWhenSeedingEnabled = new BooleanParameter(
@@ -212,12 +213,12 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		gridData = new GridData();
 		gridData.horizontalIndent = 15;
 		gridData.horizontalSpan = 2;
-		cMinSpeedActiveCDing.setLayoutData(gridData);
+		Utils.setLayoutData(cMinSpeedActiveCDing, gridData);
 
 		label = new Label(cMinSpeedActiveCDing, SWT.NULL);
 		imageLoader.setLabelImage(label, "subitem");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-		label.setLayoutData(gridData);
+		Utils.setLayoutData(label, gridData);
 
 		label = new Label(cMinSpeedActiveCDing, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.label.maxStalledSeeding");

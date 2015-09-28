@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -108,7 +109,7 @@ public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
 		gridData.widthHint = 200;  // needed for wrap
-		lcrypto.setLayoutData(gridData);
+		Utils.setLayoutData(lcrypto, gridData);
 
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
@@ -148,7 +149,7 @@ public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
 		gridData.widthHint = 200;  // needed for wrap
-		lcryptofb.setLayoutData(gridData);
+		Utils.setLayoutData(lcryptofb, gridData);
 
 		BooleanParameter fallback_outgoing = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.outgoing", CFG_PREFIX + "encrypt.fallback_outgoing");
 		gridData = new GridData();

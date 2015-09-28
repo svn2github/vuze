@@ -482,7 +482,7 @@ public class SBC_TagsOverview
 			if (txtFilter != null) {
 				tv.enableFilterCheck(txtFilter, this);
 			}
-			tv.setRowDefaultHeight(16);
+			tv.setRowDefaultHeightEM(1);
 			tv.setEnableTabViews(true, true, null);
 	
 			table_parent = new Composite(control, SWT.BORDER);

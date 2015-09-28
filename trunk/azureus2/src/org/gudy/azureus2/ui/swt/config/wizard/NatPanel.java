@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -176,7 +177,7 @@ public class NatPanel extends AbstractWizardPanel {
 
     Composite panel = new Composite(rootPanel, SWT.NULL);
     GridData gridData = new GridData(GridData.FILL_BOTH);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 4;
     panel.setLayout(layout);
@@ -184,25 +185,25 @@ public class NatPanel extends AbstractWizardPanel {
     Label label = new Label(panel, SWT.WRAP);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 4;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     Messages.setLanguageText(label, "configureWizard.nat.message");
 
     label = new Label(panel, SWT.NULL);
     gridData = new GridData();
     gridData.horizontalSpan = 4;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     	// TCP
     
     label = new Label(panel, SWT.NULL);
     gridData = new GridData();
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     Messages.setLanguageText(label, "configureWizard.nat.server.tcp_listen_port");
 
     final Text textServerTCPListen = new Text(panel, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint = 80;
-    textServerTCPListen.setLayoutData(gridData);
+    Utils.setLayoutData(textServerTCPListen, gridData);
     textServerTCPListen.setText("" + ((ConfigureWizard) wizard).serverTCPListenPort);
     textServerTCPListen.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
@@ -232,7 +233,7 @@ public class NatPanel extends AbstractWizardPanel {
     Messages.setLanguageText(bTestTCP, "configureWizard.nat.test");
     gridData = new GridData();
     gridData.widthHint = 70;
-    bTestTCP.setLayoutData(gridData);
+    Utils.setLayoutData(bTestTCP, gridData);
 
     label = new Label(panel, SWT.NULL);
     
@@ -240,13 +241,13 @@ public class NatPanel extends AbstractWizardPanel {
 
     label = new Label(panel, SWT.NULL);
     gridData = new GridData();
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     Messages.setLanguageText(label, "configureWizard.nat.server.udp_listen_port");
 
     final Text textServerUDPListen = new Text(panel, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint = 80;
-    textServerUDPListen.setLayoutData(gridData);
+    Utils.setLayoutData(textServerUDPListen, gridData);
     textServerUDPListen.setText("" + ((ConfigureWizard) wizard).serverUDPListenPort);
     textServerUDPListen.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
@@ -276,7 +277,7 @@ public class NatPanel extends AbstractWizardPanel {
     Messages.setLanguageText(bTestUDP, "configureWizard.nat.test");
     gridData = new GridData();
     gridData.widthHint = 70;
-    bTestUDP.setLayoutData(gridData);
+    Utils.setLayoutData(bTestUDP, gridData);
     
     label = new Label(panel, SWT.NULL);
     
@@ -286,7 +287,7 @@ public class NatPanel extends AbstractWizardPanel {
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.heightHint = 70;
     gridData.horizontalSpan = 4;
-    textResults.setLayoutData(gridData);
+    Utils.setLayoutData(textResults, gridData);
     textResults.setBackground(panel.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
     bTestTCP.addListener(SWT.Selection, new Listener() {

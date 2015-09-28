@@ -77,9 +77,6 @@ public class PeerFilesView
 				TABLEID_PEER_FILES, getPropertiesPrefix(), basicItems,
 				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		
-		tv.setRowDefaultIconSize(new Point(16, 16));
-
-
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addRefreshListener(this, true);
 		tv.addLifeCycleListener(this);

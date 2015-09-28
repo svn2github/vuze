@@ -80,7 +80,7 @@ public class ImageViewerWindow {
     GridData gridData = new GridData(  GridData.FILL_HORIZONTAL );
    // gridData.widthHint = 200;
     gridData.horizontalSpan = 2;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
 
     final ScrolledComposite sc = new ScrolledComposite(shell, SWT.H_SCROLL | SWT.V_SCROLL);
     sc.setExpandHorizontal(true);
@@ -89,7 +89,7 @@ public class ImageViewerWindow {
     gridData.widthHint = 500;
     gridData.heightHint = 400;
     gridData.horizontalSpan = 2;
-    sc.setLayoutData(gridData);
+    Utils.setLayoutData(sc, gridData);
     
     layout = new GridLayout();
 	layout.horizontalSpacing = 0;
@@ -104,7 +104,7 @@ public class ImageViewerWindow {
     Label img_label = new Label(img_comp, SWT.BORDER );
     img_label.setAlignment( SWT.CENTER );
     gridData = new GridData(  GridData.FILL_BOTH );
-    img_label.setLayoutData(gridData);
+    Utils.setLayoutData(img_label, gridData);
     
     sc.setContent( img_comp );
     sc.addControlListener(new ControlAdapter() {
@@ -151,13 +151,13 @@ public class ImageViewerWindow {
     
     label = new Label(shell, SWT.NONE);
     gridData = new GridData( GridData.FILL_HORIZONTAL );
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     ok = new Button(shell, SWT.PUSH);
     ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData();
     gridData.widthHint = 70;
-    ok.setLayoutData(gridData);
+    Utils.setLayoutData(ok, gridData);
     shell.setDefaultButton(ok);
     ok.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {

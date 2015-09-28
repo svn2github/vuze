@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
@@ -66,13 +67,13 @@ public class LanguagePanel extends AbstractWizardPanel {
 		final Label lblChoose = new Label(rootPanel, SWT.WRAP);
 		setChooseLabel(lblChoose);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		lblChoose.setLayoutData(gridData);
+		Utils.setLayoutData(lblChoose, gridData);
 
 		final List lstLanguage = new List(rootPanel, SWT.BORDER | SWT.V_SCROLL
 				| SWT.SINGLE);
 		gridData = new GridData(GridData.FILL_BOTH);
 		gridData.heightHint = 350;
-		lstLanguage.setLayoutData(gridData);
+		Utils.setLayoutData(lstLanguage, gridData);
 
 		final Locale[] locales = MessageText.getLocales(true);
 

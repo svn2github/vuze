@@ -39,7 +39,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  * @created Jun 8, 2006
  *
  */
-public class SWTBGImagePainter
+public class SWTBGImagePainter2
 	implements Listener
 {
 	private static boolean DEBUG = false;
@@ -68,6 +68,12 @@ public class SWTBGImagePainter
 
 	private Rectangle imgSrcRightBounds;
 
+	private Rectangle imgSrcBoundsAdj;
+
+	private Rectangle imgSrcLeftBoundsAdj;
+
+	private Rectangle imgSrcRightBoundsAdj;
+
 	private Image lastImage = null;
 
 	boolean inEvent = false;
@@ -88,18 +94,18 @@ public class SWTBGImagePainter
 
 	private ImageLoader imageLoader = null;
 
-	private SWTBGImagePainter(Control control, int tileMode) {
+	private SWTBGImagePainter2(Control control, int tileMode) {
 		this.control = control;
 		this.shell = control.getShell();
 		this.tileMode = tileMode;
 		control.setData("BGPainter", this);
 	}
 
-	public SWTBGImagePainter(Control control, Image bgImage, int tileMode) {
+	public SWTBGImagePainter2(Control control, Image bgImage, int tileMode) {
 		this(control, null, null, bgImage, tileMode);
 	}
 
-	public SWTBGImagePainter(Control control, Image bgImageLeft,
+	public SWTBGImagePainter2(Control control, Image bgImageLeft,
 			Image bgImageRight, Image bgImage, int tileMode) {
 		this(control, tileMode);
 		setImages(bgImageLeft, bgImageRight, bgImage);
@@ -119,7 +125,7 @@ public class SWTBGImagePainter
 		control.addListener(SWT.Dispose, this);
 	}
 
-	public SWTBGImagePainter(Control control, ImageLoader imageLoader,
+	public SWTBGImagePainter2(Control control, ImageLoader imageLoader,
 			String bgImageLeftId,
 			String bgImageRightId, String bgImageId, int tileMode) {
 		this(control, tileMode);
@@ -228,21 +234,26 @@ public class SWTBGImagePainter
 		imgSrc = bgImage;
 		if (imgSrc != null) {
 			imgSrcBounds = imgSrc.getBounds();
+			imgSrcBoundsAdj = Utils.adjustPXForDPI(imgSrcBounds);
 		}
 		lastShellBGSize = new Point(0, 0);
 		if (ImageLoader.isRealImage(bgImageLeft)) {
 			imgSrcLeft = bgImageLeft;
 			imgSrcLeftBounds = imgSrcLeft.getBounds();
+			imgSrcLeftBoundsAdj = Utils.adjustPXForDPI(imgSrcLeftBounds);
 		} else {
 			imgSrcLeft = null;
 			imgSrcLeftBounds = Utils.EMPTY_RECT;
+			imgSrcLeftBoundsAdj = Utils.EMPTY_RECT;
 		}
 		if (ImageLoader.isRealImage(bgImageRight)) {
 			imgSrcRight = bgImageRight;
 			imgSrcRightBounds = imgSrcRight.getBounds();
+			imgSrcRightBoundsAdj = Utils.adjustPXForDPI(imgSrcRightBounds);
 		} else {
 			imgSrcRight = null;
 			imgSrcRightBounds = Utils.EMPTY_RECT;
+			imgSrcRightBoundsAdj = Utils.EMPTY_RECT;
 		}
 		
 
@@ -269,11 +280,11 @@ public class SWTBGImagePainter
 			int height = SWT.DEFAULT;
 
 			if (tileMode == SWTSkinUtils.TILE_Y || tileMode == SWTSkinUtils.TILE_NONE) {
-				width = imgSrcBounds.width + imgSrcLeftBounds.width
-						+ imgSrcRightBounds.width;
+				width = imgSrcBoundsAdj.width + imgSrcLeftBoundsAdj.width
+						+ imgSrcRightBoundsAdj.width;
 			}
 			if (tileMode == SWTSkinUtils.TILE_X || tileMode == SWTSkinUtils.TILE_NONE) {
-				height = imgSrcBounds.height;
+				height = imgSrcBoundsAdj.height;
 			}
 			FormData fd = (FormData) control.getLayoutData();
 			if (fd == null) {
@@ -314,21 +325,26 @@ public class SWTBGImagePainter
 		
 		imgSrcLeftBounds = Utils.EMPTY_RECT;
 		imgSrcRightBounds = Utils.EMPTY_RECT;
+		imgSrcLeftBoundsAdj = Utils.EMPTY_RECT;
+		imgSrcRightBoundsAdj = Utils.EMPTY_RECT;
 
 		if (imgSrcID != null) {
 			Image imgSrc = imageLoader.getImage(imgSrcID);
 			imgSrcBounds = imgSrc.getBounds();
+			imgSrcBoundsAdj = Utils.adjustPXForDPI(imgSrcBounds);
 			imageLoader.releaseImage(imgSrcID);
 		}
 		Image imgSrcLeft = imageLoader.getImage(imgSrcLeftID);
 		if (ImageLoader.isRealImage(imgSrcLeft)) {
 			imgSrcLeftBounds = imgSrcLeft.getBounds();
+			imgSrcLeftBoundsAdj = Utils.adjustPXForDPI(imgSrcLeftBounds);
 		}
 		imageLoader.releaseImage(imgSrcLeftID);
 		
 		Image imgSrcRight = imageLoader.getImage(imgSrcRightID);
 		if (ImageLoader.isRealImage(imgSrcRight)) {
 			imgSrcRightBounds = imgSrcRight.getBounds();
+			imgSrcRightBoundsAdj = Utils.adjustPXForDPI(imgSrcRightBounds);
 		}
 		imageLoader.releaseImage(imgSrcRightID);
 
@@ -350,11 +366,11 @@ public class SWTBGImagePainter
 			int height = SWT.DEFAULT;
 
 			if (tileMode == SWTSkinUtils.TILE_Y || tileMode == SWTSkinUtils.TILE_NONE) {
-				width = imgSrcBounds.width + imgSrcLeftBounds.width
-						+ imgSrcRightBounds.width;
+				width = imgSrcBoundsAdj.width + imgSrcLeftBoundsAdj.width
+						+ imgSrcRightBoundsAdj.width;
 			}
 			if (tileMode == SWTSkinUtils.TILE_X || tileMode == SWTSkinUtils.TILE_NONE) {
-				height = imgSrcBounds.height;
+				height = imgSrcBoundsAdj.height;
 			}
 			FormData fd = (FormData) control.getLayoutData();
 			if (fd == null) {
@@ -408,20 +424,26 @@ public class SWTBGImagePainter
 			if (images.length == 1) {
   			imgSrc = images[0];
   			imgSrcBounds = imgSrc.getBounds();
+  			imgSrcBoundsAdj = Utils.adjustPXForDPI(imgSrcBounds);
 			} else if (images.length == 2) {
 				imgSrcLeft = images[0];
 				imgSrcLeftBounds = imgSrcLeft.getBounds();
+				imgSrcLeftBoundsAdj = Utils.adjustPXForDPI(imgSrcLeftBounds);
   			imgSrc = images[1];
   			imgSrcBounds = imgSrc.getBounds();
+  			imgSrcBoundsAdj = Utils.adjustPXForDPI(imgSrcBounds);
 				imgSrcRight = images[1];
 				imgSrcRightBounds = imgSrcRight.getBounds();
+				imgSrcRightBoundsAdj = Utils.adjustPXForDPI(imgSrcRightBounds);
 			} else if (images.length == 3) {
 				imgSrcLeft = images[0];
 				imgSrcLeftBounds = imgSrcLeft.getBounds();
   			imgSrc = images[1];
+  			imgSrcBoundsAdj = Utils.adjustPXForDPI(imgSrcBounds);
   			imgSrcBounds = imgSrc.getBounds();
 				imgSrcRight = images[2];
 				imgSrcRightBounds = imgSrcRight.getBounds();
+				imgSrcRightBoundsAdj = Utils.adjustPXForDPI(imgSrcRightBounds);
 			}
 		}
 		
@@ -491,7 +513,7 @@ public class SWTBGImagePainter
 		}
 
 		//control.setRedraw(false);
-			if (DEBUG) {
+			{ //if (DEBUG) {
 				System.out.println(System.currentTimeMillis() + "@"
 						+ Integer.toHexString(hashCode()) + "BGPain: "
 						+ control.getData("SkinObject") + "/" + "; image" + size + ";"
@@ -559,48 +581,62 @@ public class SWTBGImagePainter
 					}
 				}
 
-				int maxY = bTileY ? size.y : imgSrcBounds.height;
-				int maxX = bTileX ? size.x : imgSrcBounds.width;
+				int maxY = bTileY ? size.y : imgSrcBoundsAdj.height;
+				int maxX = bTileX ? size.x : imgSrcBoundsAdj.width;
 				int x0 = 0;
 
 				if ((tileMode & SWTSkinUtils.TILE_CENTER_X) > 0) {
-					x0 = (size.x - imgSrcBounds.width) / 2;
+					x0 = (size.x - imgSrcBoundsAdj.width) / 2;
 					maxX += x0;
 				}
 				int y0 = 0;
 				if ((tileMode & SWTSkinUtils.TILE_CENTER_Y) > 0) {
-					y0 = (size.y - imgSrcBounds.height) / 2;
+					y0 = (size.y - imgSrcBoundsAdj.height) / 2;
 					maxY += y0;
 				}
 
 				if (imgSrcRight != null) {
-					int width = imgSrcRightBounds.width;
+					int width = imgSrcRightBoundsAdj.width;
 
 					maxX -= width;
 				}
 
 				if (imgSrcLeft != null) {
 					// TODO: Tile down
-					gc.drawImage(imgSrcLeft, 0, 0);
+					gc.drawImage(imgSrcLeft, 0, 0, imgSrcLeftBounds.width,
+							imgSrcLeftBounds.height, 0, 0, imgSrcLeftBoundsAdj.width,
+							imgSrcLeftBoundsAdj.height);
+					//gc.drawImage(imgSrcLeft, 0, 0);
 
-					x0 += imgSrcLeftBounds.width;
+					x0 += imgSrcLeftBoundsAdj.width;
 				}
 
-				for (int y = y0; y < maxY; y += imgSrcBounds.height) {
-					for (int x = x0; x < maxX; x += imgSrcBounds.width) {
-						if (x + imgSrcBounds.width >= maxX) {
+				for (int y = y0; y < maxY; y += imgSrcBoundsAdj.height) {
+					for (int x = x0; x < maxX; x += imgSrcBoundsAdj.width) {
+						if (x + imgSrcBoundsAdj.width >= maxX) {
 							int width = maxX - x;
-							gc.drawImage(imgSrc, 0, 0, width, imgSrcBounds.height, x, y,
-									width, imgSrcBounds.height);
+							if (width > 0) {
+								try {
+  								gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height, x, y,
+  										width, imgSrcBoundsAdj.height);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
 						} else {
-							gc.drawImage(imgSrc, x, y);
+							gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height, x, y, 
+									imgSrcBoundsAdj.width, imgSrcBoundsAdj.height);
+							//gc.drawImage(imgSrc, x, y);
 						}
 					}
 				}
 
 				if (imgSrcRight != null) {
 					// TODO: Tile down
-					gc.drawImage(imgSrcRight, maxX, 0);
+					gc.drawImage(imgSrcRight, 0, 0, imgSrcRightBounds.width,
+							imgSrcRightBounds.height, maxX, 0, imgSrcRightBoundsAdj.width,
+							imgSrcRightBoundsAdj.height);
+					//gc.drawImage(imgSrcRight, maxX, 0);
 				}
 			} finally {
 				gc.dispose();

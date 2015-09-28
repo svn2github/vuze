@@ -4,6 +4,7 @@ import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.stats.TransferStatsView;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
@@ -67,7 +68,7 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
 
         Composite panel = new Composite(rootPanel, SWT.NULL);
         GridData gridData = new GridData( GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL );
-        panel.setLayoutData(gridData);
+        Utils.setLayoutData(panel, gridData);
         layout = new GridLayout();
         layout.numColumns = 3;
         layout.makeColumnsEqualWidth=true;
@@ -77,7 +78,7 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         gridData = new GridData();
         gridData.horizontalSpan = 3;
         gridData.widthHint = 380;
-        label.setLayoutData(gridData);
+        Utils.setLayoutData(label, gridData);
         Messages.setLanguageText(label,"SpeedTestWizard.finish.panel.click.close");
 
         //show the setting for upload speed

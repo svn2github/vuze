@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -187,7 +188,7 @@ public class ConfigSectionInterfaceAlerts
 				+ "wavlocation.info");
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.widthHint = 100;
-		d_sound_info.setLayoutData(gridData);
+		Utils.setLayoutData(d_sound_info, gridData);
 
 		/* we support per-download alerts now so leave sound selection always available
 		d_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
@@ -288,7 +289,7 @@ public class ConfigSectionInterfaceAlerts
 				+ "wavlocation.info");
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.widthHint = 100;
-		f_sound_info.setLayoutData(gridData);
+		Utils.setLayoutData(f_sound_info, gridData);
 
 		/* we support per-file alerts now so leave sound selection always available
 		f_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(

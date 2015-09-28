@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -69,7 +70,7 @@ public class ConfigSectionConnectionDNS implements UISWTConfigSection {
 
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
 				| GridData.HORIZONTAL_ALIGN_FILL);
-		cSection.setLayoutData(gridData);
+		Utils.setLayoutData(cSection, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		cSection.setLayout(layout);
@@ -79,7 +80,7 @@ public class ConfigSectionConnectionDNS implements UISWTConfigSection {
 			Label label = new Label(cSection, SWT.WRAP);
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 
 			final String[] modeKeys = { "ConfigView.section.mode.beginner",
 					"ConfigView.section.mode.intermediate",
@@ -109,7 +110,7 @@ public class ConfigSectionConnectionDNS implements UISWTConfigSection {
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
 		gridData.widthHint = 200;  // needed for wrap
-		label.setLayoutData(gridData);
+		Utils.setLayoutData(label, gridData);
 
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;

@@ -101,19 +101,19 @@ public class PasswordWindow {
     label.setText(MessageText.getString("PasswordWindow.passwordprotected"));
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     final Text password = new Text(shell,SWT.BORDER);
     password.setEchoChar('*');
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    password.setLayoutData(gridData);
+    Utils.setLayoutData(password, gridData);
     
     Button ok = new Button(shell,SWT.PUSH);
     ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
     gridData.widthHint = 70;
-    ok.setLayoutData(gridData);
+    Utils.setLayoutData(ok, gridData);
     shell.setDefaultButton(ok);
     ok.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -144,7 +144,7 @@ public class PasswordWindow {
     cancel.setText(MessageText.getString("Button.cancel"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
     gridData.widthHint = 70;
-    cancel.setLayoutData(gridData);
+    Utils.setLayoutData(cancel, gridData);
     cancel.addListener(SWT.Selection,new Listener() {
           /* (non-Javadoc)
            * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)

@@ -73,7 +73,7 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
     layout.marginHeight = 0;
     cDownloading.setLayout(layout);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    cDownloading.setLayoutData(gridData);
+    Utils.setLayoutData(cDownloading, gridData);
 
     	// info
     
@@ -81,7 +81,7 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     gridData.widthHint = 300;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     Messages.setLanguageText(label, "ConfigView.label.downloading.info");
 
     	// wiki link
@@ -93,7 +93,7 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
 	linkLabel.setForeground(Colors.blue);
 	gridData = new GridData();
 	gridData.horizontalSpan = 2;
-	linkLabel.setLayoutData(gridData);
+	Utils.setLayoutData(linkLabel, gridData);
 	linkLabel.addMouseListener(new MouseAdapter() {
 		public void mouseDoubleClick(MouseEvent arg0) {
 			Utils.launch((String) ((Label) arg0.widget).getData());

@@ -69,7 +69,7 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     layout.marginHeight = 0;
     cSeeding.setLayout(layout);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    cSeeding.setLayoutData(gridData);
+    Utils.setLayoutData(cSeeding, gridData);
 
     	// General Seeding Options
     
@@ -97,12 +97,12 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalIndent = 15;
     gridData.horizontalSpan = 2;
-    cDontStartOptions.setLayoutData(gridData);
+    Utils.setLayoutData(cDontStartOptions, gridData);
     
 	label = new Label(cDontStartOptions, SWT.NULL);
 	ImageLoader.getInstance().setLabelImage(label, "subitem");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     Label xlabel = new Label(cDontStartOptions, SWT.NULL);
     Messages.setLanguageText(xlabel, "ConfigView.label.bStartNoMoreSeedsWhenUpLimitMetSlack");
@@ -113,7 +113,7 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
 	label = new Label(cDontStartOptions, SWT.NULL);
 	ImageLoader.getInstance().setLabelImage(label, "subitem");
 	gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     gridData = new GridData();
     gridData.horizontalSpan = 2;
@@ -156,7 +156,7 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     layout.numColumns = 2;
     cArea.setLayout(layout);
     gridData = new GridData();
-    cArea.setLayoutData(gridData);
+    Utils.setLayoutData(cArea, gridData);
 
     gridData = new GridData();
     final IntParameter paramFakeFullCopy = new IntParameter(cArea, "StartStopManager_iNumPeersAsFullCopy");
@@ -175,12 +175,12 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalIndent = 15;
     gridData.horizontalSpan = 2;
-    cFullCopyOptionsArea.setLayoutData(gridData);
+    Utils.setLayoutData(cFullCopyOptionsArea, gridData);
     
 		label = new Label(cFullCopyOptionsArea, SWT.NULL);
 		ImageLoader.getInstance().setLabelImage(label, "subitem");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     label = new Label(cFullCopyOptionsArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");

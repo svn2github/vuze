@@ -39,6 +39,7 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -82,7 +83,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
 				| GridData.HORIZONTAL_ALIGN_FILL);
-		cDisplay.setLayoutData(gridData);
+		Utils.setLayoutData(cDisplay, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 1;
 		layout.marginWidth = 0;
@@ -103,7 +104,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			Messages.setLanguageText(gStartStop, LBLKEY_PREFIX + "start");
 			layout = new GridLayout(2, false);
 			gStartStop.setLayout(layout);
-			gStartStop.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+			Utils.setLayoutData(gStartStop, new GridData( GridData.FILL_HORIZONTAL ));
 		
 			if ( can_ral ){
 				
@@ -159,13 +160,13 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			Messages.setLanguageText(gSleep, LBLKEY_PREFIX + "sleep");
 			layout = new GridLayout(2, false);
 			gSleep.setLayout(layout);
-			gSleep.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+			Utils.setLayoutData(gSleep, new GridData( GridData.FILL_HORIZONTAL ));
 		
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			label = new Label(gSleep, SWT.NULL);
 		    Messages.setLanguageText(label, "ConfigView.label.sleep.info");
-		    label.setLayoutData( gridData );
+		    Utils.setLayoutData(label,  gridData );
 
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
@@ -184,7 +185,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			Messages.setLanguageText(gPR, LBLKEY_PREFIX + "pauseresume");
 			layout = new GridLayout(2, false);
 			gPR.setLayout(layout);
-			gPR.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+			Utils.setLayoutData(gPR, new GridData( GridData.FILL_HORIZONTAL ));
 
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
@@ -205,7 +206,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			Messages.setLanguageText(gStop, LBLKEY_PREFIX + "stop");
 			layout = new GridLayout(5, false);
 			gStop.setLayout(layout);
-			gStop.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+			Utils.setLayoutData(gStop, new GridData( GridData.FILL_HORIZONTAL ));
 
 				// done downloading
 			
@@ -235,7 +236,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			Messages.setLanguageText(gRestart, "label.restart");
 			layout = new GridLayout(2, false);
 			gRestart.setLayout(layout);
-			gRestart.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+			Utils.setLayoutData(gRestart, new GridData( GridData.FILL_HORIZONTAL ));
 
 			label = new Label(gRestart, SWT.NULL);
 			Messages.setLanguageText(label, "ConfigView.label.restart.auto");
@@ -249,7 +250,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			Messages.setLanguageText(gJVM, LBLKEY_PREFIX + "jvm");
 			layout = new GridLayout(2, false);
 			gJVM.setLayout(layout);
-			gJVM.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+			Utils.setLayoutData(gJVM, new GridData( GridData.FILL_HORIZONTAL ));
 			
 				// wiki link
 			
@@ -265,7 +266,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			Messages.setLanguageText(label, "jvm.info");
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 			
 			try{
 				final File option_file = platform.getVMOptionFile();
@@ -275,7 +276,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 				gJVMOptions.setLayout(layout);
 				gridData = new GridData( GridData.FILL_HORIZONTAL );
 				gridData.horizontalSpan = 2;
-				gJVMOptions.setLayoutData( gridData );
+				Utils.setLayoutData(gJVMOptions,  gridData );
 				
 				buildOptions( cDisplay, platform, gJVMOptions, false );
 				
@@ -333,7 +334,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 				Messages.setLanguageText(label, "jvm.error", new String[]{ Debug.getNestedExceptionMessage(e) });
 				gridData = new GridData();
 				gridData.horizontalSpan = 2;
-				label.setLayoutData( gridData );
+				Utils.setLayoutData(label,  gridData );
 			}
 		}
 
@@ -369,7 +370,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 	
 			GridData gridData = new GridData();
 			Label label = new Label(area, SWT.NULL);
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 			Messages.setLanguageText(label,	"jvm.max.mem", new String[]{encodeDisplayLong(MIN_MAX_JVM)});
 	
 			gridData = new GridData();
@@ -455,7 +456,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			label = new Label(area, SWT.NULL);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 			
 			Long max_heap_mb = AEJavaManagement.getMaxHeapMB();
 			
@@ -474,7 +475,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 	
 			GridData gridData = new GridData();
 			Label label = new Label(area, SWT.NULL);
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 			Messages.setLanguageText(label,	"jvm.min.mem", new String[]{encodeDisplayLong(MIN_MIN_JVM)});
 	
 			gridData = new GridData();
@@ -560,7 +561,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			label = new Label(area, SWT.NULL);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 		}
 		
 		{
@@ -574,7 +575,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 	
 			GridData gridData = new GridData();
 			Label label = new Label(area, SWT.NULL);
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 			Messages.setLanguageText(label,	"jvm.max.direct.mem", new String[]{encodeDisplayLong(MIN_DIRECT_JVM)});
 	
 			gridData = new GridData();
@@ -653,7 +654,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			label = new Label(area, SWT.NULL);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 			Messages.setLanguageText(label,	"jvm.max.direct.mem.info" );
 		}		
 		
@@ -662,7 +663,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		Label label = new Label(area, SWT.NULL);
 		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 3;
-		label.setLayoutData(gridData);
+		Utils.setLayoutData(label, gridData);
 		Messages.setLanguageText(label,	"jvm.options.summary" );
 
 		for ( String option: options ){
@@ -672,7 +673,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			gridData = new GridData( );
 			gridData.horizontalSpan = 3;
 			gridData.horizontalIndent = 20;
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 		}
 		
 		if ( rebuild ){
@@ -827,7 +828,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		GridData gridData = new GridData();
 		Label label = new Label(comp, SWT.NULL);
 	    Messages.setLanguageText(label, "ConfigView.label.stop.downcomp");
-	    label.setLayoutData( gridData );
+	    Utils.setLayoutData(label,  gridData );
 		
 	    String[][]	action_details = getActionDetails();
 
@@ -837,7 +838,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			final Label dc_label = new Label(comp, SWT.NONE);
 			Messages.setLanguageText(dc_label, "label.script.to.run");
-			dc_label.setLayoutData(new GridData());
+			Utils.setLayoutData(dc_label, new GridData());
 	
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			final FileParameter dc_script = new FileParameter(comp, "On Downloading Complete Script", "", new String[0]);
@@ -873,7 +874,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		GridData gridData = new GridData();
 		Label label = new Label(comp, SWT.NULL);
 	    Messages.setLanguageText(label, "ConfigView.label.stop.seedcomp");
-	    label.setLayoutData( gridData );
+	    Utils.setLayoutData(label,  gridData );
 			
 	    String[][]	action_details = getActionDetails();
 
@@ -883,7 +884,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 	    	
 			final Label sc_label = new Label(comp, SWT.NONE);
 			Messages.setLanguageText(sc_label, "label.script.to.run");
-			sc_label.setLayoutData(new GridData());
+			Utils.setLayoutData(sc_label, new GridData());
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			final FileParameter sc_script = new FileParameter(comp, "On Seeding Complete Script", "", new String[0]);
 			sc_script.setLayoutData(gridData);

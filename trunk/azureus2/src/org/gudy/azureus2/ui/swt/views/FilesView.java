@@ -183,7 +183,6 @@ public class FilesView
 				org.gudy.azureus2.plugins.disk.DiskManagerFileInfo.class,
 				TableManager.TABLE_TORRENT_FILES, getPropertiesPrefix(), basicItems,
 				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		tv.setRowDefaultIconSize(new Point(16, 16));
 		if (allowTabViews) {
 	  		tv.setEnableTabViews(enable_tabs,true,null);
 		}

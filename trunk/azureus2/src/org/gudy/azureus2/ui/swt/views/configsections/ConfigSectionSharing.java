@@ -29,6 +29,7 @@ import org.eclipse.swt.layout.GridLayout;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -59,7 +60,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
 
     Composite gSharing = new Composite(parent, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gSharing.setLayoutData(gridData);
+    Utils.setLayoutData(gSharing, gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     layout.marginHeight = 0;
@@ -70,7 +71,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
 	gridData = new GridData();
     Label protocol_lab = new Label(gSharing, SWT.NULL);
     Messages.setLanguageText(protocol_lab, "ConfigView.section.sharing.protocol");
-	protocol_lab.setLayoutData( gridData );
+	Utils.setLayoutData(protocol_lab,  gridData );
 	
 	String[]	protocols = {"HTTP","HTTPS","UDP","DHT" };
     String[]	descs = {"HTTP","HTTPS (SSL)", "UDP", "Decentralised" };
@@ -134,7 +135,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
 	gridData.horizontalIndent = 25;
     Label period_label = new Label(gSharing, SWT.NULL );
     Messages.setLanguageText(period_label, "ConfigView.section.sharing.rescanperiod");
-	period_label.setLayoutData( gridData );
+	Utils.setLayoutData(period_label,  gridData );
 
     gridData = new GridData();
 	IntParameter rescan_period = new IntParameter(gSharing, "Sharing Rescan Period");

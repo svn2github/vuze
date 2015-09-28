@@ -122,14 +122,14 @@ AssociationChecker
 		Messages.setLanguageText(user_label, "dialog.associations.prompt");
 		gridData = new GridData(GridData.FILL_BOTH);
 		gridData.horizontalSpan = 3;
-		user_label.setLayoutData(gridData);
+		Utils.setLayoutData(user_label, gridData);
 
 
 	    final Button checkBox = new Button(shell, SWT.CHECK);
 	    checkBox.setSelection(true);
 		gridData = new GridData(GridData.FILL_BOTH);
 		gridData.horizontalSpan = 3;
-		checkBox.setLayoutData(gridData);
+		Utils.setLayoutData(checkBox, gridData);
 		Messages.setLanguageText(checkBox, "dialog.associations.askagain"); 
 		
 		// line
@@ -137,7 +137,7 @@ AssociationChecker
 		Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 3;
-		labelSeparator.setLayoutData(gridData);
+		Utils.setLayoutData(labelSeparator, gridData);
 
 			// buttons
 			
@@ -148,7 +148,7 @@ AssociationChecker
 	 	gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
 	 	gridData.grabExcessHorizontalSpace = true;
 	 	gridData.widthHint = 70;
-	 	bYes.setLayoutData(gridData);
+	 	Utils.setLayoutData(bYes, gridData);
 	 	bYes.addListener(SWT.Selection,new Listener() {
 	  		public void handleEvent(Event e) {
 		 		close(true, checkBox.getSelection());
@@ -160,7 +160,7 @@ AssociationChecker
 	 	gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 	 	gridData.grabExcessHorizontalSpace = false;
 	 	gridData.widthHint = 70;
-	 	bNo.setLayoutData(gridData);    
+	 	Utils.setLayoutData(bNo, gridData);    
 	 	bNo.addListener(SWT.Selection,new Listener() {
 	 		public void handleEvent(Event e) {
 		 		close(false, checkBox.getSelection());

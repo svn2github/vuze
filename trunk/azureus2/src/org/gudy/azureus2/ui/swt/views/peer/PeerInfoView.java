@@ -227,17 +227,17 @@ public class PeerInfoView
 		layout.marginWidth = 0;
 		peerInfoComposite.setLayout(layout);
 		gridData = new GridData(GridData.FILL, GridData.FILL, true, true);
-		peerInfoComposite.setLayoutData(gridData);
+		Utils.setLayoutData(peerInfoComposite, gridData);
 
 		imageLabel = new Label(peerInfoComposite, SWT.NULL);
 		gridData = new GridData();
 		if (ImageRepository.hasCountryFlags( false ) || countryLocator != null)
 			gridData.widthHint = 28;
-		imageLabel.setLayoutData(gridData);
+		Utils.setLayoutData(imageLabel, gridData);
 
 		topLabel = new Label(peerInfoComposite, SWT.NULL);
 		gridData = new GridData(SWT.FILL, SWT.DEFAULT, false, false);
-		topLabel.setLayoutData(gridData);
+		Utils.setLayoutData(topLabel, gridData);
 
 		sc = new ScrolledComposite(peerInfoComposite, SWT.V_SCROLL);
 		sc.setExpandHorizontal(true);
@@ -249,12 +249,12 @@ public class PeerInfoView
 		layout.marginWidth = 0;
 		sc.setLayout(layout);
 		gridData = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1);
-		sc.setLayoutData(gridData);
+		Utils.setLayoutData(sc, gridData);
 		sc.getVerticalBar().setIncrement(BLOCK_SIZE);
 
 		peerInfoCanvas = new Canvas(sc, SWT.NO_REDRAW_RESIZE | SWT.NO_BACKGROUND);
 		gridData = new GridData(GridData.FILL, SWT.DEFAULT, true, false);
-		peerInfoCanvas.setLayoutData(gridData);
+		Utils.setLayoutData(peerInfoCanvas, gridData);
 		peerInfoCanvas.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				if (e.width <= 0 || e.height <= 0)

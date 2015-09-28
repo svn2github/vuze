@@ -197,7 +197,7 @@ public class NatTestWindow {
 
     Composite panel = new Composite(shell, SWT.NULL);
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
     panel.setLayout(layout);
@@ -206,7 +206,7 @@ public class NatTestWindow {
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     gridData.widthHint = 400;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     Messages.setLanguageText(label, "configureWizard.nat.message");
 
     label = new Label(panel, SWT.NULL);
@@ -222,7 +222,7 @@ public class NatTestWindow {
     gridData = new GridData();    
     gridData.grabExcessHorizontalSpace = true;
     gridData.horizontalAlignment = SWT.FILL;
-    textServerTCPListen.setLayoutData(gridData);
+    Utils.setLayoutData(textServerTCPListen, gridData);
     textServerTCPListen.setText("" + serverTCPListenPort);
     textServerTCPListen.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
@@ -252,7 +252,7 @@ public class NatTestWindow {
     Messages.setLanguageText(bTestTCP, "configureWizard.nat.test");
     gridData = new GridData();
     gridData.widthHint = 70;
-    bTestTCP.setLayoutData(gridData);
+    Utils.setLayoutData(bTestTCP, gridData);
 
     label = new Label(panel, SWT.NULL);
 
@@ -264,7 +264,7 @@ public class NatTestWindow {
     gridData = new GridData();    
     gridData.grabExcessHorizontalSpace = true;
     gridData.horizontalAlignment = SWT.FILL;
-    textServerUDPListen.setLayoutData(gridData);
+    Utils.setLayoutData(textServerUDPListen, gridData);
     textServerUDPListen.setText("" + serverUDPListenPort);
     textServerUDPListen.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
@@ -294,7 +294,7 @@ public class NatTestWindow {
     Messages.setLanguageText(bTestUDP, "configureWizard.nat.test");
     gridData = new GridData();
     gridData.widthHint = 70;
-    bTestUDP.setLayoutData(gridData);
+    Utils.setLayoutData(bTestUDP, gridData);
     
     	// results
     
@@ -305,7 +305,7 @@ public class NatTestWindow {
     gridData.grabExcessVerticalSpace = true;
     gridData.verticalAlignment = SWT.FILL;
     gridData.horizontalSpan = 3;
-    textResults.setLayoutData(gridData);
+    Utils.setLayoutData(textResults, gridData);
     textResults.setBackground(panel.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
     bTestTCP.addListener(SWT.Selection, new Listener() {
@@ -350,7 +350,7 @@ public class NatTestWindow {
     gridData.grabExcessHorizontalSpace = true;
     gridData.horizontalAlignment = SWT.RIGHT;
     gridData.horizontalSpan = 2;
-    bApply.setLayoutData(gridData);
+    Utils.setLayoutData(bApply, gridData);
     
     
     bApply.addListener(SWT.Selection, new Listener() {
@@ -381,7 +381,7 @@ public class NatTestWindow {
     bCancel.setText(MessageText.getString("Button.cancel"));
     gridData = new GridData();
     gridData.widthHint = 70;
-    bCancel.setLayoutData(gridData);
+    Utils.setLayoutData(bCancel, gridData);
     bCancel.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         shell.close();

@@ -52,6 +52,7 @@ public class AboutWindow {
   private static Shell instance;
 	private static Image imgSrc;
 	private static int paintColorTo = 0;
+	private static int paintColorDir = 2;
 
   public static void show() {
   	Utils.execSWTThread(new AERunnable() {
@@ -83,9 +84,6 @@ public class AboutWindow {
     if (imgSrc != null) {
       int w = imgSrc.getBounds().width;
       int ow = w;
-      if (w > 350) {
-      	w = 350;
-      }
       int h = imgSrc.getBounds().height;
       
       Image imgGray = new Image(display, imageLoader.getImage(IMG_SPLASH),
@@ -114,20 +112,21 @@ public class AboutWindow {
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
     gridData.horizontalSpan = 2;
     gridData.horizontalIndent = gridData.verticalIndent = 0;
-    Rectangle imgBounds = image.getBounds();
-    gridData.widthHint = 300;
+    final Rectangle imgBounds = image.getBounds();
+		final Rectangle boundsColor = imgSrc.getBounds();
+    gridData.widthHint = Utils.adjustPXForDPI(300);
     gridData.heightHint = imgBounds.height + imgBounds.y + 20;
     labelImage.setLayoutData(gridData);
     labelImage.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				try{
-					Rectangle boundsColor = imgSrc.getBounds();
+					Rectangle clipping = e.gc.getClipping();
 					int ofs = (labelImage.getSize().x - boundsColor.width) / 2;
 					if (paintColorTo > 0) {
 						e.gc.drawImage(imgSrc, 0, 0, paintColorTo, boundsColor.height, ofs, 10, paintColorTo, boundsColor.height);
 					}
-					Rectangle imgBounds = image.getBounds();
-					if (imgBounds.width - paintColorTo - 1 > 0) {
+					
+					if (clipping.x + clipping.width > ofs + paintColorTo && imgBounds.width - paintColorTo - 1 > 0) {
 						e.gc.drawImage(image, 
 								paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height, 
 								paintColorTo + 1 + ofs, 10, imgBounds.width - paintColorTo - 1, imgBounds.height);
@@ -146,14 +145,14 @@ public class AboutWindow {
     gInternet.setLayout(gridLayout);
     Messages.setLanguageText(gInternet, "MainWindow.about.section.internet"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gInternet.setLayoutData(gridData);
+    Utils.setLayoutData(gInternet, gridData);
   
     Group gSys = new Group(window, SWT.NULL);
     gSys.setLayout(new GridLayout());
     Messages.setLanguageText(gSys, "MainWindow.about.section.system"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.verticalSpan = 1;
-    gSys.setLayoutData(gridData);
+    Utils.setLayoutData(gSys, gridData);
     
     String swt = "";
     if (Utils.isGTK) {
@@ -174,7 +173,7 @@ public class AboutWindow {
 				+ System.getProperty("os.arch") + "\n"
 				+ Constants.APP_NAME.charAt(0) + Constants.getCurrentVersion() + (Constants.AZUREUS_SUBVER.length()==0?"":("-"+Constants.AZUREUS_SUBVER)) + "/" + CorePatchLevel.getCurrentPatchLevel() + " " 
 				+ COConfigurationManager.getStringParameter("ui"));
-    txtSysInfo.setLayoutData(gridData = new GridData(GridData.FILL_BOTH));
+    Utils.setLayoutData(txtSysInfo, gridData = new GridData(GridData.FILL_BOTH));
     if (window.getCaret() != null)
     	window.getCaret().setVisible(false);
 
@@ -219,7 +218,7 @@ public class AboutWindow {
       linkLabel.setForeground(Colors.blue);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
       gridData.horizontalSpan = 1;
-      linkLabel.setLayoutData(gridData);
+      Utils.setLayoutData(linkLabel, gridData);
       linkLabel.addMouseListener(new MouseAdapter() {
         public void mouseDoubleClick(MouseEvent arg0) {
         	Utils.launch((String) ((CLabel) arg0.widget).getData());
@@ -235,7 +234,7 @@ public class AboutWindow {
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
     gridData.horizontalSpan = 2;
     gridData.horizontalIndent = gridData.verticalIndent = 0;
-    labelOwner.setLayoutData(gridData);
+    Utils.setLayoutData(labelOwner, gridData);
     labelOwner.setText("Vuze is a product of Azureus Software, Inc.");
 
     
@@ -262,40 +261,33 @@ public class AboutWindow {
         }
     });
 
-    AEThread2 updater =  new AEThread2("Splash Screen Updater", true) {
-      public void run() {        
-        if(image == null || image.isDisposed())
-          return;
-        
-        final int maxX = image.getBounds().width;
-        final int maxY = image.getBounds().height;
-        while(paintColorTo < maxX) {
-          if(image == null || image.isDisposed()) {
-            paintColorTo = maxX;
-            break;
-          }
-          if(display.isDisposed()) {
-            paintColorTo = maxX;
-            break;
-          }
-          Utils.execSWTThread(new AERunnable() {
-            public void runSupport() {
-              if(labelImage.isDisposed())
-                return;
-              paintColorTo++;
-      				Rectangle boundsColor = imgSrc.getBounds();
-      				int ofs = (labelImage.getSize().x - boundsColor.width) / 2;
-              labelImage.redraw(paintColorTo - 1 + ofs, 10, 2, maxY, true);
-            }
-          });
-          try {
-            Thread.sleep(30);
-          }catch(Exception e) {
-          	Debug.printStackTrace( e );
-          }
-      }
-    }};
-    updater.start();
+		final int maxX = image.getBounds().width;
+		final int maxY = image.getBounds().height;
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (image == null || image.isDisposed() || labelImage.isDisposed()) {
+					return;
+				}
+				if (display.isDisposed()) {
+					return;
+				}
+				paintColorTo += paintColorDir;
+
+				Utils.execSWTThreadLater(7 * paintColorDir, this);
+
+				int ofs = (labelImage.getSize().x - boundsColor.width) / 2;
+				labelImage.redraw(paintColorTo - paintColorDir + ofs, 10, paintColorDir, maxY, true);
+
+				if (paintColorTo >= maxX || paintColorTo <= 0) {
+					paintColorTo = 0;
+					//paintColorDir = (int) (Math.random() * 5) + 2;
+					Image tmp = image;
+					image = imgSrc;
+					imgSrc = tmp;
+				}
+			}
+    });
+
   }
   
   public static void 

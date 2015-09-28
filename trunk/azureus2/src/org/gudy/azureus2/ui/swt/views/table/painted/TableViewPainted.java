@@ -180,6 +180,8 @@ public class TableViewPainted
 
 	protected boolean isFocused;
 
+	protected float iHeightEM = -1;
+
 	/**
 	 * Main Initializer
 	 * @param _sTableID Which table to handle (see 
@@ -706,10 +708,30 @@ public class TableViewPainted
 		});
 	}
 
+	public void setRowDefaultHeightEM(final float lineHeight) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (cTable == null || cTable.isDisposed()) {
+					iHeightEM  = lineHeight;
+					//Debug.out("Could not set Row Height -- no cTable");
+					return;
+				}
+				int fontHeightInPX = FontUtils.getFontHeightInPX(cTable.getFont());
+				int height = (int) ((fontHeightInPX * lineHeight) + lineHeight);
+				setRowDefaultHeightPX(height);
+			}
+		});
+	}
+
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.common.table.TableView#setRowDefaultHeight(int)
 	 */
 	public void setRowDefaultHeight(int iHeight) {
+		iHeight = Utils.adjustPXForDPI(iHeight);
+		setRowDefaultHeightPX(iHeight);
+	}
+
+	public void setRowDefaultHeightPX(int iHeight) {
 		if (iHeight > defaultRowHeight) {
 			defaultRowHeight = iHeight;
 			
@@ -1049,15 +1071,21 @@ public class TableViewPainted
 
 		cHeaderArea = new Canvas(cTableComposite, SWT.DOUBLE_BUFFERED);
 
-		fontHeader = FontUtils.getFontWithHeight(cHeaderArea.getFont(), null, 12);
+		fontHeader = FontUtils.getFontWithHeight(cHeaderArea.getFont(), null,
+				Utils.adjustPXForDPI(12));
 		fontHeaderSmall = FontUtils.getFontPercentOf(fontHeader, 0.8f);
 		cHeaderArea.setFont(fontHeader);
 
 		cTable = new Canvas(cTableComposite, SWT.NO_BACKGROUND | SWT.H_SCROLL | SWT.V_SCROLL);
 		
+		int minRowHeight = FontUtils.getFontHeightInPX(cTable.getFont());
+		if (iHeightEM > 0) {
+			defaultRowHeight = (int) ((minRowHeight * iHeightEM) + iHeightEM);
+			iHeightEM = -1;
+		}
+		
 		// good test
 		//cTable.setFont(FontUtils.getFontPercentOf(cTable.getFont(), 1.50f));
-		int minRowHeight = FontUtils.getFontHeightInPX(cTable.getFont());
 		minRowHeight += Math.ceil(minRowHeight * 2.0 / 16.0);
 		if (defaultRowHeight < minRowHeight) {
 			defaultRowHeight = minRowHeight;
@@ -1068,7 +1096,7 @@ public class TableViewPainted
 
 		headerHeight = configMan.getIntParameter("Table.headerHeight");
 		if (headerHeight <= 0) {
-			headerHeight = DEFAULT_HEADER_HEIGHT;
+			headerHeight = Utils.adjustPXForDPI(DEFAULT_HEADER_HEIGHT);
 		}
 
 		FormData fd = Utils.getFilledFormData();
@@ -1306,7 +1334,7 @@ public class TableViewPainted
 					case SWT.MouseMove: {
 						if (columnSizing != null) {
 							int diff = (e.x - columnSizingStart);
-							columnSizing.setWidth(columnSizing.getWidth() + diff);
+							columnSizing.setWidthPX(columnSizing.getWidth() + diff);
 							columnSizingStart = e.x;
 						} else {
 							int cursorID = SWT.CURSOR_HAND;
@@ -1685,9 +1713,9 @@ public class TableViewPainted
 */
 			if (isSortColumn) {
 				// draw sort indicator
-				int arrowHeight = 6;
+				int arrowHeight = Utils.adjustPXForDPI(6);
 				int arrowY = (headerHeight / 2) - (arrowHeight / 2);
-				int arrowHalfW = 4;
+				int arrowHalfW = Utils.adjustPXForDPI(4);
 				int middle = w - arrowHalfW - 4;
 				wText = w - (arrowHalfW * 2) - 5;
 				int y1, y2;
@@ -1839,13 +1867,6 @@ public class TableViewPainted
 	 */
 	public void setMainPanelCreator(TableViewSWTPanelCreator mainPanelCreator) {
 		this.mainPanelCreator = mainPanelCreator;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#setRowDefaultIconSize(org.eclipse.swt.graphics.Point)
-	 */
-	public void setRowDefaultIconSize(Point size) {
-		setRowDefaultHeight(size.y);
 	}
 
 	/* (non-Javadoc)
@@ -2050,7 +2071,7 @@ public class TableViewPainted
 		if (parameterName == null || parameterName.equals("Table.headerHeight")) {
 			headerHeight = configMan.getIntParameter("Table.headerHeight");
 			if (headerHeight == 0) {
-				headerHeight = DEFAULT_HEADER_HEIGHT;
+				headerHeight = Utils.adjustPXForDPI(DEFAULT_HEADER_HEIGHT);
 			}
 			setHeaderVisible(getHeaderVisible());
 		}

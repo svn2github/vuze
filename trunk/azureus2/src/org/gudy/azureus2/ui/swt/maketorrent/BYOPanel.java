@@ -78,10 +78,10 @@ public class BYOPanel
 		tree.setHeaderVisible(true);
 		TreeColumn treeColumn = new TreeColumn(tree, 0);
 		Messages.setLanguageText(treeColumn, "label.torrent.structure");
-		treeColumn.setWidth(180);
+		treeColumn.setWidth(Utils.adjustPXForDPI(180));
 		treeColumn = new TreeColumn(tree, 0);
 		Messages.setLanguageText(treeColumn, "label.original.file");
-		treeColumn.setWidth(500);
+		treeColumn.setWidth(Utils.adjustPXForDPI(500));
 		gridData = new GridData(GridData.FILL_BOTH);
 		tree.setLayoutData(gridData);
 

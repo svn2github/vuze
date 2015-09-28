@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
@@ -158,7 +159,7 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     file.setText( wizard.savePath);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    file.setLayoutData(gridData);
+    Utils.setLayoutData(file, gridData);
     Button browse = new Button(panel,SWT.PUSH);
     browse.addListener(SWT.Selection,new Listener() {
       /* (non-Javadoc)
@@ -198,12 +199,12 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
   
     Composite gFileStuff = new Composite(panel, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 3;
-    gFileStuff.setLayoutData(gridData);
+    Utils.setLayoutData(gFileStuff, gridData);
     layout = new GridLayout();
     layout.numColumns = 4;
     gFileStuff.setLayout(layout);
@@ -237,7 +238,7 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     final Label piece_size_label = new Label(gFileStuff, SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 75;
-    piece_size_label.setLayoutData(gridData);
+    Utils.setLayoutData(piece_size_label, gridData);
     piece_size_label.setText( DisplayFormatters.formatByteCountToKiBEtc( piece_size ));
     
     final Combo manual = new Combo(gFileStuff, SWT.SINGLE | SWT.READ_ONLY);
@@ -284,38 +285,38 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     final Button bAutoOpen = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(bAutoOpen,"wizard.maketorrents.autoopen");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    bAutoOpen.setLayoutData(gridData);
+    Utils.setLayoutData(bAutoOpen, gridData);
     
     final Button bforce = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(bforce,"wizard.maketorrents.force");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    bforce.setLayoutData(gridData);
+    Utils.setLayoutData(bforce, gridData);
     
     final Button bSuperSeed = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(bSuperSeed,"wizard.maketorrents.superseed");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    bSuperSeed.setLayoutData(gridData);
+    Utils.setLayoutData(bSuperSeed, gridData);
 
     final Button bAutoHost = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(bAutoHost,"wizard.maketorrents.autohost");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    bAutoHost.setLayoutData(gridData);
+    Utils.setLayoutData(bAutoHost, gridData);
 
     label = new Label(panel,SWT.NULL);
     Messages.setLanguageText(label,"wizard.maketorrents.init.tags");
     final Text tag_area = new Text(panel,SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    tag_area.setLayoutData(gridData);
+    Utils.setLayoutData(tag_area, gridData);
     
     bforce.setEnabled( false );
     tag_area.setEnabled( false );
@@ -365,14 +366,14 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     Messages.setLanguageText(bPrivateTorrent,"ConfigView.section.sharing.privatetorrent");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-	bPrivateTorrent.setLayoutData(gridData);
+	Utils.setLayoutData(bPrivateTorrent, gridData);
    
 		
     final Button bAllowDHT = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(bAllowDHT,"ConfigView.section.sharing.permitdht");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    bAllowDHT.setLayoutData(gridData);
+    Utils.setLayoutData(bAllowDHT, gridData);
     bAllowDHT.setSelection( true );
     
     bAllowDHT.addListener(SWT.Selection,new Listener() {

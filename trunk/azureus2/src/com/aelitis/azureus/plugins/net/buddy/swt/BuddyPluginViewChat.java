@@ -102,7 +102,7 @@ BuddyPluginViewChat
 		layout.marginWidth = 0;
 		shell.setLayout(layout);
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
-		shell.setLayoutData(grid_data);
+		Utils.setLayoutData(shell, grid_data);
 
 		
 		log = new StyledText(shell,SWT.READ_ONLY | SWT.V_SCROLL | SWT.BORDER | SWT.WRAP | SWT.NO_FOCUS );
@@ -111,7 +111,7 @@ BuddyPluginViewChat
 		grid_data.horizontalIndent = 4;
 		grid_data.widthHint = 300;
 		grid_data.heightHint = 400;
-		log.setLayoutData(grid_data);
+		Utils.setLayoutData(log, grid_data);
 		log.setIndent( 4 );
 		
 		log.setEditable( false );
@@ -124,7 +124,7 @@ BuddyPluginViewChat
 		rhs.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_BOTH );
 		grid_data.widthHint = 150;
-		rhs.setLayoutData(grid_data);
+		Utils.setLayoutData(rhs, grid_data);
 
 			// table
 		
@@ -141,7 +141,7 @@ BuddyPluginViewChat
 
 			TableColumn tc = new TableColumn(buddy_table, aligns[i]);
 				
-			tc.setWidth(sizes[i]);
+			tc.setWidth(Utils.adjustPXForDPI(sizes[i]));
 
 			Messages.setLanguageText(tc, headers[i]);
 		}	
@@ -150,7 +150,7 @@ BuddyPluginViewChat
 
 	    grid_data = new GridData(GridData.FILL_BOTH);
 	    grid_data.heightHint = buddy_table.getHeaderHeight() * 3;
-		buddy_table.setLayoutData(grid_data);
+		Utils.setLayoutData(buddy_table, grid_data);
 		
 		
 		buddy_table.addListener(
@@ -200,7 +200,7 @@ BuddyPluginViewChat
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
 		grid_data.heightHint = 50;
-		text.setLayoutData(grid_data);
+		Utils.setLayoutData(text, grid_data);
 				
 		text.addKeyListener(
 			new KeyListener()

@@ -25,6 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -136,10 +137,6 @@ public class SkinnedDialog
 			return;
 		}
 		skin.layout();
-
-		int width = skin.getSkinProperties().getIntValue(shellSkinObjectID + ".width", -1);
-		int height = skin.getSkinProperties().getIntValue(shellSkinObjectID + ".height", -1);
-		shell.setSize(shell.computeSize(width, height));
 
 		if (idShellMetrics != null) {
 			Utils.linkShellMetricsToConfig(shell, idShellMetrics);

@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
@@ -72,7 +73,7 @@ public class IPWModePanel extends AbstractWizardPanel<InstallPluginWizard> {
 
 	Composite panel = new Composite(rootPanel, SWT.NULL);
 	GridData gridData = new GridData(GridData.FILL_BOTH | GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-	panel.setLayoutData(gridData);
+	Utils.setLayoutData(panel, gridData);
 	layout = new GridLayout();
 	layout.numColumns = 1;
 	panel.setLayout(layout);
@@ -102,7 +103,7 @@ public class IPWModePanel extends AbstractWizardPanel<InstallPluginWizard> {
 	    cWiki.setText(MessageText.getString("installPluginsWizard.installMode.info.title"));
 	    gridData = new GridData( GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
 	    gridData.verticalIndent = 15;
-	    cWiki.setLayoutData(gridData);
+	    Utils.setLayoutData(cWiki, gridData);
 	    layout = new GridLayout();
 	    layout.numColumns = 4;
 	    layout.marginHeight = 0;
@@ -112,7 +113,7 @@ public class IPWModePanel extends AbstractWizardPanel<InstallPluginWizard> {
 	    gridData.horizontalIndent = 10;
 	    gridData.horizontalSpan = 4;
 	    Label label = new Label(cWiki, SWT.WRAP);
-	    label.setLayoutData( gridData );
+	    Utils.setLayoutData(label,  gridData );
 	    label.setText(MessageText.getString("installPluginsWizard.installMode.info.text"));
 	}
 }

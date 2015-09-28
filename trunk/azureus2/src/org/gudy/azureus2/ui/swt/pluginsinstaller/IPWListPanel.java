@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.installer.InstallablePlugin;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkArea;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
@@ -78,30 +79,30 @@ public class IPWListPanel extends AbstractWizardPanel<InstallPluginWizard> {
 
 	Composite panel = new Composite(rootPanel, SWT.NULL);
 	GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-	panel.setLayoutData(gridData);
+	Utils.setLayoutData(panel, gridData);
 	layout = new GridLayout();
 	layout.numColumns = 1;
 	panel.setLayout(layout);
 	
 	final Label lblStatus = new Label(panel,SWT.NULL);
 	GridData data = new GridData(GridData.FILL_HORIZONTAL);
-	lblStatus.setLayoutData(data);
+	Utils.setLayoutData(lblStatus, data);
 	Messages.setLanguageText(lblStatus,"installPluginsWizard.list.loading");
 	
 	pluginList = new Table(panel,SWT.BORDER | SWT.V_SCROLL | SWT.CHECK | SWT.FULL_SELECTION | SWT.SINGLE); 
 	pluginList.setHeaderVisible(true);
 	data = new GridData(GridData.FILL_HORIZONTAL);
 	data.heightHint = 120;
-	pluginList.setLayoutData(data);
+	Utils.setLayoutData(pluginList, data);
 	
 	
 	TableColumn tcName = new TableColumn(pluginList,SWT.LEFT);
 	Messages.setLanguageText(tcName,"installPluginsWizard.list.name");
-	tcName.setWidth(200);
+	tcName.setWidth(Utils.adjustPXForDPI(200));
 	
 	TableColumn tcVersion = new TableColumn(pluginList,SWT.LEFT);
 	Messages.setLanguageText(tcVersion,"installPluginsWizard.list.version");
-	tcVersion.setWidth(150);
+	tcVersion.setWidth(Utils.adjustPXForDPI(150));
 		
 	
 	Label lblDescription = new Label(panel,SWT.NULL);

@@ -101,7 +101,7 @@ public class TorrentInfoView
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
 		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true, true, 1, 1);
-		sc.setLayoutData(gridData);	
+		Utils.setLayoutData(sc, gridData);	
 		
 		outer_panel = sc;
 		
@@ -127,7 +127,7 @@ public class TorrentInfoView
 		configLayout.marginWidth = 0;
 		cHeader.setLayout(configLayout);
 		gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
-		cHeader.setLayoutData(gridData);
+		Utils.setLayoutData(cHeader, gridData);
 		
 		Display d = panel.getDisplay();
 		cHeader.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
@@ -144,11 +144,11 @@ public class TorrentInfoView
 		lHeader.setFont(headerFont);
 		lHeader.setText( " " + MessageText.getString( "authenticator.torrent" ) + " : " + download_manager.getDisplayName().replaceAll("&", "&&"));
 		gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
-		lHeader.setLayoutData(gridData);
+		Utils.setLayoutData(lHeader, gridData);
 		
 		Composite gTorrentInfo = new Composite(panel, SWT.NULL);
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-		gTorrentInfo.setLayoutData(gridData);
+		Utils.setLayoutData(gTorrentInfo, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		gTorrentInfo.setLayout(layout);
@@ -158,21 +158,21 @@ public class TorrentInfoView
 		
 		Label label = new Label(gTorrentInfo, SWT.NULL);
 		gridData = new GridData();
-		label.setLayoutData( gridData );
+		Utils.setLayoutData(label,  gridData );
 		label.setText( MessageText.getString( MSGID_PREFIX + ".torrent.encoding" ) + ": " );
 
 		TOTorrent	torrent = download_manager.getTorrent();
 		BufferedLabel blabel = new BufferedLabel(gTorrentInfo, SWT.NULL);
 		gridData = new GridData();
 		
-		blabel.setLayoutData( gridData );
+		Utils.setLayoutData(blabel,  gridData );
 		blabel.setText(torrent==null?"":LocaleTorrentUtil.getCurrentTorrentEncoding( torrent ));
 		
 			// trackers
 		
 		label = new Label(gTorrentInfo, SWT.NULL);
 		gridData = new GridData();
-		label.setLayoutData( gridData );
+		Utils.setLayoutData(label,  gridData );
 		label.setText( MessageText.getString( "MyTrackerView.tracker" ) + ": " );
 
 		String	trackers = "";
@@ -249,7 +249,7 @@ public class TorrentInfoView
 		}
 		
 		blabel = new BufferedLabel(gTorrentInfo, SWT.WRAP);
-		blabel.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
+		Utils.setLayoutData(blabel, Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
 		blabel.setText( trackers );
 
 		
@@ -258,7 +258,7 @@ public class TorrentInfoView
 		Group gColumns = new Group(panel, SWT.NULL);
 		Messages.setLanguageText(gColumns, MSGID_PREFIX + ".columns" );
 		gridData = new GridData(GridData.FILL_BOTH);
-		gColumns.setLayoutData(gridData);
+		Utils.setLayoutData(gColumns, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 4;
 		gColumns.setLayout(layout);
@@ -341,7 +341,7 @@ public class TorrentInfoView
 			if ( i%2 == 1 ){
 				gridData.horizontalIndent = 16;
 			}
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 			String key = ((TableColumnCore) cell.getTableColumn()).getTitleLanguageKey();
 			label.setText(MessageText.getString(key) + ": ");
 			label.setToolTipText(MessageText.getString(key + ".info", ""));
@@ -349,7 +349,7 @@ public class TorrentInfoView
 			final Composite c = new Composite(gColumns, SWT.DOUBLE_BUFFERED);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
 			gridData.heightHint = 16;
-			c.setLayoutData(gridData);
+			Utils.setLayoutData(c, gridData);
 			cell.setControl(c);
 			cell.invalidate();
 			cell.refresh();

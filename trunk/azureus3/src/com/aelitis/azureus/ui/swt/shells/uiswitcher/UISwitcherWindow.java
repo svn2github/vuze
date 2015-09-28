@@ -105,7 +105,7 @@ public class UISwitcherWindow
 			Label title = new Label(shell, SWT.WRAP);
 			gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.verticalIndent = 3;
-			title.setLayoutData(gd);
+			Utils.setLayoutData(title, gd);
 
 			Messages.setLanguageText(title, CFG_PREFIX + "text");
 
@@ -147,7 +147,7 @@ public class UISwitcherWindow
 
 			Composite cCenter = new Composite(shell, SWT.NONE);
 			cCenter.setLayout(new GridLayout());
-			cCenter.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+			Utils.setLayoutData(cCenter, new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 			
 			for (int i = 0; i < IDS.length; i++) {
 
@@ -155,7 +155,7 @@ public class UISwitcherWindow
 				c.setBackgroundMode(SWT.INHERIT_DEFAULT);
 				gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.verticalIndent = 0;
-				c.setLayoutData(gd);
+				Utils.setLayoutData(c, gd);
 				GridLayout gridLayout = new GridLayout(1, false);
 				gridLayout.horizontalSpacing = 0;
 				gridLayout.marginWidth = 5;
@@ -218,7 +218,7 @@ public class UISwitcherWindow
 				gd = new GridData(GridData.FILL_BOTH);
 				gd.horizontalIndent = 20;
 				gd.verticalAlignment = SWT.TOP;
-				info.setLayoutData(gd);
+				Utils.setLayoutData(info, gd);
 
 				Messages.setLanguageText(info, CFG_PREFIX + IDS[i] + ".text");
 				info.addListener(SWT.MouseDown, radioListener);
@@ -233,7 +233,7 @@ public class UISwitcherWindow
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
 			cBottom.setLayout(layout);
-			cBottom.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+			Utils.setLayoutData(cBottom, new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 			
 			btnOk = new Button(cBottom, SWT.PUSH);
 			Messages.setLanguageText(btnOk, "Button.ok");
@@ -250,7 +250,7 @@ public class UISwitcherWindow
 				}
 			});
 			gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
-			btnOk.setLayoutData(gd);
+			Utils.setLayoutData(btnOk, gd);
 			
 			shell.addTraverseListener(new TraverseListener() {
 				public void keyTraversed(TraverseEvent e) {

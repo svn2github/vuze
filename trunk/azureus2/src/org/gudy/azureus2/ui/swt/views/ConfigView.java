@@ -92,12 +92,12 @@ public class ConfigView implements UISWTViewEventListener {
     configLayout.marginWidth = 0;
     cConfig.setLayout(configLayout);
     GridData gridData = new GridData(GridData.FILL_BOTH);
-    cConfig.setLayoutData(gridData);
+    Utils.setLayoutData(cConfig, gridData);
 
     final Label label = new Label(cConfig, SWT.CENTER);
     Messages.setLanguageText(label, "view.waiting.core");
     gridData = new GridData(GridData.FILL_BOTH);
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     // Need to delay initialation until core is done so we can guarantee
     // all config sections are loaded (ie. plugin ones).
@@ -142,11 +142,11 @@ public class ConfigView implements UISWTViewEventListener {
   
       SashForm form = new SashForm(cConfig,SWT.HORIZONTAL);
       gridData = new GridData(GridData.FILL_BOTH);
-      form.setLayoutData(gridData);
+      Utils.setLayoutData(form, gridData);
       
       Composite cLeftSide = new Composite(form, SWT.BORDER);
       gridData = new GridData(GridData.FILL_BOTH);
-      cLeftSide.setLayoutData(gridData);
+      Utils.setLayoutData(cLeftSide, gridData);
       
       FormLayout layout = new FormLayout();
       cLeftSide.setLayout(layout);
@@ -207,30 +207,30 @@ public class ConfigView implements UISWTViewEventListener {
       formData.bottom = new FormAttachment(100, -5);
       formData.left = new FormAttachment(0, 0);
       formData.right = new FormAttachment(100, 0);
-      cFilterArea.setLayoutData(formData);
+      Utils.setLayoutData(cFilterArea, formData);
       
       formData = new FormData();
       formData.top = new FormAttachment(0,5);
       formData.left = new FormAttachment(0, 5);
-      lblSearch.setLayoutData(formData);
+      Utils.setLayoutData(lblSearch, formData);
 
       formData = new FormData();
       formData.top = new FormAttachment(0,5);
       formData.left = new FormAttachment(lblSearch,5);
       formData.right = new FormAttachment(lblX, -3);
-      txtFilter.setLayoutData(formData);
+      Utils.setLayoutData(txtFilter, formData);
 
       formData = new FormData();
       formData.top = new FormAttachment(0,5);
       formData.right = new FormAttachment(100,-5);
-      lblX.setLayoutData(formData);
+      Utils.setLayoutData(lblX, formData);
 
       formData = new FormData();
       formData.top = new FormAttachment(0, 0);
       formData.left = new FormAttachment(0,0);
       formData.right = new FormAttachment(100,0);
       formData.bottom = new FormAttachment(cFilterArea,-1);
-      tree.setLayoutData(formData);
+      Utils.setLayoutData(tree, formData);
   
       Composite cRightSide = new Composite(form, SWT.NULL);
       configLayout = new GridLayout();
@@ -249,7 +249,7 @@ public class ConfigView implements UISWTViewEventListener {
       configLayout.marginRight = 5;
       cHeader.setLayout(configLayout);
       gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
-      cHeader.setLayoutData(gridData);
+      Utils.setLayoutData(cHeader, gridData);
   
       cHeader.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
       cHeader.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
@@ -264,14 +264,14 @@ public class ConfigView implements UISWTViewEventListener {
       headerFont = new Font(d, fontData);
       lHeader.setFont(headerFont);
       gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.HORIZONTAL_ALIGN_BEGINNING);
-      lHeader.setLayoutData(gridData);
+      Utils.setLayoutData(lHeader, gridData);
       
       
       usermodeHint = new Label(cHeader, SWT.NULL);
       usermodeHint.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
       usermodeHint.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
       gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.HORIZONTAL_ALIGN_END | GridData.GRAB_HORIZONTAL);
-      usermodeHint.setLayoutData(gridData);
+      Utils.setLayoutData(usermodeHint, gridData);
   
 	  Menu headerMenu = new Menu(cHeader.getShell(), SWT.POP_UP );
 			  
@@ -330,7 +330,7 @@ public class ConfigView implements UISWTViewEventListener {
       cConfigSection.setLayout(layoutConfigSection);
       gridData = new GridData(GridData.FILL_BOTH);
       gridData.horizontalIndent = 2;
-      cConfigSection.setLayoutData(gridData);
+      Utils.setLayoutData(cConfigSection, gridData);
     	          
       form.setWeights(new int[] {20,80});
   
@@ -486,7 +486,7 @@ public class ConfigView implements UISWTViewEventListener {
           ScrolledComposite sc = new ScrolledComposite(cConfigSection, SWT.H_SCROLL | SWT.V_SCROLL);
           sc.setExpandHorizontal(true);
           sc.setExpandVertical(true);
-          sc.setLayoutData(new GridData(GridData.FILL_BOTH));
+          Utils.setLayoutData(sc, new GridData(GridData.FILL_BOTH));
       		sc.getVerticalBar().setIncrement(16);
       		sc.addListener(SWT.Resize, scResizeListener);
           
@@ -933,7 +933,7 @@ public class ConfigView implements UISWTViewEventListener {
     ScrolledComposite sc = new ScrolledComposite(cConfigSection, SWT.H_SCROLL | SWT.V_SCROLL);
     sc.setExpandHorizontal(true);
     sc.setExpandVertical(true);
-    sc.setLayoutData(new GridData(GridData.FILL_BOTH));
+    Utils.setLayoutData(sc, new GridData(GridData.FILL_BOTH));
 		sc.getVerticalBar().setIncrement(16);
 		sc.addListener(SWT.Resize, scResizeListener);
 
@@ -1049,7 +1049,7 @@ public class ConfigView implements UISWTViewEventListener {
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     gridData.horizontalSpan = 2;
     gridData.widthHint = 80;
-    save.setLayoutData(gridData);
+    Utils.setLayoutData(save, gridData);
 
     save.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
@@ -1066,14 +1066,14 @@ public class ConfigView implements UISWTViewEventListener {
 		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
 		gridLayout.numColumns = 2;
 		cButtons.setLayout(gridLayout);
-		cButtons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		Utils.setLayoutData(cButtons, new GridData(GridData.HORIZONTAL_ALIGN_END));
   	
     GridData gridData;
     final Button apply = new Button(cButtons, SWT.PUSH);
     Messages.setLanguageText(apply, "Button.apply");
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     gridData.widthHint = 80;
-    apply.setLayoutData(gridData);
+    Utils.setLayoutData(apply, gridData);
 
     apply.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
@@ -1087,7 +1087,7 @@ public class ConfigView implements UISWTViewEventListener {
     Messages.setLanguageText(close, "Button.close");
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     gridData.widthHint = 80;
-    close.setLayoutData(gridData);
+    Utils.setLayoutData(close, gridData);
 
     close.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {

@@ -64,7 +64,7 @@ public class ViewQuickConfig
 		
 		GridData gridData = new GridData(GridData.FILL_BOTH);
 		
-		composite.setLayoutData(gridData);
+		Utils.setLayoutData(composite, gridData);
 		
 		GridLayout layout = new GridLayout(4, false);
 		
@@ -79,7 +79,7 @@ public class ViewQuickConfig
 		Label label = new Label(composite, SWT.NULL);
 		gridData = new GridData();
 		gridData.horizontalIndent = 8;
-		label.setLayoutData( gridData );
+		Utils.setLayoutData(label,  gridData );
 		Messages.setLanguageText(label, "ConfigView.label.maxdownloads.short");
 		
 		IntParameter maxDLs = new IntParameter( composite, "max downloads" );

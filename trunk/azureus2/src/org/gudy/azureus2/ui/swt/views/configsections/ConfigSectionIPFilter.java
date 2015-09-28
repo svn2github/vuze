@@ -172,7 +172,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 		layout.marginWidth = 0;
     gFilter.setLayout(layout);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gFilter.setLayoutData(gridData);
+    Utils.setLayoutData(gFilter, gridData);
     
     
     // start controls
@@ -241,7 +241,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 2;
     gridData.horizontalIndent = 15;
-    cIndent.setLayoutData(gridData);
+    Utils.setLayoutData(cIndent, gridData);
     layout = new GridLayout(3, false);
     layout.marginHeight = 0;
     layout.marginWidth = 0;
@@ -250,7 +250,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 		Image img = imageLoader.getImage("subitem");
 		Label label = new Label(cIndent, SWT.NULL);
 		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-		label.setLayoutData(gridData);
+		Utils.setLayoutData(label, gridData);
 		label.setImage(img);
 
     
@@ -297,7 +297,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     gAutoLoad.setLayout(flayout);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
     gridData.widthHint = 500;
-    gAutoLoad.setLayoutData(gridData);
+    Utils.setLayoutData(gAutoLoad, gridData);
 
     FormData fd;
     
@@ -307,7 +307,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     Label lblDefaultDir = new Label(gAutoLoad, SWT.NONE);
     Messages.setLanguageText(lblDefaultDir, "ConfigView.section.ipfilter.autoload.file");
     fd = new FormData();
-    lblDefaultDir.setLayoutData(fd);
+    Utils.setLayoutData(lblDefaultDir, fd);
     
     final StringParameter pathParameter = new StringParameter(gAutoLoad, sCurConfigID);
 
@@ -361,11 +361,11 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 
     fd = new FormData();
     fd.right = new FormAttachment(100, 0);
-    btnLoadNow.setLayoutData(fd);
+    Utils.setLayoutData(btnLoadNow, fd);
     
     fd = new FormData();
     fd.right = new FormAttachment(btnLoadNow, -5);
-    browse.setLayoutData(fd);
+    Utils.setLayoutData(browse, fd);
 
     fd = new FormData();
     fd.left = new FormAttachment(lblDefaultDir, 5);
@@ -378,7 +378,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     fd.top = new FormAttachment(btnLoadNow, 3);
     fd.left = new FormAttachment(0, 0);
     fd.right = new FormAttachment(100, 0);
-    lblAutoLoadInfo.setLayoutData(fd);
+    Utils.setLayoutData(lblAutoLoadInfo, fd);
 
     BooleanParameter clear_on_reload = new BooleanParameter(gAutoLoad, "Ip Filter Clear On Reload" );
     fd = new FormData();
@@ -410,7 +410,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     for (int i = 0; i < headers.length; i++) {
       TableColumn tc = new TableColumn(table, aligns[i]);
       tc.setText(headers[i]);
-      tc.setWidth(sizes[i]);
+      tc.setWidth(Utils.adjustPXForDPI(sizes[i]));
       Messages.setLanguageText(tc, headers[i]); //$NON-NLS-1$
     }
     
@@ -448,7 +448,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.heightHint = table.getHeaderHeight() * 3;
 		gridData.widthHint = 200;
-    table.setLayoutData(gridData);
+    Utils.setLayoutData(table, gridData);
 
     Composite cArea = new Composite(gFilter, SWT.NULL);
     layout = new GridLayout();
@@ -457,12 +457,12 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     layout.numColumns = 4;
     cArea.setLayout(layout);
   	gridData = new GridData(GridData.FILL_HORIZONTAL);
-    cArea.setLayoutData(gridData);
+    Utils.setLayoutData(cArea, gridData);
 
     Button add = new Button(cArea, SWT.PUSH);
     gridData = new GridData(GridData.CENTER);
     gridData.widthHint = 100;
-    add.setLayoutData(gridData);
+    Utils.setLayoutData(add, gridData);
     Messages.setLanguageText(add, "ConfigView.section.ipfilter.add");
     add.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
@@ -473,7 +473,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     Button remove = new Button(cArea, SWT.PUSH);
     gridData = new GridData(GridData.CENTER);
     gridData.widthHint = 100;
-    remove.setLayoutData(gridData);
+    Utils.setLayoutData(remove, gridData);
     Messages.setLanguageText(remove, "ConfigView.section.ipfilter.remove");
     remove.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
@@ -491,7 +491,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     Button edit = new Button(cArea, SWT.PUSH);
     gridData = new GridData(GridData.CENTER);
     gridData.widthHint = 100;
-    edit.setLayoutData(gridData);
+    Utils.setLayoutData(edit, gridData);
     Messages.setLanguageText(edit, "ConfigView.section.ipfilter.edit");
     edit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
@@ -504,8 +504,8 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 
     percentage_blocked  = new Label(cArea, SWT.WRAP | SWT.RIGHT);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.FILL_HORIZONTAL);
-    percentage_blocked.setLayoutData(gridData);
-    percentage_blocked.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.HORIZONTAL_ALIGN_FILL));
+    Utils.setLayoutData(percentage_blocked, gridData);
+    Utils.setLayoutData(percentage_blocked, Utils.getWrappableLabelGridData(1, GridData.HORIZONTAL_ALIGN_FILL));
     setPercentageBlocked();
     
 

@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
 import org.gudy.azureus2.core3.util.AERunnable;
-
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.*;
 
 /**
@@ -61,7 +61,7 @@ public class ProgressPanel extends AbstractWizardPanel implements ExternalIPChec
 
     Composite panel = new Composite(rootPanel, SWT.NULL);
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 1;
     panel.setLayout(layout);
@@ -70,7 +70,7 @@ public class ProgressPanel extends AbstractWizardPanel implements ExternalIPChec
     tasks.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.heightHint = 120;
-    tasks.setLayoutData(gridData);
+    Utils.setLayoutData(tasks, gridData);
   }
 
   public void finish() {

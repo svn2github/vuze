@@ -521,7 +521,7 @@ public class SBC_DevicesView
 				tableID, new TableColumnCore[0], device == null
 						? ColumnTJ_Rank.COLUMN_ID : ColumnTJ_Status.COLUMN_ID, SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
-		tvFiles.setRowDefaultHeight(25);
+		tvFiles.setRowDefaultHeightEM(1.5f);
 		tvFiles.setHeaderVisible(true);
 		tvFiles.setParentDataSource(device);
 
@@ -1291,7 +1291,7 @@ public class SBC_DevicesView
 		tvDevices = TableViewFactory.createTableViewSWT(TranscodeProvider.class, TABLE_DEVICES,
 				TABLE_DEVICES, new TableColumnCore[0], ColumnTJ_Rank.COLUMN_ID, SWT.SINGLE
 				| SWT.FULL_SELECTION);
-		tvDevices.setRowDefaultHeight(25);
+		tvDevices.setRowDefaultHeightEM(1.5f);
 		tvDevices.setHeaderVisible(true);
 		
 		

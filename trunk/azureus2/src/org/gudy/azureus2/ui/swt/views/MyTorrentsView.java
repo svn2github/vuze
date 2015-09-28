@@ -365,13 +365,14 @@ public class MyTorrentsView
 		this.isCompletedOnly = forDataSourceType.equals(DownloadTypeComplete.class);
   	
     tv = createTableView(forDataSourceType, tableID, basicItems);
-    tv.setRowDefaultHeight(17);
     
     /*
      * 'Big' table has taller row height
      */
     if (getRowDefaultHeight() > 0) {
-			tv.setRowDefaultHeight(getRowDefaultHeight());
+			tv.setRowDefaultHeightPX(getRowDefaultHeight());
+		} else {
+	    tv.setRowDefaultHeightEM(1);
 		}
     
     azureus_core		= _azureus_core;
@@ -818,7 +819,7 @@ public class MyTorrentsView
 			return;
 		}
 		
-		int iFontPixelsHeight = 10;
+		int iFontPixelsHeight = Utils.adjustPXForDPI(10);
 		int iFontPointHeight = (iFontPixelsHeight * 72)	/ cCategoriesAndTags.getDisplay().getDPI().y;
 
 		Label spacer = null;

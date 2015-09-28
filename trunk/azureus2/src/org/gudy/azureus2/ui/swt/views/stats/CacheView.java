@@ -100,7 +100,7 @@ public class CacheView
     
     Group gCacheGeneral = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gCacheGeneral,"CacheView.general.title");
-    gCacheGeneral.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    Utils.setLayoutData(gCacheGeneral, new GridData(GridData.FILL_HORIZONTAL));
     
     GridLayout layoutGeneral = new GridLayout();
     layoutGeneral.numColumns = 4;    
@@ -110,18 +110,18 @@ public class CacheView
     lbl = new Label(gCacheGeneral,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lbl.setLayoutData(gridData);
+    Utils.setLayoutData(lbl, gridData);
     Messages.setLanguageText(lbl,"CacheView.general.inUse");
     
     lblInUse = new Label(gCacheGeneral,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblInUse.setLayoutData(gridData);
+    Utils.setLayoutData(lblInUse, gridData);
     
     pbInUse =  new ProgressBar(gCacheGeneral,SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.verticalSpan = 2;
-    pbInUse.setLayoutData(gridData);
+    Utils.setLayoutData(pbInUse, gridData);
     pbInUse.setMinimum(0);
     pbInUse.setMaximum(1000);
     
@@ -129,18 +129,18 @@ public class CacheView
     gridData = new GridData();
     gridData.verticalSpan = 2;
     gridData.widthHint = 100;
-    lblPercentUsed.setLayoutData(gridData);
+    Utils.setLayoutData(lblPercentUsed, gridData);
     
     lbl = new Label(gCacheGeneral,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lbl.setLayoutData(gridData);
+    Utils.setLayoutData(lbl, gridData);
     Messages.setLanguageText(lbl,"CacheView.general.size");
     
     lblSize = new Label(gCacheGeneral,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblSize.setLayoutData(gridData);
+    Utils.setLayoutData(lblSize, gridData);
   }
   
   private void generateReadsGroup() {
@@ -148,7 +148,7 @@ public class CacheView
     
     Group gCacheReads = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gCacheReads,"CacheView.reads.title");
-    gCacheReads.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    Utils.setLayoutData(gCacheReads, new GridData(GridData.FILL_HORIZONTAL));
     
     GridLayout layoutGeneral = new GridLayout();
     layoutGeneral.numColumns = 6;    
@@ -173,28 +173,28 @@ public class CacheView
     lbl = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lbl.setLayoutData(gridData);
+    Utils.setLayoutData(lbl, gridData);
     Messages.setLanguageText(lbl,"CacheView.reads.fromCache");
     
     lblNumberReadsFromCache = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblNumberReadsFromCache.setLayoutData(gridData);
+    Utils.setLayoutData(lblNumberReadsFromCache, gridData);
     
     lblReadsFromCache = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblReadsFromCache.setLayoutData(gridData);
+    Utils.setLayoutData(lblReadsFromCache, gridData);
     
     lblAvgSizeFromCache = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblAvgSizeFromCache.setLayoutData(gridData);
+    Utils.setLayoutData(lblAvgSizeFromCache, gridData);
     
     pbReads =  new ProgressBar(gCacheReads,SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.verticalSpan = 2;
-    pbReads.setLayoutData(gridData);
+    Utils.setLayoutData(pbReads, gridData);
     pbReads.setMinimum(0);
     pbReads.setMaximum(1000);
     
@@ -202,28 +202,28 @@ public class CacheView
     gridData = new GridData();
     gridData.verticalSpan = 2;
     gridData.widthHint = 100;
-    lblPercentReads.setLayoutData(gridData);
+    Utils.setLayoutData(lblPercentReads, gridData);
     
     lbl = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lbl.setLayoutData(gridData);
+    Utils.setLayoutData(lbl, gridData);
     Messages.setLanguageText(lbl,"CacheView.reads.fromFile");
     
     lblNumberReadsFromFile = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblNumberReadsFromFile.setLayoutData(gridData);  
+    Utils.setLayoutData(lblNumberReadsFromFile, gridData);  
     
     lblReadsFromFile = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblReadsFromFile.setLayoutData(gridData); 
+    Utils.setLayoutData(lblReadsFromFile, gridData); 
     
     lblAvgSizeFromFile = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblAvgSizeFromFile.setLayoutData(gridData); 
+    Utils.setLayoutData(lblAvgSizeFromFile, gridData); 
   }
   
   private void generateSpeedGroup() {
@@ -231,7 +231,7 @@ public class CacheView
     
     Group gCacheSpeeds = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gCacheSpeeds,"CacheView.speeds.title");
-    gCacheSpeeds.setLayoutData(new GridData(GridData.FILL_BOTH));
+    Utils.setLayoutData(gCacheSpeeds, new GridData(GridData.FILL_BOTH));
     
     GridLayout layoutGeneral = new GridLayout();
     layoutGeneral.numColumns = 3;    
@@ -242,12 +242,12 @@ public class CacheView
     
     lbl = new Label(gCacheSpeeds,SWT.NULL);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-    lbl.setLayoutData(gridData);
+    Utils.setLayoutData(lbl, gridData);
     Messages.setLanguageText(lbl,"CacheView.speeds.reads");
     
     lbl = new Label(gCacheSpeeds,SWT.NULL);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-    lbl.setLayoutData(gridData);
+    Utils.setLayoutData(lbl, gridData);
     Messages.setLanguageText(lbl,"CacheView.speeds.writes");
     
     lbl = new Label(gCacheSpeeds,SWT.NULL);
@@ -255,13 +255,13 @@ public class CacheView
     
     readsFromCache = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
-    readsFromCache.setLayoutData(gridData);
+    Utils.setLayoutData(readsFromCache, gridData);
     rfcGraph.initialize(readsFromCache);
     
     
     writesToCache = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
-    writesToCache.setLayoutData(gridData);
+    Utils.setLayoutData(writesToCache, gridData);
     wtcGraph.initialize(writesToCache);
     
     lbl = new Label(gCacheSpeeds,SWT.NULL);
@@ -269,12 +269,12 @@ public class CacheView
     
     readsFromFile = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
-    readsFromFile.setLayoutData(gridData);
+    Utils.setLayoutData(readsFromFile, gridData);
     rffGraph.initialize(readsFromFile);
     
     writesToFile = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
-    writesToFile.setLayoutData(gridData);
+    Utils.setLayoutData(writesToFile, gridData);
     wtfGraph.initialize(writesToFile);
   }
   
@@ -293,7 +293,7 @@ public class CacheView
     
     Group gCacheWrites = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gCacheWrites,"CacheView.writes.title");
-    gCacheWrites.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    Utils.setLayoutData(gCacheWrites, new GridData(GridData.FILL_HORIZONTAL));
     
     GridLayout layoutGeneral = new GridLayout();
     layoutGeneral.numColumns = 6;    
@@ -318,28 +318,28 @@ public class CacheView
     lbl = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lbl.setLayoutData(gridData);    
+    Utils.setLayoutData(lbl, gridData);    
     Messages.setLanguageText(lbl,"CacheView.writes.toCache");
     
     lblNumberWritesToCache = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblNumberWritesToCache.setLayoutData(gridData);
+    Utils.setLayoutData(lblNumberWritesToCache, gridData);
     
     lblWritesToCache = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblWritesToCache.setLayoutData(gridData);
+    Utils.setLayoutData(lblWritesToCache, gridData);
     
     lblAvgSizeToCache = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblAvgSizeToCache.setLayoutData(gridData);
+    Utils.setLayoutData(lblAvgSizeToCache, gridData);
     
     pbWrites =  new ProgressBar(gCacheWrites,SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.verticalSpan = 2;
-    pbWrites.setLayoutData(gridData);
+    Utils.setLayoutData(pbWrites, gridData);
     pbWrites.setMinimum(0);
     pbWrites.setMaximum(1000);
     
@@ -347,28 +347,28 @@ public class CacheView
     gridData = new GridData();
     gridData.verticalSpan = 2;
     gridData.widthHint = 100;
-    lblPercentWrites.setLayoutData(gridData);
+    Utils.setLayoutData(lblPercentWrites, gridData);
     
     lbl = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lbl.setLayoutData(gridData);    
+    Utils.setLayoutData(lbl, gridData);    
     Messages.setLanguageText(lbl,"CacheView.writes.toFile");
     
     lblNumberWritesToFile = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblNumberWritesToFile.setLayoutData(gridData);
+    Utils.setLayoutData(lblNumberWritesToFile, gridData);
     
     lblWritesToFile = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblWritesToFile.setLayoutData(gridData);
+    Utils.setLayoutData(lblWritesToFile, gridData);
     
     lblAvgSizeToFile = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblAvgSizeToFile.setLayoutData(gridData);
+    Utils.setLayoutData(lblAvgSizeToFile, gridData);
   }
 
   private void delete() {

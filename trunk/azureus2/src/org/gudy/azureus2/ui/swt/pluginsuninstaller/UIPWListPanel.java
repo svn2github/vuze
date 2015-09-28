@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -88,7 +89,7 @@ public class UIPWListPanel extends AbstractWizardPanel {
 
 	Composite panel = new Composite(rootPanel, SWT.NULL);
 	GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-	panel.setLayoutData(gridData);
+	Utils.setLayoutData(panel, gridData);
 	layout = new GridLayout();
 	layout.numColumns = 1;
 	panel.setLayout(layout);
@@ -100,16 +101,16 @@ public class UIPWListPanel extends AbstractWizardPanel {
 	pluginList.setHeaderVisible(true);
 	GridData data = new GridData(GridData.FILL_HORIZONTAL);
 	data.heightHint = 200;
-	pluginList.setLayoutData(data);
+	Utils.setLayoutData(pluginList, data);
 	
 	
 	TableColumn tcName = new TableColumn(pluginList,SWT.LEFT);
 	Messages.setLanguageText(tcName,"installPluginsWizard.list.name");
-	tcName.setWidth(200);
+	tcName.setWidth(Utils.adjustPXForDPI(200));
 	
 	TableColumn tcVersion = new TableColumn(pluginList,SWT.LEFT);
 	Messages.setLanguageText(tcVersion,"installPluginsWizard.list.version");
-	tcVersion.setWidth(150);
+	tcVersion.setWidth(Utils.adjustPXForDPI(150));
 
     PluginInterface plugins[] = new PluginInterface[0];
     try {

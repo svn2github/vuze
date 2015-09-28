@@ -169,11 +169,12 @@ public abstract class StandardButtonsArea
 			RowData rowData = new RowData();
 			Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			size.x += BUTTON_PADDING;
-			if (size.x < MIN_BUTTON_WIDTH) {
-				size.x = MIN_BUTTON_WIDTH;
+			int minButtonWidth = Utils.adjustPXForDPI(MIN_BUTTON_WIDTH);
+			if (size.x < minButtonWidth) {
+				size.x = minButtonWidth;
 			}
 			rowData.width = size.x;
-			button.setLayoutData(rowData);
+			Utils.setLayoutData(button, rowData);
 
 			if (defaultButtonPos == i) {
 				def_button = button;

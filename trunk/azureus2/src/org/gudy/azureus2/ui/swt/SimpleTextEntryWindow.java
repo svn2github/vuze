@@ -106,7 +106,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    	// 330 is the current default width.
 	    	gridData = new GridData();
 	    	gridData.widthHint = width_hint;
-		    label.setLayoutData(gridData);
+		    Utils.setLayoutData(label, gridData);
 	    }
 	    
 	    // Create Text object with pre-entered text.
@@ -208,7 +208,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    if (text_entry_text != null)
 	    	gridData.minimumHeight = text_entry_text.getLineHeight() * line_height;
 	    gridData.heightHint = gridData.minimumHeight;
-	    text_entry.setLayoutData(gridData);
+	    Utils.setLayoutData(text_entry, gridData);
 
 	    Composite panel = new Composite(shell, SWT.NULL);
 	    final RowLayout rLayout = new RowLayout();
@@ -225,7 +225,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    panel.setLayout(rLayout);
 	    gridData = new GridData();
 	    gridData.horizontalAlignment = SWT.END;
-	    panel.setLayoutData(gridData);
+	    Utils.setLayoutData(panel, gridData);
 
 	    Button ok; 
 	    Button cancel; 

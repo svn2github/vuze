@@ -30,6 +30,7 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 
@@ -70,6 +71,7 @@ LinkParameter
   }
   
   public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
 	  link_label.setLayoutData(layoutData);
   }
 

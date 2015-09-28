@@ -26,6 +26,7 @@ import org.gudy.azureus2.plugins.ui.components.UIComponent;
 import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeEvent;
 import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.UITextAreaImpl;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 
 
@@ -81,6 +82,7 @@ TextAreaParameter
 			}
 		}
 
+  	Utils.adjustPXForDPI(layoutData);
 		text_area.setLayoutData(layoutData);
 	}
 

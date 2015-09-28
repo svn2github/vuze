@@ -418,7 +418,7 @@ public class SubscriptionsView
 			}
 		});
 		
-		view.setRowDefaultHeight(20);
+		view.setRowDefaultHeightEM(1.4f);
 		
 		view.initialize(viewComposite);
 

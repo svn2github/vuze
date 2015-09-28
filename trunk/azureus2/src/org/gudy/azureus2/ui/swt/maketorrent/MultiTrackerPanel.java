@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
@@ -74,7 +75,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel<NewTorrentWizard> imp
 
     Composite panel = new Composite(rootPanel, SWT.NULL);
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
     panel.setLayout(layout);
@@ -86,12 +87,12 @@ public class MultiTrackerPanel extends AbstractWizardPanel<NewTorrentWizard> imp
     Messages.setLanguageText(labelTitle, "wizard.multitracker.configuration");
     gridData = new GridData();
     gridData.horizontalSpan = 3;
-    labelTitle.setLayoutData(gridData);  
+    Utils.setLayoutData(labelTitle, gridData);  
     
     configList = new Combo(panel,SWT.READ_ONLY);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    configList.setLayoutData(gridData);
+    Utils.setLayoutData(configList, gridData);
     configList.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {                
         updateTrackers();
@@ -103,7 +104,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel<NewTorrentWizard> imp
     Messages.setLanguageText(btnNew, "wizard.multitracker.new");
     gridData = new GridData();
     gridData.widthHint = 100;
-    btnNew.setLayoutData(gridData);
+    Utils.setLayoutData(btnNew, gridData);
     btnNew.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         List group = new ArrayList();
@@ -118,7 +119,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel<NewTorrentWizard> imp
     Messages.setLanguageText(btnEdit, "wizard.multitracker.edit");
     gridData = new GridData();
     gridData.widthHint = 100;
-    btnEdit.setLayoutData(gridData);
+    Utils.setLayoutData(btnEdit, gridData);
     btnEdit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         int selection = configList.getSelectionIndex();
@@ -132,7 +133,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel<NewTorrentWizard> imp
     Messages.setLanguageText(btnDelete, "wizard.multitracker.delete");
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.widthHint = 100;    
-    btnDelete.setLayoutData(gridData);
+    Utils.setLayoutData(btnDelete, gridData);
     btnDelete.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         int selection = configList.getSelectionIndex();
@@ -146,13 +147,13 @@ public class MultiTrackerPanel extends AbstractWizardPanel<NewTorrentWizard> imp
     final Label labelSeparator = new Label(panel,SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    labelSeparator.setLayoutData(gridData);
+    Utils.setLayoutData(labelSeparator, gridData);
     
     configDetails = new Tree(panel,SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.heightHint = 150;
     gridData.horizontalSpan = 3;
-    configDetails.setLayoutData(gridData);    
+    Utils.setLayoutData(configDetails, gridData);    
     
     refreshList(((NewTorrentWizard)wizard).multiTrackerConfig);
     refreshDetails(); 

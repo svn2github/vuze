@@ -23,6 +23,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -93,6 +94,7 @@ public class AnimatedImage {
 	}
 	
 	public void setLayoutData(Object data) {
+		Utils.adjustPXForDPI(data);
 		canvas.setLayoutData(data);
 	}
 	

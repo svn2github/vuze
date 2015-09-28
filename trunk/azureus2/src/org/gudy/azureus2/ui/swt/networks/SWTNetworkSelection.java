@@ -140,14 +140,14 @@ SWTNetworkSelection
 			info_label.setText(MessageText.getString("window.networkselection.info"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 3;
-			info_label.setLayoutData(gridData);
+			Utils.setLayoutData(info_label, gridData);
 			
 				// line
 			
 			Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalSpan = 3;
-			labelSeparator.setLayoutData(gridData);
+			Utils.setLayoutData(labelSeparator, gridData);
 			
 	    		// description
 	    		
@@ -155,13 +155,13 @@ SWTNetworkSelection
 			desc_label.setText(MessageText.getString("window.networkselection.description"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			desc_label.setLayoutData(gridData);
+			Utils.setLayoutData(desc_label, gridData);
 			
 			Label desc_value = new Label(shell,SWT.NULL);
 			desc_value.setText(description);
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
-			desc_value.setLayoutData(gridData);
+			Utils.setLayoutData(desc_value, gridData);
 	    
 				// networks
 			
@@ -176,14 +176,14 @@ SWTNetworkSelection
 			    Label label = new Label(shell, SWT.NULL);
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 1;
-				label.setLayoutData(gridData);
+				Utils.setLayoutData(label, gridData);
 			    Messages.setLanguageText(label, msg_text);
 	
 			    final Button checkBox = new Button(shell, SWT.CHECK);
 			    checkBox.setSelection(false);
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 2;
-				checkBox.setLayoutData(gridData);
+				Utils.setLayoutData(checkBox, gridData);
 				
 				checkboxes[i]	= checkBox;
 				
@@ -201,7 +201,7 @@ SWTNetworkSelection
 			labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalSpan = 3;
-			labelSeparator.setLayoutData(gridData);
+			Utils.setLayoutData(labelSeparator, gridData);
 
 				// buttons
 				
@@ -212,7 +212,7 @@ SWTNetworkSelection
 		 	gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
 		 	gridData.grabExcessHorizontalSpace = true;
 		 	gridData.widthHint = 70;
-		 	bOk.setLayoutData(gridData);
+		 	Utils.setLayoutData(bOk, gridData);
 		 	bOk.addListener(SWT.Selection,new Listener() {
 		  		public void handleEvent(Event e) {
 			 		close(true);
@@ -224,7 +224,7 @@ SWTNetworkSelection
 		 	gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		 	gridData.grabExcessHorizontalSpace = false;
 		 	gridData.widthHint = 70;
-		 	bCancel.setLayoutData(gridData);    
+		 	Utils.setLayoutData(bCancel, gridData);    
 		 	bCancel.addListener(SWT.Selection,new Listener() {
 		 		public void handleEvent(Event e) {
 			 		close(false);

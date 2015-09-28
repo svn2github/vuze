@@ -226,9 +226,11 @@ public class ImageLoader
 		int useIndex = -1; // all
 		if (values[0].equals("multi") && values.length > 2) {
 			splitX = Integer.parseInt(values[1]);
+			splitX = Utils.adjustPXForDPI(splitX);
 			locationStart = 2;
 		} else if (values[0].equals("multi-index") && values.length > 3) {
 			splitX = Integer.parseInt(values[1]);
+			splitX = Utils.adjustPXForDPI(splitX);
 			useIndex = Integer.parseInt(values[2]);
 			locationStart = 3;
 		}
@@ -375,6 +377,7 @@ public class ImageLoader
 					Image imgBG = Utils.createAlphaImage(display, splitX, bounds.height, (byte) 0);
 					try {
 						int pos = useIndex * splitX;
+						//
 						images[0] = Utils.blitImage(display, image, new Rectangle(pos, 0,
 								Math.min(splitX, bounds.width - pos), bounds.height), imgBG,
 								new Point(0, 0));
@@ -480,6 +483,21 @@ public class ImageLoader
 						releaseImage(id);
 					}
 					//System.err.println("ImageRepository:loadImage:: Resource not found: " + res);
+				} else {
+					Point dpi = display.getDPI();
+					if (dpi.x != 96 || dpi.y != 96) {
+						Rectangle bounds = img.getBounds();
+						Rectangle newBounds = Utils.adjustPXForDPI(bounds);
+						
+						ImageData scaledTo = img.getImageData().scaledTo(newBounds.width, newBounds.height);
+						
+						Image newImage = new Image(display, scaledTo);
+						
+						//System.out.println("SKALE " + sKey + " to " + newBounds + "/" + newImage.getBounds());
+						
+						img.dispose();
+						img = newImage;
+					}
 				}
 			} catch (Throwable e) {
 				System.err.println("ImageRepository:loadImage:: Resource not found: "

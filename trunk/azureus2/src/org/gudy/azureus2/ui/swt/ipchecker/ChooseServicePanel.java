@@ -68,13 +68,13 @@ public class ChooseServicePanel extends AbstractWizardPanel {
     GridData gridData = new GridData();
     gridData.widthHint = 380;    
     gridData.horizontalSpan = 2;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     label.setText(MessageText.getString("ipCheckerWizard.explanations"));
     
     this.servicesList = new Combo(rootPanel,SWT.READ_ONLY);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    servicesList.setLayoutData(gridData);
+    Utils.setLayoutData(servicesList, gridData);
     
     this.services = ExternalIPCheckerFactory.create().getServices();
     
@@ -89,7 +89,7 @@ public class ChooseServicePanel extends AbstractWizardPanel {
     
     this.serviceUrl = new Label(rootPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    serviceUrl.setLayoutData(gridData);
+    Utils.setLayoutData(serviceUrl, gridData);
     serviceUrl.setForeground(Colors.blue);
     serviceUrl.setCursor(handCursor);
     serviceUrl.addMouseListener(new MouseAdapter() {
@@ -112,14 +112,14 @@ public class ChooseServicePanel extends AbstractWizardPanel {
 	gridData = new GridData();
 	gridData.heightHint = 50;
 	gridData.verticalAlignment = GridData.VERTICAL_ALIGN_BEGINNING;
-	label.setLayoutData(gridData);
+	Utils.setLayoutData(label, gridData);
 	label.setText(MessageText.getString("ipCheckerWizard.service.description"));
     
 	this.serviceDescription = new Label(rootPanel,SWT.WRAP);
 	gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.heightHint = 50;
     gridData.verticalAlignment = GridData.VERTICAL_ALIGN_BEGINNING;
-	serviceDescription.setLayoutData(gridData);
+	Utils.setLayoutData(serviceDescription, gridData);
 
     updateInfos();
     

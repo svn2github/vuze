@@ -255,7 +255,7 @@ public class MainStatusBar
 		//Either the Status Text
 		statusText = new CLabel(statusBar, borderFlag);
 		statusText.setForeground(fgColor);
-		statusText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL
+		Utils.setLayoutData(statusText, new GridData(GridData.FILL_HORIZONTAL
 				| GridData.VERTICAL_ALIGN_FILL));
 
 		addStatusBarMenu(statusText);
@@ -298,7 +298,7 @@ public class MainStatusBar
 		progressBar.setVisible(false);
 		progressGridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
 		progressGridData.widthHint = 5;
-		progressBar.setLayoutData(progressGridData);
+		Utils.setLayoutData(progressBar, progressGridData);
 
 		
 		/*
@@ -1857,7 +1857,7 @@ public class MainStatusBar
 			public void runSupport() {
 				UpdateableCLabel result = new UpdateableCLabel(plugin_label_composite, borderFlag,
 						updater);
-				result.setLayoutData(new GridData(GridData.FILL_BOTH));
+				Utils.setLayoutData(result, new GridData(GridData.FILL_BOTH));
 				layoutPluginComposite();
 				updater.created(result);
 			}

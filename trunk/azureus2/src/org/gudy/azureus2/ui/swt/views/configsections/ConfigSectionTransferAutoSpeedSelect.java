@@ -127,7 +127,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         }
         
         gridData = new GridData(GridData.VERTICAL_ALIGN_FILL|GridData.HORIZONTAL_ALIGN_FILL);
-        cSection.setLayoutData(gridData);
+        Utils.setLayoutData(cSection, gridData);
         GridLayout subPanel = new GridLayout();
         subPanel.numColumns = 3;
         cSection.setLayout(subPanel);
@@ -146,13 +146,13 @@ public class ConfigSectionTransferAutoSpeedSelect
         modeGroup.setLayout(modeLayout);
         
         gridData = new GridData(GridData.FILL_HORIZONTAL);
-        modeGroup.setLayoutData(gridData);
+        Utils.setLayoutData(modeGroup, gridData);
 
         //Need a drop down to select which method will be used.
         Label label = new Label(modeGroup, SWT.NULL);
         Messages.setLanguageText(label,"ConfigTransferAutoSpeed.algorithm");
         gridData = new GridData();
-        label.setLayoutData(gridData);
+        Utils.setLayoutData(label, gridData);
 
         String AutoSpeedClassic = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.classic");
         String AutoSpeedBeta = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.beta");
@@ -198,7 +198,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         Label spacer = new Label(modeGroup, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=3;
-        spacer.setLayoutData(gridData);
+        Utils.setLayoutData(spacer, gridData);
 
         //To enable the beta.
         gridData = new GridData();
@@ -229,7 +229,7 @@ public class ConfigSectionTransferAutoSpeedSelect
   	  	spacer = new Label(cSection, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=3;
-        spacer.setLayoutData(gridData);
+        Utils.setLayoutData(spacer, gridData);
 
         	// NETWORK GROUP
         
@@ -261,12 +261,12 @@ public class ConfigSectionTransferAutoSpeedSelect
   	  	Messages.setLanguageText(label,"SpeedView.stats.estupcap");    
         gridData = new GridData();
         gridData.horizontalIndent = 20;
-        label.setLayoutData(gridData);
+        Utils.setLayoutData(label, gridData);
 
         final Label up_cap = new Label(networkGroup, SWT.NULL);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan = 4;
-        up_cap.setLayoutData(gridData);
+        Utils.setLayoutData(up_cap, gridData);
 
         	// down cap
 
@@ -274,12 +274,12 @@ public class ConfigSectionTransferAutoSpeedSelect
   	  	Messages.setLanguageText(label,"SpeedView.stats.estdowncap");    
         gridData = new GridData();
         gridData.horizontalIndent = 20;
-        label.setLayoutData(gridData);
+        Utils.setLayoutData(label, gridData);
         
         final Label down_cap = new Label(networkGroup, SWT.NULL);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan = 4;
-        down_cap.setLayoutData(gridData);
+        Utils.setLayoutData(down_cap, gridData);
 
         // Core avail: We check at top
         final SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();  
@@ -295,7 +295,7 @@ public class ConfigSectionTransferAutoSpeedSelect
  	  	spacer = new Label(networkGroup, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=5;
-        spacer.setLayoutData(gridData);
+        Utils.setLayoutData(spacer, gridData);
         
         	// info
         
@@ -303,7 +303,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    Messages.setLanguageText(
 	    		info_label, CFG_PREFIX + "network.info",
 	    		new String[]{ DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB )});
-	    info_label.setLayoutData(Utils.getWrappableLabelGridData(5, 0));
+	    Utils.setLayoutData(info_label, Utils.getWrappableLabelGridData(5, 0));
         
 	    	// up set
 	    
@@ -311,7 +311,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    Messages.setLanguageText(label,"SpeedView.stats.estupcap");    
 	    gridData = new GridData();
 	    gridData.horizontalIndent = 20;
-	    label.setLayoutData(gridData);
+	    Utils.setLayoutData(label, gridData);
 
         String co_up		= "AutoSpeed Network Upload Speed (temp)";
         String co_up_type 	= "AutoSpeed Network Upload Speed Type (temp)";
@@ -325,7 +325,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    	
 		final Label upload_bits = new Label(networkGroup, SWT.NULL);
 	    gridData = new GridData();
-	    upload_bits.setLayoutData(gridData);
+	    Utils.setLayoutData(upload_bits, gridData);
 	    upload_bits.setText(getMBitLimit(limit_to_text,(up_lim.getBytesPerSec()/1024)*1024));
 		
 		final StringListParameter max_upload_type = 
@@ -387,7 +387,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    Messages.setLanguageText(label,"SpeedView.stats.estdowncap");    
 	    gridData = new GridData();
 	    gridData.horizontalIndent = 20;
-	    label.setLayoutData(gridData);
+	    Utils.setLayoutData(label, gridData);
 
         SpeedManagerLimitEstimate down_lim = sm.getEstimatedDownloadCapacityBytesPerSec();
 
@@ -401,7 +401,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    
 		final Label download_bits = new Label(networkGroup, SWT.NULL);
 	    gridData = new GridData();
-	    download_bits.setLayoutData(gridData);
+	    Utils.setLayoutData(download_bits, gridData);
 	    download_bits.setText(getMBitLimit(limit_to_text,(down_lim.getBytesPerSec()/1024)*1024));
 	    
 		final StringListParameter max_download_type = 
@@ -540,7 +540,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 	   spacer = new Label(cSection, SWT.NULL);
 	   gridData = new GridData();
 	   gridData.horizontalSpan=3;
-	   spacer.setLayoutData(gridData);
+	   Utils.setLayoutData(spacer, gridData);
        
 		BooleanParameter debug_au = new BooleanParameter(
 				cSection, "Auto Upload Speed Debug Enabled",
@@ -554,14 +554,14 @@ public class ConfigSectionTransferAutoSpeedSelect
         spacer = new Label(cSection, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=3;
-        spacer.setLayoutData(gridData);
+        Utils.setLayoutData(spacer, gridData);
 
         /////////////////////////////////////////
         //Add group to link to Azureus Wiki page.
         /////////////////////////////////////////
         Group azWiki = new Group(cSection, SWT.WRAP);
         gridData = new GridData();
-        azWiki.setLayoutData(gridData);
+        Utils.setLayoutData(azWiki, gridData);
         GridLayout layout = new GridLayout();
         layout.numColumns = 1;
         layout.marginHeight = 1;
@@ -576,7 +576,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
         linkLabel.setForeground(Colors.blue);
         gridData = new GridData();
-        linkLabel.setLayoutData( gridData );
+        Utils.setLayoutData(linkLabel,  gridData );
 	    linkLabel.addMouseListener(new MouseAdapter() {
 	      public void mouseDoubleClick(MouseEvent arg0) {
 	      	Utils.launch((String) ((Label) arg0.widget).getData());

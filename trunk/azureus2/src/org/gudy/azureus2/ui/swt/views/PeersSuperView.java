@@ -110,7 +110,7 @@ public class PeersSuperView
   	tv = TableViewFactory.createTableViewSWT(Peer.class, TableManager.TABLE_ALL_PEERS,
 				getPropertiesPrefix(), basicItems, "connected_time", SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
-		tv.setRowDefaultHeight(16);
+		tv.setRowDefaultHeightEM(1);
 		tv.setEnableTabViews(true,true,null);
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();

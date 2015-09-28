@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
@@ -56,7 +57,7 @@ public class FilePanel extends AbstractWizardPanel {
 
     Composite panel = new Composite(rootPanel, SWT.NULL);
     GridData gridData = new GridData(GridData.FILL_BOTH);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
     panel.setLayout(layout);
@@ -67,22 +68,22 @@ public class FilePanel extends AbstractWizardPanel {
 	    Label label = new Label(panel, SWT.WRAP);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalSpan = 3;
-	    label.setLayoutData(gridData);
+	    Utils.setLayoutData(label, gridData);
 	    Messages.setLanguageText(label, "configureWizard.file.message3");
 	    
 	    label = new Label(panel,SWT.NULL);
-	    label.setLayoutData(new GridData());
+	    Utils.setLayoutData(label, new GridData());
 	    Messages.setLanguageText(label, "configureWizard.file.path");
 	    
 	    final Text textPath = new Text(panel,SWT.BORDER);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.widthHint = 100;
-	    textPath.setLayoutData(gridData);
+	    Utils.setLayoutData(textPath, gridData);
 	    textPath.setText(((ConfigureWizard)wizard).getDataPath());
 	    
 	    Button browse = new Button(panel,SWT.PUSH);
 	    Messages.setLanguageText(browse, "configureWizard.file.browse");
-	    browse.setLayoutData(new GridData());
+	    Utils.setLayoutData(browse, new GridData());
 	    browse.addListener(SWT.Selection,new Listener() {
 	      public void handleEvent(Event arg0) {
 	        DirectoryDialog dd = new DirectoryDialog(wizard.getWizardWindow());
@@ -122,22 +123,22 @@ public class FilePanel extends AbstractWizardPanel {
 	    Label label = new Label(panel, SWT.WRAP);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalSpan = 3;
-	    label.setLayoutData(gridData);
+	    Utils.setLayoutData(label, gridData);
 	    Messages.setLanguageText(label, "configureWizard.file.message1");
 	    
 	    label = new Label(panel,SWT.NULL);
-	    label.setLayoutData(new GridData());
+	    Utils.setLayoutData(label, new GridData());
 	    Messages.setLanguageText(label, "configureWizard.file.path");
 	    
 	    final Text textPath = new Text(panel,SWT.BORDER);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.widthHint = 100;
-	    textPath.setLayoutData(gridData);
+	    Utils.setLayoutData(textPath, gridData);
 	    textPath.setText(((ConfigureWizard)wizard).torrentPath);
 	    
 	    Button browse = new Button(panel,SWT.PUSH);
 	    Messages.setLanguageText(browse, "configureWizard.file.browse");
-	    browse.setLayoutData(new GridData());
+	    Utils.setLayoutData(browse, new GridData());
 	    browse.addListener(SWT.Selection,new Listener() {
 	      public void handleEvent(Event arg0) {
 	        DirectoryDialog dd = new DirectoryDialog(wizard.getWizardWindow());
@@ -179,14 +180,14 @@ public class FilePanel extends AbstractWizardPanel {
     label = new Label(panel, SWT.WRAP);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     Messages.setLanguageText(label, "configureWizard.file.message2");
     
     final Button fastResume = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(fastResume, "configureWizard.file.fastResume");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    fastResume.setLayoutData(gridData);
+    Utils.setLayoutData(fastResume, gridData);
 
     fastResume.setSelection(((ConfigureWizard)wizard).fastResume);
     fastResume.addListener(SWT.Selection,new Listener() {

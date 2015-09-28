@@ -66,6 +66,7 @@ InfoParameter
 	}
 
 	public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
 		label.setLayoutData(layoutData);
 	}
 	public String getValue() {

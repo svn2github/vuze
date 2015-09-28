@@ -204,7 +204,7 @@ public class DHTView
     GridData data = new GridData();
     data.verticalAlignment = SWT.BEGINNING;
     data.widthHint = 350;
-    gGeneral.setLayoutData(data);
+    Utils.setLayoutData(gGeneral, data);
     
     GridLayout layout = new GridLayout();
     layout.numColumns = 6;
@@ -216,19 +216,19 @@ public class DHTView
     Messages.setLanguageText(label,"DHTView.general.uptime");    
     
     lblUpTime = new Label(gGeneral,SWT.NONE);
-    lblUpTime.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblUpTime, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.users");    
     
     lblNumberOfUsers = new Label(gGeneral,SWT.NONE);
-    lblNumberOfUsers.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblNumberOfUsers, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.reachable");    
 
     lblReachable = new Label(gGeneral,SWT.NONE);
-    lblReachable.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblReachable, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     
     	// row 2
@@ -237,19 +237,19 @@ public class DHTView
     Messages.setLanguageText(label,"DHTView.general.nodes");    
     
     lblNodes = new Label(gGeneral,SWT.NONE);
-    lblNodes.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblNodes, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.leaves");    
     
     lblLeaves = new Label(gGeneral,SWT.NONE);
-    lblLeaves.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblLeaves, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.rendezvous");    
 
     lblRendezvous = new Label(gGeneral,SWT.NONE);
-    lblRendezvous.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblRendezvous, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     	// row 3
     
@@ -257,19 +257,19 @@ public class DHTView
     Messages.setLanguageText(label,"DHTView.general.contacts");    
     
     lblContacts = new Label(gGeneral,SWT.NONE);
-    lblContacts.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblContacts, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.replacements");    
     
     lblReplacements = new Label(gGeneral,SWT.NONE);
-    lblReplacements.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblReplacements, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.live");    
     
     lblLive= new Label(gGeneral,SWT.NONE);
-    lblLive.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblLive, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     	// row 4
     
@@ -277,19 +277,19 @@ public class DHTView
     Messages.setLanguageText(label,"DHTView.general.skew");    
     
     lblSkew= new Label(gGeneral,SWT.NONE);
-    lblSkew.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblSkew, new GridData(SWT.FILL,SWT.TOP,true,false));
 
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.unknown");    
     
     lblUnknown = new Label(gGeneral,SWT.NONE);
-    lblUnknown.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblUnknown, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.dying");    
     
     lblDying = new Label(gGeneral,SWT.NONE);
-    lblDying.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));    
+    Utils.setLayoutData(lblDying, new GridData(SWT.FILL,SWT.TOP,true,false));    
   }
   
   private void initialiseDBGroup() {
@@ -298,7 +298,7 @@ public class DHTView
     
     GridData data = new GridData(GridData.FILL_HORIZONTAL);
     data.verticalAlignment = SWT.FILL;
-    gDB.setLayoutData(data);
+    Utils.setLayoutData(gDB, data);
     
     GridLayout layout = new GridLayout();
     layout.numColumns = 6;    
@@ -309,50 +309,50 @@ public class DHTView
     Messages.setLanguageText(label,"DHTView.db.keys");    
     
     lblKeys = new Label(gDB,SWT.NONE);
-    lblKeys.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblKeys, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gDB,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.db.values");    
     
     lblValues = new Label(gDB,SWT.NONE);
-    lblValues.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblValues, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gDB,SWT.NONE);
     Messages.setLanguageText(label,"TableColumn.header.size");    
     
     lblSize = new Label(gDB,SWT.NONE);
-    lblSize.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));    
+    Utils.setLayoutData(lblSize, new GridData(SWT.FILL,SWT.TOP,true,false));    
     
     label = new Label(gDB,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.db.local");    
     
     lblLocal = new Label(gDB,SWT.NONE);
-    lblLocal.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblLocal, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gDB,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.db.direct");    
     
     lblDirect = new Label(gDB,SWT.NONE);
-    lblDirect.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblDirect, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gDB,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.db.indirect");    
     
     lblIndirect = new Label(gDB,SWT.NONE);
-    lblIndirect.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false)); 
+    Utils.setLayoutData(lblIndirect, new GridData(SWT.FILL,SWT.TOP,true,false)); 
     
     
     label = new Label(gDB,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.db.divfreq");    
     
     lblDivFreq = new Label(gDB,SWT.NONE);
-    lblDivFreq.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblDivFreq, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gDB,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.db.divsize");    
     
     lblDivSize = new Label(gDB,SWT.NONE);
-    lblDivSize.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblDivSize, new GridData(SWT.FILL,SWT.TOP,true,false));
   }
   
   private void initialiseTransportDetailsGroup() {
@@ -362,7 +362,7 @@ public class DHTView
     GridData data = new GridData(GridData.FILL_VERTICAL);
     data.widthHint = 350;
     data.verticalSpan = 2;
-    gTransport.setLayoutData(data);
+    Utils.setLayoutData(gTransport, data);
     
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;    
@@ -374,60 +374,60 @@ public class DHTView
     
     label = new Label(gTransport,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.transport.packets");
-    label.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(label, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gTransport,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.transport.bytes");
-    label.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(label, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gTransport,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.transport.received");
     
     lblReceivedPackets = new Label(gTransport,SWT.NONE);
-    lblReceivedPackets.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblReceivedPackets, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     lblReceivedBytes = new Label(gTransport,SWT.NONE);
-    lblReceivedBytes.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblReceivedBytes, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gTransport,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.transport.sent");
     
     lblSentPackets = new Label(gTransport,SWT.NONE);
-    lblSentPackets.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblSentPackets, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     lblSentBytes = new Label(gTransport,SWT.NONE);
-    lblSentBytes.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(lblSentBytes, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gTransport,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.transport.in");
     data = new GridData();
     data.horizontalSpan = 3;
-    label.setLayoutData(data);
+    Utils.setLayoutData(label, data);
     
     
     in = new Canvas(gTransport,SWT.NO_BACKGROUND);
     data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 3;
-    in.setLayoutData(data);
+    Utils.setLayoutData(in, data);
     inGraph.initialize(in);
     
     label = new Label(gTransport,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.transport.out");
     data = new GridData();
     data.horizontalSpan = 3;
-    label.setLayoutData(data);
+    Utils.setLayoutData(label, data);
     
     out = new Canvas(gTransport,SWT.NO_BACKGROUND);
     data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 3;
-    out.setLayoutData(data);
+    Utils.setLayoutData(out, data);
     outGraph.initialize(out);
   }
   
   private void initialiseOperationDetailsGroup() {
     Group gOperations = new Group(panel,SWT.NONE);
     Messages.setLanguageText(gOperations,"DHTView.operations.title");
-    gOperations.setLayoutData(new GridData(SWT.FILL,SWT.BEGINNING,true,false));
+    Utils.setLayoutData(gOperations, new GridData(SWT.FILL,SWT.BEGINNING,true,false));
     
     GridLayout layout = new GridLayout();
     layout.numColumns = 5;
@@ -439,19 +439,19 @@ public class DHTView
     
     label = new Label(gOperations,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.operations.sent");
-    label.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(label, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gOperations,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.operations.ok");
-    label.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(label, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gOperations,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.operations.failed");
-    label.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(label, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gOperations,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.operations.received");
-    label.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    Utils.setLayoutData(label, new GridData(SWT.FILL,SWT.TOP,true,false));
     
     
     label = new Label(gOperations,SWT.NONE);
@@ -459,7 +459,7 @@ public class DHTView
     
     for(int i = 0 ; i < 4 ; i++) {
       lblPings[i] = new Label(gOperations,SWT.NONE);      
-      lblPings[i].setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+      Utils.setLayoutData(lblPings[i], new GridData(SWT.FILL,SWT.TOP,true,false));
     }
     
     
@@ -468,7 +468,7 @@ public class DHTView
     
     for(int i = 0 ; i < 4 ; i++) {
       lblFindNodes[i] = new Label(gOperations,SWT.NONE);      
-      lblFindNodes[i].setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+      Utils.setLayoutData(lblFindNodes[i], new GridData(SWT.FILL,SWT.TOP,true,false));
     }
     
     
@@ -477,7 +477,7 @@ public class DHTView
     
     for(int i = 0 ; i < 4 ; i++) {
       lblFindValues[i] = new Label(gOperations,SWT.NONE);      
-      lblFindValues[i].setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+      Utils.setLayoutData(lblFindValues[i], new GridData(SWT.FILL,SWT.TOP,true,false));
     }
     
     
@@ -486,7 +486,7 @@ public class DHTView
     
     for(int i = 0 ; i < 4 ; i++) {
       lblStores[i] = new Label(gOperations,SWT.NONE);      
-      lblStores[i].setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+      Utils.setLayoutData(lblStores[i], new GridData(SWT.FILL,SWT.TOP,true,false));
     }
     
     label = new Label(gOperations,SWT.NONE);
@@ -494,34 +494,34 @@ public class DHTView
     
     for(int i = 0 ; i < 4 ; i++) {
       lblData[i] = new Label(gOperations,SWT.NONE);      
-      lblData[i].setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+      Utils.setLayoutData(lblData[i], new GridData(SWT.FILL,SWT.TOP,true,false));
     }
   }
   
   private void initialiseActivityGroup() {
     Group gActivity = new Group(panel,SWT.NONE);
     Messages.setLanguageText(gActivity,"DHTView.activity.title");
-    gActivity.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
+    Utils.setLayoutData(gActivity, new GridData(SWT.FILL,SWT.FILL,true,true));
     gActivity.setLayout(new GridLayout());
     
     activityTable = new Table(gActivity,SWT.VIRTUAL | SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE);
-    activityTable.setLayoutData(new GridData(GridData.FILL_BOTH));
+    Utils.setLayoutData(activityTable, new GridData(GridData.FILL_BOTH));
     
     final TableColumn colStatus =  new TableColumn(activityTable,SWT.LEFT);
     Messages.setLanguageText(colStatus,"DHTView.activity.status");
-    colStatus.setWidth(80);
+    colStatus.setWidth(Utils.adjustPXForDPI(80));
     
     final TableColumn colType =  new TableColumn(activityTable,SWT.LEFT);
     Messages.setLanguageText(colType,"DHTView.activity.type");
-    colType.setWidth(80);
+    colType.setWidth(Utils.adjustPXForDPI(80));
     
     final TableColumn colName =  new TableColumn(activityTable,SWT.LEFT);
     Messages.setLanguageText(colName,"DHTView.activity.target");
-    colName.setWidth(80);
+    colName.setWidth(Utils.adjustPXForDPI(80));
     
     final TableColumn colDetails =  new TableColumn(activityTable,SWT.LEFT);
     Messages.setLanguageText(colDetails,"DHTView.activity.details");
-    colDetails.setWidth(300);
+    colDetails.setWidth(Utils.adjustPXForDPI(300));
     colDetails.setResizable(false);
     
     

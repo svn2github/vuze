@@ -456,13 +456,13 @@ AuthenticatorWindow
 			Messages.setLanguageText(realm_label, "authenticator.realm");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			realm_label.setLayoutData(gridData);
+			Utils.setLayoutData(realm_label, gridData);
 			
 			Label realm_value = new Label(shell,SWT.NULL);
 			realm_value.setText(realm.replaceAll("&", "&&"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
-			realm_value.setLayoutData(gridData);
+			Utils.setLayoutData(realm_value, gridData);
 	    
 	    		// target
 			
@@ -470,13 +470,13 @@ AuthenticatorWindow
 			Messages.setLanguageText(target_label, is_tracker?"authenticator.tracker":"authenticator.location");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			target_label.setLayoutData(gridData);
+			Utils.setLayoutData(target_label, gridData);
 			
 			Label target_value = new Label(shell,SWT.NULL);
 			target_value.setText(target.replaceAll("&", "&&"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
-			target_value.setLayoutData(gridData);
+			Utils.setLayoutData(target_value, gridData);
 	    		
 			if ( details != null ){
 				
@@ -484,13 +484,13 @@ AuthenticatorWindow
 				Messages.setLanguageText(details_label, is_tracker?"authenticator.torrent":"authenticator.details");
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 1;
-				details_label.setLayoutData(gridData);
+				Utils.setLayoutData(details_label, gridData);
 				
 				Label details_value = new Label(shell,SWT.NULL);
 				details_value.setText(details.replaceAll("&", "&&"));
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 2;
-				details_value.setLayoutData(gridData);
+				Utils.setLayoutData(details_value, gridData);
 			}
 	    		// user
 	    		
@@ -498,13 +498,13 @@ AuthenticatorWindow
 			Messages.setLanguageText(user_label, "authenticator.user");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			user_label.setLayoutData(gridData);
+			Utils.setLayoutData(user_label, gridData);
 	
 			final Text user_value = new Text(shell,SWT.BORDER);
 			user_value.setText("");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
-			user_value.setLayoutData(gridData);
+			Utils.setLayoutData(user_value, gridData);
 
 			user_value.addListener(SWT.Modify, new Listener() {
 			   public void handleEvent(Event event) {
@@ -517,14 +517,14 @@ AuthenticatorWindow
 			Messages.setLanguageText(password_label, "authenticator.password");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			password_label.setLayoutData(gridData);
+			Utils.setLayoutData(password_label, gridData);
 			
 			final Text password_value = new Text(shell,SWT.BORDER);
 			password_value.setEchoChar('*');
 			password_value.setText("");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
-			password_value.setLayoutData(gridData);
+			Utils.setLayoutData(password_value, gridData);
 
 			password_value.addListener(SWT.Modify, new Listener() {
 			   public void handleEvent(Event event) {
@@ -536,13 +536,13 @@ AuthenticatorWindow
 			Label blank_label = new Label(shell,SWT.NULL);
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			blank_label.setLayoutData(gridData);
+			Utils.setLayoutData(blank_label, gridData);
 			
 		    final Button checkBox = new Button(shell, SWT.CHECK);
 		    checkBox.setText(MessageText.getString( "authenticator.savepassword" ));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			checkBox.setLayoutData(gridData);
+			Utils.setLayoutData(checkBox, gridData);
 			checkBox.addListener(SWT.Selection,new Listener() {
 		  		public void handleEvent(Event e) {
 			 		persist = checkBox.getSelection();
@@ -553,7 +553,7 @@ AuthenticatorWindow
 		    dontAsk.setText(MessageText.getString( "general.dont.ask.again" ));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			dontAsk.setLayoutData(gridData);
+			Utils.setLayoutData(dontAsk, gridData);
 			dontAsk.addListener(SWT.Selection,new Listener() {
 		  		public void handleEvent(Event e) {
 		  			RememberedDecisionsManager.setRemembered( ignore_key, dontAsk.getSelection()?1:0 );
@@ -565,7 +565,7 @@ AuthenticatorWindow
 			Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalSpan = 3;
-			labelSeparator.setLayoutData(gridData);
+			Utils.setLayoutData(labelSeparator, gridData);
 			
 				// buttons
 				
@@ -576,7 +576,7 @@ AuthenticatorWindow
 		 	gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
 		 	gridData.grabExcessHorizontalSpace = true;
 		 	gridData.widthHint = 70;
-		 	bOk.setLayoutData(gridData);
+		 	Utils.setLayoutData(bOk, gridData);
 		 	bOk.addListener(SWT.Selection,new Listener() {
 		  		public void handleEvent(Event e) {
 			 		close(true);
@@ -588,7 +588,7 @@ AuthenticatorWindow
 		 	gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		 	gridData.grabExcessHorizontalSpace = false;
 		 	gridData.widthHint = 70;
-		 	bCancel.setLayoutData(gridData);    
+		 	Utils.setLayoutData(bCancel, gridData);    
 		 	bCancel.addListener(SWT.Selection,new Listener() {
 		 		public void handleEvent(Event e) {
 			 		close(false);

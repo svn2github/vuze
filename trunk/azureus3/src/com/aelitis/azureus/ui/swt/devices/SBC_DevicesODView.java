@@ -250,7 +250,7 @@ SBC_DevicesODView
 		final Composite control ) 
 	{	
 		control_parent = new Composite(control, SWT.NONE);
-		control_parent.setLayoutData(Utils.getFilledFormData());
+		Utils.setLayoutData(control_parent, Utils.getFilledFormData());
 		
 		final StackLayout stack_layout = new StackLayout();
 		
@@ -272,7 +272,7 @@ SBC_DevicesODView
 					ColumnOD_Name.COLUMN_ID, 
 					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
 
-		tv_downloads.setRowDefaultHeight(50);
+		tv_downloads.setRowDefaultHeightEM(3);
 		tv_downloads.setHeaderVisible(true);
 
 		tv_downloads.addSelectionListener(
@@ -545,7 +545,7 @@ SBC_DevicesODView
 		Label l = new Label( disabled_device_parent, SWT.NULL );
 		GridData grid_data = new GridData( GridData.FILL_HORIZONTAL );
 		grid_data.horizontalIndent = 5;
-		l.setLayoutData( grid_data );
+		Utils.setLayoutData(l,  grid_data );
 		
 		l.setText( MessageText.getString( "device.is.disabled" ));
 	

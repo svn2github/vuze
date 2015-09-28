@@ -73,9 +73,9 @@ public class SideBarEntrySWT
 
 	private static final int SIDEBAR_SPACING = 2;
 
-	private static final int IMAGELEFT_SIZE = 20;
+	private int IMAGELEFT_SIZE = 20;
 
-	private static final int IMAGELEFT_GAP = 5;
+	private int IMAGELEFT_GAP = 5;
 
 	private static final boolean ALWAYS_IMAGE_GAP = true;
 
@@ -151,6 +151,8 @@ public class SideBarEntrySWT
 
 		this.sidebar = sidebar;
 
+		IMAGELEFT_GAP = Utils.adjustPXForDPI(IMAGELEFT_GAP);
+		IMAGELEFT_SIZE = Utils.adjustPXForDPI(IMAGELEFT_SIZE);
 		updateColors();
 	}
 

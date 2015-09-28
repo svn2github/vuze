@@ -125,6 +125,7 @@ public class StringParameter extends Parameter{
   }
   
   public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
     inputField.setLayoutData(layoutData);
   }
   

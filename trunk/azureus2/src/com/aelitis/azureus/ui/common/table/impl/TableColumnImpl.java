@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /** 
  * Table Column definition and modification routines.
@@ -180,7 +181,7 @@ public class TableColumnImpl
 		iConsecutiveErrCount = 0;
 		lLastSortValueChange = 0;
 		bVisible = false;
-		iMinWidth = 16;
+		iMinWidth = Utils.adjustPXForDPI(16);
 		iPosition = POSITION_INVISIBLE;
 		int iSortDirection = COConfigurationManager.getIntParameter(CFG_SORTDIRECTION);
 		bSortAscending = iSortDirection == 1 ? false : true;
@@ -195,8 +196,8 @@ public class TableColumnImpl
 
 		this.iAlignment = this.iDefaultAlignment =  iAlignment;
 		setPosition(iPosition);
-		this.iWidth = this.iDefaultWidth = iWidth;
-		this.iMinWidth = 16;
+		this.iWidth = this.iDefaultWidth = Utils.adjustPXForDPI(iWidth);
+		this.iMinWidth = Utils.adjustPXForDPI(16);
 		this.iInterval = iInterval;
 	}
 
@@ -208,8 +209,8 @@ public class TableColumnImpl
 
 		this.iAlignment = this.iDefaultAlignment = iAlignment;
 		setPosition(iPosition);
-		this.iWidth = this.iDefaultWidth = iWidth;
-		this.iMinWidth = 16;
+		this.iWidth = this.iDefaultWidth = Utils.adjustPXForDPI(iWidth);
+		this.iMinWidth = Utils.adjustPXForDPI(16);
 	}
 
 	public String getName() {
@@ -242,12 +243,16 @@ public class TableColumnImpl
 	public int getType() {
 		return iType;
 	}
-
-	public void setWidth(int width) {
+	
+	public void setWidth(int realPXWidth) {
+		setWidthPX(Utils.adjustPXForDPI(realPXWidth));
+	}
+	
+	public void setWidthPX(int width) {
 		if (width == iWidth || width < 0) {
 			return;
 		}
-
+		
 		if (iMinWidth > 0 && width < iMinWidth) {
 			return;
 		}
@@ -1055,10 +1060,12 @@ public class TableColumnImpl
 		pos++;
 		if (list.length >= (pos + 1) && (list[pos] instanceof Number)) {
 			int width = ((Number) list[pos]).intValue();
-			setWidth(width);
+			setWidthPX(width);
 		} else {
-			setWidth(COConfigurationManager.getIntParameter(oldItemPrefix + ".width",
-					iWidth));
+			String key = oldItemPrefix + ".width";
+			if (COConfigurationManager.hasParameter(key, true)) {
+  			setWidth(COConfigurationManager.getIntParameter(key));
+			}
 		}
 		
 		pos++;
@@ -1442,6 +1449,8 @@ public class TableColumnImpl
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableColumn#setMinWidth(int)
 	public void setMinWidth(int minwidth) {
+		// :(
+		minwidth = Utils.adjustPXForDPI(minwidth);
 		if (minwidth > iMaxWidth && iMaxWidth >= 0) {
 			iMaxWidth = minwidth;
 		}
@@ -1450,7 +1459,7 @@ public class TableColumnImpl
 		}
 		iMinWidth = minwidth;
 		if (iWidth < minwidth) {
-			setWidth(minwidth);
+			setWidthPX(minwidth);
 		}
 	}
 
@@ -1461,6 +1470,8 @@ public class TableColumnImpl
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableColumn#setMaxWidth(int)
 	public void setMaxWidth(int maxwidth) {
+		// :(
+		maxwidth = Utils.adjustPXForDPI(maxwidth);
 		if (maxwidth >= 0 && maxwidth < iMinWidth) {
 			iMinWidth = maxwidth;
 		}
@@ -1469,7 +1480,7 @@ public class TableColumnImpl
 		}
 		iMaxWidth = maxwidth;
 		if (maxwidth >= 0 && iWidth > iMaxWidth) {
-			setWidth(maxwidth);
+			setWidthPX(maxwidth);
 		}
 	}
 
@@ -1627,7 +1638,7 @@ public class TableColumnImpl
 
 	public void reset() {
 		if (iDefaultWidth != 0) {
-			setWidth(iDefaultWidth);
+			setWidthPX(iDefaultWidth);
 		}
 		if ( iDefaultAlignment != -1 ){
 			setAlignment( iDefaultAlignment );

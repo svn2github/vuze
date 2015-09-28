@@ -213,7 +213,7 @@ CryptoWindow
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 3;
 				gridData.widthHint = 300;
-				reason_label.setLayoutData(gridData);
+				Utils.setLayoutData(reason_label, gridData);
 				
 		 	}else if ( action_type == CryptoManagerPasswordHandler.ACTION_DECRYPT ){
 		 	
@@ -222,7 +222,7 @@ CryptoWindow
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 3;
 				gridData.widthHint = 300;
-				decrypt_label.setLayoutData(gridData);
+				Utils.setLayoutData(decrypt_label, gridData);
 
 		    		// reason
 		    		
@@ -230,13 +230,13 @@ CryptoWindow
 				Messages.setLanguageText(reason_label, "security.crypto.reason");
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 1;
-				reason_label.setLayoutData(gridData);
+				Utils.setLayoutData(reason_label, gridData);
 				
 				Label reason_value = new Label(shell,SWT.NULL);
 				reason_value.setText(reason.replaceAll("&", "&&"));
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 2;
-				reason_value.setLayoutData(gridData);
+				Utils.setLayoutData(reason_value, gridData);
 				
 				// new Label(shell,SWT.NULL);
 				
@@ -246,7 +246,7 @@ CryptoWindow
 					Messages.setLanguageText(pw_wrong_label, "security.crypto.badpw");
 					gridData = new GridData(GridData.FILL_BOTH);
 					gridData.horizontalSpan = 3;
-					pw_wrong_label.setLayoutData(gridData);
+					Utils.setLayoutData(pw_wrong_label, gridData);
 					pw_wrong_label.setForeground( Colors.red );
 				}
 		 	}
@@ -257,14 +257,14 @@ CryptoWindow
 			Messages.setLanguageText(password_label, "security.crypto.password");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			password_label.setLayoutData(gridData);
+			Utils.setLayoutData(password_label, gridData);
 			
 			final Text password_value = new Text(shell,SWT.BORDER);
 			password_value.setEchoChar('*');
 			password_value.setText("");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
-			password_value.setLayoutData(gridData);
+			Utils.setLayoutData(password_value, gridData);
 
 			password_value.addListener(SWT.Modify, new Listener() {
 			   public void handleEvent(Event event) {
@@ -283,14 +283,14 @@ CryptoWindow
 				Messages.setLanguageText(password2_label, "security.crypto.password2");
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 1;
-				password2_label.setLayoutData(gridData);
+				Utils.setLayoutData(password2_label, gridData);
 				
 				final Text password2_value = new Text(shell,SWT.BORDER);
 				password2_value.setEchoChar('*');
 				password2_value.setText("");
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 2;
-				password2_value.setLayoutData(gridData);
+				Utils.setLayoutData(password2_value, gridData);
 
 				password2_value.addListener(SWT.Modify, new Listener() {
 				   public void handleEvent(Event event) {
@@ -308,7 +308,7 @@ CryptoWindow
 				Messages.setLanguageText(strength_label, "security.crypto.persist_for");
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 1;
-				strength_label.setLayoutData(gridData);
+				Utils.setLayoutData(strength_label, gridData);
 				
 				String[] 		duration_keys = { "dont_save", "session", "day", "week", "30days", "forever" };
 				final int[]		duration_secs = { 0,           -1,        DAY,   DAY*7,  DAY*30,   Integer.MAX_VALUE };
@@ -340,7 +340,7 @@ CryptoWindow
 				
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 1;
-				durations_combo.setLayoutData(gridData);
+				Utils.setLayoutData(durations_combo, gridData);
 				
 				new Label(shell,SWT.NULL);
 				
@@ -353,7 +353,7 @@ CryptoWindow
 				linkLabel.setForeground(Colors.blue);
 				gridData = new GridData();
 				gridData.horizontalSpan = 3;
-				linkLabel.setLayoutData(gridData);
+				Utils.setLayoutData(linkLabel, gridData);
 				linkLabel.addMouseListener(new MouseAdapter() {
 					public void mouseDoubleClick(MouseEvent arg0) {
 						Utils.launch((String) ((Label) arg0.widget).getData());
@@ -371,7 +371,7 @@ CryptoWindow
 			Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalSpan = 3;
-			labelSeparator.setLayoutData(gridData);
+			Utils.setLayoutData(labelSeparator, gridData);
 			
 				// buttons
 				
@@ -382,7 +382,7 @@ CryptoWindow
 		 	gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
 		 	gridData.grabExcessHorizontalSpace = true;
 		 	gridData.widthHint = 70;
-		 	bOk.setLayoutData(gridData);
+		 	Utils.setLayoutData(bOk, gridData);
 		 	bOk.addListener(SWT.Selection,new Listener() {
 		  		public void handleEvent(Event e) {
 			 		close(true);
@@ -394,7 +394,7 @@ CryptoWindow
 		 	gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		 	gridData.grabExcessHorizontalSpace = false;
 		 	gridData.widthHint = 70;
-		 	bCancel.setLayoutData(gridData);    
+		 	Utils.setLayoutData(bCancel, gridData);    
 		 	bCancel.addListener(SWT.Selection,new Listener() {
 		 		public void handleEvent(Event e) {
 			 		close(false);

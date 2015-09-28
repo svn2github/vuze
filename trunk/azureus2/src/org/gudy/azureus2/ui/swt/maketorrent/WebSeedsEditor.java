@@ -108,7 +108,7 @@ public class WebSeedsEditor {
 	    textName.setText(currentName);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalSpan = 2;
-	    textName.setLayoutData(gridData);
+	    Utils.setLayoutData(textName, gridData);
 	    textName.addModifyListener(new ModifyListener() {
 		    public void modifyText(ModifyEvent arg0) {
 		      currentName = textName.getText();
@@ -121,7 +121,7 @@ public class WebSeedsEditor {
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 3;
     gridData.heightHint = 150;
-    treeGroups.setLayoutData(gridData);
+    Utils.setLayoutData(treeGroups, gridData);
     
     treeGroups.addMouseListener(
     		new MouseAdapter() 
@@ -143,30 +143,30 @@ public class WebSeedsEditor {
     Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    labelSeparator.setLayoutData(gridData);
+    Utils.setLayoutData(labelSeparator, gridData);
     
     	// button row 
     
     Label label = new Label(shell,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL );
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     Composite cButtons = new Composite(shell, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    cButtons.setLayoutData(gridData);
+    Utils.setLayoutData(cButtons, gridData);
     GridLayout layoutButtons = new GridLayout();
     layoutButtons.numColumns = 3;
     cButtons.setLayout(layoutButtons);
     label = new Label(cButtons,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL );
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     btnSave = new Button(cButtons,SWT.PUSH);
     gridData = new GridData();
     gridData.widthHint = 70;
     gridData.horizontalAlignment = GridData.END;
-    btnSave.setLayoutData(gridData);
+    Utils.setLayoutData(btnSave, gridData);
     Messages.setLanguageText(btnSave,"wizard.multitracker.edit.save");
     btnSave.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -179,7 +179,7 @@ public class WebSeedsEditor {
     gridData = new GridData();
     gridData.horizontalAlignment = GridData.END;
     gridData.widthHint = 70;
-    btnCancel.setLayoutData(gridData);
+    Utils.setLayoutData(btnCancel, gridData);
     Messages.setLanguageText(btnCancel,"Button.cancel");
     btnCancel.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {

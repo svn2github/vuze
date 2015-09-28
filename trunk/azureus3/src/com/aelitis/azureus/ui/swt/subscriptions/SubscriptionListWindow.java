@@ -115,25 +115,25 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		data.right = new FormAttachment(100,0);
 		data.top = new FormAttachment(0,0);
 		data.bottom = new FormAttachment(separator,0);
-		mainComposite.setLayoutData(data);
+		Utils.setLayoutData(mainComposite, data);
 		
 		data = new FormData();
 		data.left = new FormAttachment(0,0);
 		data.right = new FormAttachment(100,0);
 		data.bottom = new FormAttachment(cancel,-2);
-		separator.setLayoutData(data);
+		Utils.setLayoutData(separator, data);
 		
 		data = new FormData();
 		data.right = new FormAttachment(action);
 		data.width = 100;
 		data.bottom = new FormAttachment(100,-5);
-		cancel.setLayoutData(data);
+		Utils.setLayoutData(cancel, data);
 		
 		data = new FormData();
 		data.right = new FormAttachment(100,-5);
 		data.width = 100;
 		data.bottom = new FormAttachment(100,-5);
-		action.setLayoutData(data);
+		Utils.setLayoutData(action, data);
 		
 		cancel.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
@@ -160,12 +160,12 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		
 		TableColumn name = new TableColumn(subscriptionsList,SWT.NONE);
 		name.setText(MessageText.getString("subscriptions.listwindow.name"));
-		name.setWidth(310);
+		name.setWidth(Utils.adjustPXForDPI(310));
 		name.setResizable(false);
 		
 		TableColumn popularity = new TableColumn(subscriptionsList,SWT.NONE);
 		popularity.setText(MessageText.getString("subscriptions.listwindow.popularity"));
-		popularity.setWidth(70);
+		popularity.setWidth(Utils.adjustPXForDPI(70));
 		popularity.setResizable(false);
 		
 		subscriptionsList.addListener(SWT.SetData, new Listener() {
@@ -235,13 +235,13 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		data.right = new FormAttachment(100,-5);
 		data.top = new FormAttachment(animatedImage.getControl(),10);
 		data.height = 50;
-		loadingText.setLayoutData(data);
+		Utils.setLayoutData(loadingText, data);
 		
 		data = new FormData();
 		data.left = new FormAttachment(0,5);
 		data.right = new FormAttachment(100,-5);
 		data.top = new FormAttachment(loadingText,5);
-		loadingProgress.setLayoutData(data);
+		Utils.setLayoutData(loadingProgress, data);
 		
 		boolean autoCheck = COConfigurationManager.getBooleanParameter("subscriptions.autocheck");
 		
@@ -260,7 +260,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 			data.left = new FormAttachment(0,5);
 			data.right = new FormAttachment(100,-5);
 			data.top = new FormAttachment(1,3,0);
-			acceptLabel.setLayoutData(data);
+			Utils.setLayoutData(acceptLabel, data);
 			
 			action.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {

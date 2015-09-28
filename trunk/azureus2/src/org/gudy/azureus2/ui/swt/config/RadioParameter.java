@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author TuxPaper
@@ -70,6 +71,7 @@ public class RadioParameter extends Parameter{
   }
 
   public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
     radioButton.setLayoutData(layoutData);
   }
 

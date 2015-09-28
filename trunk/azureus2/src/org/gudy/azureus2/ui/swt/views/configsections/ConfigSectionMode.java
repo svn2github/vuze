@@ -139,7 +139,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
     final Label label = new Label(cMode, SWT.WRAP);
     gridData.horizontalSpan = 4;
     gridData.horizontalIndent=10;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     
     
     final Label linkLabel = new Label(cMode, SWT.NULL);
@@ -149,7 +149,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
     linkLabel.setForeground(Colors.blue);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     //gridData.horizontalIndent = 10;
-    linkLabel.setLayoutData( gridData );
+    Utils.setLayoutData(linkLabel,  gridData );
     linkLabel.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
       	Utils.launch((String) ((Label) arg0.widget).getData());
@@ -160,7 +160,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
     });
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 4;
-    linkLabel.setLayoutData(gridData);
+    Utils.setLayoutData(linkLabel, gridData);
     ClipboardCopy.addCopyToClipMenu( linkLabel );
     
     final Runnable setModeText = 
@@ -192,7 +192,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
 	    linkLabel1.setForeground(Colors.blue);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalIndent = 10;
-	    linkLabel1.setLayoutData( gridData );
+	    Utils.setLayoutData(linkLabel1,  gridData );
 	    linkLabel1.addMouseListener(new MouseAdapter() {
 	      public void mouseDoubleClick(MouseEvent arg0) {
 	      	Utils.launch((String) ((Label) arg0.widget).getData());
@@ -244,20 +244,20 @@ public class ConfigSectionMode implements UISWTConfigSection {
     Label padding = new Label(cMode, SWT.NULL );
     gridData = new GridData();
     gridData.horizontalSpan = 3;
-    padding.setLayoutData( gridData );
+    Utils.setLayoutData(padding,  gridData );
     
     	// reset to defaults
     
     Label blank = new Label(cMode, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 4;
-    blank.setLayoutData(gridData);
+    Utils.setLayoutData(blank, gridData);
 	
     
 	Composite gReset = new Composite(cMode, SWT.WRAP);
     gridData = new GridData();
     gridData.horizontalSpan = 4;
-    gReset.setLayoutData(gridData);
+    Utils.setLayoutData(gReset, gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
     layout.marginWidth = 0;
@@ -306,7 +306,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
     
     padding = new Label(gReset, SWT.NULL );
     gridData = new GridData();
-    padding.setLayoutData( gridData );
+    Utils.setLayoutData(padding,  gridData );
     
     return cMode;
   }

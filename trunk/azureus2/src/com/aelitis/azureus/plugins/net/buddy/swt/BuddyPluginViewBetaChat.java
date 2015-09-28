@@ -439,7 +439,7 @@ BuddyPluginViewBetaChat
 		layout.marginWidth = 0;
 		parent.setLayout(layout);
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
-		parent.setLayoutData(grid_data);
+		Utils.setLayoutData(parent, grid_data);
 
 		Composite sash_area = new Composite( parent, SWT.NONE );
 		layout = new GridLayout();
@@ -450,11 +450,11 @@ BuddyPluginViewBetaChat
 		
 		grid_data = new GridData(GridData.FILL_BOTH );
 		grid_data.horizontalSpan = 2;
-		sash_area.setLayoutData(grid_data);
+		Utils.setLayoutData(sash_area, grid_data);
 		
 	    final SashForm sash = new SashForm(sash_area,SWT.HORIZONTAL );
 	    grid_data = new GridData(GridData.FILL_BOTH );
-	    sash.setLayoutData(grid_data);
+	    Utils.setLayoutData(sash, grid_data);
 	    	    
 		final Composite lhs = new Composite(sash, SWT.NONE);
 		
@@ -506,7 +506,7 @@ BuddyPluginViewBetaChat
 		lhs.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_BOTH );
 		grid_data.widthHint = 300;
-		lhs.setLayoutData(grid_data);
+		Utils.setLayoutData(lhs, grid_data);
 		
 		final Label menu_drop = new Label( lhs, SWT.NULL );
 		
@@ -526,7 +526,7 @@ BuddyPluginViewBetaChat
 		status = new BufferedLabel( lhs, SWT.LEFT | SWT.DOUBLE_BUFFERED );
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
 		
-		status.setLayoutData(grid_data);
+		Utils.setLayoutData(status, grid_data);
 		status.setText( MessageText.getString( "PeersView.state.pending" ));
 		
 		Image image = ImageLoader.getInstance().getImage( "menu_down" );
@@ -534,7 +534,7 @@ BuddyPluginViewBetaChat
 		grid_data = new GridData();
 		grid_data.widthHint=image.getBounds().width;
 		grid_data.heightHint=image.getBounds().height;
-		menu_drop.setLayoutData(grid_data);
+		Utils.setLayoutData(menu_drop, grid_data);
 
 		menu_drop.setCursor(menu_drop.getDisplay().getSystemCursor(SWT.CURSOR_HAND));		
 
@@ -942,7 +942,7 @@ BuddyPluginViewBetaChat
 		final Composite ftux_stack = new Composite(lhs, SWT.NONE);
 		grid_data = new GridData(GridData.FILL_BOTH );
 		grid_data.horizontalSpan = 2;
-		ftux_stack.setLayoutData( grid_data );
+		Utils.setLayoutData(ftux_stack,  grid_data );
 		
         final StackLayout stack_layout = new StackLayout();
         ftux_stack.setLayout(stack_layout);
@@ -976,14 +976,14 @@ BuddyPluginViewBetaChat
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
 		grid_data.heightHint = 30;
-		ftux_top_area.setLayoutData(grid_data);
+		Utils.setLayoutData(ftux_top_area, grid_data);
 		ftux_top_area.setBackground( ftux_dark_bg );
 
 		
 		Label ftux_top = new Label( ftux_top_area, SWT.WRAP );
 		grid_data = new GridData(SWT.LEFT, SWT.CENTER, true, true );
 		grid_data.horizontalIndent = 8;
-		ftux_top.setLayoutData(grid_data);
+		Utils.setLayoutData(ftux_top, grid_data);
 		
 		ftux_top.setAlignment( SWT.LEFT );
 		ftux_top.setBackground( ftux_dark_bg );
@@ -997,7 +997,7 @@ BuddyPluginViewBetaChat
 		grid_data = new GridData();
 		grid_data.heightHint=40;
 		grid_data.widthHint=0;
-		ftux_hack.setLayoutData(grid_data);
+		Utils.setLayoutData(ftux_hack, grid_data);
 		
 		final StyledText ftux_middle = new StyledText( ftux_holder, SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
 		
@@ -1005,7 +1005,7 @@ BuddyPluginViewBetaChat
 		grid_data.horizontalSpan = 1;
 		grid_data.verticalIndent = 4;
 		grid_data.horizontalIndent = 16;
-		ftux_middle.setLayoutData(grid_data);
+		Utils.setLayoutData(ftux_middle, grid_data);
 		
 		ftux_middle.setBackground( ftux_light_bg );
 				
@@ -1053,18 +1053,18 @@ BuddyPluginViewBetaChat
 		
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
-		ftux_check_area.setLayoutData( grid_data );
+		Utils.setLayoutData(ftux_check_area,  grid_data );
 		ftux_check_area.setBackground(  ftux_light_bg );
 
 		final Button ftux_check = new Button( ftux_check_area, SWT.CHECK );
 		grid_data = new GridData();
 		grid_data.horizontalIndent = 16;
-		ftux_check.setLayoutData( grid_data );
+		Utils.setLayoutData(ftux_check,  grid_data );
 		ftux_check.setBackground(  ftux_light_bg );
 		
 		Label ftux_check_test = new Label( ftux_check_area, SWT.WRAP );
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
-		ftux_check_test.setLayoutData(grid_data);
+		Utils.setLayoutData(ftux_check_test, grid_data);
 		
 		ftux_check_test.setBackground( ftux_light_bg );
 		ftux_check_test.setText( info2_text );
@@ -1076,7 +1076,7 @@ BuddyPluginViewBetaChat
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
 		grid_data.horizontalIndent = 16;
-		ftux_bottom.setLayoutData(grid_data);
+		Utils.setLayoutData(ftux_bottom, grid_data);
 		
 		ftux_bottom.setBackground( ftux_light_bg );
 		ftux_bottom.setFont( bold_font );
@@ -1128,7 +1128,7 @@ BuddyPluginViewBetaChat
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
 		grid_data.verticalIndent = 4;
-		ftux_line.setLayoutData( grid_data ); 
+		Utils.setLayoutData(ftux_line,  grid_data ); 
 		
 		Composite ftux_button_area = new Composite( ftux_holder, SWT.NULL );
 		layout = new GridLayout();
@@ -1137,19 +1137,19 @@ BuddyPluginViewBetaChat
 		
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
-		ftux_button_area.setLayoutData( grid_data );
+		Utils.setLayoutData(ftux_button_area,  grid_data );
 		ftux_button_area.setBackground( Colors.white );
 		
 		Label filler = new Label( ftux_button_area, SWT.NULL );
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
-		filler.setLayoutData( grid_data );
+		Utils.setLayoutData(filler,  grid_data );
 		filler.setBackground( Colors.white );
 		
 		final Button ftux_accept = new Button( ftux_button_area, SWT.PUSH );
 		grid_data = new GridData();
 		grid_data.horizontalAlignment = SWT.RIGHT;
 		grid_data.widthHint = 60;
-		ftux_accept.setLayoutData(grid_data);
+		Utils.setLayoutData(ftux_accept, grid_data);
 
 		ftux_accept.setText( MessageText.getString( "label.accept" ));
 		
@@ -1180,13 +1180,13 @@ BuddyPluginViewBetaChat
 		log_holder.setLayout(layout);
 		//grid_data = new GridData(GridData.FILL_BOTH );
 		//grid_data.horizontalSpan = 2;
-		//log_holder.setLayoutData(grid_data);
+		//Utils.setLayoutData(log_holder, grid_data);
 		
 		log = new StyledText(log_holder,SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
 		grid_data = new GridData(GridData.FILL_BOTH);
 		grid_data.horizontalSpan = 1;
 		//grid_data.horizontalIndent = 4;
-		log.setLayoutData(grid_data);
+		Utils.setLayoutData(log, grid_data);
 		//log.setIndent( 4 );
 		
 		log.setEditable( false );
@@ -1756,7 +1756,7 @@ BuddyPluginViewBetaChat
 		grid_data = new GridData(GridData.FILL_VERTICAL );
 		int rhs_width=Constants.isWindows?150:160;
 		grid_data.widthHint = rhs_width;
-		rhs.setLayoutData(grid_data);
+		Utils.setLayoutData(rhs, grid_data);
 
 			// options
 		
@@ -1769,14 +1769,14 @@ BuddyPluginViewBetaChat
 		top_right.setLayout(layout);
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
 		//grid_data.heightHint = 50;
-		top_right.setLayoutData(grid_data);
+		Utils.setLayoutData(top_right, grid_data);
 		
 		boolean	can_popout = shell == null && public_chat;
 
 		Label label = new Label( top_right, SWT.NULL );
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan=can_popout?1:2;
-		label.setLayoutData(grid_data);
+		Utils.setLayoutData(label, grid_data);
 		
 		LinkLabel link = new LinkLabel( top_right, "label.help", lu.getLocalisedMessageText( "azbuddy.dchat.link.url" ));	
 		//grid_data.horizontalAlignment = SWT.END;
@@ -1790,7 +1790,7 @@ BuddyPluginViewBetaChat
 			grid_data = new GridData();
 			grid_data.widthHint=image.getBounds().width;
 			grid_data.heightHint=image.getBounds().height;
-			pop_out.setLayoutData(grid_data);
+			Utils.setLayoutData(pop_out, grid_data);
 			
 			pop_out.setCursor(label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 			
@@ -1824,18 +1824,18 @@ BuddyPluginViewBetaChat
 		nick_area.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan=3;
-		nick_area.setLayoutData(grid_data);
+		Utils.setLayoutData(nick_area, grid_data);
 		
 		label = new Label( nick_area, SWT.NULL );
 		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.nick" ));
 		grid_data = new GridData();
 		//grid_data.horizontalIndent=4;
-		label.setLayoutData(grid_data);
+		Utils.setLayoutData(label, grid_data);
 
 		nickname = new Text( nick_area, SWT.BORDER );
 		grid_data = new GridData( GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan=1;
-		nickname.setLayoutData( grid_data );
+		Utils.setLayoutData(nickname,  grid_data );
 
 		nickname.setText( chat.getNickname( false ));
 		nickname.setMessage( chat.getDefaultNickname());
@@ -1887,7 +1887,7 @@ BuddyPluginViewBetaChat
 		if ( !Constants.isWindows ){
 			grid_data.horizontalIndent = 2;
 		}
-		table_header.setLayoutData( grid_data );
+		Utils.setLayoutData(table_header,  grid_data );
 		table_header.setText(MessageText.getString( "PeersView.state.pending" ));
 		
 			// table
@@ -1905,7 +1905,7 @@ BuddyPluginViewBetaChat
 
 			TableColumn tc = new TableColumn(buddy_table, aligns[i]);
 				
-			tc.setWidth(sizes[i]);
+			tc.setWidth(Utils.adjustPXForDPI(sizes[i]));
 
 			Messages.setLanguageText(tc, headers[i]);
 		}	
@@ -1914,7 +1914,7 @@ BuddyPluginViewBetaChat
 
 	    grid_data = new GridData(GridData.FILL_BOTH);
 	    // grid_data.heightHint = buddy_table.getHeaderHeight() * 3;
-		buddy_table.setLayoutData(grid_data);
+		Utils.setLayoutData(buddy_table, grid_data);
 		
 		
 		buddy_table.addListener(
@@ -2093,7 +2093,7 @@ BuddyPluginViewBetaChat
 		grid_data.horizontalSpan = 2;
 		grid_data.heightHint = 30;
 		grid_data.horizontalIndent = 4;
-		input_area.setLayoutData(grid_data);
+		Utils.setLayoutData(input_area, grid_data);
 			
 		input_area.setTextLimit( MAX_MSG_LENGTH );
 		

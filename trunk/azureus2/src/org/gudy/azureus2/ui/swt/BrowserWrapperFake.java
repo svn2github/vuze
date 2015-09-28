@@ -94,7 +94,7 @@ BrowserWrapperFake
 			Messages.setLanguageText(label, "browser.internal.disabled.info");
 			GridData grid_data = new GridData( GridData.FILL_HORIZONTAL );
 			grid_data.horizontalSpan = 3;
-			label.setLayoutData( grid_data );
+			Utils.setLayoutData(label,  grid_data );
 			label.setBackground( Colors.white );
 	
 			label = new Label(browser, SWT.NULL);
@@ -114,7 +114,7 @@ BrowserWrapperFake
 			
 			label = new Label(browser, SWT.NULL);
 			grid_data = new GridData( GridData.FILL_HORIZONTAL );
-			label.setLayoutData( grid_data );
+			Utils.setLayoutData(label,  grid_data );
 			
 		}else{
 			
@@ -122,7 +122,7 @@ BrowserWrapperFake
 			Messages.setLanguageText(label, "browser.internal.failed.info", new String[]{ Debug.getNestedExceptionMessage( _failure )});
 			GridData grid_data = new GridData( GridData.FILL_HORIZONTAL );
 			grid_data.horizontalSpan = 3;
-			label.setLayoutData( grid_data );
+			Utils.setLayoutData(label,  grid_data );
 			label.setBackground( Colors.white );
 		}
 		
@@ -134,14 +134,14 @@ BrowserWrapperFake
 		details.setLayout(layout);
 		GridData grid_data = new GridData( GridData.FILL_BOTH );
 		grid_data.horizontalSpan = 3;
-		details.setLayoutData( grid_data);
+		Utils.setLayoutData(details,  grid_data);
 		details.setBackground( Colors.white );
 		
 			// url
 		
 		Label label = new Label(details, SWT.NULL );
 		label.setText( "URL" );
-		label.setLayoutData( new GridData());
+		Utils.setLayoutData(label,  new GridData());
 		label.setBackground( Colors.white );
 		
 		
@@ -167,7 +167,7 @@ BrowserWrapperFake
 		
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
 		grid_data.horizontalIndent = 10;
-		link_label.setLayoutData(grid_data);
+		Utils.setLayoutData(link_label, grid_data);
 		
 		ClipboardCopy.addCopyToClipMenu( 
 			link_label,
@@ -182,14 +182,14 @@ BrowserWrapperFake
 		
 		label = new Label(details, SWT.NULL );
 		Messages.setLanguageText(label, "columnChooser.columndescription" );
-		label.setLayoutData( new GridData());
+		Utils.setLayoutData(label,  new GridData());
 		label.setBackground( Colors.white );
 
 		description_label = new Label(details, SWT.NULL );
 		description_label.setText( "" );
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
 		grid_data.horizontalIndent = 10;
-		description_label.setLayoutData( grid_data );
+		Utils.setLayoutData(description_label,  grid_data );
 		description_label.setBackground( Colors.white );
 	}
 	

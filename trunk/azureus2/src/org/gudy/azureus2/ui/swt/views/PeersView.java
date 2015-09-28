@@ -176,7 +176,7 @@ public class PeersView
   	tv = TableViewFactory.createTableViewSWT(Peer.class, TableManager.TABLE_TORRENT_PEERS,
 				getPropertiesPrefix(), basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
-		tv.setRowDefaultHeight(16);
+		tv.setRowDefaultHeightEM(1);
 		tv.setEnableTabViews(enable_tabs,true,null);
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();

@@ -24,6 +24,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
@@ -102,8 +103,15 @@ public class SWTSkinObjectContainer
 			style |= SWT.DOUBLE_BUFFERED;
 		}
 
+		Display display = createOn.getDisplay();
 		minWidth = properties.getIntValue(sConfigID + ".minwidth", -1);
+		if (minWidth > 0) {
+			minWidth = Utils.adjustPXForDPI(minWidth);
+		}
 		minHeight = properties.getIntValue(sConfigID + ".minheight", -1);
+		if (minHeight > 0) {
+			minHeight = Utils.adjustPXForDPI(minHeight);
+		}
 
 		final Composite parentComposite;
 		if (skin.DEBUGLAYOUT) {

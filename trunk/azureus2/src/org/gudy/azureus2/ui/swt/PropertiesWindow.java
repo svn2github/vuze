@@ -58,7 +58,7 @@ PropertiesWindow
 	    GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 	    gridData.horizontalSpan = 3;
 	    
-		scrollable.setLayoutData( gridData );
+		Utils.setLayoutData(scrollable,  gridData );
 
 		/*
 		 * Main content composite where panels will be created
@@ -88,7 +88,7 @@ PropertiesWindow
 	    
 	    gridData = new GridData(GridData.FILL_BOTH);
 	    gridData.horizontalSpan = 3;
-	    main.setLayoutData(gridData);
+	    Utils.setLayoutData(main, gridData);
 
 	    for (int i=0;i<keys.length;i++){
 	    	
@@ -124,13 +124,13 @@ PropertiesWindow
 		    
 		    gridData = new GridData();
 		    gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
-		    msg_label.setLayoutData(gridData);
+		    Utils.setLayoutData(msg_label, gridData);
 	
 		    BufferedLabel	val_label = new BufferedLabel(main,SWT.WRAP);
 		    val_label.setText( value );
 		    gridData = new GridData(GridData.FILL_HORIZONTAL);
 		    gridData.horizontalIndent = 6;
-		    val_label.setLayoutData(gridData);
+		    Utils.setLayoutData(val_label, gridData);
 	    }
 
 			// separator
@@ -138,7 +138,7 @@ PropertiesWindow
 		Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 3;
-		labelSeparator.setLayoutData(gridData);
+		Utils.setLayoutData(labelSeparator, gridData);
 		
 			// buttons
 			
@@ -149,7 +149,7 @@ PropertiesWindow
 	 	gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
 	 	gridData.grabExcessHorizontalSpace = true;
 	 	gridData.widthHint = 70;
-	 	bOk.setLayoutData(gridData);
+	 	Utils.setLayoutData(bOk, gridData);
 	 	bOk.addListener(SWT.Selection,new Listener() {
 	  		public void handleEvent(Event e) {
 		 		close();
@@ -161,7 +161,7 @@ PropertiesWindow
 	 	gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 	 	gridData.grabExcessHorizontalSpace = false;
 	 	gridData.widthHint = 70;
-	 	bCancel.setLayoutData(gridData);    
+	 	Utils.setLayoutData(bCancel, gridData);    
 	 	bCancel.addListener(SWT.Selection,new Listener() {
 	 		public void handleEvent(Event e) {
 		 		close();

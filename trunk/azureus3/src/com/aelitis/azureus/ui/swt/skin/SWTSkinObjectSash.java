@@ -125,8 +125,8 @@ public class SWTSkinObjectSash
 			String sPos = properties.getStringValue(sConfigID + ".startpos");
 			if (sPos != null) {
 				try {
-					long l = NumberFormat.getInstance().parse(sPos).longValue();
-					sash.setData("PX", new Long(l));
+					int l = NumberFormat.getInstance().parse(sPos).intValue();
+					sash.setData("PX", new Long(Utils.adjustPXForDPI(l)));
 				} catch (Exception e) {
 					Debug.out(e);
 				}
@@ -189,6 +189,7 @@ public class SWTSkinObjectSash
 			aboveMin = skinObject.getProperties().getIntValue(
 					getConfigID() + ".above" + (isVertical ? ".minwidth" : ".minheight"),
 					0);
+			aboveMin = Utils.adjustPXForDPI(aboveMin);
 			boolean aboveVisible = COConfigurationManager.getBooleanParameter("v3."
 					+ sID + ".aboveVisible", true);
 			soAbove.setVisible(aboveVisible);
@@ -206,6 +207,7 @@ public class SWTSkinObjectSash
 
 		belowMin = skinObject==null?0:skinObject.getProperties().getIntValue(
 				getConfigID() + ".below" + (isVertical ? ".minwidth" : ".minheight"), 0);
+		belowMin = Utils.adjustPXForDPI(belowMin);
 
 		Listener l = new Listener() {
 			public void handleEvent(Event e) {
@@ -216,8 +218,8 @@ public class SWTSkinObjectSash
 							return;
 						}
 						try {
-							long l = NumberFormat.getInstance().parse(sPos).longValue();
-							sash.setData("PX", new Long(l));
+							int l = NumberFormat.getInstance().parse(sPos).intValue();
+							sash.setData("PX", new Long(Utils.adjustPXForDPI(l)));
 							// FALL THROUGH
 							e.type = SWT.Show;
 						} catch (Exception ex) {
@@ -450,7 +452,7 @@ public class SWTSkinObjectSash
 					sash.setData("PX", null);
 					try {
 						int l = NumberFormat.getInstance().parse(sPos).intValue();
-						setAboveSize(l);
+						setAboveSize(Utils.adjustPXForDPI(l));
 					} catch (Exception e) {
 						Debug.out(e);
 					}

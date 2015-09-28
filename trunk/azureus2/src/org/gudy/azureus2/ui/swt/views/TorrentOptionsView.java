@@ -129,9 +129,9 @@ TorrentOptionsView
 			
 			Layout parentLayout = parent.getLayout();
 			if (parentLayout instanceof FormLayout) {
-				panel.setLayoutData(Utils.getFilledFormData());
+				Utils.setLayoutData(panel, Utils.getFilledFormData());
 			} else {
-				panel.setLayoutData(new GridData(GridData.FILL_BOTH));
+				Utils.setLayoutData(panel, new GridData(GridData.FILL_BOTH));
 			}
 		}
 
@@ -150,7 +150,7 @@ TorrentOptionsView
 		configLayout.marginWidth = 0;
 		cHeader.setLayout(configLayout);
 		GridData gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
-		cHeader.setLayoutData(gridData);
+		Utils.setLayoutData(cHeader, gridData);
 		
 		Display d = panel.getDisplay();
 		cHeader.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
@@ -185,12 +185,12 @@ TorrentOptionsView
 		}
 		
 		gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
-		lHeader.setLayoutData(gridData);
+		Utils.setLayoutData(lHeader, gridData);
 		
 		Group gTorrentOptions = new Group(panel, SWT.NULL);
 		Messages.setLanguageText(gTorrentOptions, "ConfigView.section.transfer");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-		gTorrentOptions.setLayoutData(gridData);
+		Utils.setLayoutData(gTorrentOptions, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		gTorrentOptions.setLayout(layout);
@@ -204,7 +204,7 @@ TorrentOptionsView
 		
 		Label label = new Label(gTorrentOptions, SWT.NULL);
 		gridData = new GridData();
-		label.setLayoutData( gridData );
+		Utils.setLayoutData(label,  gridData );
 		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxuploadspeed.tooltip" ));
 
 		GenericIntParameter max_upload = new GenericIntParameter(
@@ -219,7 +219,7 @@ TorrentOptionsView
 			
 			label = new Label(gTorrentOptions, SWT.NULL);
 			gridData = new GridData();
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 			Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads.when.busy");
 			
 			GenericIntParameter max_upload_when_busy = new GenericIntParameter(
@@ -234,7 +234,7 @@ TorrentOptionsView
 		
 		label = new Label(gTorrentOptions, SWT.NULL);
 		gridData = new GridData();
-		label.setLayoutData( gridData );
+		Utils.setLayoutData(label,  gridData );
 		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxdownloadspeed.tooltip" ));
 	     
 		GenericIntParameter max_download = new GenericIntParameter(
@@ -248,7 +248,7 @@ TorrentOptionsView
 		if (userMode > 0) {
 			label = new Label(gTorrentOptions, SWT.NULL);
 			gridData = new GridData();
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 			Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads" );
 			
 			GenericIntParameter max_uploads = new GenericIntParameter(
@@ -270,12 +270,12 @@ TorrentOptionsView
 			gridData = new GridData();
 			gridData.horizontalIndent = 15;
 			gridData.horizontalSpan = 2;
-			cMaxUploadsOptionsArea.setLayoutData(gridData);
+			Utils.setLayoutData(cMaxUploadsOptionsArea, gridData);
 			
 			label = new Label(cMaxUploadsOptionsArea, SWT.NULL);
 			ImageLoader.getInstance().setLabelImage(label, "subitem");
 			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 	
 			gridData = new GridData();
 			GenericBooleanParameter	max_uploads_when_seeding_enabled = 
@@ -304,7 +304,7 @@ TorrentOptionsView
 			
 			label = new Label(gTorrentOptions, SWT.NULL);
 			gridData = new GridData();
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 			Messages.setLanguageText(label, TEXT_PREFIX + "max.peers");
 			
 			GenericIntParameter max_peers = new GenericIntParameter(ds_param_adapter,
@@ -324,12 +324,12 @@ TorrentOptionsView
 			gridData = new GridData();
 			gridData.horizontalIndent = 15;
 			gridData.horizontalSpan = 2;
-			cMaxPeersOptionsArea.setLayoutData(gridData);
+			Utils.setLayoutData(cMaxPeersOptionsArea, gridData);
 			
 			label = new Label(cMaxPeersOptionsArea, SWT.NULL);
 			ImageLoader.getInstance().setLabelImage(label, "subitem");
 			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 	
 			gridData = new GridData();
 			GenericBooleanParameter	max_peers_when_seeding_enabled = 
@@ -358,7 +358,7 @@ TorrentOptionsView
 			
 			label = new Label(gTorrentOptions, SWT.NULL);
 			gridData = new GridData();
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 			Messages.setLanguageText(label, TEXT_PREFIX + "max.seeds" );
 			
 			GenericIntParameter max_seeds = new GenericIntParameter(
@@ -375,7 +375,7 @@ TorrentOptionsView
 			
 			label = new Label(gTorrentOptions, SWT.NULL);
 			gridData = new GridData();
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 			Messages.setLanguageText(label, TEXT_PREFIX + "upload.priority" );
 			
 			gridData = new GridData();
@@ -392,7 +392,7 @@ TorrentOptionsView
 			
 			label = new Label(gTorrentOptions, SWT.NULL);
 			gridData = new GridData();
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 			Messages.setLanguageText(label, "TableColumn.header.min_sr" );
 			
 			gridData = new GridData();
@@ -410,7 +410,7 @@ TorrentOptionsView
 			
 			label = new Label(gTorrentOptions, SWT.NULL);
 			gridData = new GridData();
-			label.setLayoutData( gridData );
+			Utils.setLayoutData(label,  gridData );
 			Messages.setLanguageText(label, "TableColumn.header.max_sr" );
 			
 			gridData = new GridData();
@@ -452,7 +452,7 @@ TorrentOptionsView
 		Group gTorrentInfo = new Group(panel, SWT.NULL);
 		Messages.setLanguageText(gTorrentInfo, "label.aggregate.info");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-		gTorrentInfo.setLayoutData(gridData);
+		Utils.setLayoutData(gTorrentInfo, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		gTorrentInfo.setLayout(layout);

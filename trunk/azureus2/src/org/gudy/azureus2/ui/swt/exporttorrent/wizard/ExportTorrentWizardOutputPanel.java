@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.*;
 
 public class 
@@ -69,7 +70,7 @@ ExportTorrentWizardOutputPanel
 	
 		Composite panel = new Composite(rootPanel, SWT.NULL);
 		GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-		panel.setLayoutData(gridData);
+		Utils.setLayoutData(panel, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 3;
 		panel.setLayout(layout);
@@ -78,7 +79,7 @@ ExportTorrentWizardOutputPanel
 		gridData = new GridData();
 		gridData.horizontalSpan = 3;
 		gridData.widthHint = 380;
-		label.setLayoutData(gridData);
+		Utils.setLayoutData(label, gridData);
 		Messages.setLanguageText(label, "exportTorrentWizard.exportfile.message");
 	
 		label = new Label(panel,SWT.NULL);
@@ -86,7 +87,7 @@ ExportTorrentWizardOutputPanel
 	
 		final Text textPath = new Text(panel,SWT.BORDER);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		textPath.setLayoutData(gridData);
+		Utils.setLayoutData(textPath, gridData);
 		textPath.setText(((ExportTorrentWizard)wizard).getExportFile());
 	
 		Button browse = new Button(panel,SWT.PUSH);

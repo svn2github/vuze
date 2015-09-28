@@ -89,7 +89,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
 				| GridData.HORIZONTAL_ALIGN_FILL);
-		cDisplay.setLayoutData(gridData);
+		Utils.setLayoutData(cDisplay, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 1;
 		layout.marginWidth = 0;
@@ -104,7 +104,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		Messages.setLanguageText(gAutoOpen, LBLKEY_PREFIX + "autoopen");
 		layout = new GridLayout(3, false);
 		gAutoOpen.setLayout(layout);
-		gAutoOpen.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+		Utils.setLayoutData(gAutoOpen, new GridData( GridData.FILL_HORIZONTAL ));
 
 
 		label = new Label(gAutoOpen, SWT.NULL);
@@ -136,7 +136,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		gBarTrans.setLayout(layout);
 		gridData = new GridData( GridData.FILL_HORIZONTAL );
 		gridData.horizontalIndent = 25;
-		gBarTrans.setLayoutData(gridData);
+		Utils.setLayoutData(gBarTrans, gridData);
 		
 		label = new Label(gBarTrans, SWT.NULL);
 		Messages.setLanguageText(label, "label.bar.trans");
@@ -155,7 +155,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		Messages.setLanguageText(gSysTray, LBLKEY_PREFIX + "systray");
 		layout = new GridLayout();
 		gSysTray.setLayout(layout);
-		gSysTray.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+		Utils.setLayoutData(gSysTray, new GridData( GridData.FILL_HORIZONTAL ));
 
 		BooleanParameter est = new BooleanParameter(gSysTray, "Enable System Tray",
 				KEY_PREFIX + "enabletray");
@@ -192,10 +192,10 @@ public class ConfigSectionInterface implements UISWTConfigSection {
         layout = new GridLayout();
         layout.numColumns = 2;
         limit_group.setLayout(layout);
-        limit_group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        Utils.setLayoutData(limit_group, new GridData(GridData.FILL_HORIZONTAL));
         
         Label limit_group_label = new Label(limit_group, SWT.WRAP);
-        limit_group_label.setLayoutData(Utils.getWrappableLabelGridData(2, GridData.GRAB_HORIZONTAL));
+        Utils.setLayoutData(limit_group_label, Utils.getWrappableLabelGridData(2, GridData.GRAB_HORIZONTAL));
         Messages.setLanguageText(limit_group_label, LBLKEY_PREFIX + "set_ui_transfer_speeds.description");
         
         String[] limit_types = new String[] {"download", "upload"};
@@ -227,7 +227,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		layout.marginWidth = 0;
 		layout.numColumns = 2;
 		cArea.setLayout(layout);
-		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Utils.setLayoutData(cArea, new GridData(GridData.FILL_HORIZONTAL));
 		
 		new LinkLabel(cArea, LBLKEY_PREFIX + "version.info.link",
 				"http://wiki.vuze.com/w/Version.azureusplatform.com");
@@ -248,7 +248,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		layout.marginWidth = 0;
 		layout.numColumns = 2;
 		cArea.setLayout(layout);
-		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Utils.setLayoutData(cArea, new GridData(GridData.FILL_HORIZONTAL));
 
 		// clear remembered decisions
 
@@ -349,7 +349,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 			layout.marginWidth = 0;
 			layout.numColumns = 2;
 			cResetAssoc.setLayout(layout);
-			cResetAssoc.setLayoutData(new GridData());
+			Utils.setLayoutData(cResetAssoc, new GridData());
 
 			label = new Label(cResetAssoc, SWT.NULL);
 			Messages.setLanguageText(label, KEY_PREFIX + "resetassoc");

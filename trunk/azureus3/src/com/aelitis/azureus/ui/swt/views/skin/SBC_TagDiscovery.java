@@ -487,7 +487,7 @@ public class SBC_TagDiscovery
 			if (txtFilter != null) {
 				tv.enableFilterCheck(txtFilter, this);
 			}
-			tv.setRowDefaultHeight(16);
+			tv.setRowDefaultHeightEM(1);
 
 			table_parent = new Composite(control, SWT.BORDER);
 			table_parent.setLayoutData(Utils.getFilledFormData());

@@ -654,7 +654,7 @@ public class SubscriptionWizard {
 		libraryTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
 		
 		final TableColumn torrentColumn = new TableColumn(libraryTable, SWT.NONE);
-		torrentColumn.setWidth(50);
+		torrentColumn.setWidth(Utils.adjustPXForDPI(50));
 		
 		final Composite compEmpty = new Composite(composite,SWT.NONE);
 		compEmpty.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
@@ -691,7 +691,7 @@ public class SubscriptionWizard {
 				SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
 		tvSubscriptions.setMenuEnabled(false);
 		tvSubscriptions.setHeaderVisible(false);
-		tvSubscriptions.setRowDefaultHeight(20);
+		tvSubscriptions.setRowDefaultHeightEM(1.4f);
 		
 		tvSubscriptions.initialize(cTV);
 
@@ -700,7 +700,7 @@ public class SubscriptionWizard {
 				org.gudy.azureus2.plugins.ui.tables.TableColumn tcName = tvSubscriptions.getTableColumn("SubWizName");
 				org.gudy.azureus2.plugins.ui.tables.TableColumn tcRank = tvSubscriptions.getTableColumn("SubWizRank");
 				Rectangle clientArea = ((Composite) event.widget).getClientArea();
-				tcName.setWidth(clientArea.width - tcRank.getWidth() - 1);
+				tcName.setWidthPX(clientArea.width - tcRank.getWidth() - 1);
 			}
 		});
 		tvSubscriptions.addSelectionListener(new TableSelectionListener() {

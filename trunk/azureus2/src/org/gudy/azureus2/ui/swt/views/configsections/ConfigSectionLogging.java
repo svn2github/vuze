@@ -103,7 +103,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 
     Composite gLogging = new Composite(parent, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gLogging.setLayoutData(gridData);
+    Utils.setLayoutData(gLogging, gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     gLogging.setLayout(layout);
@@ -185,7 +185,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     {
     	Label timeStampLbl = new Label(cArea, SWT.NULL);
     	Messages.setLanguageText(timeStampLbl, CFG_PREFIX+"timestamp");
-    	timeStampLbl.setLayoutData(new GridData());
+    	Utils.setLayoutData(timeStampLbl, new GridData());
     	StringParameter timeStamp = new StringParameter(cArea,"Logging Timestamp");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -206,7 +206,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     gLogIDs.setLayout(layout);
     gridData = new GridData(SWT.BEGINNING, SWT.BEGINNING, true, true);
     gridData.horizontalSpan = 2;
-    gLogIDs.setLayoutData(gridData);
+    Utils.setLayoutData(gLogIDs, gridData);
 
     final List listLogTypes = new List(gLogIDs, SWT.BORDER | SWT.SINGLE
 				| SWT.V_SCROLL);

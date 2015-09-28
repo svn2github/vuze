@@ -223,7 +223,7 @@ UpdateWindow
     for(int i = 0 ; i < names.length ; i++) {
       TableColumn column = new TableColumn(table, i==0?SWT.LEFT:SWT.RIGHT);
       Messages.setLanguageText(column,"UpdateWindow.columns." + names[i]);
-      column.setWidth(sizes[i]);
+      column.setWidth(Utils.adjustPXForDPI(sizes[i]));
     }
     table.setHeaderVisible(true);    
 

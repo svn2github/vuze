@@ -27,25 +27,34 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.ProgressBar;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
-import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
-import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
+import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTest;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTestListener;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestSchedulerImpl;
 
@@ -109,7 +118,7 @@ SpeedTestPanel
 
         Composite panel = new Composite(rootPanel, SWT.NULL);
         GridData gridData = new GridData(GridData.FILL_BOTH);
-		panel.setLayoutData(gridData);
+		Utils.setLayoutData(panel, gridData);
 
         /////////////////////////////////////////
         //Add group to link to Azureus Wiki page.
@@ -118,7 +127,7 @@ SpeedTestPanel
         GridData azwGridData = new GridData();
         azwGridData.widthHint = 350;
         azwGridData.horizontalSpan = 4; 
-        azWiki.setLayoutData(azwGridData);
+        Utils.setLayoutData(azWiki, azwGridData);
         GridLayout azwLayout = new GridLayout();
         azwLayout.numColumns = 1;
         //azwLayout.marginHeight = 1;
@@ -133,7 +142,7 @@ SpeedTestPanel
         linkLabel.setForeground(Colors.blue);
         azwGridData = new GridData();
         azwGridData.horizontalIndent = 10;
-        linkLabel.setLayoutData( azwGridData );
+        Utils.setLayoutData(linkLabel,  azwGridData );
 	    linkLabel.addMouseListener(new MouseAdapter() {
 	      public void mouseDoubleClick(MouseEvent arg0) {
 	      	Utils.launch((String) ((Label) arg0.widget).getData());
@@ -147,7 +156,7 @@ SpeedTestPanel
         Label spacer = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 4;
-        spacer.setLayoutData(gridData);
+        Utils.setLayoutData(spacer, gridData);
 
         //label explain section.
         layout = new GridLayout();
@@ -157,7 +166,7 @@ SpeedTestPanel
         Label explain = new Label(panel, SWT.WRAP);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan = 4;
-        explain.setLayoutData(gridData);
+        Utils.setLayoutData(explain, gridData);
         Messages.setLanguageText(explain,"SpeedTestWizard.test.panel.explain");
                 
 
@@ -165,17 +174,17 @@ SpeedTestPanel
         spacer = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 4;
-        spacer.setLayoutData(gridData);
+        Utils.setLayoutData(spacer, gridData);
 
         //label type and button section.
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
-        ul.setLayoutData(gridData);
+        Utils.setLayoutData(ul, gridData);
         Messages.setLanguageText(ul,"SpeedTestWizard.test.panel.label");
 
         testCombo = new Combo(panel, SWT.READ_ONLY);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
-        testCombo.setLayoutData(gridData);
+        Utils.setLayoutData(testCombo, gridData);
            
         int[]	test_types  	= NetworkAdminSpeedTester.TEST_TYPES;
         int		up_only_index 	= 0;
@@ -204,21 +213,21 @@ SpeedTestPanel
         Messages.setLanguageText(test,"dht.execute");//Run
         gridData = new GridData();
         gridData.widthHint = 70;
-        test.setLayoutData(gridData);
+        Utils.setLayoutData(test, gridData);
         test.addListener(SWT.Selection, new RunButtonListener() );
 
         abort = new Button(panel, SWT.PUSH);
         Messages.setLanguageText(abort,"SpeedTestWizard.test.panel.abort");//Abort
         gridData = new GridData();
         gridData.widthHint = 70;
-        abort.setLayoutData(gridData);
+        Utils.setLayoutData(abort, gridData);
         abort.setEnabled(false);
         abort.addListener(SWT.Selection, new AbortButtonListener() );
 
         //toggle button line.
         Label enc = new Label( panel, SWT.NULL );
         gridData = new GridData();
-        enc.setLayoutData(gridData);
+        Utils.setLayoutData(enc, gridData);
         Messages.setLanguageText(enc,"SpeedTestWizard.test.panel.enc.label");
 
         encryptToggle = new Button(panel, SWT.TOGGLE);
@@ -230,7 +239,7 @@ SpeedTestPanel
         Messages.setLanguageText(encryptToggle,statusString);
         gridData = new GridData();
         gridData.widthHint = 80;
-        encryptToggle.setLayoutData(gridData);
+        Utils.setLayoutData(encryptToggle, gridData);
         encryptToggle.addListener(SWT.Selection, new EncryptToggleButtonListener() );
 
         //finish line
@@ -242,7 +251,7 @@ SpeedTestPanel
         //test count down section.
         Label abortCountDown = new Label(panel, SWT.NULL);
         gridData = new GridData();
-        abortCountDown.setLayoutData(gridData);
+        Utils.setLayoutData(abortCountDown, gridData);
         Messages.setLanguageText(abortCountDown,"SpeedTestWizard.test.panel.abort.countdown");
 
         testCountDown1 = new Label(panel, SWT.NULL);
@@ -252,7 +261,7 @@ SpeedTestPanel
 
         Label testFinishCountDown = new Label(panel, SWT.NULL);
         gridData = new GridData();
-        testFinishCountDown.setLayoutData(gridData);
+        Utils.setLayoutData(testFinishCountDown, gridData);
         Messages.setLanguageText(testFinishCountDown,"SpeedTestWizard.test.panel.test.countdown");
 
         testCountDown2 = new Label(panel, SWT.NULL);
@@ -267,7 +276,7 @@ SpeedTestPanel
 		progress.setMaximum(100);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan = 4;
-        progress.setLayoutData(gridData);
+        Utils.setLayoutData(progress, gridData);
 
         //message text section.
         textMessages = new Text(panel, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL );
@@ -275,7 +284,7 @@ SpeedTestPanel
 		gridData = new GridData(GridData.FILL_BOTH);
         gridData.horizontalSpan = 4;
         gridData.heightHint = 60;
-        textMessages.setLayoutData(gridData);
+        Utils.setLayoutData(textMessages, gridData);
 
         //this should only be new when returning from a previous panel.
         String lastData = SpeedTestData.getInstance().getLastTestData();

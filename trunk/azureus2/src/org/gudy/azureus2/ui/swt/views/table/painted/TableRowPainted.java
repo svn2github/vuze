@@ -536,7 +536,15 @@ public class TableRowPainted
 							int drawToX = cellBounds.x + cellBounds.width - size.x;
 							gc.drawImage(image, drawToX, drawToY);
 						} else {
-							gc.drawImage(image, cellBounds.x - imageBounds.width - 3, drawToY);
+							if (imageBounds.height > cellBounds.height) {
+								float pct = cellBounds.height / (float) imageBounds.height;
+  							gc.drawImage(image, 0, 0, imageBounds.width, imageBounds.height,
+  									cellBounds.x - imageBounds.width - 3, cellBounds.y, 
+  									(int) (imageBounds.width * pct),
+  									(int) (imageBounds.height * pct));
+							} else {
+  							gc.drawImage(image, cellBounds.x - imageBounds.width - 3, drawToY);
+							}
 						}
 						if ( hack_adv ){
 							gc.setAdvanced( true );

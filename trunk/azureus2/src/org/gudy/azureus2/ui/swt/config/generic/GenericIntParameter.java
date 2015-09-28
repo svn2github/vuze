@@ -286,6 +286,7 @@ public class GenericIntParameter
 	}
 
 	public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
 		spinner.setLayoutData(layoutData);
 	}
 

@@ -264,7 +264,7 @@ public class TorrentListViewsUtils
 						});
 						FormData formData = Utils.getFilledFormData();
 						formData.bottom.offset = -20;
-						table.setLayoutData(formData);
+						Utils.setLayoutData(table, formData);
 						table.setHeaderVisible(false);
 						table.addListener(SWT.MeasureItem, new Listener() {
 							public void handleEvent(Event event) {

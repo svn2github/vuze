@@ -85,12 +85,6 @@ public interface TableViewSWT<DATASOURCETYPE>
 
 
 	/**
-	 * @param size
-	 */
-	void setRowDefaultIconSize(Point size);
-	
-
-	/**
 	 * @param x
 	 * @param y
 	 * @return

@@ -124,7 +124,7 @@ BlockedIpsWindow
     formData.right = new FormAttachment(100,0);
     formData.top = new FormAttachment(0,0);   
     formData.bottom = new FormAttachment(40,0);   
-    textBlocked.setLayoutData(formData);
+    Utils.setLayoutData(textBlocked, formData);
     textBlocked.setText(ipsBlocked);
     
     
@@ -136,7 +136,7 @@ BlockedIpsWindow
     formData.top = new FormAttachment(textBlocked);    
     formData.right = new FormAttachment(btnClear);    
     formData.left = new FormAttachment(0,0);    
-    blockedInfo.setLayoutData( formData );
+    Utils.setLayoutData(blockedInfo,  formData );
  
     	// clear button
     
@@ -147,7 +147,7 @@ BlockedIpsWindow
     formData.right = new FormAttachment(95,0 );    
     //formData.bottom = new FormAttachment(textBanned);
     formData.width = 70;
-    btnClear.setLayoutData(formData);
+    Utils.setLayoutData(btnClear, formData);
     btnClear.addListener(SWT.Selection,new Listener() {
 
     public void handleEvent(Event e) {
@@ -165,7 +165,7 @@ BlockedIpsWindow
     formData.right = new FormAttachment(100,0);
     formData.top = new FormAttachment(btnClear);   
     formData.bottom = new FormAttachment(btnOk);   
-    textBanned.setLayoutData(formData);
+    Utils.setLayoutData(textBanned, formData);
     textBanned.setText(ipsBanned);
     
     	// label banned area
@@ -176,7 +176,7 @@ BlockedIpsWindow
     formData.right = new FormAttachment(btnReset);    
     formData.left = new FormAttachment(0,0);    
     formData.bottom = new FormAttachment(100,0);  
-    bannedInfo.setLayoutData( formData );
+    Utils.setLayoutData(bannedInfo,  formData );
     
     	// reset button
     
@@ -185,7 +185,7 @@ BlockedIpsWindow
     formData.right = new FormAttachment(btnOk);    
     formData.bottom = new FormAttachment(100,0);    
     formData.width = 70;
-    btnReset.setLayoutData(formData);
+    Utils.setLayoutData(btnReset, formData);
     btnReset.addListener(SWT.Selection,new Listener() {
 
     public void handleEvent(Event e) {
@@ -202,7 +202,7 @@ BlockedIpsWindow
     formData.right = new FormAttachment(95,0);    
     formData.bottom = new FormAttachment(100,0);    
     formData.width = 70;
-    btnOk.setLayoutData(formData);
+    Utils.setLayoutData(btnOk, formData);
     btnOk.addListener(SWT.Selection,new Listener() {
 
     public void handleEvent(Event e) {

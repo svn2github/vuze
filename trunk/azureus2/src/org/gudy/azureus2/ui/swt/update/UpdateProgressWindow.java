@@ -102,7 +102,7 @@ UpdateProgressWindow
 	    formData.right = new FormAttachment(100,0);
 	    formData.top = new FormAttachment(0,0);   
 	    formData.bottom = new FormAttachment(90,0);   
-	    text_area.setLayoutData(formData);
+	    Utils.setLayoutData(text_area, formData);
 	    
 	    
 	    	// label
@@ -113,7 +113,7 @@ UpdateProgressWindow
 	    formData.top = new FormAttachment(text_area);    
 	    formData.right = new FormAttachment(btnAbort);    
 	    formData.left = new FormAttachment(0,0);    
-	    info_label.setLayoutData( formData );    
+	    Utils.setLayoutData(info_label,  formData );    
 	   
 	    
 	    	// abort button
@@ -123,7 +123,7 @@ UpdateProgressWindow
 	    formData.right = new FormAttachment(btnOk);    
 	    formData.bottom = new FormAttachment(100,0);    
 	    formData.width = 70;
-	    btnAbort.setLayoutData(formData);
+	    Utils.setLayoutData(btnAbort, formData);
 	    btnAbort.addListener(
 	    		SWT.Selection,
 				new Listener() 
@@ -150,7 +150,7 @@ UpdateProgressWindow
 	    formData.right = new FormAttachment(95,0);    
 	    formData.bottom = new FormAttachment(100,0);    
 	    formData.width = 70;
-	    btnOk.setLayoutData(formData);
+	    Utils.setLayoutData(btnOk, formData);
 	    btnOk.addListener(
 	    		SWT.Selection,
 				new Listener() 

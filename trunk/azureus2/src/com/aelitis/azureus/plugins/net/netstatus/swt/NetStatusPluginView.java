@@ -144,7 +144,7 @@ NetStatusPluginView
 		layout.marginWidth = 0;
 		main.setLayout(layout);
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
-		main.setLayoutData(grid_data);
+		Utils.setLayoutData(main, grid_data);
 		
 			// control
 		
@@ -158,12 +158,12 @@ NetStatusPluginView
 		Label info = new Label( control, SWT.NULL );
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
 		grid_data.horizontalSpan = 3;
-		info.setLayoutData( grid_data );
+		Utils.setLayoutData(info,  grid_data );
 		Messages.setLanguageText( info,  "label.test.internet" );
 		
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
 		grid_data.horizontalSpan = 1;
-		control.setLayoutData(grid_data);
+		Utils.setLayoutData(control, grid_data);
 
 		List<Button> buttons = new ArrayList<Button>();
 		
@@ -225,7 +225,7 @@ NetStatusPluginView
 
 
 			grid_data = new GridData(GridData.FILL_HORIZONTAL);
-			options.setLayoutData(grid_data);
+			Utils.setLayoutData(options, grid_data);
 
 			/*
 				Button opt1 = new Button( options, SWT.CHECK );
@@ -289,7 +289,7 @@ NetStatusPluginView
 		grid_data = new GridData(GridData.FILL_BOTH);
 		grid_data.horizontalSpan = 1;
 		grid_data.horizontalIndent = 4;
-		log.setLayoutData(grid_data);
+		Utils.setLayoutData(log, grid_data);
 		log.setIndent( 4 );
 		
 		ClipboardCopy.addCopyToClipMenu(

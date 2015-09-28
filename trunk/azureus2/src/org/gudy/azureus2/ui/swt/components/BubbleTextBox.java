@@ -27,25 +27,45 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.ui.swt.Utils;
 
 public class BubbleTextBox
 {
 	Text textWidget;
+
 	private Composite cBubble;
-	
-	
+
+	private int WIDTH_OVAL;
+
+	private int HEIGHT_OVAL;
+
+	private int INDENT_OVAL;
+
+	private int HEIGHT_ICON_MAX;
+
+	private int WIDTH_CLEAR;
+
+	private int WIDTH_PADDING;
+
 	public BubbleTextBox(Composite parent, int style) {
 		cBubble = new Composite(parent, SWT.DOUBLE_BUFFERED);
 		cBubble.setLayout(new FormLayout());
 
 		textWidget = new Text(cBubble, style & ~(SWT.BORDER | SWT.SEARCH));
-		
+
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0, 2);
 		fd.bottom = new FormAttachment(100, -2);
 		fd.left = new FormAttachment(0, 17);
 		fd.right = new FormAttachment(100, -14);
-		textWidget.setLayoutData(fd);
+		Utils.setLayoutData(textWidget, fd);
+
+		WIDTH_OVAL = Utils.adjustPXForDPI(7);
+		HEIGHT_OVAL = Utils.adjustPXForDPI(6);
+		INDENT_OVAL = Utils.adjustPXForDPI(6);
+		HEIGHT_ICON_MAX = Utils.adjustPXForDPI(13);
+		WIDTH_CLEAR = Utils.adjustPXForDPI(7);
+		WIDTH_PADDING = Utils.adjustPXForDPI(6);
 
 		cBubble.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
@@ -61,48 +81,57 @@ public class BubbleTextBox
 						clientArea.width - 1, clientArea.height - 1, clientArea.height,
 						clientArea.height);
 
-				e.gc.setLineCap(SWT.CAP_ROUND);
+				e.gc.setAlpha(255);
+				e.gc.setLineCap(SWT.CAP_FLAT);
 
-				int iconHeight = clientArea.height - 9;
-				if (iconHeight > 13) {
-					iconHeight = 13;
+				int iconHeight = clientArea.height - Utils.adjustPXForDPI(9);
+				if (iconHeight > HEIGHT_ICON_MAX) {
+					iconHeight = HEIGHT_ICON_MAX;
 				}
 				int iconY = clientArea.y + ((clientArea.height - iconHeight + 1) / 2);
-				
-				e.gc.setAlpha(120);
-				e.gc.setLineWidth(2);
-				e.gc.drawOval(clientArea.x + 6, iconY, 7, 6); 
+
+				Color colorClearX = e.display.getSystemColor(
+						SWT.COLOR_WIDGET_NORMAL_SHADOW);
+				e.gc.setForeground(colorClearX);
+
+				e.gc.setLineWidth(Utils.adjustPXForDPI(2));
+				e.gc.drawOval(clientArea.x + INDENT_OVAL, iconY, WIDTH_OVAL,
+						HEIGHT_OVAL);
 				e.gc.drawPolyline(new int[] {
-					clientArea.x + 12,
-					iconY + 6,
-					clientArea.x + 15,
+					clientArea.x + INDENT_OVAL + INDENT_OVAL,
+					iconY + INDENT_OVAL,
+					clientArea.x + (int) (INDENT_OVAL * 2.6),
 					iconY + iconHeight,
 				});
-				
+
 				boolean textIsBlank = textWidget.getText().length() == 0;
 				if (!textIsBlank) {
+					int YADJ = (clientArea.height
+							- (WIDTH_CLEAR + WIDTH_PADDING + WIDTH_PADDING)) / 2;
+					e.gc.setLineCap(SWT.CAP_ROUND);
 					//e.gc.setLineWidth(1);
-					e.gc.setAlpha(80);
-					Rectangle rXArea = new Rectangle(clientArea.x + clientArea.width
-							- 16, clientArea.y + 1, 11, clientArea.height - 2);
+					Rectangle rXArea = new Rectangle(
+							clientArea.x + clientArea.width - (WIDTH_CLEAR + WIDTH_PADDING),
+							clientArea.y + (WIDTH_PADDING / 2), WIDTH_CLEAR + (WIDTH_PADDING / 2),
+							clientArea.height - WIDTH_PADDING);
 					cBubble.setData("XArea", rXArea);
 
 					e.gc.drawPolyline(new int[] {
-						clientArea.x + clientArea.width - 7,
-						clientArea.y + 7,
-						clientArea.x + clientArea.width - (7 + 5),
-						clientArea.y + clientArea.height - 7,
+						clientArea.x + clientArea.width - WIDTH_PADDING,
+						clientArea.y + WIDTH_PADDING + YADJ,
+						clientArea.x + clientArea.width - (WIDTH_PADDING + WIDTH_CLEAR),
+						clientArea.y + WIDTH_PADDING + WIDTH_CLEAR + YADJ,
 					});
 					e.gc.drawPolyline(new int[] {
-						clientArea.x + clientArea.width - 7,
-						clientArea.y + clientArea.height - 7,
-						clientArea.x + clientArea.width - (7 + 5),
-						clientArea.y + 7,
+						clientArea.x + clientArea.width - WIDTH_PADDING,
+						clientArea.y + WIDTH_PADDING + WIDTH_CLEAR + YADJ,
+						clientArea.x + clientArea.width - (WIDTH_PADDING + WIDTH_CLEAR),
+						clientArea.y + WIDTH_PADDING + YADJ,
 					});
 				}
 			}
 		});
-		
+
 		cBubble.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
 				Rectangle r = (Rectangle) event.widget.getData("XArea");
@@ -111,34 +140,29 @@ public class BubbleTextBox
 				}
 			}
 		});
-		
-			// pick up changes in the text control's bg color and propagate to the bubble
-		
-		textWidget.addPaintListener(
-			new PaintListener()
-			{
-				private Color existing_bg;
-				
-				public void 
-				paintControl(
-					PaintEvent arg0 )
-				{
-					Color current_bg = textWidget.getBackground();
-					
-					if ( current_bg != existing_bg ){
-						
-						existing_bg = current_bg;
-						
-						cBubble.redraw();
-					}
+
+		// pick up changes in the text control's bg color and propagate to the bubble
+
+		textWidget.addPaintListener(new PaintListener() {
+			private Color existing_bg;
+
+			public void paintControl(PaintEvent arg0) {
+				Color current_bg = textWidget.getBackground();
+
+				if (!current_bg.equals(existing_bg)) {
+
+					existing_bg = current_bg;
+
+					cBubble.redraw();
 				}
-			});
+			}
+		});
 	}
-	
+
 	public Composite getParent() {
 		return cBubble;
 	}
-	
+
 	public Text getTextWidget() {
 		return textWidget;
 	}

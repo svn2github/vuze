@@ -212,12 +212,12 @@ public class TransferStatsView
 	outerLayout.numColumns = 2;
 	generalPanel.setLayout(outerLayout);
 	GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-	generalPanel.setLayoutData(gridData);
+	Utils.setLayoutData(generalPanel, gridData);
 	
 	Composite generalStatsPanel = new Composite(generalPanel,SWT.BORDER);
 	GridData generalStatsPanelGridData = new GridData(GridData.FILL_HORIZONTAL);
 	generalStatsPanelGridData.grabExcessHorizontalSpace = true;
-    generalStatsPanel.setLayoutData(generalStatsPanelGridData);
+    Utils.setLayoutData(generalStatsPanel, generalStatsPanelGridData);
     
     GridLayout panelLayout = new GridLayout();
     panelLayout.numColumns = 5;
@@ -248,16 +248,16 @@ public class TransferStatsView
     /////// NOW /////////
     Label nowLabel = new Label(generalStatsPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    nowLabel.setLayoutData(gridData);
+    Utils.setLayoutData(nowLabel, gridData);
     Messages.setLanguageText(nowLabel,"SpeedView.stats.now");
     
     nowDown = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    nowDown.setLayoutData(gridData);
+    Utils.setLayoutData(nowDown, gridData);
     
     nowUp = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    nowUp.setLayoutData(gridData);
+    Utils.setLayoutData(nowUp, gridData);
     
     lbl = new Label(generalStatsPanel,SWT.NULL);
     lbl = new Label(generalStatsPanel,SWT.NULL);
@@ -266,47 +266,47 @@ public class TransferStatsView
     //////// SESSION ////////
     Label sessionLabel = new Label(generalStatsPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    sessionLabel.setLayoutData(gridData);
+    Utils.setLayoutData(sessionLabel, gridData);
 
     Messages.setLanguageText(sessionLabel,"SpeedView.stats.session");
     sessionDown = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    sessionDown.setLayoutData(gridData);
+    Utils.setLayoutData(sessionDown, gridData);
     
     sessionUp = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    sessionUp.setLayoutData(gridData);
+    Utils.setLayoutData(sessionUp, gridData);
     
     session_ratio = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    session_ratio.setLayoutData(gridData);    
+    Utils.setLayoutData(session_ratio, gridData);    
     
     sessionTime = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    sessionTime.setLayoutData(gridData);
+    Utils.setLayoutData(sessionTime, gridData);
     
     
     ///////// TOTAL ///////////
     totalLabel = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    totalLabel.setLayoutData(gridData);
+    Utils.setLayoutData(totalLabel, gridData);
     Messages.setLanguageText(totalLabel.getWidget(),"SpeedView.stats.total");
 	
     totalDown = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    totalDown.setLayoutData(gridData);
+    Utils.setLayoutData(totalDown, gridData);
     
     totalUp = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    totalUp.setLayoutData(gridData);
+    Utils.setLayoutData(totalUp, gridData);
     
     total_ratio = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    total_ratio.setLayoutData(gridData);
+    Utils.setLayoutData(total_ratio, gridData);
     
     totalTime = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    totalTime.setLayoutData(gridData);
+    Utils.setLayoutData(totalTime, gridData);
     
     for ( Object obj: new Object[]{ nowLabel, sessionLabel, totalLabel }){
     	
@@ -346,7 +346,7 @@ public class TransferStatsView
     
 	Composite generalSocksPanel = new Composite(generalPanel,SWT.BORDER);
     GridData generalSocksData = new GridData();
-    generalSocksPanel.setLayoutData(generalSocksData);
+    Utils.setLayoutData(generalSocksPanel, generalSocksData);
     
     GridLayout socksLayout = new GridLayout();
     socksLayout.numColumns = 2;
@@ -365,7 +365,7 @@ public class TransferStatsView
     socksState =  new Label(generalSocksPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint = 120;
-    socksState.setLayoutData(gridData);
+    Utils.setLayoutData(socksState, gridData);
     
     	// current details
     
@@ -374,7 +374,7 @@ public class TransferStatsView
     
     socksCurrent =  new BufferedLabel(generalSocksPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    socksCurrent.setLayoutData(gridData);
+    Utils.setLayoutData(socksCurrent, gridData);
     
     	// fail details
     
@@ -383,7 +383,7 @@ public class TransferStatsView
    
     socksFails =  new BufferedLabel(generalSocksPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    socksFails.setLayoutData(gridData);
+    Utils.setLayoutData(socksFails, gridData);
     
     	// more info
     
@@ -393,7 +393,7 @@ public class TransferStatsView
     gridData.horizontalAlignment = GridData.END;
     socksMore  =  new Label(generalSocksPanel, SWT.NULL );
     socksMore.setText( MessageText.getString( "label.more") + "..." ); 
-    socksMore.setLayoutData( gridData );
+    Utils.setLayoutData(socksMore,  gridData );
     socksMore.setCursor(socksMore.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     socksMore.setForeground(Colors.blue);
     socksMore.addMouseListener(new MouseAdapter() {
@@ -432,7 +432,7 @@ public class TransferStatsView
   {
 	  blahPanel = new Composite(mainPanel,SWT.NONE);
 	  GridData blahPanelData = new GridData(GridData.FILL_HORIZONTAL);
-	  blahPanel.setLayoutData(blahPanelData);
+	  Utils.setLayoutData(blahPanel, blahPanelData);
 
 	  GridLayout panelLayout = new GridLayout();
 	  panelLayout.numColumns = 8;
@@ -446,32 +446,32 @@ public class TransferStatsView
 	  Messages.setLanguageText(label,"SpeedView.stats.asn");    
 	  asn = new BufferedLabel(blahPanel,SWT.NONE);
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
-	  asn.setLayoutData(gridData);
+	  Utils.setLayoutData(asn, gridData);
 
 	  label = new Label(blahPanel,SWT.NONE);
 	  Messages.setLanguageText(label,"label.current_ip");    
 	  currentIP = new BufferedLabel(blahPanel,SWT.NONE);
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
-	  currentIP.setLayoutData(gridData);
+	  Utils.setLayoutData(currentIP, gridData);
 	  
 	  label = new Label(blahPanel,SWT.NONE);
 	  Messages.setLanguageText(label,"SpeedView.stats.estupcap");    
 	  estUpCap = new BufferedLabel(blahPanel,SWT.NONE);
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
-	  estUpCap.setLayoutData(gridData);
+	  Utils.setLayoutData(estUpCap, gridData);
 
 	  label = new Label(blahPanel,SWT.NONE);
 	  Messages.setLanguageText(label,"SpeedView.stats.estdowncap");    
 	  estDownCap = new BufferedLabel(blahPanel,SWT.NONE);
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
-	  estDownCap.setLayoutData(gridData);
+	  Utils.setLayoutData(estDownCap, gridData);
 	  
 	  label = new Label(blahPanel,SWT.NONE);
 	  Messages.setLanguageText(label,"SpeedView.stats.upbias");    
 	  uploadBiaser = new BufferedLabel(blahPanel,SWT.NONE);
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
 	  gridData.horizontalSpan = 7;
-	  uploadBiaser.setLayoutData(gridData);
+	  Utils.setLayoutData(uploadBiaser, gridData);
   }
   
   private void
@@ -479,7 +479,7 @@ public class TransferStatsView
   {
 	  connectionPanel = new Composite(mainPanel,SWT.NONE);
 	  GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-	  connectionPanel.setLayoutData(gridData);
+	  Utils.setLayoutData(connectionPanel, gridData);
 
 	  GridLayout panelLayout = new GridLayout();
 	  panelLayout.numColumns = 2;
@@ -488,7 +488,7 @@ public class TransferStatsView
 
 	  Composite conn_area = new Composite( connectionPanel, SWT.NULL );
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
-	  conn_area.setLayoutData(gridData);
+	  Utils.setLayoutData(conn_area, gridData);
 
 	  panelLayout = new GridLayout();
 	  panelLayout.numColumns = 2;
@@ -499,11 +499,11 @@ public class TransferStatsView
 	  
 	  connection_label = new BufferedLabel( conn_area, SWT.DOUBLE_BUFFERED );
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
-	  connection_label.setLayoutData(gridData);
+	  Utils.setLayoutData(connection_label, gridData);
 
 	  Composite upload_area = new Composite( connectionPanel, SWT.NULL );
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
-	  upload_area.setLayoutData(gridData);
+	  Utils.setLayoutData(upload_area, gridData);
 
 	  panelLayout = new GridLayout();
 	  panelLayout.numColumns = 2;
@@ -514,7 +514,7 @@ public class TransferStatsView
 
 	  upload_label = new BufferedLabel( upload_area, SWT.DOUBLE_BUFFERED );
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
-	  upload_label.setLayoutData(gridData);
+	  Utils.setLayoutData(upload_label, gridData);
 
 
 	  	// connections
@@ -522,7 +522,7 @@ public class TransferStatsView
 	  con_folder = new TabFolder(connectionPanel, SWT.LEFT);
 	  gridData = new GridData(GridData.FILL_BOTH);
 	  gridData.horizontalSpan = 1;
-	  con_folder.setLayoutData(gridData);
+	  Utils.setLayoutData(con_folder, gridData);
 	  con_folder.setBackground(Colors.background);
 	  
 	  	// connection counts
@@ -535,7 +535,7 @@ public class TransferStatsView
 	  conn_item.setControl( connection_canvas );
 	  gridData = new GridData(GridData.FILL_BOTH);
 	  gridData.heightHint = 200;
-	  connection_canvas.setLayoutData(gridData);
+	  Utils.setLayoutData(connection_canvas, gridData);
 	  connection_graphic = 
 		  SpeedGraphic.getInstance(
 			new ValueFormater()
@@ -559,7 +559,7 @@ public class TransferStatsView
 	  route_info_tab.setText( MessageText.getString( "label.routing" ));
 
 	  Composite route_tab_comp = new Composite( con_folder, SWT.NULL );
-	  route_tab_comp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	  Utils.setLayoutData(route_tab_comp, new GridData(SWT.FILL, SWT.FILL, true, true));
 	  GridLayout routeTabLayout = new GridLayout();
 	  routeTabLayout.numColumns = 1;
 	  route_tab_comp.setLayout(routeTabLayout);
@@ -567,11 +567,11 @@ public class TransferStatsView
 	  route_info_tab.setControl( route_tab_comp );
 	  
 	  ScrolledComposite sc = new ScrolledComposite( route_tab_comp, SWT.V_SCROLL );
-	  sc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	  Utils.setLayoutData(sc, new GridData(SWT.FILL, SWT.FILL, true, true));
 
 	  route_comp = new Composite( sc, SWT.NULL );
 	 
-	  route_comp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	  Utils.setLayoutData(route_comp, new GridData(SWT.FILL, SWT.FILL, true, true));
 	  GridLayout routeLayout = new GridLayout();
 	  routeLayout.numColumns = 3;
 	  //routeLayout.makeColumnsEqualWidth = true;
@@ -587,7 +587,7 @@ public class TransferStatsView
 	  Canvas upload_canvas = new Canvas(connectionPanel,SWT.NO_BACKGROUND);
 	  gridData = new GridData(GridData.FILL_BOTH);
 	  gridData.heightHint = 200;
-	  upload_canvas.setLayoutData(gridData);
+	  Utils.setLayoutData(upload_canvas, gridData);
 	  upload_graphic = 
 		  SpeedGraphic.getInstance(
 			new ValueFormater()
@@ -626,13 +626,13 @@ public class TransferStatsView
 		  }
 		  
 		  Label h1 = new Label( route_comp, SWT.NULL );
-		  h1.setLayoutData( new GridData(GridData.FILL_HORIZONTAL ));
+		  Utils.setLayoutData(h1,  new GridData(GridData.FILL_HORIZONTAL ));
 		  h1.setText( MessageText.getString( "label.route" ));
 		  Label h2 = new Label( route_comp, SWT.NULL );
-		  h2.setLayoutData( new GridData(GridData.FILL_HORIZONTAL ));
+		  Utils.setLayoutData(h2,  new GridData(GridData.FILL_HORIZONTAL ));
 		  h2.setText( MessageText.getString( "tps.type.incoming" ));
 		  Label h3 = new Label( route_comp, SWT.NULL );
-		  h3.setLayoutData( new GridData(GridData.FILL_HORIZONTAL ));
+		  Utils.setLayoutData(h3,  new GridData(GridData.FILL_HORIZONTAL ));
 		  h3.setText( MessageText.getString( "label.outgoing" ));
 		  
 		  new Label( route_comp, SWT.NULL );
@@ -646,7 +646,7 @@ public class TransferStatsView
 			  for ( int j=0;j<3;j++){
 				  BufferedLabel l = new BufferedLabel( route_comp, SWT.DOUBLE_BUFFERED );
 				  GridData gridData = new GridData(GridData.FILL_HORIZONTAL );
-				  l.setLayoutData( gridData );
+				  Utils.setLayoutData(l,  gridData );
 				  route_labels[i][j] = l;
 			  }	
 		  }
@@ -686,7 +686,7 @@ public class TransferStatsView
   private void createAutoSpeedPanel() {
     autoSpeedPanel = new Group(mainPanel,SWT.NONE);
     GridData generalPanelData = new GridData(GridData.FILL_BOTH);
-    autoSpeedPanel.setLayoutData(generalPanelData);
+    Utils.setLayoutData(autoSpeedPanel, generalPanelData);
     Messages.setLanguageText(autoSpeedPanel,"SpeedView.stats.autospeed", new String[]{ String.valueOf( MAX_DISPLAYED_PING_MILLIS_DISP )});
     
     
@@ -694,7 +694,7 @@ public class TransferStatsView
     autoSpeedPanel.setLayout(autoSpeedPanelLayout);
     
     autoSpeedInfoPanel = new Composite(autoSpeedPanel,SWT.NULL);
-    autoSpeedInfoPanel.setLayoutData(new GridData(GridData.FILL_BOTH));
+    Utils.setLayoutData(autoSpeedInfoPanel, new GridData(GridData.FILL_BOTH));
     GridLayout layout = new GridLayout();
     layout.numColumns = 8;
     layout.makeColumnsEqualWidth = true;
@@ -703,14 +703,14 @@ public class TransferStatsView
     Canvas pingCanvas = new Canvas(autoSpeedInfoPanel,SWT.NO_BACKGROUND);
     GridData gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 4;
-    pingCanvas.setLayoutData(gridData);
+    Utils.setLayoutData(pingCanvas, gridData);
     
     pingGraph.initialize(pingCanvas);
     
     TabFolder folder = new TabFolder(autoSpeedInfoPanel, SWT.LEFT);
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 4;
-    folder.setLayoutData(gridData);
+    Utils.setLayoutData(folder, gridData);
     folder.setBackground(Colors.background);
     
     ValueFormater speed_formatter = 
@@ -754,7 +754,7 @@ public class TransferStatsView
 	    
 	    Canvas plotCanvas = new Canvas(folder,SWT.NO_BACKGROUND);
 	    gridData = new GridData(GridData.FILL_BOTH);
-	    plotCanvas.setLayoutData(gridData);
+	    Utils.setLayoutData(plotCanvas, gridData);
 	    
 	    plot_views[i] = new plotView( mapper, plotCanvas, labels, formatters );
 	    
@@ -765,7 +765,7 @@ public class TransferStatsView
 	    
 	    Canvas zoneCanvas = new Canvas(folder,SWT.NO_BACKGROUND);
 	    gridData = new GridData(GridData.FILL_BOTH);
-	    zoneCanvas.setLayoutData(gridData);
+	    Utils.setLayoutData(zoneCanvas, gridData);
 	
 	    zone_views[i] = new zoneView( mapper, zoneCanvas, labels, formatters );
 	    
@@ -777,7 +777,7 @@ public class TransferStatsView
     Label disabled = new Label(autoSpeedDisabledPanel,SWT.NULL);
     disabled.setEnabled(false);
     Messages.setLanguageText(disabled,"SpeedView.stats.autospeed.disabled");
-    disabled.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL));
+    Utils.setLayoutData(disabled, new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL));
     
     autoSpeedPanelLayout.topControl = speedManager.isAvailable() ? autoSpeedInfoPanel : autoSpeedDisabledPanel;
     

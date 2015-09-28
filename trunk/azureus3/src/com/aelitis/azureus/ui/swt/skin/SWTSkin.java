@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory.AEShell;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -527,10 +528,11 @@ public class SWTSkin
 				}
 			}
 		};
-		skinComposite.getDisplay().addFilter(SWT.MouseMove, l);
+		Display display = skinComposite.getDisplay();
+		display.addFilter(SWT.MouseMove, l);
 		// can't just add a MouseExit listener to the shell, because it doesn't
 		// get fired when a control is on the edge
-		skinComposite.getDisplay().addFilter(SWT.MouseExit, l);
+		display.addFilter(SWT.MouseExit, l);
 		skinComposite.addListener(SWT.Deactivate, l);
 		skinComposite.addListener(SWT.Activate, l);
 
@@ -584,7 +586,13 @@ public class SWTSkin
 		
 		
 		int width = skinProperties.getIntValue(startID + ".width", -1);
+		if (width > 0 && !(skinComposite instanceof AEShell)) {
+			width = Utils.adjustPXForDPI(width); 
+		}
 		int height = skinProperties.getIntValue(startID + ".height", -1);
+		if (height > 0 && !(skinComposite instanceof AEShell)) {
+			height = Utils.adjustPXForDPI(height);
+		}
 		if (width > 0 && height > 0) {
 			skinComposite.setSize(width, height);
 		}
@@ -593,8 +601,8 @@ public class SWTSkin
 		
 		if (skinComposite instanceof Shell) {
 			Shell shell = (Shell) skinComposite;
-			int minWidth = skinProperties.getIntValue(startID + ".minwidth", -1);
-			int minHeight = skinProperties.getIntValue(startID + ".minheight", -1);
+			int minWidth = Utils.adjustPXForDPI(skinProperties.getIntValue(startID + ".minwidth", -1));
+			int minHeight = Utils.adjustPXForDPI(skinProperties.getIntValue(startID + ".minheight", -1));
 			if (minWidth > 0 || minHeight > 0) {
 				Point minimumSize = shell.getMinimumSize();
 				shell.setMinimumSize(minWidth > 0 ? minWidth : minimumSize.x,
@@ -706,18 +714,37 @@ public class SWTSkin
 		int height = skinProperties.getIntValue(startID + ".height", -1);
 		if (autoSizeOnLayout) {
   		if (width > 0 && height == -1) {
+  			if (!(skinComposite instanceof AEShell)) {
+  				width = Utils.adjustPXForDPI(width);
+  			}
   			Point computeSize = skinComposite.computeSize(width, SWT.DEFAULT);
   			skinComposite.setSize(computeSize);
   		} else if (height > 0 && width == -1) {
+  			if (!(skinComposite instanceof AEShell)) {
+  				height = Utils.adjustPXForDPI(height);
+  			}
   			Point computeSize = skinComposite.computeSize(SWT.DEFAULT, height);
   			skinComposite.setSize(computeSize);
+  		} else if (height > 0 && width > 0) {
+  			if (!(skinComposite instanceof AEShell)) {
+  				width = Utils.adjustPXForDPI(width);
+  				height = Utils.adjustPXForDPI(height);
+  			}
+  			skinComposite.setSize(width, height);
+  			
   		}
 		} else {
 			Point size = skinComposite.getSize();
 			if (width > 0) {
+  			if (!(skinComposite instanceof AEShell)) {
+  				width = Utils.adjustPXForDPI(width);
+  			}
 				size.x = width;
 			}
 			if (height > 0) {
+  			if (!(skinComposite instanceof AEShell)) {
+  				height = Utils.adjustPXForDPI(height);
+  			}
 				size.y = height;
 			}
 			skinComposite.setSize(size);
@@ -860,6 +887,7 @@ public class SWTSkin
 					if (sParams.length > 1) {
 						try {
 							offset = Integer.parseInt(sParams[1]);
+							offset = Utils.adjustPXForDPI(offset);
 						} catch (Exception e) {
 						}
 					}
@@ -894,6 +922,7 @@ public class SWTSkin
 							if (Character.isDigit(c) || c == '-') {
 								try {
 									offset = Integer.parseInt(sParams[j]);
+									offset = Utils.adjustPXForDPI(offset);
 								} catch (Exception e) {
 								}
 							} else {
@@ -963,10 +992,14 @@ public class SWTSkin
 			newFormData.width = 0;
 			newFormData.height = 0;
 		} else {
-  		newFormData.height = properties.getIntValue(sConfigID + ".height",
-  				newFormData.height);
-  		newFormData.width = properties.getIntValue(sConfigID + ".width",
-  				newFormData.width);
+			int h = properties.getIntValue(sConfigID + ".height", -2);
+			int w = properties.getIntValue(sConfigID + ".width", -2);
+			if (h != -2) {
+				newFormData.height = Utils.adjustPXForDPI(h);
+			}
+			if (w != -2) {
+				newFormData.width = Utils.adjustPXForDPI(w);
+			}
 		}
 		controlToLayout.setLayoutData(newFormData);
 		controlToLayout.setData("skin.layedout", "");

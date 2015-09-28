@@ -300,7 +300,7 @@ public class SBC_ArchivedDownloadsView
 				tv.enableFilterCheck( txtFilter, this );
 			}
 			
-			tv.setRowDefaultHeight(16);
+			tv.setRowDefaultHeightEM(1);
 			
 			tv.setEnableTabViews(true, true, null);
 	

@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
@@ -126,6 +127,7 @@ public class ColorParameter extends Parameter implements ParameterListener {
   }
 
   public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
     colorChooser.setLayoutData(layoutData);
   }
 

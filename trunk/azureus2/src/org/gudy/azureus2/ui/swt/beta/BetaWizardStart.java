@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -64,7 +65,7 @@ BetaWizardStart
         
 		Label info_label = new Label( rootPanel, SWT.WRAP );
 		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-		info_label.setLayoutData(gridData);
+		Utils.setLayoutData(info_label, gridData);
 		info_label.setText( MessageText.getString( "beta.wizard.info" ));
  
 		LinkLabel link = new LinkLabel( rootPanel, "beta.wizard.link", MessageText.getString( "beta.wizard.link.url" ));
@@ -72,12 +73,12 @@ BetaWizardStart
 		
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.verticalIndent=10;
-		link_label.setLayoutData(gridData);
+		Utils.setLayoutData(link_label, gridData);
 
 		final Composite gRadio = new Composite(rootPanel, SWT.NULL);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.verticalIndent=10;
-		gRadio.setLayoutData(gridData);
+		Utils.setLayoutData(gRadio, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 1;
 		gRadio.setLayout( layout );
@@ -108,12 +109,12 @@ BetaWizardStart
 		
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.verticalIndent=10;
-		forum_label.setLayoutData(gridData);
+		Utils.setLayoutData(forum_label, gridData);
 
 		Label version_label = new Label( rootPanel, SWT.WRAP );
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.verticalIndent=10;
-		version_label.setLayoutData(gridData);
+		Utils.setLayoutData(version_label, gridData);
 		version_label.setText( MessageText.getString( "beta.wizard.version", new String[]{ Constants.AZUREUS_VERSION } ));
 	}
 	

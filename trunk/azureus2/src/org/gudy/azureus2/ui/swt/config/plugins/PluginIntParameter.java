@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.IntParameterImpl;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -51,7 +52,7 @@ public class PluginIntParameter implements PluginParameterImpl {
     controls[1] = ip.getControl();
     GridData gridData = new GridData();
     gridData.widthHint = 100;
-    controls[1].setLayoutData(gridData);
+    Utils.setLayoutData(controls[1], gridData);
     new Label(pluginGroup,SWT.NULL);
   }
   

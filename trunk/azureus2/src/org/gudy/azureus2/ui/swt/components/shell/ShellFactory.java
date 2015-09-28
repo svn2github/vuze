@@ -23,6 +23,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
@@ -156,7 +157,7 @@ public final class ShellFactory
 	/**
 	 * A shell that provides platform-specific behaviour in some methods in order to better suit the user experience
 	 */
-	private static class AEShell
+	public static class AEShell
 		extends Shell
 	{
 		/**
@@ -235,6 +236,57 @@ public final class ShellFactory
 		public void setImages(final Image[] images) {
 			if (!Constants.isOSX)
 				super.setImages(images);
+		}
+		
+		@Override
+		public Point computeSize(int wHint, int hHint) {
+			if (!inSetSize && wHint > 0 && hHint == SWT.DEFAULT) {
+				inSetSize = true;
+				return super.computeSize(Utils.adjustPXForDPI(wHint), hHint);
+			}
+			return super.computeSize(wHint, hHint);
+		}
+		
+		private boolean inSetSize = false;
+
+		@Override
+		public void setSize(int width, int height) {
+			if (inSetSize) {
+				super.setSize(width, height);
+				return;
+			}
+			inSetSize = true;
+			try {
+  			width = Utils.adjustPXForDPI(width);
+  			height = Utils.adjustPXForDPI(height);
+				super.setSize(width, height);
+			} finally {
+				inSetSize = false;
+			}
+		}
+		
+		@Override
+		public void pack() {
+			inSetSize = true;
+			try {
+				super.pack();
+  		} finally {
+  			inSetSize = false;
+  		}
+		}
+		
+		@Override
+		public void setSize(Point size) {
+			if (inSetSize) {
+				super.setSize(size);
+				return;
+			}
+			inSetSize = true;
+			try {
+				super.setSize(Utils.adjustPXForDPI(size));
+			} finally {
+				inSetSize = false;
+			}
 		}
 
 		public void open() {

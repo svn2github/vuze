@@ -37,6 +37,7 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -74,7 +75,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Composite cSection = new Composite(parent, SWT.NULL);
 
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL + GridData.VERTICAL_ALIGN_FILL);
-		cSection.setLayoutData(gridData);
+		Utils.setLayoutData(cSection, gridData);
 		GridLayout advanced_layout = new GridLayout();
 		cSection.setLayout(advanced_layout);
 
@@ -82,7 +83,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		if (userMode < REQUIRED_MODE) {
 			Label label = new Label(cSection, SWT.WRAP);
 			gridData = new GridData();
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 
 			final String[] modeKeys = { "ConfigView.section.mode.beginner",
 					"ConfigView.section.mode.intermediate",
@@ -113,7 +114,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Group gSocket = new Group(cSection, SWT.NULL);
 		Messages.setLanguageText(gSocket, CFG_PREFIX + "socket.group");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.FILL_HORIZONTAL);
-		gSocket.setLayoutData(gridData);
+		Utils.setLayoutData(gSocket, gridData);
 		GridLayout glayout = new GridLayout();
 		glayout.numColumns = 3;
 		gSocket.setLayout(glayout);
@@ -123,7 +124,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Label lmaxout = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lmaxout, "ConfigView.section.connection.network.max.simultaneous.connect.attempts");
 		gridData = new GridData();
-		lmaxout.setLayoutData( gridData );
+		Utils.setLayoutData(lmaxout,  gridData );
 
 		IntParameter max_connects = new IntParameter(gSocket,
 				"network.max.simultaneous.connect.attempts", 1, 100);    
@@ -136,7 +137,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Label lmaxpout = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lmaxpout, "ConfigView.section.connection.network.max.outstanding.connect.attempts");
 		gridData = new GridData();
-		lmaxpout.setLayoutData( gridData );
+		Utils.setLayoutData(lmaxpout,  gridData );
 
 		IntParameter max_pending_connects = new IntParameter(gSocket,
 				"network.tcp.max.connections.outstanding", 1, 65536 );    
@@ -151,7 +152,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Label lbind = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lbind, "ConfigView.label.bindip" );
 		gridData = new GridData();
-		lbind.setLayoutData(gridData);
+		Utils.setLayoutData(lbind, gridData);
 		
 		StringParameter bindip = new StringParameter(gSocket, "Bind IP", "", false);
 		gridData = new GridData();
@@ -167,7 +168,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 				new String[] { "\t" + NetworkAdmin.getSingleton().getNetworkInterfacesAsString().replaceAll( "\\\n", "\n\t" ) });
 		gridData = new GridData();
 		gridData.horizontalSpan = 3;
-		lbind2.setLayoutData(gridData);
+		Utils.setLayoutData(lbind2, gridData);
 
 		
 		BooleanParameter check_bind = new BooleanParameter(gSocket, "Check Bind IP On Start","network.check.ipbinding");
@@ -213,7 +214,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		final Label lsendcurr =  new Label(gSocket, SWT.NULL);
 		gridData = new GridData( GridData.FILL_HORIZONTAL);
 		gridData.horizontalIndent = 10;
-		lsendcurr.setLayoutData( gridData );
+		Utils.setLayoutData(lsendcurr,  gridData );
 
 			// rcvbuf
 		
@@ -226,7 +227,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		final Label lreccurr =  new Label(gSocket, SWT.NULL);
 		gridData = new GridData( GridData.FILL_HORIZONTAL);
 		gridData.horizontalIndent = 10;
-		lreccurr.setLayoutData( gridData );
+		Utils.setLayoutData(lreccurr,  gridData );
 		
 		final Runnable buff_updater = 
 			new Runnable() 

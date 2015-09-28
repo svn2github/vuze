@@ -158,12 +158,14 @@ public interface TableColumn {
    * <P>
    * NOTE: This MUST be set BEFORE adding the column to a table.
    *
-   * @param width the size in pixels
+   * @param width the size in pixels, adjusting for DPI
    * 
    * @since 2.1.0.0
    */
-  public void setWidth(int width);
-  
+  public void setWidth(int unadjustedWidth);
+
+  public void setWidthPX(int realPixelWidth);
+
   /** Returns the column's size
    *
    * @return width in pixels

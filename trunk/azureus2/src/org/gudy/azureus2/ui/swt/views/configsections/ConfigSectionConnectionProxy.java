@@ -76,7 +76,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
 				| GridData.HORIZONTAL_ALIGN_FILL);
-		cSection.setLayoutData(gridData);
+		Utils.setLayoutData(cSection, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		cSection.setLayout(layout);
@@ -86,7 +86,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 			Label label = new Label(cSection, SWT.WRAP);
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 
 			final String[] modeKeys = { "ConfigView.section.mode.beginner",
 					"ConfigView.section.mode.intermediate",
@@ -115,7 +115,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		Messages.setLanguageText(gProxyTracker, CFG_PREFIX + "group.tracker");
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
-		gProxyTracker.setLayoutData(gridData);
+		Utils.setLayoutData(gProxyTracker, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		gProxyTracker.setLayout(layout);
@@ -351,7 +351,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		Messages.setLanguageText(gProxyPeer, CFG_PREFIX + "group.peer");
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
-		gProxyPeer.setLayoutData(gridData);
+		Utils.setLayoutData(gProxyPeer, gridData);
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		gProxyPeer.setLayout(layout);
@@ -469,7 +469,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
 		gridData.widthHint = 200;  // needed for wrap
-		label.setLayoutData(gridData);
+		Utils.setLayoutData(label, gridData);
 		
 			// disable plugin proxies
 			
@@ -511,7 +511,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		label = new Label(cSection, SWT.WRAP);
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
-		label.setLayoutData(gridData);
+		Utils.setLayoutData(label, gridData);
 		label.setText(MessageText.getString(CFG_PREFIX+"username.info" ));
 		
 		return cSection;

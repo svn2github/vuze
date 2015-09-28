@@ -139,7 +139,7 @@ public class TorrentMenuFancy
 				lblRight = new Label(cRow, SWT.NONE);
 				GridData gd = new GridData();
 				gd.horizontalIndent = 10;
-				lblRight.setLayoutData(gd);
+				Utils.setLayoutData(lblRight, gd);
 				lblRight.setEnabled(false);
 			}
 			return lblRight;
@@ -354,7 +354,7 @@ public class TorrentMenuFancy
 			public void paintControl(PaintEvent e) {
 				Control c = (Control) e.widget;
 				Point size = c.getSize();
-				int arrowSize = 8;
+				int arrowSize = Utils.adjustPXForDPI(8);
 				int xStart = size.x - arrowSize;
 				int yStart = size.y - (size.y + arrowSize) / 2;
 				e.gc.setBackground(e.display.getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
@@ -363,9 +363,9 @@ public class TorrentMenuFancy
 					xStart,
 					yStart,
 					xStart + arrowSize,
-					yStart + 4,
+					yStart + (arrowSize / 2),
 					xStart,
-					yStart + 8,
+					yStart + arrowSize,
 				});
 			}
 		};
@@ -770,7 +770,7 @@ public class TorrentMenuFancy
 			}
 			fd.left = new FormAttachment(0, 0);
 			fd.right = new FormAttachment(100, 0);
-			child.setLayoutData(fd);
+			Utils.setLayoutData(child, fd);
 			lastControl = child;
 		}
 
@@ -805,7 +805,7 @@ public class TorrentMenuFancy
 					}
 					fd.left = new FormAttachment(0, 0);
 					fd.right = new FormAttachment(100, 0);
-					child.setLayoutData(fd);
+					Utils.setLayoutData(child, fd);
 					lastControl = child;
 				}
 				shell.layout(true, true);
@@ -882,7 +882,7 @@ public class TorrentMenuFancy
 		GridData gd = new GridData();
 		gd.grabExcessHorizontalSpace = true;
 		gd.horizontalAlignment = SWT.FILL;
-		cQuickCommands.setLayoutData(gd);
+		Utils.setLayoutData(cQuickCommands, gd);
 
 		// Queue
 		createActionButton(dms, cQuickCommands, "MyTorrentsView.menu.queue",
@@ -1534,7 +1534,7 @@ public class TorrentMenuFancy
 		//row.getRightLabel().setText("\u25B6");
 		Label rightLabel = row.getRightLabel();
 		GridData gd = new GridData(12, SWT.DEFAULT);
-		rightLabel.setLayoutData(gd);
+		Utils.setLayoutData(rightLabel, gd);
 		row.getRightLabel().addPaintListener(paintListenerArrow);
 
 		return row;
@@ -1571,9 +1571,9 @@ public class TorrentMenuFancy
 
 		cRow.setData("ID", rowInfo);
 		GridLayout gridLayout = new GridLayout(4, false);
-		gridLayout.marginWidth = 1;
-		gridLayout.marginHeight = 3;
-		gridLayout.marginRight = 4;
+		gridLayout.marginWidth = Utils.adjustPXForDPI(1);
+		gridLayout.marginHeight = Utils.adjustPXForDPI(3);
+		gridLayout.marginRight = Utils.adjustPXForDPI(4);
 		gridLayout.horizontalSpacing = 0;
 		gridLayout.verticalSpacing = 0;
 		cRow.setLayout(gridLayout);
@@ -1583,7 +1583,7 @@ public class TorrentMenuFancy
 		Label lblIcon = new Label(cRow, SWT.CENTER | SWT.NONE);
 		gridData = new GridData();
 		gridData.widthHint = 20;
-		lblIcon.setLayoutData(gridData);
+		Utils.setLayoutData(lblIcon, gridData);
 		if (keyImage != null) {
 			ImageLoader.getInstance().setLabelImage(lblIcon, keyImage);
 		}
@@ -1592,13 +1592,13 @@ public class TorrentMenuFancy
 		gridData = new GridData();
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.horizontalIndent = 2;
-		item.setLayoutData(gridData);
+		Utils.setLayoutData(item, gridData);
 		Messages.setLanguageText(item, keyTitle);
 
 		Label lblCheck = new Label(cRow, SWT.CENTER);
 		gridData = new GridData();
 		gridData.widthHint = 13;
-		lblCheck.setLayoutData(gridData);
+		Utils.setLayoutData(lblCheck, gridData);
 
 		if (triggerListener != null) {
 			Utils.addListenerAndChildren(cRow, triggerOnUp ? SWT.MouseUp
@@ -1714,8 +1714,8 @@ public class TorrentMenuFancy
 		});
 		item.setEnabled(enable);
 
-		RowData rowData = new RowData(30, 21);
-		item.setLayoutData(rowData);
+		RowData rowData = new RowData(Utils.adjustPXForDPI(30), Utils.adjustPXForDPI(21));
+		Utils.setLayoutData(item, rowData);
 
 		return item;
 	}

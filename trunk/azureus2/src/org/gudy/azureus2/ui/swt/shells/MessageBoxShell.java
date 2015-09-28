@@ -423,16 +423,16 @@ public class MessageBoxShell
 			GridLayout gl = new GridLayout(2, false);
 			gl.horizontalSpacing = 10;
 			textComposite.setLayout(gl);
-			textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+			Utils.setLayoutData(textComposite, new GridData(GridData.FILL_BOTH));
 			Label lblImage = new Label(textComposite, SWT.NONE);
 			lblImage.setImage(imgLeft);
-			lblImage.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+			Utils.setLayoutData(lblImage, new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 		} else if (!squish) {
 			textComposite = new Composite(shell, SWT.NONE);
 			GridLayout gl = new GridLayout(2, false);
 			gl.marginWidth = 5;
 			textComposite.setLayout(gl);
-			textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+			Utils.setLayoutData(textComposite, new GridData(GridData.FILL_BOTH));
 		}
 
 		Control linkControl;
@@ -458,7 +458,7 @@ public class MessageBoxShell
 				GridData gd = new GridData(GridData.FILL_BOTH);
 				gd.heightHint = 200;
 
-				browser.setLayoutData(gd);
+				Utils.setLayoutData(browser.getControl(), gd);
 				browser.addProgressListener(new ProgressListener() {
 					public void completed(ProgressEvent event) {
 						if (shell == null || shell.isDisposed()) {
@@ -508,18 +508,18 @@ public class MessageBoxShell
 					text.setText(html);
 					GridData gd = new GridData(GridData.FILL_BOTH);
 					gd.heightHint = 200;
-					text.setLayoutData(gd);
+					Utils.setLayoutData(text, gd);
 				}
 			}
 
 			if ( linkControl != null ){
 				gridData = new GridData(GridData.FILL_HORIZONTAL);
-				linkControl.setLayoutData(gridData);
+				Utils.setLayoutData(linkControl, gridData);
 			}
 		} else {
 			if ( linkControl != null ){
 				gridData = new GridData(GridData.FILL_BOTH);
-				linkControl.setLayoutData(gridData);
+				Utils.setLayoutData(linkControl, gridData);
 			}
 		}
 
@@ -529,14 +529,14 @@ public class MessageBoxShell
 			Label lblPadding = new Label(shell, SWT.NONE);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.heightHint = 5;
-			lblPadding.setLayoutData(gridData);
+			Utils.setLayoutData(lblPadding, gridData);
 		}
 
 		// Closing in..
 		if (autoCloseInMS > 0) {
 			final Label lblCloseIn = new Label(shell, SWT.WRAP);
 			lblCloseIn.setForeground(shell.getForeground());
-			lblCloseIn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			Utils.setLayoutData(lblCloseIn, new GridData(GridData.FILL_HORIZONTAL));
 			long endOn = SystemTime.getCurrentTime() + autoCloseInMS;
 			lblCloseIn.setData("CloseOn", new Long(endOn));
 			SimpleTimer.addPeriodicEvent("autoclose", 500, new TimerEventPerformer() {
@@ -683,14 +683,14 @@ public class MessageBoxShell
 			});
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.heightHint = 2;
-			line.setLayoutData(gridData);
+			Utils.setLayoutData(line, gridData);
 			
 			Composite cButtons = new Composite(shell, SWT.NONE);
 			FormLayout layout = new FormLayout();
 	
 			cButtons.setLayout(layout);
 			gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-			cButtons.setLayoutData(gridData);
+			Utils.setLayoutData(cButtons, gridData);
 	
 			Control lastButton = null;
 	
@@ -717,7 +717,7 @@ public class MessageBoxShell
 					formData.left = new FormAttachment(lastButton, 5);
 				}
 	
-				button.setLayoutData(formData);
+				Utils.setLayoutData(button, formData);
 	
 				Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 				if (size.x > buttonWidth) {

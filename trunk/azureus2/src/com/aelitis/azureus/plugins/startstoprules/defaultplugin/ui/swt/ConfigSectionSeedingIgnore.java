@@ -70,7 +70,7 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     gridData.widthHint = 300;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     Messages.setLanguageText(label, "ConfigView.label.autoSeedingIgnoreInfo"); //$NON-NLS-1$
 	
 	Composite cIgnore = new Group(cIgnoreRules, SWT.NULL);
@@ -79,7 +79,7 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     layout.verticalSpacing = 6;
 	cIgnore.setLayout(layout);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-	cIgnore.setLayoutData(gridData);
+	Utils.setLayoutData(cIgnore, gridData);
 	Messages.setLanguageText(cIgnore, "ConfigView.label.seeding.ignore");
 
 
@@ -106,12 +106,12 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalIndent = 15;
     gridData.horizontalSpan = 3;
-    cArea.setLayoutData(gridData);
+    Utils.setLayoutData(cArea, gridData);
 
 		label = new Label(cArea, SWT.NULL);
 		ImageLoader.getInstance().setLabelImage(label, "subitem");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
 
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
@@ -139,12 +139,12 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalIndent = 15;
     gridData.horizontalSpan = 3;
-    cArea.setLayoutData(gridData);
+    Utils.setLayoutData(cArea, gridData);
 
     label = new Label(cArea, SWT.NULL);
 		ImageLoader.getInstance().setLabelImage(label, "subitem");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
 
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");

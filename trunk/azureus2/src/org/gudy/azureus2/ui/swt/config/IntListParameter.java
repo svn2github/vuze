@@ -103,6 +103,7 @@ public class IntListParameter extends Parameter {
   
   
   public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
     list.setLayoutData(layoutData);
    }
    

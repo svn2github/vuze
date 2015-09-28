@@ -95,11 +95,11 @@ public class StringListChooser {
     data = new GridData(GridData.FILL_HORIZONTAL);
     data.horizontalSpan = 2;
     data.heightHint = 30;
-    label.setLayoutData(data);
+    Utils.setLayoutData(label, data);
     
     data = new GridData(GridData.FILL_HORIZONTAL);
     data.horizontalSpan = 2;
-    combo.setLayoutData(data);
+    Utils.setLayoutData(combo, data);
         
     data = new GridData();
     data.widthHint = 80;
@@ -107,13 +107,13 @@ public class StringListChooser {
     data.grabExcessVerticalSpace = true;
     data.verticalAlignment = SWT.END;
     data.horizontalAlignment = SWT.END;
-    ok.setLayoutData(data);
+    Utils.setLayoutData(ok, data);
     
     data = new GridData();
     data.grabExcessVerticalSpace = true;
     data.verticalAlignment = SWT.END;
     data.widthHint = 80;    
-    cancel.setLayoutData(data);
+    Utils.setLayoutData(cancel, data);
     
     shell.setSize(300,150);
     shell.layout();

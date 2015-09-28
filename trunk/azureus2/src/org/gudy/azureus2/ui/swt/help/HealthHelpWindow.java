@@ -89,7 +89,7 @@ public class HealthHelpWindow
 		btnOk.setText(MessageText.getString("Button.ok"));
 		GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
 		gridData.widthHint = 70;
-		btnOk.setLayoutData(gridData);
+		Utils.setLayoutData(btnOk, gridData);
 
 		btnOk.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {

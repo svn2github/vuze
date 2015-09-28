@@ -1,18 +1,25 @@
 package org.gudy.azureus2.ui.swt.speedtest;
 
-import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
-import org.gudy.azureus2.ui.swt.wizard.Wizard;
-import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.views.stats.TransferStatsView;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.SWT;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.stats.TransferStatsView;
+import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
+import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
@@ -90,7 +97,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
         Composite panel = new Composite(rootPanel, SWT.NULL);
         GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-        panel.setLayoutData(gridData);
+        Utils.setLayoutData(panel, gridData);
 
         layout = new GridLayout();
         layout.numColumns = 4;
@@ -99,14 +106,14 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         Label explain = new Label(panel, SWT.WRAP);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan = 4;
-        explain.setLayoutData(gridData);
+        Utils.setLayoutData(explain, gridData);
         Messages.setLanguageText(explain,"SpeedTestWizard.set.upload.panel.explain");
 
         //spacer line
         Label spacer = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 4;
-        spacer.setLayoutData(gridData);
+        Utils.setLayoutData(spacer, gridData);
 
         Label spacer1 = new Label(panel, SWT.NULL);
         gridData = new GridData();
@@ -115,25 +122,25 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         Label bytesCol = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.widthHint=80;
-        bytesCol.setLayoutData(gridData);
+        Utils.setLayoutData(bytesCol, gridData);
         Messages.setLanguageText(bytesCol,"SpeedTestWizard.set.upload.bytes.per.sec");
 
         Label bitsCol = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.widthHint=80;
-        bitsCol.setLayoutData(gridData);
+        Utils.setLayoutData(bitsCol, gridData);
         Messages.setLanguageText(bitsCol,"SpeedTestWizard.set.upload.bits.per.sec");
 
         Label confLevel = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.widthHint=80;
-        confLevel.setLayoutData(gridData);
+        Utils.setLayoutData(confLevel, gridData);
         Messages.setLanguageText(confLevel,"SpeedTestWizard.set.limit.conf.level");
 
         //upload limit label.
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
-        ul.setLayoutData(gridData);
+        Utils.setLayoutData(ul, gridData);
         Messages.setLanguageText(
         		ul,
                 "SpeedView.stats.estupcap",
@@ -142,7 +149,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         final Text uploadLimitSetting = new Text(panel, SWT.BORDER );
         gridData = new GridData(GridData.BEGINNING);
         gridData.widthHint=80;
-        uploadLimitSetting.setLayoutData(gridData);
+        Utils.setLayoutData(uploadLimitSetting, gridData);
 
         int uploadCapacity = determineRateSettingEx(measuredUploadKbps,uploadTestRan,true);
 
@@ -159,7 +166,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         gridData = new GridData();
         gridData.horizontalSpan = 1;
         gridData.widthHint = 80;
-        echo.setLayoutData(gridData);
+        Utils.setLayoutData(echo, gridData);
         echo.setText( DisplayFormatters.formatByteCountToBitsPerSec(uploadCapacity*1024) );
         //This space has a change listener the updates in bits/sec.
 
@@ -180,7 +187,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         //download limit label.
         Label dl = new Label( panel, SWT.NULL );
         gridData = new GridData();
-        dl.setLayoutData(gridData);
+        Utils.setLayoutData(dl, gridData);
         Messages.setLanguageText(
                 dl,
                 "SpeedView.stats.estdowncap",
@@ -189,7 +196,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         final Text downloadLimitSetting = new Text(panel, SWT.BORDER);
         gridData = new GridData(GridData.BEGINNING);
         gridData.widthHint=80;
-        downloadLimitSetting.setLayoutData(gridData);
+        Utils.setLayoutData(downloadLimitSetting, gridData);
 
         int bestDownloadSetting = determineRateSettingEx(measuredDownloadKbps,downloadTestRan,false);
 
@@ -201,7 +208,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         gridData = new GridData();
         gridData.horizontalSpan = 1;
         gridData.widthHint = 80;
-        downEcho.setLayoutData(gridData);
+        Utils.setLayoutData(downEcho, gridData);
         downEcho.setText( DisplayFormatters.formatByteCountToBitsPerSec(bestDownloadSetting*1024) );
 
         //convert bytes to bits on the fly for user.
@@ -242,7 +249,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         Messages.setLanguageText(apply, "SpeedTestWizard.set.upload.button.apply" );
         gridData = new GridData();
         gridData.widthHint = 70;
-        apply.setLayoutData(gridData);
+        Utils.setLayoutData(apply, gridData);
         apply.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event){
 
@@ -305,7 +312,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         //switch column width to 5 columns.
         Composite resultsPanel = new Composite(rootPanel, SWT.NULL);
         gridData = new GridData( GridData.VERTICAL_ALIGN_END | GridData.FILL_HORIZONTAL );
-        resultsPanel.setLayoutData(gridData);
+        Utils.setLayoutData(resultsPanel, gridData);
 
         layout = new GridLayout();
         layout.numColumns = 5;

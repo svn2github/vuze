@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -74,7 +75,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     Composite cTorrent = new Composite(parent, SWT.NULL);
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    cTorrent.setLayoutData(gridData);
+    Utils.setLayoutData(cTorrent, gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     cTorrent.setLayout(layout);
@@ -90,7 +91,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalIndent = 25;
     gridData.horizontalSpan = 2;
-    gSaveTorrents.setLayoutData(gridData);
+    Utils.setLayoutData(gSaveTorrents, gridData);
     layout = new GridLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;
@@ -124,7 +125,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
         }
       }
     });
-    browse2.setLayoutData(new GridData());
+    Utils.setLayoutData(browse2, new GridData());
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
@@ -168,7 +169,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalIndent = 25;
     gridData.horizontalSpan = 2;
-    gWatchFolder.setLayoutData(gridData);
+    Utils.setLayoutData(gWatchFolder, gridData);
     layout = new GridLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;

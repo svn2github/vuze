@@ -25,6 +25,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -36,10 +37,12 @@ public class MyTorrentsView_Big
 	extends MyTorrentsView
 {
 	private final int torrentFilterMode;
+	private int defaultRowHeight;
 
 	public MyTorrentsView_Big(AzureusCore _azureus_core, int torrentFilterMode,
 			TableColumnCore[] basicItems, Text txtFilter, Composite cCatsTags) {
 		super( true );
+		defaultRowHeight = Utils.adjustPXForDPI(40);
 		this.torrentFilterMode = torrentFilterMode;
 		this.txtFilter = txtFilter;
 		this.cCategoriesAndTags = cCatsTags;
@@ -92,7 +95,7 @@ public class MyTorrentsView_Big
 	}
 
 	protected int getRowDefaultHeight() {
-		return 40;
+		return defaultRowHeight;
 	}
 	
 }

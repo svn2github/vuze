@@ -228,9 +228,10 @@ public abstract class ColumnDateSizer
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#setWidth(int)
-	public void setWidth(int width) {
+	@Override
+	public void setWidthPX(int width) {
 		int oldWidth = this.getWidth();
-		super.setWidth(width);
+		super.setWidthPX(width);
 
 		if (oldWidth == width) {
 			return;

@@ -43,6 +43,7 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -102,7 +103,7 @@ public class ConfigSectionFile
 		gDefaultDir.setLayout(layout);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
-		gDefaultDir.setLayoutData(gridData);
+		Utils.setLayoutData(gDefaultDir, gridData);
 
 		// Save Path
 		sCurConfigID = "Default save path";
@@ -110,7 +111,7 @@ public class ConfigSectionFile
 		Label lblDefaultDir = new Label(gDefaultDir, SWT.NONE);
 		Messages.setLanguageText(lblDefaultDir,
 				"ConfigView.section.file.defaultdir.ask");
-		lblDefaultDir.setLayoutData(new GridData());
+		Utils.setLayoutData(lblDefaultDir, new GridData());
 
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		final StringParameter pathParameter = new StringParameter(gDefaultDir,
@@ -145,7 +146,7 @@ public class ConfigSectionFile
 		Composite cOpenOptions = new Composite(gDefaultDir, SWT.NONE);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 3;
-		cOpenOptions.setLayoutData(gridData);
+		Utils.setLayoutData(cOpenOptions, gridData);
 		RowLayout rowLayout = new RowLayout();
 		rowLayout.marginBottom = rowLayout.marginLeft = rowLayout.marginRight = rowLayout.marginTop = 0;
 		rowLayout.center = true;
@@ -202,7 +203,7 @@ public class ConfigSectionFile
 					"ConfigView.section.file.bgdefaultdir.ask");
 			gridData = new GridData();
 			gridData.horizontalIndent=25;
-			lblBestGuessDefaultDir.setLayoutData(gridData);
+			Utils.setLayoutData(lblBestGuessDefaultDir, gridData);
 
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			final StringParameter bestGuessPathParameter = new StringParameter(gDefaultDir,
@@ -262,7 +263,7 @@ public class ConfigSectionFile
 			cHistory.setLayout(layout);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalSpan = 3;
-			cHistory.setLayoutData(gridData);
+			Utils.setLayoutData(cHistory, gridData);
 			
 			// def dir: auto update
 			sCurConfigID = "DefaultDir.AutoUpdate";
@@ -272,7 +273,7 @@ public class ConfigSectionFile
 			
 			Label padLabel = new Label( cHistory, SWT.NULL );
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			padLabel.setLayoutData(gridData);
+			Utils.setLayoutData(padLabel, gridData);
 			
 			sCurConfigID = "saveTo_list.max_entries";
 			allConfigIDs.add(sCurConfigID);
@@ -361,7 +362,7 @@ public class ConfigSectionFile
 			Messages.setLanguageText(lblMinMB, "ConfigView.label.piecereorderminmb");
 			gridData = new GridData();
 			gridData.horizontalIndent = 25;
-			lblMinMB.setLayoutData(gridData);
+			Utils.setLayoutData(lblMinMB, gridData);
 
 			IntParameter minMB = new IntParameter(gFile, sCurConfigID);
 			gridData = new GridData();
@@ -486,7 +487,7 @@ public class ConfigSectionFile
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalIndent = 25;
 			gridData.horizontalSpan = 2;
-			cResumeGroup.setLayoutData(gridData);
+			Utils.setLayoutData(cResumeGroup, gridData);
 
 			sCurConfigID = "Save Resume Interval";
 			allConfigIDs.add(sCurConfigID);
@@ -571,12 +572,12 @@ public class ConfigSectionFile
 			label = new Label(gFile, SWT.WRAP);
 			gridData = new GridData();
 			gridData.widthHint = 180;
-			label.setLayoutData(gridData);
+			Utils.setLayoutData(label, gridData);
 			Messages.setLanguageText(label, "ConfigView.label.priorityExtensions");
 
 			Composite cExtensions = new Composite(gFile, SWT.NULL);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			cExtensions.setLayoutData(gridData);
+			Utils.setLayoutData(cExtensions, gridData);
 			layout = new GridLayout();
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
@@ -605,12 +606,12 @@ public class ConfigSectionFile
 		label = new Label(gFile, SWT.WRAP);
 		gridData = new GridData();
 		gridData.widthHint = 180;
-		label.setLayoutData(gridData);
+		Utils.setLayoutData(label, gridData);
 		Messages.setLanguageText(label, "ConfigView.label.quickviewexts");
 
 		Composite cQuickView = new Composite(gFile, SWT.NULL);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		cQuickView.setLayoutData(gridData);
+		Utils.setLayoutData(cQuickView, gridData);
 		layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
@@ -709,7 +710,7 @@ public class ConfigSectionFile
 		gDeletion.setLayout(layout);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
-		gDeletion.setLayoutData(gridData);
+		Utils.setLayoutData(gDeletion, gridData);
 		
 		if (userMode > 0) {
   		Composite c = new Composite(gDeletion, SWT.NONE);
@@ -720,7 +721,7 @@ public class ConfigSectionFile
   		c.setLayout(layout);
   		gridData = new GridData(GridData.FILL_HORIZONTAL);
   		gridData.horizontalSpan = 2;
-  		c.setLayoutData(gridData);
+  		Utils.setLayoutData(c, gridData);
   		
   		sCurConfigID = "tb.confirm.delete.content";
   		label = new Label(c, SWT.NULL);
@@ -792,16 +793,16 @@ public class ConfigSectionFile
 			gConfigSettings.setLayout(layout);
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalSpan = 2;
-			gConfigSettings.setLayoutData(gridData);
+			Utils.setLayoutData(gConfigSettings, gridData);
 
 			// Configuration directory information.
 			Label config_label = new Label(gConfigSettings, SWT.NULL);
 			Messages.setLanguageText(config_label,
 					"ConfigView.section.file.config.currentdir");
-			config_label.setLayoutData(new GridData());
+			Utils.setLayoutData(config_label, new GridData());
 			Label config_link = new Label(gConfigSettings, SWT.NULL);
 			config_link.setText(SystemProperties.getUserPath());
-			config_link.setLayoutData(new GridData());
+			Utils.setLayoutData(config_link, new GridData());
 			LinkLabel.makeLinkedLabel(config_link, SystemProperties.getUserPath());
 
 			sCurConfigID = "Use Config File Backups";
@@ -819,7 +820,7 @@ public class ConfigSectionFile
 		    Messages.setLanguageText(buttonReset, "Button.reset");
 		    gridData = new GridData(GridData.FILL_VERTICAL | GridData.VERTICAL_ALIGN_END);
 		  	gridData.horizontalSpan = 2;
-		  	buttonReset.setLayoutData(gridData);
+		  	Utils.setLayoutData(buttonReset, gridData);
 		  	buttonReset.addSelectionListener(new SelectionAdapter() {
 		  		public void widgetSelected(SelectionEvent e) {
 		  			for (Iterator iter = allConfigIDs.iterator(); iter.hasNext();) {

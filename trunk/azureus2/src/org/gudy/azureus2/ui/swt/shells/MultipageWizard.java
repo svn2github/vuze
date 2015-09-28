@@ -88,7 +88,7 @@ abstract public class MultipageWizard
 		Utils.setShellIcon(shell);
 
 		topPanel = new Composite(shell, SWT.NONE);
-		topPanel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		Utils.setLayoutData(topPanel, new GridData(SWT.FILL, SWT.TOP, true, false));
 		GridLayout gLayout1 = new GridLayout();
 		gLayout1.marginBottom = 10;
 		topPanel.setLayout(gLayout1);
@@ -97,21 +97,21 @@ abstract public class MultipageWizard
 		topPanel.setBackgroundMode(SWT.INHERIT_FORCE);
 
 		Label separator1 = new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL);
-		separator1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		Utils.setLayoutData(separator1, new GridData(SWT.FILL, SWT.CENTER, true, false));
 
 		contentPanel = new Composite(shell, SWT.NONE);
-		contentPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		Utils.setLayoutData(contentPanel, new GridData(SWT.FILL, SWT.FILL, true, true));
 		contentStackLayout = new StackLayout();
 		contentPanel.setLayout(contentStackLayout);
 
 		titleLabel = new Label(topPanel, SWT.NONE);
-		titleLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		Utils.setLayoutData(titleLabel, new GridData(SWT.FILL, SWT.TOP, true, false));
 		FontUtils.setFontHeight(titleLabel, 16, SWT.NORMAL);
 
 		descriptionLabel = new Label(topPanel, SWT.WRAP);
 		GridData gData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gData.horizontalIndent = 10;
-		descriptionLabel.setLayoutData(gData);
+		Utils.setLayoutData(descriptionLabel, gData);
 
 		shell.layout(true, true);
 

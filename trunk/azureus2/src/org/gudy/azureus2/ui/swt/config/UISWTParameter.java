@@ -18,6 +18,7 @@
 package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.widgets.Control;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * For plugins to add a generic SWT widget to the config page
@@ -53,6 +54,7 @@ public class UISWTParameter extends Parameter {
 	 * @see org.gudy.azureus2.ui.swt.config.IParameter#setLayoutData(java.lang.Object)
 	 */
 	public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
 		this.control.setLayoutData(layoutData);
 	}
 

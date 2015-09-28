@@ -103,7 +103,7 @@ TransferPanel2
 
     Composite panel = new Composite(rootPanel, SWT.NULL);
     GridData gridData = new GridData(GridData.FILL_BOTH);
-    panel.setLayoutData(gridData);
+    Utils.setLayoutData(panel, gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     panel.setLayout(layout);
@@ -111,18 +111,18 @@ TransferPanel2
     Label label = new Label(panel, SWT.WRAP);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     Messages.setLanguageText(label, "configureWizard.transfer2.message");
 
     final Group gRadio = new Group(panel, SWT.NULL);
     Messages.setLanguageText(gRadio, "configureWizard.transfer2.group");
-    gRadio.setLayoutData(gridData);
+    Utils.setLayoutData(gRadio, gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     gRadio.setLayout( layout );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    gRadio.setLayoutData(gridData);
+    Utils.setLayoutData(gRadio, gridData);
 
 
     	// auto button
@@ -329,7 +329,7 @@ TransferPanel2
     Messages.setLanguageText(manual2_label, "configureWizard.transfer2.mselect.info");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    manual2_label.setLayoutData( gridData );
+    Utils.setLayoutData(manual2_label,  gridData );
 
     Listener listener = 
     	new Listener()
@@ -358,7 +358,7 @@ TransferPanel2
     uprate_label = new Label( panel, SWT.WRAP );
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.verticalIndent=10;
-    uprate_label.setLayoutData( gridData );
+    Utils.setLayoutData(uprate_label,  gridData );
     updateUp( 0, true );
     
     manual_mode = false;

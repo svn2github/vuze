@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.PasswordParameter;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -78,7 +79,7 @@ public class ConfigSectionInterfacePassword implements UISWTConfigSection
 		Composite cSection = new Composite(parent, SWT.NULL);
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
 				| GridData.HORIZONTAL_ALIGN_FILL);
-		cSection.setLayoutData(gridData);
+		Utils.setLayoutData(cSection, gridData);
 		layout = new GridLayout();
 		layout.marginWidth = 0;
 		layout.numColumns = 2;
@@ -112,7 +113,7 @@ public class ConfigSectionInterfacePassword implements UISWTConfigSection
 		passwordMatch = new Label(cSection, SWT.NULL);
 		gridData = new GridData();
 		gridData.widthHint = 150;
-		passwordMatch.setLayoutData(gridData);
+		Utils.setLayoutData(passwordMatch, gridData);
 		refreshPWLabel();
 
 		t1.addModifyListener(new ModifyListener() {

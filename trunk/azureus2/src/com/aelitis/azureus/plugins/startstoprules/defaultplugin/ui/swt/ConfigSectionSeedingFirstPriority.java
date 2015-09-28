@@ -73,14 +73,14 @@ public class ConfigSectionSeedingFirstPriority
     layout.marginHeight = 0;
     cFirstPriorityArea.setLayout(layout);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    cFirstPriorityArea.setLayoutData(gridData);
+    Utils.setLayoutData(cFirstPriorityArea, gridData);
 
 
     label = new Label(cFirstPriorityArea, SWT.WRAP);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     gridData.widthHint = 300;
-    label.setLayoutData(gridData);
+    Utils.setLayoutData(label, gridData);
     Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.info");
 
     // ** Begin No Touch area	
@@ -93,7 +93,7 @@ public class ConfigSectionSeedingFirstPriority
     layout.verticalSpacing = 6;
     cFP.setLayout(layout);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    cFP.setLayoutData(gridData);
+    Utils.setLayoutData(cFP, gridData);
 	Messages.setLanguageText(cFP, "ConfigView.label.seeding.firstPriority.FP");
 	
 	// row
@@ -105,7 +105,7 @@ public class ConfigSectionSeedingFirstPriority
     cArea.setLayout(layout);
 	gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 3;
-    cArea.setLayoutData(gridData);
+    Utils.setLayoutData(cArea, gridData);
 	label = new Label(cArea, SWT.NULL);
 	Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority");
 	String fpLabels[] = { MessageText.getString("ConfigView.text.all"), 
@@ -188,7 +188,7 @@ public class ConfigSectionSeedingFirstPriority
     layout.verticalSpacing = 6;
 	cIgnoreFP.setLayout(layout);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
-	cIgnoreFP.setLayoutData(gridData);
+	Utils.setLayoutData(cIgnoreFP, gridData);
     Messages.setLanguageText(cIgnoreFP, "ConfigView.label.seeding.firstPriority.ignore");
 	
 	// Ignore S:P Ratio
@@ -238,7 +238,7 @@ public class ConfigSectionSeedingFirstPriority
     cArea1.setLayout(layout);
 	gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 2;
-    cArea1.setLayoutData(gridData);
+    Utils.setLayoutData(cArea1, gridData);
 	label = new Label(cArea1, SWT.NULL);
 	Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.ignore.info");
 

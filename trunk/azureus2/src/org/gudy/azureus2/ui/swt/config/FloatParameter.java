@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.ui.swt.Utils;
 
 public class FloatParameter {
 
@@ -116,6 +117,7 @@ public class FloatParameter {
   
 
   public void setLayoutData(Object layoutData) {
+  	Utils.adjustPXForDPI(layoutData);
     inputField.setLayoutData(layoutData);
   }
   
