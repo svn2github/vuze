@@ -491,8 +491,12 @@ public class ImageRepository
 							if ( is != null ){
 								
 								try{
-									flag = new Image( Display.getDefault(), is);
+									Display display = Display.getDefault();
+									
+									flag = new Image( display, is);
 	
+									flag = Utils.adjustPXForDPI( display, flag );
+									
 									//System.out.println( "Created flag image for " + cc_key );
 									
 								}finally{
@@ -585,8 +589,12 @@ public class ImageRepository
 					if ( is != null ){
 						
 						try{
-							flag = new Image( Display.getDefault(), is);
+							Display display = Display.getDefault();
+							
+							flag = new Image( display, is);
 
+							flag = Utils.adjustPXForDPI( display, flag );
+							
 							//System.out.println( "Created flag image for " + cc_key );
 							
 						}finally{
