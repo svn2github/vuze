@@ -240,7 +240,7 @@ public class TorrentListViewsUtils
 						}, 0);
 				final Map<Integer, Integer> mapPositionToFileInfo = new HashMap<Integer, Integer>();
 				final int[] selectedIndex = {
-					-1
+					0		// default selection is first entry
 				};
 
 				mb.setSubTitle(MessageText.getString("play.select.content"));
