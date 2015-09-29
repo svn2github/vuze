@@ -3617,7 +3617,7 @@ public class Utils
 	    sash.addListener(SWT.Resize, sash_listener );
 	}
 	
-	private static Point getDPI() {
+	public static Point getDPI() {
 		if (dpi == null) {
 			boolean enableForceDPI = COConfigurationManager.getBooleanParameter("enable.ui.forceDPI");
 			if (enableForceDPI) {
@@ -3750,4 +3750,24 @@ public class Utils
 		}
 	}
 
+	public static Image
+	adjustPXForDPI(
+		Display		display,
+		Image		image )
+	{
+		Point dpi = Utils.getDPI();
+		if (dpi.x != 96 || dpi.y != 96) {
+			Rectangle bounds = image.getBounds();
+			Rectangle newBounds = Utils.adjustPXForDPI(bounds);
+			
+			ImageData scaledTo = image.getImageData().scaledTo(newBounds.width, newBounds.height);
+			
+			Image newImage = new Image(display, scaledTo);
+						
+			image.dispose();
+			return( newImage );
+		}else{
+			return( image );
+		}
+	}
 }

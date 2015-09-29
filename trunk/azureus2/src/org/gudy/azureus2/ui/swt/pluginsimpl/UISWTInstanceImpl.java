@@ -948,7 +948,11 @@ UISWTInstanceImpl
 					Debug.out(e);
 				}
 			    
-				Image image = new Image(getDisplay(), imageData);
+				Display display = getDisplay();
+				
+				Image image = new Image(display, imageData);
+				
+				image = Utils.adjustPXForDPI( display,  image );
 				
 				listDisposeOnUnload.add(image);
 				

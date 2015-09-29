@@ -484,20 +484,7 @@ public class ImageLoader
 					}
 					//System.err.println("ImageRepository:loadImage:: Resource not found: " + res);
 				} else {
-					Point dpi = display.getDPI();
-					if (dpi.x != 96 || dpi.y != 96) {
-						Rectangle bounds = img.getBounds();
-						Rectangle newBounds = Utils.adjustPXForDPI(bounds);
-						
-						ImageData scaledTo = img.getImageData().scaledTo(newBounds.width, newBounds.height);
-						
-						Image newImage = new Image(display, scaledTo);
-						
-						//System.out.println("SKALE " + sKey + " to " + newBounds + "/" + newImage.getBounds());
-						
-						img.dispose();
-						img = newImage;
-					}
+					img = Utils.adjustPXForDPI(display, img);
 				}
 			} catch (Throwable e) {
 				System.err.println("ImageRepository:loadImage:: Resource not found: "
@@ -733,7 +720,7 @@ public class ImageLoader
 
 	public Image getImage(String sKey) {
 		Image[] images = getImages(sKey);
-		if (images == null || images.length == 0 || images[0].isDisposed()) {
+		if (images == null || images.length == 0 || images[0] == null || images[0].isDisposed()) {
 			return getNoImage( sKey );
 		}
 		return images[0];
