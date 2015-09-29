@@ -3750,21 +3750,50 @@ public class Utils
 		}
 	}
 
+	private static final WeakHashMap<Image,String>	scaled_images = new WeakHashMap<Image, String>();
+	private static int	scaled_imaged_check_count = 0;
+	
+	public static boolean
+	adjustPXForDPIRequired(
+		Image		image )
+	{
+		Point dpi = Utils.getDPI();
+		if (dpi.x != 96 || dpi.y != 96) {
+			return( !scaled_images.containsKey( image )); 
+		}else{
+			return( false );
+		}
+	}
+	
 	public static Image
 	adjustPXForDPI(
 		Display		display,
 		Image		image )
 	{
 		Point dpi = Utils.getDPI();
+		
 		if (dpi.x != 96 || dpi.y != 96) {
+
 			Rectangle bounds = image.getBounds();
 			Rectangle newBounds = Utils.adjustPXForDPI(bounds);
 			
 			ImageData scaledTo = image.getImageData().scaledTo(newBounds.width, newBounds.height);
 			
 			Image newImage = new Image(display, scaledTo);
-						
+		
+			if ( scaled_imaged_check_count++ % 100 == 0 ){
+				Iterator<Image> it = scaled_images.keySet().iterator();
+				while( it.hasNext()){
+					if ( it.next().isDisposed()){
+						it.remove();
+					}
+				}
+			}
+			
+			scaled_images.put( newImage, "" );
+			
 			image.dispose();
+			
 			return( newImage );
 		}else{
 			return( image );

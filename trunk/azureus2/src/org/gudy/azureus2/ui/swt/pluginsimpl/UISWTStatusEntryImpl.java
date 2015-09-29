@@ -61,7 +61,9 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	private String text = null;
 	private String tooltip = null;
 	private boolean image_enabled = false;
-	private Image image = null;
+	private Image original_image = null;
+	private boolean	check_scaled_image;
+	private Image scaled_image = null;
 	private boolean is_visible = false;
 	private boolean needs_disposing = false;
 	private boolean is_destroyed = false;
@@ -91,6 +93,10 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 				imageIDstoDispose.add(imageID);
 			}
 			releaseOldImages();
+			if ( scaled_image != null){
+				scaled_image.dispose();
+				scaled_image = null;
+			}
 			
 			return( true );
 		}
@@ -134,7 +140,17 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	private void update0(CLabelPadding label) {
 		label.setText(text);
 		label.setToolTipText(tooltip);
-		label.setImage(image_enabled ? image : null);
+		if ( check_scaled_image ){
+			check_scaled_image = false;
+			if ( scaled_image != null ){
+				scaled_image.dispose();
+				scaled_image = null;
+			}
+			if ( original_image != null &&  Utils.adjustPXForDPIRequired( original_image )){
+				scaled_image = Utils.adjustPXForDPI( label.getDisplay(), original_image );
+			}
+		}
+		label.setImage(image_enabled ? (scaled_image==null?original_image:scaled_image) : null);
 		label.setVisible(this.is_visible);
 		
 		releaseOldImages();
@@ -173,7 +189,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 			this_mon.enter();
 			this.is_visible = false;
 			this.listener = null;
-			this.image = null;
+			this.original_image = null;
 			this.needs_disposing = true;
 			this.is_destroyed = true;
 			
@@ -214,10 +230,11 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	public void setImage(Image image) {
 		checkDestroyed();
 		this_mon.enter();
-		if( image != this.image ){
+		if( image != this.original_image ){
 			needs_layout = true;
+			check_scaled_image = true;
+			this.original_image = image;
 		}
-		this.image = image;
 		this.needs_update = true;
 		this_mon.exit();
 	}
