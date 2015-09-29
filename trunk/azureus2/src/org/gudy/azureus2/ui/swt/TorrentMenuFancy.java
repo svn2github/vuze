@@ -1714,7 +1714,7 @@ public class TorrentMenuFancy
 		});
 		item.setEnabled(enable);
 
-		RowData rowData = new RowData(Utils.adjustPXForDPI(30), Utils.adjustPXForDPI(21));
+		RowData rowData = new RowData(30, 21);
 		Utils.setLayoutData(item, rowData);
 
 		return item;
