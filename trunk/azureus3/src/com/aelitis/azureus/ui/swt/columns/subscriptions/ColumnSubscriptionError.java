@@ -42,7 +42,7 @@ public class ColumnSubscriptionError
 	public ColumnSubscriptionError(String sTableID) {
 		super(COLUMN_ID, POSITION_LAST, 300, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
-		setAlignment(ALIGN_TRAIL);
+		setAlignment(ALIGN_LEAD);
 	}
 
 	public void refresh(TableCell cell) {
