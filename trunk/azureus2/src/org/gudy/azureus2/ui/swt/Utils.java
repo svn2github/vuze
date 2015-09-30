@@ -86,6 +86,8 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  */
 public class Utils
 {
+	private static final int DEFAULT_DPI = Constants.isOSX ? 72 : 96;
+
 	public static final String GOOD_STRING = "(/|,jI~`gy";
 
 	public static final boolean isGTK = SWT.getPlatform().equals("gtk");
@@ -3618,7 +3620,7 @@ public class Utils
 	    sash.addListener(SWT.Resize, sash_listener );
 	}
 	
-	public static Point getDPI() {
+	private static Point getDPI() {
 		if (dpi == null) {
 			boolean enableForceDPI = COConfigurationManager.getBooleanParameter("enable.ui.forceDPI");
 			if (enableForceDPI) {
@@ -3630,43 +3632,52 @@ public class Utils
 			}
 			Display display = getDisplay();
 			if (display == null) {
-				return new Point(96, 96);
+				return new Point(0, 0);
 			}
 			dpi = display.getDPI();
 			COConfigurationManager.setIntDefault("Force DPI", dpi.x);
+			if (dpi.x <= 96 || dpi.y <= 96) {
+				dpi = new Point(0, 0);
+			}
 		}
 		return dpi;
 	}
 
-	public static int adjustPXForDPI(int dpi) {
-		if (dpi == 0) {
-			return dpi;
+	public static int adjustPXForDPI(int unadjustedPX) {
+		if (unadjustedPX == 0) {
+			return unadjustedPX;
 		}
 		int xDPI = getDPI().x;
-		if (xDPI == 96) {
-			return dpi;
+		if (xDPI == 0) {
+			return unadjustedPX;
 		}
-		return (int) (dpi / 96.0 * xDPI);
+		return unadjustedPX * xDPI / DEFAULT_DPI;
 	}
 
 	public static Rectangle adjustPXForDPI(Rectangle bounds) {
 		Point dpi = getDPI();
-		if (dpi.x == 96 && dpi.y == 96) {
+		if (dpi.x == 0) {
 			return bounds;
 		}
-		return new Rectangle(bounds.x * dpi.x / 96, bounds.y * dpi.y / 96,
-				bounds.width * dpi.x / 96, bounds.height * dpi.y / 96);
+		return new Rectangle(bounds.x * dpi.x / DEFAULT_DPI,
+				bounds.y * dpi.y / DEFAULT_DPI, bounds.width * dpi.x / DEFAULT_DPI,
+				bounds.height * dpi.y / DEFAULT_DPI);
 	}
 
 	public static Point adjustPXForDPI(Point size) {
 		Point dpi = getDPI();
-		if (dpi.x == 96 && dpi.y == 96) {
+		if (dpi.x == 0) {
 			return size;
 		}
-		return new Point(size.x * dpi.x / 96, size.y * dpi.y / 96);
+		return new Point(size.x * dpi.x / DEFAULT_DPI,
+				size.y * dpi.y / DEFAULT_DPI);
 	}
 
 	public static void adjustPXForDPI(FormData fd) {
+		Point dpi = getDPI();
+		if (dpi.x == 0) {
+			return;
+		}
 		adjustPXForDPI(fd.left);
 		adjustPXForDPI(fd.right);
 		adjustPXForDPI(fd.top);
@@ -3695,7 +3706,7 @@ public class Utils
 
 	private static void adjustPXForDPI(GridData layoutData) {
 		Point dpi = getDPI();
-		if (dpi.x == 96 && dpi.y == 96) {
+		if (dpi.x == 0) {
 			return;
 		}
 		if (layoutData.heightHint > 0) {
@@ -3759,7 +3770,7 @@ public class Utils
 		Image		image )
 	{
 		Point dpi = Utils.getDPI();
-		if (dpi.x != 96 || dpi.y != 96) {
+		if (dpi.x > 0) {
 			return( !scaled_images.containsKey( image )); 
 		}else{
 			return( false );
@@ -3773,7 +3784,7 @@ public class Utils
 	{
 		Point dpi = Utils.getDPI();
 		
-		if (dpi.x != 96 || dpi.y != 96) {
+		if (dpi.x > 0) {
 
 			Rectangle bounds = image.getBounds();
 			Rectangle newBounds = Utils.adjustPXForDPI(bounds);
@@ -3803,7 +3814,7 @@ public class Utils
 
 	public static void setLayout(Composite composite, GridLayout layout) {
 		Point dpi = getDPI();
-		if (dpi.x == 96 && dpi.y == 96) {
+		if (dpi.x == 0) {
 			composite.setLayout(layout);
 			return;
 		}
