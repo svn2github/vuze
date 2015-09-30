@@ -58,27 +58,28 @@ public class ColumnChatMessageCount
 			
 			BuddyPluginBeta beta = BuddyPluginUtils.getBetaPlugin();
 
-			ChatInstance chat = beta.peekChatInstance(dl);
-			
-			if (chat != null){
+			if ( beta != null ){
+				ChatInstance chat = beta.peekChatInstance(dl);
 				
-				num = chat.getMessageCount( true );
-				
-			}else{
-								
-				Map<String,Object> peek_data = beta.peekChat( dl, true );
-				
-				if ( peek_data != null ){
+				if (chat != null){
 					
-					Number	message_count 	= (Number)peek_data.get( "m" );
-
-					if ( message_count != null ){
+					num = chat.getMessageCount( true );
+					
+				}else{
+									
+					Map<String,Object> peek_data = beta.peekChat( dl, true );
+					
+					if ( peek_data != null ){
 						
-						num = message_count.intValue();
+						Number	message_count 	= (Number)peek_data.get( "m" );
+	
+						if ( message_count != null ){
+							
+							num = message_count.intValue();
+						}
 					}
 				}
 			}
-			
 		} else {
 			
 			ChatInstance chat = (ChatInstance) cell.getDataSource();
