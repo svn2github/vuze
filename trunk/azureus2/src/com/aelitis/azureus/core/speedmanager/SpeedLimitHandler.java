@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.WeakHashMap;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
@@ -3306,6 +3307,9 @@ SpeedLimitHandler
 				
 		String log_str = "";
 		
+		Map <TagFeatureRunState,List<Object[]>>		rs_ops = new HashMap<TagFeatureRunState, List<Object[]>>();
+		Map <TagFeatureRateLimit,List<Object[]>>	rl_ops = new HashMap<TagFeatureRateLimit, List<Object[]>>();
+		
 		for (Map.Entry<Integer,List<NetLimit>> entry: net_limits.entrySet()){
 			
 			int	type = entry.getKey();
@@ -3376,17 +3380,20 @@ SpeedLimitHandler
 							boolean pause = exceeded_up&&exceeded_down;
 							
 							int op = pause?TagFeatureRunState.RSC_PAUSE:TagFeatureRunState.RSC_RESUME;
+															
+							List<Object[]> list = rs_ops.get( rs );
 							
-							boolean[] result = rs.getPerformableOperations( new int[]{ op });
-							
-							if ( result[0] ){
+							if ( list == null ){
 								
-								logger.log( name_str + " : " + (pause?"pausing":"resuming") + " tag " + tag.getTagName( true ));
+								list = new ArrayList<Object[]>();
 								
-								do_log = true;
-								
-								rs.performOperation( op );
+								rs_ops.put( rs, list );
 							}
+							
+							list.add( 
+								new Object[]{ 
+										name_str + " : " + (pause?"pausing":"resuming") + " tag " + tag.getTagName( true ),
+										op });
 							
 							handled = pause;
 						}
@@ -3397,23 +3404,103 @@ SpeedLimitHandler
 					
 					int target_up 	= exceeded_up?-1:0;
 					int target_down = exceeded_down?-1:0;
+												
+					List<Object[]> list = rl_ops.get( tag_rl );
 					
-					int up_lim	 = tag_rl.getTagUploadLimit();
-					int down_lim = tag_rl.getTagDownloadLimit();
-					
-					if ( up_lim != target_up || down_lim != target_down ){
-							
-						logger.log( name_str + ": setting rates to " + format( target_up ) + "/" + format( target_down ) + " on tag " + tag.getTagName( true ));
+					if ( list == null ){
 						
-						do_log = true;
+						list = new ArrayList<Object[]>();
 						
-						tag_rl.setTagUploadLimit( target_up );
-						
-						tag_rl.setTagDownloadLimit( target_down );
+						rl_ops.put( tag_rl, list );
 					}
+					
+					list.add( 
+						new Object[]{ 
+								name_str + ": setting rates to " + format( target_up ) + "/" + format( target_down ) + " on tag " + tag.getTagName( true ),
+								target_up, target_down });
 				}
 			}
 		}
+		
+		for ( Map.Entry<TagFeatureRunState,List<Object[]>> entry: rs_ops.entrySet()){
+			
+			TagFeatureRunState 	tag_rs 	= entry.getKey();
+			List<Object[]>		details	= entry.getValue();
+			
+			int	selected_op = TagFeatureRunState.RSC_RESUME;
+			
+			String all_str = "";
+			
+			for ( Object[] detail: details ){
+				
+				String	str = (String)detail[0];
+				
+				all_str += (all_str.length()==0?"":";") + str;
+				
+				int		op	= (Integer)detail[1];
+				
+				if  ( op == TagFeatureRunState.RSC_PAUSE ){
+					
+					selected_op =TagFeatureRunState.RSC_PAUSE;
+				}
+			}
+				
+			boolean[] result = tag_rs.getPerformableOperations( new int[]{ selected_op });
+			
+			if ( result[0] ){
+
+				logger.log( all_str );
+				
+				do_log = true;
+				
+				tag_rs.performOperation( selected_op );
+			}
+		}
+		
+		for ( Map.Entry<TagFeatureRateLimit,List<Object[]>> entry: rl_ops.entrySet()){
+			
+			TagFeatureRateLimit 	tag_rl 	= entry.getKey();
+			List<Object[]>			details	= entry.getValue();
+
+			String all_str = "";
+			
+			int	selected_up 	= 0;
+			int	selected_down 	= 0;
+			
+			for ( Object[] detail: details ){
+				
+				String	str = (String)detail[0];
+				
+				all_str += (all_str.length()==0?"":";") + str;
+				
+				int	up		= (Integer)detail[1];
+				int	down	= (Integer)detail[2];
+				
+				if ( up == -1 ){
+					
+					selected_up = -1;
+				}
+				
+				if ( down == -1 ){
+					
+					selected_down = -1;
+				}
+			}
+			
+			int up_lim	 = tag_rl.getTagUploadLimit();
+			int down_lim = tag_rl.getTagDownloadLimit();
+			
+			if ( up_lim != selected_up || down_lim != selected_down ){
+				
+				logger.log( all_str );
+				
+				do_log = true;
+				
+				tag_rl.setTagUploadLimit( selected_up );
+				
+				tag_rl.setTagDownloadLimit( selected_down );
+			}
+		}				
 		
 		if ( log_str.length() > 0 && do_log ){
 			
