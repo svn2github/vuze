@@ -854,7 +854,7 @@ SESecurityManagerImpl
 	installServerCertificates(
 		URL		https_url )
 	{
-		return( installServerCertificates( https_url, false ));
+		return( installServerCertificates( https_url, false, false ));
 	}
 	
 	private boolean						hack_constructor_tried;
@@ -959,7 +959,8 @@ SESecurityManagerImpl
 	private SSLSocketFactory
 	installServerCertificates(
 		final URL	https_url,
-		boolean		sni_hack )
+		boolean		sni_hack,
+		boolean		dh_hack )
 	{
 		try{
 			this_mon.enter();
@@ -1019,6 +1020,25 @@ SESecurityManagerImpl
 					}
 				}
 		        
+				if ( dh_hack ){
+
+					String[] cs = socket.getEnabledCipherSuites();
+					
+					List<String> new_cs = new ArrayList<String>();
+					
+					for ( String x: cs ){
+						
+						if ( x.contains( "_DH_" ) || x.contains( "_DHE_" )){
+							
+						}else{
+							
+							new_cs.add( x );
+						}
+					}
+
+					socket.setEnabledCipherSuites( new_cs.toArray(new String[new_cs.size()]));
+				}
+				
 				socket.startHandshake();
 				
 				java.security.cert.Certificate[] serverCerts = socket.getSession().getPeerCertificates();
@@ -1118,16 +1138,23 @@ SESecurityManagerImpl
 				
 			}catch( Throwable e ){
 				
-				if ( Debug.getNestedExceptionMessage( e ).contains( "unrecognized_name" )){
+				String msg =  Debug.getNestedExceptionMessage( e );
+				
+				if ( msg.contains( "unrecognized_name" )){
 					
 					if ( !sni_hack ){
 						
-						return( installServerCertificates( https_url, true ));
+						return( installServerCertificates( https_url, true, dh_hack ));
 					}
 				}
-					// we can get
-					// 		Certificates does not conform to algorithm constraints
-					// if, for example, old cert is using MD2 which has been disabled
+				
+				if ( msg.contains( "DH keypair" )){
+					
+					if ( !dh_hack ){
+						
+						return( installServerCertificates( https_url, sni_hack, true ));
+					}
+				}
 				
 				Debug.out( e );
 				
