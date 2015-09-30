@@ -61,6 +61,8 @@ public class SWTSkinObjectExpandBar
 		// ensure no layout for expandbar (children don't setlayoutdata because they are expanditems)
 		expandBar.setLayout(null);
 		expandBar.setSpacing(1);
+		// This fixes the bandHeight which is only auto calculated if Font on ExpandBar is set
+		expandBar.setFont(createOn.getFont());
 
 		expandBar.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(final Event event) {
