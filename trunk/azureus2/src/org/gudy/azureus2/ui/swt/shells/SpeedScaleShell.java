@@ -40,19 +40,29 @@ public class SpeedScaleShell
 {
 	private static final boolean MOUSE_ONLY_UP_EXITS = true;
 
-	private static final int OPTION_HEIGHT = 15;
+	private int OPTION_HEIGHT = 15;
 
-	private static final int TEXT_HEIGHT = 32;
+	private int TEXT_HEIGHT = 32;
 
-	private static final int SCALER_HEIGHT = 20;
+	private int SCALER_HEIGHT = 20;
 
 	private int HEIGHT = TEXT_HEIGHT + SCALER_HEIGHT;
 
-	private static final int MIN_WIDTH = 130;
+	private int MIN_WIDTH = 130;
 
-	private static final int PADDING_X0 = 10;
+	private int PADDING_X0 = 10;
 
-	private static final int PADDING_X1 = 10;
+	private int PADDING_X1 = 10;
+
+	private int MARKER_HEIGHT = 10;
+
+	private int MARKER_WIDTH = 5;
+
+	private int PX_5 = 5;
+
+	private int PX_2 = 2;
+
+	private int PX_10 = 10;
 
 	private static final int TYPED_TEXT_ALPHA = 80;
 
@@ -77,7 +87,7 @@ public class SpeedScaleShell
 	private int bigPageIncrement;
 
 	private Shell shell;
-	
+
 	private Shell parentShell;
 
 	private LinkedHashMap mapOptions = new LinkedHashMap();
@@ -104,6 +114,19 @@ public class SpeedScaleShell
 		bigPageIncrement = 100;
 		cancelled = true;
 		menuChosen = false;
+
+		OPTION_HEIGHT = Utils.adjustPXForDPI(OPTION_HEIGHT);
+		TEXT_HEIGHT = Utils.adjustPXForDPI(TEXT_HEIGHT);
+		SCALER_HEIGHT = Utils.adjustPXForDPI(SCALER_HEIGHT);
+		HEIGHT = Utils.adjustPXForDPI(HEIGHT);
+		MIN_WIDTH = Utils.adjustPXForDPI(MIN_WIDTH);
+		PADDING_X0 = Utils.adjustPXForDPI(PADDING_X0);
+		PADDING_X1 = Utils.adjustPXForDPI(PADDING_X1);
+		MARKER_HEIGHT = Utils.adjustPXForDPI(MARKER_HEIGHT);
+		MARKER_WIDTH = Utils.adjustPXForDPI(MARKER_WIDTH);
+		PX_2 = Utils.adjustPXForDPI(PX_2);
+		PX_5 = Utils.adjustPXForDPI(PX_5);
+		PX_10 = Utils.adjustPXForDPI(PX_10);
 	}
 
 	/**
@@ -139,21 +162,20 @@ public class SpeedScaleShell
 		for (Iterator iter = mapOptions.keySet().iterator(); iter.hasNext();) {
 			Integer value = (Integer) iter.next();
 			String text = (String) mapOptions.get(value);
-			
+
 			String s = getStringValue(value, text);
 			GCStringPrinter stringPrinter = new GCStringPrinter(gc, s, r, 0, 0);
 			stringPrinter.calculateMetrics();
 			Point size = stringPrinter.getCalculatedSize();
 			size.x *= 1.10;
-			
+
 			if (WIDTH < size.x) {
 				WIDTH = size.x;
 			}
 		}
 		gc.dispose();
 		WIDTH_NO_PADDING = WIDTH - PADDING_X0 - PADDING_X1;
-		
-		
+
 		final Point firstMousePos = display.getCursorLocation();
 
 		composite.addTraverseListener(new TraverseListener() {
@@ -213,7 +235,7 @@ public class SpeedScaleShell
 				}
 			}
 		};
-		
+
 		composite.addMouseMoveListener(mouseMoveListener);
 
 		composite.addMouseTrackListener(new MouseTrackListener() {
@@ -231,18 +253,18 @@ public class SpeedScaleShell
 				mouseIsOut = true;
 				SimpleTimer.addEvent("close scaler",
 						SystemTime.getOffsetTime(CLOSE_DELAY), new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								Utils.execSWTThread(new AERunnable() {
-									public void runSupport() {
-										if (!exitCancelled) {
-											shell.dispose();
-										} else {
-											exitCancelled = false;
-										}
-									}
-								});
+					public void perform(TimerEvent event) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								if (!exitCancelled) {
+									shell.dispose();
+								} else {
+									exitCancelled = false;
+								}
 							}
 						});
+					}
+				});
 			}
 
 			public void mouseEnter(MouseEvent e) {
@@ -350,7 +372,10 @@ public class SpeedScaleShell
 					// aw
 				}
 
-				e.gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+				e.gc.setLineWidth(Utils.adjustPXForDPI(1));
+
+				e.gc.setForeground(
+						display.getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
 				// left
 				e.gc.drawLine(PADDING_X0, baseLinePos - 6, PADDING_X0, baseLinePos + 6);
 				// right
@@ -363,11 +388,11 @@ public class SpeedScaleShell
 				e.gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
 				e.gc.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
 				// start value marker
-				e.gc.drawLine(PADDING_X0 + startX, baseLinePos - 5,
-						PADDING_X0 + startX, baseLinePos + 5);
+				e.gc.drawLine(PADDING_X0 + startX, baseLinePos - PX_5,
+						PADDING_X0 + startX, baseLinePos + PX_5);
 				// current value marker
-				e.gc.fillRoundRectangle(PADDING_X0 + x - 2, baseLinePos - 5, 5, 10, 10,
-						10);
+				e.gc.fillRoundRectangle(PADDING_X0 + x - PX_2, baseLinePos - PX_5,
+						MARKER_WIDTH, MARKER_HEIGHT, MARKER_HEIGHT, MARKER_HEIGHT);
 
 				// Current Value Text
 				e.gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
@@ -375,10 +400,11 @@ public class SpeedScaleShell
 
 				e.gc.fillRectangle(0, 0, WIDTH, TEXT_HEIGHT);
 
-				GCStringPrinter.printString(e.gc, _getStringValue(), new Rectangle(0,
-						0, WIDTH, HEIGHT), true, false, SWT.CENTER | SWT.TOP | SWT.WRAP);
+				GCStringPrinter.printString(e.gc, _getStringValue(),
+						new Rectangle(0, 0, WIDTH, HEIGHT), true, false,
+						SWT.CENTER | SWT.TOP | SWT.WRAP);
 
-				e.gc.drawLine(0, TEXT_HEIGHT - 1, WIDTH, TEXT_HEIGHT - 1);
+				e.gc.drawLine(0, TEXT_HEIGHT, WIDTH, TEXT_HEIGHT);
 
 				// options list
 				int y = TEXT_HEIGHT;
@@ -393,19 +419,29 @@ public class SpeedScaleShell
 					if (area.contains(mousePos)) {
 						bg = display.getSystemColor(SWT.COLOR_LIST_SELECTION);
 						e.gc.setBackground(bg);
-						e.gc.setForeground(display.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
+						e.gc.setForeground(
+								display.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
 						e.gc.fillRectangle(area);
 					} else {
 						bg = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 						e.gc.setBackground(bg);
-						e.gc.setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+						e.gc.setForeground(
+								display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 					}
 
-					int ovalSize = OPTION_HEIGHT - 6;
+					int ovalGap = Utils.adjustPXForDPI(6);
+					float ovalPadding = ovalGap / 2.0f;
+					int ovalSize = OPTION_HEIGHT - ovalGap;
+					float xCenter = (ovalSize / 2.0f) + PX_2;
+					float yCenter = (ovalSize / 2.0f) + ovalPadding;
 					if (getValue() == value.intValue()) {
 						Color saveColor = e.gc.getBackground();
 						e.gc.setBackground(e.gc.getForeground());
-						e.gc.fillOval(4, y + 5, ovalSize - 3, ovalSize - 3);
+						float ovalSizeMini = ovalSize - (ovalGap / 2.0f); 
+						int xMiniOval = (int) Math.round((xCenter - (ovalSizeMini / 2.0)));
+						int yMiniOval = (int) Math.round(yCenter - (ovalSizeMini / 2.0));
+						e.gc.fillOval(xMiniOval, y + yMiniOval, Math.round(ovalSizeMini),
+								Math.round(ovalSizeMini));
 						e.gc.setBackground(saveColor);
 					}
 					if (Constants.isLinux) {
@@ -414,10 +450,10 @@ public class SpeedScaleShell
 						// path
 						Color saveColor = e.gc.getForeground();
 						e.gc.setForeground(bg);
-						e.gc.drawPoint(2, y + 3);
+						e.gc.drawPoint(PX_2, (int) (y + ovalPadding));
 						e.gc.setForeground(saveColor);
 					}
-					e.gc.drawOval(2, y + 3, ovalSize, ovalSize);
+					e.gc.drawOval(PX_2, (int) (y + ovalPadding), ovalSize, ovalSize);
 
 					GCStringPrinter.printString(e.gc, text, new Rectangle(OPTION_HEIGHT,
 							y, WIDTH - OPTION_HEIGHT, OPTION_HEIGHT), true, false, SWT.LEFT);
@@ -427,12 +463,14 @@ public class SpeedScaleShell
 				// typed value
 				if (sValue.length() > 0) {
 					Point extent = e.gc.textExtent(sValue);
-					if (extent.x > WIDTH - 10) {
-						extent.x = WIDTH - 10;
+					if (extent.x > WIDTH - PX_10) {
+						extent.x = WIDTH - PX_10;
 					}
-					Rectangle rect = new Rectangle(WIDTH - 8 - extent.x, 14,
-							extent.x + 5, extent.y + 4 + 14 > TEXT_HEIGHT ? TEXT_HEIGHT - 15
-									: extent.y + 4);
+					int yTypedValue = Utils.adjustPXForDPI(15);
+					Rectangle rect = new Rectangle(WIDTH - (PX_10 - 2) - extent.x, yTypedValue - 1,
+							extent.x + PX_5,
+							extent.y + (PX_5 - 1) + (yTypedValue - 1) > TEXT_HEIGHT
+									? TEXT_HEIGHT - yTypedValue : extent.y + (PX_5 - 1));
 					e.gc.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 					e.gc.fillRectangle(rect);
 
@@ -443,9 +481,9 @@ public class SpeedScaleShell
 					//e.gc.drawRectangle(rect);
 					e.gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 
-					GCStringPrinter.printString(e.gc, sValue, new Rectangle(rect.x + 2,
-							rect.y + 2, WIDTH - 5, OPTION_HEIGHT), true, false, SWT.LEFT
-							| SWT.BOTTOM);
+					GCStringPrinter.printString(e.gc, sValue, new Rectangle(rect.x + PX_2,
+							rect.y + PX_2, WIDTH - PX_5, OPTION_HEIGHT), true, false,
+							SWT.LEFT | SWT.BOTTOM);
 				}
 			}
 		});
@@ -463,18 +501,19 @@ public class SpeedScaleShell
 
 				GC gc = new GC(composite);
 				try {
-					gc.setLineWidth(2);
+					gc.setLineWidth(PX_2);
 					if (!on) {
 						gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 					} else {
 						try {
-							gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+							gc.setForeground(
+									display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 							gc.setAlpha(TYPED_TEXT_ALPHA);
 						} catch (Exception e) {
 						}
 					}
-					int y = 15;
-					gc.drawLine(WIDTH - 5, y + 1, WIDTH - 5, y + OPTION_HEIGHT);
+					int y = Utils.adjustPXForDPI(15);
+					gc.drawLine(WIDTH - PX_5, y + 1, WIDTH - PX_5, y + OPTION_HEIGHT);
 				} finally {
 					gc.dispose();
 				}
@@ -527,8 +566,8 @@ public class SpeedScaleShell
 		Point location = display.getCursorLocation();
 
 		location.y -= getBaselinePos();
-		int x = (int) (WIDTH_NO_PADDING * (value > maxValue ? 1 : (double) value
-				/ maxValue));
+		int x = (int) (WIDTH_NO_PADDING
+				* (value > maxValue ? 1 : (double) value / maxValue));
 		location.x -= PADDING_X0 + x;
 
 		Rectangle bounds = new Rectangle(location.x, location.y, WIDTH, HEIGHT);
@@ -555,8 +594,8 @@ public class SpeedScaleShell
 		shell.setBounds(bounds);
 		if (!bounds.contains(firstMousePos)) {
 			// should never happen, which means it probably will, so handle it badly
-			shell.setLocation(firstMousePos.x - (bounds.width / 2), firstMousePos.y
-					- bounds.height + 2);
+			shell.setLocation(firstMousePos.x - (bounds.width / 2),
+					firstMousePos.y - bounds.height + 2);
 		}
 
 		shell.open();
