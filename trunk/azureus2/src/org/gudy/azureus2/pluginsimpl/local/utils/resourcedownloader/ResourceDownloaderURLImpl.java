@@ -712,8 +712,7 @@ redirect_label:
 											}
 											
 											TrustManager[] tms_delegate = 
-												new TrustManager[]
-												{
+												SESecurityManager.getAllTrustingTrustManager(
 													new X509TrustManager() {
 														public X509Certificate[] 
 														getAcceptedIssuers() 
@@ -753,8 +752,7 @@ redirect_label:
 																tm.checkServerTrusted(chain, authType);
 															}
 														}
-													}
-												};
+													});
 										
 											SSLContext sc = SSLContext.getInstance("SSL");
 											

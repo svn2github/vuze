@@ -189,7 +189,9 @@ COConfigurationManager
 					 * See http://stackoverflow.com/questions/7615645/ssl-handshake-alert-unrecognized-name-error-since-upgrade-to-java-1-7-0
 					 */
 				
-				System.setProperty( "jsse.enableSNIExtension", "false" );
+					// Update: nope, disabling this is causing too much other trouble, worked around SNI issues
+					// with various hacks...
+				//System.setProperty( "jsse.enableSNIExtension", "false" );
 				
 				System.setProperty( "sun.net.maxDatagramSockets", "4096" );
 				

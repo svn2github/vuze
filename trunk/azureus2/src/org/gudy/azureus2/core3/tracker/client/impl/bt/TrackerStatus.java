@@ -28,8 +28,12 @@ import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -116,6 +120,7 @@ public class TrackerStatus {
 	
 	private final URL				tracker_url;
 	private boolean					az_tracker;
+	private boolean					enable_sni_hack;
 	private String					scrapeURL						= null;
  
   /** key = Torrent hash.  values = TRTrackerScraperResponseImpl */
@@ -1198,10 +1203,17 @@ public class TrackerStatus {
 			Properties	http_properties = new Properties();
 
 			http_properties.put( ClientIDGenerator.PR_URL, reqUrl );
+			
 			if ( proxy != null ){
+				
 				http_properties.put( ClientIDGenerator.PR_PROXY, proxy );
 			}
 			
+	 		if ( enable_sni_hack ){
+	 			
+	 			http_properties.put( ClientIDGenerator.PR_SNI_HACK, true );
+	 		}
+	 		
 			try{
 				ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
 
@@ -1241,6 +1253,25 @@ public class TrackerStatus {
 								}
 							});
 
+					if ( i > 0 ){
+			 				
+		 					// meh, some https trackers are just screwed
+		 				
+						TrustManager[] trustAllCerts = SESecurityManager.getAllTrustingTrustManager();
+					
+						try{
+							SSLContext sc = SSLContext.getInstance("SSL");
+							
+							sc.init(null, trustAllCerts, RandomUtils.SECURE_RANDOM);
+							
+							SSLSocketFactory factory = sc.getSocketFactory();
+							
+							ssl_con.setSSLSocketFactory( factory );
+							
+						}catch( Throwable e ){
+						}
+		 			}
+					
 					con = ssl_con;
 
 				}else{
@@ -1363,7 +1394,14 @@ public class TrackerStatus {
 					}
 				}
 			}catch( SSLException e ){
-
+				
+				if ( Debug.getNestedExceptionMessage( e ).contains( "unrecognized_name" )){
+				
+						// SNI borkage - used to fix by globally disabling SNI but this screws too many other things
+					
+					enable_sni_hack = true;
+				}
+				
 				// e.printStackTrace();
 
 				// try and install certificate regardless of error (as this changed in JDK1.5

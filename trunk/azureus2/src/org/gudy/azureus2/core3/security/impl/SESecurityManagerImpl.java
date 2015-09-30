@@ -28,14 +28,23 @@ package org.gudy.azureus2.core3.security.impl;
  */
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.Authenticator;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.Socket;
 import java.net.URL;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.Permission;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -52,11 +61,13 @@ import org.gudy.azureus2.core3.security.SEKeyDetails;
 import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.RandomUtils;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -843,6 +854,113 @@ SESecurityManagerImpl
 	installServerCertificates(
 		URL		https_url )
 	{
+		return( installServerCertificates( https_url, false ));
+	}
+	
+	private boolean						hack_constructor_tried;
+	private Constructor<TrustManager>	hack_constructor;
+	
+	public TrustManager[]
+	getAllTrustingTrustManager()
+	{
+		return( getAllTrustingTrustManager( null ));
+	}
+	
+	public TrustManager[]
+	getAllTrustingTrustManager(
+		final X509TrustManager		delegate )
+	{
+		try{
+			this_mon.enter();
+			
+			TrustManager[] all_trusting_manager = null;
+			
+			if ( !hack_constructor_tried ){
+				
+				hack_constructor_tried = true;
+				
+				try{	
+						// this is simply an encoded Java 1.7 class that extends X509ExtendedTrustManager
+						// it is needed because simply using our own instance of TrustManager results in Java wrapping
+						// it in an implementation that automatically applies extra (unwanted) checks
+					
+					byte[] bytes = Base32.decode( "ZL7LVPQAAAADGABRA4AAEAIAG5XXEZZPM52WI6JPMF5HK4TFOVZTEL3DN5ZGKMZPONSWG5LSNF2HSL3JNVYGYL2TIVKHE5LTORUW4Z2NMFXGCZ3FOIDQABABAATGUYLWMF4C63TFOQXXG43MF5MDKMBZIV4HIZLOMRSWIVDSOVZXITLBNZQWOZLSAEAAQZDFNRSWOYLUMUAQAICMNJQXMYLYF5XGK5BPONZWYL2YGUYDSVDSOVZXITLBNZQWOZLSHMAQABR4NFXGS5B6AEACGKCMNJQXMYLYF5XGK5BPONZWYL2YGUYDSVDSOVZXITLBNZQWOZLSHMUVMAIAARBW6ZDFBIAAGAALBQAAOAAMAEAAGKBJKYEQAAIABYGAABIAAYAQAD2MNFXGKTTVNVRGK4SUMFRGYZIBAAJEY33DMFWFMYLSNFQWE3DFKRQWE3DFAEAAI5DINFZQCABZJRXXEZZPM52WI6JPMF5HK4TFOVZTEL3DN5ZGKMZPONSWG5LSNF2HSL3JNVYGYL2TIVKHE5LTORUW4Z2NMFXGCZ3FOI5QCAAJL5SGK3DFM5QXIZIBAAJGG2DFMNVUG3DJMVXHIVDSOVZXIZLEAEADUKC3JRVGC5TBF5ZWKY3VOJUXI6JPMNSXE5BPLA2TAOKDMVZHI2LGNFRWC5DFHNGGUYLWMEXWYYLOM4XVG5DSNFXGOOZJKYAQACSFPBRWK4DUNFXW44YHAAMACABHNJQXMYJPONSWG5LSNF2HSL3DMVZHIL2DMVZHI2LGNFRWC5DFIV4GGZLQORUW63QLAANAAHAHAANQCAA6NJQXMYLYF5XGK5BPONZWYL2YGUYDSVDSOVZXITLBNZQWOZLSBQABIAAVAEAAKY3IMFUW4AIAEVNUY2TBOZQS643FMN2XE2LUPEXWGZLSOQXVQNJQHFBWK4TUNFTGSY3BORSTWAIABBQXK5DIKR4XAZIBAAJEY2TBOZQS63DBNZTS6U3UOJUW4ZZ3AEAA2U3UMFRWWTLBOBKGCYTMMUAQASZILNGGUYLWMEXXGZLDOVZGS5DZF5RWK4TUF5MDKMBZINSXE5DJMZUWGYLUMU5UY2TBOZQS63DBNZTS6U3UOJUW4ZZ3JRVGC5TBF5XGK5BPKNXWG23FOQ5SSVQBAADHG33DNNSXIAIACFGGUYLWMEXW4ZLUF5JW6Y3LMV2DWAIAKMUFWTDKMF3GCL3TMVRXK4TJOR4S6Y3FOJ2C6WBVGA4UGZLSORUWM2LDMF2GKO2MNJQXMYJPNRQW4ZZPKN2HE2LOM45UY2TBOZQXQL3OMV2C643TNQXVGU2MIVXGO2LOMU5SSVQBAADGK3THNFXGKAIADFGGUYLWMF4C63TFOQXXG43MF5JVGTCFNZTWS3TFHMAQAETDNBSWG22TMVZHMZLSKRZHK43UMVSAWAA2AAVAYABIAAKQCAASM5SXIQLDMNSXA5DFMREXG43VMVZHGAIAE4UCSW2MNJQXMYJPONSWG5LSNF2HSL3DMVZHIL2YGUYDSQ3FOJ2GSZTJMNQXIZJ3BMABUABOBQACWABMAEAAUU3POVZGGZKGNFWGKAIACZJUKVDSOVZXI2LOM5GWC3TBM5SXELTKMF3GCABBAAAQAAYAAAAACAACAACQABQAAAAAQAABAADQACAAAEAASAAAABDAAAQAAIAAAAAKFK3QACRKFO2QADNRAAAAAAQAB4AAAAAOAABQAAAAFAAAIABLAAEQALAACAAAAAAWAABAAAAABIABCAASAAAAAAAABIABGAAGAAAQAAIACQABKAACAALAAAAAAQAACAAXAAEQAAAAMIAAGAADAAAAAEZKWQAA3RQABYVLIAANFMWLSAAZAMALCAAAAABQADYAAAAA4AADAAAAAMIAA4ADEAASAA2AAEAAAAACAAADAAAAAEYACEABEAAAAAAAAEYADUAB4AABAAAAAEYAD4ACAAACAAQQAAAAAMAACEQAAEABIABCAABAAFQAAAAAIAABAALQACIAAAAGYAADAACAAAAACMVLIAANYYAA4KVUAAGSWLFZAAMQGAFRAAAAAAYAB4AAAAAOAABQAAAAHAAAOABZAAJAAOYACAAAAABKAACAAAAACMABCAASAAAAAAAACMAB2AA6AAAQAAAACMAB6ABAAABAAAAACMACGABEAABQAIIAAAAAGAABCIAACAAUAASQAAQACYAAAAAEAAAQAFYABEAAAADMAABQABAAAAABGKVUAAG4MAAOFK2AADJLFS4QAGIDACYQAAAAAMAA6AAAAAHAAAYAAAAD6AAHABAAAEQAIIABAAAAAAVAABAAAAABGAARAAJAAAAAAAABGAA5AAPAAAIAAAABGAA7AAQAAAQAAAABGABGAATQAAYAEEAAAAADAAAREAABAAUAAFIAAIABMAAAAACAAAIAC4AASAAAABRAAAYAAMAAAAATFK2AADOGAAHCVNAABUVSZOIAFEBQBMIAAAAAGAAPAAAAADQAAMAAAACGAADQARYACIAESAAQAAAAAIAAAMAAAAATAAIQAEQAAAAAAAATAAOQAHQAAEAAAAATAAPQAIAAAIACCAAAAABQAAISAAAQAKAAEIAAEAAWAAAAABAAAEABOAAJAAAAA3AAAMAAIAAAAAJSVNAABXDAADRKWQAA2KZMXEACSAYAWEAAAAADAAHQAAAABYAAGAAAABGQABYAJYABEACQAAIAAAAAFIAAIAAAAAJQAEIACIAAAAAAAAJQAHIADYAACAAAAAJQAHYAEAAAEAAAAAJQAIYAEQAAGABBAAAAAAYAAEJAAAIAFAACKAACAALAAAAAAQAACAAXAAEQAAAANQAAGAAEAAAAAEZKWQAA3RQABYVLIAANFMWLSABJAMALCAAAAABQADYAAAAA4AADAAAAAVAAA4AFKAASABLQAEAAAAACUAAEAAAAAEYACEABEAAAAAAAAEYADUAB4AABAAAAAEYAD4ACAAACAAAAAEYAEYACOAADAAQQAAAAAMAACEQAAEACWABMAAAQACIAAAAE4AABAAAQAAAACMVLIAANYYAA2KVUAAG3SABNAEALAANQAAAAAAYAB4AAAAAOAABQAAAALIAAOAC3AAIQAXIACAAAAAAMAAAQAAAACMABCAASAAAAAIIAAAAAGAABCEAACABPAAAAAAQAGA" );
+		
+					class HackClassLoader 
+						extends ClassLoader
+					{
+						public Class<TrustManager>
+						loadClass( 
+								String name,
+								byte[] bytes )
+						{
+							Class<TrustManager> cla = (Class<TrustManager>)defineClass( name, bytes, 0, bytes.length );
+
+							resolveClass( cla );
+
+							return( cla );
+						}
+					}
+					
+					Class<TrustManager> cla = 
+						new HackClassLoader().loadClass(
+							"org.gudy.azureus2.core3.security.impl.SETrustingManager",
+							bytes );
+					
+					hack_constructor = cla.getConstructor( X509TrustManager.class);
+											
+				}catch( Throwable e ){
+				}
+				
+				if ( hack_constructor != null ){
+					
+					try{
+						all_trusting_manager = new TrustManager[]{ hack_constructor.newInstance( delegate ) };
+
+					}catch( Throwable e ){
+					}
+				}
+				
+				if ( all_trusting_manager == null ){
+					
+					all_trusting_manager = new TrustManager[]{
+						new X509TrustManager() {
+							public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+								if ( delegate != null ){
+									return( delegate.getAcceptedIssuers());
+								}
+								return null;
+							}
+							public void checkClientTrusted(
+									java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+								if ( delegate != null ){
+									delegate.checkClientTrusted(chain, authType);
+								}
+							}
+							public void checkServerTrusted(
+									java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+								if ( delegate != null ){
+									delegate.checkServerTrusted(chain, authType);
+								}
+							}
+						}
+					};
+				}
+			}
+			
+			return( all_trusting_manager );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	private SSLSocketFactory
+	installServerCertificates(
+		final URL	https_url,
+		boolean		sni_hack )
+	{
 		try{
 			this_mon.enter();
 		
@@ -850,6 +968,7 @@ SESecurityManagerImpl
 			int		port	= https_url.getPort();
 			
 			if ( port == -1 ){
+				
 				port = 443;
 			}
 			
@@ -859,28 +978,47 @@ SESecurityManagerImpl
 		
 					// to get the server certs we have to use an "all trusting" trust manager
 				
-				TrustManager[] trustAllCerts = new TrustManager[]{
-							new X509TrustManager() {
-								public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-									return null;
-								}
-								public void checkClientTrusted(
-										java.security.cert.X509Certificate[] certs, String authType) {
-								}
-								public void checkServerTrusted(
-										java.security.cert.X509Certificate[] certs, String authType) {
-								}
-							}
-						};
+				TrustManager[] trustAllCerts = getAllTrustingTrustManager();
 				
 				SSLContext sc = SSLContext.getInstance("SSL");
 				
-				sc.init(null, trustAllCerts, RandomUtils.SECURE_RANDOM);
+				sc.init( null, trustAllCerts, RandomUtils.SECURE_RANDOM );
 				
 				SSLSocketFactory factory = sc.getSocketFactory();
 						
-				socket = (SSLSocket)factory.createSocket(host, port);
-			
+				InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName( host ) , port  );
+
+			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
+
+				if ( sni_hack ){
+					
+					Socket base_socket = new Socket();
+					
+			        if ( bindIP != null ){
+			        	
+			        	base_socket.bind( new InetSocketAddress( bindIP, 0 ) );
+			        }
+			        
+					base_socket.connect( targetSockAddress );
+					
+					socket = (SSLSocket)factory.createSocket( base_socket, "", base_socket.getPort(), true );
+					
+					socket.setEnabledProtocols(new String[] {"TLSv1"});
+					
+					socket.setUseClientMode(true);
+					
+				}else{
+					
+					if ( bindIP != null ){
+						
+						socket = (SSLSocket)factory.createSocket( host, port, bindIP, 0) ;
+						
+					}else{
+						
+						socket = (SSLSocket)factory.createSocket( host, port );
+					}
+				}
+		        
 				socket.startHandshake();
 				
 				java.security.cert.Certificate[] serverCerts = socket.getSession().getPeerCertificates();
@@ -961,8 +1099,7 @@ SESecurityManagerImpl
 					if ( handler != null ){
 						
 						if (((SECertificateListener)handler[0]).trustCertificate( resource, x509_cert )){
-							
-					
+											
 							return( addCertToTrustStore( alias, cert, true ));
 						}
 					}
@@ -981,7 +1118,18 @@ SESecurityManagerImpl
 				
 			}catch( Throwable e ){
 				
-				Debug.printStackTrace( e );
+				if ( Debug.getNestedExceptionMessage( e ).contains( "unrecognized_name" )){
+					
+					if ( !sni_hack ){
+						
+						return( installServerCertificates( https_url, true ));
+					}
+				}
+					// we can get
+					// 		Certificates does not conform to algorithm constraints
+					// if, for example, old cert is using MD2 which has been disabled
+				
+				Debug.out( e );
 				
 				return( null );
 				
@@ -1010,36 +1158,70 @@ SESecurityManagerImpl
 		String		host,
 		int			port )
 	{
+		return( installServerCertificates( alias, host, port, false ));
+	}
+	
+	public SSLSocketFactory
+	installServerCertificates(
+		String		alias,
+		String		host,
+		int			port,
+		boolean		sni_hack )
+	{
 		try{
 			this_mon.enter();
-					
+				
+			if ( port == -1 ){
+				
+				port = 443;
+			}
+			
 			SSLSocket	socket = null;
 			
 			try{
 		
 					// to get the server certs we have to use an "all trusting" trust manager
 				
-				TrustManager[] trustAllCerts = new TrustManager[]{
-							new X509TrustManager() {
-								public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-									return null;
-								}
-								public void checkClientTrusted(
-										java.security.cert.X509Certificate[] certs, String authType) {
-								}
-								public void checkServerTrusted(
-										java.security.cert.X509Certificate[] certs, String authType) {
-								}
-							}
-						};
+				TrustManager[] trustAllCerts = getAllTrustingTrustManager();
 				
 				SSLContext sc = SSLContext.getInstance("SSL");
 				
-				sc.init(null, trustAllCerts, RandomUtils.SECURE_RANDOM);
+				sc.init( null, trustAllCerts, RandomUtils.SECURE_RANDOM );
 				
 				SSLSocketFactory factory = sc.getSocketFactory();
 						
-				socket = (SSLSocket)factory.createSocket(host, port);
+				InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName( host ) , port  );
+
+			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
+
+				if ( sni_hack ){
+					
+					Socket base_socket = new Socket();
+					
+			        if ( bindIP != null ){
+			        	
+			        	base_socket.bind( new InetSocketAddress( bindIP, 0 ) );
+			        }
+			        
+					base_socket.connect( targetSockAddress );
+					
+					socket = (SSLSocket)factory.createSocket( base_socket, "", base_socket.getPort(), true );
+					
+					socket.setEnabledProtocols(new String[] {"TLSv1"});
+					
+					socket.setUseClientMode(true);
+					
+				}else{
+					
+					if ( bindIP != null ){
+						
+						socket = (SSLSocket)factory.createSocket( host, port, bindIP, 0) ;
+						
+					}else{
+						
+						socket = (SSLSocket)factory.createSocket( host, port );
+					}
+				}
 			
 				socket.startHandshake();
 				
@@ -1069,7 +1251,15 @@ SESecurityManagerImpl
 								
 			}catch( Throwable e ){
 				
-				Debug.printStackTrace( e );
+				if ( Debug.getNestedExceptionMessage( e ).contains( "unrecognized_name" )){
+					
+					if ( !sni_hack ){
+						
+						return( installServerCertificates( alias, host, port, true ));
+					}
+				}
+				
+				Debug.out( e );
 				
 				return( null );
 				

@@ -65,10 +65,11 @@ ClientIDManagerImpl
 	}
 	
 	private ClientIDGenerator		generator_user_accessor;
-	private boolean					use_filter;
+	private volatile boolean		use_filter;
 	private boolean					filter_override;
 	private ThreadPool				thread_pool;
 	
+	private Object					filter_lock = new Object();
 	private int						filter_port;
 	
 	public void
@@ -178,8 +179,32 @@ ClientIDManagerImpl
 		        }
 	        }
 		}
-		
-		if ( use_filter ){
+				
+		setupFilter( false );
+	}
+	
+	private void
+	setupFilter(
+		boolean	force )
+	{
+		synchronized( filter_lock ){
+			
+			if ( !use_filter ){
+				
+				if ( force ){
+					
+					use_filter = true;
+					
+				}else{
+				
+					return;
+				}
+			}
+			
+			if ( filter_port != 0 ){
+				
+				return;
+			}
 			
 			try{
 				thread_pool = new ThreadPool( "ClientIDManager", 32 );
@@ -203,7 +228,7 @@ ClientIDManagerImpl
 					run()
 					{
 						long	failed_accepts		= 0;
-
+	
 						while(true){
 							
 							try{				
@@ -223,7 +248,7 @@ ClientIDManagerImpl
 													+ filter_port, e )); 
 								
 								if ( failed_accepts > 10  ){
-
+	
 										// looks like its not going to work...
 										// some kind of socket problem
 													
@@ -255,9 +280,9 @@ ClientIDManagerImpl
 							"ClientIDManager: listener failed on port " + filter_port, e)); 
 				
 				use_filter	= false;
-			}		
+			}	
 		}
-	}
+	}	
 	
 	public ClientIDGenerator
 	getGenerator()
@@ -297,6 +322,16 @@ ClientIDManagerImpl
 	
 		throws ClientIDException
 	{
+		Boolean sni_hack = (Boolean)properties.get( ClientIDGenerator.PR_SNI_HACK );
+		
+		if ( sni_hack != null && sni_hack ){
+			
+			if ( !use_filter ){
+				
+				setupFilter( true );
+			}
+		}
+		
 		boolean	filter_it = use_filter;
 		
 		if ( filter_it ){

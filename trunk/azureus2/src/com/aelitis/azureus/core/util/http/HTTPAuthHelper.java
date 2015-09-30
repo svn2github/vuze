@@ -456,19 +456,7 @@ HTTPAuthHelper
 			try{
 				if ( delegate_is_https ){
 					
-					TrustManager[] trustAllCerts = new TrustManager[]{
-							new X509TrustManager() {
-								public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-									return null;
-								}
-								public void checkClientTrusted(
-										java.security.cert.X509Certificate[] certs, String authType) {
-								}
-								public void checkServerTrusted(
-										java.security.cert.X509Certificate[] certs, String authType) {
-								}
-							}
-						};
+					TrustManager[] trustAllCerts = SESecurityManager.getAllTrustingTrustManager();
 				
 					SSLContext sc = SSLContext.getInstance("SSL");
 				
@@ -518,7 +506,8 @@ HTTPAuthHelper
 							plain_socket.connect( new InetSocketAddress( delegate_to_host, delegate_to_port ), CONNECT_TIMEOUT );
 							
 							socket_out = factory.createSocket( plain_socket, delegate_to_host, delegate_to_port, true );
-						}					}
+						}					
+					}
 				}else{
 					
 					if ( delegate_to_proxy == null ){

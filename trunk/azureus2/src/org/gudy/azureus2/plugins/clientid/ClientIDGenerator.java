@@ -35,6 +35,7 @@ ClientIDGenerator
 	public static final String PR_PROXY			= "Proxy";			// if we're using a Proxy
 	public static final String PR_RAW_REQUEST	= "Raw-Request";	// in, Boolean
 	public static final String PR_USER_AGENT	= "User-Agent";		// out
+	public static final String PR_SNI_HACK		= "SNI-Hack";		// in, Boolean
 	
 		/**
 		 * generate a peer id - must be exactly 20 bytes

@@ -105,6 +105,19 @@ SESecurityManager
 		return( SESecurityManagerImpl.getSingleton().getTrustManagerFactory());
 	}
 	
+	public static TrustManager[]
+	getAllTrustingTrustManager()
+	{
+		return( SESecurityManagerImpl.getSingleton().getAllTrustingTrustManager());
+	}
+	
+	public static TrustManager[]
+	getAllTrustingTrustManager(
+		X509TrustManager delegate )
+	{
+		return( SESecurityManagerImpl.getSingleton().getAllTrustingTrustManager());
+	}
+	
 	public static SSLSocketFactory
 	getSSLSocketFactory()
 	{
