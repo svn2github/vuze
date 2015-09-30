@@ -824,7 +824,7 @@ public class SideBarEntrySWT
 				//	textSize.x = minTextSize.x + 2;
 				//}
 
-				int width = textSize.x + 10;
+				int width = textSize.x + Utils.adjustPXForDPI(10);
 				x1IndicatorOfs += width + SIDEBAR_SPACING;
 				int startX = treeArea.width - x1IndicatorOfs;
 
