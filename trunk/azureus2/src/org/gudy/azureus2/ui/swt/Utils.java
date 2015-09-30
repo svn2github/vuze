@@ -40,6 +40,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
@@ -3798,5 +3799,24 @@ public class Utils
 		}else{
 			return( image );
 		}
+	}
+
+	public static void setLayout(Composite composite, GridLayout layout) {
+		Point dpi = getDPI();
+		if (dpi.x == 96 && dpi.y == 96) {
+			composite.setLayout(layout);
+			return;
+		}
+
+		layout.marginBottom = adjustPXForDPI(layout.marginBottom);
+		layout.marginHeight = adjustPXForDPI(layout.marginHeight);
+		layout.marginLeft = adjustPXForDPI(layout.marginLeft);
+		layout.marginRight = adjustPXForDPI(layout.marginRight);
+		layout.marginTop = adjustPXForDPI(layout.marginTop);
+		layout.marginWidth = adjustPXForDPI(layout.marginWidth);
+		layout.horizontalSpacing = adjustPXForDPI(layout.horizontalSpacing);
+		layout.verticalSpacing = adjustPXForDPI(layout.verticalSpacing);
+		
+		composite.setLayout(layout);
 	}
 }

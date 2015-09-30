@@ -422,7 +422,7 @@ public class MessageBoxShell
 			textComposite.setForeground(shell.getForeground());
 			GridLayout gl = new GridLayout(2, false);
 			gl.horizontalSpacing = 10;
-			textComposite.setLayout(gl);
+			Utils.setLayout(textComposite, gl);
 			Utils.setLayoutData(textComposite, new GridData(GridData.FILL_BOTH));
 			Label lblImage = new Label(textComposite, SWT.NONE);
 			lblImage.setImage(imgLeft);
@@ -431,7 +431,7 @@ public class MessageBoxShell
 			textComposite = new Composite(shell, SWT.NONE);
 			GridLayout gl = new GridLayout(2, false);
 			gl.marginWidth = 5;
-			textComposite.setLayout(gl);
+			Utils.setLayout(textComposite, gl);
 			Utils.setLayoutData(textComposite, new GridData(GridData.FILL_BOTH));
 		}
 
