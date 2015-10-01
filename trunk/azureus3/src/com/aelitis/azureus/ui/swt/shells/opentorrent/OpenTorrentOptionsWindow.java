@@ -4081,7 +4081,7 @@ public class OpenTorrentOptionsWindow
 				
 				if ( COConfigurationManager.getBooleanParameter( "open.torrent.window.rename.on.tlf.change" )){
 				
-					torrentOptions.setManualRename( new_parent.getName());
+					torrentOptions.setManualRename( newDir.getName());
 					
 				}else{
 					

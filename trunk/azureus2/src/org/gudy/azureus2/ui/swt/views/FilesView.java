@@ -835,6 +835,9 @@ public class FilesView
 	}
 
 	private void updateHeader() {
+		if ( manager == null ){
+			return;
+		}
 		int total = manager.getNumFileInfos();
 		int numInList = tv.getRowCount();
 

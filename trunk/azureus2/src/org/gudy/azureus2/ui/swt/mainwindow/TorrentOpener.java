@@ -524,9 +524,8 @@ public class TorrentOpener {
 							String folderRename = torrentOptions.getManualRename();
 							
 							if ( 	folderRename != null && 
-									folderRename.length() > 0 && 
-									new File( torrentOptions.getParentDir()).getName().equals( folderRename )){
-								
+									folderRename.length() > 0 ){
+																
 								dm.getDownloadState().setDisplayName( folderRename );
 							}
 						}
