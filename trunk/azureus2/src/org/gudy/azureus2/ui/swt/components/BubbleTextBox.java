@@ -29,12 +29,19 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
+/**
+ * TextBox with a "search bubble" style around it.  Search icon on left, X on the right
+ * 
+ * @author TuxPaper
+ */
 public class BubbleTextBox
 {
-	Text textWidget;
+	private Text textWidget;
 
 	private Composite cBubble;
-
+	
+	private static final int PADDING_VERTICAL = 2;
+	
 	private int WIDTH_OVAL;
 
 	private int HEIGHT_OVAL;
@@ -54,10 +61,10 @@ public class BubbleTextBox
 		textWidget = new Text(cBubble, style & ~(SWT.BORDER | SWT.SEARCH));
 
 		FormData fd = new FormData();
-		fd.top = new FormAttachment(0, 2);
-		fd.bottom = new FormAttachment(100, -2);
+		fd.top = new FormAttachment(0, PADDING_VERTICAL);
+		fd.bottom = new FormAttachment(100, -PADDING_VERTICAL);
 		fd.left = new FormAttachment(0, 17);
-		fd.right = new FormAttachment(100, -14);
+		fd.right = new FormAttachment(100, -15);
 		Utils.setLayoutData(textWidget, fd);
 
 		WIDTH_OVAL = Utils.adjustPXForDPI(7);
@@ -66,6 +73,11 @@ public class BubbleTextBox
 		HEIGHT_ICON_MAX = Utils.adjustPXForDPI(13);
 		WIDTH_CLEAR = Utils.adjustPXForDPI(7);
 		WIDTH_PADDING = Utils.adjustPXForDPI(6);
+		
+		WIDTH_OVAL = Utils.adjustPXForDPI(7);
+		HEIGHT_OVAL = Utils.adjustPXForDPI(6);
+		INDENT_OVAL = Utils.adjustPXForDPI(6);
+		HEIGHT_ICON_MAX = Utils.adjustPXForDPI(13);
 
 		cBubble.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
