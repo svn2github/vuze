@@ -6279,13 +6279,44 @@ SpeedLimitHandler
 					
 					phase_0_stable_waits = 0;	// ready for next time
 
-					phase = 1;
+					if ( probe_period > 0 && phase_0_count % ( probe_period + 1 ) == 0 ){
+						
+							// periodic raise to max and see if overall throughput changed
+						
+						phase_2_limits.clear();
+													
+						boolean	changed = false;
+						
+						for ( PrioritiserTagState tag: active_tags ){
+							
+							int	rate = tag.getRate();
+							
+							phase_2_limits.put( tag, new int[]{ tag.getLimit(), rate, rate });
+															
+							if ( tag.setLimit( max, "1: probing" )){
+								
+								changed = true;
+							}
+						}
+						
+						if ( changed ){
+							
+							phase = 2;
+							
+							skip_ticks = 1;
+						}
+					}
 					
-					phase_1_tag = active_tags.get(0);
-					
-					phase_1_tag_state = 0;
-					
-					phase_1_limit_hit = false;
+					if ( phase == 0 ){
+						
+						phase = 1;
+						
+						phase_1_tag = active_tags.get(0);
+						
+						phase_1_tag_state = 0;
+						
+						phase_1_limit_hit = false;
+					}
 				}
 			}else if ( phase == 1 ){
 			
@@ -6311,7 +6342,8 @@ SpeedLimitHandler
 						
 						int current_rate = tag_state.getRate();
 						
-						int higher_pri_rates = 0;
+						int	total_rate			= 0;
+						int higher_pri_rates 	= 0;
 						
 						int high_priority_strength 	= 0;
 						int low_priority_strength 	= 0;
@@ -6320,9 +6352,13 @@ SpeedLimitHandler
 							
 							PrioritiserTagState s = active_tags.get(j);
 							
+							int rate = s.getRate();
+							
+							total_rate += rate;
+							
 							if ( j < index ){
 								
-								higher_pri_rates += s.getRate();
+								higher_pri_rates += rate;
 							}
 							
 							if ( j <= index ){
@@ -6333,6 +6369,11 @@ SpeedLimitHandler
 								
 								low_priority_strength += s.getStrength();
 							}
+						}
+						
+						if ( phase_2_max_detected > 0 && phase_2_max_detected < total_rate ){
+							
+							phase_2_max_detected = total_rate;
 						}
 						
 						if ( tag_state.getLimit() != max && phase_1_tag_state == 0 ){
@@ -6687,34 +6728,6 @@ SpeedLimitHandler
 						phase = 0;
 						
 						phase_0_count++;
-						
-						if ( probe_period > 0 && phase_0_count % probe_period == 0 ){
-							
-								// periodic raise to max and see if overall throughput changed
-							
-							phase_2_limits.clear();
-														
-							boolean	changed = false;
-							
-							for ( PrioritiserTagState tag: active_tags ){
-								
-								int	rate = tag.getRate();
-								
-								phase_2_limits.put( tag, new int[]{ tag.getLimit(), rate, rate });
-																
-								if ( tag.setLimit( max, "1: probing" )){
-									
-									changed = true;
-								}
-							}
-							
-							if ( changed ){
-								
-								phase = 2;
-								
-								skip_ticks = 1;
-							}
-						}
 					}
 				}
 			}else if ( phase == 2 ){
@@ -6767,6 +6780,8 @@ SpeedLimitHandler
 					
 					int	limit 		= vals[0];
 					
+					int change_type = PrioritiserTagState.CT_NORMAL;
+					
 					if ( diff > 0 && total_inc > 0 ){
 						
 						int	old_rate	= vals[1];
@@ -6782,13 +6797,26 @@ SpeedLimitHandler
 								
 								limit = max;
 							}
+						}else{
+							
+								// rate went down for this tag as a result of probing so give it
+								// a decent time to recover otherwise it'll get chopped back
+							
+							change_type = PrioritiserTagState.CT_MAJOR;
 						}
+					}else{
+						
+							// things didn't work out well
+						
+						change_type = PrioritiserTagState.CT_MAJOR;
 					}
 					
-					tag.setLimit( limit, "2: probe result" );
+					tag.setLimit( limit, change_type, "2: probe result" );
 				}
 				
 				phase = 0;
+				
+				phase_0_count++;
 			}
 		}
 	
