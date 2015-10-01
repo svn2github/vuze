@@ -6771,7 +6771,10 @@ SpeedLimitHandler
 				phase_2_max_detected = (int)new_total_rate;
 				
 				log( "Probe result: before=" + formatRate( old_total_rate, false ) + ", after=" + formatRate( new_total_rate, false ) + ", inc=" + formatRate( total_inc, false ) + " [" + probe_str + "]" );
-								
+					
+				int 	major_done 		= 0;
+				int 	major_skipped 	= 0;
+				
 				for ( Map.Entry<PrioritiserTagState,int[]> entry: phase_2_limits.entrySet()){
 				
 					PrioritiserTagState tag = entry.getKey();
@@ -6811,7 +6814,27 @@ SpeedLimitHandler
 						change_type = PrioritiserTagState.CT_MAJOR;
 					}
 					
-					tag.setLimit( limit, change_type, "2: probe result" );
+					boolean did_it = tag.setLimit( limit, change_type, "2: probe result" );					
+						
+					if ( change_type != PrioritiserTagState.CT_NORMAL ){
+	
+						if ( did_it ){
+							
+							major_done++;
+							
+						}else{
+							
+							major_skipped++;
+						}
+					}
+				}
+				
+					// handle case where we switch limits back to where they were - in this case we want
+					// to ensure that some time is given for adjustment
+				
+				if ( major_skipped > 0 && major_done == 0 ){
+					
+					skip_ticks = 2;
 				}
 				
 				phase = 0;
