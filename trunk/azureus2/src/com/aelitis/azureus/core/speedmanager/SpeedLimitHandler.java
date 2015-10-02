@@ -6343,9 +6343,9 @@ SpeedLimitHandler
 			
 					// note that we only get here when things have finished 'adjusting'
 				
-				int	index = active_tags.indexOf( phase_1_tag );
+				int	start_index = active_tags.indexOf( phase_1_tag );
 				
-				if ( index == -1 ){
+				if ( start_index == -1 ){
 					
 					phase = 0;
 					
@@ -6355,7 +6355,7 @@ SpeedLimitHandler
 					
 					int active_tag_count = active_tags.size();
 					
-					for ( int i=index;i<active_tag_count;i++){
+					for ( int i=start_index;i<active_tag_count;i++){
 					
 						PrioritiserTagState tag_state = active_tags.get(i);
 					
@@ -6377,12 +6377,12 @@ SpeedLimitHandler
 							
 							total_rate += rate;
 							
-							if ( j < index ){
+							if ( j < i ){
 								
 								higher_pri_rates += rate;
 							}
 							
-							if ( j <= index ){
+							if ( j <= i ){
 								
 								high_priority_strength += s.getStrength();
 								
@@ -6428,7 +6428,7 @@ SpeedLimitHandler
 							
 							int	change_type = PrioritiserTagState.CT_NORMAL;
 							
-							if ( index < active_tag_count / 3 ){
+							if ( i < active_tag_count / 3 ){
 							
 								if ( high_priority_strength <= low_priority_strength/2 ){
 									
