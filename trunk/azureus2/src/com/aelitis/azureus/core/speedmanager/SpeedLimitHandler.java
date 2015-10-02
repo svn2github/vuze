@@ -6546,11 +6546,12 @@ SpeedLimitHandler
 									// pushed us to saturation it is a pretty good bet that clamping our limit to something a 
 									// bit lower will bring us back under saturation and push the higher priorities back up
 																		
-									if ( hp_drop <= 1048 || hp_drop <= ( 3*phase_1_higher_pri_rates/100 )){
+									if ( hp_drop <= 1024 || hp_drop <= ( 3*phase_1_higher_pri_rates/100 )){
 										
 										limit_hit = false;	// ignore very small drops
 										
-									}else if ( overall_gain >= 3 * hp_drop ){
+									}else if ( 	hp_drop <= 10*1024  && 
+												overall_gain >= 3 * hp_drop ){
 										
 											// only assume hp can grab bandwidth back if it has
 											// sufficient strength to do so
