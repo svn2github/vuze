@@ -36,6 +36,11 @@ NetworkConnectionHelper
 			{ 
 				return upload_limit;
 			}
+			public boolean 
+			isDisabled() 
+			{
+				return( upload_limit == -1 );
+			}
 			public void
 			updateBytesUsed(
 					int	used )
@@ -54,7 +59,11 @@ NetworkConnectionHelper
 				return( "per_con_down: " + getString());
 			}
 			public int getRateLimitBytesPerSecond() {  return download_limit;  }
-			
+			public boolean 
+			isDisabled() 
+			{
+				return( download_limit == -1 );
+			}
 			public void
 			updateBytesUsed(
 					int	used )

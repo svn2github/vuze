@@ -339,7 +339,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 		public int getRateLimitBytesPerSecond() {
 			return adapter.getUploadRateLimitBytesPerSecond();
 		}
-		
+		public boolean 
+		isDisabled() 
+		{
+			return( adapter.getUploadRateLimitBytesPerSecond() == -1 );
+		}
 		public void
 		updateBytesUsed(
 				int	used )
@@ -356,7 +360,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 		public int getRateLimitBytesPerSecond() {
 			return adapter.getDownloadRateLimitBytesPerSecond();
 		}
-		
+		public boolean 
+		isDisabled() 
+		{
+			return( adapter.getDownloadRateLimitBytesPerSecond() == -1 );
+		}
 		public void
 		updateBytesUsed(
 				int	used )

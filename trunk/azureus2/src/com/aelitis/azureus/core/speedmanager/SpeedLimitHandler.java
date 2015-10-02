@@ -6139,9 +6139,17 @@ SpeedLimitHandler
 
 			boolean	adjusting = false;
 			
-			for ( PrioritiserTagState tag_state: tag_states ){
+			int	rate_available = phase_2_max_detected==0?max:phase_2_max_detected;
+			
+			int	num_tags = tag_states.size();
+			
+			for ( int i=0;i<num_tags;i++){
+				
+				PrioritiserTagState tag_state = tag_states.get(i);
 				
 				tag_state.updateAverage( false );
+				
+				int	rate = tag_state.getRate();
 				
 				boolean active = tag_state.update();
 
@@ -6155,10 +6163,23 @@ SpeedLimitHandler
 					}
 				}else{
 					
-						// not active, reset rates to unlimited
+						// not active
 					
-					tag_state.setLimit( max, "inactive" );
+					int	inactive_rate;
+					
+					if ( i < num_tags/3 ){
+						
+						inactive_rate = rate_available;
+						
+					}else{
+						
+						inactive_rate = 5*1024;
+					}
+					
+					tag_state.setLimit( inactive_rate, "inactive" );
 				}
+				
+				rate_available -= rate;
 			}
 						
 			int	num_active = active_tags.size();
@@ -6512,7 +6533,9 @@ SpeedLimitHandler
 								
 								int	overall_gain = my_diff + hp_diff - phase_1_lower_pri_decrease;
 								
-								boolean limit_hit = hp_diff < 0 && my_diff > 0;
+								int hp_drop = -hp_diff;
+
+								boolean limit_hit = hp_drop > 0 && my_diff > 0;
 								
 								if ( limit_hit ){
 									
@@ -6522,31 +6545,35 @@ SpeedLimitHandler
 									// if overall stuff went up by 100k while hp dropped by 2k then even if this has
 									// pushed us to saturation it is a pretty good bet that clamping our limit to something a 
 									// bit lower will bring us back under saturation and push the higher priorities back up
-									
-									int hp_drop = -hp_diff;
-									
-									if ( hp_drop <= 1048 || hp_drop <= ( 5*phase_1_higher_pri_rates/100 )){
+																		
+									if ( hp_drop <= 1048 || hp_drop <= ( 3*phase_1_higher_pri_rates/100 )){
 										
 										limit_hit = false;	// ignore very small drops
 										
 									}else if ( overall_gain >= 3 * hp_drop ){
 										
-										limit_hit = false;
+											// only assume hp can grab bandwidth back if it has
+											// sufficient strength to do so
 										
-										my_target = my_target - 3 * hp_drop;
-										
-										if ( my_target <= 1024 ){
+										if ( high_priority_strength >= low_priority_strength ){
 											
-											my_target = -1;
+											limit_hit = false;
+											
+											my_target = my_target - 3 * hp_drop;
+											
+											if ( my_target <= 1024 ){
+												
+												my_target = -1;
+											}
 										}
 									}
 								}
 								
 								if ( limit_hit ){
 									
-										// verify the limit hitting is real and not just a fluctuation
+										// verify the limit hitting is real and not just a fluctuation (if small)
 									
-									if ( phase_1_limit_hit ){
+									if ( phase_1_limit_hit || hp_drop > 10*1024 ){
 																			
 											// higher priorities total rate has dropped as a result on increasing the limit on this tag (and depressing the lower priorities a bit)
 											// so we don't want to carry on probing the limits of lower priority tags
@@ -6739,6 +6766,8 @@ SpeedLimitHandler
 				
 				String probe_str = "";
 				
+				boolean	tag_rate_went_down = false;
+
 				for ( PrioritiserTagState tag: active_tags ){
 
 					int[] entry = phase_2_limits.get( tag );
@@ -6762,6 +6791,10 @@ SpeedLimitHandler
 							total_inc += inc;
 							
 							probe_str += (probe_str.length()==0?"":", ") + tag.getTagName() + " +" + formatRate( inc, false );
+							
+						}else if ( inc < -1024 ){
+							
+							tag_rate_went_down = true;
 						}
 					}
 				}
@@ -6771,10 +6804,14 @@ SpeedLimitHandler
 				phase_2_max_detected = (int)new_total_rate;
 				
 				log( "Probe result: before=" + formatRate( old_total_rate, false ) + ", after=" + formatRate( new_total_rate, false ) + ", inc=" + formatRate( total_inc, false ) + " [" + probe_str + "]" );
-					
+				
+					// I wanted to use the probe results to adjust limits but unfortunately this puts things out
+					// of whack when lower priorities grab bandwidth and weak higher priorities take a long
+					// time to grab it back. So adjusted this so that only if nothing went down 
+				
 				int 	major_done 		= 0;
 				int 	major_skipped 	= 0;
-				
+								
 				for ( Map.Entry<PrioritiserTagState,int[]> entry: phase_2_limits.entrySet()){
 				
 					PrioritiserTagState tag = entry.getKey();
@@ -6783,35 +6820,44 @@ SpeedLimitHandler
 					
 					int	limit 		= vals[0];
 					
-					int change_type = PrioritiserTagState.CT_NORMAL;
-					
-					if ( diff > 0 && total_inc > 0 ){
+					int change_type;
+
+					if ( tag_rate_went_down ){
 						
-						int	old_rate	= vals[1];
-						int	new_rate	= vals[2];
-					
-						int	inc = new_rate - old_rate;
-					
-						if ( inc > 0 ){
+						change_type = PrioritiserTagState.CT_MAJOR;
+						
+					}else{
+						
+						change_type = PrioritiserTagState.CT_NORMAL;
+
+						if ( diff > 0 && total_inc > 0 ){
+							
+							int	old_rate	= vals[1];
+							int	new_rate	= vals[2];
+						
+							int	inc = new_rate - old_rate;
+						
+							if ( inc > 0 ){
+									
+								limit = limit + (int)((inc*diff)/total_inc);
+									
+								if ( limit > max ){
+									
+									limit = max;
+								}
+							}else{
 								
-							limit = limit + (int)((inc*diff)/total_inc);
+									// rate went down for this tag as a result of probing so give it
+									// a decent time to recover otherwise it'll get chopped back
 								
-							if ( limit > max ){
-								
-								limit = max;
+								change_type = PrioritiserTagState.CT_MAJOR;
 							}
 						}else{
 							
-								// rate went down for this tag as a result of probing so give it
-								// a decent time to recover otherwise it'll get chopped back
+								// things didn't work out well
 							
 							change_type = PrioritiserTagState.CT_MAJOR;
 						}
-					}else{
-						
-							// things didn't work out well
-						
-						change_type = PrioritiserTagState.CT_MAJOR;
 					}
 					
 					boolean did_it = tag.setLimit( limit, change_type, "2: probe result" );					
@@ -6995,28 +7041,9 @@ SpeedLimitHandler
 				
 				for ( PEPeer peer: peers ){
 				
-					if ( peer.getPeerState() != PEPeer.TRANSFERING ){
-						
-						continue;
-					}
+					if ( peer.getPeerState() == PEPeer.TRANSFERING ){
 					
-					if ( is_down ){
-						
-						if ( peer.isInteresting() && !peer.isChokingMe()){
-							
-							weight++;
-						}
-					}else{
-					
-						if ( peer.isSeed()){
-							
-							continue;
-						}
-						
-						if ( !peer.isChokedByMe()){
-							
-							weight++;
-						}
+						weight++;
 					}
 				}
 				
@@ -7045,9 +7072,26 @@ SpeedLimitHandler
 								continue;
 							}
 							
-							List<PEPeer> peers = pm.getPeers();
+							LimitedRateGroup[] limiters = dm.getRateLimiters( !is_down );
 							
-							weight += getWeight( peers );
+							boolean disabled = false;
+							
+							for ( LimitedRateGroup rl: limiters ){
+								
+								disabled = rl.isDisabled();
+																							
+								if ( disabled ){
+																		
+									break;
+								}
+							}
+							
+							if ( !disabled ){
+							
+								List<PEPeer> peers = pm.getPeers();
+							
+								weight += getWeight( peers );
+							}
 						}
 					}
 				}else{

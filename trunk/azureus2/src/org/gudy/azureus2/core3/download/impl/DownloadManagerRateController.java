@@ -99,6 +99,12 @@ DownloadManagerRateController
 					return( rate_limit );
 				}
 				
+				public boolean 
+				isDisabled() 
+				{
+					return( rate_limit == -1 );
+				}
+				
 				public void
 				updateBytesUsed(
 					int	used )

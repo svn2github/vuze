@@ -174,7 +174,11 @@ public class NetworkManager {
 			{  
 				return max_upload_rate_bps;  
 			}
-			
+			public boolean 
+			isDisabled() 
+			{
+				return( max_upload_rate_bps == -1 );
+			}
 			public void
 			updateBytesUsed(
 					int	used )
@@ -198,7 +202,11 @@ public class NetworkManager {
 			{
 				return max_download_rate_bps;  
 			}
-			
+			public boolean 
+			isDisabled() 
+			{
+				return( max_download_rate_bps == -1 );
+			}
 			public void
 			updateBytesUsed(
 					int	used )
@@ -223,7 +231,11 @@ public class NetworkManager {
 			{  
 				return max_lan_upload_rate_bps;  
 			}
-			
+			public boolean 
+			isDisabled() 
+			{
+				return( max_lan_upload_rate_bps == -1 );
+			}
 			public void
 			updateBytesUsed(
 					int	used )
@@ -247,7 +259,11 @@ public class NetworkManager {
 			{  
 				return max_lan_download_rate_bps;  
 			}
-			
+			public boolean 
+			isDisabled() 
+			{
+				return( max_lan_download_rate_bps == -1 );
+			}
 			public void
 			updateBytesUsed(
 					int	used )

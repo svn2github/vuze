@@ -77,6 +77,9 @@ CategoryImpl
 		  {
 			  return( upload_speed );
 		  }
+		  public boolean isDisabled() {
+			  return( upload_speed == -1 );
+		  }
 		  
 		  public void
 		  updateBytesUsed(
@@ -99,7 +102,9 @@ CategoryImpl
 	  {
 		  return( download_speed );
 	  }
-	  
+	  public boolean isDisabled() {
+		  return( download_speed == -1 );
+	  }
 	  public void
 	  updateBytesUsed(
 			int	used )

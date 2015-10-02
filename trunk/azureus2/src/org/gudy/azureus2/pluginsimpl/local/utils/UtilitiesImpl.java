@@ -2040,7 +2040,7 @@ UtilitiesImpl
 		/*
 		 * For peer connections throttling up/down speed to zero to try and block upload/download has the
 		 * unwanted effect of blocking protocol message flow and stalls the connection. the 'disable_disable'
-		 * flag causes the rate limiter to inform listeners (peer connections) when flow shoudl be disabled 
+		 * flag causes the rate limiter to inform listeners (peer connections) when flow should be disabled 
 		 * at the protocol (as opposed to byte) level and at the same time leaves the byte flow unlimited
 		 * to ensure the connection doesn't stall
 		 */
@@ -2228,6 +2228,12 @@ UtilitiesImpl
 			 
 				return( value );
 			}
+		}
+		
+		public boolean 
+		isDisabled() 
+		{
+			return( limiter.getRateLimitBytesPerSecond() < 0 );
 		}
 		
 		public void

@@ -28,9 +28,18 @@ public interface LimitedRateGroup {
   
   /**
    * Get the current rate limit.
-   * @return rate in bytes per second, 0 for unlimited, -1 for disabled
+   * @return rate in bytes per second, 0 for unlimited, -1 for disabled (BUT it is better to use isDisabled as some
+   * rate limiters implement logical disablement via other means (e.g. a download can implement it by disabling individual peers....)
    */
+  
   public int getRateLimitBytesPerSecond();
   
   public void updateBytesUsed( int num );
+  
+  /**
+   * Best way to check if rate limiter is effectively disabled
+   * @return
+   */
+  
+  public boolean isDisabled();
 }

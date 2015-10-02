@@ -100,7 +100,11 @@ TagDownloadWithState
 				
 				return( res );
 			}
-	
+			public boolean 
+			isDisabled() 
+			{
+				return( upload_rate_limit < 0 );
+			}
 			public void
 			updateBytesUsed(
 				int	used )
@@ -138,6 +142,12 @@ TagDownloadWithState
 				return( res );
 			}
 	
+			public boolean 
+			isDisabled() 
+			{
+				return( download_rate_limit < 0 );
+			}
+			
 			public void
 			updateBytesUsed(
 					int	used )
