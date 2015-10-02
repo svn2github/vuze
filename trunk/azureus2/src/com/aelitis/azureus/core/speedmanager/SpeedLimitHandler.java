@@ -6169,7 +6169,7 @@ SpeedLimitHandler
 					
 					if ( i < num_tags/3 ){
 						
-						inactive_rate = rate_available;
+						inactive_rate = Math.max( rate_available, 5*1024 );
 						
 					}else{
 						
