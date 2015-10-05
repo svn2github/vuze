@@ -762,6 +762,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		
 		synchronized (rows_sync) {
 			for (DATASOURCETYPE ds : dataSources) {
+				if (ds == null) {
+					continue;
+				}
 				listUnfilteredDataSources.put(ds, null);
 			}
 		}
