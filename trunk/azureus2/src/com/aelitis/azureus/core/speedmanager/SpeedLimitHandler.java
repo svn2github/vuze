@@ -1403,6 +1403,12 @@ SpeedLimitHandler
 								
 								ok = true;
 								
+							}else if ( lhs.equalsIgnoreCase( "rest" )){
+								
+								pri.setRestTicks( Integer.parseInt( rhs ));
+								
+								ok = true;
+								
 							}else if ( lhs.equalsIgnoreCase( "probe" )){
 								
 								pri.setProbePeriod( Integer.parseInt( rhs ));
@@ -5970,6 +5976,7 @@ SpeedLimitHandler
 		private int					max				= MAX_DEFAULT;
 		private int					probe_period	= PROBE_DEFAULT;
 		private String				name			= "";
+		private int					rest_ticks		= 0;
 		
 		private int	tick_count		= 0;
 		
@@ -6091,6 +6098,13 @@ SpeedLimitHandler
 		}
 		
 		private void
+		setRestTicks(
+			int	ticks )
+		{
+			rest_ticks	= ticks;
+		}
+		
+		private void
 		setName(
 			String	str )
 		{
@@ -6205,7 +6219,8 @@ SpeedLimitHandler
 			
 			for ( PrioritiserTagState tag_state: active_tags ){
 			
-				str += (str.length()==0?"":", ") + tag_state.getTagName() + "=" + formatRate( tag_state.getRate(), false) + " (" + formatRate( tag_state.getLimit(), true ) + ") {" + tag_state.getStrength() + "}";
+				str += (str.length()==0?"":", ") + tag_state.getString();
+						
 			}
 			
 			GlobalManagerStats gm_stats = core.getGlobalManager().getStats();
@@ -6262,32 +6277,54 @@ SpeedLimitHandler
 							// looking good
 							
 						}else{
+														
+								// if we have a probe result then we can use this to see how far away we are from that value
+								// and react accordingly. In particular if we have a 'weak' tag with varying rates the we need to be more
+								// lenient as it'll get hammered down
 							
-							all_good = false;
+							boolean	weak_tag		= false;
+							boolean	weakly_stable 	= false;
 							
-								// reduce limit
+							int	probe_rate = tag_state.getProbeRate();
 							
-							if ( limit > 0 ){
+							if ( tag_state.getStrength() < 5 && probe_rate > 0 ){
+									
+								weak_tag = true;
 								
-								if ( stable ){
-									
-									if ( rate < 1024 ){
+								if ( rate >= 80*probe_rate/100 ){
 										
-										rate = 1024;
-									}
+									weakly_stable = true;
+								}
+							}
+
+							if ( !weakly_stable ){
+								
+								all_good = false;
+								
+									// reduce limit
+								
+								if ( limit > 0 ){
 									
-									tag_state.setLimit( rate, "0: reducing to current" );
-									
-								}else{
-									
-									int target = rate - 2048;
-									
-									if ( target <= 1024 ){
+									if ( stable ){
 										
-										target = -1;
+										if ( rate < 1024 ){
+											
+											rate = 1024;
+										}
+										
+										tag_state.setLimit( rate, "0: reducing to current" );
+										
+									}else{
+										
+										int target = rate - 2048;
+										
+										if ( target <= 1024 ){
+											
+											target = -1;
+										}
+										
+										tag_state.setLimit( target, "0: reducing, unstable" );
 									}
-									
-									tag_state.setLimit( target, "0: reducing, unstable" );
 								}
 							}
 						}
@@ -6337,6 +6374,40 @@ SpeedLimitHandler
 						phase_1_tag_state = 0;
 						
 						phase_1_limit_hit = false;
+						
+							// introduced the concept of a rest-period if we have a probe result and the current
+							// rate is relatively close to it
+						
+						if ( rest_ticks > 0 && phase_2_max_detected > 0 ){
+							
+							int	current_rate = 0;
+						
+							for ( PrioritiserTagState tag: active_tags ){
+								
+								int	rate = tag.getRate();
+								
+								current_rate += rate;
+							}
+							
+							/*
+							if ( current_rate >= 75*phase_2_max_detected/100 ){
+								
+								log( "Resting..." );
+								
+								skip_ticks = rest_ticks;
+							}
+							*/
+							
+								// interpolate based on %age achieved
+														
+							int	achieved = current_rate*100/phase_2_max_detected;
+								
+							achieved += 10;	// add in 10 % so that 90->100 gets max rest
+							
+							skip_ticks = Math.min( rest_ticks, achieved*rest_ticks/100 );
+							
+							log( "Resting for " + skip_ticks );
+						}
 					}
 				}
 			}else if ( phase == 1 ){
@@ -6399,8 +6470,17 @@ SpeedLimitHandler
 						
 						if ( tag_state.getLimit() != max && phase_1_tag_state == 0 ){
 							
-								// not at max, let's modify it
-							
+							// not at max, let's modify it
+
+							for ( int j=0;j<i;j++){
+								
+								PrioritiserTagState s = active_tags.get(j);
+								
+								int rate = s.getRate();
+																	
+								s.setPreTestRate( rate );
+							}
+														
 							int	limits_hit = tag_state.getLimitsHit();
 							
 							int	raise_to;
@@ -6567,6 +6647,62 @@ SpeedLimitHandler
 												my_target = -1;
 											}
 										}
+									}
+								}
+								
+								if ( limit_hit ){
+									
+										// another test - if we have probe results then give weak tags the benefit of the doubt if they're
+										// still above this limit
+									
+									boolean stick_with_decision = false;
+									
+									for ( int j=0;j<i;j++){
+										
+										PrioritiserTagState s = active_tags.get(j);
+										
+										int	pre_rate	= s.getPreTestRate();
+										int rate 		= s.getRate();
+										
+										int	diff = rate - pre_rate;
+										
+										if ( diff < 0 ){
+											
+												// went down
+											
+											if ( s.getStrength() < 5 ){
+												
+												int	probe_rate = s.getProbeRate();
+												
+												if ( probe_rate <= 0 || rate < 110*probe_rate/100 ){
+													
+														// weak one went down but previous probe rate doesn't
+														// let it off teh hook
+													
+													stick_with_decision = true;
+													
+													break;
+												}
+											}else{
+												
+													// relative strong one went down, take it at face value
+												
+												stick_with_decision = true;
+												
+												break;
+											}
+											
+										}else{
+											
+											// went up, ignore
+										}
+									}
+									
+									if ( !stick_with_decision ){
+										
+										limit_hit = false;
+										
+										log( "Ignoring limit indicator as weak tags within probed limits" );
 									}
 								}
 								
@@ -6780,6 +6916,8 @@ SpeedLimitHandler
 						old_total_rate += old_rate;
 						
 						int new_rate	= tag.getRate();
+						
+						tag.setProbeRate( new_rate );
 						
 						new_total_rate += new_rate;
 						
@@ -7015,11 +7153,13 @@ SpeedLimitHandler
 			private int		last_rate;
 			private int		last_limit;
 			
-			private int	adjusting_ticks = INITIAL_ADJUSTMENT_PERIODS;
+			private int		adjusting_ticks = INITIAL_ADJUSTMENT_PERIODS;
 			
-			private int	tag_limits_hit;
+			private int		tag_limits_hit;
 			
-			private int	strength;
+			private int		strength;
+			private int		probe_rate	= -1;
+			private int		pre_test_rate;
 			
 			private
 			PrioritiserTagState(
@@ -7255,7 +7395,7 @@ SpeedLimitHandler
 							stable = false;
 						}
 					}
-					
+										
 					last_averages[last_average_index++%last_averages.length] = average_rate;
 					
 					last_limit	= limit;
@@ -7381,6 +7521,42 @@ SpeedLimitHandler
 					
 					return( false );
 				}
+			}
+			
+			private void
+			setProbeRate(
+				int		rate )
+			{
+				probe_rate	 = rate;
+			}
+			
+			private int
+			getProbeRate()
+			{
+				return( probe_rate );
+			}
+			
+			private void
+			setPreTestRate(
+				int		rate )
+			{
+				pre_test_rate	 = rate;
+			}
+			
+			private int
+			getPreTestRate()
+			{
+				return( pre_test_rate );
+			}
+			
+			private String
+			getString()
+			{
+				String str = getTagName() + "=" + formatRate( getRate(), false) + 
+				" (" + formatRate( getLimit(), true ) + ") {" + getStrength() + (probe_rate<=0?"":("/"+formatRate(probe_rate,false))) + "}";
+				
+				
+				return( str );
 			}
 		}
 	}
