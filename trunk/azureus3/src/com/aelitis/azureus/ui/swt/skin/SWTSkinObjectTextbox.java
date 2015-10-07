@@ -79,7 +79,8 @@ public class SWTSkinObjectTextbox
 			}
 			if (Arrays.binarySearch(styles, "search") >= 0) {
 				style |= SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL;
-				if (Constants.isWindows) {
+				if (Constants.isWindows || (Constants.isLinux && !getDefaultVisibility())) {
+					// GTK3's TextBox with search icon and cancel icon can't have 0 width (invisible without taking up layout space)
 					doBubble = true;
 				}
 			}
