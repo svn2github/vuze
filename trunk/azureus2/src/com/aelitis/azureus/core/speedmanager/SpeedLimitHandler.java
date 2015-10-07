@@ -5969,7 +5969,8 @@ SpeedLimitHandler
 		private final int		FREQ_DEFAULT	= 5;
 		private final int		MIN_DEFAULT		= 1024;
 		private final int		MAX_DEFAULT		= 100*1024*1024;
-		private final int		PROBE_DEFAULT	= 0;
+		private final int		PROBE_DEFAULT	= 3;
+		private final int		REST_DEFAULT	= 12;
 		
 		private boolean				is_down;
 		private int					freq			= FREQ_DEFAULT;
@@ -5977,7 +5978,7 @@ SpeedLimitHandler
 		private int					max				= MAX_DEFAULT;
 		private int					probe_period	= PROBE_DEFAULT;
 		private String				name			= "";
-		private int					rest_ticks		= 0;
+		private int					rest_ticks		= REST_DEFAULT;
 		
 		private int	tick_count		= 0;
 		
@@ -6220,7 +6221,7 @@ SpeedLimitHandler
 						inactive_rate = 5*1024;
 					}
 					
-					tag_state.setLimit( inactive_rate, "inactive" );
+					tag_state.setLimit( inactive_rate, "inactive[no log]" );
 				}
 				
 				rate_available -= rate;
@@ -7274,6 +7275,13 @@ SpeedLimitHandler
 			int						rate,
 			String					reason )
 		{
+				// round a bit here to avoid sillyness if rate changes by fraction of a kb/sec
+			
+			if ( rate > 1024 ){
+				
+				rate = (rate/256)*256;
+			}
+			
 			TagFeatureRateLimit tag = tag_state.getTag();
 			
 			if ( is_down ){
@@ -7282,7 +7290,10 @@ SpeedLimitHandler
 					
 					tag.setTagDownloadLimit( rate );
 					
-					log( tag_state, "->" + formatRate( rate, true ) + " (" + reason + ")");
+					if ( !reason.contains( "[no log]" )){
+					
+						log( tag_state, "->" + formatRate( rate, true ) + " (" + reason + ")");
+					}
 					
 					return( true );
 				}
@@ -7292,7 +7303,10 @@ SpeedLimitHandler
 				
 					tag.setTagUploadLimit( rate );
 					
-					log( tag_state, "->" + formatRate( rate, true ) + " (" + reason + ")");
+					if ( !reason.contains( "[no log]" )){
+					
+						log( tag_state, "->" + formatRate( rate, true ) + " (" + reason + ")");
+					}
 					
 					return( true );
 				}

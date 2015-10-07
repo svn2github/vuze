@@ -73,6 +73,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
+import com.aelitis.azureus.plugins.I2PHelpers;
 import com.aelitis.azureus.plugins.dht.*;
 
 /**
@@ -84,6 +85,8 @@ public class
 DHTTrackerPlugin 
 	implements Plugin, DownloadListener, DownloadAttributeListener, DownloadTrackerListener
 {
+	public static Object	DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY	= new Object();
+	
 	private static final String	PLUGIN_NAME				= "Distributed Tracker";
 	private static final String PLUGIN_CONFIGSECTION_ID = "plugins.dhttracker";
 	private static final String PLUGIN_RESOURCE_ID		= "ConfigView.section.plugins.dhttracker";
@@ -1212,28 +1215,6 @@ DHTTrackerPlugin
     			override_ip	= null;
     		}
     	}
-  	    
-  	    	// format is [ip_override:]tcp_port[;C][;udp_port]
-  	    
-  	    String	value_to_put = override_ip==null?"":(override_ip+":");
-  	    
-  	    value_to_put += tcp_port;
-  	    	
-  	    if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ){
-  	    	
-  	    	value_to_put += ";C";
-  	    }
-  	    
-		int	udp_port = plugin_interface.getPluginconfig().getIntParameter( "UDP.Listen.Port" );
-
-		int	dht_port = dht.getLocalAddress().getAddress().getPort();
-		
-		if ( udp_port != dht_port ){
-			
-			value_to_put += ";" + udp_port;
-		}
-		
-		putDetails	put_details = new putDetails( value_to_put, override_ip, tcp_port, udp_port );
 		
 		ArrayList<Download>	rds;
 		
@@ -1383,7 +1364,58 @@ DHTTrackerPlugin
 	  			continue;
 	  		}
 	  		
-			byte	flags = isComplete( dl )?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING;
+	  			// format is [ip_override:]tcp_port[;CI...][;udp_port]
+	  	    
+	  	    String	value_to_put = override_ip==null?"":(override_ip+":");
+	  	    
+	  	    value_to_put += tcp_port;
+	  	    	
+	  	    String put_flags = ";";
+	  	    
+	  	    if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ){
+	  	    	
+	  	    	put_flags += "C";
+	  	    }
+	  	    
+	  	    String[]	networks = dl.getListAttribute( ta_networks );
+	  	    
+	  	    boolean	i2p = false;
+	  	    
+	  	    if ( networks != null ){
+	  	    	
+	  	    	for ( String net: networks ){
+	  	    		
+	  	    		if ( net == AENetworkClassifier.AT_I2P ){
+	  	    			
+	  	    			if ( I2PHelpers.isI2PInstalled()){
+	  	    			
+	  	    				put_flags += "I";
+	  	    			}
+	  	    			
+	  	    			i2p = true;
+	  	    			
+	  	    			break;
+	  	    		}
+	  	    	}
+	  	    }
+	  	    
+	  	    if ( put_flags.length() > 1 ){
+	  	    	
+	  	    	value_to_put += put_flags;
+	  	    }
+	  	    
+			int	udp_port = plugin_interface.getPluginconfig().getIntParameter( "UDP.Listen.Port" );
+
+			int	dht_port = dht.getLocalAddress().getAddress().getPort();
+			
+			if ( udp_port != dht_port ){
+				
+				value_to_put += ";" + udp_port;
+			}
+			
+			putDetails	put_details = new putDetails( value_to_put, override_ip, tcp_port, udp_port, i2p );
+	  		
+			byte	dht_flags = isComplete( dl )?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING;
 			
 			RegistrationDetails	registration = (RegistrationDetails)registered_downloads.get( dl );
 			
@@ -1391,9 +1423,9 @@ DHTTrackerPlugin
 			
 			if ( registration == null ){
 				
-				log( dl, "Registering download as " + (flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
+				log( dl, "Registering download as " + (dht_flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
 
-				registration = new RegistrationDetails( dl, reg_type, put_details, flags );
+				registration = new RegistrationDetails( dl, reg_type, put_details, dht_flags );
 				
 				registered_downloads.put( dl, registration );
 
@@ -1409,12 +1441,12 @@ DHTTrackerPlugin
 				}
 				
 				if (	targets_changed ||
-						registration.getFlags() != flags ||
+						registration.getFlags() != dht_flags ||
 						!registration.getPutDetails().sameAs( put_details )){
 				
-					log( dl,(registration==null?"Registering":"Re-registering") + " download as " + (flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
+					log( dl,(registration==null?"Registering":"Re-registering") + " download as " + (dht_flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
 					
-					registration.update( put_details, flags );
+					registration.update( put_details, dht_flags );
 					
 					do_it = true;
 				}
@@ -1800,6 +1832,9 @@ DHTTrackerPlugin
 						int		seed_count;
 						int		leecher_count;
 						
+						int		i2p_seed_count;
+						int 	i2p_leecher_count;
+
 						volatile boolean	complete;
 						
 						{
@@ -1922,9 +1957,11 @@ DHTTrackerPlugin
 									int	tcp_port = Integer.parseInt( tcp_port_str );
 										
 									if ( tcp_port > 0 && tcp_port < 65536 ){
-		
+												
 										String	flag_str	= null;
 										int		udp_port	= -1;
+										
+										boolean	has_i2p = false;
 										
 										try{
 											for (int i=1;i<tokens.length;i++){
@@ -1944,6 +1981,11 @@ DHTTrackerPlugin
 													}else{
 														
 														flag_str = token;
+																		
+														if ( flag_str.contains("I")){
+														
+															has_i2p = true;
+														}
 													}
 												}
 											}
@@ -1965,11 +2007,20 @@ DHTTrackerPlugin
 											
 											is_seeds.add( new Boolean( false ));
 		
+											if ( has_i2p ){
+												
+												i2p_leecher_count++;
+											}
 										}else{
 											
 											is_seeds.add( new Boolean( true ));
 											
 											seed_count++;
+											
+											if ( has_i2p ){
+												
+												i2p_seed_count++;
+											}
 										}
 									}
 								
@@ -2090,6 +2141,28 @@ DHTTrackerPlugin
 								
 								ext_address = dht.getLocalAddress().getAddress().getAddress().getHostAddress();
 							}
+					  	    
+							if ( put_details.hasI2P()){
+								
+								if ( we_are_seeding ){
+									if ( i2p_seed_count > 0 ){
+										i2p_seed_count--;
+									}
+								}else{
+									if ( i2p_leecher_count > 0 ){
+										i2p_leecher_count--;
+									}
+								}
+							}
+							
+							if ( i2p_seed_count + i2p_leecher_count > 0 ){
+																
+								download.setUserData( DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY, new int[]{ i2p_seed_count,  i2p_leecher_count });
+								
+							}else{
+								
+								download.setUserData( DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY, null );
+							}
 							
 							for (int i=0;i<addresses.size();i++){
 								
@@ -2153,15 +2226,14 @@ DHTTrackerPlugin
 										{
 											String	flag = (String)flags.get(f_i);
 											
-											short protocol;
+											short protocol = PROTOCOL_NORMAL;
 											
-											if ( flag != null && flag.indexOf("C") != -1 ){
+											if ( flag != null ){
 												
-												protocol = PROTOCOL_CRYPT;
+												if ( flag.contains("C")){
 												
-											}else{
-												
-												protocol = PROTOCOL_NORMAL;
+													protocol = PROTOCOL_CRYPT;
+												}
 											}
 											
 											return( protocol );
@@ -4177,18 +4249,21 @@ DHTTrackerPlugin
 		private String	ip_override;
 		private int		tcp_port;
 		private int		udp_port;
+		private boolean	i2p;
 		
 		private
 		putDetails(
 			String	_encoded,
 			String	_ip,
 			int		_tcp_port,
-			int		_udp_port )
+			int		_udp_port,
+			boolean	_i2p )
 		{
 			encoded			= _encoded;
 			ip_override		= _ip;
 			tcp_port		= _tcp_port;
 			udp_port		= _udp_port;
+			i2p				= _i2p;
 		}
 		
 		protected String
@@ -4213,6 +4288,12 @@ DHTTrackerPlugin
 		getUDPPort()
 		{
 			return( udp_port );
+		}
+		
+		private boolean
+		hasI2P()
+		{
+			return( i2p );
 		}
 		
 		protected boolean
