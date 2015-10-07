@@ -26,6 +26,8 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
+
 /**
  * Implementation of SkinProperties using a IntegratedResourceBundle loaded from
  * hard coded paths.
@@ -59,6 +61,8 @@ public class SkinPropertiesImpl
 	private IntegratedResourceBundle rb;
 
 	private final ClassLoader classLoader;
+
+	private int emHeightPX = 15;
 
 	public SkinPropertiesImpl() {
 		this(SkinPropertiesImpl.class.getClassLoader(), PATH_SKIN_DEFS,
@@ -186,7 +190,7 @@ public class SkinPropertiesImpl
 		return null;
 	}
 	
-	private String getValue(String name, String[] params) {
+	protected String getValue(String name, String[] params) {
 		return getValue(name, params, true);
 	}
 
@@ -262,7 +266,13 @@ public class SkinPropertiesImpl
 
 		int result = def;
 		try {
-			result = Integer.parseInt(value);
+			if (value.endsWith("rem")) {
+				float em = Float.parseFloat(value.substring(0, value.length() - 3));
+
+				result = (int) (emHeightPX * em);
+			} else {
+				result = Integer.parseInt(value);
+			}
 		} catch (NumberFormatException e) {
 			// ignore error.. it might be valid to store a non-numeric..
 			//e.printStackTrace();
@@ -363,5 +373,13 @@ public class SkinPropertiesImpl
 
 	public ClassLoader getClassLoader() {
 		return classLoader;
+	}
+
+	protected void setEmHeightPX(int fontHeightInPX) {
+		this.emHeightPX = fontHeightInPX;
+	}
+
+	public int getEmHeightPX() {
+		return emHeightPX;
 	}
 }

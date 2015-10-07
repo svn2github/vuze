@@ -114,6 +114,16 @@ public class SWTSkinPropertiesParamImpl
 		return color;
 	}
 	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#getEmHeightPX()
+	public int getEmHeightPX() {
+		return properties.getEmHeightPX();
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinProperties#getPxValue(java.lang.String, int)
+	public int getPxValue(String name, int def) {
+		return properties.getPxValue(name, def);
+	}
+	
 	// @see com.aelitis.azureus.ui.skin.SkinProperties#getReferenceID(java.lang.String)
 	public String getReferenceID(String name) {
 		return properties.getReferenceID(name);

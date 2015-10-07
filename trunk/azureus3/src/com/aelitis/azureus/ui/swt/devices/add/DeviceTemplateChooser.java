@@ -157,10 +157,11 @@ public class DeviceTemplateChooser
 			soSubTitle.setTextID("label.clickone");
 		}
 
-		Point computeSize = skinnedDialog.getShell().computeSize(600, SWT.DEFAULT, true);
-		skinnedDialog.getShell().setSize(computeSize);
+		Shell shell = skinnedDialog.getShell();
+		Point computeSize = shell.computeSize(shell.getSize().x, SWT.DEFAULT, true);
+		shell.setSize(computeSize);
 		Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
-		Utils.centerWindowRelativeTo(skinnedDialog.getShell(), mainShell);
+		Utils.centerWindowRelativeTo(shell, mainShell);
 	}
 
 	/**

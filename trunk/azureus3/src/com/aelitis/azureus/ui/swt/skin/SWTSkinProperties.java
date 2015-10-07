@@ -49,4 +49,10 @@ public interface SWTSkinProperties
 	 * @since 4.4.0.7
 	 */
 	SWTColorWithAlpha getColorWithAlpha(String sID);
+
+
+	/**
+	 * Get value in px, adjusted for dpi
+	 */
+	public int getPxValue(String name, int def);
 }

@@ -585,14 +585,8 @@ public class SWTSkin
 		}
 		
 		
-		int width = skinProperties.getIntValue(startID + ".width", -1);
-		if (width > 0 && !(skinComposite instanceof AEShell)) {
-			width = Utils.adjustPXForDPI(width); 
-		}
-		int height = skinProperties.getIntValue(startID + ".height", -1);
-		if (height > 0 && !(skinComposite instanceof AEShell)) {
-			height = Utils.adjustPXForDPI(height);
-		}
+		int width = skinProperties.getPxValue(startID + ".width", -1);
+		int height = skinProperties.getPxValue(startID + ".height", -1);
 		if (width > 0 && height > 0) {
 			skinComposite.setSize(width, height);
 		}
@@ -710,41 +704,29 @@ public class SWTSkin
 		}
 		bLayoutComplete = true;
 
-		int width = skinProperties.getIntValue(startID + ".width", -1);
-		int height = skinProperties.getIntValue(startID + ".height", -1);
+		int width = skinProperties.getPxValue(startID + ".width", -1);
+		int height = skinProperties.getPxValue(startID + ".height", -1);
+		if (skinComposite instanceof AEShell) {
+			((AEShell) skinComposite).setAdjustPXforDPI(false);
+		}
+
 		if (autoSizeOnLayout) {
   		if (width > 0 && height == -1) {
-  			if (!(skinComposite instanceof AEShell)) {
-  				width = Utils.adjustPXForDPI(width);
-  			}
   			Point computeSize = skinComposite.computeSize(width, SWT.DEFAULT);
   			skinComposite.setSize(computeSize);
   		} else if (height > 0 && width == -1) {
-  			if (!(skinComposite instanceof AEShell)) {
-  				height = Utils.adjustPXForDPI(height);
-  			}
   			Point computeSize = skinComposite.computeSize(SWT.DEFAULT, height);
   			skinComposite.setSize(computeSize);
   		} else if (height > 0 && width > 0) {
-  			if (!(skinComposite instanceof AEShell)) {
-  				width = Utils.adjustPXForDPI(width);
-  				height = Utils.adjustPXForDPI(height);
-  			}
   			skinComposite.setSize(width, height);
   			
   		}
 		} else {
 			Point size = skinComposite.getSize();
 			if (width > 0) {
-  			if (!(skinComposite instanceof AEShell)) {
-  				width = Utils.adjustPXForDPI(width);
-  			}
 				size.x = width;
 			}
 			if (height > 0) {
-  			if (!(skinComposite instanceof AEShell)) {
-  				height = Utils.adjustPXForDPI(height);
-  			}
 				size.y = height;
 			}
 			skinComposite.setSize(size);
@@ -886,8 +868,15 @@ public class SWTSkin
 
 					if (sParams.length > 1) {
 						try {
-							offset = Integer.parseInt(sParams[1]);
-							offset = Utils.adjustPXForDPI(offset);
+							String value = sParams[1];
+							if (value.endsWith("rem")) {
+								float em = Float.parseFloat(value.substring(0, value.length() - 3));
+
+								offset = (int) (properties.getEmHeightPX() * em);
+							} else {
+								offset = Integer.parseInt(value);
+								offset = Utils.adjustPXForDPI(offset);
+							}
 						} catch (Exception e) {
 						}
 					}
@@ -921,8 +910,15 @@ public class SWTSkin
 							char c = sParams[j].charAt(0);
 							if (Character.isDigit(c) || c == '-') {
 								try {
-									offset = Integer.parseInt(sParams[j]);
-									offset = Utils.adjustPXForDPI(offset);
+									String value = sParams[j];
+									if (value.endsWith("rem")) {
+										float em = Float.parseFloat(value.substring(0, value.length() - 3));
+
+										offset = (int) (properties.getEmHeightPX() * em);
+									} else {
+										offset = Integer.parseInt(value);
+										offset = Utils.adjustPXForDPI(offset);
+									}
 								} catch (Exception e) {
 								}
 							} else {
@@ -981,8 +977,8 @@ public class SWTSkin
 
 		if (!skinObject.getDefaultVisibility()) {
 			if (controlToLayout.getData("oldSize") == null) {
-    		controlToLayout.setData("oldSize", new Point(properties.getIntValue(sConfigID + ".width",
-    				SWT.DEFAULT), properties.getIntValue(sConfigID + ".height",
+    		controlToLayout.setData("oldSize", new Point(properties.getPxValue(sConfigID + ".width",
+    				SWT.DEFAULT), properties.getPxValue(sConfigID + ".height",
     						SWT.DEFAULT)));
 			}
 //			if (newFormData.width != 0 && newFormData.height != 0) {
@@ -992,13 +988,13 @@ public class SWTSkin
 			newFormData.width = 0;
 			newFormData.height = 0;
 		} else {
-			int h = properties.getIntValue(sConfigID + ".height", -2);
-			int w = properties.getIntValue(sConfigID + ".width", -2);
+			int h = properties.getPxValue(sConfigID + ".height", -2);
+			int w = properties.getPxValue(sConfigID + ".width", -2);
 			if (h != -2) {
-				newFormData.height = Utils.adjustPXForDPI(h);
+				newFormData.height = h;
 			}
 			if (w != -2) {
-				newFormData.width = Utils.adjustPXForDPI(w);
+				newFormData.width = w;
 			}
 		}
 		controlToLayout.setLayoutData(newFormData);

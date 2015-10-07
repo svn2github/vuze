@@ -139,18 +139,20 @@ public class SWTSkinObjectText1
 						fontSize = FontUtils.getHeight(fd) * pctSize;
 					} else {
 
-  					int iSize = NumberFormat.getInstance(Locale.US).parse(sSize).intValue();
+						float dSize = NumberFormat.getInstance(Locale.US).parse(sSize).floatValue();
   
   					if (firstChar == '+') {
-  						fontSize = (int) (fd[0].height + iSize);
+  						fontSize = (int) (fd[0].height + dSize);
   					} else if (firstChar == '-') {
-  						fontSize = (int) (fd[0].height - iSize);
+  						fontSize = (int) (fd[0].height - dSize);
   					} else {
-  						fontSize = iSize;
+  						fontSize = dSize;
   					}
   
   					if (sSize.endsWith("px")) {
-  						fontSize = FontUtils.getFontHeightFromPX(label.getFont(), null, iSize);
+  						fontSize = FontUtils.getFontHeightFromPX(label.getFont(), null, (int) dSize);
+						} else if (sSize.endsWith("rem")) {
+							fontSize = FontUtils.getHeight(fd) * dSize;
   					}
 					}
 

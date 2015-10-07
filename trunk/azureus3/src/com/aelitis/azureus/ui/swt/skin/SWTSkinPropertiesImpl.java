@@ -21,12 +21,13 @@ import java.util.Map;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
  * @author TuxPaper
@@ -45,6 +46,15 @@ public class SWTSkinPropertiesImpl
 	 */
 	public SWTSkinPropertiesImpl(ClassLoader classLoader, String skinPath, String mainSkinFile) {
 		super(classLoader, skinPath, mainSkinFile);
+		setEmHeight();
+	}
+
+	private void setEmHeight() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				setEmHeightPX(FontUtils.getFontHeightInPX(Display.getDefault().getSystemFont()));
+			}
+		});
 	}
 
 	/**
@@ -52,8 +62,9 @@ public class SWTSkinPropertiesImpl
 	 */
 	public SWTSkinPropertiesImpl() {
 		super();
+		setEmHeight();
 	}
-
+	
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinProperties#getColor(java.lang.String)
 	public Color getColor(String sID) {
 		return getColorWithAlpha(sID).color;
@@ -100,5 +111,29 @@ public class SWTSkinPropertiesImpl
 			return def;
 		}
 		return color;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinProperties#getPxValue(java.lang.String, int)
+	public int getPxValue(String name, int def) {
+		String value = getValue(name, null);
+		if (value == null) {
+			return def;
+		}
+
+		int result = def;
+		try {
+			if (value.endsWith("rem")) {
+				float em = Float.parseFloat(value.substring(0, value.length() - 3));
+
+				result = (int) (getEmHeightPX() * em);
+			} else {
+				result = Integer.parseInt(value);
+				result = Utils.adjustPXForDPI(result);
+			}
+		} catch (NumberFormatException e) {
+			// ignore error.. it might be valid to store a non-numeric..
+			//e.printStackTrace();
+		}
+		return result;
 	}
 }

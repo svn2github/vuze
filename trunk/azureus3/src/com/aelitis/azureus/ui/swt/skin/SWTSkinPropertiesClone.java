@@ -19,8 +19,13 @@ package com.aelitis.azureus.ui.swt.skin;
 import java.util.ResourceBundle;
 
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
  * Simple extension of SWTSkinProperties that first checks the original
@@ -338,6 +343,35 @@ public class SWTSkinPropertiesClone
 		return color;
 	}
 	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#getEmHeightPX()
+	public int getEmHeightPX() {
+		return properties.getEmHeightPX();
+	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinProperties#getPxValue(java.lang.String, int)
+	public int getPxValue(String name, int def) {
+		String value = getStringValue(name, (String) null);
+		if (value == null) {
+			return def;
+		}
+
+		int result = def;
+		try {
+			if (value.endsWith("rem")) {
+				float em = Float.parseFloat(value.substring(0, value.length() - 3));
+
+				result = (int) (properties.getEmHeightPX() * em);
+			} else {
+				result = Integer.parseInt(value);
+				result = Utils.adjustPXForDPI(result);
+			}
+		} catch (NumberFormatException e) {
+			// ignore error.. it might be valid to store a non-numeric..
+			//e.printStackTrace();
+		}
+		return result;
+	}
+
 	// @see com.aelitis.azureus.ui.skin.SkinProperties#getReferenceID(java.lang.String)
 	public String getReferenceID(String name) {
 		if (name == null) {
@@ -373,4 +407,5 @@ public class SWTSkinPropertiesClone
 	public ClassLoader getClassLoader() {
 		return properties.getClassLoader();
 	}
+
 }

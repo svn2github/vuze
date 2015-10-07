@@ -248,6 +248,10 @@ public final class ShellFactory
 		}
 		
 		private boolean inSetSize = false;
+		
+		public void setAdjustPXforDPI(boolean adjust) {
+			inSetSize = !adjust;
+		}
 
 		@Override
 		public void setSize(int width, int height) {

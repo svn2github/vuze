@@ -510,6 +510,8 @@ public class SWTSkinObjectText2
 				tempFontData[0].setStyle(iFontWeight);
 			}
 
+			// Can't use properties.getPxValue for fonts, because
+			// font.height isn't necessarily in px.
 			String sSize = properties.getStringValue(sPrefix + ".size" + suffix);
 			if (sSize != null) {
 				FontData[] fd = canvas.getFont().getFontData();
@@ -541,6 +543,8 @@ public class SWTSkinObjectText2
 							fontSize = FontUtils.getFontHeightFromPX(canvas.getDisplay(),
 									tempFontData, null, (int) dSize);
 							//iFontSize = Utils.pixelsToPoint(dSize, canvas.getDisplay().getDPI().y);
+						} else if (sSize.endsWith("rem")) {
+							fontSize = FontUtils.getHeight(fd) * dSize;
 						} else {
 							fontSize = (int) dSize;
 						}

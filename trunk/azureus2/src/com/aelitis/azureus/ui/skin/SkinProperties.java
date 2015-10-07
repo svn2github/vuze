@@ -121,4 +121,11 @@ public interface SkinProperties
 	 * @since 4.0.0.5
 	 */
 	ClassLoader getClassLoader();
+
+	/**
+	 * @return
+	 *
+	 * @since 5.6.2.1
+	 */
+	int getEmHeightPX();
 }
