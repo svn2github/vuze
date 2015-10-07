@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.WeakHashMap;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
@@ -6005,6 +6006,12 @@ SpeedLimitHandler
 		
 		private Map<PrioritiserTagState,int[]>		phase_2_limits = new HashMap<PrioritiserTagState, int[]>();
 		
+		private int					phase_4_tag_state	= 0;
+		
+		private Map<PrioritiserTagState,int[]>		phase_4_limits = new HashMap<PrioritiserTagState, int[]>();
+		
+		private Set<PrioritiserTagState>	wake_on_active_tags = new HashSet<PrioritiserTagState>();
+		
 		private
 		Prioritiser()
 		{
@@ -6129,18 +6136,43 @@ SpeedLimitHandler
 				
 				return;
 			}
-						
+				
+			int	num_tags = tag_states.size();
+
 			if ( skip_ticks > 0 ){
 				
 				skip_ticks--;
 				
+				int total_wakeup_rate = 0;
+				
 				for ( PrioritiserTagState tag_state: tag_states ){
+					
+					int	raw_rate = tag_state.updateAverage( true );
 
-					tag_state.updateAverage( true );
+					if ( wake_on_active_tags.contains( tag_state )){
+							
+						boolean active = tag_state.update();
+	
+						if ( active ){
+									
+							total_wakeup_rate += raw_rate;
+						}
+					}
 				}
 				
-				return;
+				if ( total_wakeup_rate > 2048 ){
+				
+					log( "Waking up early, active tag(s) detected" );
+					
+					skip_ticks = 0;
+					
+				}else{
+				
+					return;
+				}
 			}
+			
+			wake_on_active_tags.clear();
 			
 			tick_count++;
 			
@@ -6154,9 +6186,7 @@ SpeedLimitHandler
 			boolean	adjusting = false;
 			
 			int	rate_available = phase_2_max_detected==0?max:phase_2_max_detected;
-			
-			int	num_tags = tag_states.size();
-			
+						
 			for ( int i=0;i<num_tags;i++){
 				
 				PrioritiserTagState tag_state = tag_states.get(i);
@@ -6196,7 +6226,7 @@ SpeedLimitHandler
 				rate_available -= rate;
 			}
 						
-			int	num_active = active_tags.size();
+			final int	num_active = active_tags.size();
 			
 			if ( num_active == 0 ){
 				
@@ -6297,7 +6327,22 @@ SpeedLimitHandler
 								}
 							}
 
-							if ( !weakly_stable ){
+							if ( weakly_stable ){
+								
+								int target = Math.max( probe_rate*2, rate );
+								
+								target = Math.min( max, target );
+								
+								target -= 2048;
+								
+								if ( target < 1024 ){
+									
+									target = 1024;
+								}
+								
+								tag_state.setLimit( target, "0: weak stable" );
+								
+							}else{
 								
 								all_good = false;
 								
@@ -6307,12 +6352,14 @@ SpeedLimitHandler
 									
 									if ( stable ){
 										
-										if ( rate < 1024 ){
+										int target = rate;
+										
+										if ( target < 1024 ){
 											
-											rate = 1024;
+											target = 1024;
 										}
 										
-										tag_state.setLimit( rate, "0: reducing to current" );
+										tag_state.setLimit( target, "0: reducing to current" );
 										
 									}else{
 										
@@ -6365,6 +6412,8 @@ SpeedLimitHandler
 						}
 					}
 					
+						// if we didn't start probing them move onto the test phase
+					
 					if ( phase == 0 ){
 						
 						phase = 1;
@@ -6374,40 +6423,6 @@ SpeedLimitHandler
 						phase_1_tag_state = 0;
 						
 						phase_1_limit_hit = false;
-						
-							// introduced the concept of a rest-period if we have a probe result and the current
-							// rate is relatively close to it
-						
-						if ( rest_ticks > 0 && phase_2_max_detected > 0 ){
-							
-							int	current_rate = 0;
-						
-							for ( PrioritiserTagState tag: active_tags ){
-								
-								int	rate = tag.getRate();
-								
-								current_rate += rate;
-							}
-							
-							/*
-							if ( current_rate >= 75*phase_2_max_detected/100 ){
-								
-								log( "Resting..." );
-								
-								skip_ticks = rest_ticks;
-							}
-							*/
-							
-								// interpolate based on %age achieved
-														
-							int	achieved = current_rate*100/phase_2_max_detected;
-								
-							achieved += 10;	// add in 10 % so that 90->100 gets max rest
-							
-							skip_ticks = Math.min( rest_ticks, achieved*rest_ticks/100 );
-							
-							log( "Resting for " + skip_ticks );
-						}
 					}
 				}
 			}else if ( phase == 1 ){
@@ -6418,15 +6433,15 @@ SpeedLimitHandler
 				
 				if ( start_index == -1 ){
 					
+						// active tag set changed and screwed us up, restart
+					
 					phase = 0;
 					
 				}else{
 										
 					boolean	stay_in_phase_1 = false;
-					
-					int active_tag_count = active_tags.size();
-					
-					for ( int i=start_index;i<active_tag_count;i++){
+										
+					for ( int i=start_index;i<num_active;i++){
 					
 						PrioritiserTagState tag_state = active_tags.get(i);
 					
@@ -6440,7 +6455,7 @@ SpeedLimitHandler
 						int high_priority_strength 	= 0;
 						int low_priority_strength 	= 0;
 						
-						for ( int j=0;j<active_tag_count;j++){
+						for ( int j=0;j<num_active;j++){
 							
 							PrioritiserTagState s = active_tags.get(j);
 							
@@ -6508,7 +6523,7 @@ SpeedLimitHandler
 							
 							int	change_type = PrioritiserTagState.CT_NORMAL;
 							
-							if ( i < active_tag_count / 3 ){
+							if ( i < num_active / 3 ){
 							
 								if ( high_priority_strength <= low_priority_strength/2 ){
 									
@@ -6535,7 +6550,7 @@ SpeedLimitHandler
 							
 							int	total_decrease = 0;
 							
-							for ( int j=active_tag_count-1;j>i;j--){
+							for ( int j=num_active-1;j>i;j--){
 								
 								PrioritiserTagState ts = active_tags.get(j);
 								
@@ -6672,6 +6687,16 @@ SpeedLimitHandler
 											
 											if ( s.getStrength() < 5 ){
 												
+													// if it went down by more than 25% then that ain't good - remember that
+													// the probe value can be a bad indicator of capability
+												
+												if ( -diff >= pre_rate/4 ){
+													
+													stick_with_decision = true;
+													
+													break;
+												}
+												
 												int	probe_rate = s.getProbeRate();
 												
 												if ( probe_rate <= 0 || rate < 110*probe_rate/100 ){
@@ -6702,7 +6727,7 @@ SpeedLimitHandler
 										
 										limit_hit = false;
 										
-										log( "Ignoring limit indicator as weak tags within probed limits" );
+										log( "Ignoring limit indicator as weak tags within probed limits (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( my_diff, false ));
 									}
 								}
 								
@@ -6757,7 +6782,7 @@ SpeedLimitHandler
 										
 										int	low_pri_rates = 0;
 										
-										for ( int j=active_tag_count-1;j>i;j--){
+										for ( int j=num_active-1;j>i;j--){
 											
 											PrioritiserTagState ts = active_tags.get(j);
 											
@@ -6834,7 +6859,7 @@ SpeedLimitHandler
 									
 									tag_state.setLimit( my_target, "1: setting to current (diffs=" + formatRate( hp_diff, false ) + "/" + formatRate( my_diff, false ) + ")" );
 																	
-									if ( i < active_tag_count - 1 ){
+									if ( i < num_active - 1 ){
 									
 											// time to consider whether or not we should progress to testing
 											// the next tag.
@@ -6889,12 +6914,14 @@ SpeedLimitHandler
 					
 					if ( !stay_in_phase_1 ){
 						
-						phase = 0;
+							// time for a rest phase
 						
-						phase_0_count++;
+						phase = 3;
 					}
 				}
 			}else if ( phase == 2 ){
+				
+					// probe result
 				
 				long	old_total_rate	= 0;
 				long	new_total_rate	= 0;
@@ -7022,9 +7049,199 @@ SpeedLimitHandler
 					skip_ticks = 2;
 				}
 				
+					// after probing start a new cycle 
+				
 				phase = 0;
 				
 				phase_0_count++;
+				
+			}else if ( phase == 3 ){
+				
+					// introduced the concept of a rest-period if we have a probe result and the current
+					// rate is relatively close to it
+				
+				if ( rest_ticks > 0 && phase_2_max_detected > 0 ){
+					
+					int	current_rate = 0;
+				
+					for ( PrioritiserTagState tag: active_tags ){
+						
+						int	rate = tag.getRate();
+						
+						current_rate += rate;
+					}
+					
+					/*
+					if ( current_rate >= 75*phase_2_max_detected/100 ){
+						
+						log( "Resting..." );
+						
+						skip_ticks = rest_ticks;
+					}
+					*/
+					
+						// interpolate based on %age achieved
+												
+					int	achieved = current_rate*100/phase_2_max_detected;
+						
+					achieved += 10;	// add in 10 % so that 90->100 gets max rest
+					
+					skip_ticks = Math.min( rest_ticks, achieved*rest_ticks/100 );
+					
+						// might as well bang the highest priority limit up to max while resting
+					
+					active_tags.get(0).setLimit( max, "resting" );
+					
+					for ( int i=0;i<(num_tags+2)/3;i++){
+						
+						PrioritiserTagState tag = tag_states.get(i);
+						
+						if ( !active_tags.contains( tag )){
+							
+							wake_on_active_tags.add( tag );
+						}
+					}
+					
+					log( "Resting for " + skip_ticks );
+				
+						// after resting try a mini-probe to pick up any significant high priority changes
+
+					phase_4_tag_state	= 0;
+					
+					phase = 4;
+					
+				}else{
+									
+					phase = 0;
+					
+					phase_0_count++;
+				}
+			}else if ( phase == 4 ){
+
+				if ( phase_4_tag_state == 0 ){
+				
+					phase_4_limits.clear();
+					
+					boolean	changed = false;
+										
+					int	cutoff = ( num_active + 2 ) / 3;
+
+					for ( int i=0;i<num_active;i++){
+						
+						PrioritiserTagState tag = active_tags.get(i);
+						
+						int	limit 	= tag.getLimit();
+						int	rate 	= tag.getRate();
+						
+						phase_4_limits.put( tag, new int[]{ limit, rate, rate, i<cutoff?0:1 });
+
+						if ( i < cutoff ){
+						
+							if ( tag.setLimit( max, "4: mini-probing" )){
+						
+								changed = true;
+							}
+						}else{
+							
+							if ( !changed ){
+								
+									// if we didn't raise any hp limits no point in proceeding to lower the lp
+									// ones
+								
+								break;
+							}
+							
+							int lim = (9*rate)/10;
+							
+							if ( lim < 1024 ){
+								
+								lim = 1024;
+							}
+							
+							tag.setLimit( lim, "4: mini-probing" );
+						}
+					}
+					
+					if ( changed ){
+							
+						phase_4_tag_state = 1;
+						
+						skip_ticks = 1;
+						
+					}else{
+						
+						phase = 0;
+						
+						phase_0_count++;
+					}
+				}else{
+					
+						// results are in
+		
+					int	total_inc = 0;
+					
+					String probe_str = "";
+					
+					for ( Map.Entry<PrioritiserTagState,int[]> entry: phase_4_limits.entrySet()){
+
+						PrioritiserTagState tag 	= entry.getKey();
+						int[]				details	= entry.getValue();
+												
+						if ( active_tags.contains( tag )){
+							
+							boolean hp = details[3] == 0;
+							
+							if ( hp ){
+								
+								int old_rate	= details[1];
+								
+								int new_rate 	= tag.getRate();
+										
+								details[2] = new_rate;
+								
+								int inc = new_rate - old_rate;
+								
+								if ( inc > 0 ){
+									
+									if ( tag.getProbeRate() < new_rate ){
+									
+										tag.setProbeRate( new_rate );
+									}
+									
+									total_inc += inc;
+									
+									probe_str += (probe_str.length()==0?"":", ") + tag.getTagName() + " +" + formatRate( inc, false );
+
+								}
+							}
+						}
+					}
+					
+					log( "Mini-probe result: inc=" + formatRate( total_inc, false ) + " [" + probe_str + "]" );
+
+					if ( total_inc > 10*1024 ){
+						
+						// leave things as they are
+						
+					}else{
+						
+						// put the limits back
+						
+						for ( Map.Entry<PrioritiserTagState,int[]> entry: phase_4_limits.entrySet()){
+
+							PrioritiserTagState tag 	= entry.getKey();
+							int[]				details	= entry.getValue();
+							
+							tag.setLimit( details[0], "4: reverting" );
+						}
+						
+						skip_ticks = 1;
+					}
+					
+					phase = 0;
+				
+					phase_0_count++;
+				}
 			}
 		}
 	
@@ -7316,7 +7533,7 @@ SpeedLimitHandler
 			private long	last_byte_count 	= -1;
 			private long	last_average_time	= 0;
 			
-			private void
+			private int
 			updateAverage(
 				boolean		is_skip_cycle )
 			{
@@ -7404,6 +7621,8 @@ SpeedLimitHandler
 					
 					//System.out.println( tag.getTag().getTagName( true ) + " -> rate=" + average_rate + ", stable=" + stable );
 				}
+				
+				return( rate );
 			}
 			
 			private TagFeatureRateLimit
