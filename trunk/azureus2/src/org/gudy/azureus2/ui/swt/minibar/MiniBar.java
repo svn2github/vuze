@@ -359,7 +359,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	        if (moving) {
 	          int dX = xPressed - e.x;
 	          int dY = yPressed - e.y;
-	          System.out.println("dX,dY : " + dX + " , " + dY);
+	          //System.out.println("dX,dY : " + dX + " , " + dY);
 	          Point currentLoc = splash.getLocation();
 	          currentLoc.x -= dX;
 	          currentLoc.y -= dY;
