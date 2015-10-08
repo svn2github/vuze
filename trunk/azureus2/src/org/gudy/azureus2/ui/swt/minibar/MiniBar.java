@@ -33,6 +33,7 @@ import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory.AEShell;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -257,6 +258,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 		this.stucked = null;
 		this.splash = org.gudy.azureus2.ui.swt.components.shell.ShellFactory
 				.createShell(SWT.ON_TOP);
+		((AEShell) splash).setAdjustPXforDPI(false);
 		
 		int	trans = COConfigurationManager.getIntParameter( "Bar Transparency" );
 		
