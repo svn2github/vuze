@@ -105,7 +105,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
     final Group gRadio = new Group(cMode, SWT.WRAP);
     Messages.setLanguageText(gRadio, "ConfigView.section.mode.title");
     gRadio.setLayoutData(gridData);
-    gRadio.setLayout(new RowLayout(SWT.HORIZONTAL));
+    Utils.setLayout(gRadio, new RowLayout(SWT.HORIZONTAL));
 
     Button button0 = new Button (gRadio, SWT.RADIO);
     Messages.setLanguageText(button0, "ConfigView.section.mode.beginner");

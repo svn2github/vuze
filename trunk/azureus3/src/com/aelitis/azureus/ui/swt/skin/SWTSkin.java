@@ -595,8 +595,8 @@ public class SWTSkin
 		
 		if (skinComposite instanceof Shell) {
 			Shell shell = (Shell) skinComposite;
-			int minWidth = Utils.adjustPXForDPI(skinProperties.getIntValue(startID + ".minwidth", -1));
-			int minHeight = Utils.adjustPXForDPI(skinProperties.getIntValue(startID + ".minheight", -1));
+			int minWidth = skinProperties.getPxValue(startID + ".minwidth", -1);
+			int minHeight = skinProperties.getPxValue(startID + ".minheight", -1);
 			if (minWidth > 0 || minHeight > 0) {
 				Point minimumSize = shell.getMinimumSize();
 				shell.setMinimumSize(minWidth > 0 ? minWidth : minimumSize.x,

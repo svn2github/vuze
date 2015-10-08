@@ -116,7 +116,7 @@ public class BYOPanel
 		});
 		
 		Composite cButtons = new Composite(panel, 0);
-		cButtons.setLayout(new RowLayout());
+		Utils.setLayout(cButtons, new RowLayout());
 		cButtons.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		Button btnAddContainer = new Button(cButtons, SWT.PUSH);

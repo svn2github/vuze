@@ -100,7 +100,7 @@ public class WelcomePanel extends AbstractWizardPanel {
     final Group gRadio = new Group(panel, SWT.WRAP);
     Messages.setLanguageText(gRadio, "ConfigView.section.mode.title");
     Utils.setLayoutData(gRadio, gridData);
-    gRadio.setLayout(new RowLayout(SWT.HORIZONTAL));
+    Utils.setLayout(gRadio, new RowLayout(SWT.HORIZONTAL));
 
     Button button0 = new Button (gRadio, SWT.RADIO);
     Messages.setLanguageText(button0, "ConfigView.section.mode.beginner");

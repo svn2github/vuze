@@ -3226,7 +3226,7 @@ public class OpenTorrentOptionsWindow
 		
 				RowLayout tagLayout = new RowLayout();
 				tagLayout.pack = false;
-				tagButtonsArea.setLayout( tagLayout);
+				Utils.setLayout(tagButtonsArea, tagLayout);
 				
 				buildTagButtonPanel( tagButtonsArea );
 				

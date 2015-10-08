@@ -148,7 +148,7 @@ public abstract class StandardButtonsArea
 		rowLayout.center = true;
 		rowLayout.spacing = 8;
 		rowLayout.pack = false;
-		cButtonArea.setLayout(rowLayout);
+		Utils.setLayout(cButtonArea, rowLayout);
 
 		buttons = new Button[buttonIDs.length];
 		for (int i = 0; i < buttonIDs.length; i++) {

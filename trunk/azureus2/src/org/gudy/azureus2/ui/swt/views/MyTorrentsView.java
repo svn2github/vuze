@@ -769,8 +769,8 @@ public class MyTorrentsView
 		}
 	    rowLayout.marginTop = 0;
 	    rowLayout.marginBottom = 0;
-	    rowLayout.marginLeft = 3;
-	    rowLayout.marginRight = 3;
+	    rowLayout.marginLeft = Utils.adjustPXForDPI(3);
+	    rowLayout.marginRight = Utils.adjustPXForDPI(3);
 	    rowLayout.spacing = 0;
 	    rowLayout.wrap = true;
 	     

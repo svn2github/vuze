@@ -103,15 +103,8 @@ public class SWTSkinObjectContainer
 			style |= SWT.DOUBLE_BUFFERED;
 		}
 
-		Display display = createOn.getDisplay();
-		minWidth = properties.getIntValue(sConfigID + ".minwidth", -1);
-		if (minWidth > 0) {
-			minWidth = Utils.adjustPXForDPI(minWidth);
-		}
-		minHeight = properties.getIntValue(sConfigID + ".minheight", -1);
-		if (minHeight > 0) {
-			minHeight = Utils.adjustPXForDPI(minHeight);
-		}
+		minWidth = properties.getPxValue(sConfigID + ".minwidth", -1);
+		minHeight = properties.getPxValue(sConfigID + ".minheight", -1);
 
 		final Composite parentComposite;
 		if (skin.DEBUGLAYOUT) {

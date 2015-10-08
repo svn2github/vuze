@@ -356,7 +356,7 @@ public class TableColumnSetupWindow
 		
 		if (CAT_BUTTONS) {
 			cCategories = new Composite(cFilterArea, SWT.NONE);
-			cCategories.setLayout(new RowLayout());
+			Utils.setLayout(cCategories, new RowLayout());
 
   		Button button = new Button(cCategories, SWT.TOGGLE);
   		Messages.setLanguageText(button, "Categories.all");

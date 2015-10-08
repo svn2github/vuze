@@ -42,6 +42,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -3827,6 +3828,25 @@ public class Utils
 		layout.marginWidth = adjustPXForDPI(layout.marginWidth);
 		layout.horizontalSpacing = adjustPXForDPI(layout.horizontalSpacing);
 		layout.verticalSpacing = adjustPXForDPI(layout.verticalSpacing);
+		
+		composite.setLayout(layout);
+	}
+
+	public static void setLayout(Composite composite, RowLayout layout) {
+		Point dpi = getDPI();
+		if (dpi.x == 0) {
+			composite.setLayout(layout);
+			return;
+		}
+		
+		layout.marginBottom = adjustPXForDPI(layout.marginBottom);
+		layout.marginHeight = adjustPXForDPI(layout.marginHeight);
+		layout.marginLeft = adjustPXForDPI(layout.marginLeft);
+		layout.marginRight = adjustPXForDPI(layout.marginRight);
+		layout.marginTop = adjustPXForDPI(layout.marginTop);
+		layout.marginWidth = adjustPXForDPI(layout.marginWidth);
+		layout.spacing = adjustPXForDPI(layout.spacing);
+		
 		
 		composite.setLayout(layout);
 	}

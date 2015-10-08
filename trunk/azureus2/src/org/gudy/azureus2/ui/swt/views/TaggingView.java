@@ -341,7 +341,7 @@ public class TaggingView
 					RowLayout rowLayout = new RowLayout();
 					rowLayout.pack = false;
 					rowLayout.spacing = 5;
-					g.setLayout(rowLayout);
+					Utils.setLayout(g, rowLayout);
 				}
 
 				Composite p = new Composite(g, SWT.DOUBLE_BUFFERED);
