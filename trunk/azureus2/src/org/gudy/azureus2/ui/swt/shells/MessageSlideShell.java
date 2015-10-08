@@ -351,7 +351,7 @@ public class MessageSlideShell
 			shell.setText(popupParams.title);
 		}
 
-		shellWidth = SHELL_DEF_WIDTH;
+		shellWidth = Utils.adjustPXForDPI(SHELL_DEF_WIDTH);
 
 		UISkinnableSWTListener[] listeners = UISkinnableManagerSWT.getInstance().getSkinnableListeners(
 				MessageSlideShell.class.toString());
@@ -421,9 +421,11 @@ public class MessageSlideShell
 						textDetails.setText(sDetails);
 						detailsShell.layout();
 						Rectangle shellBounds = shell.getBounds();
+						int detailsWidth = Utils.adjustPXForDPI(DETAILS_WIDTH);
+						int detailsHeight = Utils.adjustPXForDPI(DETAILS_HEIGHT);
 						detailsShell.setBounds(shellBounds.x + shellBounds.width
-								- DETAILS_WIDTH, shellBounds.y - DETAILS_HEIGHT, DETAILS_WIDTH,
-								DETAILS_HEIGHT);
+								- detailsWidth, shellBounds.y - detailsHeight, detailsWidth,
+								detailsHeight);
 						detailsShell.open();
 						shell.setData("detailsShell", detailsShell);
 						shell.addDisposeListener(new DisposeListener() {
@@ -527,10 +529,12 @@ public class MessageSlideShell
 		// Image has gap for text at the top (with image at bottom left)
 		// trim top to height of shell 
 		Point bestSize = cShell.computeSize(shellWidth, SWT.DEFAULT);
-		if (bestSize.y < SHELL_MIN_HEIGHT)
-			bestSize.y = SHELL_MIN_HEIGHT;
-		else if (bestSize.y > SHELL_MAX_HEIGHT) {
-			bestSize.y = SHELL_MAX_HEIGHT;
+		int minHeight = Utils.adjustPXForDPI(SHELL_MIN_HEIGHT);
+		int maxHeight = Utils.adjustPXForDPI(SHELL_MAX_HEIGHT);
+		if (bestSize.y < minHeight)
+			bestSize.y = minHeight;
+		else if (bestSize.y > maxHeight) {
+			bestSize.y = maxHeight;
 			if (sDetails == null) {
 				sDetails = popupParams.text;
 			} else {
