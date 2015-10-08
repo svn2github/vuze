@@ -34,7 +34,10 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
@@ -124,6 +127,7 @@ public class SeedsItem
 
 	private class Cell
 		extends AbstractTrackerCell
+		implements TableCellMouseListener
 	{
 		private long lTotalPeers = 0;
 
@@ -170,7 +174,9 @@ public class SeedsItem
 				
 					if ( i2p_info != null ){
 					
-						if ( i2p_info[0] > 0 ){
+						int totalI2PSeeds = i2p_info[0];
+						
+						if ( totalI2PSeeds > 0 ){
 							
 							icon = i2p_img;
 						}
@@ -253,10 +259,42 @@ public class SeedsItem
 										"" + lSeedsToAdd
 									});
 				}
+				
+
+				int[] i2p_info = (int[])dm.getUserData( DHTTrackerPlugin.DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY );
+			
+				if ( i2p_info != null ){
+				
+					int totalI2PSeeds = i2p_info[0];
+					
+					if ( totalI2PSeeds > 0 ){
+						
+						sToolTip += "\n" + 
+								MessageText.getString(
+									"TableColumn.header.peers.i2p",
+									new String[]{ String.valueOf( totalI2PSeeds )});
+					}
+				}
 				cell.setToolTip(sToolTip);
 			}else{
 				cell.setToolTip( "");
 			}
 		}
+		
+		  public void cellMouseTrigger(TableCellMouseEvent event) {
+				DownloadManager dm = (DownloadManager) event.cell.getDataSource();
+				if (dm == null) {return;}
+				
+				if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {return;}
+				
+				event.skipCoreFunctionality = true;
+				
+				
+				int[] i2p_info = (int[])dm.getUserData( DHTTrackerPlugin.DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY );
+				
+				if ( i2p_info != null && i2p_info[0] > 0 ){
+					Utils.launch(MessageText.getString( "privacy.view.wiki.url" ));
+				}
+		  }
 	}
 }

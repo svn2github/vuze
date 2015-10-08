@@ -2845,6 +2845,9 @@ DHTTrackerPlugin
 								private int 	leechers = 0;
 								private int 	seeds	 = 0;
 								
+								private int 	i2p_leechers = 0;
+								private int 	i2p_seeds	 = 0;
+
 								public boolean
 								diversified()
 								{
@@ -2864,13 +2867,47 @@ DHTTrackerPlugin
 									DHTPluginContact	originator,
 									DHTPluginValue		value )
 								{
-									if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+									boolean is_leecher = ( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1;
+				
+									if ( is_leecher ){
 
 										leechers++;
 										
 									}else{
 										
 										seeds++;
+									}
+									
+									try{
+										String[]	tokens = new String(value.getValue()).split(";");
+										
+										for (int i=1;i<tokens.length;i++){
+										
+											String	token = tokens[i].trim();
+											
+											if ( token.length() > 0 ){
+												
+												if ( !Character.isDigit( token.charAt( 0 ))){
+													
+													String flag_str = token;
+																	
+													if ( flag_str.contains("I")){
+													
+														if ( is_leecher ){
+
+															i2p_leechers++;
+															
+														}else{
+															
+															i2p_seeds++;
+														}
+													}
+												}
+											}
+										
+										}
+									}catch( Throwable e ){
+										
 									}
 								}
 								
@@ -3000,6 +3037,24 @@ DHTTrackerPlugin
 										
 										this_mon.exit();
 									}
+									
+									if ( i2p_seeds + i2p_leechers > 0 ){
+										
+										int[] details = (int[])f_ready_download.getUserData( DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY );
+										
+										if ( details == null ){
+											
+											details = new int[]{ i2p_seeds, i2p_leechers };
+
+											f_ready_download.setUserData( DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY,details );
+											
+										}else{
+											
+											details[0] = Math.max( details[0], i2p_seeds );
+											details[1] = Math.max( details[1], i2p_leechers );
+										}
+									}
+
 									
 									f_ready_download.setScrapeResult(
 										new DownloadScrapeResult()

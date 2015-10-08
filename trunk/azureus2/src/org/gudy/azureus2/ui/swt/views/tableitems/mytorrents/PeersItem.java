@@ -24,16 +24,23 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import java.util.Locale;
 
+import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+
+import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /** # of Peers
  * 
@@ -64,7 +71,9 @@ public class PeersItem extends CoreTableColumnSWT implements
 	private static String textStartedNoScrape;
 	private static String textNotStartedNoScrape;
 
-	
+	private static Image i2p_img;
+	private static Image none_img;
+
 	static {
 		MessageText.addAndFireListener(new MessageTextListener() {
 			public void localeChanged(Locale old_locale, Locale new_locale) {
@@ -75,6 +84,11 @@ public class PeersItem extends CoreTableColumnSWT implements
 				textNotStartedNoScrape = MessageText.getString("Column.seedspeers.notstarted.noscrape");
 			}
 		});
+		
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		
+		i2p_img 	= imageLoader.getImage("net_I2P_x");
+		none_img 	= imageLoader.getImage("net_None_x");
 	}
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
@@ -92,7 +106,10 @@ public class PeersItem extends CoreTableColumnSWT implements
 		new Cell(cell);
 	}
 
-	private static class Cell extends AbstractTrackerCell {
+	private static class Cell 
+		extends AbstractTrackerCell
+		implements TableCellMouseListener
+	{
 		long lTotalPeers = -1;
 		
 		/**
@@ -123,6 +140,25 @@ public class PeersItem extends CoreTableColumnSWT implements
 					if (response != null && response.isValid()) {
 						lTotalPeers = response.getPeers();
 					}
+				}
+				
+				if (cell instanceof TableCellSWT) {
+
+					int[] i2p_info = (int[])dm.getUserData( DHTTrackerPlugin.DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY );
+				
+					Image icon = none_img;
+				
+					if ( i2p_info != null ){
+					
+						int totalI2PLeechers = i2p_info[1];
+						
+						if ( totalI2PLeechers > 0 ){
+							
+							icon = i2p_img;
+						}
+					}
+					
+					((TableCellSWT)cell).setIcon( icon );
 				}
 			}
 			
@@ -192,5 +228,21 @@ public class PeersItem extends CoreTableColumnSWT implements
 				cell.setToolTip("");
 			}
 		}
+		
+		  public void cellMouseTrigger(TableCellMouseEvent event) {
+				DownloadManager dm = (DownloadManager) event.cell.getDataSource();
+				if (dm == null) {return;}
+				
+				if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {return;}
+				
+				event.skipCoreFunctionality = true;
+				
+				
+				int[] i2p_info = (int[])dm.getUserData( DHTTrackerPlugin.DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY );
+				
+				if ( i2p_info != null && i2p_info[1] > 0 ){
+					Utils.launch(MessageText.getString( "privacy.view.wiki.url" ));
+				}
+		  }
 	}
 }
