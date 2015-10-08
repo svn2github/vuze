@@ -1946,11 +1946,11 @@ public class Utils
 
 			Monitor[] monitors = shell.getDisplay().getMonitors();
 			for (int j = 0; j < monitors.length && !bMetricsOk; j++) {
-				Rectangle bounds = monitors[j].getBounds();
+				Rectangle bounds = monitors[j].getClientArea();
 				bMetricsOk = bounds.contains(ptTopLeft) && bounds.contains(ptBottomRight);
 			}
 		} catch (NoSuchMethodError e) {
-			Rectangle bounds = shell.getDisplay().getBounds();
+			Rectangle bounds = shell.getDisplay().getClientArea();
 			bMetricsOk = shell.getBounds().intersects(bounds);
 		}
 		if (!bMetricsOk && bAdjustIfInvalid) {
