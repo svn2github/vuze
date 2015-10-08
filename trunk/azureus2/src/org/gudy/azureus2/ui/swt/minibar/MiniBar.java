@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
@@ -358,7 +359,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	        if (moving) {
 	          int dX = xPressed - e.x;
 	          int dY = yPressed - e.y;
-	          //System.out.println("dX,dY : " + dX + " , " + dY);
+	          System.out.println("dX,dY : " + dX + " , " + dY);
 	          Point currentLoc = splash.getLocation();
 	          currentLoc.x -= dX;
 	          currentLoc.y -= dY;
@@ -399,7 +400,13 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    
 	    // Allow subclasses to determine the initial position of the splash object.
 	    Point point = this.getInitialLocation();
+	    if (point == null) {
+	    	Rectangle clientArea = splash.getMonitor().getClientArea();
+	    	point = new Point(clientArea.x, clientArea.y);
+	    }
 	    if (point != null) {splash.setLocation(point);}
+	    
+	    Utils.verifyShellRect(splash, true);
 	    
 	    splash.setVisible(true);
 	    
