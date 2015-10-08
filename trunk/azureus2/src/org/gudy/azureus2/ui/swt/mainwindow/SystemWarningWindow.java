@@ -50,19 +50,19 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  */
 public class SystemWarningWindow
 {
-	private final static int WIDTH = 230;
+	private int WIDTH = 230;
 
-	private final static int BORDER_X = 12;
+	private int BORDER_X = 12;
 
-	private final static int BORDER_Y0 = 10;
+	private int BORDER_Y0 = 10;
 
-	private final static int BORDER_Y1 = 6;
+	private int BORDER_Y1 = 6;
 
-	private final static int GAP_Y = 5;
+	private int GAP_Y = 5;
 
-	private final static int GAP_BUTTON_Y = 20;
+	private int GAP_BUTTON_Y = 20;
 
-	private final static int GAP_Y_TITLE_COUNT = 3;
+	private int GAP_Y_TITLE_COUNT = 3;
 
 	private final LogAlert logAlert;
 
@@ -110,6 +110,20 @@ public class SystemWarningWindow
 		this.ptBottomRight = ptBottomRight;
 		this.parent = parent;
 		this.historyPosition = historyPosition;
+
+		WIDTH = Utils.adjustPXForDPI(WIDTH);
+
+		BORDER_X = Utils.adjustPXForDPI(BORDER_X);
+
+		BORDER_Y0 = Utils.adjustPXForDPI(BORDER_Y0);
+
+		BORDER_Y1 = Utils.adjustPXForDPI(BORDER_Y1);
+
+		GAP_Y = Utils.adjustPXForDPI(GAP_Y);
+
+		GAP_BUTTON_Y = Utils.adjustPXForDPI(GAP_BUTTON_Y);
+
+		GAP_Y_TITLE_COUNT = Utils.adjustPXForDPI(GAP_Y_TITLE_COUNT);
 
 		String amb_key_suffix;
 		switch (logAlert.entryType) {
