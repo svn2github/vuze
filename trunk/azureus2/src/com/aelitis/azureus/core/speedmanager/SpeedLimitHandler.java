@@ -36,7 +36,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.WeakHashMap;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
@@ -6248,10 +6247,16 @@ SpeedLimitHandler
 			
 			String str = "";
 			
-			for ( PrioritiserTagState tag_state: active_tags ){
+			for ( int i=0;i<num_active;i++){
+				
+				PrioritiserTagState tag_state = active_tags.get(i);
 			
-				str += (str.length()==0?"":", ") + tag_state.getString();
-						
+				if ( !is_down ){
+					
+					tag_state.getTag().setTagUploadPriority( i <= (num_active-1)/3?1:0);
+				}
+				
+				str += (str.length()==0?"":", ") + tag_state.getString();	
 			}
 			
 			GlobalManagerStats gm_stats = core.getGlobalManager().getStats();
