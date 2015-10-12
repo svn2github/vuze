@@ -23,7 +23,10 @@ package org.gudy.azureus2.ui.swt.views;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
@@ -130,7 +133,7 @@ public class FilesView
 	
   public static final String MSGID_PREFIX = "FilesView";
   
-  private DownloadManager manager = null;
+  private List<DownloadManager> managers = new ArrayList<DownloadManager>();
   
   private boolean	enable_tabs = true;
   
@@ -193,6 +196,17 @@ public class FilesView
   			
   			if (pluginUI != null && !registeredCoreSubViews) {
 
+  				DownloadManager manager;
+  				
+  				if ( managers.size() == 1 ){
+  					
+  					manager = managers.get(0);
+  					
+  				}else{
+  					
+  					manager = null;
+  				}
+  				
   				pluginUI.addView(TableManager.TABLE_TORRENT_FILES, "FileInfoView",
 							FileInfoView.class, manager);
 
@@ -283,23 +297,32 @@ public class FilesView
   
   // @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)
 	public void tableDataSourceChanged(Object newDataSource) {
-		DownloadManager newManager = ViewUtils.getDownloadManagerFromDataSource( newDataSource );
+		List<DownloadManager> newManagers = ViewUtils.getDownloadManagersFromDataSource( newDataSource );
 
-		if (newManager == manager) {
-			tv.setEnabled(manager != null);
-			return;
+		if (newManagers.size() == managers.size()){
+			boolean diff = false;
+			for (DownloadManager manager: managers ){
+				if ( !newManagers.contains( manager )){
+					diff = true;
+					break;
+				}
+			}
+			if ( !diff ){
+				tv.setEnabled(managers.size() == 0 );
+				return;
+			}
 		}
 
-		if (manager != null) {
+		for (DownloadManager manager: managers ){
 			manager.getDownloadState().removeListener(this,
 					DownloadManagerState.AT_FILE_LINKS2,
 					DownloadManagerStateAttributeListener.WRITTEN);
 			manager.removeListener(this);
 		}
 
-		manager = newManager;
+		managers = newManagers;
 
-		if (manager != null) {
+		for (DownloadManager manager: managers ){
 			manager.getDownloadState().addListener(this,
 					DownloadManagerState.AT_FILE_LINKS2,
 					DownloadManagerStateAttributeListener.WRITTEN);
@@ -309,7 +332,7 @@ public class FilesView
 
 		if (!tv.isDisposed()) {
 			tv.removeAllTableRows();
-			tv.setEnabled(manager != null);
+			tv.setEnabled(managers.size()>0);
 		}
 	}
 	
@@ -526,8 +549,65 @@ public class FilesView
 
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#fillMenu(org.eclipse.swt.widgets.Menu)
 	public void fillMenu(String sColumnName, final Menu menu) {
-		Object[] data_sources = tv.getSelectedDataSources().toArray();
-		FilesViewMenuUtil.fillMenu(tv, menu, manager, data_sources);
+
+		if ( managers.size() == 0 ){
+			
+		}else if (managers.size() == 1 ){
+			
+			Object[] data_sources = tv.getSelectedDataSources().toArray();
+			
+			DiskManagerFileInfo[] files = new DiskManagerFileInfo[data_sources.length];
+			
+			for ( int i=0;i<data_sources.length;i++ ){
+				files[i] = (DiskManagerFileInfo)data_sources[i];
+			}
+			
+			FilesViewMenuUtil.fillMenu(
+				tv, 
+				menu, 
+				new DownloadManager[]{ managers.get(0) }, 
+				new DiskManagerFileInfo[][]{ files });
+		}else{
+		
+			Object[] data_sources = tv.getSelectedDataSources().toArray();
+			
+			Map<DownloadManager,List<DiskManagerFileInfo>> map = new IdentityHashMap<DownloadManager, List<DiskManagerFileInfo>>();
+			
+			List<DownloadManager> dms = new ArrayList<DownloadManager>();
+			
+			for ( Object ds: data_sources ){
+				
+				DiskManagerFileInfo file = (DiskManagerFileInfo)ds;
+				
+				DownloadManager dm = file.getDownloadManager();
+				
+				List<DiskManagerFileInfo> list = map.get(dm);
+				
+				if ( list == null ){
+					
+					list = new ArrayList<DiskManagerFileInfo>(dm.getDiskManagerFileInfoSet().nbFiles());
+					
+					map.put( dm, list );
+					
+					dms.add( dm );
+				}
+				
+				list.add( file );
+			}
+			
+			DownloadManager[] manager_list = dms.toArray( new DownloadManager[ dms.size()]);
+			
+			DiskManagerFileInfo[][] files_list = new DiskManagerFileInfo[manager_list.length][];
+			
+			for ( int i=0;i<manager_list.length;i++){
+				
+				List<DiskManagerFileInfo> list =  map.get( manager_list[i] );
+				
+				files_list[i] = list.toArray( new DiskManagerFileInfo[list.size()]);
+			}
+			
+			FilesViewMenuUtil.fillMenu(tv, menu, manager_list, files_list );
+		}
 	}
 
 	
@@ -660,9 +740,25 @@ public class FilesView
   private DiskManagerFileInfo[]
   getFileInfo()
   {
-  	if (manager == null)
-  		return null;
-	  return( manager.getDiskManagerFileInfoSet().getFiles());
+	  if (managers.size() == 0 ){
+
+		  return null;
+		  
+	  }else if ( managers.size() == 1 ){
+  	
+		  return( managers.get(0).getDiskManagerFileInfoSet().getFiles());
+		  
+	  }else{
+		  
+		  List<DiskManagerFileInfo>	temp = new ArrayList<DiskManagerFileInfo>();
+		  
+		  for ( DownloadManager dm: managers ){
+			  
+			  temp.addAll( Arrays.asList( dm.getDiskManagerFileInfoSet().getFiles()));
+		  }
+		  
+		  return( temp.toArray( new DiskManagerFileInfo[ temp.size()]));
+	  }
   }
   
   // Used to notify us of when we need to refresh - normally for external changes to the
@@ -702,7 +798,7 @@ public class FilesView
 			}
 		});
 
-  	if (manager != null) {
+  	for ( DownloadManager manager: managers ){
 		  manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
 		  
 		  manager.removeListener( this );
@@ -736,8 +832,8 @@ public class FilesView
 
 					public void dragStart(DragSourceEvent event) {
 						TableRowCore[] rows = tv.getSelectedRows();
-						if (rows.length != 0 && manager != null
-								&& manager.getTorrent() != null) {
+						
+						if (rows.length != 0 && managers.size() > 0 ) {
 							event.doit = true;
 						} else {
 							event.doit = false;
@@ -749,13 +845,16 @@ public class FilesView
 						Object[] selectedDownloads = tv.getSelectedDataSources().toArray();
 						eventData2 = new String[selectedDownloads.length];
 						eventData1 = "DiskManagerFileInfo\n";
-						TOTorrent torrent = manager.getTorrent();
+						
 						for (int i = 0; i < selectedDownloads.length; i++) {
 							DiskManagerFileInfo fi = (DiskManagerFileInfo) selectedDownloads[i];
 							
 							try {
-								eventData1 += torrent.getHashWrapper().toBase32String() + ";"
-										+ fi.getIndex() + "\n";
+								TOTorrent torrent = fi.getDownloadManager().getTorrent();
+								if ( torrent != null ){
+									eventData1 += torrent.getHashWrapper().toBase32String() + ";"
+											+ fi.getIndex() + "\n";
+								}
 							} catch (Exception e) {
 							}
 							try {
@@ -802,7 +901,7 @@ public class FilesView
 	// @see org.eclipse.swt.events.KeyListener#keyPressed(org.eclipse.swt.events.KeyEvent)
 	public void keyPressed(KeyEvent e) {
 		if (e.keyCode == SWT.F2 && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
-			FilesViewMenuUtil.rename(tv, null, tv.getSelectedDataSources(true), true, false);
+			FilesViewMenuUtil.rename(tv, tv.getSelectedDataSources(true), true, false);
 			e.doit = false;
 			return;
 		}
@@ -835,10 +934,15 @@ public class FilesView
 	}
 
 	private void updateHeader() {
-		if ( manager == null ){
+		if ( managers.size() == 0 ){
 			return;
 		}
-		int total = manager.getNumFileInfos();
+		int total = 0;
+		
+		for ( DownloadManager manager: managers ){
+			total += manager.getNumFileInfos();
+		}
+		
 		int numInList = tv.getRowCount();
 
 		String s;

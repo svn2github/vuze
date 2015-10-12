@@ -1097,7 +1097,7 @@ BuddyPluginBeta
 			
 			String ud = properties.get( ShareManager.PR_USER_DATA );
 			
-			if ( ud.equals( "buddyplugin:share" )){
+			if ( ud != null && ud.equals( "buddyplugin:share" )){
 				
 				try{
 

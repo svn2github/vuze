@@ -2301,7 +2301,7 @@ public class TorrentUtil
 		DiskManagerFileInfo[] fileInfos = toDMFI(datasources);
 		if (fileInfos.length > 0) {
 			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_DELETE,
-					fileInfos);
+					Arrays.asList( fileInfos));
 		}
 		DownloadStubEx[] stubs = toDownloadStubs(  datasources );
 		if ( stubs.length > 0 ){
@@ -2354,7 +2354,7 @@ public class TorrentUtil
 		DiskManagerFileInfo[] fileInfos = toDMFI(datasources);
 		if (fileInfos.length > 0) {
 			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_SKIPPED,
-					fileInfos);
+					Arrays.asList(fileInfos));
 		}
 	}
 
@@ -2374,7 +2374,7 @@ public class TorrentUtil
 		DiskManagerFileInfo[] fileInfos = toDMFI(datasources);
 		if (fileInfos.length > 0) {
 			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
-					fileInfos);
+					Arrays.asList(fileInfos));
 
 			if (startStoppedParents) {
 				for (DiskManagerFileInfo fileInfo : fileInfos) {

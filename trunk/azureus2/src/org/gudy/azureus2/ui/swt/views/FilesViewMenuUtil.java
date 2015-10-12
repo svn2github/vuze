@@ -71,15 +71,23 @@ public class FilesViewMenuUtil
 	public static final Object PRIORITY_SKIPPED 		= new Object();
 	public static final Object PRIORITY_DELETE 			= new Object();
 
-	public static void fillMenu(final TableView<?> tv,
-			final Menu menu, final DownloadManager manager,
-			final Object[] data_sources) {
+	public static void 
+	fillMenu(
+		final TableView<?> 				tv,
+		final Menu 						menu, 
+		final DownloadManager[] 		manager_list,
+		final DiskManagerFileInfo[][] 	files_list ) 
+	{
 		Shell shell = menu.getShell();
-		boolean hasSelection = (data_sources.length > 0);
-
-		final DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[data_sources.length];
-
-		System.arraycopy(data_sources, 0, dmi_array, 0, data_sources.length);
+		
+		final List<DiskManagerFileInfo>	all_files = new ArrayList<DiskManagerFileInfo>();
+		
+		for ( DiskManagerFileInfo[] files: files_list ){
+			
+			all_files.addAll( Arrays.asList( files ));
+		}
+		
+		boolean hasSelection = (all_files.size() > 0);
 
 		final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemOpen, "FilesView.menu.open");
@@ -94,8 +102,8 @@ public class FilesViewMenuUtil
 				+ (use_open_containing_folder ? "open_parent_folder" : "explore"));
 		itemExplore.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				for (int i = data_sources.length - 1; i >= 0; i--) {
-					DiskManagerFileInfo info = (DiskManagerFileInfo) data_sources[i];
+				for (int i = all_files.size() - 1; i >= 0; i--) {
+					DiskManagerFileInfo info = (DiskManagerFileInfo) all_files.get(i);
 					if (info != null) {
 						ManagerUtils.open(info, use_open_containing_folder);
 					}
@@ -116,8 +124,8 @@ public class FilesViewMenuUtil
 		itemBrowsePublic.setText( MessageText.getString( "label.public" ) + "..." );
 		itemBrowsePublic.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				for (int i = data_sources.length - 1; i >= 0; i--) {
-					DiskManagerFileInfo info = (DiskManagerFileInfo) data_sources[i];
+				for (int i = all_files.size() - 1; i >= 0; i--) {
+					DiskManagerFileInfo info = (DiskManagerFileInfo)all_files.get(i);
 					if (info != null) {
 						ManagerUtils.browse(info, false, true );
 					}
@@ -129,8 +137,8 @@ public class FilesViewMenuUtil
 		itemBrowseAnon.setText( MessageText.getString( "label.anon" ) + "..." );
 		itemBrowseAnon.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				for (int i = data_sources.length - 1; i >= 0; i--) {
-					DiskManagerFileInfo info = (DiskManagerFileInfo) data_sources[i];
+				for (int i = all_files.size() - 1; i >= 0; i--) {
+					DiskManagerFileInfo info = all_files.get(i);
 					if (info != null) {
 						ManagerUtils.browse(info, true, true );
 					}
@@ -148,7 +156,7 @@ public class FilesViewMenuUtil
 					new AERunnable() {
 						@Override
 						public void runSupport() {
-							String url = ManagerUtils.browse(dmi_array[0], true, false );
+							String url = ManagerUtils.browse(all_files.get(0), true, false );
 							if ( url != null ){
 								ClipboardCopy.copyToClipBoard( url );
 							}
@@ -156,7 +164,7 @@ public class FilesViewMenuUtil
 					});
 			}});
 		
-		itemBrowseURL.setEnabled( data_sources.length==1 );
+		itemBrowseURL.setEnabled( all_files.size()==1 );
 		
 		menuBrowse.setEnabled(hasSelection);
 		
@@ -187,8 +195,8 @@ public class FilesViewMenuUtil
 		final MenuItem itemQuickView = new MenuItem(menu, SWT.CHECK);
 		Messages.setLanguageText(itemQuickView, "MainWindow.menu.quick_view");
 
-		itemQuickView.setEnabled( data_sources.length==1 && Utils.isQuickViewSupported((DiskManagerFileInfo)data_sources[0]));
-		itemQuickView.setSelection( data_sources.length==1 && Utils.isQuickViewActive((DiskManagerFileInfo)data_sources[0]));
+		itemQuickView.setEnabled( all_files.size()==1 && Utils.isQuickViewSupported(all_files.get(0)));
+		itemQuickView.setSelection( all_files.size()==1 && Utils.isQuickViewActive(all_files.get(0)));
 		
 		itemQuickView.addListener(
 				SWT.Selection,
@@ -198,14 +206,16 @@ public class FilesViewMenuUtil
 					handleEvent(
 						Event arg ) 
 					{
-						Utils.setQuickViewActive( (DiskManagerFileInfo)data_sources[0], itemQuickView.getSelection());
+						Utils.setQuickViewActive( all_files.get(0), itemQuickView.getSelection());
 					}
 				});
 		
 			// alerts
 
-		MenuFactory.addAlertsMenu( menu, manager, dmi_array );
-		
+		if ( manager_list.length == 1 ){
+				// lazy for the moment
+			MenuFactory.addAlertsMenu( menu, manager_list[0], files_list[0]);
+		}
 			// personal share		
 		
 		final MenuItem itemPersonalShare = new MenuItem(menu, SWT.PUSH);
@@ -261,59 +271,71 @@ public class FilesViewMenuUtil
 			return;
 		}
 
-		boolean open 			= true;
-		boolean all_compact 	= true;
-		boolean all_dnd_not_deleted 	= true;
-		boolean all_high_pri 	= true;
-		boolean all_normal_pri 	= true;
-		boolean all_low_pri 	= true;
-		boolean	all_complete	= true;
+		boolean	all_persistent			= true;
 		
-		int[] storage_types = manager.getStorageType(dmi_array);
-
-		for (int i = 0; i < dmi_array.length; i++) {
-
-			DiskManagerFileInfo file_info = dmi_array[i];
-
-			if (open && file_info.getAccessMode() != DiskManagerFileInfo.READ) {
-
-				open = false;
+		boolean open 					= true;
+		boolean all_compact 			= true;
+		boolean all_dnd_not_deleted 	= true;
+		boolean all_high_pri 			= true;
+		boolean all_normal_pri 			= true;
+		boolean all_low_pri 			= true;
+		boolean	all_complete			= true;
+		
+		for ( int j=0;j<manager_list.length;j++){
+			
+			DownloadManager	manager = manager_list[j];
+			
+			if ( !manager.isPersistent()){
+				all_persistent = false;
 			}
-
-			boolean isCompact = storage_types[i] == DiskManagerFileInfo.ST_COMPACT || storage_types[i] == DiskManagerFileInfo.ST_REORDER_COMPACT;
-			if (all_compact && !isCompact) {
-				all_compact = false;
-			}
-
-			if (all_dnd_not_deleted || all_high_pri || all_normal_pri || all_low_pri ) {
-				if (file_info.isSkipped()) {
-					all_high_pri = all_normal_pri = all_low_pri = false;
-					if (isCompact) {
+			DiskManagerFileInfo[] files = files_list[j];
+			
+			int[] storage_types = manager.getStorageType(files);
+	
+			for (int i = 0; i < files.length; i++) {
+	
+				DiskManagerFileInfo file_info = files[i];
+	
+				if (open && file_info.getAccessMode() != DiskManagerFileInfo.READ) {
+	
+					open = false;
+				}
+	
+				boolean isCompact = storage_types[i] == DiskManagerFileInfo.ST_COMPACT || storage_types[i] == DiskManagerFileInfo.ST_REORDER_COMPACT;
+				if (all_compact && !isCompact) {
+					all_compact = false;
+				}
+	
+				if (all_dnd_not_deleted || all_high_pri || all_normal_pri || all_low_pri ) {
+					if (file_info.isSkipped()) {
+						all_high_pri = all_normal_pri = all_low_pri = false;
+						if (isCompact) {
+							all_dnd_not_deleted = false;
+						}
+					} else {
 						all_dnd_not_deleted = false;
-					}
-				} else {
-					all_dnd_not_deleted = false;
-
-					// Only do this check if we need to.
-					if ( all_high_pri || all_normal_pri || all_low_pri ) {
-						int file_pri = file_info.getPriority();
-						if ( file_pri == 0 ){
-							all_high_pri = all_low_pri = false;
-						}else if ( file_pri == 1 ){
-							all_normal_pri = all_low_pri = false;
-						} else if ( file_pri == -1 ){
-							all_normal_pri = all_high_pri = false;
-						}else{
-							all_low_pri = all_normal_pri = all_high_pri = false;
+	
+						// Only do this check if we need to.
+						if ( all_high_pri || all_normal_pri || all_low_pri ) {
+							int file_pri = file_info.getPriority();
+							if ( file_pri == 0 ){
+								all_high_pri = all_low_pri = false;
+							}else if ( file_pri == 1 ){
+								all_normal_pri = all_low_pri = false;
+							} else if ( file_pri == -1 ){
+								all_normal_pri = all_high_pri = false;
+							}else{
+								all_low_pri = all_normal_pri = all_high_pri = false;
+							}
 						}
 					}
 				}
-			}
-			
-			if ( 	file_info.getDownloaded() != file_info.getLength() ||
-					file_info.getFile( true ).length() != file_info.getLength()){
 				
-				all_complete = false;
+				if ( 	file_info.getDownloaded() != file_info.getLength() ||
+						file_info.getFile( true ).length() != file_info.getLength()){
+					
+					all_complete = false;
+				}
 			}
 		}
 
@@ -324,15 +346,15 @@ public class FilesViewMenuUtil
 		// can't rename files for non-persistent downloads (e.g. shares) as these
 		// are managed "externally"
 
-		itemRenameOrRetarget.setEnabled(manager.isPersistent());
-		itemRename.setEnabled(manager.isPersistent());
-		itemRetarget.setEnabled(manager.isPersistent());
+		itemRenameOrRetarget.setEnabled(all_persistent);
+		itemRename.setEnabled(all_persistent);
+		itemRetarget.setEnabled(all_persistent);
 		
 			// only enable for single files - people prolly don't expect a multi-selection to result
 			// in multiple shares, rather they would expect one share with the files they selected
 			// which we don't support
 		
-		itemPersonalShare.setEnabled( all_complete && dmi_array.length == 1 );
+		itemPersonalShare.setEnabled( all_complete && all_files.size() == 1 );
 		
 		itemSkipped.setEnabled(!all_dnd_not_deleted);
 
@@ -346,8 +368,8 @@ public class FilesViewMenuUtil
 
 		itemOpen.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				for (int i = 0; i < data_sources.length; i++) {
-					DiskManagerFileInfo info = (DiskManagerFileInfo) data_sources[i];
+				for (int i = 0; i < all_files.size(); i++) {
+					DiskManagerFileInfo info = (DiskManagerFileInfo)all_files.get(i);
 					if (info != null && info.getAccessMode() == DiskManagerFileInfo.READ) {
 						Utils.launch(info);
 					}
@@ -359,7 +381,7 @@ public class FilesViewMenuUtil
 			public void handleEvent(Event event) {
 				final boolean rename_it = ((Boolean) event.widget.getData("rename")).booleanValue();
 				final boolean retarget_it = ((Boolean) event.widget.getData("retarget")).booleanValue();
-				rename(tv, manager, data_sources, rename_it, retarget_it);
+				rename(tv, all_files.toArray( new Object[all_files.size()]), rename_it, retarget_it);
 			}
 		};
 
@@ -373,9 +395,9 @@ public class FilesViewMenuUtil
 				
 				properties.put( ShareManager.PR_PERSONAL, "true" );
 				
-				for (int i = 0; i < dmi_array.length; i++) {
+				for (int i = 0; i < all_files.size(); i++) {
 
-					DiskManagerFileInfo file_info = dmi_array[i];
+					DiskManagerFileInfo file_info = all_files.get(i);
 				
 					File file = file_info.getFile( true );
 					
@@ -397,7 +419,7 @@ public class FilesViewMenuUtil
 				final Object priority = event.widget.getData("Priority");
 				Utils.getOffOfSWTThread(new AERunnable() {
 					public void runSupport() {
-						changePriority(priority, data_sources);
+						changePriority(priority, all_files);
 					}
 				});
 			}
@@ -415,18 +437,23 @@ public class FilesViewMenuUtil
 				MenuManager.MENU_FILE_CONTEXT);
 		if (menu_items.length > 0) {
 			// plugins take org.gudy.azureus2.plugins.disk.DiskManagerFileInfo
-			org.gudy.azureus2.plugins.disk.DiskManagerFileInfo[] fileInfos = new org.gudy.azureus2.plugins.disk.DiskManagerFileInfo[data_sources.length];
-			for (int i = 0; i < data_sources.length; i++) {
+			org.gudy.azureus2.plugins.disk.DiskManagerFileInfo[] fileInfos = new org.gudy.azureus2.plugins.disk.DiskManagerFileInfo[all_files.size()];
+			for (int i = 0; i < all_files.size(); i++) {
 				fileInfos[i] = (org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
-						data_sources[i], false);
+						all_files.get(i), false);
 			}
 			MenuBuildUtils.addPluginMenuItems(menu_items, menu, false, true,
 					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(fileInfos));
 		}
 	}
 
-	public static void rename(final TableView tv, final DownloadManager not_used,
-			final Object[] datasources, boolean rename_it, boolean retarget_it) {
+	public static void 
+	rename(
+		final TableView 	tv,
+		final Object[] 		datasources, 
+		boolean 			rename_it, 
+		boolean 			retarget_it) 
+	{
 		if (datasources.length == 0) {
 			return;
 		}
@@ -562,33 +589,31 @@ public class FilesViewMenuUtil
 		}
 	}
 
-	public static void changePriority(Object type, final Object[] datasources) {
+	public static void changePriority(Object type, final List<DiskManagerFileInfo> file_list ) {
 
-		if (datasources == null || datasources.length == 0) {
+		if (file_list == null || file_list.size() == 0) {
 			return;
 		}
 
 		if (type == PRIORITY_NUMERIC) {
-			changePriorityManual(datasources);
+			changePriorityManual(file_list);
 			return;
 		}else if (type == PRIORITY_NUMERIC_AUTO ) {
-			changePriorityAuto(datasources);
+			changePriorityAuto(file_list);
 			return;
 		}
 		
-		Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new HashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
+		Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new IdentityHashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
 
-		DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
-		for (int i = 0; i < datasources.length; i++) {
-			file_infos[i] = (DiskManagerFileInfo) datasources[i];
+		for ( DiskManagerFileInfo file: file_list ){
 
-			DownloadManager dm = file_infos[i].getDownloadManager();
+			DownloadManager dm = file.getDownloadManager();
 			ArrayList<DiskManagerFileInfo> listFileInfos = mapDMtoDMFI.get(dm);
 			if (listFileInfos == null) {
 				listFileInfos = new ArrayList<DiskManagerFileInfo>(1);
 				mapDMtoDMFI.put(dm, listFileInfos);
 			}
-			listFileInfos.add(file_infos[i]);
+			listFileInfos.add(file);
 		}
 		boolean skipped = (type == PRIORITY_SKIPPED || type == PRIORITY_DELETE);
 		boolean delete_action = (type == PRIORITY_DELETE);
@@ -618,7 +643,7 @@ public class FilesViewMenuUtil
 		}
 	}
 
-	private static void changePriorityManual(final Object[] datasources) {
+	private static void changePriorityManual(final List<DiskManagerFileInfo> file_list) {
 
 		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
 				"FilesView.dialog.priority.title",
@@ -647,21 +672,18 @@ public class FilesViewMenuUtil
 					return;
 				}
 				
-				Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new HashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
+				Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new IdentityHashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
 
-				DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
-				for (int i = 0; i < datasources.length; i++) {
-					file_infos[i] = (DiskManagerFileInfo) datasources[i];
-
-					DownloadManager dm = file_infos[i].getDownloadManager();
+				for ( DiskManagerFileInfo file: file_list ){
+					DownloadManager dm = file.getDownloadManager();
 					ArrayList<DiskManagerFileInfo> listFileInfos = mapDMtoDMFI.get(dm);
 					if (listFileInfos == null) {
 						listFileInfos = new ArrayList<DiskManagerFileInfo>(1);
 						mapDMtoDMFI.put(dm, listFileInfos);
 					}
-					listFileInfos.add(file_infos[i]);
+					listFileInfos.add(file);
 
-					file_infos[i].setPriority(priority);
+					file.setPriority(priority);
 				}
 
 				for (DownloadManager dm : mapDMtoDMFI.keySet()) {
@@ -680,25 +702,23 @@ public class FilesViewMenuUtil
 
 	private static void 
 	changePriorityAuto(
-		Object[] datasources) 
+		List<DiskManagerFileInfo> file_list) 
 	{
 		int priority = 0;
 		
-		Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new HashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
+		Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new IdentityHashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
 
-		DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
-		for (int i = 0; i < datasources.length; i++) {
-			file_infos[i] = (DiskManagerFileInfo) datasources[i];
+		for ( DiskManagerFileInfo file: file_list ){
+			DownloadManager dm = file.getDownloadManager();
 
-			DownloadManager dm = file_infos[i].getDownloadManager();
 			ArrayList<DiskManagerFileInfo> listFileInfos = mapDMtoDMFI.get(dm);
 			if (listFileInfos == null) {
 				listFileInfos = new ArrayList<DiskManagerFileInfo>(1);
 				mapDMtoDMFI.put(dm, listFileInfos);
 			}
-			listFileInfos.add(file_infos[i]);
+			listFileInfos.add(file);
 
-			file_infos[i].setPriority(priority++);
+			file.setPriority(priority++);
 		}
 
 		for ( Map.Entry<DownloadManager,ArrayList<DiskManagerFileInfo>> entry: mapDMtoDMFI.entrySet()){

@@ -18,10 +18,11 @@
 
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import java.util.Arrays;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -250,9 +251,9 @@ public class ColumnTorrentFileProgress
 				itemHigh.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
 						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_HIGH,
-								new Object[] {
-									dataSource
-								});
+								Arrays.asList(new DiskManagerFileInfo[] {
+										fileInfo
+								}));
 					}
 				});
 				itemHigh.setSelection(fileInfo.getPriority() != 0); 
@@ -262,9 +263,9 @@ public class ColumnTorrentFileProgress
 				itemNormal.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
 						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
-								new Object[] {
-									dataSource
-								});
+								Arrays.asList(new DiskManagerFileInfo[] {
+										fileInfo
+								}));
 					}
 				});
 				itemNormal.setSelection(fileInfo.getPriority() == 0);
@@ -278,9 +279,10 @@ public class ColumnTorrentFileProgress
 				itemStop.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
 						FilesViewMenuUtil.changePriority(
-								FilesViewMenuUtil.PRIORITY_SKIPPED, new Object[] {
-									dataSource
-								});
+								FilesViewMenuUtil.PRIORITY_SKIPPED, 
+								Arrays.asList(new DiskManagerFileInfo[] {
+										fileInfo
+								}));
 					}
 				});
 				itemStop.setEnabled(!canStart);
@@ -294,9 +296,9 @@ public class ColumnTorrentFileProgress
 						}
 						
 						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
-								new Object[] {
-									dataSource
-								});
+								Arrays.asList(new DiskManagerFileInfo[] {
+										fileInfo
+								}));
 					}
 				});
 				itemStart.setEnabled(canStart);
@@ -308,9 +310,9 @@ public class ColumnTorrentFileProgress
 				itemDelete.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
 						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_DELETE,
-								new Object[] {
-									dataSource
-								});
+								Arrays.asList(new DiskManagerFileInfo[] {
+										fileInfo
+								}));
 					}
 				});
 

@@ -1594,8 +1594,11 @@ public class MyTorrentsView
   			}
   		}
   		if (listFileInfos.size() > 0) {
-  			FilesViewMenuUtil.fillMenu(tv, menu, firstFileDM,
-  					listFileInfos.toArray(new DiskManagerFileInfo[0]));
+  			FilesViewMenuUtil.fillMenu(
+  					tv, 
+  					menu, 
+  					new DownloadManager[]{ firstFileDM },
+  					new DiskManagerFileInfo[][]{ listFileInfos.toArray(new DiskManagerFileInfo[0])});
   			return;
   		}
 		}
@@ -1930,7 +1933,7 @@ public class MyTorrentsView
 		}
 		
 		if (e.keyCode == SWT.F2 && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
-			FilesViewMenuUtil.rename(tv, null,tv.getSelectedDataSources(true), true, false);
+			FilesViewMenuUtil.rename(tv, tv.getSelectedDataSources(true), true, false);
 			e.doit = false;
 			return;
 		}

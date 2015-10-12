@@ -23,9 +23,12 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -696,6 +699,40 @@ ViewUtils
 			}
 		}
 		return( manager );
+	}
+	
+	public static java.util.List<DownloadManager>
+	getDownloadManagersFromDataSource(
+		Object dataSource )
+	{
+		Set<DownloadManager> managers = new HashSet<DownloadManager>();
+		if (dataSource instanceof Object[]) {
+			Object[] newDataSources = (Object[]) dataSource;
+			if (newDataSources.length == 1) {
+				Object temp = ((Object[]) dataSource)[0];
+				if (temp instanceof DownloadManager) {
+					managers.add((DownloadManager) temp);
+				} else if (temp instanceof DiskManagerFileInfo) {
+					managers.add(((DiskManagerFileInfo) temp).getDownloadManager());
+				}
+			}else{				
+				for ( Object o: newDataSources ){
+					if (o instanceof DownloadManager){
+						managers.add((DownloadManager)o);
+					}else if ( o instanceof DiskManagerFileInfo ){
+						DownloadManager temp = ((DiskManagerFileInfo)o).getDownloadManager();
+						managers.add((DownloadManager)temp);
+					}
+				}
+			}
+		} else {
+			if (dataSource instanceof DownloadManager) {
+				managers.add((DownloadManager) dataSource);
+			} else if (dataSource instanceof DiskManagerFileInfo) {
+				managers.add(((DiskManagerFileInfo) dataSource).getDownloadManager());
+			}
+		}
+		return( new ArrayList<DownloadManager>( managers ));
 	}
 	
 	public interface
