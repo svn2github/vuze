@@ -351,6 +351,8 @@ public class TopBarView
 						new ViewUpSpeedGraph());
 				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewQuickConfig",
 						new ViewQuickConfig());
+				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewQuickNetInfo",
+						new ViewQuickNetInfo());
 				/* derp
 				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "VivaldiView",
 						new VivaldiView(false));
