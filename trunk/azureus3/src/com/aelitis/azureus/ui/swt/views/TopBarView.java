@@ -259,7 +259,7 @@ public class TopBarView
 			SWTSkinObject soList = skin.getSkinObject("topbar-plugin-list");
 			if (soList != null) {
 				final Composite cList = (Composite) soList.getControl();
-				listPlugins = new org.eclipse.swt.widgets.List(cList, SWT.None);
+				listPlugins = new org.eclipse.swt.widgets.List(cList, SWT.V_SCROLL);
 				listPlugins.setLayoutData(Utils.getFilledFormData());
 				listPlugins.setBackground(cList.getBackground());
 				listPlugins.setForeground(cList.getForeground());
