@@ -59,6 +59,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.update.UpdateInstaller;
 
 
+
+
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.backup.BackupManager;
@@ -180,9 +182,64 @@ BackupManagerImpl
 	
 	private void
 	checkSchedule(
-		final BackupListener 	listener,
+		final BackupListener 	_listener,
 		boolean					force )
 	{
+		final BackupListener	listener =
+			new BackupListener()
+			{	
+				public boolean 
+				reportProgress(String str) 
+				{	
+					if ( _listener != null ){
+						
+						try{
+							
+							return( _listener.reportProgress(str));
+									
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+					
+					return( true );
+				}
+				
+				public void 
+				reportError(
+					Throwable error) 
+				{
+					if ( _listener != null ){
+						
+						try{
+							
+							_listener.reportError(error);
+									
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+				
+				public void
+				reportComplete() 
+				{
+					if ( _listener != null ){
+						
+						try{
+							
+							_listener.reportComplete();
+									
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			};
+	
 		boolean	enabled = COConfigurationManager.getBooleanParameter( "br.backup.auto.enable" );
 		
 		boolean	do_backup = false;
@@ -242,13 +299,8 @@ BackupManagerImpl
 			}
 			
 			if ( !enabled ){
-				
-				System.out.println( "Auto backup is disabled" );
-				
-				if ( listener != null ){
-					
-					listener.reportError( new Exception( "Auto-backup not enabled" ));
-				}
+								
+				listener.reportError( new Exception( "Auto-backup not enabled" ));
 				
 				return;
 			}
@@ -298,7 +350,7 @@ BackupManagerImpl
 				
 				time_to_next_backup = Math.max( time_to_next_backup, 60*1000 );
 				
-				System.out.println( "Scheduling next backup in " + TimeFormatter.format( time_to_next_backup/1000 ));
+				listener.reportProgress( "Scheduling next backup in " + TimeFormatter.format( time_to_next_backup/1000 ));
 				
 				backup_event = 
 					SimpleTimer.addEvent(
@@ -319,8 +371,8 @@ BackupManagerImpl
 		if ( do_backup ){
 			
 			String backup_dir = COConfigurationManager.getStringParameter( "br.backup.auto.dir", "" );
-						
-			System.out.println( "Auto backup starting: folder=" + backup_dir );
+				
+			listener.reportProgress( "Auto backup starting: folder=" + backup_dir );
 			
 			final File target_dir = new File( backup_dir );
 			
@@ -332,18 +384,7 @@ BackupManagerImpl
 					reportProgress(
 						String		str )
 					{
-						if ( listener != null ){
-							
-							try{
-								return( listener.reportProgress( str ));
-								
-							}catch( Throwable e ){
-								
-								Debug.out( e );
-							}
-						}
-						
-						return( true );
+						return( listener.reportProgress( str ));
 					}
 					
 					public void
@@ -355,12 +396,13 @@ BackupManagerImpl
 							COConfigurationManager.save();
 												
 							
-							if (COConfigurationManager.getBooleanParameter("br.backup.notify")) {
-  							Logger.log(
-  								new LogAlert(
-  									true,
-  									LogAlert.AT_INFORMATION,
-  									"Backup completed at " + new Date()));
+							if ( COConfigurationManager.getBooleanParameter("br.backup.notify")){
+								
+								Logger.log(
+										new LogAlert(
+										true,
+										LogAlert.AT_INFORMATION,
+										"Backup completed at " + new Date()));
 							}
 							
 							int	backup_retain = COConfigurationManager.getIntParameter( "br.backup.auto.retain" );
@@ -414,23 +456,13 @@ BackupManagerImpl
 								
 								File f = backup_dirs.get( i );
 								
-								System.out.println( "Deleting old backup: " + f );
+								listener.reportProgress( "Deleting old backup: " + f );
 								
 								FileUtil.recursiveDeleteNoCheck( f );
 							}
 						}finally{
-							
-							if ( listener != null ){
-								
-								try{
-									
-									listener.reportComplete();
-									
-								}catch( Throwable e ){
-									
-									Debug.out( e );
-								}
-							}
+																							
+							listener.reportComplete();
 							
 							checkSchedule();
 						}
@@ -441,7 +473,7 @@ BackupManagerImpl
 						Throwable 	error )
 					{
 						try{
-							System.out.println( "Auto backup failed" );
+							listener.reportProgress( "Auto backup failed" );
 																					
 							Logger.log(
 									new LogAlert(
@@ -450,30 +482,17 @@ BackupManagerImpl
 										"Backup failed at " + new Date(),
 										error ));
 						}finally{
-							
-							if ( listener != null ){
-								
-								try{
-									
-									listener.reportError( error );
-									
-								}catch( Throwable e ){
-									
-									Debug.out( e );
-								}
-							}
-
+																							
+							listener.reportError( error );
+	
 							checkSchedule();
 						}
 					}
 				});
 				
 		}else{
-			
-			if ( listener != null ){
-				
-				listener.reportError( new Exception( "Backup not scheduled to run now" ));
-			}
+							
+			listener.reportError( new Exception( "Backup not scheduled to run now" ));
 		}
 	}
 	
@@ -707,8 +726,39 @@ BackupManagerImpl
 							_listener.reportError( error );
 						}
 					};
+				
+				int	max_suffix = -1;
 					
-				for ( int i=0;i<100;i++){
+				String[] existing = parent_folder.list();
+					
+				if ( existing != null ){
+					
+					for ( String ex: existing ){
+						
+						if ( ex.startsWith( date_dir )){
+							
+							int pos = ex.indexOf( "." );
+							
+							if ( pos >= 0 ){
+								
+								try{
+									max_suffix = Math.max( max_suffix, Integer.parseInt( ex.substring( pos+1 )));
+									
+								}catch( Throwable e ){
+									
+								}
+							}else{
+								
+								if ( max_suffix == -1 ){
+									
+									max_suffix = 0;
+								}
+							}
+						}
+					}
+				}
+				
+				for ( int i=max_suffix+1;i<100;i++){
 					
 					String test_dir = date_dir;
 					
