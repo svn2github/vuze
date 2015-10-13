@@ -20,17 +20,26 @@
 
 package com.aelitis.azureus.ui.swt.skin;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Locale;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BubbleTextBox;
+
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
  * Native checkbox
@@ -116,6 +125,7 @@ public class SWTSkinObjectTextbox
 		}
 
 		setControl(cBubble == null ? textWidget : cBubble);
+		updateFont("");
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#switchSuffix(java.lang.String, int, boolean)
@@ -156,4 +166,96 @@ public class SWTSkinObjectTextbox
 		return textWidget;
 	}
 
+
+	private void updateFont(String suffix) {
+		String sPrefix = sConfigID + ".text";
+
+		Font existingFont = (Font) textWidget.getData("Font" + suffix);
+		if (existingFont != null && !existingFont.isDisposed()) {
+			textWidget.setFont(existingFont);
+		} else {
+			boolean bNewFont = false;
+			float fontSize = -1;
+			String sFontFace = null;
+			FontData[] tempFontData = textWidget.getFont().getFontData();
+
+			sFontFace = properties.getStringValue(sPrefix + ".font" + suffix);
+			if (sFontFace != null) {
+				tempFontData[0].setName(sFontFace);
+				bNewFont = true;
+			}
+
+			// Can't use properties.getPxValue for fonts, because
+			// font.height isn't necessarily in px.
+			String sSize = properties.getStringValue(sPrefix + ".size" + suffix);
+			if (sSize != null) {
+				FontData[] fd = textWidget.getFont().getFontData();
+
+				sSize = sSize.trim();
+				try {
+					char firstChar = sSize.charAt(0);
+					char lastChar = sSize.charAt(sSize.length() - 1);
+					if (firstChar == '+' || firstChar == '-') {
+						sSize = sSize.substring(1);
+					} else if (lastChar == '%') {
+						sSize = sSize.substring(0, sSize.length() - 1);
+					}
+
+					float dSize = NumberFormat.getInstance(Locale.US).parse(sSize).floatValue();
+
+					if (lastChar == '%') {
+						fontSize = FontUtils.getHeight(fd) * (dSize / 100);
+					} else if (firstChar == '+') {
+						//int curPX = FontUtils.getFontHeightInPX(tempFontData);
+						//fontSize = FontUtils.getFontHeightFromPX(textWidget.getDisplay(),
+						//		tempFontData, null, (int) (curPX + dSize));
+						fontSize = (int) (fd[0].height + dSize);
+					} else if (firstChar == '-') {
+						fontSize = (int) (fd[0].height - dSize);
+					} else {
+						if (sSize.endsWith("px")) {
+							//iFontSize = Utils.getFontHeightFromPX(textWidget.getFont(), null, (int) dSize);
+							fontSize = FontUtils.getFontHeightFromPX(textWidget.getDisplay(),
+									tempFontData, null, (int) dSize);
+							//iFontSize = Utils.pixelsToPoint(dSize, textWidget.getDisplay().getDPI().y);
+						} else if (sSize.endsWith("rem")) {
+							fontSize = FontUtils.getHeight(fd) * dSize;
+						} else {
+							fontSize = FontUtils.getFontHeightFromPX(textWidget.getDisplay(),
+									tempFontData, null, Utils.adjustPXForDPI((int) dSize));
+						}
+					}
+
+					bNewFont = true;
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			if (bNewFont) {
+				FontData[] fd = textWidget.getFont().getFontData();
+
+				if (fontSize > 0) {
+					FontUtils.setFontDataHeight(fd, fontSize);
+				}
+
+				if (sFontFace != null) {
+					fd[0].setName(sFontFace);
+				}
+
+				final Font textWidgetFont = new Font(textWidget.getDisplay(), fd);
+				textWidget.setFont(textWidgetFont);
+				textWidget.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+						textWidgetFont.dispose();
+					}
+				});
+
+				textWidget.setData("Font" + suffix, textWidgetFont);
+			}
+		}
+	}
 }
