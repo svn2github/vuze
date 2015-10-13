@@ -23,7 +23,6 @@ package org.gudy.azureus2.ui.swt.views;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,6 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -54,9 +52,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BubbleTextBox;
-import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
@@ -68,19 +65,15 @@ import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.AlertsItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck.TableViewFilterCheckEx;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
-import com.aelitis.azureus.ui.mdi.MdiEntry;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 
 
 /**
@@ -166,6 +159,8 @@ public class FilesView
 	private Button btnShowDND;
 	private Label lblHeader;
   
+	private boolean	disableTableWhenEmpty	= true;
+	
 
   /**
    * Initialize 
@@ -256,7 +251,9 @@ public class FilesView
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
-    hide_dnd_files = COConfigurationManager.getBooleanParameter("FilesView.hide.dnd");
+    
+		hide_dnd_files = COConfigurationManager.getBooleanParameter("FilesView.hide.dnd");
+    
 		btnShowDND.setSelection(hide_dnd_files);
 		
 		lblHeader = new Label(cTop, SWT.CENTER);
@@ -308,7 +305,9 @@ public class FilesView
 				}
 			}
 			if ( !diff ){
-				tv.setEnabled(managers.size() == 0 );
+				if ( disableTableWhenEmpty ){
+					tv.setEnabled(managers.size() == 0 );
+				}
 				return;
 			}
 		}
@@ -332,7 +331,10 @@ public class FilesView
 
 		if (!tv.isDisposed()) {
 			tv.removeAllTableRows();
-			tv.setEnabled(managers.size()>0);
+			if ( disableTableWhenEmpty ){
+				tv.setEnabled(managers.size()>0);
+			}
+			updateHeader();
 		}
 	}
 	
@@ -935,6 +937,16 @@ public class FilesView
 
 	private void updateHeader() {
 		if ( managers.size() == 0 ){
+			if (lblHeader != null) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (lblHeader == null || lblHeader.isDisposed()) {
+							return;
+						}
+						lblHeader.setText("");
+					}
+				});
+			}
 			return;
 		}
 		int total = 0;
@@ -1000,4 +1012,10 @@ public class FilesView
 		return( str );
 	}
 
+	public void
+	setDisableWhenEmpty(
+		boolean	b )
+	{
+		disableTableWhenEmpty	= b;
+	}
 }

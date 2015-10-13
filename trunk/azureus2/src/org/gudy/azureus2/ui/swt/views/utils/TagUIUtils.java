@@ -25,8 +25,10 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -38,11 +40,13 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.FilesView;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
@@ -56,7 +60,9 @@ import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.ui.*;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
 /**
  * @author TuxPaper
@@ -765,6 +771,18 @@ public class TagUIUtils
 				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "TagStatsView");
 			}
 		});
+		
+		if ( tag.getTaggableTypes() == Taggable.TT_DOWNLOAD ){
+
+			MenuItem itemShowFiles = new MenuItem(menu, SWT.PUSH);
+
+			Messages.setLanguageText(itemShowFiles, "menu.show.files");
+			itemShowFiles.addListener(SWT.Selection, new Listener() {
+				public void handleEvent( Event event ){
+					showFilesView( (TagDownload)tag );
+				}
+			});
+		}
 		
 		if ( needs_separator_next ){
 		
@@ -2825,5 +2843,88 @@ public class TagUIUtils
 		return( str );
 	}
 	
+	private static void
+	showFilesView(
+		final TagDownload		tag )
+	{
+		Shell shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.SHELL_TRIM);
 
+		FillLayout fillLayout = new FillLayout();
+		fillLayout.marginHeight = 2;
+		fillLayout.marginWidth = 2;
+		shell.setLayout(fillLayout);
+		
+		final FilesView view = new FilesView(false);
+		
+		view.setDisableWhenEmpty( false );
+		
+		Set<DownloadManager>	dms = tag.getTaggedDownloads();
+		
+		view.dataSourceChanged( dms.toArray());
+
+		view.initialize(shell);
+
+		view.viewActivated();
+		view.refresh();
+
+		final UIUpdatable viewUpdater = new UIUpdatable() {
+			public void updateUI() {
+				view.refresh();
+			}
+
+			public String getUpdateUIName() {
+				return view.getFullTitle();
+			}
+		};
+		
+		UIUpdaterSWT.getInstance().addUpdater(viewUpdater);
+
+		final TagListener tag_listener = 
+			new TagListener() {
+				
+				public void taggableSync(Tag tag) {
+				}
+				
+				public void 
+				taggableRemoved(
+					Tag t, Taggable tagged) 
+				{	
+					Set<DownloadManager>	dms = tag.getTaggedDownloads();
+					
+					view.dataSourceChanged( dms.toArray());
+				}
+				
+				public void 
+				taggableAdded(
+					Tag t, Taggable tagged) 
+				{
+					Set<DownloadManager>	dms = tag.getTaggedDownloads();
+					
+					view.dataSourceChanged( dms.toArray());
+				}
+			};
+			
+		tag.addTagListener( tag_listener, false );
+		
+		shell.addDisposeListener(
+			new DisposeListener() 
+			{
+				public void 
+				widgetDisposed(
+					DisposeEvent e) 
+				{
+					tag.removeTagListener( tag_listener );
+					
+					UIUpdaterSWT.getInstance().removeUpdater(viewUpdater);
+					view.delete();
+				}
+			});
+
+		shell.layout(true, true);
+
+
+		shell.setText( tag.getTagName(true));
+
+		shell.open();	
+	}
 }
