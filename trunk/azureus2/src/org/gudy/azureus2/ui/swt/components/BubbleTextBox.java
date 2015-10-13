@@ -70,14 +70,9 @@ public class BubbleTextBox
 		WIDTH_OVAL = Utils.adjustPXForDPI(7);
 		HEIGHT_OVAL = Utils.adjustPXForDPI(6);
 		INDENT_OVAL = Utils.adjustPXForDPI(6);
-		HEIGHT_ICON_MAX = Utils.adjustPXForDPI(13);
+		HEIGHT_ICON_MAX = Utils.adjustPXForDPI(12);
 		WIDTH_CLEAR = Utils.adjustPXForDPI(7);
 		WIDTH_PADDING = Utils.adjustPXForDPI(6);
-		
-		WIDTH_OVAL = Utils.adjustPXForDPI(7);
-		HEIGHT_OVAL = Utils.adjustPXForDPI(6);
-		INDENT_OVAL = Utils.adjustPXForDPI(6);
-		HEIGHT_ICON_MAX = Utils.adjustPXForDPI(13);
 
 		cBubble.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
