@@ -64,7 +64,7 @@ ClientIDManagerImpl
 		return( singleton );
 	}
 	
-	private ClientIDGenerator		generator_user_accessor;
+	private ClientIDGenerator		generator;
 	private volatile boolean		use_filter;
 	private boolean					filter_override;
 	private ThreadPool				thread_pool;
@@ -77,33 +77,8 @@ ClientIDManagerImpl
 		ClientIDGenerator	_generator,
 		boolean				_use_filter )
 	{
-			// I wanted to allow signed plugins the ability to do this but given that a malicious 
-			// plugin can use reflection to get access to fields (such as the URL field of a 
-			// URLClassLoader) I can't see a way to enforce this. That is, how can you verify
-			// that the class was loaded from a signed jar? you can get the jar that the URLClassLoader
-			// claims it was loaded from and verify that, but this jar location may have been changed
-			// by the plugin. you can look inside the signed jar and check that there's a class in 
-			// there with the right name, implementing ClientIDGenerator, but this doesn't prove
-			// that the implementation passed to this method is the same as once an offical signed
-			// plugin is released that uses this feature (with, say, a class called a.b.c.X as the
-			// generator), a malicious plugin can simply also implement a class a.b.c.X, ship 
-			// along with a copy of the official jar, hack the class-loader after loading to make
-			// the class-loader point to the official jar. The only things that can't be changed
-			// by reflection are static final fields which don't seem to help. We could modify
-			// our security manager to trap a checkAccess perm check but we don't have access to
-			// the thing being modified and this is used in various other places to work around bugs.
-			// So we only accept generators loaded by non-plugin loaders. Note that you can't
-			// change a class's class loader so this works.
-			// we might be able to fix things by using some native storage that can't be modified
-			// by a plugin, or by getting this code to load/instantiate the class, but you still
-			// have the problem that the plugin can directly modify the "generator" field. Another
-			// fix would be to enhance the security manager and provide methods to wrap the
-			// setAccessible operations so we can control which objects are accessible
-		
-		checkGenerator( _generator );
-		
-		generator_user_accessor	= _generator;
-		use_filter				= _use_filter;
+		generator	= _generator;
+		use_filter	= _use_filter;
 		
 			// we override the filter parameter here if we have a local bind IP set as
 			// this is the only simple solution to enforcing the local bind (Sun's
@@ -287,23 +262,7 @@ ClientIDManagerImpl
 	public ClientIDGenerator
 	getGenerator()
 	{
-		checkGenerator( generator_user_accessor );
-		
-		return( generator_user_accessor );
-	}
-	
-	protected void
-	checkGenerator(
-		ClientIDGenerator	gen )
-	{
-		ClassLoader	cl = gen.getClass().getClassLoader();
-		
-		if ( cl != null && cl != ClientIDManager.class.getClassLoader()){
-			
-			Debug.out( "Generator isn't trusted - " + gen );
-			
-			throw( new RuntimeException( "Generator isn't trusted" ));
-		}
+		return( generator );
 	}
 	
 	public byte[]
@@ -313,7 +272,7 @@ ClientIDManagerImpl
 	
 		throws ClientIDException
 	{
-		return( getGenerator().generatePeerID( new TorrentImpl( torrent ), for_tracker ));
+		return( generator.generatePeerID( new TorrentImpl( torrent ), for_tracker ));
 	}
 	
 	public void
@@ -418,7 +377,7 @@ ClientIDManagerImpl
 			}
 		}else{
 			
-			getGenerator().generateHTTPProperties( properties );
+			generator.generateHTTPProperties( properties );
 		}
 	}
 	
@@ -556,11 +515,12 @@ ClientIDManagerImpl
 					
 						// bodge for ip override. we still need to take account of the correct
 						// user-agent
+					
 					lines_out = lines_in;
 					
 					Properties p = new Properties();
 					
-					getGenerator().generateHTTPProperties( p );
+					generator.generateHTTPProperties( p );
 						
 					String	agent = p.getProperty( ClientIDGenerator.PR_USER_AGENT );
 					
@@ -574,9 +534,12 @@ ClientIDManagerImpl
 							}
 						}
 					}
+					
+					lines_out = generator.filterHTTP( lines_out.clone());
+					
 				}else{
 					
-					lines_out = getGenerator().filterHTTP( lines_in );
+					lines_out = generator.filterHTTP( lines_in );
 				}
 				
 				String	header_out = "";
