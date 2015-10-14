@@ -410,6 +410,10 @@ DownloadManager
 	public DownloadStub[]
 	getDownloadStubs();
 	
+	public DownloadStub
+	lookupDownloadStub(
+		byte[]		hash );
+	
 	public int
 	getDownloadStubCount();
 	

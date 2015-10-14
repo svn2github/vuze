@@ -1061,7 +1061,8 @@ DownloadManagerImpl
 		}
 	}
 	
-	private List<DownloadStubImpl>	download_stubs = new ArrayList<DownloadStubImpl>();
+	private List<DownloadStubImpl>				download_stubs 		= new ArrayList<DownloadStubImpl>();
+	private ByteArrayHashMap<DownloadStubImpl>	download_stub_map 	= new ByteArrayHashMap<DownloadStubImpl>();
 	
 	private CopyOnWriteList<DownloadStubListener>	download_stub_listeners = new CopyOnWriteList<DownloadStubListener>();
 	
@@ -1096,7 +1097,11 @@ DownloadManagerImpl
 				
 				for ( Map m: list ){
 					
-					download_stubs.add( new DownloadStubImpl( this, m ));
+					DownloadStubImpl stub = new DownloadStubImpl( this, m );
+					
+					download_stubs.add( stub );
+					
+					download_stub_map.put( stub.getTorrentHash(), stub );
 				}
 			}
 		}
@@ -1252,6 +1257,8 @@ DownloadManagerImpl
 				
 				download_stubs.add( stub );
 				
+				download_stub_map.put( stub.getTorrentHash(), stub );
+				
 				writeStubConfig();
 			}
 			
@@ -1320,6 +1327,8 @@ DownloadManagerImpl
 				synchronized( download_stubs ){
 					
 					download_stubs.remove( stub );
+					
+					download_stub_map.remove( stub.getTorrentHash());
 					
 					writeStubConfig();
 				}
@@ -1390,6 +1399,8 @@ DownloadManagerImpl
 				
 				download_stubs.remove( stub );
 				
+				download_stub_map.remove( stub.getTorrentHash());
+				
 				writeStubConfig();
 			}
 			
@@ -1453,6 +1464,16 @@ DownloadManagerImpl
 		synchronized( download_stubs ){
 			
 			return( download_stubs.size());
+		}
+	}
+	
+	public DownloadStub 
+	lookupDownloadStub(
+		byte[] hash) 
+	{
+		synchronized( download_stubs ){
+			
+			return( download_stub_map.get( hash ));
 		}
 	}
 	

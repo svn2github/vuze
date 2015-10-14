@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIInstance;
@@ -60,6 +61,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -1080,9 +1082,14 @@ public class UIFunctionsImpl
 			final TorrentOpenOptions torrentOptions) {
 
 		if (AzureusCoreFactory.isCoreRunning()) {
-			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			AzureusCore core = AzureusCoreFactory.getSingleton();
+			
+			GlobalManager gm = core.getGlobalManager();
 			// Check if torrent already exists in gm, and add if not
-			DownloadManager existingDownload = gm.getDownloadManager(torrentOptions.getTorrent());
+			
+			TOTorrent torrent = torrentOptions.getTorrent();
+			
+			DownloadManager existingDownload = gm.getDownloadManager( torrent );
 
 			if (existingDownload != null) {
 
@@ -1168,6 +1175,53 @@ public class UIFunctionsImpl
 					torrentFile.delete();
 				}
 				return true;
+			}else{
+				try{
+					final DownloadStub archived = core.getPluginManager().getDefaultPluginInterface().getDownloadManager().lookupDownloadStub( torrent.getHash());
+					
+					if ( archived != null ){
+						
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								
+								Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+
+								String existingName = archived.getName();
+						
+								if (	Display.getDefault().getActiveShell() == null || 
+										!mainShell.isVisible() || 
+										mainShell.getMinimized()){
+									
+									new MessageSlideShell(
+											Display.getCurrent(), 
+											SWT.ICON_INFORMATION,
+											"OpenTorrentWindow.mb.inArchive", null, 
+											new String[] {
+												existingName
+											}, 
+											new Object[0],
+											-1 );
+									
+								}else{
+									
+									MessageBoxShell mb = 
+											new MessageBoxShell(
+												SWT.OK,
+												"OpenTorrentWindow.mb.inArchive", 
+												new String[] {
+													existingName			
+												});
+									
+									mb.open(null);
+								}
+							}
+						});
+						
+						return( true );
+					}
+				}catch( Throwable e ){
+					Debug.out( e );
+				}
 			}
 		}
 		

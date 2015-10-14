@@ -34,7 +34,6 @@ import java.util.Map;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.download.savelocation.*;
 import org.gudy.azureus2.plugins.torrent.*;
-
 import org.gudy.azureus2.pluginsimpl.remote.*;
 import org.gudy.azureus2.pluginsimpl.remote.torrent.*;
 
@@ -506,6 +505,15 @@ RPDownloadManager
 		notSupported();
 		
 		return 0;
+	}
+	
+	public DownloadStub 
+	lookupDownloadStub(
+		byte[] hash) 
+	{
+		notSupported();
+		
+		return( null );
 	}
 	
 	public void addDownloadStubListener( DownloadStubListener l, boolean inform_of_current ){
