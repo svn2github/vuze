@@ -57,6 +57,7 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -102,6 +103,8 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -177,6 +180,7 @@ BuddyPluginViewBetaChat
 	private Text 					nickname;
 	
 	private Text 					input_area;
+	private Button					rss_button;
 	
 	private DropTarget[]			drop_targets;
 	
@@ -2086,11 +2090,25 @@ BuddyPluginViewBetaChat
 	    sash.addListener(SWT.Resize, sash_listener );
 	    */
 	    
-			// Text
-		
-		input_area = new Text( parent, SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
+	    	// bottom area
+	    
+	    Composite bottom_area = new Composite( parent, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		bottom_area.setLayout(layout);
+
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 2;
+		bottom_area.setLayoutData( grid_data );
+
+			// Text
+		
+	    
+		input_area = new Text( bottom_area, SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 1;
 		grid_data.heightHint = 30;
 		grid_data.horizontalIndent = 4;
 		Utils.setLayoutData(input_area, grid_data);
@@ -2212,6 +2230,48 @@ BuddyPluginViewBetaChat
 					KeyEvent e ) 
 				{
 				}
+			});
+		
+		Composite button_area = new Composite( bottom_area, SWT.NULL );
+		
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.marginRight = 4;
+		button_area.setLayout(layout);
+
+		rss_button = new Button( button_area, SWT.PUSH );
+		Image rss_image = ImageLoader.getInstance().getImage("image.sidebar.subscriptions");
+		rss_button.setImage(rss_image);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.widthHint = rss_image.getBounds().width;
+		grid_data.heightHint = rss_image.getBounds().height;
+		rss_button.setLayoutData(grid_data);
+		//rss_button.setEnabled(false);
+		
+		rss_button.setToolTipText( MessageText.getString( "azbuddy.dchat.rss.subscribe.info"));
+		
+		rss_button.addSelectionListener(
+			new SelectionAdapter(){
+				
+				public void 
+				widgetSelected(
+					SelectionEvent ev )
+				{
+					try{
+						String url = "azplug:?id=azbuddy&arg=" + UrlUtils.encode( chat.getURL() + "&format=rss");
+						
+						SubscriptionManager sm = PluginInitializer.getDefaultInterface().getUtilities().getSubscriptionManager();
+	
+						sm.requestSubscription( new URL( url ));
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+
 			});
 		
 		ftux_ok = beta.getFTUXAccepted();
