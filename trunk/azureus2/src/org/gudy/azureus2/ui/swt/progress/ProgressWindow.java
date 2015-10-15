@@ -116,8 +116,7 @@ ProgressWindow
 											if ( !task_complete ){
 										
 												Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createMainShell(
-														( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL ));
-
+														( SWT.DIALOG_TRIM ));	// parg: removed modal - people complain about this locking the UI, let it be on their own heads if they go and screw with things then
 
 												showDialog( shell );
 											}
@@ -261,6 +260,7 @@ ProgressWindow
 
 		Utils.setShellIcon(shell);
 
+		/*
 		shell.addListener( 
 				SWT.Close, 
 				new Listener()
@@ -272,6 +272,7 @@ ProgressWindow
 						event.doit = false;
 					}
 				});
+		*/
 		
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 2;
