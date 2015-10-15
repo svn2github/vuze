@@ -29,6 +29,8 @@ import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.Constants;
 
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
+
 /**
  * @author parg
  *
@@ -37,6 +39,8 @@ import org.gudy.azureus2.core3.util.Constants;
 public class 
 ClientIDPlugin
 {
+	private static final String CLIENT_NAME = Constants.AZUREUS_PROTOCOL_NAME + " " + Constants.AZUREUS_VERSION;
+	
 	private static boolean		send_os;
 	
 	public static void initialize() {
@@ -71,6 +75,24 @@ ClientIDPlugin
 					String[]	lines_in )
 				{
 					return( lines_in );
+				}
+				
+				public Object 
+				getProperty(
+					String property_name )
+				{
+					if ( property_name == ClientIDGenerator.PR_CLIENT_NAME ){
+					
+						return( CLIENT_NAME );
+						
+					}else if ( property_name == ClientIDGenerator.PR_MESSAGING_MODE ){
+						
+						return( BTHandshake.AZ_RESERVED_MODE );
+						
+					}else{
+						
+						return( null );
+					}
 				}
 			},
 			false );

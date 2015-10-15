@@ -48,7 +48,7 @@ public class BTMessageFactory {
       MessageManager.getSingleton().registerMessageType( new BTBitfield( null, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTCancel( -1, -1, -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTChoke( MESSAGE_VERSION_SUPPORTS_PADDING ));
-      MessageManager.getSingleton().registerMessageType( new BTHandshake( new byte[0], new byte[0], true, MESSAGE_VERSION_INITIAL ));
+      MessageManager.getSingleton().registerMessageType( new BTHandshake( new byte[0], new byte[0], BTHandshake.AZ_RESERVED_MODE, MESSAGE_VERSION_INITIAL ));
       MessageManager.getSingleton().registerMessageType( new BTHave( -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTInterested( MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTKeepAlive(MESSAGE_VERSION_SUPPORTS_PADDING ));

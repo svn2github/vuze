@@ -49,8 +49,8 @@ PEPeerManagerAdapter
 	public int
 	getMaxSeedConnections();
 	
-	public boolean
-	isExtendedMessagingEnabled();
+	public int
+	getExtendedMessagingMode();
 	
 	public boolean
 	isPeerExchangeEnabled();

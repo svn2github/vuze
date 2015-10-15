@@ -60,12 +60,15 @@ import org.gudy.azureus2.core3.torrent.TOTorrentListener;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
+import org.gudy.azureus2.plugins.clientid.ClientIDManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -101,6 +104,8 @@ DownloadManagerImpl
 	private final static long SCRAPE_INITDELAY_STOPPED_TORRENTS = 1000 * 60 * 3;
 
 	private static int	upload_when_busy_min_secs;
+	
+	private static final ClientIDManagerImpl client_id_manager = ClientIDManagerImpl.getSingleton();
 	
 	static{
 		COConfigurationManager.addAndFireParameterListener(
@@ -519,8 +524,6 @@ DownloadManagerImpl
 	private long	creation_time	= SystemTime.getCurrentTime();
   
 	private int iSeedingRank;
-
-	private boolean az_messaging_enabled = true;
    
 	private boolean	dl_identity_obtained;
 	private byte[]	dl_identity;
@@ -3651,13 +3654,11 @@ DownloadManagerImpl
   }
   
   
-  public boolean isExtendedMessagingEnabled() {  return az_messaging_enabled;  }
-  
-  public void 
-  setAZMessagingEnabled( 
-	boolean enable ) 
-  {
-    az_messaging_enabled = enable;
+  public int 
+  getExtendedMessagingMode() 
+  {  
+	  return((Integer)client_id_manager.getProperty( ClientIDGenerator.PR_MESSAGING_MODE ));
+
   }
   
   public void

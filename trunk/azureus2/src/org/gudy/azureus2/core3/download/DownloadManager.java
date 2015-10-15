@@ -587,19 +587,12 @@ DownloadManager
     public boolean
     isTrackerError();
     
-  /**
-   * Is extended messaging enabled for this download (meaning AzMP and LTEP support).
-   * @return true if enabled, false if disabled
-   */
-    public boolean isExtendedMessagingEnabled();
+	    /**
+	     * 
+	     * @return messaging mode = az, lt or bt
+	     */
+    public int getExtendedMessagingMode();
 
-  /**
-   * Enable or disable extended messaging messaging for this download.
-   * @param enable true to enabled, false to disabled
-   * 
-   * @deprecated Want to get rid of this if possible.
-   */
-    public void setAZMessagingEnabled( boolean enable );
 
         /**
          * Indicates that the download manager is no longer needed

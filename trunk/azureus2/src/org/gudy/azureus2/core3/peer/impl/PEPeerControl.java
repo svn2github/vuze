@@ -68,8 +68,8 @@ PEPeerControl
 	public boolean
 	isPrivateTorrent();
 	
-	public boolean
-	isExtendedMessagingEnabled();
+	public int
+	getExtendedMessagingMode();
   
 	public boolean
 	isPeerExchangeEnabled();

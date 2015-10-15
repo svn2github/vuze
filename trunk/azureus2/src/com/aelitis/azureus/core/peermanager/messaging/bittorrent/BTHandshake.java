@@ -35,6 +35,8 @@ public class BTHandshake implements BTMessage, RawMessage {
   // No reserve bits set.
   private static final byte[] BT_RESERVED = new byte[]{0, 0, 0, 0, 0, 0, 0, 0 }; 
 
+  private static final byte[] LT_RESERVED = new byte[]{0, 0, 0, 0, 0, (byte)16, 0, 0 }; 
+
   // Set first bit of first byte to indicate advanced AZ messaging support. (128)
   // Set fourth bit of fifth byte to indicate LT messaging support. (16)
   
@@ -43,13 +45,19 @@ public class BTHandshake implements BTMessage, RawMessage {
   // Set eighth bit (1) only to prefer LTEP over AZMP.
   private static final byte[] AZ_RESERVED = new byte[]{(byte)128, 0, 0, 0, 0, (byte)19, 0, 0 };
   
+  public static final int BT_RESERVED_MODE	= 0;
+  public static final int LT_RESERVED_MODE	= 1;
+  public static final int AZ_RESERVED_MODE	= 2;
+  
+  private static final byte[][] RESERVED = { BT_RESERVED, LT_RESERVED, AZ_RESERVED };
+  
   public static void setMainlineDHTEnabled(boolean enabled) {
 	  if (enabled) {
-		  //BT_RESERVED[7] = (byte)(BT_RESERVED[7] | 0x01);
+		  LT_RESERVED[7] = (byte)(LT_RESERVED[7] | 0x01);
 		  AZ_RESERVED[7] = (byte)(AZ_RESERVED[7] | 0x01);
 	  }
 	  else {
-		  //BT_RESERVED[7] = (byte)(BT_RESERVED[7] & 0xFE);
+		  LT_RESERVED[7] = (byte)(LT_RESERVED[7] & 0xFE);		  
 		  AZ_RESERVED[7] = (byte)(AZ_RESERVED[7] & 0xFE);		  
 	  }
   }
@@ -58,11 +66,11 @@ public class BTHandshake implements BTMessage, RawMessage {
   
   public static void setFastExtensionEnabled(boolean enabled) {
 	  if (enabled) {
-		  //BT_RESERVED[7] = (byte)(BT_RESERVED[7] | 0x04);
+		  LT_RESERVED[7] = (byte)(LT_RESERVED[7] | 0x04);
 		  AZ_RESERVED[7] = (byte)(AZ_RESERVED[7] | 0x04);
 	  }
 	  else {
-		  //BT_RESERVED[7] = (byte)(BT_RESERVED[7] & 0xF3);
+		  LT_RESERVED[7] = (byte)(LT_RESERVED[7] & 0xF3);		  
 		  AZ_RESERVED[7] = (byte)(AZ_RESERVED[7] & 0xF3);		  
 	  }
   }
@@ -91,8 +99,8 @@ public class BTHandshake implements BTMessage, RawMessage {
    * @param peer_id
    * @param set_reserve_bit
    */
-  public BTHandshake( byte[] data_hash, byte[] peer_id, boolean set_reserve_bit, byte version ) {
-    this( duplicate(set_reserve_bit ? AZ_RESERVED : BT_RESERVED), data_hash, peer_id, version );
+  public BTHandshake( byte[] data_hash, byte[] peer_id, int reserved_mode, byte version ) {
+    this( duplicate(RESERVED[reserved_mode]), data_hash, peer_id, version );
   }
   
   

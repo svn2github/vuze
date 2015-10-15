@@ -476,7 +476,7 @@ HTTPNetworkConnection
 			
 			sent_handshake	= true;
 			
-			decoder.addMessage( new BTHandshake( control.getHash(), peer_id, false, (byte)1 ));
+			decoder.addMessage( new BTHandshake( control.getHash(), peer_id, BTHandshake.BT_RESERVED_MODE, (byte)1 ));
 			
 			byte[]	bits = new byte[(control.getPieces().length +7) /8];
 			

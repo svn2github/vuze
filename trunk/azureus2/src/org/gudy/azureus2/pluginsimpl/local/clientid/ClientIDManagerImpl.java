@@ -275,6 +275,13 @@ ClientIDManagerImpl
 		return( generator.generatePeerID( new TorrentImpl( torrent ), for_tracker ));
 	}
 	
+	public Object
+	getProperty(
+		String	property_name )
+	{
+		return( generator.getProperty(property_name));
+	}
+	
 	public void
 	generateHTTPProperties(
 		Properties	properties )

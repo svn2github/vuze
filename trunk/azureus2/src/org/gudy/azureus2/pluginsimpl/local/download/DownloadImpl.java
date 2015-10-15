@@ -70,6 +70,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -2179,7 +2180,7 @@ DownloadImpl
   }
   
   
-  public boolean isMessagingEnabled() {  return download_manager.isExtendedMessagingEnabled();  }
+  public boolean isMessagingEnabled() {  return download_manager.getExtendedMessagingMode() == BTHandshake.AZ_RESERVED_MODE;  }
 
   public void setMessagingEnabled( boolean enabled ) {
 	  throw new RuntimeException("setMessagingEnabled is in the process of being removed - if you are seeing this error, let the Azureus developers know that you need this method to stay!");

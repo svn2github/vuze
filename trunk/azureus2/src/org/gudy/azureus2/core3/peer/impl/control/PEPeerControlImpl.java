@@ -4187,10 +4187,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return( is_private_torrent );
 	}
 	
-	public boolean
-	isExtendedMessagingEnabled()
+	public int
+	getExtendedMessagingMode()
 	{
-		return( adapter.isExtendedMessagingEnabled());
+		return( adapter.getExtendedMessagingMode());
 	}
 
 	public boolean

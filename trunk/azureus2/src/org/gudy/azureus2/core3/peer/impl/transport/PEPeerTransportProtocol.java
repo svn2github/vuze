@@ -41,9 +41,11 @@ import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
@@ -664,7 +666,7 @@ implements PEPeerTransport
 			
 			BTHandshake handshake = new BTHandshake( manager.getHash(),
 					manager.getPeerId(),
-                    manager.isExtendedMessagingEnabled(), other_peer_handshake_version );
+                    manager.getExtendedMessagingMode(), other_peer_handshake_version );
 			
 			if (Logger.isEnabled())
 			    Logger.log(new LogEvent(this, LOGID,
@@ -1104,37 +1106,19 @@ implements PEPeerTransport
 		if ( !handshake_sent ){
 			BTHandshake handshake =	new BTHandshake( manager.getHash(),
 					manager.getPeerId(),
-                    manager.isExtendedMessagingEnabled(), other_peer_handshake_version );
+                    manager.getExtendedMessagingMode(), other_peer_handshake_version );
 			
 			if (Logger.isEnabled())
 			    Logger.log(new LogEvent(this, LOGID,
 			    		"Sending handshake with reserved bytes: " +
 			    			ByteFormatter.nicePrint(handshake.getReserved(), false)));
-
-			/**
-			 * AMC's hopefully temporary debug code - some Az clients out there appear to be be
-			 * AZMP neutered and communicating using LTEP instead. Let's bug the user if
-			 * this happens so that I know about it.
-			 */
-			if (Constants.isCVSVersion()) {
-				byte[] reserved = handshake.getReserved();
-				boolean supports_azmp = (reserved[0] & 128) == 128;
-				boolean supports_ltep = (reserved[5] & 16) == 16;
-				if (supports_ltep && !supports_azmp) {
-					Logger.log(new LogAlert(this, LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-						"AZMP support has failed in Azureus, please report this in the " + 
-						"<a href=\"http://forum.vuze.com/forum.jspa?forumID=124\">bug report forum</a>.\n" +
-						"Debug data: " + ByteFormatter.nicePrint(reserved)
-					));
-				}
-			}
 			
 			connection.getOutgoingMessageQueue().addMessage(handshake, false);
 		}
 	}
 
 	private void sendLTHandshake() {
-		String client_name = Constants.AZUREUS_PROTOCOL_NAME + " " + Constants.AZUREUS_VERSION;
+		String client_name = (String)ClientIDManagerImpl.getSingleton().getProperty( ClientIDGenerator.PR_CLIENT_NAME );
 		int localTcpPort = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
 		String tcpPortOverride = COConfigurationManager.getStringParameter("TCP.Listen.Port.Override");
 		try
@@ -2677,43 +2661,53 @@ implements PEPeerTransport
 	}
 	
 	private int decideExtensionProtocol(BTHandshake handshake) {
-		boolean supports_azmp = (handshake.getReserved()[0] & 128) == 128;
-		boolean supports_ltep = (handshake.getReserved()[5] & 16) == 16;
 		
-		if (!supports_azmp) {
-			if (supports_ltep) {
-				if (!manager.isExtendedMessagingEnabled()) {
-					if (Logger.isEnabled()) {
-						Logger.log(new LogEvent(this, LOGID, "Ignoring peer's LT extension protocol support,"
-								+ " as disabled for this download."));
-					}
-					return MESSAGING_BT_ONLY; // LTEP is supported, but disabled.
-				}
-				return MESSAGING_LTEP; // LTEP is supported.
-			}
-			return MESSAGING_BT_ONLY; // LTEP isn't supported.
+		int messaging_mode = manager.getExtendedMessagingMode();
+		
+			// regardless of what they support, if we're just plain bt then so be it
+		
+		if ( messaging_mode == BTHandshake.BT_RESERVED_MODE ){
+			
+			return( MESSAGING_BT_ONLY );
 		}
 		
-		if (!supports_ltep) {
+		boolean supports_ltep = (handshake.getReserved()[5] & 16) == 16;
+
+		if ( messaging_mode == BTHandshake.LT_RESERVED_MODE ){
 			
-			// Check if it is AZMP enabled.
-			if(!manager.isExtendedMessagingEnabled()) {
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(this, LOGID, "Ignoring peer's extended AZ messaging support,"
-							+ " as disabled for this download."));
-				return MESSAGING_BT_ONLY;
+			return( supports_ltep?MESSAGING_LTEP:MESSAGING_BT_ONLY );
+		}
+		
+		boolean supports_azmp = (handshake.getReserved()[0] & 128) == 128;
+		
+		if ( !supports_azmp ){
+			
+			if ( supports_ltep ){
+				
+				return( MESSAGING_LTEP ); // LTEP is supported.
 			}
 			
-			// Check if the client is misbehaving...
-			else if( client.indexOf( "Plus!" ) != -1) {
+			return( MESSAGING_BT_ONLY ); // LTEP isn't supported.
+		}
+		
+		if ( !supports_ltep ){
+							
+				// 	Check if the client is misbehaving...
+				
+			if ( client.indexOf( "Plus!" ) != -1 ){
+				
+				
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(this, LOGID, "Handshake mistakingly indicates"
 							+ " extended AZ messaging support...ignoring."));
+				
 				return MESSAGING_BT_ONLY;
 			}
 			
-			return MESSAGING_AZMP;
+			return( MESSAGING_AZMP );
 		}
+		
+	
 		
 		boolean enp_major_bit = (handshake.getReserved()[5] & 2) == 2;
 		boolean enp_minor_bit = (handshake.getReserved()[5] & 1) == 1;
@@ -2747,7 +2741,7 @@ implements PEPeerTransport
 			Logger.log(new LogEvent(this, LOGID, msg));
 		}
 		
-		return (use_azmp) ? MESSAGING_AZMP : MESSAGING_LTEP;
+		return( use_azmp?MESSAGING_AZMP:MESSAGING_LTEP );
 		
 	}
   

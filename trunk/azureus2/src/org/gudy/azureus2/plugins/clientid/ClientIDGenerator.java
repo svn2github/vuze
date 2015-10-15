@@ -37,6 +37,9 @@ ClientIDGenerator
 	public static final String PR_USER_AGENT	= "User-Agent";		// out
 	public static final String PR_SNI_HACK		= "SNI-Hack";		// in, Boolean
 	
+	public static final String PR_CLIENT_NAME		= "Client-Name";		// out, String
+	public static final String PR_MESSAGING_MODE 	= "Messaging-Mode";		// out, Integer
+	
 		/**
 		 * generate a peer id - must be exactly 20 bytes
 		 * @param torrent
@@ -79,4 +82,8 @@ ClientIDGenerator
 		String[]	lines_in )
 	
 		throws ClientIDException;
+	
+	public Object
+	getProperty(
+		String		property_name );
 }

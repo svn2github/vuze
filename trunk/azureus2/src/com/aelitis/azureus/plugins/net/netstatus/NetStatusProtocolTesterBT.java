@@ -789,7 +789,7 @@ NetStatusProtocolTesterBT
 				handshake_sent = true;
 				
 				connection.getOutgoingMessageQueue().addMessage(
-					new BTHandshake( info_hash, peer_id, false, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
+					new BTHandshake( info_hash, peer_id, BTHandshake.BT_RESERVED_MODE, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
 					false );
 			}
 		}

@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 
 
@@ -131,10 +132,10 @@ LWSPeerManagerAdapter
 		return( 0 );
 	}
 	
-	public boolean
-	isExtendedMessagingEnabled()
+	public int
+	getExtendedMessagingMode()
 	{
-		return( true );
+		return( BTHandshake.AZ_RESERVED_MODE );
 	}
 	
 	public boolean
