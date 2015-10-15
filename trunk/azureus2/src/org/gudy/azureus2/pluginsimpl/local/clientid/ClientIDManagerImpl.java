@@ -350,7 +350,7 @@ ClientIDManagerImpl
 				if ( hash == null ){
 					hash_str = "";
 				}else{
-					hash_str = URLEncoder.encode(new String( hash, "ISO-8859-1" ), "ISO-8859-1" );
+					hash_str = URLEncoder.encode(new String( hash, "ISO-8859-1" ), "ISO-8859-1" ).replaceAll("\\+", "%20");;
 				}
 				
 				int host_pos = url_str.indexOf( target_host );
