@@ -267,23 +267,25 @@ ClientIDManagerImpl
 	
 	public byte[]
 	generatePeerID(
-		TOTorrent	torrent,
+		byte[]		hash,
 		boolean		for_tracker )
 	
 		throws ClientIDException
 	{
-		return( generator.generatePeerID( new TorrentImpl( torrent ), for_tracker ));
+		return( generator.generatePeerID( hash, for_tracker ));
 	}
 	
 	public Object
 	getProperty(
-		String	property_name )
+		byte[]		hash,
+		String		property_name )
 	{
-		return( generator.getProperty(property_name));
+		return( generator.getProperty( hash, property_name));
 	}
 	
 	public void
 	generateHTTPProperties(
+		byte[]		hash,
 		Properties	properties )
 	
 		throws ClientIDException
@@ -327,23 +329,10 @@ ClientIDManagerImpl
 		}
 		
 		if ( filter_it ){
-		
-				// to support SSL here we would need to substitute the https url with an https one
-				// and then drive the SSL in the filter appropriately
-			
+					
 			URL		url 	= (URL)properties.get( ClientIDGenerator.PR_URL );
 			
 			boolean	is_ssl = url.getProtocol().toLowerCase().equals( "https" );
-			
-			/*
-			if ( !url.getProtocol().toLowerCase().equals( "http" )){
-				
-				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-						"ClientIDManager only supports filtering of http, not https"));
-				
-				return;
-			}
-			*/
 			
 			try{
 				String	url_str = url.toString();
@@ -354,6 +343,14 @@ ClientIDManagerImpl
 				if ( target_port == -1 ){
 					
 					target_port = url.getDefaultPort();
+				}
+				
+				String hash_str;
+				
+				if ( hash == null ){
+					hash_str = "";
+				}else{
+					hash_str = URLEncoder.encode(new String( hash, "ISO-8859-1" ), "ISO-8859-1" );
 				}
 				
 				int host_pos = url_str.indexOf( target_host );
@@ -374,7 +371,7 @@ ClientIDManagerImpl
 				
 				int q_pos = rem.indexOf( '?' );
 				
-				new_url += rem.substring(0,q_pos+1) + "cid=" + (is_ssl?".":"") + target_host + ":" + target_port + "&" + rem.substring(q_pos+1);
+				new_url += rem.substring(0,q_pos+1) + "cid=" + (is_ssl?".":"") + target_host + ":" + target_port + "+" + hash_str + "&" + rem.substring(q_pos+1);
 				
 				properties.put( ClientIDGenerator.PR_URL, new URL( new_url ));
 				
@@ -384,7 +381,7 @@ ClientIDManagerImpl
 			}
 		}else{
 			
-			generator.generateHTTPProperties( properties );
+			generator.generateHTTPProperties( hash, properties );
 		}
 	}
 	
@@ -484,7 +481,12 @@ ClientIDManagerImpl
 				int	p3 = cid.lastIndexOf( ":" );
 				
 				String	target_host	= cid.substring( 0, p3 );
-				int		target_port	= Integer.parseInt( cid.substring(p3+1));
+				
+				String[] port_hash =  cid.substring(p3+1).split( "\\+" );
+						
+				int		target_port	= Integer.parseInt(port_hash[0]);
+				
+				byte[] hash = URLDecoder.decode( port_hash[1], "ISO-8859-1" ).getBytes( "ISO-8859-1" );
 				
 				boolean	is_ssl;
 				
@@ -527,7 +529,7 @@ ClientIDManagerImpl
 					
 					Properties p = new Properties();
 					
-					generator.generateHTTPProperties( p );
+					generator.generateHTTPProperties( hash, p );
 						
 					String	agent = p.getProperty( ClientIDGenerator.PR_USER_AGENT );
 					
@@ -542,11 +544,11 @@ ClientIDManagerImpl
 						}
 					}
 					
-					lines_out = generator.filterHTTP( lines_out.clone());
+					lines_out = generator.filterHTTP( hash, lines_out.clone());
 					
 				}else{
 					
-					lines_out = generator.filterHTTP( lines_in );
+					lines_out = generator.filterHTTP( hash, lines_in );
 				}
 				
 				String	header_out = "";
@@ -676,7 +678,7 @@ ClientIDManagerImpl
 						 		
 						 		http_properties.put( ClientIDGenerator.PR_URL, new URL( redirect_url ));
 						 	
-						 		generateHTTPProperties( http_properties );
+						 		generateHTTPProperties( hash, http_properties );
 						 			
 						 		URL updated = (URL)http_properties.get( ClientIDGenerator.PR_URL );
 						 		

@@ -49,7 +49,7 @@ ClientIDGenerator
 	
 	public byte[]
 	generatePeerID(
-		Torrent		torrent,
+		byte[]		hash,
 		boolean		for_tracker )
 	
 		throws ClientIDException;
@@ -65,6 +65,7 @@ ClientIDGenerator
 	
 	public void
 	generateHTTPProperties(
+		byte[]		hash,
 		Properties	properties )
 	
 		throws ClientIDException;
@@ -79,11 +80,13 @@ ClientIDGenerator
 	
 	public String[]
 	filterHTTP(
+		byte[]		hash,
 		String[]	lines_in )
 	
 		throws ClientIDException;
 	
 	public Object
 	getProperty(
+		byte[]		hash,
 		String		property_name );
 }

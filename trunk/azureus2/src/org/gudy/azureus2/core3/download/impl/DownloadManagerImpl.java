@@ -544,7 +544,8 @@ DownloadManagerImpl
     private int		upload_priority_manual;
     private int		upload_priority_auto;
     
-    private int		crypto_level = NetworkManager.CRYPTO_OVERRIDE_NONE;
+    private int		crypto_level 	= NetworkManager.CRYPTO_OVERRIDE_NONE;
+    private int		message_mode	= -1;
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
@@ -1894,6 +1895,8 @@ DownloadManagerImpl
   	public void
   	startDownload()
   	{
+  		message_mode = -1;	// reset it here
+  		
  		controller.startDownload( getTrackerClient() ); 
   	}
   	
@@ -3657,8 +3660,23 @@ DownloadManagerImpl
   public int 
   getExtendedMessagingMode() 
   {  
-	  return((Integer)client_id_manager.getProperty( ClientIDGenerator.PR_MESSAGING_MODE ));
+	  if ( message_mode == -1 ){
+		  
+		  byte[] hash = null;
+		  
+		  if ( torrent != null ){
+			  
+			  try{		  
+				  hash = torrent.getHash();
+				  
+			  }catch( Throwable e ){
+			  }
+		  }
+		  
+		  message_mode = (Integer)client_id_manager.getProperty( hash, ClientIDGenerator.PR_MESSAGING_MODE );
+	  }
 
+	  return( message_mode );
   }
   
   public void

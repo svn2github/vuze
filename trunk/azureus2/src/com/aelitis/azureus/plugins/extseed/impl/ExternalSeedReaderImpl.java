@@ -169,7 +169,7 @@ ExternalSeedReaderImpl
 		try{
 			Properties	props = new Properties();
 		
-			pi.getClientIDManager().getGenerator().generateHTTPProperties( props );
+			pi.getClientIDManager().getGenerator().generateHTTPProperties( torrent.getHash(), props );
 			
 			String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
 			

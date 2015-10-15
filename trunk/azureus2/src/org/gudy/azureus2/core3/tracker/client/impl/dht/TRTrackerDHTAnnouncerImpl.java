@@ -98,7 +98,7 @@ TRTrackerDHTAnnouncerImpl
 			Debug.printStackTrace(e);
 		}
 		try{
-			data_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
+			data_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent_hash.getBytes(), false );
 			
 		}catch( ClientIDException e ){
 

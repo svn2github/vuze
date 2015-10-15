@@ -141,7 +141,15 @@ TRTrackerAnnouncerImpl
 		udp_key	= RandomUtils.nextInt();
 		
 		try{
-			peer_id		= ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
+			byte[] 	hash = null;
+			
+			try{
+				hash = torrent.getHash();
+				
+			}catch( Throwable e ){	
+			}
+			
+			peer_id		= ClientIDManagerImpl.getSingleton().generatePeerID( hash, false );
 		
 		}catch( ClientIDException e ){
 

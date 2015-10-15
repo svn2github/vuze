@@ -57,7 +57,7 @@ ClientIDPlugin
 			{
 				public byte[]
 				generatePeerID(
-					Torrent		torrent,
+					byte[]		hash,
 					boolean		for_tracker )
 				{
 					return( PeerUtils.createPeerID());
@@ -65,6 +65,7 @@ ClientIDPlugin
 							
 				public void
 				generateHTTPProperties(
+					byte[]		hash,
 					Properties	properties )
 				{
 					doHTTPProperties( properties );
@@ -72,6 +73,7 @@ ClientIDPlugin
 				
 				public String[]
 				filterHTTP(
+					byte[]		hash,
 					String[]	lines_in )
 				{
 					return( lines_in );
@@ -79,7 +81,8 @@ ClientIDPlugin
 				
 				public Object 
 				getProperty(
-					String property_name )
+					byte[]	hash,
+					String	property_name )
 				{
 					if ( property_name == ClientIDGenerator.PR_CLIENT_NAME ){
 					

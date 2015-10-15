@@ -1070,8 +1070,10 @@ public class TrackerStatus {
 
  		throws Exception
  	{
+		byte[]	example_hash = hashesInQuery.get(0).getBytes();
+		
 		try{
-			return( scrapeHTTPSupport( reqUrl, null, message ));
+			return( scrapeHTTPSupport( reqUrl, example_hash, null, message ));
 			
 		}catch( Exception e ){
 			
@@ -1158,7 +1160,7 @@ public class TrackerStatus {
 					
 					try{
 						
-						URL result =  scrapeHTTPSupport( proxy.getURL(), proxy.getProxy(), message );
+						URL result =  scrapeHTTPSupport( proxy.getURL(), example_hash, proxy.getProxy(), message );
 						
 						ok = true;
 								
@@ -1181,6 +1183,7 @@ public class TrackerStatus {
 	private URL 
 	scrapeHTTPSupport(
 		URL 					reqUrl, 
+		byte[]					example_hash,
 		Proxy					proxy,
 		ByteArrayOutputStream 	message )
 
@@ -1215,7 +1218,7 @@ public class TrackerStatus {
 	 		}
 	 		
 			try{
-				ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+				ClientIDManagerImpl.getSingleton().generateHTTPProperties( example_hash, http_properties );
 
 			}catch( ClientIDException e ){
 

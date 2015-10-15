@@ -1118,7 +1118,7 @@ implements PEPeerTransport
 	}
 
 	private void sendLTHandshake() {
-		String client_name = (String)ClientIDManagerImpl.getSingleton().getProperty( ClientIDGenerator.PR_CLIENT_NAME );
+		String client_name = (String)ClientIDManagerImpl.getSingleton().getProperty(  manager.getHash(), ClientIDGenerator.PR_CLIENT_NAME );
 		int localTcpPort = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
 		String tcpPortOverride = COConfigurationManager.getStringParameter("TCP.Listen.Port.Override");
 		try

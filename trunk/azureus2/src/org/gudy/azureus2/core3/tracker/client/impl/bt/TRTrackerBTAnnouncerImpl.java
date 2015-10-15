@@ -222,6 +222,16 @@ TRTrackerBTAnnouncerImpl
   	manual_control	= _manual;
   	helper			= _helper;
   	
+	try {	
+		torrent_hash = _torrent.getHashWrapper();
+		
+	}catch( TOTorrentException e ){
+		
+		Logger.log(new LogEvent(torrent, LOGID, "Torrent hash retrieval fails", e));
+		
+		throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));
+	}
+	
 		//Get the Tracker url
 		
 	constructTrackerUrlLists( true );
@@ -233,7 +243,7 @@ TRTrackerBTAnnouncerImpl
 	
 	    if ( COConfigurationManager.getBooleanParameter("Tracker Separate Peer IDs")){
 	       	
-	    	tracker_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, true );
+	    	tracker_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent_hash.getBytes(), true );
 	    	
 	    }else{
 	    	
@@ -245,9 +255,7 @@ TRTrackerBTAnnouncerImpl
 	}
 	
 	try {
-	
-		torrent_hash = _torrent.getHashWrapper();
-				
+					
 		this.info_hash += URLEncoder.encode(new String(torrent_hash.getBytes(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
 		this.tracker_peer_id_str += URLEncoder.encode(new String(tracker_peer_id, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
@@ -258,11 +266,7 @@ TRTrackerBTAnnouncerImpl
 	  
 	  throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));
 	  
-	}catch( TOTorrentException e ){
-	
-		Logger.log(new LogEvent(torrent, LOGID, "Torrent hash retrieval fails", e));
-		
-		throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));	
+
 	}
 	   
 	timer_event_action =  
@@ -1424,7 +1428,7 @@ TRTrackerBTAnnouncerImpl
  		}
  		
  		try{
- 			ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+ 			ClientIDManagerImpl.getSingleton().generateHTTPProperties( torrent_hash.getBytes(), http_properties );
  			
  		}catch( ClientIDException e ){
  			

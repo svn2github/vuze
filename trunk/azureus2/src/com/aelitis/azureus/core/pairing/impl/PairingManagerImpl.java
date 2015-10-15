@@ -1701,7 +1701,7 @@ PairingManagerImpl
 			http_properties.put( ClientIDGenerator.PR_URL, target );
 				
 			try{
-				ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+				ClientIDManagerImpl.getSingleton().generateHTTPProperties( null, http_properties );
 				
 			}catch( ClientIDException e ){
 				

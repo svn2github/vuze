@@ -123,7 +123,14 @@ AzureusCoreImpl
 	protected static AEMonitor			class_mon	= new AEMonitor( "AzureusCore:class" );
 	
 	private static final String DM_ANNOUNCE_KEY	= "AzureusCore:announce_key";
-	private static final boolean LOAD_PLUGINS_IN_OTHER_THREAD = true;
+	
+		// one of the ideas behind the separate 'load' and 'initialize' call is that the 'load' is done 
+		// BEFORE any downloads start - this gives interested plugins the opportunity to get things in
+		// place while knowing that peers connections haven't started etc.
+		// If there's a problem with a plugin taking a long time during 'load' then fix the plugin
+		// So PLEASE don't change this to true!
+	
+	private static final boolean LOAD_PLUGINS_IN_OTHER_THREAD = false;
 	
 	/** 
 	 * Listeners that will be fired after core has completed initialization
