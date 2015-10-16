@@ -632,7 +632,8 @@ ResourceDownloaderURLImpl
 					
 					boolean	follow_redirect = true;
 					
-					boolean	dh_hack = false;
+					boolean	dh_hack 			= false;
+					boolean	internal_error_hack	= false;
 					
 					Set<String>	redirect_urls = new HashSet<String>();
 
@@ -669,7 +670,7 @@ redirect_label:
 						
 						try{
 							
-							for ( int connect_loop=0;connect_loop<2;connect_loop++ ){
+							for ( int connect_loop=0;connect_loop<3;connect_loop++ ){
 						
 								File					temp_file	= null;
 		
@@ -684,20 +685,26 @@ redirect_label:
 						
 										HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection( current_proxy, current_url );
 						
-											// allow for certs that contain IP addresses rather than dns names
-						  	
-										ssl_con.setHostnameVerifier(
-												new HostnameVerifier()
-												{
-													public boolean
-													verify(
-															String		host,
-															SSLSession	session )
+										if ( !internal_error_hack ){
+											
+												// for some reason, on java 8 at least, even setting a host name verifier
+												// causes an SSL internal_error on some websites :(
+											
+												// allow for certs that contain IP addresses rather than dns names
+							  	
+											ssl_con.setHostnameVerifier(
+													new HostnameVerifier()
 													{
-														return( true );
-													}
-												});
-						  	
+														public boolean
+														verify(
+																String		host,
+																SSLSession	session )
+														{
+															return( true );
+														}
+													});
+										}
+										
 										if ( current_plugin_proxy != null ){
 											
 												// unfortunately the use of an intermediate host name causes
@@ -1336,9 +1343,9 @@ redirect_label:
 									
 									String msg = Debug.getNestedExceptionMessage( e );
 									
-									if ( connect_loop == 0 ){
+									if ( connect_loop < 3 ){
 									
-										boolean	do_dh = false;
+										boolean	try_again = false;
 										
 										if ( msg.contains( "DH keypair" )){
 											
@@ -1346,7 +1353,15 @@ redirect_label:
 												
 												dh_hack = true;
 												
-												do_dh = true;
+												try_again = true;
+											}
+										}else if ( msg.contains( "internal_error" )){
+											
+											if ( !internal_error_hack ){
+											
+												internal_error_hack = true;
+												
+												try_again = true;
 											}
 										}
 										
@@ -1357,7 +1372,7 @@ redirect_label:
 											continue;	// retry with new certificate
 										}
 										
-										if ( do_dh ){
+										if ( try_again ){
 											
 											continue;
 										}
