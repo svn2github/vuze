@@ -34,9 +34,11 @@ import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourceuploader.*;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 public class 
 ResourceUploaderURLImpl
@@ -176,7 +178,13 @@ ResourceUploaderURLImpl
 				  
 							con.setRequestMethod( "POST" );
 							
-							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+							Properties	props = new Properties();
+							
+							ClientIDManagerImpl.getSingleton().getGenerator().generateHTTPProperties( null, props );
+							
+							String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
+							
+							con.setRequestProperty("User-Agent", ua );     
 				  
 							setRequestProperties( con, false );
 							

@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
@@ -62,7 +63,9 @@ import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection2;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.util.DeleteFileOnCloseInputStream;
 
@@ -338,7 +341,13 @@ ResourceDownloaderURLImpl
 							
 							con.setRequestMethod( "HEAD" );
 							
-							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+							Properties	props = new Properties();
+							
+							ClientIDManagerImpl.getSingleton().getGenerator().generateHTTPProperties( null, props );
+							
+							String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
+							
+							con.setRequestProperty("User-Agent", ua );     
 				  
 							setRequestProperties( con, false );
 							
@@ -635,8 +644,8 @@ ResourceDownloaderURLImpl
 redirect_label:
 					while( follow_redirect ){
 						
-						follow_redirect = false;
-																	
+						follow_redirect = false;						
+						
 						PluginProxy	plugin_proxy;
 						
 						boolean		ok = false;
@@ -917,7 +926,13 @@ redirect_label:
 										con.setRequestProperty( "HOST", current_plugin_proxy.getURLHostRewrite() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
 									}
 
-									con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+									Properties	props = new Properties();
+									
+									ClientIDManagerImpl.getSingleton().getGenerator().generateHTTPProperties( null, props );
+									
+									String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
+									
+									con.setRequestProperty("User-Agent", ua );     
 						  
 									String connection = getStringProperty( "URL_Connection" );
 									
