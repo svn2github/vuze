@@ -377,7 +377,7 @@ TagDownloadWithState
 	{
 		if ( t instanceof DownloadManager ){
 			
-			DownloadManager dm = (DownloadManager)t;
+			final DownloadManager dm = (DownloadManager)t;
 			
 			if ( dm.isDestroyed()){
 				
@@ -391,6 +391,48 @@ TagDownloadWithState
 			}else{
 			
 				super.addTaggable( t );
+				
+				int actions = getSupportedActions();
+				
+				if ( actions != TagFeatureExecOnAssign.ACTION_NONE ){
+					
+					if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_START )){
+												
+						int	dm_state = dm.getState();
+							
+						if ( 	dm_state == DownloadManager.STATE_STOPPED ||
+								dm_state == DownloadManager.STATE_ERROR ){		    		
+					    	
+							rs_async.dispatch(
+								new AERunnable()
+								{
+									public void
+									runSupport()
+									{
+										dm.setStateQueued();
+									}
+								});
+						}
+					}else if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_STOP )){
+						
+						int	dm_state = dm.getState();
+							
+						if ( 	dm_state != DownloadManager.STATE_STOPPED &&
+								dm_state != DownloadManager.STATE_STOPPING &&
+								dm_state != DownloadManager.STATE_ERROR ){
+							
+							rs_async.dispatch(
+								new AERunnable()
+								{
+									public void
+									runSupport()
+									{
+										dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
+									}
+								});
+						}
+					}
+				}
 			}
 		}else{
 			
