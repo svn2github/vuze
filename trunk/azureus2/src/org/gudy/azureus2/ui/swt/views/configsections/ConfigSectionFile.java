@@ -640,7 +640,7 @@ public class ConfigSectionFile
 
 			gridData = new GridData();
 			gridData.horizontalSpan = 1;
-			BooleanParameter rename_incomplete = new BooleanParameter(gFile,
+			final BooleanParameter rename_incomplete = new BooleanParameter(gFile,
 					sCurConfigID, "ConfigView.section.file.rename.incomplete");
 			rename_incomplete.setLayoutData(gridData);
 
@@ -657,13 +657,12 @@ public class ConfigSectionFile
 
 				// put 'dnd' files in subdir
 			
-			
 			sCurConfigID = "Enable Subfolder for DND Files";
 			allConfigIDs.add(sCurConfigID);
 
 			gridData = new GridData();
 			gridData.horizontalSpan = 1;
-			BooleanParameter enable_subfolder = new BooleanParameter(gFile,
+			final BooleanParameter enable_subfolder = new BooleanParameter(gFile,
 					sCurConfigID, "ConfigView.section.file.subfolder.dnd");
 			rename_incomplete.setLayoutData(gridData);
 
@@ -677,6 +676,35 @@ public class ConfigSectionFile
 			IAdditionalActionPerformer subfolderAP = new ChangeSelectionActionPerformer(
 					subfolder_name.getControls(), false);
 			enable_subfolder.setAdditionalActionPerformer(subfolderAP);
+			
+				// dnd prefix
+			
+			sCurConfigID = "Use Incomplete File Prefix";
+			allConfigIDs.add(sCurConfigID);
+	
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			gridData.horizontalIndent=25;
+			final BooleanParameter enable_dndprefix = new BooleanParameter(gFile,
+					sCurConfigID, "ConfigView.section.file.dnd.prefix.enable");
+			enable_dndprefix.setLayoutData(gridData);
+
+			ParameterChangeListener listener = 
+				new ParameterChangeAdapter()
+				{
+					public void
+					parameterChanged(
+						Parameter	p,
+						boolean		caused_internally )
+					{
+						enable_dndprefix.setEnabled( enable_subfolder.isSelected() || rename_incomplete.isSelected());
+					}
+				};
+				
+			enable_subfolder.addChangeListener( listener );
+			rename_incomplete.addChangeListener( listener );
+			
+			listener.parameterChanged( null, true );
 			
 				// torrent add auto-skip file types
 			

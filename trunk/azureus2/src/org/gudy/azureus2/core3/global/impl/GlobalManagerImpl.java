@@ -3353,6 +3353,8 @@ public class GlobalManagerImpl
 							
 							String	ext = COConfigurationManager.getStringParameter( "Rename Incomplete Files Extension" ).trim();
 							
+							boolean	use_prefix = COConfigurationManager.getBooleanParameter( "Use Incomplete File Prefix" );
+							
 							DownloadManagerState state = manager.getDownloadState();
 							
 							String existing_ext = state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
@@ -3365,6 +3367,18 @@ public class GlobalManagerImpl
 									
 									ext = FileUtil.convertOSSpecificChars( ext, false );
 	
+									String	prefix = "";
+									
+									if ( use_prefix ){
+										
+										try{
+											prefix = Base32.encode( manager.getTorrent().getHash()).substring( 0, 12 ).toLowerCase( Locale.US ) + "_";
+											
+										}catch( Throwable e ){
+											
+										}
+									}
+									
 									try{
 										state.suppressStateSave(true);
 											
@@ -3390,11 +3404,18 @@ public class GlobalManagerImpl
 												
 												if ( existing_link == null ){
 													
-													new_link = new File( base_file.getParentFile(), base_file.getName() + ext );
+													new_link = new File( base_file.getParentFile(), prefix + base_file.getName() + ext );
 													
 												}else{
 													
-													new_link = new File( existing_link.getParentFile(), existing_link.getName() + ext );
+													String link_name = existing_link.getName();
+													
+													if ( !link_name.startsWith( prefix )){
+														
+														link_name = prefix + link_name;
+													}
+													
+													new_link = new File( existing_link.getParentFile(), link_name + ext );
 												}
 												
 												from_indexes.add( i );
@@ -3412,6 +3433,11 @@ public class GlobalManagerImpl
 									}finally{
 										
 										state.setAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX, ext );
+										
+										if ( use_prefix ){
+											
+											state.setAttribute( DownloadManagerState.AT_DND_PREFIX, prefix );
+										}
 										
 										state.suppressStateSave(false);
 									}

@@ -787,7 +787,9 @@ DownloadManagerImpl
 
 				 display_name = FileUtil.convertOSSpecificChars(TorrentUtils.getLocalisedName(torrent),false);
 				 
-				 internal_name = ByteFormatter.nicePrint(torrent.getHash(),true);
+				 byte[] hash = torrent.getHash();
+				 
+				 internal_name = ByteFormatter.nicePrint( hash, true);
 	
 				 	// now we know if its a simple torrent or not we can make some choices about
 				 	// the save dir and file. On initial entry the save_dir will have the user-selected
@@ -972,6 +974,18 @@ DownloadManagerImpl
 				 					
 				 					download_manager_state.setAttribute( DownloadManagerState.AT_DND_SUBFOLDER, dnd_sf );
 				 				}
+				 				
+								boolean	use_prefix = COConfigurationManager.getBooleanParameter( "Use Incomplete File Prefix" );
+
+								if ( use_prefix ){
+									
+					 				if ( download_manager_state.getAttribute( DownloadManagerState.AT_DND_PREFIX ) == null ){
+					 					
+										String prefix = Base32.encode( hash ).substring( 0, 12 ).toLowerCase( Locale.US ) + "_";
+											
+					 					download_manager_state.setAttribute( DownloadManagerState.AT_DND_PREFIX, prefix );
+					 				}
+								}
             				}
             			}
             		}

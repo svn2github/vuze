@@ -399,7 +399,18 @@ DiskManagerFileInfoImpl
     						
     						File new_parent = new File( parent, dnd_sf );
     						
-    						File new_file = new File( new_parent, file.getName());
+    							// add prefix if not already present
+    						
+							String prefix = dm_state.getAttribute( DownloadManagerState.AT_DND_PREFIX );
+							
+							String file_name = file.getName();
+
+							if ( prefix != null && !file_name.startsWith( prefix )){
+								
+								file_name = prefix + file_name;
+							}
+
+    						File new_file = new File( new_parent, file_name );
     						
     						if ( !new_file.exists()){
     							
@@ -452,17 +463,46 @@ DiskManagerFileInfoImpl
     							
     							boolean	ok;
      								
-								try{  	
+								try{  
+									String file_name = file.getName();
+									
+									String prefix = dm_state.getAttribute( DownloadManagerState.AT_DND_PREFIX );
+									
+									boolean prefix_removed = false;
+									
+									if ( prefix != null && file_name.startsWith(prefix)){
+										
+										file_name = file_name.substring( prefix.length());
+										
+										prefix_removed = true;
+									}
+
 									String incomp_ext = dm_state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
 
-									if  ( incomp_ext != null && incomp_ext.length() > 0 ){
+									if  ( 	incomp_ext != null && incomp_ext.length() > 0 &&
+											getDownloaded() != getLength()){
+											
+											// retain the prefix if enabled and we have a suffix
 										
-										File new_link = new File( file.getParentFile(), file.getName() + incomp_ext );
+										if ( prefix == null ){
+											
+											prefix = "";
+										}
+										
+										File new_link = new File( file.getParentFile(), prefix + file_name + incomp_ext );
 										
 										dm_state.setFileLink( file_index, file, new_link );
 										
 										cache_file.moveFile( new_link );
 										
+									}else if ( prefix_removed ){
+										
+										File new_link = new File( file.getParentFile(), file_name );
+										
+										dm_state.setFileLink( file_index, file, new_link );
+										
+										cache_file.moveFile( new_link );
+
 									}else{
 										
 										dm_state.setFileLink( file_index, file, null );

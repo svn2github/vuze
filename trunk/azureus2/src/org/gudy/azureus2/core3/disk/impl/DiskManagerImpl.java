@@ -1574,6 +1574,13 @@ DiskManagerImpl
 	                    		
 	                    		if ( suffix != null && suffix.length() > 0 ){
 	                    		
+									String prefix = state.getAttribute( DownloadManagerState.AT_DND_PREFIX );
+									
+									if ( prefix == null ){
+										
+										prefix = "";
+									}
+
 	                    			File base_file = this_file.getFile( false );
 	                    			
 	                    			int	file_index = this_file.getIndex();
@@ -1587,6 +1594,16 @@ DiskManagerImpl
 	                    				if ( name.endsWith( suffix ) && name.length() > suffix.length()){
 	                    					
 	                    					String	new_name = name.substring( 0, name.length() - suffix.length());
+	                    					
+	                    					if ( !this_file.isSkipped()){
+	                    						
+	                    							// retain prefix for dnd files as it is there to prevent clashes
+	                    						
+		                    					if ( prefix.length() > 0 && new_name.startsWith( prefix )){
+		                    						
+		                    						new_name = new_name.substring( prefix.length());
+		                    					}
+	                    					}
 	                    					
 	                    					File new_file = new File( link.getParentFile(), new_name );
 	                    					
@@ -1622,6 +1639,16 @@ DiskManagerImpl
 		                    				if ( name.endsWith( suffix ) && name.length() > suffix.length()){
 		                    					
 		                    					String	new_name = name.substring( 0, name.length() - suffix.length());
+		                    					
+		                    					if ( !this_file.isSkipped()){
+		                    						
+		                    							// retain prefix for dnd files as it is there to prevent clashes
+		                    						
+			                    					if ( prefix.length() > 0 && new_name.startsWith( prefix )){
+			                    						
+			                    						new_name = new_name.substring( prefix.length());
+			                    					}
+		                    					}
 		                    					
 		                    					File new_file = new File( save_location.getParentFile(), new_name );
 		                    					

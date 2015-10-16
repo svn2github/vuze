@@ -75,6 +75,7 @@ DownloadManagerState
 	public static final String AT_SHARE_RATIO_PROGRESS		= "sr.prog";		// long: left word - timestamp in secs, right word sr in 1000ths
 	public static final String AT_FILES_EXPANDED			= "file.expand";	// boolean
 	public static final String AT_MERGED_DATA				= "mergedata";		// long
+	public static final String AT_DND_PREFIX				= "dnd_pfx";		// string
 
 
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
