@@ -201,6 +201,8 @@ TRTrackerBTAnnouncerImpl
 
 	private boolean	az_tracker;
 	private boolean	enable_sni_hack;
+	private boolean internal_error_hack;
+	private boolean	dh_hack;
 	
 	private boolean	destroyed;
 		
@@ -1455,20 +1457,28 @@ TRTrackerBTAnnouncerImpl
 
  			}
  			
- 			// allow for certs that contain IP addresses rather than dns names
+ 				// allow for certs that contain IP addresses rather than dns names
  			
- 			ssl_con.setHostnameVerifier(
- 					new HostnameVerifier()
- 					{
- 						public boolean
- 						verify(
- 								String		host,
-								SSLSession	session )
- 						{
- 							return( true );
- 						}
- 					});
+ 			if ( !internal_error_hack ){
+ 				
+	 			ssl_con.setHostnameVerifier(
+	 					new HostnameVerifier()
+	 					{
+	 						public boolean
+	 						verify(
+	 								String		host,
+									SSLSession	session )
+	 						{
+	 							return( true );
+	 						}
+	 					});
+ 			}
  			
+			if ( dh_hack ){
+				
+				UrlUtils.DHHackIt( ssl_con );
+			}
+			
  			if ( !first_effort ){
  				
  					// meh, some https trackers are just screwed
@@ -1531,14 +1541,27 @@ TRTrackerBTAnnouncerImpl
 				
 			}catch( IOException e ){
 				
-				if ( is_https && Debug.getNestedExceptionMessage( e ).contains( "unrecognized_name" )){
+				if ( is_https ){
+					
+					String msg = Debug.getNestedExceptionMessage( e );
+					
+					if ( msg.contains( "unrecognized_name" )){
 				
-					// SNI borkage - used to fix by globally disabling SNI but this screws too many other things
+						// SNI borkage - used to fix by globally disabling SNI but this screws too many other things
 					
-					enable_sni_hack = true;
-					
-					throw( e );
+						enable_sni_hack = true;
+						
+					}else if ( msg.contains( "internal_error" )){
+						
+						internal_error_hack = true;
+						
+					}else if ( msg.contains( "DH keypair" )){
+														
+						dh_hack = true;
+					}
 				}
+					
+				throw( e );
 			}
  			
  			InputStream is = null;
@@ -1656,7 +1679,7 @@ TRTrackerBTAnnouncerImpl
  				
  			}catch (Exception e){
  				
- 				e.printStackTrace();
+ 				//e.printStackTrace();
  				
  				failure_reason = exceptionToString( e );
  				

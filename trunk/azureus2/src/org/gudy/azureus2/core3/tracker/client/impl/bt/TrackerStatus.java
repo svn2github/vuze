@@ -121,6 +121,9 @@ public class TrackerStatus {
 	private final URL				tracker_url;
 	private boolean					az_tracker;
 	private boolean					enable_sni_hack;
+	private boolean 				internal_error_hack;
+	private boolean					dh_hack;
+	
 	private String					scrapeURL						= null;
  
   /** key = Torrent hash.  values = TRTrackerScraperResponseImpl */
@@ -1191,7 +1194,7 @@ public class TrackerStatus {
 	{
 			// loop to possibly retry update on SSL certificate install
 
-		for ( int i=0;i<2;i++ ){	
+		for ( int connect_loop=0;connect_loop<3;connect_loop++ ){	
 
 			URL	redirect_url = null;
 
@@ -1249,14 +1252,22 @@ public class TrackerStatus {
 
 					// allow for certs that contain IP addresses rather than dns names
 
-					ssl_con.setHostnameVerifier(
-							new HostnameVerifier() {
-								public boolean verify(String host, SSLSession session) {
-									return( true );
-								}
-							});
-
-					if ( i > 0 ){
+					if ( !internal_error_hack ){
+						
+						ssl_con.setHostnameVerifier(
+								new HostnameVerifier() {
+									public boolean verify(String host, SSLSession session) {
+										return( true );
+									}
+								});
+					}
+					
+					if ( dh_hack ){
+						
+						UrlUtils.DHHackIt( ssl_con );
+					}
+					
+					if ( connect_loop > 0 ){
 			 				
 		 					// meh, some https trackers are just screwed
 		 				
@@ -1398,26 +1409,57 @@ public class TrackerStatus {
 				}
 			}catch( SSLException e ){
 				
-				if ( Debug.getNestedExceptionMessage( e ).contains( "unrecognized_name" )){
-				
-						// SNI borkage - used to fix by globally disabling SNI but this screws too many other things
+				if ( connect_loop < 3 ){
 					
-					enable_sni_hack = true;
-				}
-				
-				// e.printStackTrace();
-
-				// try and install certificate regardless of error (as this changed in JDK1.5
-				// and broke this...)
-
-				if ( i == 0 ){//&& e.getMessage().indexOf("No trusted certificate found") != -1 ){
-
+					String msg = Debug.getNestedExceptionMessage( e );
+					
+					boolean	try_again = false;
+					
+					if ( msg.contains( "unrecognized_name" )){
+					
+							// SNI borkage - used to fix by globally disabling SNI but this screws too many other things
+						
+						if ( !enable_sni_hack ){
+						
+							enable_sni_hack = true;
+						
+							try_again = true;
+						}
+					}else if ( msg.contains( "internal_error" )){
+						
+						if ( !internal_error_hack ){
+						
+							internal_error_hack = true;
+							
+							try_again = true;
+						}
+					}else if ( msg.contains( "DH keypair" )){
+						
+						if ( !dh_hack ){
+						
+							dh_hack = true;
+							
+							try_again = true;
+						}
+					}
+					
+					// e.printStackTrace();
+	
+					// try and install certificate regardless of error (as this changed in JDK1.5
+					// and broke this...)
+	
+					//&& e.getMessage().indexOf("No trusted certificate found") != -1 ){
+	
 					if ( SESecurityManager.installServerCertificates( reqUrl ) != null ){
-
+	
 						// certificate has been installed
-
-						continue;	// retry with new certificate
-
+	
+						try_again = true;
+					}
+					
+					if ( try_again ){
+						
+						continue;
 					}
 				}
 
