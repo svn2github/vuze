@@ -19,8 +19,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.clientid;
 
-import java.io.EOFException;
-import java.io.IOException;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
@@ -32,12 +31,10 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.util.NetUtils;
@@ -371,7 +368,15 @@ ClientIDManagerImpl
 				
 				int q_pos = rem.indexOf( '?' );
 				
-				new_url += rem.substring(0,q_pos+1) + "cid=" + (is_ssl?".":"") + target_host + ":" + target_port + "+" + hash_str + "&" + rem.substring(q_pos+1);
+				String details = "cid=" + (is_ssl?".":"") + target_host + ":" + target_port + "+" + hash_str;
+				
+				if ( q_pos == -1 ){
+					
+					new_url += rem + "?" + details;
+
+				}else{
+					new_url += rem.substring(0,q_pos+1) + details + "&" + rem.substring(q_pos+1);
+				}
 				
 				properties.put( ClientIDGenerator.PR_URL, new URL( new_url ));
 				
@@ -476,6 +481,11 @@ ClientIDManagerImpl
 				int	p1 = get.indexOf( "?cid=" );
 				int	p2 = get.indexOf( "&", p1 );
 				
+				if( p2 == -1 ){
+					
+					p2 = get.indexOf( ' ', p1 );
+				}
+				
 				String	cid = get.substring( p1+5, p2 );
 				
 				int	p3 = cid.lastIndexOf( ":" );
@@ -486,7 +496,9 @@ ClientIDManagerImpl
 						
 				int		target_port	= Integer.parseInt(port_hash[0]);
 				
-				byte[] hash = URLDecoder.decode( port_hash[1], "ISO-8859-1" ).getBytes( "ISO-8859-1" );
+				String  hash_str	= port_hash.length==1?"":port_hash[1];
+				
+				byte[] hash = hash_str.length()==0?null:URLDecoder.decode( port_hash[1], "ISO-8859-1" ).getBytes( "ISO-8859-1" );
 				
 				boolean	is_ssl;
 				
@@ -723,7 +735,7 @@ ClientIDManagerImpl
 				
 			}catch( Throwable e ){
 				
-				// Debug.printStackTrace(e);
+				//Debug.printStackTrace(e);
 					
 			}finally{
 				
@@ -731,7 +743,7 @@ ClientIDManagerImpl
 					
 					Map	failure = new HashMap();
 					
-					failure.put("failure reason", report_error );
+					failure.put( "failure reason", report_error );
 					
 					try{
 						byte[] x = BEncoder.encode( failure );
