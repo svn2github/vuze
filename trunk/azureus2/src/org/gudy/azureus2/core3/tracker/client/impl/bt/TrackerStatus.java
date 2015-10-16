@@ -1450,7 +1450,7 @@ public class TrackerStatus {
 	
 					//&& e.getMessage().indexOf("No trusted certificate found") != -1 ){
 	
-					if ( SESecurityManager.installServerCertificates( reqUrl ) != null ){
+					if ( SESecurityManager.installServerCertificates( reqUrl ) != null || connect_loop == 0 ){
 	
 						// certificate has been installed
 	
