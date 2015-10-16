@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,7 +52,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection;
 import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection2;
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSUtils;
 
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
@@ -209,8 +211,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 				
 			follow_redirect = false;   	
 			
-	    	for (int connect_loop=0;connect_loop<2;connect_loop++){
+			boolean	dh_hack 			= false;
+			boolean	internal_error_hack = false;
+			
+	    	for (int connect_loop=0;connect_loop<3;connect_loop++){
 	    		
+	        	protocol = current_url.getProtocol().toLowerCase( Locale.US );
+
 	    		try{
 	
 	    			if ( protocol.equals("https")){
@@ -228,20 +235,27 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	    					ssl_con = (HttpsURLConnection)current_url.openConnection( current_proxy );
 	    				}
 	
-	    				// allow for certs that contain IP addresses rather than dns names
-	
-	    				ssl_con.setHostnameVerifier(
-	    						new HostnameVerifier()
-	    						{
-	    							public boolean
-	    							verify(
-	    									String		host,
-	    									SSLSession	session )
-	    							{
-	    								return( true );
-	    							}
-	    						});
-	
+	    				if ( !internal_error_hack ){
+		    					// allow for certs that contain IP addresses rather than dns names
+		    				
+		    				ssl_con.setHostnameVerifier(
+		    						new HostnameVerifier()
+		    						{
+		    							public boolean
+		    							verify(
+		    									String		host,
+		    									SSLSession	session )
+		    							{
+		    								return( true );
+		    							}
+		    						});
+	    				}
+	    									
+						if ( dh_hack ){
+							
+							UrlUtils.DHHackIt( ssl_con );
+						}
+						
 	    				con = ssl_con;
 	
 	    			}else{
@@ -264,7 +278,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 						((HttpURLConnection)con).setInstanceFollowRedirects( proxy==null );
 					}
 					
-	    			con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+					Properties	props = new Properties();
+					
+					ClientIDManagerImpl.getSingleton().getGenerator().generateHTTPProperties( null, props );
+					
+					String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
+
+	    			con.setRequestProperty("User-Agent", ua );     
 	
 	    			if ( referrer != null && referrer.length() > 0 ){
 	
@@ -411,13 +431,40 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	
 	    		}catch( SSLException e ){
 	
-	    			if ( connect_loop == 0 ){
-	
+	    			if ( connect_loop < 3 ){
+	    				
+						String msg = Debug.getNestedExceptionMessage( e );
+
+						boolean	try_again = false;
+						
+						if ( msg.contains( "DH keypair" )){
+							
+							if ( !dh_hack ){
+								
+								dh_hack = true;
+								
+								try_again = true;
+							}
+						}else if ( msg.contains( "internal_error" )){
+							
+							if ( !internal_error_hack ){
+							
+								internal_error_hack = true;
+								
+								try_again = true;
+							}
+						}
+						
 	    				if ( SESecurityManager.installServerCertificates( url ) != null ){
 	
-	    					// certificate has been installed
+	    						// certificate has been installed
 	
-	    					continue;	// retry with new certificate
+	    					try_again = true;
+	    				}
+	    				
+	    				if ( try_again ){
+	    					
+	    					continue;
 	    				}
 	    			}
 	

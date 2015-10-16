@@ -30,6 +30,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -1357,7 +1361,126 @@ public class UrlUtils
 		return( res );
 	}
 	
-	
+	public static void
+	DHHackIt(
+		HttpsURLConnection	ssl_con )
+	{
+		final SSLSocketFactory factory = ssl_con.getSSLSocketFactory();
+		
+		SSLSocketFactory hack = new
+			SSLSocketFactory()
+			{
+				@Override
+					public Socket createSocket(
+						InetAddress address,
+						int port,
+						InetAddress localAddress,
+						int localPort)
+						throws IOException {
+					Socket result = factory.createSocket( address, port, localAddress, localPort );
+						
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public Socket createSocket(
+						InetAddress host,
+						int port)
+						throws IOException {
+					Socket result = factory.createSocket( host, port );
+					
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public Socket createSocket(
+						Socket s,
+						String host,
+						int port,
+						boolean autoClose)
+						throws IOException {
+					Socket result = factory.createSocket( s, host, port, autoClose );
+					
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public Socket createSocket(
+						String host,
+						int port)
+						throws IOException,
+						UnknownHostException {
+					Socket result = factory.createSocket( host, port );
+					
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public Socket createSocket(
+						String host,
+						int port,
+						InetAddress localHost,
+						int localPort)
+						throws IOException,
+						UnknownHostException {
+					Socket result = factory.createSocket( host, port, localHost, localPort );
+					
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public String[] getDefaultCipherSuites() {
+					String[] result = factory.getDefaultCipherSuites();
+					
+					result = hack( result );
+					
+					return( result );
+				}
+				@Override
+				public String[] getSupportedCipherSuites() {
+					String[] result = factory.getSupportedCipherSuites();
+					
+					result = hack( result );
+					
+					return( result );
+				}
+			
+				private void
+				hack(
+					Socket	socket )
+				{
+					SSLSocket ssl_socket = (SSLSocket)socket;
+					
+					ssl_socket.setEnabledCipherSuites( hack( ssl_socket.getEnabledCipherSuites()));
+				}
+				
+				private String[]
+				hack(
+					String[]	cs  )
+				{
+					List<String> new_cs = new ArrayList<String>();
+					
+					for ( String x: cs ){
+						
+						if ( x.contains( "_DH_" ) || x.contains( "_DHE_" )){
+							
+						}else{
+							
+							new_cs.add( x );
+						}
+					}
+
+					return( new_cs.toArray(new String[new_cs.size()]));
+				}
+			};
+			
+		ssl_con.setSSLSocketFactory( hack );
+	}
 	
 	public static void main(String[] args) {
 		

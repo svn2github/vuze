@@ -299,7 +299,10 @@ ResourceDownloaderURLImpl
 						SESecurityManager.setPasswordHandler( url, this );
 					}
 	
-					for (int i=0;i<2;i++){
+					boolean	dh_hack 			= false;
+					boolean	internal_error_hack	= false;
+
+					for (int connect_loop=0;connect_loop<2;connect_loop++){
 						
 						try{
 							HttpURLConnection	con;
@@ -312,18 +315,26 @@ ResourceDownloaderURLImpl
 				
 									// allow for certs that contain IP addresses rather than dns names
 				  	
-								ssl_con.setHostnameVerifier(
-										new HostnameVerifier()
-										{
-											public boolean
-											verify(
-													String		host,
-													SSLSession	session )
+								if ( !internal_error_hack ){
+									
+									ssl_con.setHostnameVerifier(
+											new HostnameVerifier()
 											{
-												return( true );
-											}
-										});
-				  	
+												public boolean
+												verify(
+														String		host,
+														SSLSession	session )
+												{
+													return( true );
+												}
+											});
+								}
+								
+								if ( dh_hack ){
+									
+									UrlUtils.DHHackIt( ssl_con );
+								}
+								
 								con = ssl_con;
 				  	
 							}else{
@@ -395,13 +406,40 @@ ResourceDownloaderURLImpl
 							
 						}catch( SSLException e ){
 							
-							if ( i == 0 ){
+							String msg = Debug.getNestedExceptionMessage( e );
+							
+							if ( connect_loop < 3 ){
+							
+								boolean	try_again = false;
+								
+								if ( msg.contains( "DH keypair" )){
+									
+									if ( !dh_hack ){
+										
+										dh_hack = true;
+										
+										try_again = true;
+									}
+								}else if ( msg.contains( "internal_error" )){
+									
+									if ( !internal_error_hack ){
+									
+										internal_error_hack = true;
+										
+										try_again = true;
+									}
+								}
 								
 								if ( SESecurityManager.installServerCertificates( url ) != null ){
 									
 										// certificate has been installed
 									
-									continue;	// retry with new certificate
+									try_again = true;
+								}
+								
+								if ( try_again ){
+									
+									continue;
 								}
 							}
 
@@ -409,7 +447,7 @@ ResourceDownloaderURLImpl
 							
 						}catch( IOException e ){
 							
-							if ( i == 0 ){
+							if ( connect_loop == 0 ){
 								
 					      		URL retry_url = UrlUtils.getIPV4Fallback( url );
 				      			
@@ -783,122 +821,9 @@ redirect_label:
 										
 										if ( dh_hack ){
 											
-											final SSLSocketFactory factory = ssl_con.getSSLSocketFactory();
-											
-											SSLSocketFactory hack = new
-												SSLSocketFactory()
-												{
-													@Override
-														public Socket createSocket(
-															InetAddress address,
-															int port,
-															InetAddress localAddress,
-															int localPort)
-															throws IOException {
-														Socket result = factory.createSocket( address, port, localAddress, localPort );
-															
-														hack( result );
-														
-														return( result );
-													}
-													@Override
-													public Socket createSocket(
-															InetAddress host,
-															int port)
-															throws IOException {
-														Socket result = factory.createSocket( host, port );
-														
-														hack( result );
-														
-														return( result );
-													}
-													@Override
-													public Socket createSocket(
-															Socket s,
-															String host,
-															int port,
-															boolean autoClose)
-															throws IOException {
-														Socket result = factory.createSocket( s, host, port, autoClose );
-														
-														hack( result );
-														
-														return( result );
-													}
-													@Override
-													public Socket createSocket(
-															String host,
-															int port)
-															throws IOException,
-															UnknownHostException {
-														Socket result = factory.createSocket( host, port );
-														
-														hack( result );
-														
-														return( result );
-													}
-													@Override
-													public Socket createSocket(
-															String host,
-															int port,
-															InetAddress localHost,
-															int localPort)
-															throws IOException,
-															UnknownHostException {
-														Socket result = factory.createSocket( host, port, localHost, localPort );
-														
-														hack( result );
-														
-														return( result );
-													}
-													@Override
-													public String[] getDefaultCipherSuites() {
-														String[] result = factory.getDefaultCipherSuites();
-														
-														result = hack( result );
-														
-														return( result );
-													}
-													@Override
-													public String[] getSupportedCipherSuites() {
-														String[] result = factory.getSupportedCipherSuites();
-														
-														result = hack( result );
-														
-														return( result );
-													}
-												
-													private void
-													hack(
-														Socket	socket )
-													{
-														SSLSocket ssl_socket = (SSLSocket)socket;
-														
-														ssl_socket.setEnabledCipherSuites( hack( ssl_socket.getEnabledCipherSuites()));
-													}
-													
-													private String[]
-													hack(
-														String[]	cs  )
-													{
-														List<String> new_cs = new ArrayList<String>();
-														
-														for ( String x: cs ){
-															
-															if ( x.contains( "_DH_" ) || x.contains( "_DHE_" )){
-																
-															}else{
-																
-																new_cs.add( x );
-															}
-														}
-
-														return( new_cs.toArray(new String[new_cs.size()]));
-													}
-												};
-												
-											ssl_con.setSSLSocketFactory( hack );
+											UrlUtils.DHHackIt( ssl_con );
 										}
+										
 										con = ssl_con;
 						  	
 									}else{
@@ -1369,7 +1294,7 @@ redirect_label:
 											
 												// certificate has been installed
 											
-											continue;	// retry with new certificate
+											try_again = true;
 										}
 										
 										if ( try_again ){
