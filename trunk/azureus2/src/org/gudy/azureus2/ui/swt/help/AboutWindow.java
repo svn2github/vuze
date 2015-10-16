@@ -54,6 +54,8 @@ public class AboutWindow {
 	private static int paintColorTo = 0;
 	private static int paintColorDir = 2;
 
+	private static Image imageToDispose;
+
   public static void show() {
   	Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -102,7 +104,7 @@ public class AboutWindow {
       gc.setBackground(window.getBackground());
       gc.fillRectangle(image2.getBounds());
       gc.dispose();
-      image = Utils.renderTransparency(display, image2, imgGray, new Point(0, 0), 180);
+      imageToDispose = image = Utils.renderTransparency(display, image2, imgGray, new Point(0, 0), 180);
       image2.dispose();
       imgGray.dispose();
     }
@@ -295,9 +297,9 @@ public class AboutWindow {
   {
   	try{
   		class_mon.enter();
-	    if(image != null && ! image.isDisposed()) {
-	      image.dispose();
-	    }
+			Utils.disposeSWTObjects(new Object[] {
+				imageToDispose
+			});
 	    ImageLoader imageLoader = ImageLoader.getInstance();
 	    imageLoader.releaseImage(IMG_SPLASH);
 	    image = null;
