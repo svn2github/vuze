@@ -1428,6 +1428,18 @@ TagPropertyConstraintHandler
 					
 					return(( SystemTime.getCurrentTime() - added )/1000 );		// secs
 					
+				}else if ( str.equals( "downloadingfor" )){
+					
+					result = null;	// don't cache this!
+					
+					return( dm.getStats().getSecondsDownloading());
+					
+				}else if ( str.equals( "seedingfor" )){
+					
+					result = null;	// don't cache this!
+					
+					return( dm.getStats().getSecondsOnlySeeding());
+					
 				}else{
 					
 					Debug.out( "Invalid constraint numeric: " + str );

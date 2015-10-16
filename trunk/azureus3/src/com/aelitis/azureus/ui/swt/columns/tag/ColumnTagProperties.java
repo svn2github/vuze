@@ -96,13 +96,27 @@ ColumnTagProperties
 							
 				String actions_str = "";
 				
-				if ( eoa.supportsAction( TagFeatureExecOnAssign.ACTION_DESTROY )){
+				int[]	action_ids = 
+					{ 	TagFeatureExecOnAssign.ACTION_DESTROY, TagFeatureExecOnAssign.ACTION_START,
+						TagFeatureExecOnAssign.ACTION_STOP };
+				
+				String[] action_keys = 
+					{ 	"v3.MainWindow.button.delete", "v3.MainWindow.button.start", 
+						"v3.MainWindow.button.stop" };
 					
-					boolean enabled = eoa.isActionEnabled( TagFeatureExecOnAssign.ACTION_DESTROY );
+				for ( int i=0; i<action_ids.length;i++ ){
 					
-					if ( enabled ){
+					int	action_id = action_ids[i];
 					
-						actions_str += MessageText.getString( "FileItem.delete") + "=Y";
+					if ( eoa.supportsAction( action_id)){
+						
+						boolean enabled = eoa.isActionEnabled( action_id );
+						
+						if ( enabled ){
+						
+							actions_str += (actions_str.length()==0?"":",") +
+											MessageText.getString( action_keys[i]) + "=Y";
+						}
 					}
 				}
 				

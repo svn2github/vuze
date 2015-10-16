@@ -627,21 +627,34 @@ public class TagUIUtils
 				
 				eoa_item.setMenu( eoa_menu );
 				
-				if ( tf_eoa.supportsAction( TagFeatureExecOnAssign.ACTION_DESTROY )){
-					
-					final MenuItem destroy_item = new MenuItem( eoa_menu, SWT.CHECK);
+				int[]	action_ids = 
+					{ 	TagFeatureExecOnAssign.ACTION_DESTROY, TagFeatureExecOnAssign.ACTION_START,
+						TagFeatureExecOnAssign.ACTION_STOP };
 				
-					Messages.setLanguageText( destroy_item, "FileItem.delete" );
+				String[] action_keys = 
+					{ 	"v3.MainWindow.button.delete", "v3.MainWindow.button.start", 
+						"v3.MainWindow.button.stop" };
+
+				for ( int i=0;i<action_ids.length;i++ ){				
 					
-					destroy_item.setSelection( tf_eoa.isActionEnabled( TagFeatureExecOnAssign.ACTION_DESTROY ));
+					final int action_id = action_ids[i];
 					
-					destroy_item.addListener( SWT.Selection, new Listener(){
-							public void 
-							handleEvent(Event event)
-							{
-								tf_eoa.setActionEnabled( TagFeatureExecOnAssign.ACTION_DESTROY, destroy_item.getSelection());
-							}
-						});
+					if ( tf_eoa.supportsAction( action_id )){
+						
+						final MenuItem action_item = new MenuItem( eoa_menu, SWT.CHECK);
+					
+						Messages.setLanguageText( action_item, action_keys[i] );
+						
+						action_item.setSelection( tf_eoa.isActionEnabled( action_id ));
+						
+						action_item.addListener( SWT.Selection, new Listener(){
+								public void 
+								handleEvent(Event event)
+								{
+									tf_eoa.setActionEnabled( action_id, action_item.getSelection());
+								}
+							});
+					}
 				}
 			}
 		}

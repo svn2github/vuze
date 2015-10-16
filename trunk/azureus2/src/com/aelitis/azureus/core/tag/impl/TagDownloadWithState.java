@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureExecOnAssign;
 import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagFeatureRunState;
@@ -1042,6 +1043,19 @@ TagDownloadWithState
 						});
 				}
 			}
+		}
+	}
+	
+	public int
+	getSupportedActions()
+	{
+		if ( getTagType().getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
+			
+			return( TagFeatureExecOnAssign.ACTION_START | TagFeatureExecOnAssign.ACTION_STOP );
+			
+		}else{
+			
+			return( TagFeatureExecOnAssign.ACTION_NONE );
 		}
 	}
 	
