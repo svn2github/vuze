@@ -325,6 +325,8 @@ ClientIDManagerImpl
 			}
 		}
 		
+		generator.generateHTTPProperties( hash, properties );
+
 		if ( filter_it ){
 					
 			URL		url 	= (URL)properties.get( ClientIDGenerator.PR_URL );
@@ -384,9 +386,6 @@ ClientIDManagerImpl
 				
 				Debug.printStackTrace(e);
 			}
-		}else{
-			
-			generator.generateHTTPProperties( hash, properties );
 		}
 	}
 	
