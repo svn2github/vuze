@@ -812,6 +812,13 @@ public class UrlUtils
 	{
 		if ( host.indexOf(':') != -1 ){
 			
+			int	zone_index = host.indexOf( '%' );
+			
+			if ( zone_index != -1 ){
+				
+				host = host.substring( 0, zone_index ) + encode( host.substring( zone_index ));
+			}
+			
 			return( "[" + host + "]" );
 		}
 		
