@@ -99,6 +99,21 @@ BufferedLabel
 		label.setLayoutData( ld );
 	}
 	
+	public void
+	setData(
+		String	key,
+		Object	value )
+	{
+		label.setData(key,value);
+	}
+	
+	public Object
+	getData(
+		String	key )
+	{	
+		return( label.getData( key ));
+	}
+	
 	public Control
 	getControl()
 	{

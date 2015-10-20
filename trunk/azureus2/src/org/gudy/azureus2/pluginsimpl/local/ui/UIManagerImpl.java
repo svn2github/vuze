@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -685,9 +686,36 @@ UIManagerImpl
 		}
 		
 		return(((Long)event.getResult()).longValue());
-		
 	}		
 
+	public long
+	showMessageBox(
+		String					title_resource,
+		String					message_resource,
+		long					message_map,
+		Map<String,Object>		params )
+	{
+		Object[]	all_params = new Object[4];
+		
+		all_params[0]	= title_resource;
+		all_params[1]	= message_resource;
+		all_params[2]	= new Long( message_map );
+		all_params[3]	= params;
+		
+		UIManagerEventAdapter event = 
+			new UIManagerEventAdapter(
+					pi,
+					UIManagerEvent.ET_SHOW_MSG_BOX, 
+					all_params );
+		
+		if (!fireEvent( event )){
+			
+			return( UIManagerEvent.MT_NONE );
+		}
+		
+		return(((Long)event.getResult()).longValue());
+	}
+	
 	public void 
 	openTorrent(
 		Torrent torrent) 

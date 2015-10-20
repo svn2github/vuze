@@ -56,8 +56,11 @@ import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentDownloader;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.PowerManagementListener;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -2469,7 +2472,7 @@ AzureusCoreImpl
 		
 			if ( ca_last_time_downloading >= 0 && !is_downloading && now - ca_last_time_downloading >= 30*1000 ){
 				
-				executeCloseAction( true, true, dl_act, null );
+				executeInternalCloseAction( true, true, dl_act, null );
 			}
 		}
 		
@@ -2479,7 +2482,7 @@ AzureusCoreImpl
 			
 			if ( ca_last_time_seeding >= 0 && !is_seeding && now - ca_last_time_seeding >= 30*1000 ){
 				
-				executeCloseAction( true, false, se_act, null );
+				executeInternalCloseAction( true, false, se_act, null );
 			}
 		}
 	}
@@ -2489,34 +2492,20 @@ AzureusCoreImpl
 		String		action,
 		String		reason )
 	{
-		executeCloseAction( false, false, action, reason );
+		executeInternalCloseAction( false, false, action, reason );
 	}
 	
 	private void
-	executeCloseAction(
+	executeInternalCloseAction(
 		final boolean	obey_reset,
 		final boolean	download_trigger,
 		final String	action,
 		final String	reason )
 	{
-			// prevent retriggering on resume from standby
-		
+			// prevent immediate retriggering if user aborts
+			
 		ca_last_time_downloading	= -1;
 		ca_last_time_seeding		= -1;
-		
-		boolean reset = obey_reset && COConfigurationManager.getBooleanParameter( "Stop Triggers Auto Reset" );
-		
-		if ( reset ){
-			
-			if ( download_trigger ){
-			
-				COConfigurationManager.setParameter( "On Downloading Complete Do", "Nothing" );
-				
-			}else{
-				
-				COConfigurationManager.setParameter( "On Seeding Complete Do", "Nothing" );
-			}
-		}
 		
 		String type_str		= reason==null?MessageText.getString( "core.shutdown." + (download_trigger?"dl":"se")):reason;
 		String action_str 	= MessageText.getString( "ConfigView.label.stop." + action );
@@ -2540,7 +2529,54 @@ AzureusCoreImpl
 			new LogAlert( 
 				LogAlert.UNREPEATABLE, 
 				LogEvent.LT_INFORMATION,
-				message ));
+				message ));		
+		
+		UIManager ui_manager = StaticUtilities.getUIManager( 30*1000 );
+				
+		if ( ui_manager != null ){
+			
+			Map<String,Object>	options = new HashMap<String, Object>();
+			
+			options.put( UIManager.MB_PARAM_AUTO_CLOSE_MS, 30*1000 );
+			
+			if ( ui_manager.showMessageBox(
+					"core.shutdown.prompt.title",
+					"core.shutdown.prompt.msg",
+					UIManagerEvent.MT_OK_DEFAULT | UIManagerEvent.MT_CANCEL,
+					options ) == UIManagerEvent.MT_CANCEL ){
+				
+				return;
+			}
+		}
+		
+		executeCloseActionSupport( obey_reset, download_trigger, action, reason );
+	}
+	
+	private void
+	executeCloseActionSupport(
+		final boolean	obey_reset,
+		final boolean	download_trigger,
+		final String	action,
+		final String	reason )
+	{
+			// prevent retriggering on resume from standby
+		
+		ca_last_time_downloading	= -1;
+		ca_last_time_seeding		= -1;
+		
+		boolean reset = obey_reset && COConfigurationManager.getBooleanParameter( "Stop Triggers Auto Reset" );
+		
+		if ( reset ){
+			
+			if ( download_trigger ){
+			
+				COConfigurationManager.setParameter( "On Downloading Complete Do", "Nothing" );
+				
+			}else{
+				
+				COConfigurationManager.setParameter( "On Seeding Complete Do", "Nothing" );
+			}
+		}
 
 		new DelayedEvent(
 			"CoreShutdown",

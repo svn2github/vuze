@@ -21,6 +21,7 @@ package org.gudy.azureus2.plugins.ui;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -160,6 +161,27 @@ UIManager
 		String					message_resource,
 		long					message_map,
 		Object[]				params );
+	
+	public static final String MB_PARAM_REMEMBER_ID		= "remember-id";		// String
+	public static final String MB_PARAM_REMEMBER_BY_DEF	= "remember-by-def";	// Boolean
+	public static final String MB_PARAM_REMEMBER_RES	= "remember-res";		// String
+	public static final String MB_PARAM_AUTO_CLOSE_MS	= "auto-close-ms";		// Number
+	
+		/**
+		 * @since 5621 
+		 * @param title_resource
+		 * @param message_resource
+		 * @param message_map
+		 * @param params
+		 * @return
+		 */
+	
+	public long
+	showMessageBox(
+		String					title_resource,
+		String					message_resource,
+		long					message_map,
+		Map<String,Object>		params );
 	
 		/**
 		 * @since 2.3.0.6

@@ -203,6 +203,12 @@ UISWTInstanceImpl
 								
 								styles |= SWT.OK;
 							}
+							if (( _styles & UIManagerEvent.MT_OK_DEFAULT ) != 0 ){
+								
+								styles |= SWT.OK;
+								def = SWT.OK;
+							}
+
 							if (( _styles & UIManagerEvent.MT_CANCEL ) != 0 ){
 								
 								styles |= SWT.CANCEL;
@@ -220,7 +226,26 @@ UISWTInstanceImpl
 								mb.setDefaultButtonUsingStyle( def );
 							}
 							
-							if ( params.length >= 6 ){
+							if ( params.length == 4 && params[3] instanceof Map ){
+								
+								Map<String,Object>	options = (Map<String,Object>)params[3];
+								
+								String	rememberID 			= (String)options.get( UIManager.MB_PARAM_REMEMBER_ID );
+								Boolean	rememberByDefault 	= (Boolean)options.get( UIManager.MB_PARAM_REMEMBER_BY_DEF );
+								String	rememberText		= (String)options.get( UIManager.MB_PARAM_REMEMBER_RES );
+								
+								if ( rememberID != null && rememberByDefault != null && rememberText != null ){
+									
+									mb.setRemember( rememberID, rememberByDefault, rememberText );
+								}
+								
+								Number	auto_close_ms = (Number)options.get( UIManager.MB_PARAM_AUTO_CLOSE_MS );
+								
+								if ( auto_close_ms != null ){
+									
+									mb.setAutoCloseInMS( auto_close_ms.intValue());
+								}
+							}else if ( params.length >= 6 ){
 								
 								String	rememberID 			= (String)params[3];
 								Boolean	rememberByDefault 	= (Boolean)params[4];

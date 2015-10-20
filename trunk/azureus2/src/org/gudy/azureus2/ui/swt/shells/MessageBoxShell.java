@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
@@ -534,9 +535,19 @@ public class MessageBoxShell
 
 		// Closing in..
 		if (autoCloseInMS > 0) {
-			final Label lblCloseIn = new Label(shell, SWT.WRAP);
+			final BufferedLabel lblCloseIn = new BufferedLabel(shell, SWT.WRAP | SWT.DOUBLE_BUFFERED);
 			lblCloseIn.setForeground(shell.getForeground());
-			Utils.setLayoutData(lblCloseIn, new GridData(GridData.FILL_HORIZONTAL));
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			if ( !squish ){
+				gridData.horizontalIndent = 5;
+			}
+			lblCloseIn.setText( 
+				MessageText.getString("popup.closing.in",
+					new String[] {
+						String.valueOf(autoCloseInMS/1000)
+					}));
+			
+			Utils.setLayoutData(lblCloseIn, gridData);
 			long endOn = SystemTime.getCurrentTime() + autoCloseInMS;
 			lblCloseIn.setData("CloseOn", new Long(endOn));
 			SimpleTimer.addPeriodicEvent("autoclose", 500, new TimerEventPerformer() {

@@ -29,6 +29,7 @@ UIManagerEvent
 	public static final int MT_NO			= 0x00000008;
 	public static final int MT_YES_DEFAULT	= 0x00000010;	// as for YES but makes it the default selection
 	public static final int MT_NO_DEFAULT	= 0x00000020;	// as for NO but makes it the default selection
+	public static final int MT_OK_DEFAULT	= 0x00000040;	// as for OK but makes it the default selection
 	
 
 	public static final int ET_SHOW_TEXT_MESSAGE				= 1;		// data is String[] - title, message, text
