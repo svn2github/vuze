@@ -2705,6 +2705,11 @@ public class TagUIUtils
 	{
 		List<Tag>	tags = new ArrayList<Tag>( _tags );
 		
+		if ( tags.size() < 2 ){
+			
+			return( tags );
+		}
+		
 		Collections.sort( tags, getTagComparator());
 
 		return( tags );
