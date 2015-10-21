@@ -58,6 +58,9 @@ public class UIConfigDefaultsSWT
 		def.addParameter("NameColumn.showProgramIcon", !Constants.isWindowsVista);
 		def.addParameter("RankColumn.showUpDownIcon.big", true );
 		def.addParameter("RankColumn.showUpDownIcon.small", false );
+		def.addParameter("SeedsColumn.showNetworkIcon", true );
+		def.addParameter("PeersColumn.showNetworkIcon", true );
+
 		def.addParameter("DND Always In Incomplete", false);
 
 		def.addParameter("Message Popup Autoclose in Seconds", 15);

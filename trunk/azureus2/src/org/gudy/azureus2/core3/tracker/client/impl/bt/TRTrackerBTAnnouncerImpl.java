@@ -37,7 +37,6 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -71,7 +70,6 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
-import com.aelitis.azureus.core.proxy.AEProxySelector;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.net.udp.uc.*;
@@ -1156,7 +1154,8 @@ TRTrackerBTAnnouncerImpl
 			  			}
 						
 					}else if (	protocol.equalsIgnoreCase("http") && 
-								!az_tracker	&& 
+								( !az_tracker )	&& 
+								( !TorrentUtils.isReallyPrivate( torrent )) && 
 								announceCount % autoUDPprobeEvery == 0 && 
 								udpProbeEnabled && udpAnnounceEnabled ){
 						

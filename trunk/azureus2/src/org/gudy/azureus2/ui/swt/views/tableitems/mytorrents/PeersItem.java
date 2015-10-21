@@ -25,16 +25,22 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import java.util.Locale;
 
 import org.eclipse.swt.graphics.Image;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -58,12 +64,13 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  * 		2005/Oct/13: Use listener to update total from scrape
  */
 public class PeersItem extends CoreTableColumnSWT implements
-		TableCellAddedListener
+		TableCellAddedListener, ParameterListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
 	public static final String COLUMN_ID = "peers";
 
+	private static final String CFG_SHOW_ICON 		= "PeersColumn.showNetworkIcon";
 
 	private static String textStarted;
 	private static String textStartedOver;
@@ -91,6 +98,8 @@ public class PeersItem extends CoreTableColumnSWT implements
 		none_img 	= imageLoader.getImage("net_None_x");
 	}
 
+	private boolean showIcon;
+
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_SWARM });
 	}
@@ -99,14 +108,54 @@ public class PeersItem extends CoreTableColumnSWT implements
 	public PeersItem(String sTableID) {
 		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
-    setMinWidthAuto(true);
+		setMinWidthAuto(true);
+		
+		showIcon	 = COConfigurationManager.getBooleanParameter(CFG_SHOW_ICON);
+		
+		COConfigurationManager.addParameterListener(CFG_SHOW_ICON, this);
+		// show icon menu
+		
+		TableContextMenuItem menuShowIcon = addContextMenuItem(
+				"ConfigView.section.style.showNetworksIcon", MENU_STYLE_HEADER);
+		menuShowIcon.setStyle(TableContextMenuItem.STYLE_CHECK);
+		menuShowIcon.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(new Boolean(showIcon));
+			}
+		});
+
+		menuShowIcon.addMultiListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				COConfigurationManager.setParameter(CFG_SHOW_ICON,
+						((Boolean) menu.getData()).booleanValue());
+			}
+		});
 	}
 
+	public void reset() {
+		super.reset();
+		
+		COConfigurationManager.removeParameter( CFG_SHOW_ICON );
+	}
+	
+	protected void finalize() throws Throwable {
+		super.finalize();
+		COConfigurationManager.removeParameterListener(CFG_SHOW_ICON, this);
+	}
 	public void cellAdded(TableCell cell) {
 		new Cell(cell);
 	}
 
-	private static class Cell 
+	public void parameterChanged(String parameterName) {
+		setShowIcon( COConfigurationManager.getBooleanParameter(CFG_SHOW_ICON));
+	}
+	
+	public void setShowIcon(boolean b) {
+		showIcon = b;
+		invalidateCells();
+	}
+	
+	private class Cell 
 		extends AbstractTrackerCell
 		implements TableCellMouseListener
 	{
@@ -148,7 +197,7 @@ public class PeersItem extends CoreTableColumnSWT implements
 				
 					Image icon = none_img;
 				
-					if ( i2p_info != null ){
+					if ( showIcon && i2p_info != null ){
 					
 						int totalI2PLeechers = i2p_info[1];
 						

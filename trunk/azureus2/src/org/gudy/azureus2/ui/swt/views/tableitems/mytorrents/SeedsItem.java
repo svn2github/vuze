@@ -32,11 +32,15 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -56,10 +60,10 @@ public class SeedsItem
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
-	private static final String CFG_FC_SEEDSTART = "StartStopManager_iFakeFullCopySeedStart";
-
-	private static final String CFG_FC_NUMPEERS = "StartStopManager_iNumPeersAsFullCopy";
-
+	private static final String CFG_FC_SEEDSTART 	= "StartStopManager_iFakeFullCopySeedStart";
+	private static final String CFG_FC_NUMPEERS 	= "StartStopManager_iNumPeersAsFullCopy";
+	private static final String CFG_SHOW_ICON 		= "SeedsColumn.showNetworkIcon";
+	
 	public static final String COLUMN_ID = "seeds";
 
 	private static String textStarted;
@@ -68,6 +72,8 @@ public class SeedsItem
 	private static String textStartedNoScrape;
 	private static String textNotStartedNoScrape;
 
+	private boolean showIcon;
+	
 	private static Image i2p_img;
 	private static Image none_img;
 	
@@ -106,14 +112,42 @@ public class SeedsItem
 
 		iFC_MinSeeds = COConfigurationManager.getIntParameter(CFG_FC_SEEDSTART);
 		iFC_NumPeers = COConfigurationManager.getIntParameter(CFG_FC_NUMPEERS);
+		showIcon	 = COConfigurationManager.getBooleanParameter(CFG_SHOW_ICON);
+		
 		COConfigurationManager.addParameterListener(CFG_FC_SEEDSTART, this);
 		COConfigurationManager.addParameterListener(CFG_FC_NUMPEERS, this);
+		COConfigurationManager.addParameterListener(CFG_SHOW_ICON, this);
+		
+			// show icon menu
+		
+		TableContextMenuItem menuShowIcon = addContextMenuItem(
+				"ConfigView.section.style.showNetworksIcon", MENU_STYLE_HEADER);
+		menuShowIcon.setStyle(TableContextMenuItem.STYLE_CHECK);
+		menuShowIcon.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(new Boolean(showIcon));
+			}
+		});
+
+		menuShowIcon.addMultiListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				COConfigurationManager.setParameter(CFG_SHOW_ICON,
+						((Boolean) menu.getData()).booleanValue());
+			}
+		});
 	}
 
+	public void reset() {
+		super.reset();
+		
+		COConfigurationManager.removeParameter( CFG_SHOW_ICON );
+	}
+	
 	protected void finalize() throws Throwable {
 		super.finalize();
 		COConfigurationManager.removeParameterListener(CFG_FC_SEEDSTART, this);
 		COConfigurationManager.removeParameterListener(CFG_FC_NUMPEERS, this);
+		COConfigurationManager.removeParameterListener(CFG_SHOW_ICON, this);
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -123,6 +157,12 @@ public class SeedsItem
 	public void parameterChanged(String parameterName) {
 		iFC_MinSeeds = COConfigurationManager.getIntParameter(CFG_FC_SEEDSTART);
 		iFC_NumPeers = COConfigurationManager.getIntParameter(CFG_FC_NUMPEERS);
+		setShowIcon( COConfigurationManager.getBooleanParameter(CFG_SHOW_ICON));
+	}
+	
+	public void setShowIcon(boolean b) {
+		showIcon = b;
+		invalidateCells();
 	}
 
 	private class Cell
@@ -172,7 +212,7 @@ public class SeedsItem
 				
 					Image icon = none_img;
 				
-					if ( i2p_info != null ){
+					if ( i2p_info != null && showIcon ){
 					
 						int totalI2PSeeds = i2p_info[0];
 						
