@@ -563,6 +563,10 @@ DiskManagerImpl
 
             //3.Change State
 
+        	// flag for an update of the 'downloaded' values for skipped files 
+        
+        skipped_file_set_changed = true;
+        
         setState( READY );
     }
 
@@ -1428,8 +1432,8 @@ DiskManagerImpl
                 try{
                     file_piece_mon.enter();
 
-                    skipped_file_set_size   = 0;
-                    skipped_but_downloaded  = 0;
+                    long skipped   		= 0;
+                    long downloaded  	= 0;
 
                     for (int i=0;i<current_files.length;i++){
 
@@ -1437,19 +1441,23 @@ DiskManagerImpl
 
                         if ( file.isSkipped()){
 
-                            skipped_file_set_size   += file.getLength();
-                            skipped_but_downloaded  += file.getDownloaded();
+                        	skipped   += file.getLength();
+                        	downloaded  += file.getDownloaded();
                         }
                     }
+                    
+                    skipped_file_set_size 	= skipped;
+                    skipped_but_downloaded	= downloaded;
                 }finally{
 
                     file_piece_mon.exit();
                 }
-            }
             
-            DownloadManagerStats stats = download_manager.getStats();
-            if (stats instanceof DownloadManagerStatsImpl) {
-            	((DownloadManagerStatsImpl) stats).setSkippedFileStats(skipped_file_set_size, skipped_but_downloaded);
+                DownloadManagerStats stats = download_manager.getStats();
+            
+                if (stats instanceof DownloadManagerStatsImpl) {
+                	((DownloadManagerStatsImpl) stats).setSkippedFileStats(skipped_file_set_size, skipped_but_downloaded);
+                }
             }
         }
     }

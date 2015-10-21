@@ -51,7 +51,6 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
-import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
 
 public class 
 DiskManagerUtil 
@@ -1352,27 +1351,30 @@ DiskManagerUtil
 		
 	   download_manager.setData( "file_priorities", file_priorities );
 
+	   		// for whatever reason we don't set the skipped file stats here if we have a REAL set of 
+	   		// file info (maybe because the code tries to maintain its own active version of these values)
+	   		
 	   if (files.length > 0 && !(files[0] instanceof DiskManagerFileInfoImpl)) {
-       long skipped_file_set_size   = 0;
-       long skipped_but_downloaded  = 0;
-  
-       for (int i=0;i<files.length;i++){
-  
-           DiskManagerFileInfo file = files[i];
-  
-           if ( file.isSkipped()){
-  
-               skipped_file_set_size   += file.getLength();
-               skipped_but_downloaded  += file.getDownloaded();
-           }
-       }
-      
-       DownloadManagerStats stats = download_manager.getStats();
-       if (stats instanceof DownloadManagerStatsImpl) {
-       	((DownloadManagerStatsImpl) stats).setSkippedFileStats(skipped_file_set_size, skipped_but_downloaded);
-       }
+		   
+	       long skipped_file_set_size   = 0;
+	       long skipped_but_downloaded  = 0;
+	  
+	       for (int i=0;i<files.length;i++){
+	  
+	           DiskManagerFileInfo file = files[i];
+	  
+	           if ( file.isSkipped()){
+	  
+	               skipped_file_set_size   += file.getLength();
+	               skipped_but_downloaded  += file.getDownloaded();
+	           }
+	       }
+	      
+	       DownloadManagerStats stats = download_manager.getStats();
+	       if (stats instanceof DownloadManagerStatsImpl) {
+	       	((DownloadManagerStatsImpl) stats).setSkippedFileStats(skipped_file_set_size, skipped_but_downloaded);
+	       }
 	   }
-
 	}
 	  
 	static void
