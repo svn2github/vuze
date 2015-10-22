@@ -100,6 +100,7 @@ public class ViewDownSpeedGraph
 		downSpeedGraphic = SpeedGraphic.getInstance();
 		downSpeedGraphic.initialize(downSpeedCanvas);
 		//downSpeedGraphic.setAutoAlpha(true);
+		/* this was for testing right?
 		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 		Color cBG1 = skinProperties.getColor("color.topbar.speed.bg1");
 		Color cBG2 = skinProperties.getColor("color.topbar.speed.bg2");
@@ -111,6 +112,7 @@ public class ViewDownSpeedGraph
 				skinProperties.getColor("color.topbar.speed.value1"),
 				skinProperties.getColor("color.topbar.speed.value2plus"),
 				skinProperties.getColor("color.topbar.speed.trimmed"));
+		*/
 	}
 
 	private void delete() {
