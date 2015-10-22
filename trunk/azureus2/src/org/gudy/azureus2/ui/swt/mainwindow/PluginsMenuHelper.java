@@ -23,10 +23,10 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -43,9 +43,11 @@ public class PluginsMenuHelper
 
 	private AEMonitor plugin_helper_mon = new AEMonitor("plugin_helper_mon");
 
-	private Map<String, IViewInfo> plugin_view_info_map = new TreeMap<String, IViewInfo>();
+	private Comparator<String>	alpha_comparator = new FormattersImpl().getAlphanumericComparator( true );
+	
+	private Map<String, IViewInfo> plugin_view_info_map = new TreeMap<String, IViewInfo>( alpha_comparator );
 
-	private Map<String, IViewInfo> plugin_logs_view_info_map = new TreeMap<String, IViewInfo>();
+	private Map<String, IViewInfo> plugin_logs_view_info_map = new TreeMap<String, IViewInfo>( alpha_comparator );
 	
 	private List<PluginAddedViewListener> pluginAddedViewListener = new ArrayList<PluginAddedViewListener>();
 
@@ -71,13 +73,28 @@ public class PluginsMenuHelper
 			plugin_helper_mon.exit();
 		}
 	}
-
+	private void
+	sort(
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] plugin_items )
+	{
+		Arrays.sort(
+			plugin_items,
+			new Comparator<org.gudy.azureus2.plugins.ui.menus.MenuItem>()
+			{
+				public int compare(org.gudy.azureus2.plugins.ui.menus.MenuItem o1, org.gudy.azureus2.plugins.ui.menus.MenuItem o2) {
+					return( alpha_comparator.compare( o1.getText(), o2.getText()));
+				}
+			});
+	}
+	
 	public boolean buildViewMenu(Menu viewMenu, Shell parent) {
 
 		int itemCount = viewMenu.getItemCount();
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] plugin_items;
 		plugin_items = MenuItemManager.getInstance().getAllAsArray("mainmenu");
 		if (plugin_items.length > 0) {
+			sort( plugin_items );
+			
 			MenuBuildUtils.addPluginMenuItems(plugin_items, viewMenu, true,
 					true, MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
 		}
@@ -85,6 +102,10 @@ public class PluginsMenuHelper
 		try {
 
 			plugin_helper_mon.enter();
+			
+			if ( plugin_items.length > 0 && plugin_view_info_map.size() > 0 ){
+				new MenuItem( viewMenu, SWT.SEPARATOR );
+			}
 			createViewInfoMenuItems(viewMenu, plugin_view_info_map);
 
 		} finally {
@@ -117,6 +138,8 @@ public class PluginsMenuHelper
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] plugin_items;
 		plugin_items = MenuItemManager.getInstance().getAllAsArray("mainmenu");
 		if (plugin_items.length > 0) {
+			sort( plugin_items );
+			
 			MenuBuildUtils.addPluginMenuItems(plugin_items, pluginMenu, true,
 					true, MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
 			MenuFactory.addSeparatorMenuItem(pluginMenu);
