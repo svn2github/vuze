@@ -404,134 +404,7 @@ public class ManagerUtils {
 	{
 		return( browse( dm, null, anon, launch ));
 	}
-	
-	private static String NL = "\r\n";
 
-	private static boolean
-	handleRedirect(
-		DownloadManager				dm,
-		File						torrent_file,
-		int							file_index,
-		String						file_name,
-		TrackerWebPageResponse		response )
-	{
-		try{
-			TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( torrent_file  );
-														
-			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-			
-			UIFunctions uif = UIFunctionsManager.getUIFunctions();
-		
-			TorrentOpenOptions torrent_options = new TorrentOpenOptions( torrent_file.getAbsolutePath(), torrent, false );
-		
-			torrent_options.setTorrent( torrent );
-			
-			String[] existing_nets = dm.getDownloadState().getNetworks();
-			
-			for ( String net: AENetworkClassifier.AT_NETWORKS ){
-				
-				boolean found = false;
-				
-				for ( String x: existing_nets ){
-					
-					if ( net == x ){
-						
-						found = true;
-						
-						break;
-					}
-				}
-				
-				if ( !found ){
-					
-					torrent_options.setNetworkEnabled( net, false );
-				}
-			}
-			
-			Map<String,Object>	add_options = new HashMap<String, Object>();
-			
-			add_options.put( UIFunctions.OTO_SILENT,  true );
-			
-			if ( uif.addTorrentWithOptions( torrent_options, add_options )){
-				
-				long start = SystemTime.getMonotonousTime();
-				
-				while( true ){
-					
-					DownloadManager o_dm = gm.getDownloadManager( torrent );
-					
-					if ( o_dm != null ){
-						
-						if ( !o_dm.getDownloadState().getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
-							
-							DiskManagerFileInfo[] files = o_dm.getDiskManagerFileInfoSet().getFiles();
-							
-							DiskManagerFileInfo o_dm_file = null;
-							
-							if ( file_name != null ){
-								
-								for ( DiskManagerFileInfo file: files ){
-									
-									String path = file.getTorrentFile().getRelativePath();
-									
-									if ( path.equals( file_name )){
-										
-										o_dm_file = file;
-										
-										break;
-									}
-								}
-								
-								if ( o_dm_file == null ){
-									
-									o_dm_file = files[ 0] ;
-								}
-							}else{
-								
-								o_dm_file = files[ file_index] ;
-							}
-							
-							URL stream_url = getMediaServerContentURL( o_dm_file );
-	
-							if ( stream_url != null ){
-								
-								OutputStream os = response.getRawOutputStream();
-								
-								os.write((
-									"HTTP/1.1 302 Found" + NL +
-									"Location: " + stream_url.toExternalForm() + NL +
-									NL ).getBytes( "UTF-8" ));
-								
-								return( true );
-							}
-						}
-					}
-					
-					long now = SystemTime.getMonotonousTime();
-
-					if ( now - start > 3*60*1000 ){
-						
-						Debug.out( "Timeout waiting for download to be added" );
-						
-						return( false );
-					}
-					
-					Thread.sleep(1000);
-				}
-			}else{
-				
-				Debug.out( "Failed to add download for some reason" );
-				
-				return( false );
-			}
-			
-		}catch( Throwable e ){
-			
-			Debug.out( e );
-			
-			return( false );
-		}	
-	}
 	
 	private static Map<DownloadManager,WebPlugin>	browse_plugins = new IdentityHashMap<DownloadManager, WebPlugin>();
 	
@@ -645,7 +518,8 @@ public class ManagerUtils {
 						public void 
 						initialize(
 							PluginInterface plugin_interface )
-								throws PluginException 
+							
+							throws PluginException 
 						{
 							DiskManagerFileInfoSet file_set = dm.getDiskManagerFileInfoSet();
 							
@@ -786,7 +660,7 @@ public class ManagerUtils {
 								String[] args = query.split( "&" );
 								
 								String 	vuze_source 	= null;
-								int		vuze_file_index	= 0;
+								int		vuze_file_index	= -1;
 								String	vuze_file_name	= null;
 								
 								for ( String arg: args ){
@@ -831,7 +705,7 @@ public class ManagerUtils {
 											
 											if ( done ){
 												
-												return( handleRedirect( dm, target_file, vuze_file_index, vuze_file_name, response ));
+												return( handleRedirect( dm, target_file, vuze_file_index, vuze_file_name, request, response ));
 												
 											}else{
 												
@@ -897,7 +771,7 @@ public class ManagerUtils {
 														fos.close();
 													}
 													
-													return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, response ));
+													return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, request, response ));
 													
 												}catch( Throwable e ){
 													
@@ -925,7 +799,7 @@ public class ManagerUtils {
 											
 											FileUtil.copyFile( connection.getInputStream(), torrent_file.getAbsoluteFile());
 											
-											return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, response ));
+											return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, request, response ));
 
 										}catch( Throwable e ){
 											
@@ -1419,6 +1293,167 @@ public class ManagerUtils {
 									}
 								}
 							}
+						}
+						
+						private boolean
+						handleRedirect(
+							DownloadManager				dm,
+							File						torrent_file,
+							int							file_index,
+							String						file_name,
+							TrackerWebPageRequest		request,
+							TrackerWebPageResponse		response )
+						{
+							try{
+								TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( torrent_file  );
+																			
+								GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+								
+								UIFunctions uif = UIFunctionsManager.getUIFunctions();
+							
+								TorrentOpenOptions torrent_options = new TorrentOpenOptions( torrent_file.getAbsolutePath(), torrent, false );
+							
+								torrent_options.setTorrent( torrent );
+								
+								String[] existing_nets = dm.getDownloadState().getNetworks();
+								
+								for ( String net: AENetworkClassifier.AT_NETWORKS ){
+									
+									boolean found = false;
+									
+									for ( String x: existing_nets ){
+										
+										if ( net == x ){
+											
+											found = true;
+											
+											break;
+										}
+									}
+									
+									if ( !found ){
+										
+										torrent_options.setNetworkEnabled( net, false );
+									}
+								}
+								
+								Map<String,Object>	add_options = new HashMap<String, Object>();
+								
+								add_options.put( UIFunctions.OTO_SILENT,  true );
+								
+								if ( uif.addTorrentWithOptions( torrent_options, add_options )){
+									
+									long start = SystemTime.getMonotonousTime();
+									
+									while( true ){
+										
+										DownloadManager o_dm = gm.getDownloadManager( torrent );
+										
+										if ( o_dm != null ){
+											
+											if ( !o_dm.getDownloadState().getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
+												
+												DiskManagerFileInfo[] files = o_dm.getDiskManagerFileInfoSet().getFiles();
+												
+												DiskManagerFileInfo o_dm_file = null;
+												
+												if ( file_name != null ){
+													
+													for ( DiskManagerFileInfo file: files ){
+														
+														String path = file.getTorrentFile().getRelativePath();
+														
+														if ( path.equals( file_name )){
+															
+															o_dm_file = file;
+															
+															break;
+														}
+													}
+													
+													if ( o_dm_file == null ){
+														
+														o_dm_file = files[0] ;
+													}
+												}else{
+													
+													if ( file_index < 0 ){
+														
+														long	largest = -1;
+														
+														for ( DiskManagerFileInfo file: files ){
+														
+															if ( file.getLength() > largest ){
+																
+																o_dm_file = file;
+																
+																largest = file.getLength();
+															}
+														}
+													}else{
+																									
+														o_dm_file = files[ file_index ];
+													}
+												}
+												
+												String original_path = request.getAbsoluteURL().getPath();
+												
+												if ( original_path.endsWith( ".html" )){
+													
+													String url = browse( o_dm, file_index<0?null:o_dm_file, anon, false );
+													
+													OutputStream os = response.getRawOutputStream();
+													
+													os.write((
+														"HTTP/1.1 302 Found" + NL +
+														"Location: " + url + NL +
+														NL ).getBytes( "UTF-8" ));
+													
+													return( true );
+													
+												}else{
+													
+													URL stream_url = getMediaServerContentURL( o_dm_file );
+							
+													if ( stream_url != null ){
+														
+														OutputStream os = response.getRawOutputStream();
+														
+														os.write((
+															"HTTP/1.1 302 Found" + NL +
+															"Location: " + stream_url.toExternalForm() + NL +
+															NL ).getBytes( "UTF-8" ));
+														
+														return( true );
+													}
+												}
+											}
+										}
+										
+										long now = SystemTime.getMonotonousTime();
+
+										if ( now - start > 3*60*1000 ){
+											
+											Debug.out( "Timeout waiting for download to be added" );
+											
+											return( false );
+										}
+										
+										Thread.sleep(1000);
+									}
+								}else{
+									
+									Debug.out( "Failed to add download for some reason" );
+									
+									return( false );
+								}
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+								
+								return( false );
+							}	
 						}
 						
 						public void 
