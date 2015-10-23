@@ -510,12 +510,17 @@ MagnetConnection2
 	    {
 	    	synchronized( buffers ){
 	    		
+	    		if ( available > 0 ){
+	    			
+	    			return( available );
+	    		}
+	    		
 	    		if ( closed ){
 	    			
 	    			throw( new IOException( "Connection closed" ));
 	    		}
 	    		
-	    		return( available );
+	    		return( 0 );
 	    	}
 	    }
 	    

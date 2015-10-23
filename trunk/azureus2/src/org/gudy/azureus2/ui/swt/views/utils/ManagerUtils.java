@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.views.utils;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -36,11 +37,15 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
@@ -69,6 +74,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -399,6 +405,134 @@ public class ManagerUtils {
 		return( browse( dm, null, anon, launch ));
 	}
 	
+	private static String NL = "\r\n";
+
+	private static boolean
+	handleRedirect(
+		DownloadManager				dm,
+		File						torrent_file,
+		int							file_index,
+		String						file_name,
+		TrackerWebPageResponse		response )
+	{
+		try{
+			TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( torrent_file  );
+														
+			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			
+			UIFunctions uif = UIFunctionsManager.getUIFunctions();
+		
+			TorrentOpenOptions torrent_options = new TorrentOpenOptions( torrent_file.getAbsolutePath(), torrent, false );
+		
+			torrent_options.setTorrent( torrent );
+			
+			String[] existing_nets = dm.getDownloadState().getNetworks();
+			
+			for ( String net: AENetworkClassifier.AT_NETWORKS ){
+				
+				boolean found = false;
+				
+				for ( String x: existing_nets ){
+					
+					if ( net == x ){
+						
+						found = true;
+						
+						break;
+					}
+				}
+				
+				if ( !found ){
+					
+					torrent_options.setNetworkEnabled( net, false );
+				}
+			}
+			
+			Map<String,Object>	add_options = new HashMap<String, Object>();
+			
+			add_options.put( UIFunctions.OTO_SILENT,  true );
+			
+			if ( uif.addTorrentWithOptions( torrent_options, add_options )){
+				
+				long start = SystemTime.getMonotonousTime();
+				
+				while( true ){
+					
+					DownloadManager o_dm = gm.getDownloadManager( torrent );
+					
+					if ( o_dm != null ){
+						
+						if ( !o_dm.getDownloadState().getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
+							
+							DiskManagerFileInfo[] files = o_dm.getDiskManagerFileInfoSet().getFiles();
+							
+							DiskManagerFileInfo o_dm_file = null;
+							
+							if ( file_name != null ){
+								
+								for ( DiskManagerFileInfo file: files ){
+									
+									String path = file.getTorrentFile().getRelativePath();
+									
+									if ( path.equals( file_name )){
+										
+										o_dm_file = file;
+										
+										break;
+									}
+								}
+								
+								if ( o_dm_file == null ){
+									
+									o_dm_file = files[ 0] ;
+								}
+							}else{
+								
+								o_dm_file = files[ file_index] ;
+							}
+							
+							URL stream_url = getMediaServerContentURL( o_dm_file );
+	
+							if ( stream_url != null ){
+								
+								OutputStream os = response.getRawOutputStream();
+								
+								os.write((
+									"HTTP/1.1 302 Found" + NL +
+									"Location: " + stream_url.toExternalForm() + NL +
+									NL ).getBytes( "UTF-8" ));
+								
+								return( true );
+							}
+						}
+					}
+					
+					long now = SystemTime.getMonotonousTime();
+
+					if ( now - start > 3*60*1000 ){
+						
+						Debug.out( "Timeout waiting for download to be added" );
+						
+						return( false );
+					}
+					
+					Thread.sleep(1000);
+				}
+			}else{
+				
+				Debug.out( "Failed to add download for some reason" );
+				
+				return( false );
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( false );
+		}	
+	}
+	
 	private static Map<DownloadManager,WebPlugin>	browse_plugins = new IdentityHashMap<DownloadManager, WebPlugin>();
 	
 	public static String 
@@ -645,6 +779,163 @@ public class ManagerUtils {
 						{
 							URL absolute_url = request.getAbsoluteURL();
 							
+							String query = absolute_url.getQuery();
+							
+							if ( query != null ){
+								
+								String[] args = query.split( "&" );
+								
+								String 	vuze_source 	= null;
+								int		vuze_file_index	= 0;
+								String	vuze_file_name	= null;
+								
+								for ( String arg: args ){
+									
+									String[] bits= arg.split( "=" );
+									
+									String lhs = bits[0];
+									String rhs = UrlUtils.decode( bits[1] );
+									
+									if ( lhs.equals( "vuze_source" )){
+										
+										if ( rhs.endsWith( ".torrent" ) || rhs.startsWith( "magnet" )){
+											
+											vuze_source = rhs;
+										}
+									}else if ( lhs.equals( "vuze_file_index" )){
+										
+										vuze_file_index = Integer.parseInt( rhs );
+										
+									}else if ( lhs.equals( "vuze_file_name" )){
+										
+										vuze_file_name = rhs;
+									}
+								}
+								
+								if ( vuze_source != null ){
+									
+									if ( vuze_source.endsWith( ".torrent" )){
+										
+										Object	file_node = file_map.get( vuze_source );
+	
+										if ( file_node instanceof DiskManagerFileInfo ){
+											
+											DiskManagerFileInfo dm_file = (DiskManagerFileInfo)file_node;
+											
+											long	file_size = dm_file.getLength();
+											
+											File target_file = dm_file.getFile( true );
+											
+											boolean done = 	dm_file.getDownloaded() == file_size && 
+															target_file.length() == file_size;						
+											
+											if ( done ){
+												
+												return( handleRedirect( dm, target_file, vuze_file_index, vuze_file_name, response ));
+												
+											}else{
+												
+												try{
+													File torrent_file = AETemporaryFileHandler.createTempFile();
+													
+													final FileOutputStream fos = new FileOutputStream( torrent_file );
+													
+													try{
+														DiskManagerChannel chan = PluginCoreUtils.wrap( dm_file ).createChannel();
+														
+														final DiskManagerRequest req = chan.createRequest();												
+														
+														req.setOffset( 0 );
+														req.setLength( file_size );
+																								
+														req.addListener(
+															new DiskManagerListener()
+															{
+																public void
+																eventOccurred(
+																	DiskManagerEvent	event )
+																{
+																	int	type = event.getType();
+																	
+																	if ( type ==  DiskManagerEvent.EVENT_TYPE_BLOCKED ){
+																	
+																		return;
+																		
+																	}else if ( type == DiskManagerEvent.EVENT_TYPE_FAILED ){
+																		
+																		throw( new RuntimeException( event.getFailure()));
+																	}
+																	
+																	PooledByteBuffer buffer = event.getBuffer();
+																	
+																	if ( buffer == null ){
+																		
+																		throw( new RuntimeException( "eh?" ));
+																	}
+	
+																	try{
+																			
+																		byte[] data = buffer.toByteArray();
+																		
+																		fos.write( data );
+																		
+																	}catch( IOException e ){
+																		
+																		throw( new RuntimeException( "Failed to write to " + file, e ));
+																		
+																	}finally{
+																		
+																		buffer.returnToPool();
+																	}
+																}
+															});
+													
+														req.run();
+														
+													}finally{
+														
+														fos.close();
+													}
+													
+													return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, response ));
+													
+												}catch( Throwable e ){
+													
+													Debug.out( e );
+													
+													return( false );
+												}
+
+											}
+											
+										}else{
+											
+											return( false );
+										}
+									}else{
+										
+										URL magnet = new URL( vuze_source );
+										
+										File torrent_file = AETemporaryFileHandler.createTempFile();
+										
+										try{
+											URLConnection connection = magnet.openConnection();
+											
+											connection.connect();
+											
+											FileUtil.copyFile( connection.getInputStream(), torrent_file.getAbsoluteFile());
+											
+											return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, response ));
+
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
+												
+									}
+								}
+							}
+														
 							String path = absolute_url.getPath();
 							
 							if ( path.equals( "/" )){
@@ -711,9 +1002,7 @@ public class ManagerUtils {
 								response.setContentType( "text/html" );
 								
 								OutputStream os = response.getOutputStream();
-																
-								String NL = "\r\n";
-								
+																								
 								String title = XUXmlWriter.escapeXML( UrlUtils.decode( request_url ));
 								
 								if ( title.length() == 0 ){

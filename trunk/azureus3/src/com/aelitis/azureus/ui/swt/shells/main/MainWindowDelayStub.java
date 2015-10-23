@@ -901,7 +901,15 @@ MainWindowDelayStub
 		{
 			return((Boolean)fixup( new Fixup4(){public Object fix( UIFunctionsSWT uif){ return( uif.addTorrentWithOptions( force, torrentOptions )); }}));
 		}
-				
+			
+		public boolean 
+		addTorrentWithOptions(
+			final TorrentOpenOptions 	torrentOptions,
+			final Map<String,Object>	options )
+		{
+			return((Boolean)fixup( new Fixup4(){public Object fix( UIFunctionsSWT uif){ return( uif.addTorrentWithOptions( torrentOptions, options )); }}));
+		}
+		
 		public void 
 		openTorrentOpenOptions(
 			final Shell shell, 

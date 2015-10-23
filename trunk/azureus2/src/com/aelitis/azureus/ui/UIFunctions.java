@@ -17,6 +17,8 @@
 package com.aelitis.azureus.ui;
 
 
+import java.util.Map;
+
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
@@ -200,6 +202,9 @@ public interface UIFunctions
 	public static final String 	OTO_FORCE_OPEN					= "forceOpen";			// Boolean
 	public static final boolean OTO_FORCE_OPEN_DEFAULT			= false;
 	
+	public static final String 	OTO_SILENT						= "silent";				// Boolean
+	public static final boolean OTO_SILENT_DEFAULT				= false;
+	
 	public static final String 	OTO_HIDE_ERRORS					= "hideErrors";			// Boolean
 	public static final boolean OTO_HIDE_ERRORS_DEFAULT			= false;
 	
@@ -210,6 +215,8 @@ public interface UIFunctions
 	 * @return true if torrent was added
 	 */
 	public boolean addTorrentWithOptions(boolean force, TorrentOpenOptions torrentOptions);
+
+	public boolean addTorrentWithOptions(TorrentOpenOptions torrentOptions, Map<String,Object> addOptions );
 
 	public void showErrorMessage(String keyPrefix, String details, String[] textParams); 
 	
