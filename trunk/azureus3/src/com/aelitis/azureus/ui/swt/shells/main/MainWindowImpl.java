@@ -437,6 +437,12 @@ public class MainWindowImpl
 				dmState.setDisplayName(title);
 			}
 
+			int pfi = PlatformTorrentUtils.getContentPrimaryFileIndex(torrent);
+			
+			if ( pfi >= 0 ){
+				dmState.setIntAttribute( DownloadManagerState.AT_PRIMARY_FILE_IDX, pfi );
+			}
+			
 			if (ConfigurationChecker.isNewVersion() && dm.getAssumedComplete()) {
 				String lastVersion = COConfigurationManager.getStringParameter("Last Version");
 				if (org.gudy.azureus2.core3.util.Constants.compareVersions(lastVersion,

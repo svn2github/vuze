@@ -591,6 +591,9 @@ public class PlatformTorrentUtils
 		return (int)getContentMapLong(torrent, TOR_AZ_PROP_PRIMARY_FILE, -1 );
 	}
 	
+	public static void setContentPrimaryFileIndex(TOTorrent torrent, int index ) {
+		setContentMapLong(torrent, TOR_AZ_PROP_PRIMARY_FILE, index );
+	}
 	
 	private static long getContentVideoWidth(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_VIDEO_WIDTH, -1);
