@@ -855,6 +855,19 @@ public class ManagerUtils {
 									
 							if ( file_node instanceof Set ){
 									
+								if ( relative_url.equals( "/favicon.ico" )){
+									
+									try{
+										InputStream stream = getClass().getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/icons/favicon.ico" );
+										
+										response.useStream( "image/x-icon", stream);
+										
+										return( true );
+										
+									}catch( Throwable e ){
+									}
+								}
+								
 								Set<Object>		kids = (Set<Object>)file_node;
 								
 								String request_url = request.getURL();

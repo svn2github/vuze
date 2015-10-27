@@ -521,6 +521,40 @@ DownloadManagerImpl
 		
 		if ( dl == null ){
 			
+				// timing issue?
+			
+			dl = pending_dls.get( dm );
+			
+			if ( dl != null ){
+				
+				long	 now = SystemTime.getMonotonousTime();
+				
+					// give the dl a chance to complete initialisation and appear in the right place...
+				
+				while( true ){
+					
+					DownloadImpl dl2 = download_map.get(dm);
+					
+					if ( dl2 != null ){
+						
+						return( dl2 );
+					}
+					
+					if ( SystemTime.getMonotonousTime() - now > 5000 ){
+						
+						break;
+					}
+					
+					try{
+						Thread.sleep(100);
+						
+					}catch( Throwable e ){
+					}
+				}
+				
+				return( dl );
+			}
+			
 			throw( new DownloadException("DownloadManager::getDownload: download not found"));
 		}
 		
