@@ -272,6 +272,21 @@ public class PeersItem extends CoreTableColumnSWT implements
 							+ MessageText.getString("PeerColumn.activationCount",
 									new String[] { "" + activationCount });
 				}
+				
+				int[] i2p_info = (int[])dm.getUserData( DHTTrackerPlugin.DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY );
+				
+				if ( i2p_info != null ){
+				
+					int totalI2PPeers = i2p_info[1];
+					
+					if ( totalI2PPeers > 0 ){
+						
+						sToolTip += "\n" + 
+								MessageText.getString(
+									"TableColumn.header.peers.i2p",
+									new String[]{ String.valueOf( totalI2PPeers )});
+					}
+				}
 				cell.setToolTip(sToolTip);
 			}else{
 				cell.setToolTip("");
