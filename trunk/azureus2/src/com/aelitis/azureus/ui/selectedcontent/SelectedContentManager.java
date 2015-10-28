@@ -204,7 +204,11 @@ public class SelectedContentManager
 	}
 	
 	private static Object selectedContentToObject(ISelectedContent content) {
-		Download dl = PluginCoreUtils.wrap(content.getDownloadManager());
+		DownloadManager dm = content.getDownloadManager();
+		if ( dm == null ){
+			return( null );
+		}
+		Download dl = PluginCoreUtils.wrap( dm );
 		if (dl == null) {
 			return null;
 		}
