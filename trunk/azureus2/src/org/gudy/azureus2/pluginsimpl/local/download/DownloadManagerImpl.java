@@ -523,7 +523,22 @@ DownloadManagerImpl
 			
 				// timing issue?
 			
-			dl = pending_dls.get( dm );
+			try{
+				listeners_mon.enter();
+				
+				dl = download_map.get(dm);
+				
+				if ( dl != null ){
+					
+					return( dl );
+				}
+				
+				dl = pending_dls.get( dm );
+			
+			}finally{
+				
+				listeners_mon.exit();
+			}
 			
 			if ( dl != null ){
 				
