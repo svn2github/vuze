@@ -1057,9 +1057,10 @@ TagPropertyConstraintHandler
 	private static final int FT_CONTAINS	= 9;
 	private static final int FT_MATCHES		= 10;
 	
-	private static final int FT_HAS_NET		= 11;
-	private static final int FT_IS_COMPLETE	= 12;
-	private static final int FT_CAN_ARCHIVE	= 13;
+	private static final int FT_HAS_NET			= 11;
+	private static final int FT_IS_COMPLETE		= 12;
+	private static final int FT_CAN_ARCHIVE		= 13;
+	private static final int FT_IS_FORCE_START	= 14;
 
 	
 	private class
@@ -1106,6 +1107,12 @@ TagPropertyConstraintHandler
 			}else if ( func_name.equals( "isPrivate" )){
 
 				fn_type = FT_IS_PRIVATE;
+
+				params_ok = params.length == 0;
+				
+			}else if ( func_name.equals( "isForceStart" )){
+
+				fn_type = FT_IS_FORCE_START;
 
 				params_ok = params.length == 0;
 				
@@ -1229,6 +1236,11 @@ TagPropertyConstraintHandler
 				
 					return( t != null && t.getPrivate());
 				}
+				case FT_IS_FORCE_START:{
+					
+					return( dm.isForceStart());
+				}
+
 				case FT_IS_COMPLETE:{
 					
 					return( dm.isDownloadComplete( false ));

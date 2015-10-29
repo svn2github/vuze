@@ -26,10 +26,12 @@ public interface
 TagFeatureExecOnAssign
 	extends TagFeature
 {
-	public static final int ACTION_NONE		= 0x0000;
-	public static final int ACTION_DESTROY	= 0x0001;
-	public static final int ACTION_START	= 0x0002;
-	public static final int ACTION_STOP		= 0x0004;
+	public static final int ACTION_NONE				= 0x0000;
+	public static final int ACTION_DESTROY			= 0x0001;
+	public static final int ACTION_START			= 0x0002;
+	public static final int ACTION_STOP				= 0x0004;
+	public static final int ACTION_FORCE_START		= 0x0008;
+	public static final int ACTION_NOT_FORCE_START	= 0x0010;
 	
 	public int
 	getSupportedActions();

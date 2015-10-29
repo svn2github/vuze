@@ -628,11 +628,17 @@ public class TagUIUtils
 				eoa_item.setMenu( eoa_menu );
 				
 				int[]	action_ids = 
-					{ 	TagFeatureExecOnAssign.ACTION_DESTROY, TagFeatureExecOnAssign.ACTION_START,
+					{ 	TagFeatureExecOnAssign.ACTION_DESTROY, 
+						TagFeatureExecOnAssign.ACTION_START,
+						TagFeatureExecOnAssign.ACTION_FORCE_START,
+						TagFeatureExecOnAssign.ACTION_NOT_FORCE_START,
 						TagFeatureExecOnAssign.ACTION_STOP };
 				
 				String[] action_keys = 
-					{ 	"v3.MainWindow.button.delete", "v3.MainWindow.button.start", 
+					{ 	"v3.MainWindow.button.delete", 
+						"v3.MainWindow.button.start", 
+						"v3.MainWindow.button.forcestart",
+						"v3.MainWindow.button.notforcestart",
 						"v3.MainWindow.button.stop" };
 
 				for ( int i=0;i<action_ids.length;i++ ){				

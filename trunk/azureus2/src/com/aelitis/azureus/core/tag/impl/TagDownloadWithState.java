@@ -413,6 +413,7 @@ TagDownloadWithState
 									}
 								});
 						}
+
 					}else if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_STOP )){
 						
 						int	dm_state = dm.getState();
@@ -432,6 +433,32 @@ TagDownloadWithState
 								});
 						}
 					}
+					
+					if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_FORCE_START )){
+					
+						rs_async.dispatch(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									dm.setForceStart( true);
+								}
+							});
+						
+					}else if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_NOT_FORCE_START )){
+						
+						rs_async.dispatch(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									dm.setForceStart( false );
+								}
+							});
+					}
+					
 				}
 			}
 		}else{
@@ -1093,7 +1120,10 @@ TagDownloadWithState
 	{
 		if ( getTagType().getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
 			
-			return( TagFeatureExecOnAssign.ACTION_START | TagFeatureExecOnAssign.ACTION_STOP );
+			return( TagFeatureExecOnAssign.ACTION_START | 
+					TagFeatureExecOnAssign.ACTION_FORCE_START | 
+					TagFeatureExecOnAssign.ACTION_NOT_FORCE_START | 
+					TagFeatureExecOnAssign.ACTION_STOP );
 			
 		}else{
 			
