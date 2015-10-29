@@ -23,17 +23,10 @@
 package org.gudy.azureus2.pluginsimpl.remote.torrent;
 
 import java.net.*;
-
-/**
- * @author parg
- *
- */
-
 import java.util.Map;
 import java.io.File;
 
 import org.gudy.azureus2.plugins.torrent.*;
-
 import org.gudy.azureus2.pluginsimpl.remote.*;
 
 
@@ -398,4 +391,9 @@ RPTorrent
 		return( false );
 	}
 	public boolean isSimpleTorrent() {notSupported(); return false;} 
+	
+	public Torrent getClone() throws TorrentException {
+		notSupported();
+		return null;
+	}
 }

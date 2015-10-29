@@ -278,4 +278,9 @@ Torrent
 	 * @since 3.0.4.3
 	 */
 	public boolean isSimpleTorrent();
+	
+	public Torrent
+	getClone()
+	
+		throws TorrentException;
 }

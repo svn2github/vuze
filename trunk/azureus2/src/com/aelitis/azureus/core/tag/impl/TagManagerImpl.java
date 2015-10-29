@@ -173,6 +173,10 @@ TagManagerImpl
 										
 										Torrent torrent = download.getTorrent();
 										
+										torrent = torrent.getClone();
+										
+										torrent.removeAdditionalProperties();
+										
 										response.getOutputStream().write( torrent.writeToBEncodedData());
 										
 										response.setContentType( "application/x-bittorrent" );

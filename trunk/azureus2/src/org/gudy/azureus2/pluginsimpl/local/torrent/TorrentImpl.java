@@ -23,12 +23,6 @@
 package org.gudy.azureus2.pluginsimpl.local.torrent;
 
 import java.net.*;
-
-/**
- * @author parg
- *
- */
-
 import java.util.Map;
 import java.io.File;
 
@@ -570,4 +564,18 @@ TorrentImpl
 	}
 	
 	public boolean isSimpleTorrent() {return torrent.isSimpleTorrent();}
+	
+	public Torrent 
+	getClone() 
+			
+		throws TorrentException 
+	{
+		try{
+			return( new TorrentImpl( TOTorrentFactory.deserialiseFromMap( torrent.serialiseToMap())));
+			
+		}catch( Throwable e ){
+			
+			throw( new TorrentException("Cloning fails", e ));
+		}
+	}
 }
