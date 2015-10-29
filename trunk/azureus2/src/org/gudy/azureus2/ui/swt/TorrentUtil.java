@@ -77,6 +77,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.speedmanager.SpeedLimitHandler;
+import com.aelitis.azureus.core.util.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -2437,6 +2438,47 @@ public class TorrentUtil
 
 	}
 
+	public static void promptUserForDescription(final DownloadManager[] dms) {
+		if (dms.length == 0) {
+			return;
+		}
+		DownloadManager dm = dms[0];
+
+		String desc = null;
+		
+		try{
+			desc = PlatformTorrentUtils.getContentDescription( dm.getTorrent());
+			
+			if ( desc == null ){
+				desc = "";
+			}
+		}catch( Throwable e ){
+			
+		}
+		String msg_key_prefix = "MyTorrentsView.menu.edit_description.enter.";
+		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow();
+		text_entry.setTitle(msg_key_prefix + "title");
+		text_entry.setMessage(msg_key_prefix + "message");
+		text_entry.setPreenteredText(desc, false);
+		text_entry.setMultiLine(true);
+		text_entry.setWidthHint( 500 );
+		text_entry.setLineHeight( 16 );
+		text_entry.prompt(new UIInputReceiverListener() {
+			public void UIInputReceiverClosed(UIInputReceiver text_entry) {
+				if (text_entry.hasSubmittedInput()) {
+					String value = text_entry.getSubmittedInput();
+					final String value_to_set = (value.length() == 0) ? null : value;
+					ListenerDMTask task = new ListenerDMTask(dms) {
+						public void run(DownloadManager dm) {
+							PlatformTorrentUtils.setContentDescription( dm.getTorrent(),value_to_set);
+						}
+					};
+					task.go();
+				}
+			}
+		});
+
+	}
 	private static DownloadManager[] toDMS(Object[] objects) {
 		int count = 0;
 		DownloadManager[] result = new DownloadManager[objects.length];
