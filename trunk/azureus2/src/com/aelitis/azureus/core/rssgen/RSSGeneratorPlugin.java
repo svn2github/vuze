@@ -22,6 +22,7 @@ package com.aelitis.azureus.core.rssgen;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
@@ -233,6 +234,19 @@ RSSGeneratorPlugin
 			url = url.substring( 1 );
 		}
 	
+		if ( url.equals( "favicon.ico" )){
+			
+			try{
+				InputStream stream = getClass().getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/icons/favicon.ico" );
+				
+				response.useStream( "image/x-icon", stream);
+				
+				return( true );
+				
+			}catch( Throwable e ){
+			}
+		}
+		
 		if ( url.length() == 0 || url.charAt(0) == '?' ){
 			
 			response.setContentType( "text/html; charset=UTF-8" );
