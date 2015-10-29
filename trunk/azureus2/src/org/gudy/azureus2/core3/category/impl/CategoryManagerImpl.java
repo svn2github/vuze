@@ -542,6 +542,8 @@ CategoryManagerImpl
 				COConfigurationManager.setParameter( config_key + ".last_mod", last_modified );
 			}
 			
+			response.setContentType( "application/xml; charset=UTF-8" );
+
 			pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
 			
 			pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );

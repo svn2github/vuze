@@ -48,9 +48,6 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
-import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.tag.TagManager;
-import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;

@@ -78,6 +78,7 @@ import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.IdentityHashSet;
+import com.aelitis.azureus.core.util.PlatformTorrentUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 public class 
@@ -178,6 +179,53 @@ TagManagerImpl
 										
 										return( true );
 										
+									}catch( Throwable e ){
+										
+									}
+								}
+							}
+						}
+						
+						response.setReplyStatus( 404 );
+						
+						return( true );
+						
+					}else if ( path.endsWith( "GetThumbnail" )){
+						
+						String[] bits = args.split( "&" );
+						
+						for ( String bit: bits ){
+							
+							String[] temp = bit.split( "=" );
+							
+							if ( temp.length == 2 ){
+								
+								if ( temp[0].equals( "hash" )){
+									
+									try{
+										Download download = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload( Base32.decode( temp[1] ));
+										
+										DownloadManager	core_download = PluginCoreUtils.unwrap( download );
+										
+										TOTorrent torrent  = core_download.getTorrent();
+										
+										byte[] thumb = PlatformTorrentUtils.getContentThumbnail( torrent );
+										
+										if ( thumb != null ){
+											
+											response.getOutputStream().write( thumb );
+										
+											String thumb_type = PlatformTorrentUtils.getContentThumbnailType( torrent );
+											
+											if ( thumb_type == null || thumb_type.length() == 0 ){
+												
+												thumb_type = "image/jpeg";
+											}
+											
+											response.setContentType( thumb_type );
+										
+											return( true );
+										}
 									}catch( Throwable e ){
 										
 									}
@@ -381,6 +429,7 @@ TagManagerImpl
 						}
 						
 						pw.println( "</BODY></HTML>" );
+						
 					}else{
 						
 						String	config_key = "tag.rss.config." + tt_id + "." + t_id;
@@ -409,9 +458,11 @@ TagManagerImpl
 							COConfigurationManager.setParameter( config_key + ".last_mod", last_modified );
 						}
 						
+						response.setContentType( "application/xml; charset=UTF-8" );
+						
 						pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
 						
-						pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );
+						pw.println( "<rss version=\"2.0\" xmlns:media=\"http://search.yahoo.com/mrss/\" xmlns:vuze=\"http://www.vuze.com\">" );
 						
 						pw.println( "<channel>" );
 						
@@ -442,7 +493,8 @@ TagManagerImpl
 
 							DownloadManager	core_download = PluginCoreUtils.unwrap( download );
 							
-							Torrent torrent = download.getTorrent();
+							Torrent 	torrent 	= download.getTorrent();
+							TOTorrent 	to_torrent 	= core_download.getTorrent();
 							
 							byte[] hash = torrent.getHash();
 							
@@ -452,6 +504,13 @@ TagManagerImpl
 							
 							pw.println( "<title>" + escape( download.getName()) + "</title>" );
 							
+							String desc  = PlatformTorrentUtils.getContentDescription( to_torrent );
+
+							if ( desc != null && desc.length() > 0 ){
+								
+								pw.println( "<description>" + escape( desc) + "</description>" );
+
+							}
 							pw.println( "<guid>" + hash_str + "</guid>" );
 							
 							String magnet_uri = UrlUtils.getMagnetURI( download );
@@ -546,6 +605,23 @@ TagManagerImpl
 								
 								pw.println(	"<vuze:seeds>" + scrape.getSeedCount() + "</vuze:seeds>" );
 								pw.println(	"<vuze:peers>" + scrape.getNonSeedCount() + "</vuze:peers>" );
+							}
+							
+							byte[] thumb = PlatformTorrentUtils.getContentThumbnail( to_torrent );
+							
+							if ( thumb != null ){
+								
+								String host = (String)request.getHeaders().get( "host" );
+								
+								if ( host != null ){
+									
+										// don't need to check network here as we are replying with the network
+										// used to contact us
+									
+									String thumb_url = url.getProtocol() + "://" + host + "/" + RSS_PROVIDER + "/GetThumbnail?hash=" + Base32.encode( torrent.getHash());
+									
+									pw.println( "<media:thumbnail url=\"" + thumb_url + "\"/>" );
+								}
 							}
 							
 							pw.println( "</item>" );
