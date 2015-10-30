@@ -37,6 +37,8 @@ public class PlatformTorrentUtils
 	
 	private static final String TOR_AZ_PROP_CVERSION = "_Version_";
 
+	private static final String TOR_AZ_PROP_TITLE = "Title";
+
 	private static final String TOR_AZ_PROP_DESCRIPTION = "Description";
 
 	private static final String TOR_AZ_PROP_PRIMARY_FILE = "Primary File Index";
@@ -233,6 +235,10 @@ public class PlatformTorrentUtils
 		Map mapContent = getContentMap(torrent);
 		Long v = (Long)mapContent.get( TOR_AZ_PROP_CVERSION );
 		return(v==null?0:v.intValue());
+	}
+	
+	public static void setContentTitle(TOTorrent torrent, String title) {
+		setContentMapString(torrent, TOR_AZ_PROP_TITLE, title);
 	}
 	
 	public static byte[] getContentThumbnail(TOTorrent torrent) {

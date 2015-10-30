@@ -27,7 +27,6 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -70,6 +69,8 @@ import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
 import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+
+import com.aelitis.azureus.core.util.PlatformTorrentUtils;
 
 public class 
 MagnetPluginMDDownloader 
@@ -270,23 +271,28 @@ MagnetPluginMDDownloader
 			
 			String	name = "magnet:" + Base32.encode( hash );
 			
+			Map<String,String>	magnet_args = new HashMap<String, String>();
+			
 			for ( String bit: bits ){
 				
 				String[] x = bit.split( "=" );
 				
 				if ( x.length == 2 ){
 					
-					String 	lhs = x[0].toLowerCase();
+					String lhs = x[0].toLowerCase();
+					String rhs =  UrlUtils.decode( x[1] );
+					
+					magnet_args.put( lhs, rhs );
 					
 					if ( lhs.equals( "tr" )){
 						
-						String tracker = UrlUtils.decode( x[1] );
+						String tracker = rhs;
 						
 						trackers.add( tracker );
 
 					}else if ( lhs.equals( "dn" )){
 						
-						name = UrlUtils.decode( x[1] );
+						name = rhs;
 					}
 				}
 			}
@@ -852,7 +858,24 @@ MagnetPluginMDDownloader
 					
 					TorrentUtils.setPeerCache( torrent, peer_cache );
 				}
-								
+				
+				try{
+					String dn		= magnet_args.get( "dn" );
+					
+					if ( dn != null ){
+						
+						PlatformTorrentUtils.setContentTitle( torrent, dn );
+					}
+					
+					String pfi_str = magnet_args.get( "pfi" );
+				
+					if ( pfi_str != null ){
+						
+						PlatformTorrentUtils.setContentPrimaryFileIndex( torrent, Integer.parseInt( pfi_str ));
+					}
+				}catch( Throwable e ){
+				}
+				
 				listener.complete( torrent, peer_networks );
 				
 			}else{
