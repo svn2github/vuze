@@ -34,6 +34,8 @@ public class PlatformTorrentUtils
 		// duplicate of some azureus3 project PlatformTorrentUtils features needed in azureus2 ;(
 	
 	private static final String TOR_AZ_PROP_MAP = "Content";
+	
+	private static final String TOR_AZ_PROP_CVERSION = "_Version_";
 
 	private static final String TOR_AZ_PROP_DESCRIPTION = "Description";
 
@@ -126,6 +128,7 @@ public class PlatformTorrentUtils
 
 		Map mapContent = getContentMap(torrent);
 		mapContent.put(key, value);
+		incVersion(mapContent);
 	}
 
 	private static long getContentMapLong(TOTorrent torrent, String key, long def) {
@@ -175,6 +178,7 @@ public class PlatformTorrentUtils
 
 		Map mapContent = getContentMap(torrent);
 		mapContent.put(key, new Long(value));
+		incVersion(mapContent);
 	}
 
 	public static void setContentMapMap(TOTorrent torrent, String key,
@@ -185,6 +189,7 @@ public class PlatformTorrentUtils
 
 		Map mapContent = getContentMap(torrent);
 		mapContent.put(key, value);
+		incVersion(mapContent);
 	}
 			
 	private static void putOrRemove(Map map, String key, Object obj) {
@@ -216,6 +221,20 @@ public class PlatformTorrentUtils
 		}
 	}
 
+	private static void
+	incVersion(
+		Map mapContent )
+	{
+		Long v = (Long)mapContent.get( TOR_AZ_PROP_CVERSION );
+		mapContent.put( TOR_AZ_PROP_CVERSION, v==null?0:v+1 );
+	}
+	
+	public static int getContentVersion(TOTorrent torrent) {
+		Map mapContent = getContentMap(torrent);
+		Long v = (Long)mapContent.get( TOR_AZ_PROP_CVERSION );
+		return(v==null?0:v.intValue());
+	}
+	
 	public static byte[] getContentThumbnail(TOTorrent torrent) {
 		Map mapContent = getContentMap(torrent);
 		Object obj = mapContent.get(TOR_AZ_PROP_THUMBNAIL);
@@ -233,7 +252,6 @@ public class PlatformTorrentUtils
 	
 	public static void setContentDescription(TOTorrent torrent, String desc) {
 		setContentMapString(torrent, TOR_AZ_PROP_DESCRIPTION,desc);
-		
 		writeTorrentIfExists(torrent);
 	}
 	
@@ -250,7 +268,7 @@ public class PlatformTorrentUtils
 	public static void setContentThumbnail(TOTorrent torrent, byte[] thumbnail) {
 		Map mapContent = getContentMap(torrent);
 		putOrRemove(mapContent, TOR_AZ_PROP_THUMBNAIL, thumbnail);
-
+		incVersion(mapContent);
 		writeTorrentIfExists(torrent);
 	}
 

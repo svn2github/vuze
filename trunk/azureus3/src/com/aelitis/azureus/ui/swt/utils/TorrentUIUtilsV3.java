@@ -341,9 +341,11 @@ public class TorrentUIUtilsV3
 			return null;
 		}
 
+		int thumbnailVersion = com.aelitis.azureus.core.util.PlatformTorrentUtils.getContentVersion(torrent);
+
 			// add torrent size here to differentiate meta-data downloads from actuals
 		
-		final String id = "Thumbnail." + hash + "." + torrent.getSize();
+		final String id = "Thumbnail." + hash + "." + torrent.getSize() + "." + thumbnailVersion;
 
 		Image image = imageLoaderThumb.imageAdded(id) ? imageLoaderThumb.getImage(id) : null;
 		//System.out.println("image = " + image);
