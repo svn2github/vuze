@@ -36,6 +36,8 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.AbstractUISWTInputReceiver;
 public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	
 	private Display display;
+	private Shell	parent_shell;
+	
 	private Shell shell;
 	private int textLimit;
 	private Combo text_entry_combo;
@@ -76,7 +78,14 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	private void promptForInput0() {
 		//shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		// link to active shell, so that when it closes, the input box closes (good for config windows)
-		Shell parent = Display.getDefault().getActiveShell();
+		
+		Shell parent = parent_shell;
+		
+		if ( parent_shell == null ){
+			
+			parent = Display.getDefault().getActiveShell();
+		}
+		
 		if (parent == null) {
 			parent = Utils.findAnyShell();
 		}
@@ -360,5 +369,12 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 				}
 			}
 		});
+  }
+  
+  public void
+  setParentShell(
+	Shell		shell )
+  {
+	  parent_shell = shell;
   }
 }

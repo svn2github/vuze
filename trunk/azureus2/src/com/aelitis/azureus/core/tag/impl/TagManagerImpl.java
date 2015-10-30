@@ -512,9 +512,13 @@ TagManagerImpl
 
 							if ( desc != null && desc.length() > 0 ){
 								
+								desc = desc.replaceAll( "\r\n", "<br>" );
+								desc = desc.replaceAll( "\n", "<br>" );
+								desc = desc.replaceAll( "\t", "    " );
+								
 								pw.println( "<description>" + escape( desc) + "</description>" );
-
 							}
+							
 							pw.println( "<guid>" + hash_str + "</guid>" );
 							
 							String magnet_uri = UrlUtils.getMagnetURI( download );

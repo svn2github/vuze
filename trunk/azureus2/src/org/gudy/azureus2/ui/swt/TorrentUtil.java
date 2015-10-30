@@ -1934,6 +1934,39 @@ public class TorrentUtil
 		});
 		itemTorrentDL.setEnabled(dms.length == 1);
 
+			// set source
+			
+		final MenuItem itemTorrentSource = new MenuItem(menuTracker, SWT.PUSH);
+		Messages.setLanguageText(itemTorrentSource, "MyTorrentsView.menu.torrent.set.source");
+		itemTorrentSource.addListener(SWT.Selection, new Listener() {
+			
+			public void handleEvent(Event event) {
+				final TOTorrent torrent = dms[0].getTorrent();
+				if ( torrent == null ){
+					return;
+				}
+				String msg_key_prefix = "MyTorrentsView.menu.edit_source.";
+				SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow();
+				
+				text_entry.setParentShell( menuTracker.getShell());
+				text_entry.setTitle(msg_key_prefix + "title");
+				text_entry.setMessage(msg_key_prefix + "message");
+				text_entry.setPreenteredText(TorrentUtils.getObtainedFrom( torrent ), false);
+				text_entry.setWidthHint( 500 );
+				text_entry.prompt(new UIInputReceiverListener() {
+					public void UIInputReceiverClosed(UIInputReceiver text_entry) {
+						if (text_entry.hasSubmittedInput()) {
+							TorrentUtils.setObtainedFrom( torrent, text_entry.getSubmittedInput());
+							try{
+								TorrentUtils.writeToFile( torrent );
+							}catch( Throwable e ){
+							}
+						}
+					}
+				});
+			}
+		});
+		itemTorrentSource.setEnabled(dms.length == 1);
 			// set thumbnail
 		
 		final MenuItem itemTorrentThumb = new MenuItem(menuTracker, SWT.PUSH);

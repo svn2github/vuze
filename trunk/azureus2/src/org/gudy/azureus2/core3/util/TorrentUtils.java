@@ -1728,7 +1728,16 @@ TorrentUtils
 		Map	m = getAzureusPrivateProperties( torrent );
 			
 		try{
-			m.put( TORRENT_AZ_PROP_OBTAINED_FROM, str.getBytes( "UTF-8" ));
+			str = str.trim();
+			
+			if ( str == null || str.length() == 0 ){
+				
+				m.remove( TORRENT_AZ_PROP_OBTAINED_FROM );
+				
+			}else{
+				
+				m.put( TORRENT_AZ_PROP_OBTAINED_FROM, str.getBytes( "UTF-8" ));
+			}
 			
 			fireAttributeListener( torrent, TORRENT_AZ_PROP_OBTAINED_FROM, str );
 			
