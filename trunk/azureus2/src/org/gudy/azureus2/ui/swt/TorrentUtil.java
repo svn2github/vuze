@@ -77,6 +77,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.speedmanager.SpeedLimitHandler;
+import com.aelitis.azureus.core.util.HTTPUtils;
 import com.aelitis.azureus.core.util.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -1550,8 +1551,8 @@ public class TorrentUtil
 		}
 	}
 
-	protected static void addTrackerTorrentMenu(Menu menuTracker,
-			DownloadManager[] dms, boolean changeUrl, boolean manualUpdate,
+	protected static void addTrackerTorrentMenu(final Menu menuTracker,
+			final DownloadManager[] dms, boolean changeUrl, boolean manualUpdate,
 			boolean allStopped, final boolean use_open_containing_folder) {
 		boolean hasSelection = dms.length > 0;
 
@@ -1932,6 +1933,62 @@ public class TorrentUtil
 			}
 		});
 		itemTorrentDL.setEnabled(dms.length == 1);
+
+			// set thumbnail
+		
+		final MenuItem itemTorrentThumb = new MenuItem(menuTracker, SWT.PUSH);
+		Messages.setLanguageText(itemTorrentThumb, "MyTorrentsView.menu.torrent.set.thumb");
+		itemTorrentThumb.addListener(SWT.Selection, new Listener() {
+			
+			public void handleEvent(Event event) {
+				FileDialog fDialog = new FileDialog(menuTracker.getShell(), SWT.OPEN | SWT.MULTI);
+			
+				fDialog.setText(MessageText.getString("MainWindow.dialog.choose.thumb"));
+				String path = fDialog.open();
+				if (path == null)
+					return;
+				
+				File file = new File( path );
+				
+				try{
+					byte[] thumbnail = FileUtil.readFileAsByteArray( file );
+					
+					String name = file.getName();
+					
+					int	pos = name.lastIndexOf( "." );
+					
+					String ext;
+					
+					if ( pos != -1 ){
+						
+						ext = name.substring( pos+1 );
+						
+					}else{
+						
+						ext = "";
+					}
+					
+					String type = HTTPUtils.guessContentTypeFromFileType( ext );
+					
+					for ( DownloadManager dm: dms ){
+						
+						try{
+							TOTorrent torrent = dm.getTorrent();
+							
+							PlatformTorrentUtils.setContentThumbnail( torrent, thumbnail, type );
+							
+						}catch( Throwable e ){
+							
+						}
+					}
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		});
+		
+		itemTorrentThumb.setEnabled(hasSelection);
 
 		// explore torrent file
 
