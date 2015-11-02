@@ -23,14 +23,21 @@ package org.gudy.azureus2.pluginsimpl.local.clientid;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
@@ -571,32 +578,14 @@ ClientIDManagerImpl
 				
 				header_out += NL;
 				
-				Socket	target;
-				
-				if ( is_ssl ){
-					
-					target = SSLSocketFactory.getDefault().createSocket();
+				Socket	target = 
+						UrlUtils.connectSocketAndWrite(
+							is_ssl, 
+							target_host, 
+							target_port, 
+							header_out.getBytes(Constants.BYTE_ENCODING ));
 
-				}else{
-					
-					target = new Socket();					
-				}
-				
 				try{
-					InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName(target_host) , target_port  );
-					
-				    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
-				    
-			        if ( bindIP != null ){
-			        	
-			        	target.bind( new InetSocketAddress( bindIP, 0 ) );
-			        }
-	
-			        // System.out.println( "filtering " + target_host + ":" + target_port );
-			        
-			        target.connect( targetSockAddress);
-			        
-					target.getOutputStream().write( header_out.getBytes(Constants.BYTE_ENCODING ));
 					
 					target.getOutputStream().flush();
 					
@@ -734,7 +723,7 @@ ClientIDManagerImpl
 				
 			}catch( Throwable e ){
 				
-				//Debug.printStackTrace(e);
+				Debug.printStackTrace(e);
 					
 			}finally{
 				

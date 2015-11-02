@@ -31,12 +31,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -45,6 +49,8 @@ import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLListSet;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploader;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 
 /**
@@ -1368,12 +1374,10 @@ public class UrlUtils
 		return( res );
 	}
 	
-	public static void
+	public static SSLSocketFactory
 	DHHackIt(
-		HttpsURLConnection	ssl_con )
+		final SSLSocketFactory	factory )
 	{
-		final SSLSocketFactory factory = ssl_con.getSSLSocketFactory();
-		
 		SSLSocketFactory hack = new
 			SSLSocketFactory()
 			{
@@ -1486,8 +1490,145 @@ public class UrlUtils
 				}
 			};
 			
+		return( hack );
+	}
+	
+	public static void
+	DHHackIt(
+		HttpsURLConnection	ssl_con )
+	{
+		final SSLSocketFactory factory = ssl_con.getSSLSocketFactory();
+		
+		SSLSocketFactory hack = DHHackIt( factory );
+		
 		ssl_con.setSSLSocketFactory( hack );
 	}
+	
+	public static Socket
+	connectSocketAndWrite(
+		boolean		is_ssl,
+		String		target_host,
+		int			target_port,
+		byte[]		bytes )
+		
+		throws Exception
+	{
+		boolean	cert_hack			= false;
+		boolean	dh_hack 			= false;
+		//boolean	internal_error_hack	= false;
+		
+		boolean		hacks_to_do = true;
+		Exception	last_error 	= null;
+		
+		while( hacks_to_do ){
+			
+			hacks_to_do = false;
+			
+			Socket	target = null;
+			
+			boolean	ok = false;
+			
+			try{
+	
+				if ( is_ssl ){
+																				
+					TrustManager[] tms_delegate = SESecurityManager.getAllTrustingTrustManager();
+				
+					SSLContext sc = SSLContext.getInstance("SSL");
+					
+					sc.init( null, tms_delegate, RandomUtils.SECURE_RANDOM );
+					
+					SSLSocketFactory factory = sc.getSocketFactory();
+		
+					if ( dh_hack ){
+						
+						factory = DHHackIt( factory );
+					}
+					
+					target = factory.createSocket();
+						
+				}else{
+					
+					target = new Socket();					
+				}
+			
+				InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName(target_host) , target_port  );
+				
+			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
+			    
+		        if ( bindIP != null ){
+		        	
+		        	target.bind( new InetSocketAddress( bindIP, 0 ) );
+		        }
+	
+		        // System.out.println( "filtering " + target_host + ":" + target_port );
+		        
+		        target.connect( targetSockAddress);
+		        
+				target.getOutputStream().write( bytes );
+				
+				ok = true;
+				
+				return( target );
+				
+			}catch( Exception e ){
+				
+				last_error = e;
+			
+				if ( e instanceof SSLException ){
+														
+					String msg = Debug.getNestedExceptionMessage( e );
+						
+					if ( msg.contains( "DH keypair" )){
+						
+						if ( !dh_hack ){
+							
+							dh_hack = true;
+							
+							hacks_to_do = true;
+						}
+					}
+					/*
+						}else if ( msg.contains( "internal_error" )){
+							
+							if ( !internal_error_hack ){
+							
+								internal_error_hack = true;
+								
+								hacks_to_do = true;
+							}
+					*/
+						
+						
+					if ( !cert_hack ){
+						
+						cert_hack = true;
+						
+						SESecurityManager.installServerCertificates( new URL( "https://" + target_host +  ":" + target_port + "/" ));
+							
+						hacks_to_do = true;
+					}
+				}
+				
+				if ( !hacks_to_do ){
+					
+					throw( e );
+				}
+			}finally{
+				
+				if ( !ok ){
+					
+					if ( target != null ){
+					
+						target.close();
+					}
+				}
+			}
+		}
+		
+		throw( last_error );
+	}
+	
 	
 	public static void main(String[] args) {
 		
