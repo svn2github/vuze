@@ -2617,9 +2617,9 @@ DownloadManagerController
 	fileInfoFacade
 		implements DiskManagerFileInfo
 	{
-		private DiskManagerFileInfo		delegate;
+		private volatile DiskManagerFileInfo		delegate;
 		
-		private List					listeners;
+		private List<DiskManagerFileInfoListener>	listeners;
 		
 		protected 
 		fileInfoFacade()
@@ -2628,27 +2628,45 @@ DownloadManagerController
 		
 		protected void
 		setDelegate(
-			DiskManagerFileInfo		_delegate )
+			DiskManagerFileInfo		new_delegate )
 		{
-			if ( _delegate == delegate ){
+			DiskManagerFileInfo old_delegate;
+		
+			List<DiskManagerFileInfoListener>	existing_listeners;
+			
+			synchronized( this ){
 				
-				return;
+				if ( new_delegate == delegate ){
+				
+					return;
+				}
+				
+				old_delegate = delegate;
+				
+				delegate = new_delegate;
+				
+				if ( listeners == null ){
+					
+					existing_listeners = null;
+					
+				}else{
+					
+					existing_listeners = new ArrayList<DiskManagerFileInfoListener>( listeners );
+				}
 			}
 			
-			if ( delegate != null ){
+			if ( old_delegate != null ){
 				
-				delegate.close();
-			}
-
-	 		delegate = _delegate;
+				old_delegate.close();
+			}	 	
 	   		
 	 			// transfer any existing listeners across
 	 		
-	   		if ( listeners != null ){
+	   		if ( existing_listeners != null ){
 	   			
-	   			for (int i=0;i<listeners.size();i++){
+	   			for (int i=0;i<existing_listeners.size();i++){
 	   				
-	   				delegate.addListener((DiskManagerFileInfoListener)listeners.get(i));
+	   				new_delegate.addListener( existing_listeners.get(i));
 	   			}
 	   		}
 		}
@@ -2856,23 +2874,43 @@ DownloadManagerController
 		addListener(
 			DiskManagerFileInfoListener	listener )
 		{
-			if ( listeners == null ){
+			DiskManagerFileInfo existing_delegate;
+			
+			synchronized( this ){
 				
-				listeners = new ArrayList();
+				if ( listeners == null ){
+					
+					listeners = new ArrayList();
+				}
+				
+				listeners.add( listener );
+				
+				existing_delegate = delegate;
 			}
 			
-			listeners.add( listener );
+			if ( existing_delegate != null ){
 			
-			delegate.addListener( listener );
+				existing_delegate.addListener( listener );
+			}
 		}
 		
 		public void
 		removeListener(
 			DiskManagerFileInfoListener	listener )
 		{
-			listeners.remove( listener );
+			DiskManagerFileInfo existing_delegate;
 			
-			delegate.removeListener( listener );
+			synchronized( this ){
+
+				listeners.remove( listener );
+				
+				existing_delegate = delegate;
+			}
+			
+			if ( existing_delegate != null ){
+				
+				existing_delegate.removeListener( listener );
+			}
 		}
 	}
 	
