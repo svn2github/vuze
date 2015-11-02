@@ -110,12 +110,7 @@ public class SWTSkinObjectTextbox
 		
 		textWidget.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				boolean textWasBlank = text.length() == 0;
 				text = textWidget.getText();
-				boolean textIsBlank = text.length() == 0;
-				if (textWasBlank != textIsBlank && cBubble != null) {
-					cBubble.redraw();
-				}
 			}
 		});
 		

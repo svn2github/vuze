@@ -19,6 +19,8 @@
 package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
@@ -53,6 +55,8 @@ public class BubbleTextBox
 	private int WIDTH_CLEAR;
 
 	private int WIDTH_PADDING;
+	
+	private String 	text = "";
 
 	public BubbleTextBox(Composite parent, int style) {
 		cBubble = new Composite(parent, SWT.DOUBLE_BUFFERED);
@@ -164,6 +168,18 @@ public class BubbleTextBox
 				}
 			}
 		});
+		
+		textWidget.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				boolean textWasBlank = text.length() == 0;
+				text = textWidget.getText();
+				boolean textIsBlank = text.length() == 0;
+				if (textWasBlank != textIsBlank && cBubble != null) {
+					cBubble.redraw();
+				}
+			}
+		});
+
 	}
 
 	public Composite getParent() {
