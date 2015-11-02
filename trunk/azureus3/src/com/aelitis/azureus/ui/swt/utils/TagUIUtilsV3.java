@@ -18,6 +18,9 @@
 
 package com.aelitis.azureus.ui.swt.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -37,7 +40,8 @@ import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
 public class TagUIUtilsV3
 {
 
-	public static void showCreateTagDialog(final UIFunctions.TagReturner tagReturner) {
+	public static void showCreateTagDialog(
+			final UIFunctions.TagReturner tagReturner) {
 		final SkinnedDialog dialog = new SkinnedDialog("skin3_dlg_addtag", "shell",
 				SWT.DIALOG_TRIM);
 		SWTSkin skin = dialog.getSkin();
@@ -49,6 +53,28 @@ public class TagUIUtilsV3
 
 		if (tb == null || cb == null) {
 			return;
+		}
+
+		SWTSkinObjectContainer soGroupBox = (SWTSkinObjectContainer) skin.getSkinObject(
+				"tag-group-area");
+
+		final SWTSkinObjectCombo soGroup = (SWTSkinObjectCombo) skin.getSkinObject(
+				"tag-group");
+
+		if (soGroupBox != null && soGroup != null) {
+			List<String> listGroups = new ArrayList<String>();
+			TagManager tagManager = TagManagerFactory.getTagManager();
+			TagType tt = tagManager.getTagType(TagType.TT_DOWNLOAD_MANUAL);
+			List<Tag> tags = tt.getTags();
+			for (Tag tag : tags) {
+				String group = tag.getGroup();
+				if (group != null && !group.isEmpty() && !listGroups.contains(group)) {
+					listGroups.add(group);
+				}
+			}
+
+			soGroupBox.setVisible(listGroups.size() > 0);
+			soGroup.setList(listGroups.toArray(new String[0]));
 		}
 
 		cb.setChecked(COConfigurationManager.getBooleanParameter(
@@ -74,14 +100,20 @@ public class TagUIUtilsV3
 								tag = tt.createTag(tag_name, true);
 
 								tag.setPublic(cb.isChecked());
-
+								
+								if (soGroup != null) {
+									String group = soGroup.getText();
+									if (group != null && group.length() > 0) {
+										tag.setGroup(group);
+									}
+								}
 
 							} catch (TagException e) {
 
 								Debug.out(e);
 							}
 						}
-						
+
 						// return tag even if it already existed.  
 						// Case: assigning tag to DL, user enters same tag name because 
 						// they forgot they already had one
@@ -92,7 +124,7 @@ public class TagUIUtilsV3
 						}
 
 					}
-					
+
 					dialog.close();
 				}
 			};
