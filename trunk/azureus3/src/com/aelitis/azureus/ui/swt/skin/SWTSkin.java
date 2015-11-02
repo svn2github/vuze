@@ -1520,6 +1520,9 @@ public class SWTSkin
 			} else if (sType.equals("textbox")) {
 				skinObject = createTextbox(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
+			} else if (sType.equals("combo")) {
+				skinObject = createCombo(properties, sID, sConfigID, sTypeParams,
+						parentSkinObject);
 			} else if (sType.equals("tabfolder")) {
 				skinObject = createTabFolder(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
@@ -1647,6 +1650,16 @@ public class SWTSkin
 			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
 
 		SWTSkinObject skinObject = new SWTSkinObjectTextbox(this, properties, id,
+				configID, parentSkinObject);
+		addToControlMap(skinObject);
+
+		return skinObject;
+	}
+
+	private SWTSkinObject createCombo(SWTSkinProperties properties, String id,
+			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
+
+		SWTSkinObject skinObject = new SWTSkinObjectCombo(this, properties, id,
 				configID, parentSkinObject);
 		addToControlMap(skinObject);
 
