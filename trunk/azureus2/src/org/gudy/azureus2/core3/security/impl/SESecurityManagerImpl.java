@@ -911,41 +911,41 @@ SESecurityManagerImpl
 											
 				}catch( Throwable e ){
 				}
+			}
+			
+			if ( hack_constructor != null ){
 				
-				if ( hack_constructor != null ){
-					
-					try{
-						all_trusting_manager = new TrustManager[]{ hack_constructor.newInstance( delegate ) };
+				try{
+					all_trusting_manager = new TrustManager[]{ hack_constructor.newInstance( delegate ) };
 
-					}catch( Throwable e ){
-					}
+				}catch( Throwable e ){
 				}
+			}
+			
+			if ( all_trusting_manager == null ){
 				
-				if ( all_trusting_manager == null ){
-					
-					all_trusting_manager = new TrustManager[]{
-						new X509TrustManager() {
-							public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-								if ( delegate != null ){
-									return( delegate.getAcceptedIssuers());
-								}
-								return null;
+				all_trusting_manager = new TrustManager[]{
+					new X509TrustManager() {
+						public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+							if ( delegate != null ){
+								return( delegate.getAcceptedIssuers());
 							}
-							public void checkClientTrusted(
-									java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-								if ( delegate != null ){
-									delegate.checkClientTrusted(chain, authType);
-								}
-							}
-							public void checkServerTrusted(
-									java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-								if ( delegate != null ){
-									delegate.checkServerTrusted(chain, authType);
-								}
+							return null;
+						}
+						public void checkClientTrusted(
+								java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+							if ( delegate != null ){
+								delegate.checkClientTrusted(chain, authType);
 							}
 						}
-					};
-				}
+						public void checkServerTrusted(
+								java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+							if ( delegate != null ){
+								delegate.checkServerTrusted(chain, authType);
+							}
+						}
+					}
+				};
 			}
 			
 			return( all_trusting_manager );
