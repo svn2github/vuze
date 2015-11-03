@@ -1530,6 +1530,14 @@ public class UrlUtils
 			
 			try{
 	
+				InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName(target_host) , target_port  );
+				
+			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
+
+					// java 1.6 or lower doesn't support creation of unconnected sockets
+				
+				boolean is_java_17_plus = Constants.isJava7OrHigher;
+				
 				if ( is_ssl ){
 																				
 					TrustManager[] tms_delegate = SESecurityManager.getAllTrustingTrustManager();
@@ -1545,26 +1553,52 @@ public class UrlUtils
 						factory = DHHackIt( factory );
 					}
 					
-					target = factory.createSocket();
+					if ( is_java_17_plus ){
+					
+						target = factory.createSocket();
 						
+					}else{
+						
+						if ( bindIP == null ){
+							
+							target = factory.createSocket(targetSockAddress.getAddress(), targetSockAddress.getPort());
+							
+						}else{
+							
+							target = factory.createSocket(targetSockAddress.getAddress(), targetSockAddress.getPort(), bindIP, 0 );
+						}
+					}
 				}else{
 					
-					target = new Socket();					
+					if ( is_java_17_plus ){
+					
+						target = new Socket();
+						
+					}else{
+						
+						if ( bindIP == null ){
+							
+							target = new Socket(targetSockAddress.getAddress(), targetSockAddress.getPort());
+							
+						}else{
+							
+							target = new Socket(targetSockAddress.getAddress(), targetSockAddress.getPort(), bindIP, 0 );
+						}
+					}
 				}
 			
-				InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName(target_host) , target_port  );
+				if ( is_java_17_plus ){
+									    
+			        if ( bindIP != null ){
+			        	
+			        	target.bind( new InetSocketAddress( bindIP, 0 ) );
+			        }
+		
+			        // System.out.println( "filtering " + target_host + ":" + target_port );
+			        
+			        target.connect( targetSockAddress);
+				}
 				
-			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
-			    
-		        if ( bindIP != null ){
-		        	
-		        	target.bind( new InetSocketAddress( bindIP, 0 ) );
-		        }
-	
-		        // System.out.println( "filtering " + target_host + ":" + target_port );
-		        
-		        target.connect( targetSockAddress);
-		        
 				target.getOutputStream().write( bytes );
 				
 				ok = true;
