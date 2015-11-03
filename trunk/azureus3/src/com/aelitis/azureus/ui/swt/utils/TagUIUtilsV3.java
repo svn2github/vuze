@@ -68,7 +68,7 @@ public class TagUIUtilsV3
 			List<Tag> tags = tt.getTags();
 			for (Tag tag : tags) {
 				String group = tag.getGroup();
-				if (group != null && !group.isEmpty() && !listGroups.contains(group)) {
+				if (group != null && group.length() > 0  && !listGroups.contains(group)) {
 					listGroups.add(group);
 				}
 			}
