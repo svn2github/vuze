@@ -71,6 +71,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
@@ -1561,9 +1562,12 @@ BuddyPluginView
 		private	CTabFolder  	tab_folder;
 		private CTabItem 		public_item;
 		private CTabItem 		anon_item;
+		private CTabItem 		neither_item;
 		
 		private int				last_build_chat_mode	= -1;
 		private int				chat_mode				= CHAT_DOWNLOAD;
+		
+		private String				last_selected_network;
 		
 		private DownloadAdapter		current_download;
 		private String				current_tracker;
@@ -1786,7 +1790,30 @@ BuddyPluginView
 				anon_composite.setData( "tabitem", anon_item );
 			}
 			
-			chat_composites = new Composite[]{ public_composite, anon_composite };
+				// neither
+			
+			Composite neither_composite = null;
+			
+			{
+				neither_item = new CTabItem(tab_folder, SWT.NULL);
+					
+				neither_composite = new Composite( tab_folder, SWT.NULL );
+		
+				neither_item.setControl( neither_composite );
+				
+				grid_data = new GridData(GridData.FILL_BOTH );
+				Utils.setLayoutData(neither_composite, grid_data);
+				neither_composite.setData( "tabitem", neither_item );
+				
+				layout = new GridLayout();
+				layout.numColumns = 1;
+				neither_composite.setLayout(layout);
+				
+				Label info = new Label( neither_composite, SWT.NULL );
+				info.setText( MessageText.getString( "dchat.select.network" ));
+			}
+			
+			chat_composites = new Composite[]{ public_composite, anon_composite, neither_composite };
 				
 			tab_folder.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
@@ -2424,6 +2451,8 @@ BuddyPluginView
 					// explicit network is only set when we're switching public/anon tabs so
 					// we use it directly and don't need to reselect the tab coz we're on it
 				
+				last_selected_network = network;
+				
 				activateNetwork( network, false );
 				
 			}else{
@@ -2439,9 +2468,9 @@ BuddyPluginView
 					
 					if ( download == null ){
 						
-							// no current download to guide us, default to public
+							// no current download to guide us
 						
-						activateNetwork( AENetworkClassifier.AT_PUBLIC, true );
+						activateNetwork( null, true );
 						
 					}else{
 																			
@@ -2532,10 +2561,32 @@ BuddyPluginView
 		
 		private void
 		activateChat(
-			final String		network,
+			String				_network,
 			final String		key,
 			boolean				select_tab )	
-		{		
+		{	
+			if ( _network == null ){
+				
+				if ( last_selected_network != null ){
+					
+					_network = last_selected_network;
+					
+				}else{
+					if ( select_tab ){
+						
+						tab_folder.setSelection( neither_item );
+						
+						neither_item.setText( MessageText.getString( "GeneralView.section.info" ));
+					}
+					
+					return;
+				}
+			}
+			
+			final String network = _network;
+			
+			neither_item.setText( "" );
+			
 			final Composite chat_composite = chat_composites[network==AENetworkClassifier.AT_PUBLIC?0:1];
 			
 			if ( chat_composite == null ){
@@ -2824,6 +2875,8 @@ BuddyPluginView
 					
 					return;
 				}
+				
+				last_selected_network = null;
 				
 				current_download 	= dl==null?null:getDownloadAdapter( dl );
 				current_ds_tag		= tag;
