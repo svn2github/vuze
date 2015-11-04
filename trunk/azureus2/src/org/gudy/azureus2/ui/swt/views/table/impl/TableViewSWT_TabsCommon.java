@@ -26,6 +26,7 @@ import java.util.Set;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Composite;
@@ -46,6 +47,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -527,6 +529,13 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 				&& selectedContent.length != 0) {
 			SelectedContentManager.changeCurrentlySelectedContent(
 					tvToUse.getTableID(), selectedContent, tvToUse);
+		}
+	}
+
+	public void obfusticatedImage(Image image) {
+		if (tabbedMDI instanceof ObfusticateImage) {
+			ObfusticateImage o = (ObfusticateImage) tabbedMDI;
+			image = o.obfusticatedImage(image);
 		}
 	}
 }

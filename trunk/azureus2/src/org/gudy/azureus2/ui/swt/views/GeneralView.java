@@ -1288,7 +1288,6 @@ public class GeneralView
 				if (data instanceof Map) {
 					obfusticatedImage((Image) MapUtils.getMapObject((Map) data, "image",
 							null, Image.class));
-					((Map) data).put("obfuscateSideBar", true);
 				}
       	break;
     }

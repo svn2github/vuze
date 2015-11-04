@@ -72,6 +72,7 @@ public class NameItem extends CoreTableColumnSWT implements
 	public NameItem() {
 		super("name", ALIGN_LEAD, POSITION_LAST, 300,
 				TableManager.TABLE_TORRENT_FILES);
+		setObfustication(true);
 		setInplaceEditorListener(this);
 		setType(TableColumn.TYPE_TEXT);
 		menuItem = addContextMenuItem("FilesView.name.fastRename", MENU_STYLE_HEADER);
@@ -168,10 +169,8 @@ public class NameItem extends CoreTableColumnSWT implements
 
 	public String getObfusticatedText(TableCell cell) {
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
-		String name = (fileInfo == null) ? ""
-				: Debug.secretFileName(fileInfo.getFile(true).getName());
-		if (name == null)
-			name = "";
+		String name = (fileInfo == null) ? "" : fileInfo.getIndex() + ": "
+				+ Debug.secretFileName(fileInfo.getFile(true).getName());
 		return name;
 	}
 

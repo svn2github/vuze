@@ -21,9 +21,7 @@ package com.aelitis.azureus.ui.swt.shells.main;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.logging.*;
@@ -310,7 +308,8 @@ public class DebugMenuHelper
 						if (image != null) {
 							Shell shell2 = new Shell(display);
 							Rectangle bounds = image.getBounds();
-							shell2.setSize(bounds.width, bounds.height);
+							Point size = shell2.computeSize(bounds.width, bounds.height);
+							shell2.setSize(size);
 							shell2.setBackgroundImage(image);
 							shell2.open();
 						}

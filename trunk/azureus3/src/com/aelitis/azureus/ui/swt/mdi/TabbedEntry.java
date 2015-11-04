@@ -18,19 +18,25 @@
 
 package com.aelitis.azureus.ui.swt.mdi;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 
@@ -39,6 +45,7 @@ import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * MDI Entry that is a {@link CTabItem} and belongs wo {@link TabbedMDI}
@@ -483,5 +490,46 @@ public class TabbedEntry
 	// @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#getParentID()
 	public String getParentID() {
 		return null;
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image)
+	public Image obfusticatedImage(Image image) {
+		Rectangle bounds = swtItem == null ? null : swtItem.getBounds();
+		if ( bounds != null ){
+			
+			boolean isActive = swtItem.getParent().getSelection() == swtItem;
+			boolean isHeaderVisible = swtItem.isShowing();
+
+			Point location = Utils.getLocationRelativeToShell(swtItem.getParent());
+	
+			bounds.x += location.x;
+			bounds.y += location.y;
+			
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("image", image);
+			map.put("obfuscateTitle", false);
+			if (isActive) {
+				triggerEvent(UISWTViewEvent.TYPE_OBFUSCATE, map);
+
+				if (viewTitleInfo instanceof ObfusticateImage) {
+					((ObfusticateImage) viewTitleInfo).obfusticatedImage(image);
+				}
+			}
+
+			if (isHeaderVisible) {
+  			if (viewTitleInfo instanceof ObfusticateTab) {
+  				String header = ((ObfusticateTab) viewTitleInfo).getObfusticatedHeader();
+  				if (header != null) {
+  					UIDebugGenerator.obfusticateArea(image, bounds, header);
+  				}
+  			}
+	
+  			if (MapUtils.getMapBoolean(map, "obfuscateTitle", false)) {
+  				UIDebugGenerator.obfusticateArea(image, bounds);
+  			}
+			}
+		}
+
+		return image;
 	}
 }

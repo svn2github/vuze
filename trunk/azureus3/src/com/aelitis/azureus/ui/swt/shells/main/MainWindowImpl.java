@@ -2475,6 +2475,7 @@ public class MainWindowImpl
 
 		Rectangle shellBounds = shell.getBounds();
 		Rectangle shellClientArea = shell.getClientArea();
+		
 		Image fullImage = new Image(display, shellBounds.width, shellBounds.height);
 		Image subImage = new Image(display, shellClientArea.width, shellClientArea.height);
 
@@ -2510,6 +2511,23 @@ public class MainWindowImpl
 			}
 		}
 
+		Rectangle monitorClientArea = shell.getMonitor().getClientArea();
+		Rectangle trimmedShellBounds = shellBounds.intersection(monitorClientArea);
+		
+		if (!trimmedShellBounds.equals(shellBounds)) {
+			subImage = new Image(display, trimmedShellBounds.width,
+					trimmedShellBounds.height);
+			GC gcCrop = new GC(subImage);
+			try {
+				gcCrop.drawImage(fullImage, shellBounds.x - trimmedShellBounds.x,
+						shellBounds.y - trimmedShellBounds.y);
+			} finally {
+				gcCrop.dispose();
+				fullImage.dispose();
+				fullImage = subImage;
+			}
+		}
+		
 		return fullImage;
 	}
 

@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -67,7 +68,7 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class SideBarEntrySWT
 	extends BaseMdiEntry
-	implements DisposeListener, ObfusticateImage
+	implements DisposeListener
 {
 	private static final boolean DO_OUR_OWN_TREE_INDENT = true;
 
@@ -1358,18 +1359,29 @@ public class SideBarEntrySWT
 			
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("image", image);
-			map.put("obfuscateSideBar", false);
+			map.put("obfuscateTitle", false);
 			triggerEvent(UISWTViewEvent.TYPE_OBFUSCATE, map);
-	
-			if (MapUtils.getMapBoolean(map, "obfuscateSideBar", false)) {
-				int ofs = IMAGELEFT_GAP + IMAGELEFT_SIZE;
-				if (treeItem.getParentItem() != null) {
-					ofs += 10 + SIDEBAR_SPACING;
+			
+			if (viewTitleInfo instanceof ObfusticateImage) {
+				((ObfusticateImage) viewTitleInfo).obfusticatedImage(image);
+			}
+
+			int ofs = IMAGELEFT_GAP + IMAGELEFT_SIZE;
+			if (treeItem.getParentItem() != null) {
+				ofs += 10 + SIDEBAR_SPACING;
+			}
+			bounds.x += ofs;
+			bounds.width -= ofs + SIDEBAR_SPACING + 1;
+			bounds.height -= 1;
+
+			if (viewTitleInfo instanceof ObfusticateTab) {
+				String header = ((ObfusticateTab) viewTitleInfo).getObfusticatedHeader();
+				if (header != null) {
+					UIDebugGenerator.obfusticateArea(image, bounds, header);
 				}
-				bounds.x += ofs;
-				bounds.width -= ofs + SIDEBAR_SPACING + 1;
-				bounds.height -= 1;
-				
+			}
+	
+			if (MapUtils.getMapBoolean(map, "obfuscateTitle", false)) {
 				UIDebugGenerator.obfusticateArea(image, bounds);
 			}
 		}

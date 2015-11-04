@@ -1846,14 +1846,8 @@ public class TableViewPainted
 			}
 		}
 
-		UISWTViewCore view = tvTabsCommon == null ? null
-				: tvTabsCommon.getActiveSubView();
-		if (view instanceof ObfusticateImage) {
-			try {
-				((ObfusticateImage) view).obfusticatedImage(image);
-			} catch (Exception e) {
-				Debug.out("Obfuscating " + view, e);
-			}
+		if (tvTabsCommon != null) {
+			tvTabsCommon.obfusticatedImage(image);
 		}
 		return image;
 	}

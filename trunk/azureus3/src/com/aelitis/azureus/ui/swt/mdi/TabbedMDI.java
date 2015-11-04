@@ -39,9 +39,11 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
@@ -59,7 +61,8 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class TabbedMDI
 	extends BaseMDI
-	implements TabbedMdiInterface, AEDiagnosticsEvidenceGenerator, ParameterListener
+	implements TabbedMdiInterface, AEDiagnosticsEvidenceGenerator,
+	ParameterListener, ObfusticateImage
 {
 	private CTabFolder tabFolder;
 
@@ -452,7 +455,7 @@ public class TabbedMDI
 								String imageID = mdiEntryVitalityImage.getImageID();
 								Image image = imageLoader.getImage(imageID);
 								if (ImageLoader.isRealImage(image)) {
-									pt.x += image.getBounds().x + 5;
+									pt.x += image.getBounds().x + 1;
 								}
 							}
 							
@@ -468,6 +471,7 @@ public class TabbedMDI
 			@Override
 			protected void draw(int part, int state, Rectangle bounds, GC gc) {
 				try {
+					//super.draw(part, state & ~(SWT.FOREGROUND), bounds, gc);
 					super.draw(part, state, bounds, gc);
 				} catch (Throwable t) {
 					Debug.out(t);
@@ -481,7 +485,7 @@ public class TabbedMDI
 					if (entry == null) {
 						return;
 					}
-
+					
 					ViewTitleInfo viewTitleInfo = entry.getViewTitleInfo();
 					if (viewTitleInfo != null) {
 						Object titleRight = viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT);
@@ -520,11 +524,15 @@ public class TabbedMDI
 							int height = textSize.y + 1;
 							int startY = bounds.y + ((bounds.height - height) / 2) + 1;
 
-							//gc.fillRectangle(startX, startY, width, height);
+							//gc.setBackground(((state & SWT.SELECTED) != 0 ) ? item.getParent().getSelectionBackground() : item.getParent().getBackground());
+							//gc.fillRectangle(startX - 5, startY, width + 5, height);
 
 							//Pattern pattern;
 							//Color color1;
 							//Color color2;
+
+							//gc.fillRectangle(startX, startY, width, height);
+
 
 							Color default_color = ColorCache.getSchemedColor(gc.getDevice(), "#5b6e87");
 							
@@ -541,7 +549,7 @@ public class TabbedMDI
 							
 
 							Color text_color = Colors.white;
-							
+
 							gc.fillRoundRectangle(startX, startY, width, height, textSize.y * 2 / 3,
 									height * 2 / 3);
 							
@@ -1055,5 +1063,17 @@ public class TabbedMDI
 	 */
 	public void setTabbedMdiMaximizeListener(TabbedMdiMaximizeListener l) {
 		maximizeListener = l;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image)
+	public Image obfusticatedImage(Image image) {
+		MdiEntry[] entries = getEntries();
+		for (MdiEntry entry : entries) {
+			if (entry instanceof ObfusticateImage) {
+				ObfusticateImage oi = (ObfusticateImage) entry;
+				image = oi.obfusticatedImage(image);
+			}
+		}
+		return image;
 	}
 }

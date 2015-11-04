@@ -18,13 +18,18 @@
 
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
+import java.util.Map;
+
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
@@ -33,13 +38,15 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck.TableViewFilterCheckEx;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * An {@link UISWTView} that contains a {@link TableView}.  Usually is
  * an view in a  {@link MdiEntry}, or a TableView's subview.
  */
 public abstract class TableViewTab<DATASOURCETYPE>
-	implements UISWTViewCoreEventListener, AEDiagnosticsEvidenceGenerator
+	implements UISWTViewCoreEventListener, AEDiagnosticsEvidenceGenerator, 
+	ObfusticateImage
 {
 	private TableViewSWT<DATASOURCETYPE> tv;
 	private Object parentDataSource;
@@ -182,6 +189,14 @@ public abstract class TableViewTab<DATASOURCETYPE>
 			case UISWTViewEvent.TYPE_REFRESH:
 				refresh();
 				break;
+				
+			case UISWTViewEvent.TYPE_OBFUSCATE:
+				Object data = event.getData();
+				if (data instanceof Map) {
+					obfusticatedImage((Image) MapUtils.getMapObject((Map) data, "image",
+							null, Image.class));
+				}
+				break;
 		}
 
 		return true;
@@ -202,5 +217,13 @@ public abstract class TableViewTab<DATASOURCETYPE>
 			filterTextControl = textControl;
 			filterCheck = filter_check_handler;
 		}
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image)
+	public Image obfusticatedImage(Image image) {
+		if (tv != null) {
+			return tv.obfusticatedImage(image);
+		}
+		return null;
 	}
 }

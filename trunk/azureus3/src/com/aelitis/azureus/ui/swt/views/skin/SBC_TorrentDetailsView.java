@@ -73,7 +73,7 @@ import com.aelitis.azureus.util.DataSourceUtils;
  */
 public class SBC_TorrentDetailsView
 	extends SkinView
-	implements DownloadManagerListener, ObfusticateTab,
+	implements DownloadManagerListener,
 	UIPluginViewToolBarListener, SelectedContentListener
 {
 
@@ -294,12 +294,6 @@ public class SBC_TorrentDetailsView
 			int newPosition) {
 	}
 
-	public String getObfusticatedHeader() {
-		int completed = manager.getStats().getCompleted();
-		return DisplayFormatters.formatPercentFromThousands(completed) + " : "
-				+ manager;
-	}
-
 	public DownloadManager getDownload() {
 		return manager;
 	}
@@ -368,7 +362,7 @@ public class SBC_TorrentDetailsView
 
 	public static class TorrentDetailMdiEntry
 		implements MdiSWTMenuHackListener, MdiCloseListener, 
-		MdiEntryDatasourceListener, UIUpdatable, ViewTitleInfo
+		MdiEntryDatasourceListener, UIUpdatable, ViewTitleInfo, ObfusticateTab
 	{
 		int lastCompleted = -1;
 
@@ -532,6 +526,18 @@ public class SBC_TorrentDetailsView
 			menuTree.setData("is_detailed_view", new Boolean(true));
 
 			MenuFactory.buildTorrentMenu(menuTree);
+		}
+
+		// @see org.gudy.azureus2.ui.swt.debug.ObfusticateTab#getObfusticatedHeader()
+		public String getObfusticatedHeader() {
+			Object ds = entry.getDatasourceCore();
+			DownloadManager manager = DataSourceUtils.getDM(ds);
+			if (manager == null) {
+				return null;
+			}
+			int completed = manager.getStats().getCompleted();
+			return DisplayFormatters.formatPercentFromThousands(completed) + " : "
+					+ manager.toString().replaceFirst("DownloadManagerImpl", "DM");
 		}
 	}
 }

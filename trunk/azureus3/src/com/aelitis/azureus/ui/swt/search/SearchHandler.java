@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.webplugin.WebPlugin;
 
@@ -47,6 +48,29 @@ import com.aelitis.azureus.util.ConstantsVuze;
 public class 
 SearchHandler 
 {
+	/**
+	 * @author TuxPaper
+	 * @created Nov 4, 2015
+	 *
+	 */
+	private static final class ViewTitleInfoImplementation
+		implements ViewTitleInfo, ObfusticateTab
+	{
+		public Object getTitleInfoProperty(int propertyID) {
+			if (propertyID == TITLE_TEXT) {
+				SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
+				if (searchClass != null && searchClass.sq != null) {
+					return searchClass.sq.term;
+				}
+			}
+			return null;
+		}
+		// @see org.gudy.azureus2.ui.swt.debug.ObfusticateTab#getObfusticatedHeader()
+		public String getObfusticatedHeader() {
+			return "";
+		}
+	}
+
 	public static void
 	handleSearch(
 		String		sSearchText,
@@ -100,17 +124,7 @@ SearchHandler
 			if (entry != null) {
 				entry.setImageLeftID("image.sidebar.search");
 				entry.setDatasource(sq);
-				entry.setViewTitleInfo(new ViewTitleInfo() {
-					public Object getTitleInfoProperty(int propertyID) {
-						if (propertyID == TITLE_TEXT) {
-							SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
-							if (searchClass != null && searchClass.sq != null) {
-								return searchClass.sq.term;
-							}
-						}
-						return null;
-					}
-				});
+				entry.setViewTitleInfo(new ViewTitleInfoImplementation());
 			}
 			
 			mdi.showEntryByID(id);

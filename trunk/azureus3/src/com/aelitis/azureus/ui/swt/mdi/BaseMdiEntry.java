@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -48,7 +49,8 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
 
 public abstract class BaseMdiEntry
 	extends UISWTViewImpl
-	implements MdiEntrySWT, ViewTitleInfoListener, AEDiagnosticsEvidenceGenerator
+	implements MdiEntrySWT, ViewTitleInfoListener, AEDiagnosticsEvidenceGenerator,
+	ObfusticateImage
 {
 	protected final MultipleDocumentInterface mdi;
 
