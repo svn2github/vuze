@@ -751,6 +751,56 @@ TagManagerImpl
 						GlobalManager global_manager = (GlobalManager)component;
 					
 						global_manager.addDownloadManagerInitialisationAdapter(
+								new DownloadManagerInitialisationAdapter()
+								{	
+									public int 
+									getActions() 
+									{
+										return( ACT_ASSIGNS_TAGS );
+									}
+									
+									public void 
+									initialised(
+										DownloadManager 	manager,
+										boolean				for_seeding ) 
+									{
+										org.gudy.azureus2.core3.disk.DiskManagerFileInfo[] files = manager.getDiskManagerFileInfoSet().getFiles();
+										
+										for ( org.gudy.azureus2.core3.disk.DiskManagerFileInfo file: files ){
+											
+											if ( file.getTorrentFile().getPathComponents().length == 1 ){
+												
+												String name = file.getTorrentFile().getRelativePath().toLowerCase( Locale.US );
+												
+												if ( name.equals( "index.html" ) || name.equals( "index.htm" )){
+													
+													TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+													
+													String tag_name = "Websites";
+													
+													Tag tag = tt.getTag( tag_name, true );
+													
+													try{
+														if ( tag == null ){
+															
+															tag = tt.createTag( tag_name, true );
+														}
+														
+														if ( !tag.hasTaggable( manager )){
+														
+															tag.addTaggable( manager );
+														}
+													}catch( Throwable e ){
+													
+														Debug.out( e );
+													}
+												}
+											}
+										}
+									}
+								});
+
+						global_manager.addDownloadManagerInitialisationAdapter(
 							new DownloadManagerInitialisationAdapter()
 							{	
 								public int 
