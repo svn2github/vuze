@@ -106,7 +106,9 @@ public class SBC_TagsOverview
 				for (Object object : datasources) {
 					if (object instanceof Tag) {
 						Tag tag = (Tag) object;
-						tag.removeTag();
+						if (tag.getTagType().getTagType() == TagType.TT_DOWNLOAD_MANUAL) {
+							tag.removeTag();
+						}
 					}
 				}
 				
