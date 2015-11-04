@@ -1410,7 +1410,7 @@ public class Utils
 			}
 		}
 		
-		if ( !eb_choice.equals( "plugin" )){
+		if ( !found && !eb_choice.equals( "plugin" )){
 				
 			Debug.out( "Failed to find external URL launcher plugin with id '" + eb_choice + "'" );
 		}
