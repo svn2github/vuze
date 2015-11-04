@@ -4172,6 +4172,12 @@ public class GlobalManagerImpl
 			{
 				return( false );
 			}
+			
+			public void
+			removeTag()
+			{
+				throw( new RuntimeException( "Not Supported" ));
+			}
 		}
 	}
 }
