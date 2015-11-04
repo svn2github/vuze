@@ -1,7 +1,67 @@
 VUZE CHANGELOG
 -----------------
 
-2015.xx.yy | Vuze 5.6.2.1
+2015.11.yy | Vuze 5.7.0.0
+
+
+FEATURE: UI   | Added peer menus to peers in the swarm view [Parg]
+FEATURE: UI   | Tags now visibly grouped by their group [TuxPaper]
+FEATURE: UI   | Torrent List for Tags Overview now has "Any/All" checkbox when multiple tags are selected [TuxPaper]
+FEATURE: UI   | General view now shows file boundaries and skipped file zones [Parg]
+FEATURE: UI   | Network bindings can now be cleared via status icon context menu [Parg]
+FEATURE: UI   | Raw hashes entered as search expressions now support arguments [Parg]
+FEATURE: UI   | Adjustments for High DPI (4k) monitors.  Scale images, column widths, dialog box sizes, layout data (margins, padding) [TuxPaper]
+FEATURE: UI   | Added last-error column for subscriptions [Parg]
+FEATURE: UI   | Added alternative network hints to seeds/peers column [Parg]
+FEATURE: UI   | Network Information added to the top-view (F8 to show) [Parg]
+FEATURE: UI   | Files view now supports multiple download managers [Parg]
+FEATURE: UI   | Show files menu option added to Tags [Parg]
+FEATURE: UI   | Detect existing archived downloads when adding a new one [Parg]
+FEATURE: UI   | Added button to create RSS feeds from chats [Parg]
+FEATURE: UI   | Added description column for downloads to allow viewing and modification [Parg]
+FEATURE: UI   | Added context menus to set a download's thumbnail and torrent source [Parg]
+FEATURE: UI   | Option to set a tag's group when creating it [TuxPaper]
+FEATURE: Core | Added option to reset long term stats and tag session totals [Parg]
+FEATURE: Core | Session up/down, Total up/down values per tag now recorded [Parg]
+FEATURE: Core | Support tag-based and peer-set based network limits [Parg]
+FEATURE: Core | Speed limit handler now supports tag based upload prioritization [Parg]
+FEATURE: Core | Added sliding window support to network limits [Parg]
+FEATURE: Core | Added an auto-restart feature [Parg]
+FEATURE: Core | Option to add a unique prefix to files to avoid name clashes [Parg]
+FEATURE: Core | Added 'seedingfor', 'downloadingfor' to Tag contraints [Parg]
+FEATURE: Core | Tags now support 'start/force-start/stop' actions on assign [Parg]
+FEATURE: Core | Option to abort actions such as 'closedown computer when seeding complete' [Parg]
+FEATURE: Core | Decentralized websites now support linking via torrent, magnet or other sites [Parg]
+FEATURE: Core | Decentralized websites auto-tagged as such [Parg]
+FEATURE: Plug | Web plugins can now bind to interfaces as well as IP addresses [Parg]
+FEATURE: Plug | Magnet plugin now has default network options [Parg]
+FEATURE: Plug | RSS to Chat plugin now supports website presentation [Parg]
+
+CHANGE: UI    | Multiple magnet links now copied from selection [Parg]
+CHANGE: UI    | Enable some settings when multiple tags selected [TuxPaper]
+CHANGE: UI    | Subscriptions now sorted in the side bar [Parg]
+CHANGE: UI    | Subscription totals now always shown in side bar [Parg]
+CHANGE: UI    | Rename torrent display name more sensibly on folder change [Parg]
+CHANGE: UI    | Progress window is now non-modal [Parg]
+CHANGE: UI    | Chat will now default to 'no network' rather than 'public' when no download context [Parg]
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Basque translation update [Azpidatziak]
+CHANGE: Core  | Timed Rotation Queue Rule now based on last seeded time of torrent. Added option to have longer min seeding times when torrent is connected to a peer [TuxPaper]
+CHANGE: Core  | File priorities compressed to save resources [TuxPaper]
+
+BUGFIX: UI    | Restore ability of console UI to run without SWT classes being present [Parg]
+BUGFIX: UI    | Big, Unoppened torrents view should not be showing incomplete downloads [TuxPaper]
+BUGFIX: UI    | Fix clicking on peers in swarm view selecting same peer in peers view [Parg]
+BUGFIX: UI    | Fix empty constraints being saved incorrectly and causing problems [Parg]
+BUGFIX: UI    | Made various sub-views handle selection consistently [Parg]
+BUGFIX: UI    | Shell needs to fit into Monitor's client area, not bounds.  On linux, shells out of client area do not get mouse events [TuxPaper]
+BUGFIX: Core  | Ignore restoration failures of bad config files [Parg]
+BUGFIX: Core  | Fix tag up/down disable to operate at peer level not network level [Parg]
+BUGFIX: Core  | Fix for initial tag assignment for auto-download subscriptions [Parg]
+BUGFIX: Core  | Fixed issue with renamed simple torrents [Parg]
+BUGFIX: Core  | Various fixes around SSL handling (SNI, DH key size limits) [Parg] 
+BUGFIX: Core  | Handle IPv6 zone index in URIs [Parg]
+BUGFIX: Plug  | Reduced resource usage required to peek uninitialized channels [Parg]
 
 2015.07.29 | Vuze 5.6.2.0
 
