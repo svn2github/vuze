@@ -205,9 +205,13 @@ public class OpenTorrentOptionsWindow
 						COConfigurationManager.setParameter( ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_SEP, false );
 						COConfigurationManager.setParameter( "User Mode", 2 );
 						
-						addTorrent(	new TorrentOpenOptions(null, torrent1, false));
+						if (torrent1 != null) {
+							addTorrent(	new TorrentOpenOptions(null, torrent1, false));
+						}
 						
-						addTorrent(	new TorrentOpenOptions(null, torrent2, false));
+						if (torrent2 != null) {
+							addTorrent(	new TorrentOpenOptions(null, torrent2, false));
+						}
 					}
 					
 					public void reportPercent(int percent) {
