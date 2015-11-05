@@ -130,8 +130,8 @@ TorrentUtils
 	
 	private static final long		PC_MARKER = RandomUtils.nextLong();
 	
-	private static final List	created_torrents;
-	private static final Set	created_torrents_set;
+	private static final List<byte[]>		created_torrents;
+	private static final Set<HashWrapper>	created_torrents_set;
 	
 	private static ThreadLocal<Map<String,Object>>		tls	= 
 		new ThreadLocal<Map<String,Object>>()
@@ -3548,21 +3548,77 @@ TorrentUtils
 			try{
 				byte[]	hash = torrent.getHash();
 				
+				HashWrapper	hw = new HashWrapper( hash );
+
+				boolean dirty = false;
+
+				long check = COConfigurationManager.getLongParameter("my.created.torrents.check", 0  );
+				
+				COConfigurationManager.setParameter("my.created.torrents.check", check+1  );
+				
+				if ( check % 200 == 0 ){
+					
+					try{						
+						List<DownloadManager> dms = AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers();
+						
+						Set<HashWrapper> actual_hashes = new HashSet<HashWrapper>();
+						
+						for ( DownloadManager dm: dms ){
+							
+							TOTorrent t = dm.getTorrent();
+							
+							if ( t != null ){
+								
+								try{
+									actual_hashes.add( t.getHashWrapper());
+									
+								}catch( Throwable e ){
+									
+								}
+							}
+						}
+						
+						Iterator<byte[]> it = created_torrents.iterator();
+						
+						int deleted = 0;
+						
+						while( it.hasNext()){
+							
+							HashWrapper	existing_hw = new HashWrapper( it.next());
+							
+							if ( !actual_hashes.contains( existing_hw ) && !existing_hw.equals( hw )){
+								
+								it.remove();
+								
+								created_torrents_set.remove( existing_hw );
+								
+								deleted++;
+								
+								dirty = true;
+							}
+						}
+					}catch( Throwable e ){
+					}
+				}
+								
 				//System.out.println( "addCreated:" + new String(torrent.getName()) + "/" + ByteFormatter.encodeString( hash ));
 				
 				if ( created_torrents.size() == 0 ){
 					
 					COConfigurationManager.setParameter( "my.created.torrents", created_torrents );
 				}
-				
-				HashWrapper	hw = new HashWrapper( hash );
-				
+								
 				if ( !created_torrents_set.contains( hw )){
 					
 					created_torrents.add( hash );
 				
 					created_torrents_set.add( hw );
 				
+					dirty = true;
+				}
+				
+				if ( dirty ){
+					
 					COConfigurationManager.setDirty();
 				}
 			}catch( TOTorrentException e ){
@@ -3584,11 +3640,11 @@ TorrentUtils
 				
 				//System.out.println( "removeCreated:" + new String(torrent.getName()) + "/" + ByteFormatter.encodeString( hash ));
 
-				Iterator	it = created_torrents.iterator();
+				Iterator<byte[]>	it = created_torrents.iterator();
 				
 				while( it.hasNext()){
 					
-					byte[]	h = (byte[])it.next();
+					byte[]	h = it.next();
 					
 					if ( Arrays.equals( hash, h )){
 						
