@@ -33,6 +33,7 @@ FEATURE: Core | Tags now support 'start/force-start/stop' actions on assign [Par
 FEATURE: Core | Option to abort actions such as 'closedown computer when seeding complete' [Parg]
 FEATURE: Core | Decentralized websites now support linking via torrent, magnet or other sites [Parg]
 FEATURE: Core | Decentralized websites auto-tagged as such [Parg]
+FEATURE: Core | Option to move torrent files to separate golder on completion/removal [Parg]
 FEATURE: Plug | Web plugins can now bind to interfaces as well as IP addresses [Parg]
 FEATURE: Plug | Magnet plugin now has default network options [Parg]
 FEATURE: Plug | RSS to Chat plugin now supports website presentation [Parg]
@@ -61,6 +62,7 @@ BUGFIX: Core  | Fix for initial tag assignment for auto-download subscriptions [
 BUGFIX: Core  | Fixed issue with renamed simple torrents [Parg]
 BUGFIX: Core  | Various fixes around SSL handling (SNI, DH key size limits) [Parg] 
 BUGFIX: Core  | Handle IPv6 zone index in URIs [Parg]
+BUGFIX: Core  | Untagged tag didn't handle initial-save-location [Parg]
 BUGFIX: Plug  | Reduced resource usage required to peek uninitialized channels [Parg]
 
 2015.07.29 | Vuze 5.6.2.0
