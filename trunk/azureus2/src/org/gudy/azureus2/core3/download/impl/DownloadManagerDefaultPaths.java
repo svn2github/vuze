@@ -102,7 +102,8 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 
 		trans = new TransferSpecification();
 		trans.setBoolean("torrent", "Move Torrent When Done");
-
+		trans.setString("torrent_path", "Move Torrent When Done Directory");
+		
 		mi_1 = new MovementInformation(source, dest, trans, "Move on completion");
 		COMPLETION_DETAILS = mi_1;
 		DEFAULT_DIRS[1] = dest;
@@ -120,6 +121,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 
 		trans = new TransferSpecification();
 		trans.setBoolean("torrent", "File.move.download.removed.move_torrent");
+		trans.setString("torrent_path", "File.move.download.removed.move_torrent_path");
 
 		mi_1 = new MovementInformation(source, dest, trans, "Move on removal");
 		REMOVAL_DETAILS = mi_1;
@@ -259,6 +261,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 	
 			TransferSpecification trans = new TransferSpecification();
 			trans.setBoolean("torrent", "Move Torrent When Done");
+			trans.setString("torrent_path", "Move Torrent When Done Directory");
 	
 			MovementInformation tag_mi = new MovementInformation(source, dest, trans, "Tag Move on Completion");
 			
@@ -524,11 +527,33 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 			SaveLocationChange result = new SaveLocationChange();
 			result.download_location = target_path;
 			if (this.getBoolean("torrent")) {
+				
 				result.torrent_location = target_path;
+				
+					// update if needed
+				
+				String torrent_path = this.getString( "torrent_path" );
+				
+				if ( torrent_path != null && torrent_path.trim().length() > 0 ){
+					
+					File temp = new File( torrent_path );
+					
+					if ( temp.isDirectory()){
+					
+						result.torrent_location = temp;
+						
+					}else if ( !temp.exists()){
+						
+						if ( temp.mkdirs()){
+							
+							result.torrent_location = temp;
+						}
+					}
+				}
+				
 			}
 			return result;
 		}
-
 	}
 
 	public static File getCompletionDirectory(DownloadManager dm) {

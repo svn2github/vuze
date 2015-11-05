@@ -608,6 +608,7 @@ public class ConfigurationDefaults {
     def.put( "Completed Files Directory", "" );
     def.put( "Move Only When In Default Save Dir", TRUE );
     def.put( "Move Torrent When Done", TRUE );
+    def.put( "Move Torrent When Done Directory", "" );
     def.put( "File.move.subdir_is_default", TRUE );
     
     // This gets permanently set by GlobalManagerImpl to false once Azureus has initialised.
@@ -619,6 +620,7 @@ public class ConfigurationDefaults {
     def.put( "File.move.download.removed.path", "" );
     def.put( "File.move.download.removed.only_in_default", TRUE );
     def.put( "File.move.download.removed.move_torrent", TRUE );
+    def.put( "File.move.download.removed.move_torrent_path", "" );
     def.put( "File.move.download.removed.move_partial", FALSE );
     
     def.put( "File.delete.include_files_outside_save_dir", FALSE);

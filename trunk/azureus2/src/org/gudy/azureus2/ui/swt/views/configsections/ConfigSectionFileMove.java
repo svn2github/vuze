@@ -79,13 +79,20 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 		imgOpenFolder = imageLoader.getImage("openFolderButton");
 
 		// Move on complete / deletion.
-		createMoveOnEventGrouping(gFile, "ConfigView.label.movecompleted",
-				"Move Completed When Done", "Completed Files Directory",
-				"Move Torrent When Done", "Move Only When In Default Save Dir", null);
-		createMoveOnEventGrouping(gFile, "ConfigView.label.moveremoved",
+		createMoveOnEventGrouping(gFile, 
+				"ConfigView.label.movecompleted",
+				"Move Completed When Done", 
+				"Completed Files Directory",
+				"Move Torrent When Done", 
+				"Move Torrent When Done Directory",
+				"Move Only When In Default Save Dir", null);
+		
+		createMoveOnEventGrouping(gFile, 
+				"ConfigView.label.moveremoved",
 				"File.move.download.removed.enabled",
 				"File.move.download.removed.path",
 				"File.move.download.removed.move_torrent",
+				"File.move.download.removed.move_torrent_path",
 				"File.move.download.removed.only_in_default",
 				"File.move.download.removed.move_partial");
 
@@ -124,9 +131,13 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 		return gFile;
 	}
 
-	private void createMoveOnEventGrouping(final Composite gFile,
-			String enable_section_label, String move_when_done_setting,
-			String move_path_setting, String move_torrent_setting,
+	private void createMoveOnEventGrouping(
+			final Composite gFile,
+			String enable_section_label, 
+			String move_when_done_setting,
+			String move_path_setting, 
+			String move_torrent_setting,
+			String move_torrent_dir_setting,
 			String move_when_in_save_dir_setting,
 			String move_partial_downloads_setting)
 	{
@@ -145,14 +156,17 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 		layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 4;
-		layout.numColumns = 3;
+		layout.numColumns = 4;
 		gMoveCompleted.setLayout(layout);
 
+			// move folder
+		
 		Label lDir = new Label(gMoveCompleted, SWT.NULL);
 		Messages.setLanguageText(lDir, "ConfigView.label.directory");
 
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		final StringParameter movePath = new StringParameter(gMoveCompleted, move_path_setting);
+		gridData.horizontalSpan = 2;
 		movePath.setLayoutData(gridData);
 
 		Button browse3 = new Button(gMoveCompleted, SWT.PUSH);
@@ -173,35 +187,89 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 			}
 		});
 
-		// move when done
+			// move torrent when done
 
-		BooleanParameter moveTorrent = new BooleanParameter(gMoveCompleted,
+		final BooleanParameter moveTorrent = new BooleanParameter(gMoveCompleted,
 				move_torrent_setting, "ConfigView.label.movetorrent");
 		gridData = new GridData();
-		gridData.horizontalSpan = 2;
+		gridData.horizontalSpan = 4;
 		moveTorrent.setLayoutData(gridData);
+			
+			// move torrent folder
+		
+		Composite cTorrentDir = new Composite( gMoveCompleted, SWT.NULL );
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 4;
+		cTorrentDir.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.numColumns = 3;
+		cTorrentDir.setLayout(layout);
+			
+		Label lTorrentDir = new Label(cTorrentDir, SWT.NULL);
+		Messages.setLanguageText(lTorrentDir, "ConfigView.label.directory.if.different");
+		gridData = new GridData();
+		gridData.horizontalIndent = 25;
+		Utils.setLayoutData(lTorrentDir, gridData);
+		
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		final StringParameter moveTorrentPath = new StringParameter(cTorrentDir, move_torrent_dir_setting);
+		moveTorrentPath.setLayoutData(gridData);
 
-		// only in default
+		Button browse4 = new Button(cTorrentDir, SWT.PUSH);
+		browse4.setImage(imgOpenFolder);
+		imgOpenFolder.setBackground(browse4.getBackground());
+		browse4.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+
+		browse4.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				DirectoryDialog dialog = new DirectoryDialog(gFile.getShell(),
+						SWT.APPLICATION_MODAL);
+				dialog.setFilterPath(moveTorrentPath.getValue());
+				dialog.setText(MessageText.getString("ConfigView.dialog.choosemovepath"));
+				String path = dialog.open();
+				if (path != null) {
+					moveTorrentPath.setValue(path);
+				}
+			}
+		});	
+		
+		final IAdditionalActionPerformer grayPathAndButton3 = new ChangeSelectionActionPerformer(
+				new Control[]{ moveTorrentPath.getControl(), browse4});
+		
+		moveTorrent.setAdditionalActionPerformer(grayPathAndButton3);
+		
+			// only in default
 
 		BooleanParameter moveOnly = new BooleanParameter(gMoveCompleted,
 				move_when_in_save_dir_setting, "ConfigView.label.moveonlyusingdefaultsave");
 		gridData = new GridData();
-		gridData.horizontalSpan = 2;
+		gridData.horizontalSpan = 3;
 		moveOnly.setLayoutData(gridData);
 
-		// move if partially finished.
+			// move if partially finished.
+		
 		if (move_partial_downloads_setting != null) {
 			BooleanParameter movePartial = new BooleanParameter(gMoveCompleted,
 					move_partial_downloads_setting, "ConfigView.label.movepartialdownloads");
 			gridData = new GridData();
-			gridData.horizontalSpan = 2;
+			gridData.horizontalSpan = 3;
 			movePartial.setLayoutData(gridData);
 		}
 
 		Control[] controls3 = new Control[] { gMoveCompleted };
+		
 		IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(
 				controls3);
+		
 		moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
-
+		moveCompleted.setAdditionalActionPerformer(
+			new ChangeSelectionActionPerformer(new Control[0]) {
+				
+				public void performAction() {
+					grayPathAndButton3.performAction();
+				}
+			});
 	}
 }
