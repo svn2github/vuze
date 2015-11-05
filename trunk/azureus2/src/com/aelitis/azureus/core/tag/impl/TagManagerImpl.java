@@ -702,6 +702,8 @@ TagManagerImpl
 	
 	private Map<Long,LifecycleHandlerImpl>			lifecycle_handlers = new HashMap<Long,LifecycleHandlerImpl>();
 	
+	private TagPropertyUntaggedHandler	untagged_handler;
+	
 	private
 	TagManagerImpl()
 	{
@@ -726,7 +728,7 @@ TagManagerImpl
 		
 		final TagPropertyTrackerHandler auto_tracker = new TagPropertyTrackerHandler( azureus_core, this );
 		
-		new TagPropertyUntaggedHandler( azureus_core, this );
+		untagged_handler = new TagPropertyUntaggedHandler( azureus_core, this );
 		
 		new TagPropertyTrackerTemplateHandler( azureus_core, this );
 		
@@ -832,6 +834,13 @@ TagManagerImpl
 									Set<Tag> tags = new HashSet<Tag>( getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, manager ));
 									
 									tags.addAll( auto_tags );
+									
+									if ( tags.size() == 0 ){
+										
+											// pick up untagged tags here as they haven't been added yet :(
+										
+										tags.addAll( untagged_handler.getUntaggedTags());
+									}
 									
 									if ( tags.size() > 0 ){
 										

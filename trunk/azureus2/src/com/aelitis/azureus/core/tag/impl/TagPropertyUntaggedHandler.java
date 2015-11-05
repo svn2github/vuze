@@ -444,4 +444,13 @@ TagPropertyUntaggedHandler
 			}		
 		}
 	}
+	
+	protected List<Tag>
+	getUntaggedTags()
+	{
+		synchronized( taggable_counts ){
+			
+			return( new ArrayList<Tag>( untagged_tags ));
+		}
+	}
 }
