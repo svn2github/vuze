@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -789,11 +790,15 @@ TagManagerImpl
 														if ( !tag.hasTaggable( manager )){
 														
 															tag.addTaggable( manager );
+															
+															tag.setDescription( MessageText.getString( "tag.website.desc" ));
 														}
 													}catch( Throwable e ){
 													
 														Debug.out( e );
 													}
+													
+													break;
 												}
 											}
 										}

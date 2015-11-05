@@ -133,6 +133,10 @@ Tag
 	getDescription();
 	
 	public void
+	setDescription(
+		String		desc );
+	
+	public void
 	addTagListener(
 		TagListener	listener,
 		boolean		fire_for_existing );

@@ -2770,6 +2770,18 @@ public class TagUIUtils
 		
 		String 	str = skip_name?"":(tag_type.getTagTypeName( true ) + ": " + tag.getTagName( true ));
 		
+		String desc = tag.getDescription();
+		
+		if ( desc != null ){
+			
+			if ( str.length() > 0 ){
+				
+				str += "\r\n";
+			}
+			
+			str += desc;
+		}
+		
 		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
 			
 			TagFeatureRateLimit rl = (TagFeatureRateLimit)tag;

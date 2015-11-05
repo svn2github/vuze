@@ -71,6 +71,7 @@ TagBase
 	protected static final String	AT_EOA_PREFIX		= "eoa.";
 	protected static final String	AT_BYTES_UP			= "b.up";
 	protected static final String	AT_BYTES_DOWN		= "b.down";
+	protected static final String	AT_DESCRIPTION		= "desc";
 
 
 	private static final String[] EMPTY_STRING_LIST = {};
@@ -825,7 +826,29 @@ TagBase
 	public String
 	getDescription()
 	{
-		return( null );
+		return( readStringAttribute( AT_DESCRIPTION, null ));
+	}
+	
+	public void
+	setDescription(
+		String		str )
+	{
+		String existing = getDescription();
+		
+		if ( existing == str ){
+			
+			return;
+			
+		}else if ( str == null || existing == null ){
+			
+		}else if ( str.equals( existing )){
+			
+			return;
+		}
+			
+		writeStringAttribute( AT_DESCRIPTION, str );
+		
+		tag_type.fireChanged( this );
 	}
 	
 	public void

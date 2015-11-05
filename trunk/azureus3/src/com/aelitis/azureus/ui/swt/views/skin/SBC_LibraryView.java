@@ -498,6 +498,13 @@ public class SBC_LibraryView
 									s = MessageText.getString(id,
 											new String[] {
 												tag.getTagName( true ) });
+									
+									String desc = tag.getDescription();
+									
+									if ( desc != null ){
+										
+										s += " - " + desc;
+									}
 												
 								} else {
 									String id = "library.all.header";
