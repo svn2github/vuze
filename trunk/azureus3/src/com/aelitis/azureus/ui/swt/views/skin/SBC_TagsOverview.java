@@ -26,13 +26,10 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -41,23 +38,30 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSubView;
 import org.gudy.azureus2.ui.swt.views.TagSettingsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
+import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.columns.tag.*;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -94,10 +98,28 @@ public class SBC_TagsOverview
 	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
-		if ( tv == null || !tv.isVisible()){
+		// Send to active view.  mostly works
+		// except MyTorrentsSubView always takes focus after tag is selected..
+	  boolean isTableSelected = false;
+	  if (tv instanceof TableViewImpl) {
+	  	isTableSelected = ((TableViewImpl) tv).isTableSelected();
+	  }
+	  if (!isTableSelected) {
+  		UISWTViewCore active_view = getActiveView();
+  		if (active_view != null) {
+  			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+  			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
+  				return true;
+  			}
+  		}
+  		return false;
+	  }
+
+	  if ( tv == null || !tv.isVisible()){
 			return( false );
 		}
 		if (item.getID().equals("remove")) {
+
 			
 			Object[] datasources = tv.getSelectedDataSources().toArray();
 			
@@ -105,10 +127,32 @@ public class SBC_TagsOverview
 				
 				for (Object object : datasources) {
 					if (object instanceof Tag) {
-						Tag tag = (Tag) object;
-						if (tag.getTagType().getTagType() == TagType.TT_DOWNLOAD_MANUAL) {
-							tag.removeTag();
+						final Tag tag = (Tag) object;
+						if (tag.getTagType().getTagType() != TagType.TT_DOWNLOAD_MANUAL) {
+							continue;
 						}
+
+						MessageBoxShell mb = 
+								new MessageBoxShell(
+									MessageText.getString("message.confirm.delete.title"),
+									MessageText.getString("message.confirm.delete.text",
+											new String[] {
+												tag.getTagName(true)
+											}), 
+									new String[] {
+										MessageText.getString("Button.yes"),
+										MessageText.getString("Button.no")
+									},
+									1 );
+							
+							mb.open(new UserPrompterResultListener() {
+								public void prompterClosed(int result) {
+									if (result == 0) {
+										tag.removeTag();
+									}
+								}
+							});
+
 					}
 				}
 				
@@ -118,6 +162,15 @@ public class SBC_TagsOverview
 		
 		return false;
 	}
+	
+	private MdiEntrySWT getActiveView() {
+		TableViewSWT_TabsCommon tabsCommon = tv.getTabsCommon();
+		if (tabsCommon != null) {
+			return tabsCommon.getActiveSubView();
+		}
+		return null;
+	}
+
 
 	// @see com.aelitis.azureus.ui.common.table.TableViewFilterCheck#filterSet(java.lang.String)
 	public void filterSet(String filter) {
@@ -493,6 +546,23 @@ public class SBC_TagsOverview
 			layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
 			table_parent.setLayout(layout);
 	
+			table_parent.addListener(SWT.Activate, new Listener() {
+				public void handleEvent(Event event) {
+					//viewActive = true;
+					updateSelectedContent();
+				}
+			});
+			/*
+			table_parent.addListener(SWT.Deactivate, new Listener() {
+				public void handleEvent(Event event) {
+					//viewActive = false;
+					// don't updateSelectedContent() because we may have switched
+					// to a button or a text field, and we still want out content to be
+					// selected
+				}
+			})
+			*/
+			
 			tv.addMenuFillListener( this );
 			tv.addSelectionListener(this, false);
 			
@@ -614,6 +684,7 @@ public class SBC_TagsOverview
 	selected(
 		TableRowCore[] row )
 	{
+		updateSelectedContent();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();
@@ -624,6 +695,7 @@ public class SBC_TagsOverview
 	deselected(
 		TableRowCore[] rows )
 	{
+		updateSelectedContent();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();
@@ -634,6 +706,7 @@ public class SBC_TagsOverview
 	focusChanged(
 		TableRowCore focus )
 	{
+		updateSelectedContent();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();
@@ -673,6 +746,28 @@ public class SBC_TagsOverview
 			}
 		}
 	}
+	
+	public void updateSelectedContent() {
+		updateSelectedContent( false );
+	}
+	
+	public void updateSelectedContent( boolean force ) {
+		if (table_parent == null || table_parent.isDisposed()) {
+			return;
+		}
+			// if we're not active then ignore this update as we don't want invisible components
+			// updating the toolbar with their invisible selection. Note that unfortunately the 
+			// call we get here when activating a view does't yet have focus
+		
+		if ( !isVisible()){
+			if ( !force ){
+				return;
+			}
+		}
+		SelectedContentManager.clearCurrentlySelectedContent();
+		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), null, tv);
+	}
+
 
 	public void 
 	mouseEnter(
@@ -739,5 +834,11 @@ public class SBC_TagsOverview
 		}
 		datasource = params;
 		return null;
+	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectSelected(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectSelected(SWTSkinObject skinObject, Object params) {
+		updateSelectedContent();
+		return super.skinObjectSelected(skinObject, params);
 	}
 }
