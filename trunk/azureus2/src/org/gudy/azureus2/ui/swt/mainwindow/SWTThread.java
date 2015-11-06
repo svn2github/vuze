@@ -71,6 +71,7 @@ public class SWTThread {
   
 	private Monitor primaryMonitor;
 	protected boolean displayDispoed;
+	private boolean isRetinaDisplay;
   
   private 
   SWTThread(
@@ -124,7 +125,6 @@ public class SWTThread {
     Thread.currentThread().setName("SWT Thread");
     
     primaryMonitor = display.getPrimaryMonitor();
-    
     AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator() {
 			public void generate(IndentWriter writer) {
 				writer.println("SWT");
@@ -232,7 +232,10 @@ public class SWTThread {
 			// platforms send this.
 			display.addListener(SWT.Close, new Listener() {
 				public void handleEvent(Event event) {
-					event.doit = UIFunctionsManager.getUIFunctions().dispose(false, false);
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+					if (uiFunctions != null) {
+						event.doit = uiFunctions.dispose(false, false);
+					}
 				}
 			});
 
@@ -269,6 +272,12 @@ public class SWTThread {
 					if (mHookDocOpen != null) {
 						mHookDocOpen.invoke(claObj, new Object[0]);
 					}
+					
+					Method mIsRetinaDisplay = claObj.getClass().getMethod("isRetinaDisplay");
+					if (mIsRetinaDisplay != null) {
+						isRetinaDisplay = (Boolean) mIsRetinaDisplay.invoke(claObj);
+					}
+
 					
 				} catch (Throwable e) {
 
@@ -390,5 +399,9 @@ public class SWTThread {
 
 	public Monitor getPrimaryMonitor() {
 		return primaryMonitor;
+	}
+	
+	public boolean isRetinaDisplay() {
+		return isRetinaDisplay;
 	}
 }
