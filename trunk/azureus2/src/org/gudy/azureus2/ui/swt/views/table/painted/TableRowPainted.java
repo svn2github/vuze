@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
@@ -349,7 +350,7 @@ public class TableRowPainted
 			gc.setAlpha(40);
 			gc.setForeground(origFG);
 			gc.setLineDash(new int[] { 1, 2 });
-			gc.drawRectangle(0, rowStartY,
+			gc.drawRectangle(rowStartX, rowStartY,
 					getViewPainted().getClientArea().width - 1, getHeight() - 1);
 			gc.setLineStyle(SWT.LINE_SOLID);
 		}
@@ -458,7 +459,7 @@ public class TableRowPainted
 					cellBounds.x += ofs;
 					cellBounds.width -= ofs;
 				}
-				//System.out.println("PS " + rowIndex + ";" + cellBounds + ";" + cell.getText());
+				//System.out.println("PS " + getIndex() + ";" + cellBounds + ";" + cell.getText());
 				int style = TableColumnSWTUtils.convertColumnAlignmentToSWT(column.getAlignment());
 				if (cellBounds.height > 20) {
 					style |= SWT.WRAP;
@@ -664,7 +665,8 @@ public class TableRowPainted
 	public Rectangle getDrawBounds() {
 		TableViewPainted view = (TableViewPainted) getView();
 		Rectangle clientArea = view.getClientArea();
-		Rectangle bounds = new Rectangle(0, drawOffset.y - clientArea.y, 9990,
+		int offsetX = TableViewPainted.DIRECT_DRAW ? -clientArea.x : 0;
+		Rectangle bounds = new Rectangle(offsetX, drawOffset.y - clientArea.y, 9990,
 				getHeight());
 		return bounds;
 	}

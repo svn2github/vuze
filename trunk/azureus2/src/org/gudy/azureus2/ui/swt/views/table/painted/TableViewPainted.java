@@ -32,8 +32,9 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -41,11 +42,14 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.*;
-import org.gudy.azureus2.ui.swt.views.table.impl.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableTooltips;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_Common;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
@@ -57,6 +61,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
@@ -78,9 +83,11 @@ public class TableViewPainted
 
 	private static final boolean DEBUG_WITH_SHELL = false;
 	
-	private static final boolean DIRECT_DRAW = false;
+	public static final boolean DIRECT_DRAW = Constants.isOSX && SWTThread.getInstance().isRetinaDisplay();
 
 	private static final int DEFAULT_HEADER_HEIGHT = 27;
+
+	private static final boolean DEBUG_REDRAW_CLIP = false;
 
 	private Composite cTable;
 
@@ -1160,7 +1167,7 @@ public class TableViewPainted
 				
 				public void widgetSelected(SelectionEvent e) {
 					//swt_calculateClientArea();
-					cTable.redraw();
+					redrawTable();
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
@@ -1552,7 +1559,7 @@ public class TableViewPainted
 			Point drawOffset = paintedRow.getDrawOffset();
 			int rowStartX = 0;
 			if (DIRECT_DRAW) {
-				rowStartX = drawOffset.x - clientArea.x;
+				rowStartX = -drawOffset.x;
 			}
 			int rowStartY = drawOffset.y - clientArea.y;
 			int rowHeight = paintedRow.getHeight();
@@ -1605,7 +1612,7 @@ public class TableViewPainted
 
 		//gc.setForeground(getColorLine());
 		TableColumnCore[] visibleColumns = getVisibleColumns();
-		int x = 0;
+		int x = DIRECT_DRAW ? -clientArea.x : 0;
 		gc.setAlpha(20);
 		for (TableColumnCore column : visibleColumns) {
 			x += column.getWidth();
@@ -2502,31 +2509,43 @@ public class TableViewPainted
 		}
 		in_swt_updateCanvasImage = true;
 		try {
+			int x;
 			if (!DIRECT_DRAW) {
-    		if (canvasImage == null || canvasImage.isDisposed() || bounds == null) {
-    			return;
-    		}
-    		//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
-    		GC gc = new GC(canvasImage);
-    		swt_paintCanvasImage(gc, bounds);
-    		gc.dispose();
-  
-    		if ( DEBUG_WITH_SHELL ){
-  	  		if (sCanvasImage != null) {
-  	  			Point size = sCanvasImage.getShell().computeSize(canvasImage.getBounds().width, canvasImage.getBounds().height);
-  	  			sCanvasImage.getShell().setSize(size);
-  	  			sCanvasImage.redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
-  	  			sCanvasImage.update();
-  	  		}
-    		}
+				if (canvasImage == null || canvasImage.isDisposed() || bounds == null) {
+					return;
+				}
+				//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
+				GC gc = new GC(canvasImage);
+				swt_paintCanvasImage(gc, bounds);
+				gc.dispose();
+
+				if (DEBUG_WITH_SHELL) {
+					if (sCanvasImage != null) {
+						Point size = sCanvasImage.getShell().computeSize(
+								canvasImage.getBounds().width, canvasImage.getBounds().height);
+						sCanvasImage.getShell().setSize(size);
+						sCanvasImage.redraw(bounds.x, bounds.y, bounds.width, bounds.height,
+								true);
+						sCanvasImage.update();
+					}
+				}
+				x = bounds.x - clientArea.x;
+			} else {
+				x = bounds.x;
 			}
 
-  		if (cTable != null && !cTable.isDisposed()) {
-  			cTable.redraw(bounds.x - clientArea.x, bounds.y, bounds.width, bounds.height, false);
-  			if (immediateRedraw) {
-  				cTable.update();
-  			}
-  		}
+			if (cTable != null && !cTable.isDisposed()) {
+				if (DEBUG_REDRAW_CLIP) {
+					GC gc = new GC(cTable);
+					gc.setBackground(ColorCache.getRandomColor());
+					gc.fillRectangle(x, bounds.y, bounds.width, bounds.height);
+					gc.dispose();
+				}
+				cTable.redraw(x, bounds.y, bounds.width, bounds.height, false);
+				if (immediateRedraw) {
+					cTable.update();
+				}
+			}
 		} finally {
 			in_swt_updateCanvasImage = false;
 		}
@@ -3018,11 +3037,15 @@ public class TableViewPainted
 					redrawTableScheduled = false;
 				}
 
-				if (canvasImage != null && !canvasImage.isDisposed()) {
-					canvasImage.dispose();
-					canvasImage = null;
+				if (DIRECT_DRAW) {
+					cTable.redraw();
+				} else {
+  				if (canvasImage != null && !canvasImage.isDisposed()) {
+  					canvasImage.dispose();
+  					canvasImage = null;
+  				}
+  				swt_calculateClientArea();
 				}
-				swt_calculateClientArea();
 			}
 		});
 	}
