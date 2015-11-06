@@ -1069,25 +1069,6 @@ public class ManagerUtils {
 								boolean done = 	dm_file.getDownloaded() == file_size && 
 												target_file.length() == file_size;
 	
-									// for big files see if we can hand off all processing to the
-									// media server
-								
-								if ( file_size >= 512*1024 ){
-									
-									URL stream_url = getMediaServerContentURL( dm_file );
-
-									if ( stream_url != null ){
-										
-										OutputStream os = response.getRawOutputStream();
-										
-										os.write((
-											"HTTP/1.1 302 Found" + NL +
-											"Location: " + stream_url.toExternalForm() + NL +
-											NL ).getBytes( "UTF-8" ));
-										
-										return( true );
-									}
-								}
 								
 								String	file_type;
 								
@@ -1106,13 +1087,43 @@ public class ManagerUtils {
 		
 									file_type = relative_path.substring(pos+1);
 								}
+	
+									// for big files see if we can hand off all processing to the
+									// media server
+								
+								if ( file_size >= 512*1024 ){
+									
+									String content_type = HTTPUtils.guessContentTypeFromFileType( file_type );
+									
+									if ( 	content_type.startsWith( "text/" ) ||
+											content_type.startsWith( "image/" )){
+										
+										// don't want to be redirecting here as (for example) .html needs
+										// to remain in the 'correct' place so that relative assets work
+									
+									}else{
+										
+										URL stream_url = getMediaServerContentURL( dm_file );
+	
+										if ( stream_url != null ){
+											
+											OutputStream os = response.getRawOutputStream();
+											
+											os.write((
+												"HTTP/1.1 302 Found" + NL +
+												"Location: " + stream_url.toExternalForm() + NL +
+												NL ).getBytes( "UTF-8" ));
+											
+											return( true );
+										}
+									}
+								}
+								
 								
 								if ( done ){
 									
 									if ( file_size < 512*1024 ){
-									
-
-										
+																	
 										FileInputStream	fis = null;
 				
 										try{
