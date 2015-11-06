@@ -1167,7 +1167,11 @@ public class TableViewPainted
 				
 				public void widgetSelected(SelectionEvent e) {
 					//swt_calculateClientArea();
-					redrawTable();
+					if (DIRECT_DRAW) {
+						redrawTable();
+					} else {
+						cTable.redraw();
+					}
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
@@ -3097,6 +3101,6 @@ public class TableViewPainted
 	@Override
 	public boolean isTableSelected() {
 		TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
-		return tv == this || (tv == null && isFocused);
+		return tv == this || (tv == null && isFocused) || (tv != this && tv != null && tv.getSelectedRowsSize() == 0);
 	}
 }
