@@ -1897,9 +1897,9 @@ TagManagerImpl
 		TagTypeBase		tag_type,
 		TagBase			tag,
 		String			attr,
-		boolean			value )
+		Boolean			value )
 	{
-		return( writeLongAttribute( tag_type, tag, attr, value?1:0 ));
+		return( writeLongAttribute( tag_type, tag, attr, value==null?null:(value?1L:0L )));
 	}
 	
 	protected Long
@@ -1941,25 +1941,42 @@ TagManagerImpl
 		TagTypeBase		tag_type,
 		TagBase			tag,
 		String			attr,
-		long			value )
+		Long			value )
 	{
 		try{
 			synchronized( this ){
 				
 				Map conf = getConf( tag_type, tag, true );
 				
-				long old = MapUtils.getMapLong( conf, attr, 0 );
-				
-				if ( old == value && conf.containsKey( attr )){
+				if ( value == null ){
 					
-					return( false );
+					if ( conf.containsKey( attr )){
+						
+						conf.remove( attr );
+						
+						setDirty();
+						
+						return( true );
+						
+					}else{
+						
+						return( false );
+					}
+				}else{
+					
+					long old = MapUtils.getMapLong( conf, attr, 0 );
+					
+					if ( old == value && conf.containsKey( attr )){
+						
+						return( false );
+					}
+					
+					conf.put( attr, value );
+					
+					setDirty();
+					
+					return( true );
 				}
-				
-				conf.put( attr, value );
-				
-				setDirty();
-				
-				return( true );
 			}
 		}catch( Throwable e ){
 			

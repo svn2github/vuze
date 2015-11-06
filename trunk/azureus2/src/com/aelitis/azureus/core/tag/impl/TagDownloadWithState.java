@@ -223,17 +223,17 @@ TagDownloadWithState
 		
 		if ( do_up ){
 			
-			setRateLimit((int)readLongAttribute( AT_RATELIMIT_UP, 0 ), true );
+			setRateLimit(readLongAttribute( AT_RATELIMIT_UP, 0L ).intValue(), true );
 		}
 		
 		if ( do_down ){
 			
-			setRateLimit((int)readLongAttribute( AT_RATELIMIT_DOWN, 0 ), false );
+			setRateLimit(readLongAttribute( AT_RATELIMIT_DOWN, 0L ).intValue(), false );
 		}
 		
-		upload_priority		= (int)readLongAttribute( AT_RATELIMIT_UP_PRI, 0 );
-		min_share_ratio		= (int)readLongAttribute( AT_RATELIMIT_MIN_SR, 0 );
-		max_share_ratio		= (int)readLongAttribute( AT_RATELIMIT_MAX_SR, 0 );
+		upload_priority		= readLongAttribute( AT_RATELIMIT_UP_PRI, 0L ).intValue();
+		min_share_ratio		= readLongAttribute( AT_RATELIMIT_MIN_SR, 0L ).intValue();
+		max_share_ratio		= readLongAttribute( AT_RATELIMIT_MAX_SR, 0L ).intValue();
 		
 		addTagListener(
 			new TagListener()
@@ -1234,6 +1234,14 @@ TagDownloadWithState
 				
 				if ( b != null && b ){
 					
+					return( true );
+				}
+			}else if ( type == TagFeatureProperties.PT_LONG ){
+					
+				Long l = prop.getLong();
+					
+				if ( l != null && l != Long.MIN_VALUE ){
+						
 					return( true );
 				}
 			}else if ( type == TagFeatureProperties.PT_STRING_LIST ){

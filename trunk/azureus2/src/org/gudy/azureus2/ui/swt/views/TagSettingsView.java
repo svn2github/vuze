@@ -402,7 +402,7 @@ public class TagSettingsView
 			gridLayout = new GridLayout(4, false);
 			gTransfer.setLayout(gridLayout);
 
-			gd = new GridData(SWT.NONE, SWT.NONE, false, false, 4, 1);
+			gd = new GridData(SWT.FILL, SWT.NONE, false, false, 4, 1);
 			gTransfer.setLayoutData(gd);
 
 			if (tagsAreTagFeatureRateLimit) {

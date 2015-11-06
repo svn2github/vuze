@@ -900,25 +900,25 @@ TagBase
 	protected boolean
 	writeBooleanAttribute(
 		String	attr,
-		boolean	value )
+		Boolean	value )
 	{
 		return( tag_type.writeBooleanAttribute( this, attr, value ));
 	}
 	
-	protected long
+	protected Long
 	readLongAttribute(
 		String	attr,
-		long	def )
+		Long	def )
 	{
 		return( tag_type.readLongAttribute( this, attr, def ));
 	}
 	
-	protected void
+	protected boolean
 	writeLongAttribute(
 		String	attr,
 		long	value )
 	{
-		tag_type.writeLongAttribute( this, attr, value );
+		return( tag_type.writeLongAttribute( this, attr, value ));
 	}
 	
 	protected String
@@ -1438,7 +1438,7 @@ TagBase
 		
 		public void
 		setBoolean(
-			boolean	value )
+			Boolean	value )
 		{
 			if ( writeBooleanAttribute( AT_PROPERTY_PREFIX + name, value )){
 				
@@ -1461,6 +1461,33 @@ TagBase
 		getBoolean()
 		{
 			return( readBooleanAttribute( AT_PROPERTY_PREFIX + name, null ));
+		}
+		
+		public void
+		setLong(
+			Long	value )
+		{
+			if ( writeLongAttribute( AT_PROPERTY_PREFIX + name, value )){
+				
+				for ( TagPropertyListener l: listeners ){
+					
+					try{
+						l.propertyChanged( this );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+				
+				tag_type.fireChanged( TagBase.this );
+			}
+		}
+		
+		public Long
+		getLong()
+		{
+			return( readLongAttribute( AT_PROPERTY_PREFIX + name, null ));
 		}
 		
 		public String
@@ -1505,6 +1532,13 @@ TagBase
 				}
 				case TagFeatureProperties.PT_BOOLEAN:{
 					Boolean val = getBoolean();
+					if ( val != null ){
+						value = String.valueOf( val );
+					}
+					break;
+				}
+				case TagFeatureProperties.PT_LONG:{
+					Long val = getLong();
 					if ( val != null ){
 						value = String.valueOf( val );
 					}

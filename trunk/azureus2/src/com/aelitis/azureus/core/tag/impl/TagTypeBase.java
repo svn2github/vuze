@@ -485,27 +485,27 @@ TagTypeBase
 	writeBooleanAttribute(
 		TagBase	tag,
 		String	attr,
-		boolean	value )
+		Boolean	value )
 	{
 		return( manager.writeBooleanAttribute( this, tag, attr, value ));
 	}
 	
-	protected long
+	protected Long
 	readLongAttribute(
 		TagBase	tag,
 		String	attr,
-		long	def )
+		Long	def )
 	{
 		return( manager.readLongAttribute( this, tag, attr, def ));
 	}
 	
-	protected void
+	protected boolean
 	writeLongAttribute(
 		TagBase	tag,
 		String	attr,
-		long	value )
+		Long	value )
 	{
-		manager.writeLongAttribute( this, tag, attr, value );
+		return( manager.writeLongAttribute( this, tag, attr, value ));
 	}
 	
 	protected String
