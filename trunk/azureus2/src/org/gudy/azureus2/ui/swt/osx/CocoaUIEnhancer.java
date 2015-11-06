@@ -99,6 +99,7 @@ public class CocoaUIEnhancer
 
 	private static long sel_application_openFiles_;
 
+	/** SWT v4331b supports this already */
 	private static long sel_applicationShouldHandleReopen_;
 
 	private static long sel_toolbarButtonClicked_;
@@ -138,6 +139,7 @@ public class CocoaUIEnhancer
 	private static Class<?> nsworkspaceCls = classForName("org.eclipse.swt.internal.cocoa.NSWorkspace");
 	private static Class<?> nsimageCls = classForName("org.eclipse.swt.internal.cocoa.NSImage");
 	private static Class<?> nssizeCls = classForName("org.eclipse.swt.internal.cocoa.NSSize");
+	private static Class<?> nsscreenCls = classForName("org.eclipse.swt.internal.cocoa.NSScreen");
 
 	static {
 		
@@ -816,4 +818,36 @@ public class CocoaUIEnhancer
 	public static boolean isInitialized() {
 		return initialized;
 	}
+	
+	public boolean isRetinaDisplay() {
+		try {
+			//NSArray screens = NSScreen.screens();
+			Object screens = invoke(nsscreenCls, "screens");
+			//int count = (int) /*64*/screens.count();
+			Object oCount = invoke(screens, "count");
+			if (!(oCount instanceof Number)) {
+				System.err.println("Can't determine Retina: count is " + oCount);
+			}
+			int count = ((Number) oCount).intValue();
+			for (int i = 0; i < count; i++) {
+				//NSScreen screen = new NSScreen(screens.objectAtIndex(i));
+				Object screenID = invoke(screens, "objectAtIndex", new Class[] {
+					C.PTR_SIZEOF == 8 ? long.class : int.class
+				}, i);
+				
+				Object screen = nsscreenCls.getConstructor(screenID.getClass()).newInstance(screenID);
+				//			if (screen.backingScaleFactor() == 2) {
+				Object oBackingScaleFactor = invoke(screen, "backingScaleFactor");
+				//System.err.println("Retina #" + i + " = " + oBackingScaleFactor);
+				if ((oBackingScaleFactor instanceof Number)
+						&& ((Number) oBackingScaleFactor).intValue() == 2) {
+					return true;
+				}
+			}
+		} catch (Throwable t) {
+			Debug.out("Can't determine Retina", t);
+		}
+		return false;
+	}
+
 }
