@@ -10,12 +10,11 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.util.MapUtils;
 
 public class CT_Live
-	extends CoreTableColumn
+	extends com.aelitis.azureus.ui.common.table.impl.CoreTableColumn
 	implements TableCellRefreshListener,
 		TableCellSWTPaintListener
 {

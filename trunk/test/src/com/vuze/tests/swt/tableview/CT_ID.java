@@ -8,10 +8,10 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.impl.CoreTableColumn;
 import com.aelitis.azureus.util.MapUtils;
 
 public class CT_ID
@@ -46,6 +46,7 @@ public class CT_ID
   		cell.setText(indent + Double.toString(id) + (row == null ? "" : ":" + row.getHeight()));
   		ds.map.put("ID", id);
 		}
+		((TableCellSWT) cell).setTextAlpha((int) (Math.random() * 500));
 	}
 	
 	public void refresh(TableCell cell) {

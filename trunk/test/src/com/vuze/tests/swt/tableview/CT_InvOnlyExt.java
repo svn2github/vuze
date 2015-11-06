@@ -11,8 +11,8 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.common.table.impl.CoreTableColumn;
 import com.aelitis.azureus.util.MapUtils;
 
 public class CT_InvOnlyExt

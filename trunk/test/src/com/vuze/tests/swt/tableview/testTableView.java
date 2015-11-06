@@ -19,9 +19,12 @@ import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.UIConfigDefaultsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.table.painted.TableCellPainted;
+import org.gudy.azureus2.ui.swt.views.table.painted.TableRowPainted;
 import org.gudy.azureus2.ui.swt.views.table.painted.TableViewPainted;
 
 import com.aelitis.azureus.ui.common.table.*;
@@ -35,6 +38,8 @@ public class testTableView
 	private static TableViewSWT tv;
 
 	private static boolean pause = true;
+	
+	private static boolean randomHeight = false;
 
 	private static boolean printDiff;
 	
@@ -49,6 +54,7 @@ public class testTableView
 		Display display = new Display();
 		FormData fd;
 		
+		System.out.println(SWT.getPlatform() + " " + SWT.getVersion());
 
 		COConfigurationManager.initialise();
 		COConfigurationManager.setParameter("Table.useTree", true);
@@ -61,7 +67,7 @@ public class testTableView
 		ResourceBundle bundle = ResourceBundle.getBundle("com.vuze.tests.swt.tableview.text");
 		MessageText.integratePluginMessages(bundle);
 
-		TableColumnCreatorV3.initCoreColumns();
+		//TableColumnCreatorV3.initCoreColumns();
 
 		Shell shell = new Shell(display, SWT.SHELL_TRIM);
 		shell.setText("testTableView");
@@ -118,21 +124,23 @@ public class testTableView
 		}
 		tcm.setDefaultColumnNames("test", names);
 
-		tv = TableViewFactory.createTableViewSWT(true, TableViewTestDS.class,
+		tv = TableViewFactory.createTableViewSWT(TableViewTestDS.class,
 				"test", "", columns, CT_ID.name, SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL | SWT.CASCADE);
 
 		tv.initialize(cTV);
 
-		tv.setRowDefaultHeight(40);
-		//	tv.setRowDefaultHeight(16);
+		//tv.setRowDefaultHeight(40);
+		tv.setRowDefaultHeight(16);
 		
 		tv.addCountChangeListener(new TableCountChangeListener() {
 			public void rowRemoved(TableRowCore row) {
 			}
 			
 			public void rowAdded(TableRowCore row) {
-				//row.setHeight((int) (16 + (Math.random() * 100)));
+				if (randomHeight) {
+					row.setHeight((int) (16 + (Math.random() * 100)));
+				}
 			}
 		});
 

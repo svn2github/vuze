@@ -11,8 +11,8 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.common.table.impl.CoreTableColumn;
 import com.aelitis.azureus.util.MapUtils;
 
 public class CT_LiveExt
@@ -38,7 +38,10 @@ public class CT_LiveExt
 
 		timer.addEvent("updateLiveExt",  SystemTime.getOffsetTime(1000), new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
-				TableCell[] array = cells.toArray(new TableCell[0]);
+				TableCell[] array;
+				synchronized (cells) {
+					array = cells.toArray(new TableCell[0]);
+				}
 				for (TableCell cell : array) {
 					if (cell.isDisposed()) {
 						synchronized (cells) {
