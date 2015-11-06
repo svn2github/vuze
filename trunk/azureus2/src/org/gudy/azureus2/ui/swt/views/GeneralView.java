@@ -1226,7 +1226,7 @@ public class GeneralView
 
 	private Image obfusticatedImage(Image image) {
 		UIDebugGenerator.obfusticateArea(image, (Control) fileName.getWidget(),
-				manager.toString());
+				manager == null ? "" : manager.toString());
 		UIDebugGenerator.obfusticateArea(image, (Control) saveIn.getWidget(),
 				Debug.secretFileName(saveIn.getText()));
 		return image;
