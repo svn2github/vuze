@@ -512,7 +512,9 @@ public class ManagerUtils {
 					{
 						private Map<String,Object>	file_map = new HashMap<String,Object>();
 						
+						private String	protocol;
 						private String	host;
+						private int		port;
 						
 						@Override
 						public void 
@@ -595,11 +597,11 @@ public class ManagerUtils {
 								host = bind_ip.getHostAddress();
 							}
 							
-							int port = getServerPort();
+							port = getServerPort();
 							
 							log( "Assigned port: " + port );
 							
-							String protocol = getProtocol();
+							protocol = getProtocol();
 
 							String url = protocol + "://" + host + ":" + port + "/" + url_suffix;
 							
@@ -663,6 +665,8 @@ public class ManagerUtils {
 								int		vuze_file_index	= -1;
 								String	vuze_file_name	= null;
 								
+								List<String>	networks = new ArrayList<String>();
+								
 								for ( String arg: args ){
 									
 									String[] bits= arg.split( "=" );
@@ -683,10 +687,28 @@ public class ManagerUtils {
 									}else if ( lhs.equals( "vuze_file_name" )){
 										
 										vuze_file_name = rhs;
+										
+									}else if ( lhs.equals( "vuze_network" )){
+										
+										String net = AENetworkClassifier.internalise( rhs );
+										
+										if ( net != null ){
+											
+											networks.add( net );
+										}
 									}
 								}
 								
 								if ( vuze_source != null ){
+									
+									String referrer = (String)request.getHeaders().get( "referer" );
+									
+									if ( referrer == null || !referrer.contains( "://" + host + ":" + port )){
+										
+										response.setReplyStatus( 403 );
+										
+										return( true );
+									}
 									
 									if ( vuze_source.endsWith( ".torrent" )){
 										
@@ -705,7 +727,7 @@ public class ManagerUtils {
 											
 											if ( done ){
 												
-												return( handleRedirect( dm, target_file, vuze_file_index, vuze_file_name, request, response ));
+												return( handleRedirect( dm, target_file, vuze_file_index, vuze_file_name, networks, request, response ));
 												
 											}else{
 												
@@ -771,7 +793,7 @@ public class ManagerUtils {
 														fos.close();
 													}
 													
-													return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, request, response ));
+													return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, networks, request, response ));
 													
 												}catch( Throwable e ){
 													
@@ -799,7 +821,7 @@ public class ManagerUtils {
 											
 											FileUtil.copyFile( connection.getInputStream(), torrent_file.getAbsoluteFile());
 											
-											return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, request, response ));
+											return( handleRedirect( dm, torrent_file, vuze_file_index, vuze_file_name, networks, request, response ));
 
 										}catch( Throwable e ){
 											
@@ -1314,6 +1336,7 @@ public class ManagerUtils {
 							File						torrent_file,
 							int							file_index,
 							String						file_name,
+							List<String>				networks,
 							TrackerWebPageRequest		request,
 							TrackerWebPageResponse		response )
 						{
@@ -1327,8 +1350,19 @@ public class ManagerUtils {
 								TorrentOpenOptions torrent_options = new TorrentOpenOptions( torrent_file.getAbsolutePath(), torrent, false );
 							
 								torrent_options.setTorrent( torrent );
+																
+								String[] existing_nets;
 								
-								String[] existing_nets = dm.getDownloadState().getNetworks();
+								if ( networks.size() == 0 ){
+
+										// inherit networks from parent 
+
+									existing_nets = dm.getDownloadState().getNetworks();
+									
+								}else{
+									
+									existing_nets = networks.toArray( new String[ networks.size() ]);
+								}
 								
 								for ( String net: AENetworkClassifier.AT_NETWORKS ){
 									
@@ -1343,11 +1377,8 @@ public class ManagerUtils {
 											break;
 										}
 									}
-									
-									if ( !found ){
-										
-										torrent_options.setNetworkEnabled( net, false );
-									}
+																			
+									torrent_options.setNetworkEnabled( net, found );
 								}
 								
 								Map<String,Object>	add_options = new HashMap<String, Object>();
@@ -1558,7 +1589,12 @@ public class ManagerUtils {
 			
 			if ( url instanceof String ){
 				
-				return( new URL( (String) url));
+				String s_url = (String)url;
+				
+				if ( s_url.length() > 0 ){
+					
+					return( new URL( s_url ));
+				}
 			}
 		}catch ( Throwable e ){
 			
