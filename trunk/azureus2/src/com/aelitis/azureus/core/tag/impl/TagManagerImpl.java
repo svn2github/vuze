@@ -176,7 +176,7 @@ TagManagerImpl
 										
 										torrent = torrent.getClone();
 										
-										torrent.removeAdditionalProperties();
+										torrent = torrent.removeAdditionalProperties();
 										
 										response.getOutputStream().write( torrent.writeToBEncodedData());
 										
