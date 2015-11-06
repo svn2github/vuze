@@ -40,7 +40,8 @@ public interface UISWTViewEvent {
 		"Refr",
 		"Lang",
 		"Destr",
-		"Close"
+		"Close",
+		"Obfus"
 	};
 	
 	/**
