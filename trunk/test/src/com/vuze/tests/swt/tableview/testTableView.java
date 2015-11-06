@@ -19,6 +19,8 @@ import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.UIConfigDefaultsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThreadAlreadyInstanciatedException;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -35,6 +37,8 @@ import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
 public class testTableView
 {
+	private static final boolean USE_EXPANDBAR = false;
+
 	private static TableViewSWT tv;
 
 	private static boolean pause = true;
@@ -51,9 +55,15 @@ public class testTableView
 		"rawtypes"
 	})
 	public static void main(String[] args) {
-		Display display = new Display();
+		final Display display = new Display();
 		FormData fd;
 		
+		try {
+			SWTThread.createInstance(null);
+		} catch (SWTThreadAlreadyInstanciatedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		System.out.println(SWT.getPlatform() + " " + SWT.getVersion());
 
 		COConfigurationManager.initialise();
@@ -62,6 +72,13 @@ public class testTableView
 		//COConfigurationManager.setParameter("GUI Refresh", 15000);
 		UIConfigDefaultsSWT.initialize();
 
+		display.addFilter(SWT.FocusIn, new Listener() {
+			
+			public void handleEvent(Event event) {
+				Control control = display.getFocusControl();
+				System.out.println("Focus In " + control + ";" + control.getBounds());
+			}
+		});
 		Colors.getInstance();
 		
 		ResourceBundle bundle = ResourceBundle.getBundle("com.vuze.tests.swt.tableview.text");
@@ -77,7 +94,13 @@ public class testTableView
 
 		Composite cTop = new Composite(shell, SWT.BORDER);
 
-		Composite cTV = new Composite(shell, SWT.BORDER);
+		ExpandBar eb = USE_EXPANDBAR ? new ExpandBar(shell, SWT.BORDER) : null;
+		ExpandItem expandItem = USE_EXPANDBAR ? new ExpandItem(eb, SWT.NONE) : null;
+		
+		Composite cTV = new Composite(USE_EXPANDBAR ? eb : shell, SWT.BORDER);
+		if (USE_EXPANDBAR) {
+			expandItem.setControl(cTV);
+		}
 
 		Composite cBottom = new Composite(shell, SWT.BORDER);
 		Composite cToggles = new Composite(shell, SWT.BORDER);
@@ -86,11 +109,20 @@ public class testTableView
 		fd.bottom = null;
 		cTop.setLayoutData(fd);
 
-		fd = Utils.getFilledFormData();
-		fd.top = new FormAttachment(cTop, 5);
-		fd.bottom = new FormAttachment(cToggles, -5);
-		cTV.setLayout(new FillLayout());
-		cTV.setLayoutData(fd);
+		if (USE_EXPANDBAR) {
+			fd = Utils.getFilledFormData();
+			fd.top = new FormAttachment(cTop, 5);
+			fd.bottom = new FormAttachment(cToggles, -5);
+  		cTV.setLayout(new FillLayout());
+			eb.setLayoutData(fd);
+			expandItem.setHeight(400);
+		} else {
+  		fd = Utils.getFilledFormData();
+  		fd.top = new FormAttachment(cTop, 5);
+  		fd.bottom = new FormAttachment(cToggles, -5);
+  		cTV.setLayout(new FillLayout());
+  		cTV.setLayoutData(fd);
+		}
 
 		fd = Utils.getFilledFormData();
 		fd.top = null;
@@ -483,6 +515,9 @@ public class testTableView
 				printDiff = !printDiff;
 			}
 		});
+		
+		// for tab testing
+		new Text(cBottom, SWT.BORDER);
 		
 		
 		
