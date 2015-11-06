@@ -599,11 +599,17 @@ public class TableRowPainted
 					if (allCells) {
 						getViewPainted().swt_updateCanvasImage(getDrawBounds(), false);
 					} else {
+						Rectangle drawBounds = getDrawBounds();
 						for (Object o : invalidCells) {
 							if (o instanceof TableCellPainted) {
 								TableCellPainted cell = (TableCellPainted) o;
 								Rectangle bounds = cell.getBoundsRaw();
 								if (bounds != null) {
+									// cell's rawbounds yPos can get out of date
+									// cell's rawbounds gets updated via swt_updateCanvasImage, via swt_paintGC
+									bounds.y = drawBounds.y;
+									bounds.height = drawBounds.height;
+									cell.setBoundsRaw(bounds);
 									getViewPainted().swt_updateCanvasImage(bounds, false);
 								}
 							}
