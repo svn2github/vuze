@@ -1168,6 +1168,7 @@ public class TableViewPainted
 				public void widgetSelected(SelectionEvent e) {
 					//swt_calculateClientArea();
 					if (DIRECT_DRAW) {
+						swt_calculateClientArea();
 						redrawTable();
 					} else {
 						cTable.redraw();
@@ -3042,7 +3043,9 @@ public class TableViewPainted
 				}
 
 				if (DIRECT_DRAW) {
-					cTable.redraw();
+					if (cTable != null && !cTable.isDisposed()) {
+						cTable.redraw();
+					}
 				} else {
   				if (canvasImage != null && !canvasImage.isDisposed()) {
   					canvasImage.dispose();
