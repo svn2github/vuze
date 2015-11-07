@@ -1584,11 +1584,11 @@ DeviceManagerImpl
 			try{
 				DiskManagerFileInfo f = file.getTargetFile();
 				
-				String str = (String)ipc.invoke( "getMimeType", new Object[]{ f });
+				String[] strs = (String[])ipc.invoke( "getMimeTypes", new Object[]{ f });
 				
-				if ( str != null && str.length() > 0 ){
+				if ( strs != null && strs.length > 0 ){
 					
-					return( str );
+					return( strs[0] );
 				}
 			}catch( Throwable e ){
 				
