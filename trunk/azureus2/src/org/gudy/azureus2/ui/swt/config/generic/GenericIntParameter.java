@@ -21,7 +21,6 @@ package org.gudy.azureus2.ui.swt.config.generic;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -285,6 +284,17 @@ public class GenericIntParameter
 		}
 	}
 
+	  public void
+	  refresh()
+	  {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if ( !spinner.isDisposed()){
+						spinner.setSelection( adapter.getIntValue(sParamName));
+					}
+				}
+			});
+	  }
 	public void setLayoutData(Object layoutData) {
   	Utils.adjustPXForDPI(layoutData);
 		spinner.setLayoutData(layoutData);

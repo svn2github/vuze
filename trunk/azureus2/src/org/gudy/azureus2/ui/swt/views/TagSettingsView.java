@@ -103,6 +103,8 @@ public class TagSettingsView
 		public folderOption copyOnCompleteFolder;
 
 		public Text constraints;
+		
+		public GenericIntParameter tfl_max_taggables;
 	}
 
 	private Params params = null;
@@ -735,7 +737,7 @@ public class TagSettingsView
 			if ( 	numTags == 1 && 
 					tags[0].getTagType().hasTagTypeFeature(TagFeature.TF_LIMITS )){
 				
-				TagFeatureLimits tfl = (TagFeatureLimits)tags[0];
+				final TagFeatureLimits tfl = (TagFeatureLimits)tags[0];
 				
 				if ( tfl.getMaximumTaggables() >= 0 ){
 								
@@ -748,6 +750,32 @@ public class TagSettingsView
 		
 					gd = new GridData(SWT.FILL, SWT.NONE, false, false, 4, 1);
 					gLimits.setLayoutData(gd);
+					
+					
+					label = new Label(gLimits, SWT.NONE);
+					Messages.setLanguageText(label, "TableColumn.header.max_taggables");
+					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+					Utils.setLayoutData(label, gd);
+
+					params.tfl_max_taggables = new GenericIntParameter(
+							new GenericParameterAdapter() {
+								@Override
+								public int getIntValue(String key) {
+									return tfl.getMaximumTaggables();
+								}
+								@Override
+								public int getIntValue(String key, int def) {
+									return getIntValue(key);
+								}
+								@Override
+								public void setIntValue(String key, int value) {
+									tfl.setMaximumTaggables( value );
+								}
+							}, gLimits, null, 0, Integer.MAX_VALUE );
+					gd = new GridData();
+					//gd.horizontalSpan = 3;
+					gd.widthHint = 50;
+					params.tfl_max_taggables.setLayoutData(gd);
 				}
 			}
 
@@ -933,6 +961,10 @@ public class TagSettingsView
 				}
 			}
 			params.constraints.setText(text);
+		}
+		
+		if (params.tfl_max_taggables != null) {
+			params.tfl_max_taggables.refresh();
 		}
 	}
 
