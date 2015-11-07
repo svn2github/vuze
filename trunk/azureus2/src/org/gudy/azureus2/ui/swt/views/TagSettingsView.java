@@ -597,7 +597,7 @@ public class TagSettingsView
 						|| fl.supportsTagMoveOnComplete()) {
 
 					Group gFiles = new Group(cMainComposite, SWT.NONE);
-					gFiles.setText("label.file.settings");
+					gFiles.setText(MessageText.getString( "label.file.settings"));
 					gridLayout = new GridLayout(4, false);
 					gFiles.setLayout(gridLayout);
 
