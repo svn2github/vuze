@@ -234,7 +234,7 @@ public class TagSettingsView
 			params = null;
 			cMainComposite.setLayout(new FillLayout());
 			Label label = new Label(cMainComposite, SWT.NONE);
-			label.setText("Select one tag to see the tag's settings");
+			label.setText(MessageText.getString( "tag.settings.select.tag" ));
 		} else {
 			final int numTags = tags.length;
 
@@ -398,7 +398,7 @@ public class TagSettingsView
 			////////////////////
 
 			Group gTransfer = new Group(cMainComposite, SWT.NONE);
-			gTransfer.setText("Transfer Settings");
+			gTransfer.setText( MessageText.getString("label.transfer.settings"));
 			gridLayout = new GridLayout(4, false);
 			gTransfer.setLayout(gridLayout);
 
@@ -597,7 +597,7 @@ public class TagSettingsView
 						|| fl.supportsTagMoveOnComplete()) {
 
 					Group gFiles = new Group(cMainComposite, SWT.NONE);
-					gFiles.setText("File Settings");
+					gFiles.setText("label.file.settings");
 					gridLayout = new GridLayout(4, false);
 					gFiles.setLayout(gridLayout);
 
@@ -729,6 +729,25 @@ public class TagSettingsView
 						}
 					});
 
+				}
+			}
+			
+			if ( 	numTags == 1 && 
+					tags[0].getTagType().hasTagTypeFeature(TagFeature.TF_LIMITS )){
+				
+				TagFeatureLimits tfl = (TagFeatureLimits)tags[0];
+				
+				if ( tfl.getMaximumTaggables() >= 0 ){
+								
+					/////////////////////////////// limits
+		
+					Group gLimits = new Group(cMainComposite, SWT.NONE);
+					gLimits.setText(MessageText.getString("label.limit.settings"));
+					gridLayout = new GridLayout(4, false);
+					gLimits.setLayout(gridLayout);
+		
+					gd = new GridData(SWT.FILL, SWT.NONE, false, false, 4, 1);
+					gLimits.setLayoutData(gd);
 				}
 			}
 

@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagFeatureExecOnAssign;
 import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
+import com.aelitis.azureus.core.tag.TagFeatureLimits;
 import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
@@ -72,6 +73,7 @@ TagBase
 	protected static final String	AT_BYTES_UP			= "b.up";
 	protected static final String	AT_BYTES_DOWN		= "b.down";
 	protected static final String	AT_DESCRIPTION		= "desc";
+	protected static final String	AT_MAX_TAGGABLES	= "max.t";
 
 
 	private static final String[] EMPTY_STRING_LIST = {};
@@ -118,6 +120,7 @@ TagBase
 	private TagFeatureRateLimit		tag_rl;
 	private TagFeatureRSSFeed		tag_rss;
 	private TagFeatureFileLocation	tag_fl;
+	private TagFeatureLimits		tag_limits;
 	
 	
 	protected
@@ -154,7 +157,12 @@ TagBase
 			if ( this instanceof TagFeatureFileLocation ){
 				
 				tag_fl = (TagFeatureFileLocation)this;
-			}			
+			}	
+			
+			if ( this instanceof TagFeatureLimits ){
+				
+				tag_limits = (TagFeatureLimits)this;
+			}	
 		}
 	}
 		
@@ -693,6 +701,39 @@ TagBase
 		Debug.out( "not supported" );
 	}
 
+	public int
+	getMaximumTaggables()
+	{
+		if ( tag_limits != null ){
+		
+			return( readLongAttribute( AT_MAX_TAGGABLES, 0L ).intValue());
+		}
+		
+		return( -1 );
+	}
+	
+	public void
+	setMaximumTaggables(
+		int		max )
+	{
+		if ( tag_limits != null ){
+			
+			if ( getMaximumTaggables() != max ){
+			
+				writeLongAttribute( AT_MAX_TAGGABLES, max );
+				
+				tag_type.fireChanged( this );
+				
+				checkMaximumTaggables();
+			}
+		}
+	}
+	
+	protected void
+	checkMaximumTaggables()
+	{	
+	}
+	
 	public TagProperty[]
 	getSupportedProperties()
 	{
@@ -779,6 +820,11 @@ TagBase
 		tag_type.taggableAdded( this, t );
 		
 		tag_type.fireChanged( this );
+		
+		if ( tag_limits != null ){
+			
+			checkMaximumTaggables();
+		}
 	}
 	
 	public void

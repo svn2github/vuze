@@ -1257,4 +1257,36 @@ TagDownloadWithState
 		
 		return( false );
 	}
+	
+	@Override
+	public int
+	getMaximumTaggables()
+	{
+		if ( getTagType().getTagType() != TagType.TT_DOWNLOAD_MANUAL ){
+			
+			return( -1 );
+		}
+		
+		return( super.getMaximumTaggables());
+	}
+	
+	@Override
+	protected void
+	checkMaximumTaggables()
+	{
+		int max = getMaximumTaggables();
+		
+		if ( max > 0 ){
+			
+			if ( getTagType().getTagType() != TagType.TT_DOWNLOAD_MANUAL ){
+				
+				return;
+			}
+			
+			if ( getTaggedCount() > max ){
+				
+				System.out.println( "delete!" );
+			}
+		}
+	}
 }
