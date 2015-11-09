@@ -1147,7 +1147,7 @@ public class TagUIUtils
 
 				apply_item.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
-						applyLocationToCurrent( tag, existing );
+						applyLocationToCurrent( tag, existing, false );
 					}});
 				
 				new MenuItem( moc_menu, SWT.SEPARATOR);
@@ -1220,7 +1220,7 @@ public class TagUIUtils
 
 				apply_item.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
-						applyLocationToCurrent( tag, existing );
+						applyLocationToCurrent( tag, existing, true );
 					}});
 			
 				new MenuItem( moc_menu, SWT.SEPARATOR);
@@ -2389,7 +2389,8 @@ public class TagUIUtils
 	private static void
 	applyLocationToCurrent(
 		final Tag			tag,
-		final File			location )
+		final File			location,
+		final boolean		complete_only )
 	{
 		move_dispatcher.dispatch(
 			new AERunnable()
@@ -2400,6 +2401,11 @@ public class TagUIUtils
 					Set<DownloadManager>	downloads = ((TagDownload)tag).getTaggedDownloads();
 					
 					for ( DownloadManager download: downloads ){
+						
+						if ( complete_only && !download.isDownloadComplete( false )){
+						
+							continue;
+						}
 						
 						try{
 							download.moveDataFilesLive( location );
