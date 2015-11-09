@@ -116,7 +116,10 @@ TagBase
 	private Boolean	is_visible;
 	private Boolean	is_public;
 	private String	group;
-
+	private int[]	colour;
+	private String	description;
+	
+	
 	private TagFeatureRateLimit		tag_rl;
 	private TagFeatureRSSFeed		tag_rss;
 	private TagFeatureFileLocation	tag_fl;
@@ -138,6 +141,7 @@ TagBase
 			is_visible 	= readBooleanAttribute( AT_VISIBLE, null );
 			is_public 	= readBooleanAttribute( AT_PUBLIC, null );
 			group		= readStringAttribute( AT_GROUP, null );
+			description = readStringAttribute( AT_DESCRIPTION, null );
 			
 			if ( this instanceof TagFeatureRateLimit ){
 				
@@ -476,11 +480,18 @@ TagBase
 	public int[]
 	getColor()
 	{
-		int[] result = decodeRGB( readStringAttribute( AT_COLOR_ID, null ));
+		int[] result = colour;
 		
 		if ( result == null ){
 			
-			result = tag_type.getColorDefault();
+			result = decodeRGB( readStringAttribute( AT_COLOR_ID, null ));
+		
+			if ( result == null ){
+			
+				result = tag_type.getColorDefault();
+			}
+			
+			colour = result;
 		}
 		
 		return( result );
@@ -489,9 +500,11 @@ TagBase
 	public void
 	setColor(
 		int[]		rgb )
-	{
+	{		
 		writeStringAttribute( AT_COLOR_ID, encodeRGB( rgb ));
-		
+	
+		colour = null;
+
 		tag_type.fireChanged( this );
 	}
 	
@@ -872,7 +885,7 @@ TagBase
 	public String
 	getDescription()
 	{
-		return( readStringAttribute( AT_DESCRIPTION, null ));
+		return( description );
 	}
 	
 	public void
@@ -892,6 +905,8 @@ TagBase
 			return;
 		}
 			
+		description = str;
+		
 		writeStringAttribute( AT_DESCRIPTION, str );
 		
 		tag_type.fireChanged( this );

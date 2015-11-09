@@ -664,6 +664,8 @@ TagManagerImpl
 			}
 		};
 	
+	private AsyncDispatcher async_dispatcher = new AsyncDispatcher(5000);
+
 	private FrequencyLimitedDispatcher dirty_dispatcher = 
 		new FrequencyLimitedDispatcher(
 			new AERunnable()
@@ -671,22 +673,29 @@ TagManagerImpl
 				public void
 				runSupport()
 				{
-					try{
-							// just in case there's a bunch of changes coming in together
-						
-						Thread.sleep( 1000 );
-						
-					}catch( Throwable e ){
-						
-					}
+						// always go async to avoid blocking caller
 					
-					writeConfig();
+					new AEThread2( "tag:fld" )
+					{
+						public void
+						run()
+						{
+							try{
+									// just in case there's a bunch of changes coming in together
+								
+								Thread.sleep( 1000 );
+								
+							}catch( Throwable e ){
+								
+							}
+							
+							writeConfig();
+						}
+					}.start();
 				}
 			},
 			30*1000 );
-	
-	AsyncDispatcher async_dispatcher = new AsyncDispatcher(5000);
-	
+		
 	
 	private Map					config;
 	private WeakReference<Map>	config_ref;
@@ -1779,7 +1788,7 @@ TagManagerImpl
 					return( config );
 				}
 			}
-							
+									
 			config = readConfig();
 			
 			return( config );
@@ -1800,7 +1809,7 @@ TagManagerImpl
 				
 				return;
 			}
-	
+				
 			config_dirty = false;
 			
 			if ( config_change_queue.size() > 0 ){
