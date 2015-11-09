@@ -29,21 +29,14 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.ViewUtils;
-import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
-
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.ViewUtils;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 /**
  * @author TuxPaper
@@ -127,6 +120,7 @@ public abstract class ColumnDateSizer
 	
 	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#postConfigLoad()
 	public void postConfigLoad() {
+		boolean oldShowTime = showTime;
 		Object oShowTime = getUserData("showTime");
 		if (oShowTime instanceof Number) {
 			Number nShowTime = (Number) oShowTime;
@@ -137,6 +131,9 @@ public abstract class ColumnDateSizer
 		}
 		
 		cdf.update();
+		if (oldShowTime != showTime) {
+			recalcWidth(new Date(), null);
+		}
 		
 		super.postConfigLoad();
 	}
@@ -296,7 +293,7 @@ public abstract class ColumnDateSizer
 		}
 
 		if (curFormat != idxFormat) {
-			//System.out.println("switch fmt to " + idxFormat + ", max=" + maxWidthUsed[idxFormat]);
+			//System.out.println(getTableID() + ":" + getName() + "] switch fmt to " + idxFormat + ", max=" + maxWidthUsed[idxFormat]);
 			curFormat = idxFormat;
 			invalidateCells();
 		}
