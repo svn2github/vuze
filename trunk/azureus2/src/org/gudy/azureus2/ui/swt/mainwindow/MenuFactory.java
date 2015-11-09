@@ -2214,55 +2214,63 @@ public class MenuFactory
 
 	public static MenuItem addCheckUpdateMenuItem(final Menu menu) {
 		return addMenuItem(menu, MENU_ID_UPDATE_CHECK, new ListenerNeedingCoreRunning() {
-			public void handleEvent(AzureusCore core, Event e) {
+			public void handleEvent(final AzureusCore core, Event e) {
 				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uiFunctions != null) {
 					uiFunctions.bringToFront();
 				}
-				UpdateMonitor.getSingleton(core).performCheck(true, false, false,
-						new UpdateCheckInstanceListener() {
-							public void cancelled(UpdateCheckInstance instance) {
-							}
-
-							public void complete(UpdateCheckInstance instance) {
-								Update[] updates = instance.getUpdates();
-								boolean hasUpdates = false;
-								for (Update update : updates) {
-									if (update.getDownloaders().length > 0) {
-										hasUpdates = true;
-										break;
-									}
-								}
-								if (!hasUpdates) {
-									
-									int build = Constants.getIncrementalBuild();
-								
-									if ( COConfigurationManager.getBooleanParameter( "Beta Programme Enabled" ) && build > 0 ){
-										
-										String build_str = "" + build;
-										
-										if ( build_str.length() == 1 ){
-											
-											build_str = "0" + build_str;
+				Utils.getOffOfSWTThread(
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							UpdateMonitor.getSingleton(core).performCheck(true, false, false,
+									new UpdateCheckInstanceListener() {
+										public void cancelled(UpdateCheckInstance instance) {
 										}
-										
-										MessageBoxShell mb = new MessageBoxShell(
-												SWT.ICON_INFORMATION | SWT.OK,
-												"window.update.noupdates.beta", new String[]{ "B" + build_str });
-										
-										mb.open(null);
-										
-									}else{
-										
-										MessageBoxShell mb = new MessageBoxShell(
-												SWT.ICON_INFORMATION | SWT.OK,
-												"window.update.noupdates", (String[]) null);
-										
-										mb.open(null);
-									}
-								}
-							}
-						});
+			
+										public void complete(UpdateCheckInstance instance) {
+											Update[] updates = instance.getUpdates();
+											boolean hasUpdates = false;
+											for (Update update : updates) {
+												if (update.getDownloaders().length > 0) {
+													hasUpdates = true;
+													break;
+												}
+											}
+											if (!hasUpdates) {
+												
+												int build = Constants.getIncrementalBuild();
+											
+												if ( COConfigurationManager.getBooleanParameter( "Beta Programme Enabled" ) && build > 0 ){
+													
+													String build_str = "" + build;
+													
+													if ( build_str.length() == 1 ){
+														
+														build_str = "0" + build_str;
+													}
+													
+													MessageBoxShell mb = new MessageBoxShell(
+															SWT.ICON_INFORMATION | SWT.OK,
+															"window.update.noupdates.beta", new String[]{ "B" + build_str });
+													
+													mb.open(null);
+													
+												}else{
+													
+													MessageBoxShell mb = new MessageBoxShell(
+															SWT.ICON_INFORMATION | SWT.OK,
+															"window.update.noupdates", (String[]) null);
+													
+													mb.open(null);
+												}
+											}
+										}
+									});
+						}
+					});
 			}
 		});
 	}
