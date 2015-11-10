@@ -525,18 +525,23 @@ public class GeneralView
     
     piecesImage.addListener(SWT.Paint, new Listener() {
       public void handleEvent(Event e) {
-        if (e.count == 0 && e.width > 0 && e.height > 0) {
-          updatePiecesInfo(true);
-        }
+      	if (pImage == null || pImage.isDisposed()) {
+      		return;
+      	}
+      	e.gc.drawImage(pImage, 0, 0);
       }
     });
     availabilityImage.addListener(SWT.Paint, new Listener() {
       public void handleEvent(Event e) {
-        if (e.count == 0 && e.width > 0 && e.height > 0) {
-          updateAvailability();
+        if (aImage == null || aImage.isDisposed()) {
+        	return;
         }
+        e.gc.drawImage(aImage, 0, 0);
       }
     });
+
+    updateAvailability();
+    updatePiecesInfo(false);
 
     genComposite.layout();
     
@@ -555,7 +560,9 @@ public class GeneralView
     loopFactor++;
     if ((loopFactor % graphicsUpdate) == 0) {
       updateAvailability();
-      updatePiecesInfo(false);      
+      availabilityImage.redraw();
+      updatePiecesInfo(false);
+      piecesImage.redraw();
     }
     
     
@@ -755,7 +762,6 @@ public class GeneralView
 	    }
 	    aImage = new Image(display, bounds.width, bounds.height);
 
-	    GC gc = new GC(availabilityImage);
 	    GC gcImage = new GC(aImage);
 	    
 	    try{
@@ -845,11 +851,9 @@ public class GeneralView
 		      return;
 		    }
 		    availabilityPercent.setText(allMin + "." + sTotal);
-		    gc.drawImage(aImage, bounds.x, bounds.y);
 	    }finally{
 	    	
 		    gcImage.dispose();
-		    gc.dispose();
 	    }
   	}finally{
   		
@@ -1057,10 +1061,6 @@ public class GeneralView
 	      if (pImage == null || pImage.isDisposed()) {
 	        return;
 	      }
-	      
-	      GC gc = new GC(piecesImage);
-	      gc.drawImage(pImage, bounds.x, bounds.y);
-	      gc.dispose();
 	    }
   	}finally{
   		
