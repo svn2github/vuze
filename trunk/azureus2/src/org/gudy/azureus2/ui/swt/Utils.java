@@ -92,6 +92,9 @@ public class Utils
 	public static final String GOOD_STRING = "(/|,jI~`gy";
 
 	public static final boolean isGTK = SWT.getPlatform().equals("gtk");
+
+	public static final boolean isGTK3 = Utils.isGTK
+			&& System.getProperty("org.eclipse.swt.internal.gtk.version", "2").startsWith("3");
 	
 	public static final boolean isCarbon = SWT.getPlatform().equals("carbon");
 
