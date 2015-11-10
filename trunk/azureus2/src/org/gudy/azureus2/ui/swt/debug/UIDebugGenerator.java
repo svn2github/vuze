@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.*;
@@ -653,7 +654,15 @@ public class UIDebugGenerator
 			gc.fillRectangle(bounds);
 			gc.drawRectangle(bounds);
 			gc.setClipping(bounds);
-			gc.drawText(text, bounds.x + 2, bounds.y + 1);
+			if (Utils.isGTK3) {
+  			GCStringPrinter sp = new GCStringPrinter(gc, text,
+  					new Rectangle(bounds.x + 2, bounds.y + 2, bounds.width - 3,
+  							bounds.height - 2),
+  					0, bounds.height >= 30 ? SWT.WRAP : 0);
+  			sp.printString();
+			} else {
+				gc.drawText(text, bounds.x + 2, bounds.y + 1);
+			}
 		} finally {
 			gc.dispose();
 		}
