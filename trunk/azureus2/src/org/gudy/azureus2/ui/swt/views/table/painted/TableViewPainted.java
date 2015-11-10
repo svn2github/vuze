@@ -2360,14 +2360,21 @@ public class TableViewPainted
 									Rectangle bounds = canvasImage.getBounds();
 									//System.out.println("moving y " + yDiff + ";cah=" + clientArea.height);
 									if (yDiff > 0) {
-										//copyArea cheese on GTK3 SWT 4528/4608
-										//gc.copyArea(0, 0, bounds.width, bounds.height, 0, yDiff, false);
-										gc.drawImage(canvasImage, 0, yDiff);
+										if (Utils.isGTK) {
+											//copyArea cheese on GTK3 SWT 4528/4608
+											gc.drawImage(canvasImage, 0, yDiff);
+										} else {
+											gc.copyArea(0, 0, bounds.width, bounds.height, 0, yDiff, false);
+										}
 										swt_paintCanvasImage(gc, new Rectangle(0, 0, 9999, yDiff));
 										gc.setClipping((Rectangle) null);
 									} else {
-										//gc.copyArea(0, -yDiff, bounds.width, bounds.height , 0, 0, false);
-										gc.drawImage(canvasImage, 0, yDiff);
+										if (Utils.isGTK) {
+											//copyArea cheese on GTK3 SWT 4528/4608
+											gc.drawImage(canvasImage, 0, yDiff);
+										} else {
+											gc.copyArea(0, -yDiff, bounds.width, bounds.height , 0, 0, false);
+										}
 										int h = -yDiff;
 										TableRowPainted row = getLastVisibleRow();
 										if (row != null) {
