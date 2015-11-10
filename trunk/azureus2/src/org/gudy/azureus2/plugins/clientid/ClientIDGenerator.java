@@ -21,8 +21,6 @@ package org.gudy.azureus2.plugins.clientid;
 
 import java.util.Properties;
 
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
 /**
  * @author parg
  *
