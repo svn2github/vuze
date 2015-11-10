@@ -74,6 +74,7 @@ TagBase
 	protected static final String	AT_BYTES_DOWN		= "b.down";
 	protected static final String	AT_DESCRIPTION		= "desc";
 	protected static final String	AT_MAX_TAGGABLES	= "max.t";
+	protected static final String	AT_REMOVAL_STRATEGY	= "max.t.r";
 
 
 	private static final String[] EMPTY_STRING_LIST = {};
@@ -745,6 +746,32 @@ TagBase
 	protected void
 	checkMaximumTaggables()
 	{	
+	}
+	
+	public int
+	getRemovalStrategy()
+	{
+		if ( tag_limits != null ){
+		
+			return( readLongAttribute( AT_REMOVAL_STRATEGY, (long)TagFeatureLimits.RS_DEFAULT ).intValue());
+		}
+		
+		return( -1 );
+	}
+	
+	public void
+	setRemovalStrategy(
+		int		id )
+	{
+		if ( tag_limits != null ){
+			
+			if ( getRemovalStrategy() != id ){
+			
+				writeLongAttribute( AT_REMOVAL_STRATEGY, id );
+				
+				tag_type.fireChanged( this );
+			}
+		}	
 	}
 	
 	public TagProperty[]

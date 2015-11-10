@@ -45,10 +45,12 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ColorParameter;
+import org.gudy.azureus2.ui.swt.config.StringListParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericFloatParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
+import org.gudy.azureus2.ui.swt.config.generic.GenericStringListParameter;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
@@ -745,7 +747,7 @@ public class TagSettingsView
 		
 					Group gLimits = new Group(cMainComposite, SWT.NONE);
 					gLimits.setText(MessageText.getString("label.limit.settings"));
-					gridLayout = new GridLayout(4, false);
+					gridLayout = new GridLayout(6, false);
 					gLimits.setLayout(gridLayout);
 		
 					gd = new GridData(SWT.FILL, SWT.NONE, false, false, 4, 1);
@@ -776,6 +778,48 @@ public class TagSettingsView
 					//gd.horizontalSpan = 3;
 					gd.widthHint = 50;
 					params.tfl_max_taggables.setLayoutData(gd);
+					
+					label = new Label(gLimits, SWT.NONE);
+					Messages.setLanguageText(label, "label.removal.policy");
+					
+					new GenericStringListParameter( 
+						new GenericParameterAdapter() 
+						{
+							public String
+							getStringListValue(
+								String		key )
+							{
+								return( String.valueOf( tfl.getRemovalStrategy()));
+							}
+							
+							public String
+							getStringListValue(
+								String		key,
+								String		def )
+							{
+								return( getStringListValue( key ));
+							}
+							
+							public void
+							setStringListValue(
+								String		key,
+								String		value )
+							{
+								tfl.setRemovalStrategy( value==null?TagFeatureLimits.RS_DEFAULT:Integer.parseInt( value ));
+							}
+						},
+						gLimits, null, 
+						new String[]{
+							"",
+							MessageText.getString( "MyTorrentsView.menu.archive" ),
+							MessageText.getString( "Button.deleteContent.fromLibrary" ),
+							MessageText.getString( "Button.deleteContent.fromComputer" ),
+						}, 
+						new String[]{ 
+							"0",
+							"1", 
+							"2", 
+							"3" });
 				}
 			}
 

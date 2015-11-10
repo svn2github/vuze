@@ -20,6 +20,10 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +38,9 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.pluginsimpl.PluginUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.Tag;
@@ -1274,18 +1281,97 @@ TagDownloadWithState
 	protected void
 	checkMaximumTaggables()
 	{
+		if ( getTagType().getTagType() != TagType.TT_DOWNLOAD_MANUAL ){
+			
+			return;
+		}
+
 		int max = getMaximumTaggables();
 		
-		if ( max > 0 ){
+		if ( max <= 0 ){
 			
-			if ( getTagType().getTagType() != TagType.TT_DOWNLOAD_MANUAL ){
+			return;
+		}
 				
-				return;
-			}
+		int removal_strategy = getRemovalStrategy();
+		
+		if ( removal_strategy == RS_NONE ){
 			
-			if ( getTaggedCount() > max ){
+			return;
+		}
+					
+		if ( getTaggedCount() > max ){
+			
+			Set<DownloadManager> dms = getTaggedDownloads();
+			
+			List<DownloadManager>	sorted_dms = new ArrayList<DownloadManager>( dms );
+			
+				// oldest first
+			
+			Collections.sort(
+				sorted_dms,
+				new Comparator<DownloadManager>()
+				{
+					public int 
+					compare(
+						DownloadManager dm1,
+						DownloadManager dm2) 
+					{
+						long t1 = dm1.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+						long t2 = dm2.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+						
+						if ( t1 < t2 ){
+							
+							return( -1 );
+							
+						}else if ( t1 > t2 ){
+							
+							return( 1 );
+							
+						}else{
+							
+							return( dm1.getInternalName().compareTo( dm2.getInternalName()));
+						}
+					}
+				});
+			
+			Iterator<DownloadManager> it = sorted_dms.iterator();
 				
-				System.out.println( "delete!" );
+			while( it.hasNext() && sorted_dms.size() > max ){
+				
+				DownloadManager dm = it.next();
+				
+				it.remove();
+				
+				try{
+					if ( removal_strategy == RS_ARCHIVE ){
+						
+						Download download = PluginCoreUtils.wrap( dm );
+						
+						if ( download.canStubbify()){
+							
+								// have to remove from tag otherwise when it is restored it will no doubt get re-archived!
+							
+							removeTaggable( dm );
+							
+							download.stubbify();
+						}
+					}else if ( removal_strategy == RS_REMOVE_FROM_LIBRARY ){
+		
+							dm.getGlobalManager().removeDownloadManager( dm, false, false );
+							
+						}else if ( removal_strategy == RS_DELETE_FROM_COMPUTER ){
+						
+						boolean reallyDeleteData =  !dm.getDownloadState().getFlag(	Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE );
+	
+						dm.getGlobalManager().removeDownloadManager( dm, true, reallyDeleteData);
+						
+					}
+				
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
 			}
 		}
 	}

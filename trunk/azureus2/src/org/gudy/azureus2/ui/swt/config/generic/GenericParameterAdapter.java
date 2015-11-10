@@ -90,7 +90,28 @@ GenericParameterAdapter
 		throw( new RuntimeException( "Not implemented" ));
 	}
 	
+	public String
+	getStringListValue(
+		String		key )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
 	
+	public String
+	getStringListValue(
+		String		key,
+		String		def )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public void
+	setStringListValue(
+		String		key,
+		String		value )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
 	public void
 	informChanged(
 		boolean	value_is_changing_internally )
