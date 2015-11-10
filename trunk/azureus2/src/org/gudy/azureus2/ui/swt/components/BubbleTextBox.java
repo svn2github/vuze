@@ -81,7 +81,11 @@ public class BubbleTextBox
 		cBubble.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				Rectangle clientArea = cBubble.getClientArea();
-				e.gc.setBackground(textWidget.getBackground());
+				if (Utils.isGTK) {
+					e.gc.setBackground(e.display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+				} else {
+					e.gc.setBackground(textWidget.getBackground());
+				}
 				e.gc.setAdvanced(true);
 				e.gc.setAntialias(SWT.ON);
 				e.gc.fillRoundRectangle(clientArea.x, clientArea.y,
