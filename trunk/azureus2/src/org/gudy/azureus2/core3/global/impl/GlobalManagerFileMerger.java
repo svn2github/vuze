@@ -55,6 +55,8 @@ import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginAdapter;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
+import com.aelitis.azureus.core.util.IdentityHashSet;
+
 
 public class 
 GlobalManagerFileMerger 
@@ -154,6 +156,27 @@ GlobalManagerFileMerger
 		syncFileSets();
 		
 		initialised = true;
+	}
+	
+	protected boolean
+	isSwarmMerging(
+		DownloadManager		dm )
+	{
+		synchronized( dm_map ){
+			
+			if ( sames.size() > 0 ){
+							
+				for ( SameSizeFiles s: sames ){
+					
+					if ( s.hasDownloadManager( dm )){
+						
+						return( true );
+					}
+				}
+			}
+			
+			return( false );
+		}	
 	}
 	
 	private void
@@ -364,6 +387,8 @@ GlobalManagerFileMerger
 		final private Set<DiskManagerFileInfo>		files;
 		final private Set<SameSizeFileWrapper>		file_wrappers;
 		
+		final private Set<DownloadManager>			dm_set = new IdentityHashSet<DownloadManager>();
+		
 		private boolean	completion_logged;
 		
 		private volatile boolean	dl_has_restarted;
@@ -383,6 +408,8 @@ GlobalManagerFileMerger
 				final SameSizeFileWrapper file_wrapper = new SameSizeFileWrapper( file );
 				
 				DownloadManager dm = file_wrapper.getDownloadManager();
+				
+				dm_set.add( dm );
 				
 				file_wrappers.add( file_wrapper );
 					
@@ -582,7 +609,14 @@ GlobalManagerFileMerger
 			
 			if ( TRACE )System.out.println( "created " + getString());
 		}
-			
+		
+		private boolean
+		hasDownloadManager(
+			DownloadManager	dm )
+		{
+			return( dm_set.contains( dm ));
+		}
+		
 		private void
 		sync(
 			int		tick_count )

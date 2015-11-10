@@ -222,7 +222,7 @@ public class GlobalManagerImpl
 	private ArrayList paused_list = new ArrayList();
 	private final AEMonitor paused_list_mon = new AEMonitor( "GlobalManager:PL" );
   
-  
+	private final GlobalManagerFileMerger	file_merger;
   
 	/* Whether the GlobalManager is active (false) or stopped (true) */
   
@@ -724,7 +724,7 @@ public class GlobalManagerImpl
     	new DownloadStateTagger( this );
     }
     
-    new GlobalManagerFileMerger( this );
+    file_merger = new GlobalManagerFileMerger( this );
   }
   
   public void loadExistingTorrentsNow(boolean async)
@@ -1966,6 +1966,10 @@ public class GlobalManagerImpl
     finally {  paused_list_mon.exit();  }
     
     return false;
+  }
+  
+  public boolean isSwarmMerging(DownloadManager dm) {
+	  return( file_merger.isSwarmMerging(dm));
   }
   
   	private List<DownloadManager>

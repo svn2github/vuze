@@ -281,6 +281,7 @@ DisplayFormatters
 	private static String	ManagerItem_finishing;
 	private static String	ManagerItem_ready;
 	private static String	ManagerItem_downloading;
+	private static String	ManagerItem_swarmMerge;
 	private static String	ManagerItem_seeding;
 	private static String	ManagerItem_superseeding;
 	private static String	ManagerItem_stopping;
@@ -308,6 +309,7 @@ DisplayFormatters
 		ManagerItem_finishing			= getResourceString( "ManagerItem.finishing", "finishing" );
 		ManagerItem_ready				= getResourceString( "ManagerItem.ready", "ready" );
 		ManagerItem_downloading			= getResourceString( "ManagerItem.downloading", "downloading" );
+		ManagerItem_swarmMerge			= getResourceString( "TableColumn.header.mergeddata", "swarm merge" );
 		ManagerItem_seeding				= getResourceString( "ManagerItem.seeding", "seeding" );
 		ManagerItem_superseeding		= getResourceString( "ManagerItem.superseeding", "superseeding" );
 		ManagerItem_stopping			= getResourceString( "ManagerItem.stopping", "stopping" );
@@ -770,6 +772,9 @@ DisplayFormatters
 
 			case DownloadManager.STATE_DOWNLOADING:
 				tmp = ManagerItem_downloading;
+				if ( manager.isSwarmMerging()){
+					tmp += " + " + ManagerItem_swarmMerge;
+				}
 				break;
 
 			case DownloadManager.STATE_SEEDING:{
@@ -898,6 +903,9 @@ DisplayFormatters
 			break;
 		  case DownloadManager.STATE_DOWNLOADING :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.downloading");
+			if ( manager.isSwarmMerging()){
+				tmp += " + " + MessageText.getDefaultLocaleString( "TableColumn.header.mergeddata" );
+			}
 			break;
 		  case DownloadManager.STATE_SEEDING :
 		  	if (dm != null && dm.getCompleteRecheckStatus() != -1 ) {

@@ -3670,6 +3670,11 @@ DownloadManagerImpl
   	creation_time	= t;
   }
   
+  public boolean 
+  isSwarmMerging() 
+  {
+	 return( globalManager.isSwarmMerging( this ));
+  }
   
   public int 
   getExtendedMessagingMode() 

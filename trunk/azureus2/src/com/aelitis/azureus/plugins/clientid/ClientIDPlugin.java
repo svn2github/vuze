@@ -25,6 +25,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
@@ -97,9 +98,11 @@ ClientIDPlugin
 					if ( property_name == ClientIDGenerator.PR_CLIENT_NAME ){
 					
 						try{
-							DownloadManager dm = core.getGlobalManager().getDownloadManager( new HashWrapper( hash ));
+							GlobalManager gm = core.getGlobalManager();
 							
-							if ( dm != null &&  dm.getDownloadState().getLongAttribute( DownloadManagerState.AT_MERGED_DATA ) > 0 ){
+							DownloadManager dm = gm.getDownloadManager( new HashWrapper( hash ));
+							
+							if ( dm != null &&  gm.isSwarmMerging( dm )){
 								
 								return( CLIENT_NAME_SM );
 							}
