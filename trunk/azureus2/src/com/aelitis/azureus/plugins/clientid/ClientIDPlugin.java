@@ -23,12 +23,16 @@ import java.util.Properties;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 
 /**
@@ -39,11 +43,17 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 public class 
 ClientIDPlugin
 {
-	private static final String CLIENT_NAME = Constants.AZUREUS_PROTOCOL_NAME + " " + Constants.AZUREUS_VERSION;
+	private static final String CLIENT_NAME 	= Constants.AZUREUS_PROTOCOL_NAME + " " + Constants.AZUREUS_VERSION;
+	private static final String CLIENT_NAME_SM 	= Constants.AZUREUS_PROTOCOL_NAME + " (Swarm Merging) " + Constants.AZUREUS_VERSION;
 	
 	private static boolean		send_os;
-	
-	public static void initialize() {
+		
+	public static void 
+	initialize(
+		AzureusCore		_core )
+	{
+		final AzureusCore core		= _core;
+				
 		final String	param = "Tracker Client Send OS and Java Version";
 		
 		COConfigurationManager.addAndFireParameterListener(param, new ParameterListener() {
@@ -86,6 +96,16 @@ ClientIDPlugin
 				{
 					if ( property_name == ClientIDGenerator.PR_CLIENT_NAME ){
 					
+						try{
+							DownloadManager dm = core.getGlobalManager().getDownloadManager( new HashWrapper( hash ));
+							
+							if ( dm != null &&  dm.getDownloadState().getLongAttribute( DownloadManagerState.AT_MERGED_DATA ) > 0 ){
+								
+								return( CLIENT_NAME_SM );
+							}
+						}catch( Throwable e ){
+						}
+						
 						return( CLIENT_NAME );
 						
 					}else if ( property_name == ClientIDGenerator.PR_MESSAGING_MODE ){

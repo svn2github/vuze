@@ -309,7 +309,7 @@ AzureusCoreImpl
 		
 			// Used to be a plugin, but not any more...
 		
-		ClientIDPlugin.initialize();
+		ClientIDPlugin.initialize( this );
 		
 		pi = PluginInitializer.getSingleton( this, initialisation_op );
 		
