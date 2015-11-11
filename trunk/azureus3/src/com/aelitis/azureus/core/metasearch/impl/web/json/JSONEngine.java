@@ -259,15 +259,20 @@ JSONEngine
 				try {
 					if (split.length > 0) {
 						Object jsonRankDivisor = jsonObject;
-  					for (int i = 0; i < split.length - 1; i++) {
-  						String key = split[i];
-  						jsonRankDivisor = ((JSONObject)jsonRankDivisor).get(key);
-  					}
-  					if (jsonRankDivisor instanceof Map) {
-  						jsonRankDivisor = ((Map) jsonRankDivisor).get(split[split.length - 1]);
-  					}
-  					
-  					rankDivisor = ((Number) jsonRankDivisor).floatValue();
+	  					for (int i = 0; i < split.length - 1; i++) {
+	  						String key = split[i];
+	  						jsonRankDivisor = ((JSONObject)jsonRankDivisor).get(key);
+	  						if ( jsonRankDivisor == null ){
+	  							break;
+	  						}
+	  					}
+	  					if (jsonRankDivisor instanceof Map) {
+	  						jsonRankDivisor = ((Map) jsonRankDivisor).get(split[split.length - 1]);
+	  					}
+	  					
+	  					if ( jsonRankDivisor instanceof Number ){
+	  						rankDivisor = ((Number) jsonRankDivisor).floatValue();
+	  					}
 					}
 				} catch (Exception e) {
 				}
