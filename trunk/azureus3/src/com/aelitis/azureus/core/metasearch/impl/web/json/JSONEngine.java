@@ -261,11 +261,15 @@ JSONEngine
 						Object jsonRankDivisor = jsonObject;
 	  					for (int i = 0; i < split.length - 1; i++) {
 	  						String key = split[i];
-	  						jsonRankDivisor = ((JSONObject)jsonRankDivisor).get(key);
-	  						if ( jsonRankDivisor == null ){
+	  						if ( jsonRankDivisor instanceof JSONObject ){
+	  						
+	  							jsonRankDivisor = ((JSONObject)jsonRankDivisor).get(key);
+	  							
+	  						}else{
 	  							break;
 	  						}
 	  					}
+	  					
 	  					if (jsonRankDivisor instanceof Map) {
 	  						jsonRankDivisor = ((Map) jsonRankDivisor).get(split[split.length - 1]);
 	  					}
