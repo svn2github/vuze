@@ -1616,6 +1616,7 @@ public class TableViewPainted
 		}
 
 		//gc.setForeground(getColorLine());
+		Utils.setClipping(gc, drawBounds);
 		TableColumnCore[] visibleColumns = getVisibleColumns();
 		int x = DIRECT_DRAW ? -clientArea.x : 0;
 		gc.setAlpha(20);
