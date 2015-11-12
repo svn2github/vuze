@@ -74,7 +74,7 @@ public class SWTSkinObjectExpandBar
 		} else {
 			FontData[] fontData = createOn.getFont().getFontData();
 			for (FontData fd : fontData) {
-				fd.style = SWT.BOLD;
+				fd.setStyle(SWT.BOLD);
 				float height = FontUtils.getHeight(fontData) * 1.2f;
 				FontUtils.setFontDataHeight(fontData, height);
 			}
@@ -83,7 +83,6 @@ public class SWTSkinObjectExpandBar
 			expandBar.setSpacing(3);
 			
 			expandBar.addDisposeListener(new DisposeListener() {
-				@Override
 				public void widgetDisposed(DisposeEvent e) {
 					Utils.disposeSWTObjects(new Object[] { font });
 				}
