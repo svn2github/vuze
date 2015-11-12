@@ -210,7 +210,7 @@ public class SplashWindow
 					y = pbY - extent.y - 5;
 					gc.setClipping(OFFSET_LEFT, y, width - (OFFSET_LEFT * 2), extent.y);
 					gc.drawText(task, OFFSET_LEFT, y, true);
-					gc.setClipping((Rectangle) null);
+					gc.setClipping((Path) null);
 				}
 
 				if(PB_INVERTED){

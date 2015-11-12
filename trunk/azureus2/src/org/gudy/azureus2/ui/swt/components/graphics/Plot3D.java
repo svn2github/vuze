@@ -233,7 +233,7 @@ Plot3D
 			
 			Rectangle old_clip = image.getClipping();
 
-			image.setClipping( new Rectangle( PAD_LEFT, PAD_RIGHT, usable_width, usable_height ));
+			image.setClipping(PAD_LEFT, PAD_RIGHT, usable_width, usable_height);
 			
 			image.setForeground( Colors.light_grey );
 
@@ -263,7 +263,7 @@ Plot3D
 				image.drawLine( x1, y1, x2, y2 );
 			}
 			
-			image.setClipping( old_clip );
+			image.setClipping(old_clip.x, old_clip.y, old_clip.width, old_clip.height);
 			
 			int	z_lines = 10;
 

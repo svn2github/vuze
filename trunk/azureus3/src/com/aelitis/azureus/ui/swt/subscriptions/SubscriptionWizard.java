@@ -1028,14 +1028,16 @@ public class SubscriptionWizard {
 											bounds.height -= 1;
 											bounds.x += 1;
 											bounds.y += 1;
-											gc.setClipping(bounds);
+											gc.setClipping(bounds.x, bounds.y, bounds.width,
+													bounds.height);
 
 											ImageLoader imageLoader = ImageLoader.getInstance();
 											Image rankingBars = imageLoader.getImage("ranking_bars");
 											gc.drawImage(rankingBars, bounds.x, bounds.y);
 											imageLoader.releaseImage("ranking_bars");
 
-											gc.setClipping(clipping);
+											gc.setClipping(clipping.x, clipping.y, clipping.width,
+													clipping.height);
 										}
 
 									});

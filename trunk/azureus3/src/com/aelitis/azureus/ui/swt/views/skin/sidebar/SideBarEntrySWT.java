@@ -1008,9 +1008,7 @@ public class SideBarEntrySWT
 			}
 
 			releaseImageLeft(suffix);
-			if (!SideBar.isGTK3) {
-				gc.setClipping(clipping);
-			}
+			gc.setClipping(clipping.x, clipping.y, clipping.width, clipping.height);
 			//			0, 0, bounds.width, bounds.height,
 			//					x0IndicatorOfs, itemBounds.y
 			//							+ ((itemBounds.height - IMAGELEFT_SIZE) / 2), IMAGELEFT_SIZE,
@@ -1163,7 +1161,7 @@ public class SideBarEntrySWT
   			fgText = gc.getForeground();
 			} else {
   			//System.out.println("gmmm" + drawBounds + ": " + Debug.getCompressedStackTrace());
-  			gc.setClipping((Rectangle) null);
+  			gc.setClipping((Path) null);
   			if (fgSel != null) {
   				fgText = fgSel;
   			}

@@ -188,7 +188,8 @@ public class ColumnThumbnail
 			Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
 			Rectangle lastClipping = gc.getClipping();
 			try {
-				gc.setClipping(cellBounds);
+				gc.setClipping(cellBounds.x, cellBounds.y, cellBounds.width,
+						cellBounds.height);
 
 				for (int i = 0; i < imgThumbnail.length; i++) {
 					Image image = imgThumbnail[i];
@@ -215,7 +216,8 @@ public class ColumnThumbnail
 			} catch (Exception e) {
 				Debug.out(e);
 			} finally {
-				gc.setClipping(lastClipping);
+				gc.setClipping(lastClipping.x, lastClipping.y, lastClipping.width,
+						lastClipping.height);
 			}
 		}
 

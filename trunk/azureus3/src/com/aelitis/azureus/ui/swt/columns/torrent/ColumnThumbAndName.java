@@ -361,7 +361,8 @@ public class ColumnThumbAndName
 					//Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
 					Rectangle lastClipping = gc.getClipping();
 					try {
-						gc.setClipping(cellBounds);
+						gc.setClipping(cellBounds.x, cellBounds.y, cellBounds.width,
+								cellBounds.height);
 
 						boolean hack_adv = Constants.isWindows8OrHigher && gc.getAdvanced();
 						
@@ -399,7 +400,8 @@ public class ColumnThumbAndName
 					} catch (Exception e) {
 						Debug.out(e);
 					} finally {
-						gc.setClipping(lastClipping);
+						gc.setClipping(lastClipping.x, lastClipping.y, lastClipping.width,
+								lastClipping.height);
 					}
 				}
 
@@ -483,7 +485,8 @@ public class ColumnThumbAndName
 					//Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
 					Rectangle lastClipping = gc.getClipping();
 					try {
-						gc.setClipping(cellBounds);
+						gc.setClipping(cellBounds.x, cellBounds.y, cellBounds.width,
+								cellBounds.height);
 
 						boolean hack_adv = Constants.isWindows8OrHigher && gc.getAdvanced();
 						
@@ -521,7 +524,8 @@ public class ColumnThumbAndName
 					} catch (Exception e) {
 						Debug.out(e);
 					} finally {
-						gc.setClipping(lastClipping);
+						gc.setClipping(lastClipping.x, lastClipping.y, lastClipping.width,
+								lastClipping.height);
 					}
 				}
 

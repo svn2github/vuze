@@ -653,16 +653,8 @@ public class UIDebugGenerator
 			gc.setForeground(device.getSystemColor(SWT.COLOR_RED));
 			gc.fillRectangle(bounds);
 			gc.drawRectangle(bounds);
-			gc.setClipping(bounds);
-			if (Utils.isGTK3) {
-  			GCStringPrinter sp = new GCStringPrinter(gc, text,
-  					new Rectangle(bounds.x + 2, bounds.y + 2, bounds.width - 3,
-  							bounds.height - 2),
-  					0, bounds.height >= 30 ? SWT.WRAP : 0);
-  			sp.printString();
-			} else {
-				gc.drawText(text, bounds.x + 2, bounds.y + 1);
-			}
+			gc.setClipping(bounds.x, bounds.y, bounds.width, bounds.height);
+			gc.drawText(text, bounds.x + 2, bounds.y + 1);
 		} finally {
 			gc.dispose();
 		}

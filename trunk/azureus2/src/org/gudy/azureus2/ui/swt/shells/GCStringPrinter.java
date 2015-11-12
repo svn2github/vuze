@@ -221,12 +221,12 @@ public class GCStringPrinter
 					&& gc.getAlpha() == 255) {
 				clipping = gc.getClipping();
 				gc.setAdvanced(false);
-				gc.setClipping(clipping);
+				gc.setClipping(clipping.x, clipping.y, clipping.width, clipping.height);
 			}
 			b = __printString();
 			if (wasAdvanced) {
 				gc.setAdvanced(true);
-				gc.setClipping(clipping);
+				gc.setClipping(clipping.x, clipping.y, clipping.width, clipping.height);
 			}
 		} catch (Throwable t) {
 			Debug.out(t);
@@ -362,7 +362,8 @@ public class GCStringPrinter
 				oldClipping = gc.getClipping();
 
 				// Protect the GC from drawing outside the drawing area
-				gc.setClipping(printArea);
+				gc.setClipping(printArea.x, printArea.y, printArea.width,
+						printArea.height);
 			}
 
 			// Process string line by line
@@ -548,7 +549,8 @@ public class GCStringPrinter
 			}
 
 			if (!skipClip && !noDraw) {
-				gc.setClipping(oldClipping);
+				gc.setClipping(oldClipping.x, oldClipping.y, oldClipping.width,
+						oldClipping.height);
 			}
 
 		}

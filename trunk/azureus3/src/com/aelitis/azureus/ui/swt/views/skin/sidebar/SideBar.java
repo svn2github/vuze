@@ -502,7 +502,8 @@ public class SideBar
 									Rectangle newClip = bounds.intersection(itemBounds);
 									//System.out.println("Paint " + id + " @ " + newClip);
 									event.setBounds(newClip);
-									event.gc.setClipping(newClip);
+									event.gc.setClipping(newClip.x, newClip.y, newClip.width,
+											newClip.height);
 
 									entry.swt_paintSideBar(event);
 
