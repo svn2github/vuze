@@ -22,7 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
  * Container that hold ExpandItems
@@ -62,7 +69,26 @@ public class SWTSkinObjectExpandBar
 		expandBar.setLayout(null);
 		expandBar.setSpacing(1);
 		// This fixes the bandHeight which is only auto calculated if Font on ExpandBar is set
-		expandBar.setFont(createOn.getFont());
+		if (!Utils.isGTK3) {
+			expandBar.setFont(createOn.getFont());
+		} else {
+			FontData[] fontData = createOn.getFont().getFontData();
+			for (FontData fd : fontData) {
+				fd.style = SWT.BOLD;
+				float height = FontUtils.getHeight(fontData) * 1.2f;
+				FontUtils.setFontDataHeight(fontData, height);
+			}
+			final Font font = new Font(createOn.getDisplay(), fontData);
+			expandBar.setFont(font);
+			expandBar.setSpacing(3);
+			
+			expandBar.addDisposeListener(new DisposeListener() {
+				@Override
+				public void widgetDisposed(DisposeEvent e) {
+					Utils.disposeSWTObjects(new Object[] { font });
+				}
+			});
+		}
 
 		expandBar.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(final Event event) {
