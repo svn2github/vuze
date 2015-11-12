@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 
+import com.aelitis.azureus.core.util.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -587,7 +588,20 @@ public class ColumnThumbAndName
 		boolean over = GCStringPrinter.printString(gc, name, new Rectangle(textX,
 				cellBounds.y, cellBounds.x + cellBounds.width - textX,
 				cellBounds.height), true, true, getTableID().endsWith( ".big" )?SWT.WRAP:SWT.NULL );
-		cell.setToolTip(over ? null : name);
+		
+		String tooltip = over?"":name;
+		
+		if (dm != null) {
+			try{
+				String desc = PlatformTorrentUtils.getContentDescription( dm.getTorrent());
+
+				if ( desc != null && desc.length() > 0 ){
+					tooltip += (tooltip.length()==0?"":"\r\n") + desc;
+				}
+			}catch( Throwable e ){
+			}
+		}
+		cell.setToolTip(tooltip.length()==0?null:tooltip);
 	}
 
 	public String getObfusticatedText(TableCell cell) {
