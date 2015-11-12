@@ -777,7 +777,7 @@ public class SideBarEntrySWT
 
 		gc.setAntialias(SWT.ON);
 		gc.setAdvanced(true);
-		//gc.setClipping((Rectangle) null);
+		//Utils.setClipping(gc, (Rectangle) null);
 
 		boolean selected = (event.detail & SWT.SELECTED) > 0;
 		Color fgText = swt_paintEntryBG(event.detail, gc, drawBounds);
@@ -1008,7 +1008,7 @@ public class SideBarEntrySWT
 			}
 
 			releaseImageLeft(suffix);
-			gc.setClipping(clipping.x, clipping.y, clipping.width, clipping.height);
+			Utils.setClipping(gc, clipping);
 			//			0, 0, bounds.width, bounds.height,
 			//					x0IndicatorOfs, itemBounds.y
 			//							+ ((itemBounds.height - IMAGELEFT_SIZE) / 2), IMAGELEFT_SIZE,
@@ -1065,13 +1065,13 @@ public class SideBarEntrySWT
   			}
   			gc.setForeground(fgText);
   		}
-			//gc.setClipping(clipping);
+			//Utils.setClipping(gc, clipping);
 
 			GCStringPrinter sp = new GCStringPrinter(gc, text, clipping, true, false,
 					style);
 			sp.printString();
 			clipping.x += sp.getCalculatedSize().x + 5;
-			//gc.setClipping((Rectangle) null);
+			//Utils.setClipping(gc, (Rectangle) null);
 		}
 		
 		// Vitality Images
@@ -1161,7 +1161,7 @@ public class SideBarEntrySWT
   			fgText = gc.getForeground();
 			} else {
   			//System.out.println("gmmm" + drawBounds + ": " + Debug.getCompressedStackTrace());
-  			gc.setClipping((Path) null);
+				Utils.setClipping(gc, (Rectangle) null);
   			if (fgSel != null) {
   				fgText = fgSel;
   			}

@@ -32,6 +32,7 @@ import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
@@ -188,8 +189,7 @@ public class ColumnThumbnail
 			Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
 			Rectangle lastClipping = gc.getClipping();
 			try {
-				gc.setClipping(cellBounds.x, cellBounds.y, cellBounds.width,
-						cellBounds.height);
+				Utils.setClipping(gc, cellBounds);
 
 				for (int i = 0; i < imgThumbnail.length; i++) {
 					Image image = imgThumbnail[i];
@@ -216,8 +216,7 @@ public class ColumnThumbnail
 			} catch (Exception e) {
 				Debug.out(e);
 			} finally {
-				gc.setClipping(lastClipping.x, lastClipping.y, lastClipping.width,
-						lastClipping.height);
+				Utils.setClipping(gc, lastClipping);
 			}
 		}
 

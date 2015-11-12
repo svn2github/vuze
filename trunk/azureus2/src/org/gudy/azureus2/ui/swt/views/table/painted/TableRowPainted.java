@@ -42,7 +42,6 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 public class TableRowPainted
@@ -296,8 +295,7 @@ public class TableRowPainted
 							gc.setBackground(bg);
 							gc.setForeground(fg);
 							gc.setFont(font);
-							gc.setClipping(clipping.x, clipping.y, clipping.width,
-									clipping.height);
+							Utils.setClipping(gc, clipping);
 						}
 						if (DEBUG_ROW_PAINT) {
 							((TableCellSWTBase) cell).debug("painted "

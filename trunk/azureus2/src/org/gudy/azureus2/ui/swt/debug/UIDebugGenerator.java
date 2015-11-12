@@ -653,7 +653,7 @@ public class UIDebugGenerator
 			gc.setForeground(device.getSystemColor(SWT.COLOR_RED));
 			gc.fillRectangle(bounds);
 			gc.drawRectangle(bounds);
-			gc.setClipping(bounds.x, bounds.y, bounds.width, bounds.height);
+			Utils.setClipping(gc, bounds);
 			gc.drawText(text, bounds.x + 2, bounds.y + 1);
 		} finally {
 			gc.dispose();

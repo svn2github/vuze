@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
 
@@ -233,7 +234,7 @@ Plot3D
 			
 			Rectangle old_clip = image.getClipping();
 
-			image.setClipping(PAD_LEFT, PAD_RIGHT, usable_width, usable_height);
+			Utils.setClipping(image, new Rectangle( PAD_LEFT, PAD_RIGHT, usable_width, usable_height ));
 			
 			image.setForeground( Colors.light_grey );
 
@@ -263,7 +264,7 @@ Plot3D
 				image.drawLine( x1, y1, x2, y2 );
 			}
 			
-			image.setClipping(old_clip.x, old_clip.y, old_clip.width, old_clip.height);
+			Utils.setClipping( image, old_clip );
 			
 			int	z_lines = 10;
 

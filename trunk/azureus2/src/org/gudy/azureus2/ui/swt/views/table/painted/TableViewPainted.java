@@ -1547,8 +1547,7 @@ public class TableViewPainted
 		int end = drawBounds.y + drawBounds.height;
 
 		gc.setFont(cTable.getFont());
-		gc.setClipping(drawBounds.x, drawBounds.y, drawBounds.width,
-				drawBounds.height);
+		Utils.setClipping(gc, drawBounds);
 		TableRowCore oldRow = null;
 		int pos = -1;
 		Set<TableRowPainted> visibleRows = this.visibleRows;
@@ -1575,8 +1574,7 @@ public class TableViewPainted
 				int diffY2 = (rowStartY + rowHeight) - (drawBounds.y + drawBounds.height); 
 				if (diffY2 > 0 ) {
 					drawBounds.height += diffY2; 
-					gc.setClipping(drawBounds.x, drawBounds.y, drawBounds.width,
-							drawBounds.height);
+					Utils.setClipping(gc, drawBounds);
 				}
 				paintedRow.swt_paintGC(gc, drawBounds, rowStartX, rowStartY, pos,
 						isTableSelected, isTableEnabled);
@@ -2362,16 +2360,16 @@ public class TableViewPainted
 									Rectangle bounds = canvasImage.getBounds();
 									//System.out.println("moving y " + yDiff + ";cah=" + clientArea.height);
 									if (yDiff > 0) {
-										if (Utils.isGTK3) {
+										if (Utils.isGTK) {
 											//copyArea cheese on GTK3 SWT 4528/4608
 											gc.drawImage(canvasImage, 0, yDiff);
 										} else {
 											gc.copyArea(0, 0, bounds.width, bounds.height, 0, yDiff, false);
 										}
 										swt_paintCanvasImage(gc, new Rectangle(0, 0, 9999, yDiff));
-										gc.setClipping((Path) null);
+										Utils.setClipping(gc, (Rectangle) null);
 									} else {
-										if (Utils.isGTK3) {
+										if (Utils.isGTK) {
 											//copyArea cheese on GTK3 SWT 4528/4608
 											gc.drawImage(canvasImage, 0, yDiff);
 										} else {
@@ -2384,7 +2382,7 @@ public class TableViewPainted
 											h += row.getHeight();
 										}
 										swt_paintCanvasImage(gc, new Rectangle(0, bounds.height - h, 9999, h));
-										gc.setClipping((Path) null);
+										Utils.setClipping(gc, (Rectangle) null);
 									}
 								}finally{
 									gc.dispose();

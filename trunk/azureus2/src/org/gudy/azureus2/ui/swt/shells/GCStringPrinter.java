@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -221,12 +222,12 @@ public class GCStringPrinter
 					&& gc.getAlpha() == 255) {
 				clipping = gc.getClipping();
 				gc.setAdvanced(false);
-				gc.setClipping(clipping.x, clipping.y, clipping.width, clipping.height);
+				Utils.setClipping(gc, clipping);
 			}
 			b = __printString();
 			if (wasAdvanced) {
 				gc.setAdvanced(true);
-				gc.setClipping(clipping.x, clipping.y, clipping.width, clipping.height);
+				Utils.setClipping(gc, clipping);
 			}
 		} catch (Throwable t) {
 			Debug.out(t);
@@ -362,8 +363,7 @@ public class GCStringPrinter
 				oldClipping = gc.getClipping();
 
 				// Protect the GC from drawing outside the drawing area
-				gc.setClipping(printArea.x, printArea.y, printArea.width,
-						printArea.height);
+				Utils.setClipping(gc, printArea);
 			}
 
 			// Process string line by line
@@ -549,8 +549,7 @@ public class GCStringPrinter
 			}
 
 			if (!skipClip && !noDraw) {
-				gc.setClipping(oldClipping.x, oldClipping.y, oldClipping.width,
-						oldClipping.height);
+				Utils.setClipping(gc, oldClipping);
 			}
 
 		}

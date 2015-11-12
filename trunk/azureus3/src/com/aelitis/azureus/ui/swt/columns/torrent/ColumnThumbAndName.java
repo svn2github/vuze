@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
@@ -362,8 +363,7 @@ public class ColumnThumbAndName
 					//Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
 					Rectangle lastClipping = gc.getClipping();
 					try {
-						gc.setClipping(cellBounds.x, cellBounds.y, cellBounds.width,
-								cellBounds.height);
+						Utils.setClipping(gc, cellBounds);
 
 						boolean hack_adv = Constants.isWindows8OrHigher && gc.getAdvanced();
 						
@@ -401,8 +401,7 @@ public class ColumnThumbAndName
 					} catch (Exception e) {
 						Debug.out(e);
 					} finally {
-						gc.setClipping(lastClipping.x, lastClipping.y, lastClipping.width,
-								lastClipping.height);
+						Utils.setClipping(gc, lastClipping);
 					}
 				}
 
@@ -486,8 +485,7 @@ public class ColumnThumbAndName
 					//Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
 					Rectangle lastClipping = gc.getClipping();
 					try {
-						gc.setClipping(cellBounds.x, cellBounds.y, cellBounds.width,
-								cellBounds.height);
+						Utils.setClipping(gc, cellBounds);
 
 						boolean hack_adv = Constants.isWindows8OrHigher && gc.getAdvanced();
 						
@@ -525,8 +523,7 @@ public class ColumnThumbAndName
 					} catch (Exception e) {
 						Debug.out(e);
 					} finally {
-						gc.setClipping(lastClipping.x, lastClipping.y, lastClipping.width,
-								lastClipping.height);
+						Utils.setClipping(gc, lastClipping);
 					}
 				}
 

@@ -3853,4 +3853,12 @@ public class Utils
 		
 		composite.setLayout(layout);
 	}
+	
+	public static void setClipping(GC gc, Rectangle r) {
+		if (r == null) {
+			gc.setClipping((Path) null);
+			return;
+		}
+		gc.setClipping(r.x, r.y, r.width, r.height);
+	}
 }
