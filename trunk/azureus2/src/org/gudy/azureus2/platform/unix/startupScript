@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ######## CONFIGURATION OPTIONS ########
-SCRIPT_NOT_CHANGED=0	# change this to 1 if you don't want your script overwritten!
+AUTOUPDATE_SCRIPT=1 # change to 0 if you don't want your changes overwritten on next SCRIPT_VERSION change
 JAVA_PROGRAM_DIR=""	# use full path to java bin dir, ex. "/usr/java/j2sdk1.4.2/bin/"
 #PROGRAM_DIR="/home/username/apps/azureus"	# use full path to Azureus bin dir
 JAVA_ARGS="-Xmx256m"
@@ -10,18 +10,16 @@ JAVA_ARGS="-Xmx256m"
 #if [ "$LD_LIBRARY_PATH x" = " x" ]; then export LD_LIBRARY_PATH=$MOZILLA_FIVE_HOME; else export LD_LIBRARY_PATH=$MOZILLA_FIVE_HOME:$LD_LIBRARY_PATH; fi
 #######################################
 
-export SWT_GTK3=0   # things don't work well with the preliminary GTK3 SWT support
-
 ######## YOU PROBABLY DO NOT WANT TO TOUCH ANYTHING BELOW! ########
 
-SCRIPT_VERSION=4
+SCRIPT_VERSION=5
 START_CLASS="org.gudy.azureus2.ui.swt.Main"
 
 MSG_LOADING="Loading Azureus:"
 MSG_STARTING="Starting Azureus..."
 MSG2="Java exec found in "
 MSG3="OOPS, your java version is too old "
-MSG4="You need to upgrade to JRE 1.5.x or newer from http://java.sun.com"
+MSG4="You need to upgrade to Java 1.5 or newer"
 MSG5="Suitable java version found "
 MSG6="Configuring environment..."
 MSG7="OOPS, you don't seem to have a valid JRE "

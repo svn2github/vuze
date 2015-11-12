@@ -178,7 +178,8 @@ public class PlatformManagerUnixPlugin
 				} catch (Throwable t) {
 				}
 				if (latestVersion > version) {
-					boolean bNotChanged = oldStartupScript.indexOf("SCRIPT_NOT_CHANGED=0") > 0;
+					boolean bNotChanged = oldStartupScript.indexOf("SCRIPT_NOT_CHANGED=0") > 0
+							|| oldStartupScript.indexOf("AUTOUPDATE_SCRIPT=1") > 0;
 					boolean bInformUserManual = true;
 
 					if (bNotChanged) {
