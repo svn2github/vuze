@@ -217,7 +217,7 @@ public class ConfigurationDefaults {
     def.put("priorityExtensions", "");
     def.put("priorityExtensionsIgnoreCase", FALSE);
     def.put("quick.view.exts", ".nfo;.txt;.rar;.gif;.jpg;.png;.bmp" );
-    def.put("quick.view.maxkb", new Long( 64 ));
+    def.put("quick.view.maxkb", new Long( 512 ));
     
     def.put("Rename Incomplete Files", FALSE );
     def.put("Rename Incomplete Files Extension", ".az!" );
