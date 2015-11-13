@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2016.xx.yy | Vuze 5.7.0.1
+
+
 2015.11.13 | Vuze 5.7.0.0
 
 FEATURE: UI   | Added peer menus to peers in the swarm view [Parg]
