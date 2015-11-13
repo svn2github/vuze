@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2015.11.yy | Vuze 5.7.0.0
+2015.11.13 | Vuze 5.7.0.0
 
 FEATURE: UI   | Added peer menus to peers in the swarm view [Parg]
 FEATURE: UI   | Tags now visibly grouped by their group in Tagging view [TuxPaper]
