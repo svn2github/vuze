@@ -354,7 +354,7 @@ public class TaggingView
 				} else {
 					layout.marginWidth = 0;
 					layout.marginLeft = 3;
-					layout.marginRight = 10;
+					layout.marginRight = 11;
 				}
 				p.setLayout(layout);
 				p.addPaintListener(paintListener);
