@@ -3856,7 +3856,13 @@ public class Utils
 	
 	public static void setClipping(GC gc, Rectangle r) {
 		if (r == null) {
-			gc.setClipping((Path) null);
+			if (isGTK3) {
+				// On OSX SWT, this will cause NPE
+				gc.setClipping((Path) null);
+			} else {
+				// On GTK3 SWT, this is specifically disabled in their code (grr!)
+				gc.setClipping((Rectangle) null);
+			}
 			return;
 		}
 		gc.setClipping(r.x, r.y, r.width, r.height);
