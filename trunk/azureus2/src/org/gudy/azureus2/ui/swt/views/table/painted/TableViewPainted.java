@@ -286,7 +286,7 @@ public class TableViewPainted
 				if (event.keyCode == SWT.ARROW_UP) {
 					TableRowCore rowToSelect = getPreviousRow(focusedRow);
 					if ((event.stateMask & SWT.SHIFT) != 0) {
-						if (rowToSelect != null) {
+						if (rowToSelect != null && focusedRow != null) {
 							TableRowCore[] selectedRows = getSelectedRows();
 							Arrays.sort(selectedRows, new TableRowCoreSorter());
 							boolean select = selectedRows.length == 0
