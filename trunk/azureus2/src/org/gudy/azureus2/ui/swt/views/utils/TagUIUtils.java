@@ -31,6 +31,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -2402,9 +2403,24 @@ public class TagUIUtils
 					
 					for ( DownloadManager download: downloads ){
 						
-						if ( complete_only && !download.isDownloadComplete( false )){
+						boolean dl_is_complete = download.isDownloadComplete( false );
 						
+						if ( complete_only && !dl_is_complete){
+						
+								// applying move-on-complete so ignore incomplete
+							
 							continue;
+						}
+						
+						if ( dl_is_complete && !complete_only ){
+							
+								// applying initial-save-folder, ignore completed files
+								// that have been moved somewhere already
+															
+							if ( download.getDownloadState().getFlag( DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE )){
+									
+								continue;
+							}
 						}
 						
 						try{
