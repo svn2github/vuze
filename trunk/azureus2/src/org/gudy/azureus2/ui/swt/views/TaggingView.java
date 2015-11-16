@@ -380,6 +380,9 @@ public class TaggingView
 			public void widgetSelected(SelectionEvent e) {
 				TagUIUtils.createManualTag(new TagReturner() {
 					public void returnedTags(Tag[] tags) {
+						if (taggables == null) {
+							return;
+						}
 						for (Tag tag : tags) {
 							for (Taggable taggable : taggables) {
 								tag.addTaggable(taggable);
