@@ -777,7 +777,7 @@ public class SideBarEntrySWT
 
 		gc.setAntialias(SWT.ON);
 		gc.setAdvanced(true);
-		//Utils.setClipping(gc, (Rectangle) null);
+		Utils.setClipping(gc, null);
 
 		boolean selected = (event.detail & SWT.SELECTED) > 0;
 		Color fgText = swt_paintEntryBG(event.detail, gc, drawBounds);
@@ -789,7 +789,9 @@ public class SideBarEntrySWT
 			gc.setFont(font);
 		}
 
-		if (DO_OUR_OWN_TREE_INDENT) {
+		if (SideBar.USE_NATIVE_EXPANDER && Utils.isGTK3) {
+			itemBounds.x = treeItem.getBounds().x;
+		} else if (DO_OUR_OWN_TREE_INDENT) {
 			TreeItem tempItem = treeItem.getParentItem();
 			int indent;
 			if (!isCollapseDisabled() && tempItem == null && !Utils.isGTK) {
@@ -967,10 +969,8 @@ public class SideBarEntrySWT
 		}
 		if (imageLeft != null) {
 			Rectangle clipping = gc.getClipping();
-			if (!SideBar.isGTK3) {
-				gc.setClipping(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
-						itemBounds.height);
-			}
+			Utils.setClipping(gc, new Rectangle(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
+					itemBounds.height));
 
 			if (greyScale) {
 				greyScale = false;
