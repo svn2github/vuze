@@ -239,7 +239,10 @@ public class FileDownloadWindow
 
 			});
 
-			ProgressReporterWindow.open(pReporter, ProgressReporterWindow.AUTO_CLOSE);
+			if ( !COConfigurationManager.getBooleanParameter( "suppress_file_download_dialog" )){
+				
+				ProgressReporterWindow.open(pReporter, ProgressReporterWindow.AUTO_CLOSE);
+			}
 		}
 	}
 
