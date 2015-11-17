@@ -38,6 +38,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
+import org.gudy.azureus2.plugins.utils.ScriptProvider.ScriptProviderListener;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
@@ -454,6 +455,26 @@ Utilities
 	getDistributedDatabases(
 		String[]		networks );	 
 	
+	
+	public List<ScriptProvider>	
+	getScriptProviders();
+	
+	public void
+	registerScriptProvider(
+		ScriptProvider	provider );
+	
+	public void
+	unregisterScriptProvider(
+		ScriptProvider	provider );
+	
+	public void
+	addScriptProviderListener(
+		ScriptProviderListener	provider );
+	
+	public void
+	removeScriptProviderListener(
+		ScriptProviderListener	provider );
+	
 	public interface
 	JSONServer
 	{
@@ -482,6 +503,7 @@ Utilities
 		serverUnregistered(
 			JSONServer	server );
 	}
+
 }
 
 

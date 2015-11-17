@@ -49,6 +49,7 @@ import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.RateLimiter;
+import org.gudy.azureus2.plugins.tag.Tag;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
@@ -445,6 +446,10 @@ LWSDownload
 		notSupported();
 	}
 
+	public List<Tag> getTags() {
+		return( Collections.emptyList());
+	}
+	
 	public void
 	remove()
 	

@@ -25,6 +25,7 @@ import java.util.Set;
 
 public interface 
 Tag 
+	extends org.gudy.azureus2.plugins.tag.Tag
 {
 		/**
 		 * Unique type denoting this species of tag

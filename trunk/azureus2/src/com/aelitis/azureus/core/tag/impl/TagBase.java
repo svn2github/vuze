@@ -22,7 +22,6 @@ package com.aelitis.azureus.core.tag.impl;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -216,6 +215,12 @@ TagBase
 	getTagUID() 
 	{
 		return((((long)getTagType().getTagType())<<32) | tag_id );
+	}
+	
+	public String
+	getTagName()
+	{
+		return( getTagName( true ));
 	}
 	
 	protected String

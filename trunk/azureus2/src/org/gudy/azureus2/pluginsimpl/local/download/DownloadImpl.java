@@ -60,6 +60,7 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.tag.Tag;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
@@ -71,6 +72,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -499,6 +501,9 @@ DownloadImpl
     return category.getName();
   }
     
+  public List<Tag> getTags() {
+	  return( new ArrayList<Tag>( TagManagerFactory.getTagManager().getTagsForTaggable( download_manager )));
+  }
   
   public String
   getAttribute(

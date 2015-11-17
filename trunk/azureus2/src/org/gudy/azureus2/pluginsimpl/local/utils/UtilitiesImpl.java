@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.*;
+import org.gudy.azureus2.plugins.utils.ScriptProvider.ScriptProviderListener;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
@@ -202,6 +203,10 @@ UtilitiesImpl
 	
 	private static CopyOnWriteList<LocationProviderListener>	lp_listeners 		= new CopyOnWriteList<LocationProviderListener>();
 	private static CopyOnWriteList<LocationProvider>			location_providers 	= new CopyOnWriteList<LocationProvider>();
+	
+	private static CopyOnWriteList<ScriptProviderListener>	sp_listeners 		= new CopyOnWriteList<ScriptProviderListener>();
+	private static CopyOnWriteList<ScriptProvider>			script_providers 	= new CopyOnWriteList<ScriptProvider>();
+
 	
 	public static PluginLimitedRateGroup
 	wrapLimiter(
@@ -1930,6 +1935,70 @@ UtilitiesImpl
 		LocationProviderListener		listener )
 	{
 		lp_listeners.remove( listener );
+	}
+	
+	
+		// script providers
+	
+	public List<ScriptProvider>	
+	getScriptProviders()
+	{
+		return( script_providers.getList());
+	}
+	
+	public void
+	registerScriptProvider(
+		ScriptProvider	provider )
+	{
+		script_providers.add( provider );
+		
+		for ( ScriptProviderListener l: sp_listeners ){
+			
+			try{
+				l.scriptProviderAdded( provider );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	public void
+	unregisterScriptProvider(
+		ScriptProvider	provider )
+	{
+		script_providers.remove( provider );
+		
+		for ( ScriptProviderListener l: sp_listeners ){
+			
+			try{
+				l.scriptProviderRemoved( provider );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	public void
+	addScriptProviderListener(
+		ScriptProviderListener		listener )
+	{
+		sp_listeners.add( listener );
+		
+		for ( ScriptProvider lp: script_providers ){
+			
+			listener.scriptProviderAdded( lp );
+		}
+	}
+	
+	public void
+	removeScriptProviderListener(
+		ScriptProviderListener		listener )
+	{
+		sp_listeners.remove( listener );
 	}
 	
 	public List<DistributedDatabase>

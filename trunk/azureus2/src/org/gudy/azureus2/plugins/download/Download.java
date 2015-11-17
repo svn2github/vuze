@@ -29,6 +29,7 @@ import java.util.Map;
 import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManager;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
+import org.gudy.azureus2.plugins.tag.Tag;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
@@ -530,6 +531,14 @@ Download extends DownloadEventNotifier, DownloadStub
    */
   public void setCategory(String sName);
 
+  /**
+   * @since 5701
+   * @return
+   */
+  
+  public List<Tag>
+  getTags();
+  
 	/**
 	 * Removes a download. The download must be stopped or in error. Removal may fail if another 
 	 * component does not want the removal to occur - in this case a "veto" exception is thrown

@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.download.savelocation.*;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.tag.Tag;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.remote.*;
 import org.gudy.azureus2.pluginsimpl.remote.disk.RPDiskManagerFileInfo;
@@ -772,6 +773,10 @@ RPDownload
  		notSupported();
   }
   
+  public List<Tag> getTags() {
+	notSupported();
+	return null;
+}
   public boolean 
   isPersistent() 
   {
