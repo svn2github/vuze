@@ -1945,8 +1945,8 @@ public class Utils
 			Point ptTopLeft = shell.getLocation();
 			Point size = shell.getSize();
 			Point ptBottomRight = shell.getLocation();
-			ptBottomRight.x += size.x;
-			ptBottomRight.y += size.y;
+			ptBottomRight.x += size.x - 1;
+			ptBottomRight.y += size.y - 1;
 
 			Monitor[] monitors = shell.getDisplay().getMonitors();
 			for (int j = 0; j < monitors.length && !bMetricsOk; j++) {
