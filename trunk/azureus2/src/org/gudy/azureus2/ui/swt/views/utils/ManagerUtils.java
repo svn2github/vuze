@@ -739,55 +739,60 @@ public class ManagerUtils {
 													try{
 														DiskManagerChannel chan = PluginCoreUtils.wrap( dm_file ).createChannel();
 														
-														final DiskManagerRequest req = chan.createRequest();												
-														
-														req.setOffset( 0 );
-														req.setLength( file_size );
-																								
-														req.addListener(
-															new DiskManagerListener()
-															{
-																public void
-																eventOccurred(
-																	DiskManagerEvent	event )
+														try{
+															final DiskManagerRequest req = chan.createRequest();												
+															
+															req.setOffset( 0 );
+															req.setLength( file_size );
+																									
+															req.addListener(
+																new DiskManagerListener()
 																{
-																	int	type = event.getType();
-																	
-																	if ( type ==  DiskManagerEvent.EVENT_TYPE_BLOCKED ){
-																	
-																		return;
+																	public void
+																	eventOccurred(
+																		DiskManagerEvent	event )
+																	{
+																		int	type = event.getType();
 																		
-																	}else if ( type == DiskManagerEvent.EVENT_TYPE_FAILED ){
+																		if ( type ==  DiskManagerEvent.EVENT_TYPE_BLOCKED ){
 																		
-																		throw( new RuntimeException( event.getFailure()));
-																	}
-																	
-																	PooledByteBuffer buffer = event.getBuffer();
-																	
-																	if ( buffer == null ){
-																		
-																		throw( new RuntimeException( "eh?" ));
-																	}
-	
-																	try{
+																			return;
 																			
-																		byte[] data = buffer.toByteArray();
+																		}else if ( type == DiskManagerEvent.EVENT_TYPE_FAILED ){
+																			
+																			throw( new RuntimeException( event.getFailure()));
+																		}
 																		
-																		fos.write( data );
+																		PooledByteBuffer buffer = event.getBuffer();
 																		
-																	}catch( IOException e ){
-																		
-																		throw( new RuntimeException( "Failed to write to " + file, e ));
-																		
-																	}finally{
-																		
-																		buffer.returnToPool();
+																		if ( buffer == null ){
+																			
+																			throw( new RuntimeException( "eh?" ));
+																		}
+		
+																		try{
+																				
+																			byte[] data = buffer.toByteArray();
+																			
+																			fos.write( data );
+																			
+																		}catch( IOException e ){
+																			
+																			throw( new RuntimeException( "Failed to write to " + file, e ));
+																			
+																		}finally{
+																			
+																			buffer.returnToPool();
+																		}
 																	}
-																}
-															});
-													
-														req.run();
+																});
 														
+															req.run();
+															
+														}finally{
+															
+															chan.destroy();
+														}
 													}finally{
 														
 														fos.close();
@@ -1204,135 +1209,140 @@ public class ManagerUtils {
 										
 										DiskManagerChannel chan = PluginCoreUtils.wrap( dm_file ).createChannel();
 										
-										final DiskManagerRequest req = chan.createRequest();
-										
-										final boolean[] header_complete = { false };
-										final long[]	last_write		= { 0 };
-										
-										req.setOffset( 0 );
-										req.setLength( file_size );
-																				
-										req.addListener(
-											new DiskManagerListener()
-											{
-												public void
-												eventOccurred(
-													DiskManagerEvent	event )
+										try{
+											final DiskManagerRequest req = chan.createRequest();
+											
+											final boolean[] header_complete = { false };
+											final long[]	last_write		= { 0 };
+											
+											req.setOffset( 0 );
+											req.setLength( file_size );
+																					
+											req.addListener(
+												new DiskManagerListener()
 												{
-													int	type = event.getType();
-													
-													if ( type ==  DiskManagerEvent.EVENT_TYPE_BLOCKED ){
-													
-														return;
-														
-													}else if ( type == DiskManagerEvent.EVENT_TYPE_FAILED ){
-														
-														throw( new RuntimeException( event.getFailure()));
-													}
-													
-													PooledByteBuffer buffer = event.getBuffer();
-													
-													if ( buffer == null ){
-														
-														throw( new RuntimeException( "eh?" ));
-													}
-
-													try{
-
-														boolean	do_header = false;
-														
-														synchronized( header_complete ){
-															
-															if ( !header_complete[0] ){
-																
-																do_header = true;
-																
-																header_complete[0] = true;
-															}
-															
-															last_write[0] = SystemTime.getMonotonousTime();
-														}
-														
-														if ( do_header ){
-															
-															os.write((NL+NL).getBytes( "UTF-8" ));
-														}
-																	
-														byte[] data = buffer.toByteArray();
-														
-														os.write( data );
-														
-													}catch( IOException e ){
-														
-														throw( new RuntimeException( "Failed to write to " + file, e ));
-														
-													}finally{
-														
-														buffer.returnToPool();
-													}
-												}
-											});
-									
-										final TimerEventPeriodic timer_event [] = {null};
-										
-										timer_event[0] =
-											SimpleTimer.addPeriodicEvent(
-												"KeepAlive",
-												10*1000,
-												new TimerEventPerformer() 
-												{
-													boolean	cancel_outstanding = false;
-													
-													public void 
-													perform(
-														TimerEvent event) 
+													public void
+													eventOccurred(
+														DiskManagerEvent	event )
 													{
-														if ( cancel_outstanding ){
+														int	type = event.getType();
+														
+														if ( type ==  DiskManagerEvent.EVENT_TYPE_BLOCKED ){
+														
+															return;
 															
-															req.cancel();
+														}else if ( type == DiskManagerEvent.EVENT_TYPE_FAILED ){
 															
-														}else{
+															throw( new RuntimeException( event.getFailure()));
+														}
+														
+														PooledByteBuffer buffer = event.getBuffer();
+														
+														if ( buffer == null ){
+															
+															throw( new RuntimeException( "eh?" ));
+														}
+	
+														try{
+	
+															boolean	do_header = false;
 															
 															synchronized( header_complete ){
 																
-																if ( header_complete[0] ){
+																if ( !header_complete[0] ){
 																	
-																	if ( SystemTime.getMonotonousTime() - last_write[0] >= 5*60*1000 ){
-																		
-																		req.cancel();
-																	}
-																}else{
+																	do_header = true;
 																	
-																	try{
-																		os.write( "X".getBytes( "UTF-8" ));
-																		
-																		os.flush();
-																		
-																	}catch( Throwable e ){
-																		
-																		req.cancel();
-																	}
+																	header_complete[0] = true;
 																}
+																
+																last_write[0] = SystemTime.getMonotonousTime();
 															}
 															
-															if ( !response.isActive()){
+															if ( do_header ){
 																
-																cancel_outstanding = true;
+																os.write((NL+NL).getBytes( "UTF-8" ));
 															}
+																		
+															byte[] data = buffer.toByteArray();
+															
+															os.write( data );
+															
+														}catch( IOException e ){
+															
+															throw( new RuntimeException( "Failed to write to " + file, e ));
+															
+														}finally{
+															
+															buffer.returnToPool();
 														}
 													}
 												});
 										
-										try{
-											req.run();
-										
+											final TimerEventPeriodic timer_event [] = {null};
+											
+											timer_event[0] =
+												SimpleTimer.addPeriodicEvent(
+													"KeepAlive",
+													10*1000,
+													new TimerEventPerformer() 
+													{
+														boolean	cancel_outstanding = false;
+														
+														public void 
+														perform(
+															TimerEvent event) 
+														{
+															if ( cancel_outstanding ){
+																
+																req.cancel();
+																
+															}else{
+																
+																synchronized( header_complete ){
+																	
+																	if ( header_complete[0] ){
+																		
+																		if ( SystemTime.getMonotonousTime() - last_write[0] >= 5*60*1000 ){
+																			
+																			req.cancel();
+																		}
+																	}else{
+																		
+																		try{
+																			os.write( "X".getBytes( "UTF-8" ));
+																			
+																			os.flush();
+																			
+																		}catch( Throwable e ){
+																			
+																			req.cancel();
+																		}
+																	}
+																}
+																
+																if ( !response.isActive()){
+																	
+																	cancel_outstanding = true;
+																}
+															}
+														}
+													});
+											
+											try{
+												req.run();
+											
+											}finally{
+												
+												timer_event[0].cancel();
+											}
+											
+											return( true );
+											
 										}finally{
 											
-											timer_event[0].cancel();
+											chan.destroy();
 										}
-										
-										return( true );
-										
 									}catch( Throwable e ){
 										
 										return( false );
