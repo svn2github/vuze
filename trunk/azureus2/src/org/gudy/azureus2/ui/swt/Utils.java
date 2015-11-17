@@ -1947,16 +1947,79 @@ public class Utils
 			Point ptBottomRight = shell.getLocation();
 			ptBottomRight.x += size.x - 1;
 			ptBottomRight.y += size.y - 1;
-
+			
+			Rectangle boundsMonitorTopLeft = null;
+			Rectangle boundsMonitorBottomRight = null;
+			Rectangle boundsMonitorContained = null;
+			
 			Monitor[] monitors = shell.getDisplay().getMonitors();
 			for (int j = 0; j < monitors.length && !bMetricsOk; j++) {
 				Rectangle bounds = monitors[j].getClientArea();
-				bMetricsOk = bounds.contains(ptTopLeft) && bounds.contains(ptBottomRight);
+				boolean hasTopLeft = bounds.contains(ptTopLeft);
+				boolean hasBottomRight = bounds.contains(ptBottomRight);
+				bMetricsOk = hasTopLeft && hasBottomRight;
+				if (hasTopLeft) {
+					boundsMonitorTopLeft = bounds;
+				}
+				if (hasBottomRight){
+					boundsMonitorBottomRight = bounds;
+				}
+				if (boundsMonitorContained == null && bounds.intersects(ptTopLeft.x,
+						ptTopLeft.y, ptBottomRight.x - ptTopLeft.x + 1,
+						ptBottomRight.y - ptTopLeft.y + 1)) {
+					boundsMonitorContained = bounds;
+				}
+			}
+			Rectangle bounds = boundsMonitorTopLeft != null ? boundsMonitorTopLeft
+					: boundsMonitorBottomRight != null ? boundsMonitorBottomRight
+							: boundsMonitorContained;
+
+			if (!bMetricsOk && bAdjustIfInvalid && bounds != null) {
+				// Move up and/or left so bottom right fits
+				int xDiff = ptBottomRight.x - (bounds.x + bounds.width);
+				int yDiff = ptBottomRight.y - (bounds.y + bounds.height);
+				boolean needsResize = false;
+				if (xDiff > 0) {
+					ptTopLeft.x -= xDiff;
+				}
+				if (yDiff > 0) {
+					ptTopLeft.y -= yDiff;
+				}
+
+				// move down and or right so top fits
+				if (ptTopLeft.x < bounds.x) {
+					ptTopLeft.x = bounds.x;
+				}
+				if (ptTopLeft.y < bounds.y) {
+					ptTopLeft.y = bounds.y;
+				}
+
+				if (ptTopLeft.y < bounds.y) {
+					ptBottomRight.y -= bounds.y - ptTopLeft.y;
+					ptTopLeft.y = bounds.y;
+					needsResize = true;
+				}
+				if (ptTopLeft.x < bounds.x) {
+					ptBottomRight.x -= bounds.x - ptTopLeft.x;
+					ptTopLeft.x = bounds.x;
+					needsResize = true;
+				}
+
+				shell.setLocation(ptTopLeft);
+				if (needsResize) {
+					shell.setSize(ptBottomRight.x - ptTopLeft.x + 1,
+							ptBottomRight.y - ptTopLeft.y + 1);
+				}
+				return verifyShellRect(shell, bAdjustIfInvalid);
 			}
 		} catch (NoSuchMethodError e) {
 			Rectangle bounds = shell.getDisplay().getClientArea();
 			bMetricsOk = shell.getBounds().intersects(bounds);
+		} catch (Throwable t) {
+			bMetricsOk = true;
 		}
+
+
 		if (!bMetricsOk && bAdjustIfInvalid) {
 			centreWindow(shell);
 		}
