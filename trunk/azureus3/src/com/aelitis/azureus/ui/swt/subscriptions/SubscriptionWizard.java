@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.omg.CORBA.Bounds;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -58,6 +59,7 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 public class SubscriptionWizard {
 	
@@ -440,8 +442,13 @@ public class SubscriptionWizard {
 		Label subTitle1 = new Label(composite,SWT.WRAP);
 		subTitle1.setFont(subTitleFont);
 		subTitle1.setText(MessageText.getString("Wizard.Subscription.rss.subtitle1"));
-		
-		feedUrl = new Text(composite, SWT.SINGLE);
+
+		Composite cSearchInput = new Composite(composite, SWT.NONE);
+		cSearchInput.setLayout(new FormLayout());
+		imageLoader.setBackgroundImage(cSearchInput, "search_bg");
+		Rectangle imageBounds = cSearchInput.getBackgroundImage().getBounds();
+
+		feedUrl = new Text(cSearchInput, SWT.SINGLE);
 		feedUrl.setFont(textInputFont);
 		feedUrl.setText("http://");
 //		feedUrl.setData("visited",new Boolean(false));
@@ -470,10 +477,6 @@ public class SubscriptionWizard {
 			}
 		});
 		
-		Label rssBackground = new Label(composite,SWT.NONE);
-		imageLoader.setLabelImage(rssBackground, "rss_bg");
-		int width = rssBackground.getImage().getBounds().width;
-		
 		Label subTitle2 = new Label(composite,SWT.WRAP);
 		//subTitle2.setFont(subTitleFont);
 		subTitle2.setText(MessageText.getString("Wizard.Subscription.rss.subtitle2"));
@@ -500,17 +503,19 @@ public class SubscriptionWizard {
 		
 		data = new FormData();
 		data.top = new FormAttachment(subTitle1,5);
-		data.left = new FormAttachment(50,-width/2);
-		rssBackground.setLayoutData(data);
+		data.left = new FormAttachment(50,-imageBounds.width/2);
+		data.width = imageBounds.width;
+		data.height = imageBounds.height;
+		cSearchInput.setLayoutData(data);
 		
 		data = new FormData();
-		data.top = new FormAttachment(rssBackground,7,SWT.TOP);
-		data.left = new FormAttachment(rssBackground, 45,SWT.LEFT);
-		data.right = new FormAttachment(rssBackground, -8,SWT.RIGHT);
+		data.top = new FormAttachment(0,7);
+		data.left = new FormAttachment(0, 45);
+		data.right = new FormAttachment(100, -8);
 		feedUrl.setLayoutData(data);
 
 		data = new FormData();
-		data.top = new FormAttachment(rssBackground,15);
+		data.top = new FormAttachment(cSearchInput,15);
 		data.left = new FormAttachment(0);
 		rssBullet.setLayoutData(data);
 
@@ -537,7 +542,12 @@ public class SubscriptionWizard {
 		subTitle1.setFont(subTitleFont);
 		subTitle1.setText(MessageText.getString("Wizard.Subscription.search.subtitle1"));
 		
-		searchInput = new Text(composite, SWT.SINGLE);
+		Composite cSearchInput = new Composite(composite, SWT.NONE);
+		cSearchInput.setLayout(new FormLayout());
+		imageLoader.setBackgroundImage(cSearchInput, "search_bg");
+		Rectangle imageBounds = cSearchInput.getBackgroundImage().getBounds();
+		
+		searchInput = new Text(cSearchInput, SWT.SINGLE);
 		searchInput.setFont(textInputFont);
 //		searchInput.setText(MessageText.getString("Wizard.Subscription.search.inputPrompt"));
 //		searchInput.setData("visited",new Boolean(false));
@@ -552,10 +562,6 @@ public class SubscriptionWizard {
 //		});
 		
 		searchInput.addListener (SWT.DefaultSelection, searchListener);
-		
-		Label searchBackground = new Label(composite,SWT.NONE);
-		imageLoader.setLabelImage(searchBackground, "search_bg");
-		int width = searchBackground.getImage().getBounds().width;
 		
 		Label subTitle2 = new Label(composite,SWT.WRAP);
 		subTitle2.setFont(subTitleFont);
@@ -592,17 +598,19 @@ public class SubscriptionWizard {
 		
 		data = new FormData();
 		data.top = new FormAttachment(subTitle1,5);
-		data.left = new FormAttachment(50,-width/2);
-		searchBackground.setLayoutData(data);
+		data.left = new FormAttachment(50,-imageBounds.width/2);
+		data.width = imageBounds.width;
+		data.height = imageBounds.height;
+		cSearchInput.setLayoutData(data);
 		
 		data = new FormData();
-		data.top = new FormAttachment(searchBackground,7,SWT.TOP);
-		data.left = new FormAttachment(searchBackground, 45,SWT.LEFT);
-		data.right = new FormAttachment(searchBackground, -8,SWT.RIGHT);
+		data.top = new FormAttachment(0, 7);
+		data.left = new FormAttachment(0, 45);
+		data.right = new FormAttachment(100, -8);
 		searchInput.setLayoutData(data);
 
 		data = new FormData();
-		data.top = new FormAttachment(searchBackground,15);
+		data.top = new FormAttachment(cSearchInput,15);
 		data.left = new FormAttachment(0);
 		data.right = new FormAttachment(100);
 		subTitle2.setLayoutData(data);
@@ -1079,16 +1087,8 @@ public class SubscriptionWizard {
 		}
 		titleFont = new Font(display,fDatas);
 		
-		
-		for(int i = 0 ; i < fDatas.length ; i++) {
-			if(org.gudy.azureus2.core3.util.Constants.isOSX) {
-				fDatas[i].setHeight(14);
-			} else {
-				fDatas[i].setHeight(12);
-			}
-			fDatas[i].setStyle(SWT.NONE);
-		}
-		textInputFont = new Font(display,fDatas);
+		// When GTK3 can show a textbox without a border, we can remove the logic
+		textInputFont = FontUtils.getFontWithHeight(shell.getFont(), null, Utils.isGTK3 ? 12 : 14);
 		
 		
 	}
