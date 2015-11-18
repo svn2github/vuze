@@ -822,7 +822,7 @@ public class SideBar
 
 				SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
 
-				boolean handled = entry.triggerDropListeners(event.data);
+				boolean handled = entry != null && entry.triggerDropListeners(event.data);
 				if (!handled) {
 					defaultDrop(event);
 				}
