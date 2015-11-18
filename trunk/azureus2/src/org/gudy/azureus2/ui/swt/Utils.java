@@ -1988,19 +1988,25 @@ public class Utils
 				int xDiff = ptBottomRight.x - (bounds.x + bounds.width);
 				int yDiff = ptBottomRight.y - (bounds.y + bounds.height);
 				boolean needsResize = false;
+				boolean needsMove	= false;
+				
 				if (xDiff > 0) {
 					ptTopLeft.x -= xDiff;
+					needsMove = true;
 				}
 				if (yDiff > 0) {
 					ptTopLeft.y -= yDiff;
+					needsMove = true;
 				}
 
 				// move down and or right so top fits
 				if (ptTopLeft.x < bounds.x) {
 					ptTopLeft.x = bounds.x;
+					needsMove = true;
 				}
 				if (ptTopLeft.y < bounds.y) {
 					ptTopLeft.y = bounds.y;
+					needsMove = true;
 				}
 
 				if (ptTopLeft.y < bounds.y) {
@@ -2014,12 +2020,22 @@ public class Utils
 					needsResize = true;
 				}
 
-				shell.setLocation(ptTopLeft);
+				if ( needsMove ){
+					shell.setLocation(ptTopLeft);
+				}
+				
 				if (needsResize) {
 					shell.setSize(ptBottomRight.x - ptTopLeft.x + 1,
 							ptBottomRight.y - ptTopLeft.y + 1);
 				}
-				return verifyShellRect(shell, bAdjustIfInvalid);
+				if ( needsMove || needsResize ){
+					
+					return verifyShellRect(shell, bAdjustIfInvalid);
+					
+				}else{
+					
+					return( true );
+				}
 			}
 		} catch (NoSuchMethodError e) {
 			Rectangle bounds = shell.getDisplay().getClientArea();
