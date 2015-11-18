@@ -126,9 +126,12 @@ MagnetPlugin
 	
 	private boolean			first_download	= true;
 	
+	private static final int	PLUGIN_DOWNLOAD_TIMEOUT_SECS_DEFAULT 	= 10*60;	// needs to be fairly large as non-public downloads can take a while...
+	
 	private BooleanParameter secondary_lookup;
 	private BooleanParameter md_lookup;
 	private IntParameter	 md_lookup_delay;
+	private IntParameter	 timeout_param;
 	
 	private Map<String,BooleanParameter> net_params = new HashMap<String, BooleanParameter>();
 	
@@ -161,6 +164,8 @@ MagnetPlugin
 		
 		md_lookup.addEnabledOnSelection( md_lookup_delay );
 			
+		timeout_param		= config.addIntParameter2( "MagnetPlugin.timeout.secs", "MagnetPlugin.timeout.secs", PLUGIN_DOWNLOAD_TIMEOUT_SECS_DEFAULT );
+
 		Parameter[] nps = new Parameter[ AENetworkClassifier.AT_NETWORKS.length ];
 		
 		for ( int i=0; i<nps.length; i++ ){
@@ -963,11 +968,33 @@ MagnetPlugin
 		final byte[]							hash,
 		final String							args,
 		final InetSocketAddress[]				sources,
-		final long								timeout,
+		long									_timeout,
 		int										flags )
 	
 		throws MagnetURIHandlerException
 	{
+		final long	timeout;
+		
+		if ( _timeout < 0 ){
+			
+			// use plugin defined value
+			
+			int secs = timeout_param.getValue();
+			
+			if ( secs <= 0 ){
+				
+				timeout = Long.MAX_VALUE;
+				
+			}else{
+				
+				timeout = secs*1000L;
+			}
+			
+		}else{
+			
+			timeout = _timeout;
+		}
+		
 		boolean	md_enabled;
 		
 		final boolean	dummy_hash = Arrays.equals( hash, new byte[20] );
