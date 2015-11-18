@@ -107,7 +107,7 @@ public class SB_Transfers
 
 		boolean includeLowNoise;
 		
-		long	newestDownloadTime = 0;
+		long	newestIncompleteDownloadTime = 0;
 	};
 
 	private static stats statsWithLowNoise = new stats();
@@ -326,25 +326,25 @@ public class SB_Transfers
 		final MdiEntry[] entry_holder = { null };
 
 		ViewTitleInfo titleInfoDownloading = new ViewTitleInfo() {
-			private long	max_dl_time;
+			private long	max_incomp_dl_time;
 			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_INDICATOR_TEXT) {
 					if ( COConfigurationManager.getBooleanParameter( "Request Attention On New Download" )){
 
 						if ( coreCreateTime > 0 ){
 							
-							if ( max_dl_time == 0 ){
+							if ( max_incomp_dl_time == 0 ){
 								
-								max_dl_time = coreCreateTime;
+								max_incomp_dl_time = coreCreateTime;
 							}
 							
-							if ( statsNoLowNoise.newestDownloadTime > max_dl_time ){
+							if ( statsNoLowNoise.newestIncompleteDownloadTime > max_incomp_dl_time ){
 											
 								MdiEntry entry = entry_holder[0];
 								
 								if ( entry != null ){
 									
-									max_dl_time = statsNoLowNoise.newestDownloadTime;
+									max_incomp_dl_time = statsNoLowNoise.newestIncompleteDownloadTime;
 															
 									entry.requestAttention();
 								}
@@ -811,8 +811,8 @@ public class SB_Transfers
 					return;
 				}
 				boolean assumed_complete = dm.getAssumedComplete();
-				if ( dm.isPersistent() && dm.getTorrent() != null){	// ignore borked torrents as their create time is inaccurate
-					stats.newestDownloadTime = Math.max( stats.newestDownloadTime, dm.getCreationTime());
+				if ( dm.isPersistent() && dm.getTorrent() != null && !assumed_complete ){	// ignore borked torrents as their create time is inaccurate
+					stats.newestIncompleteDownloadTime = Math.max( stats.newestIncompleteDownloadTime, dm.getCreationTime());
 				}
 				int dm_state = dm.getState();
 				if (assumed_complete) {
@@ -836,11 +836,12 @@ public class SB_Transfers
 		for (Iterator<DownloadManager> iter = downloadManagers.iterator(); iter.hasNext();) {
 			DownloadManager dm = iter.next();
 			boolean lowNoise = PlatformTorrentUtils.isAdvancedViewOnly(dm);
-			if ( dm.isPersistent() && dm.getTorrent() != null){	// ignore borked torrents as their create time is inaccurate
+			boolean assumed_complete = dm.getAssumedComplete();
+			if ( dm.isPersistent() && dm.getTorrent() != null && !assumed_complete ){	// ignore borked torrents as their create time is inaccurate
 				long createTime = dm.getCreationTime();
-				statsWithLowNoise.newestDownloadTime = Math.max( statsWithLowNoise.newestDownloadTime, createTime);
+				statsWithLowNoise.newestIncompleteDownloadTime = Math.max( statsWithLowNoise.newestIncompleteDownloadTime, createTime);
 				if (!lowNoise) {
-					statsNoLowNoise.newestDownloadTime = Math.max( statsNoLowNoise.newestDownloadTime, createTime);
+					statsNoLowNoise.newestIncompleteDownloadTime = Math.max( statsNoLowNoise.newestIncompleteDownloadTime, createTime);
 				}
 			}
 			dm.addListener(dmListener, false);
