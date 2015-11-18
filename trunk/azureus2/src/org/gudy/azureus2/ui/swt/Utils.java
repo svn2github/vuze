@@ -1075,6 +1075,15 @@ public class Utils
 		
 		String lc_sFile = sFileModified.toLowerCase( Locale.US );
 		
+		if ( lc_sFile.startsWith( "tor:" )){
+			
+			force_anon	= true;
+			
+			lc_sFile = lc_sFile.substring( 4 );
+			
+			sFileModified = lc_sFile;
+		}
+		
 		if ( lc_sFile.startsWith( "http:" ) || lc_sFile.startsWith( "https:" )){
 
 			String 		net_type;

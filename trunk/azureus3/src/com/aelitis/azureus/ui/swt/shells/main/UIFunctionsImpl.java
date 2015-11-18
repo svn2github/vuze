@@ -925,14 +925,25 @@ public class UIFunctionsImpl
 		try{
 				// if it is just a trivial URL (no path/query) then most unlikely to refer to
 				// a torrent file so just launch the URL
+		
+			URL hit_url = new URL( hit );
 			
-			URL url = new URL( hit );
+			URL url;
+			
+			if ( hit_url.getProtocol().equals( "tor" )){
+				
+				url = new URL( hit.substring( 4 ));
+				
+			}else{
+			
+				url = hit_url;
+			}
 			
 			String path = url.getPath();
 			
 			if (( path.length() == 0 || path.equals( "/" )) && url.getQuery() == null ){
 				
-				Utils.launch( url.toExternalForm());
+				Utils.launch( hit_url.toExternalForm());
 				
 				return( true );
 			}

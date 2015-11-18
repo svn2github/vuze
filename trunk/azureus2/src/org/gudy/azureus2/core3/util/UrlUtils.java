@@ -444,6 +444,14 @@ public class UrlUtils
 			return( "azplug:?id=azbuddy&arg=" + UrlUtils.encode( text ));
 		}
 		
+		if ( text.startsWith( "tor:" )){
+			
+			String href = parseTextForURL(text.substring(4), false, false );
+			if (href != null) {
+				return( "tor:" + href );
+			}
+		}
+		
 		String href = parseHTMLforURL(text);
 		if (href != null) {
 			return href;
