@@ -983,7 +983,7 @@ MagnetPlugin
 			
 			if ( secs <= 0 ){
 				
-				timeout = Long.MAX_VALUE;
+				timeout = Integer.MAX_VALUE;
 				
 			}else{
 				
