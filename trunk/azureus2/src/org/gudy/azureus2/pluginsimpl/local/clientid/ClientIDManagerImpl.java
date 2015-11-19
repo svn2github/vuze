@@ -20,6 +20,7 @@
 package org.gudy.azureus2.pluginsimpl.local.clientid;
 
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
@@ -720,6 +721,10 @@ ClientIDManagerImpl
 			}catch( UnknownHostException e ){
 				
 				report_error = "Unknown host '" + e.getMessage() + "'";
+				
+			}catch( IOException e ){
+				
+				// don't log these as common
 				
 			}catch( Throwable e ){
 				
