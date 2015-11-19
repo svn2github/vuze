@@ -724,6 +724,8 @@ ClientIDManagerImpl
 				
 			}catch( IOException e ){
 				
+				report_error = e.getMessage();
+				
 				// don't log these as common
 				
 			}catch( Throwable e ){
