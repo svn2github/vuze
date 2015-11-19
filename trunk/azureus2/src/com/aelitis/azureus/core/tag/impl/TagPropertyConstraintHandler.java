@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.utils.ScriptProvider;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -278,7 +279,7 @@ TagPropertyConstraintHandler
 					tag.removeTaggable( e );
 				}
 			
-				con = new TagConstraint( tag, constraint );
+				con = new TagConstraint( this, tag, constraint );
 				
 				constrained_tags.put( tag, con );
 								
@@ -447,26 +448,29 @@ TagPropertyConstraintHandler
 			});
 	}
 	
-	private ConstraintExpr
+	private TagConstraint.ConstraintExpr
 	compileConstraint(
 		String		expr )
 	{
-		return( new TagConstraint( null, expr ).expr );
+		return( new TagConstraint( this, null, expr ).expr );
 	}
 	
-	private class
+	private static class
 	TagConstraint
 	{
-		private Tag		tag;
-		private String	constraint;
+		private TagPropertyConstraintHandler	handler;
+		private Tag								tag;
+		private String							constraint;
 		
 		private ConstraintExpr	expr;
 		
 		private
 		TagConstraint(
-			Tag			_tag,
-			String		_constraint )
+			TagPropertyConstraintHandler	_handler,
+			Tag								_tag,
+			String							_constraint )
 		{
+			handler		= _handler;
 			tag			= _tag;
 			constraint	= _constraint;
 		
@@ -729,12 +733,59 @@ TagPropertyConstraintHandler
 		}
 		
 		private boolean
+		evalScript(
+			String				script,
+			DownloadManager		dm )
+		{
+			List<ScriptProvider> providers = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getScriptProviders();
+			
+			for ( ScriptProvider p: providers ){
+				
+				if ( p.getScriptType() == ScriptProvider.ST_JAVASCRIPT ){
+					
+					String dm_name = dm.getDisplayName();
+					
+					if ( dm_name.length() > 32 ){
+						
+						dm_name = dm_name.substring( 0, 29 ) + "...";
+					}
+					
+					Map<String,Object>	bindings = new HashMap<String, Object>();
+					
+					bindings.put( "intent", "inTag(\"" + tag.getTagName() + "\",\"" + dm_name + "\")" );
+
+					bindings.put( "download", PluginCoreUtils.wrap( dm ));
+					
+					bindings.put( "tag", tag );
+											
+					try{
+						Object result = p.eval( script, bindings );
+						
+						if ( result instanceof Boolean ){
+							
+							return((Boolean)result);
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+						
+						return( false );
+					}
+					
+					break;
+				}
+			}
+			
+			return( false );
+		}
+		
+		private boolean
 		canAddTaggable(
 			DownloadManager		dm )
 		{
 			long	now = SystemTime.getMonotonousTime();
 				
-			Map<DownloadManager,Long> recent_dms = apply_history.get( tag );
+			Map<DownloadManager,Long> recent_dms = handler.apply_history.get( tag );
 				
 			if ( recent_dms != null ){
 					
@@ -752,7 +803,7 @@ TagPropertyConstraintHandler
 					
 				recent_dms = new HashMap<DownloadManager,Long>();
 					
-				apply_history.put( tag, recent_dms );
+				handler.apply_history.put( tag, recent_dms );
 			}
 				
 			recent_dms.put( dm, now );
@@ -764,721 +815,732 @@ TagPropertyConstraintHandler
 		testConstraint(
 			DownloadManager	dm )
 		{
-			List<Tag> dm_tags = tag_manager.getTagsForTaggable( dm );
+			List<Tag> dm_tags = handler.tag_manager.getTagsForTaggable( dm );
 			
 			return( expr.eval( dm, dm_tags ));
 		}
-	}
 	
-	private interface
-	ConstraintExpr
-	{
-		public boolean
-		eval(
-			DownloadManager		dm,
-			List<Tag>			tags );
-		
-		public String
-		getString();
-	}
-	
-	private class
-	ConstraintExprTrue
-		implements ConstraintExpr
-	{
-		public boolean
-		eval(
-			DownloadManager		dm,
-			List<Tag>			tags )
+		private interface
+		ConstraintExpr
 		{
-			return( true );
-		}
-		
-		public String
-		getString()
-		{
-			return( "true" );
-		}
-	}
-	
-	private class
-	ConstraintExprParams
-		implements  ConstraintExpr
-	{
-		private String	value;
-		
-		private
-		ConstraintExprParams(
-			String	_value )
-		{
-			value = _value.trim();
-		}
-		
-		public boolean
-		eval(
-			DownloadManager		dm,
-			List<Tag>			tags )
-		{
-			return( false );
-		}
-		
-		public Object[]
-		getValues()
-		{
-			if ( value.length() == 0 ){
-				
-				return( new String[0]);
-				
-			}else if ( !value.contains( "," )){
+			public boolean
+			eval(
+				DownloadManager		dm,
+				List<Tag>			tags );
 			
-				return( new Object[]{ value });
-				
-			}else{
-				
-				char[]	chars = value.toCharArray();
-				
-				boolean in_quote = false;
-				
-				List<String>	params = new ArrayList<String>(16);
-				
-				StringBuffer current_param = new StringBuffer( value.length());
-				
-				for (int i=0;i<chars.length;i++){
-				
-					char c = chars[i];
+			public String
+			getString();
+		}
+		
+		private class
+		ConstraintExprTrue
+			implements ConstraintExpr
+		{
+			public boolean
+			eval(
+				DownloadManager		dm,
+				List<Tag>			tags )
+			{
+				return( true );
+			}
+			
+			public String
+			getString()
+			{
+				return( "true" );
+			}
+		}
+		
+		private class
+		ConstraintExprParams
+			implements  ConstraintExpr
+		{
+			private String	value;
+			
+			private
+			ConstraintExprParams(
+				String	_value )
+			{
+				value = _value.trim();
+			}
+			
+			public boolean
+			eval(
+				DownloadManager		dm,
+				List<Tag>			tags )
+			{
+				return( false );
+			}
+			
+			public Object[]
+			getValues()
+			{
+				if ( value.length() == 0 ){
 					
-					if ( c == '"' ){
+					return( new String[0]);
+					
+				}else if ( !value.contains( "," )){
+				
+					return( new Object[]{ value });
+					
+				}else{
+					
+					char[]	chars = value.toCharArray();
+					
+					boolean in_quote = false;
+					
+					List<String>	params = new ArrayList<String>(16);
+					
+					StringBuffer current_param = new StringBuffer( value.length());
+					
+					for (int i=0;i<chars.length;i++){
+					
+						char c = chars[i];
 						
-						if ( i == 0 || chars[i-1] != '\\' ){
+						if ( c == '"' ){
 							
-							in_quote = !in_quote;
-						}
-					}
-					
-					if ( c == ',' && !in_quote ){
-						
-						params.add( current_param.toString());
-						
-						current_param.setLength( 0 );
-						
-					}else{
-						
-						if ( in_quote || !Character.isWhitespace( c )){
-						
-							current_param.append( c );
-						}
-					}
-				}
-				
-				params.add( current_param.toString());
-				
-				return( params.toArray( new Object[ params.size()]));
-			}
-		}
-		
-		public String
-		getString()
-		{
-			return( value );
-		}
-	}
-	
-	private class
-	ConstraintExprNot
-		implements  ConstraintExpr
-	{
-		private	ConstraintExpr expr;
-		
-		private
-		ConstraintExprNot(
-			ConstraintExpr	e )
-		{
-			expr = e;
-		}
-		
-		public boolean
-		eval(
-			DownloadManager		dm,
-			List<Tag>			tags )		
-		{
-			return( !expr.eval( dm, tags ));
-		}
-		
-		public String
-		getString()
-		{
-			return( "!(" + expr.getString() + ")");
-		}
-	}
-	
-	private class
-	ConstraintExprOr
-		implements  ConstraintExpr
-	{
-		private ConstraintExpr[]	exprs;
-		
-		private
-		ConstraintExprOr(
-			ConstraintExpr[]	_exprs )
-		{
-			exprs = _exprs;
-		}
-		
-		public boolean
-		eval(
-			DownloadManager		dm,
-			List<Tag>			tags )		
-		{
-			for ( ConstraintExpr expr: exprs ){
-				
-				if ( expr.eval( dm, tags )){
-					
-					return( true );
-				}
-			}
-			
-			return( false );
-		}
-		
-		public String
-		getString()
-		{
-			String res = "";
-			
-			for ( int i=0;i<exprs.length;i++){
-				
-				res += (i==0?"":"||") + exprs[i].getString();
-			}
-			
-			return( "(" + res + ")" );
-		}
-	}
-	
-	private class
-	ConstraintExprAnd
-		implements  ConstraintExpr
-	{
-		private ConstraintExpr[]	exprs;
-		
-		private
-		ConstraintExprAnd(
-			ConstraintExpr[]	_exprs )
-		{
-			exprs = _exprs;
-		}
-		
-		public boolean
-		eval(
-			DownloadManager		dm,
-			List<Tag>			tags )
-		{
-			for ( ConstraintExpr expr: exprs ){
-				
-				if ( !expr.eval( dm, tags )){
-					
-					return( false );
-				}
-			}
-			
-			return( true );
-		}
-		
-		public String
-		getString()
-		{
-			String res = "";
-			
-			for ( int i=0;i<exprs.length;i++){
-				
-				res += (i==0?"":"&&") + exprs[i].getString();
-			}
-			
-			return( "(" + res + ")" );
-		}
-	}
-	
-	private class
-	ConstraintExprXor
-		implements  ConstraintExpr
-	{
-		private ConstraintExpr[]	exprs;
-		
-		private
-		ConstraintExprXor(
-			ConstraintExpr[]	_exprs )
-		{
-			exprs = _exprs;
-			
-			if ( exprs.length < 2 ){
-				
-				throw( new RuntimeException( "Two or more arguments required for ^" ));
-			}
-		}
-		
-		public boolean
-		eval(
-			DownloadManager		dm,
-			List<Tag>			tags )
-		{
-			boolean res = exprs[0].eval( dm, tags );
-			
-			for ( int i=1;i<exprs.length;i++){
-				
-				res = res ^ exprs[i].eval( dm, tags );
-			}
-			
-			return( res );
-		}
-		
-		public String
-		getString()
-		{
-			String res = "";
-			
-			for ( int i=0;i<exprs.length;i++){
-				
-				res += (i==0?"":"^") + exprs[i].getString();
-			}
-			
-			return( "(" + res + ")" );
-		}
-	}
-	
-	private static final int FT_HAS_TAG		= 1;
-	private static final int FT_IS_PRIVATE	= 2;
-	
-	private static final int FT_GE			= 3;
-	private static final int FT_GT			= 4;
-	private static final int FT_LE			= 5;
-	private static final int FT_LT			= 6;
-	private static final int FT_EQ			= 7;
-	private static final int FT_NEQ			= 8;
-	
-	private static final int FT_CONTAINS	= 9;
-	private static final int FT_MATCHES		= 10;
-	
-	private static final int FT_HAS_NET			= 11;
-	private static final int FT_IS_COMPLETE		= 12;
-	private static final int FT_CAN_ARCHIVE		= 13;
-	private static final int FT_IS_FORCE_START	= 14;
-
-	
-	private class
-	ConstraintExprFunction
-		implements  ConstraintExpr
-	{
-		
-		private	final String 				func_name;
-		private final ConstraintExprParams	params_expr;
-		private final Object[]				params;
-		
-		private final int	fn_type;
-		
-		private
-		ConstraintExprFunction(
-			String 					_func_name,
-			ConstraintExprParams	_params )
-		{
-			func_name	= _func_name;
-			params_expr	= _params;
-			
-			params		= _params.getValues();
-			
-			boolean	params_ok = false;
-			
-			if ( func_name.equals( "hasTag" )){
-				
-				fn_type = FT_HAS_TAG;
-				
-				params_ok = params.length == 1 && getStringLiteral( params, 0 );
-				
-			}else if ( func_name.equals( "hasNet" )){
-					
-				fn_type = FT_HAS_NET;
-					
-				params_ok = params.length == 1 && getStringLiteral( params, 0 );
-				
-				if ( params_ok ){
-					
-					params[0] = AENetworkClassifier.internalise((String)params[0]);
-					
-					params_ok = params[0] != null;
-				}
-			}else if ( func_name.equals( "isPrivate" )){
-
-				fn_type = FT_IS_PRIVATE;
-
-				params_ok = params.length == 0;
-				
-			}else if ( func_name.equals( "isForceStart" )){
-
-				fn_type = FT_IS_FORCE_START;
-
-				params_ok = params.length == 0;
-				
-			}else if ( func_name.equals( "isComplete" )){
-
-				fn_type = FT_IS_COMPLETE;
-
-				params_ok = params.length == 0;
-				
-			}else if ( func_name.equals( "canArchive" )){
-
-				fn_type = FT_CAN_ARCHIVE;
-
-				params_ok = params.length == 0;
-
-			}else if ( func_name.equals( "isGE" )){
-				
-				fn_type = FT_GE;
-				
-				params_ok = params.length == 2;
-				
-			}else if ( func_name.equals( "isGT" )){
-				
-				fn_type = FT_GT;
-				
-				params_ok = params.length == 2;
-				
-			}else if ( func_name.equals( "isLE" )){
-				
-				fn_type = FT_LE;
-				
-				params_ok = params.length == 2;
-				
-			}else if ( func_name.equals( "isLT" )){
-				
-				fn_type = FT_LT;
-				
-				params_ok = params.length == 2;
-				
-			}else if ( func_name.equals( "isEQ" )){
-				
-				fn_type = FT_EQ;
-				
-				params_ok = params.length == 2;
-				
-			}else if ( func_name.equals( "isNEQ" )){
-				
-				fn_type = FT_NEQ;
-				
-				params_ok = params.length == 2;
-			
-			}else if ( func_name.equals( "contains" )){
-				
-				fn_type = FT_CONTAINS;
-					
-				params_ok = params.length == 2;
-
-			}else if ( func_name.equals( "matches" )){
-				
-				fn_type = FT_MATCHES;
-					
-				params_ok = params.length == 2 && getStringLiteral( params, 1 );
-
-			}else{
-				
-				throw( new RuntimeException( "Unsupported function '" + func_name + "'" ));
-			}
-			
-			if ( !params_ok ){
-				
-				throw( new RuntimeException( "Invalid parameters for function '" + func_name + "': " + params_expr.getString()));
-
-			}
-		}
-	
-		public boolean
-		eval(
-			DownloadManager		dm,
-			List<Tag>			tags )
-		{
-			switch( fn_type ){
-				case FT_HAS_TAG:{
-				
-					String tag_name = (String)params[0];
-					
-					for ( Tag t: tags ){
-						
-						if ( t.getTagName( true ).equals( tag_name )){
-							
-							return( true );
-						}
-					}
-					
-					return( false );
-				}
-				case FT_HAS_NET:{
-					
-					String net_name = (String)params[0];
-					
-					if ( net_name != null ){
-						
-						String[] nets = dm.getDownloadState().getNetworks();
-						
-						if ( nets != null ){
-							
-							for ( String net: nets ){
+							if ( i == 0 || chars[i-1] != '\\' ){
 								
-								if ( net == net_name ){
-									
-									return( true );
-								}
+								in_quote = !in_quote;
+							}
+						}
+						
+						if ( c == ',' && !in_quote ){
+							
+							params.add( current_param.toString());
+							
+							current_param.setLength( 0 );
+							
+						}else{
+							
+							if ( in_quote || !Character.isWhitespace( c )){
+							
+								current_param.append( c );
 							}
 						}
 					}
 					
-					return( false );
-				}
-				case FT_IS_PRIVATE:{
-				
-					TOTorrent t = dm.getTorrent();
-				
-					return( t != null && t.getPrivate());
-				}
-				case FT_IS_FORCE_START:{
+					params.add( current_param.toString());
 					
-					return( dm.isForceStart());
+					return( params.toArray( new Object[ params.size()]));
 				}
-
-				case FT_IS_COMPLETE:{
+			}
+			
+			public String
+			getString()
+			{
+				return( value );
+			}
+		}
+		
+		private class
+		ConstraintExprNot
+			implements  ConstraintExpr
+		{
+			private	ConstraintExpr expr;
+			
+			private
+			ConstraintExprNot(
+				ConstraintExpr	e )
+			{
+				expr = e;
+			}
+			
+			public boolean
+			eval(
+				DownloadManager		dm,
+				List<Tag>			tags )		
+			{
+				return( !expr.eval( dm, tags ));
+			}
+			
+			public String
+			getString()
+			{
+				return( "!(" + expr.getString() + ")");
+			}
+		}
+		
+		private class
+		ConstraintExprOr
+			implements  ConstraintExpr
+		{
+			private ConstraintExpr[]	exprs;
+			
+			private
+			ConstraintExprOr(
+				ConstraintExpr[]	_exprs )
+			{
+				exprs = _exprs;
+			}
+			
+			public boolean
+			eval(
+				DownloadManager		dm,
+				List<Tag>			tags )		
+			{
+				for ( ConstraintExpr expr: exprs ){
 					
-					return( dm.isDownloadComplete( false ));
-				}
-				case FT_CAN_ARCHIVE:{
-					
-					Download dl = PluginCoreUtils.wrap( dm );
-					
-					return( dl != null && dl.canStubbify());
-				}
-				case FT_GE:
-				case FT_GT:
-				case FT_LE:
-				case FT_LT:
-				case FT_EQ:
-				case FT_NEQ:{
-								
-					Number n1 = getNumeric( dm, params, 0 );
-					Number n2 = getNumeric( dm, params, 1 );
-				
-					switch( fn_type ){
-					
-						case FT_GE:
-							return( n1.doubleValue() >= n2.doubleValue());
-						case FT_GT:
-							return( n1.doubleValue() > n2.doubleValue());
-						case FT_LE:
-							return( n1.doubleValue() <= n2.doubleValue());
-						case FT_LT:
-							return( n1.doubleValue() < n2.doubleValue());
-						case FT_EQ:
-							return( n1.doubleValue() == n2.doubleValue());
-						case FT_NEQ:
-							return( n1.doubleValue() != n2.doubleValue());
+					if ( expr.eval( dm, tags )){
+						
+						return( true );
 					}
-					
-					return( false );
 				}
-				case FT_CONTAINS:{
+				
+				return( false );
+			}
+			
+			public String
+			getString()
+			{
+				String res = "";
+				
+				for ( int i=0;i<exprs.length;i++){
 					
-					String	s1 = getString( dm, params, 0 );
-					String	s2 = getString( dm, params, 1 );
-					
-					return( s1.contains( s2 ));
+					res += (i==0?"":"||") + exprs[i].getString();
 				}
-				case FT_MATCHES:{
+				
+				return( "(" + res + ")" );
+			}
+		}
+		
+		private class
+		ConstraintExprAnd
+			implements  ConstraintExpr
+		{
+			private ConstraintExpr[]	exprs;
+			
+			private
+			ConstraintExprAnd(
+				ConstraintExpr[]	_exprs )
+			{
+				exprs = _exprs;
+			}
+			
+			public boolean
+			eval(
+				DownloadManager		dm,
+				List<Tag>			tags )
+			{
+				for ( ConstraintExpr expr: exprs ){
 					
-					String	s1 = getString( dm, params, 0 );
-					
-					if ( params[1] == null ){
+					if ( !expr.eval( dm, tags )){
 						
 						return( false );
+					}
+				}
+				
+				return( true );
+			}
+			
+			public String
+			getString()
+			{
+				String res = "";
+				
+				for ( int i=0;i<exprs.length;i++){
+					
+					res += (i==0?"":"&&") + exprs[i].getString();
+				}
+				
+				return( "(" + res + ")" );
+			}
+		}
+		
+		private class
+		ConstraintExprXor
+			implements  ConstraintExpr
+		{
+			private ConstraintExpr[]	exprs;
+			
+			private
+			ConstraintExprXor(
+				ConstraintExpr[]	_exprs )
+			{
+				exprs = _exprs;
+				
+				if ( exprs.length < 2 ){
+					
+					throw( new RuntimeException( "Two or more arguments required for ^" ));
+				}
+			}
+			
+			public boolean
+			eval(
+				DownloadManager		dm,
+				List<Tag>			tags )
+			{
+				boolean res = exprs[0].eval( dm, tags );
+				
+				for ( int i=1;i<exprs.length;i++){
+					
+					res = res ^ exprs[i].eval( dm, tags );
+				}
+				
+				return( res );
+			}
+			
+			public String
+			getString()
+			{
+				String res = "";
+				
+				for ( int i=0;i<exprs.length;i++){
+					
+					res += (i==0?"":"^") + exprs[i].getString();
+				}
+				
+				return( "(" + res + ")" );
+			}
+		}
+		
+		private static final int FT_HAS_TAG		= 1;
+		private static final int FT_IS_PRIVATE	= 2;
+		
+		private static final int FT_GE			= 3;
+		private static final int FT_GT			= 4;
+		private static final int FT_LE			= 5;
+		private static final int FT_LT			= 6;
+		private static final int FT_EQ			= 7;
+		private static final int FT_NEQ			= 8;
+		
+		private static final int FT_CONTAINS	= 9;
+		private static final int FT_MATCHES		= 10;
+		
+		private static final int FT_HAS_NET			= 11;
+		private static final int FT_IS_COMPLETE		= 12;
+		private static final int FT_CAN_ARCHIVE		= 13;
+		private static final int FT_IS_FORCE_START	= 14;
+	
+		private static final int FT_JAVASCRIPT		= 15;
+	
+		private class
+		ConstraintExprFunction
+			implements  ConstraintExpr
+		{
+			
+			private	final String 				func_name;
+			private final ConstraintExprParams	params_expr;
+			private final Object[]				params;
+			
+			private final int	fn_type;
+			
+			private
+			ConstraintExprFunction(
+				String 					_func_name,
+				ConstraintExprParams	_params )
+			{
+				func_name	= _func_name;
+				params_expr	= _params;
+				
+				params		= _params.getValues();
+				
+				boolean	params_ok = false;
+				
+				if ( func_name.equals( "hasTag" )){
+					
+					fn_type = FT_HAS_TAG;
+					
+					params_ok = params.length == 1 && getStringLiteral( params, 0 );
+					
+				}else if ( func_name.equals( "hasNet" )){
 						
-					}else if ( params[1] instanceof Pattern ){
+					fn_type = FT_HAS_NET;
 						
-						return(((Pattern)params[1]).matcher( s1 ).find());
+					params_ok = params.length == 1 && getStringLiteral( params, 0 );
+					
+					if ( params_ok ){
 						
-					}else{
+						params[0] = AENetworkClassifier.internalise((String)params[0]);
 						
-						try{
-							Pattern p = Pattern.compile((String)params[1], Pattern.CASE_INSENSITIVE );
+						params_ok = params[0] != null;
+					}
+				}else if ( func_name.equals( "isPrivate" )){
+	
+					fn_type = FT_IS_PRIVATE;
+	
+					params_ok = params.length == 0;
+					
+				}else if ( func_name.equals( "isForceStart" )){
+	
+					fn_type = FT_IS_FORCE_START;
+	
+					params_ok = params.length == 0;
+					
+				}else if ( func_name.equals( "isComplete" )){
+	
+					fn_type = FT_IS_COMPLETE;
+	
+					params_ok = params.length == 0;
+					
+				}else if ( func_name.equals( "canArchive" )){
+	
+					fn_type = FT_CAN_ARCHIVE;
+	
+					params_ok = params.length == 0;
+	
+				}else if ( func_name.equals( "isGE" )){
+					
+					fn_type = FT_GE;
+					
+					params_ok = params.length == 2;
+					
+				}else if ( func_name.equals( "isGT" )){
+					
+					fn_type = FT_GT;
+					
+					params_ok = params.length == 2;
+					
+				}else if ( func_name.equals( "isLE" )){
+					
+					fn_type = FT_LE;
+					
+					params_ok = params.length == 2;
+					
+				}else if ( func_name.equals( "isLT" )){
+					
+					fn_type = FT_LT;
+					
+					params_ok = params.length == 2;
+					
+				}else if ( func_name.equals( "isEQ" )){
+					
+					fn_type = FT_EQ;
+					
+					params_ok = params.length == 2;
+					
+				}else if ( func_name.equals( "isNEQ" )){
+					
+					fn_type = FT_NEQ;
+					
+					params_ok = params.length == 2;
+				
+				}else if ( func_name.equals( "contains" )){
+					
+					fn_type = FT_CONTAINS;
+						
+					params_ok = params.length == 2;
+	
+				}else if ( func_name.equals( "matches" )){
+					
+					fn_type = FT_MATCHES;
+						
+					params_ok = params.length == 2 && getStringLiteral( params, 1 );
+	
+				}else if ( func_name.equals( "javascript" )){
+	
+					fn_type = FT_JAVASCRIPT;
+					
+					params_ok = params.length == 1 && getStringLiteral( params, 0 );
+	
+				}else{
+					
+					throw( new RuntimeException( "Unsupported function '" + func_name + "'" ));
+				}
+				
+				if ( !params_ok ){
+					
+					throw( new RuntimeException( "Invalid parameters for function '" + func_name + "': " + params_expr.getString()));
+	
+				}
+			}
+		
+			public boolean
+			eval(
+				DownloadManager		dm,
+				List<Tag>			tags )
+			{
+				switch( fn_type ){
+					case FT_HAS_TAG:{
+					
+						String tag_name = (String)params[0];
+						
+						for ( Tag t: tags ){
 							
-							params[1] = p;
-							
-							return( p.matcher( s1 ).find());
-							
-						}catch( Throwable e ){
-							
-							Debug.out( "Invalid constraint pattern: " + params[1] );
-							
-							params[1] = null;
+							if ( t.getTagName( true ).equals( tag_name )){
+								
+								return( true );
+							}
 						}
+						
+						return( false );
 					}
+					case FT_HAS_NET:{
+						
+						String net_name = (String)params[0];
+						
+						if ( net_name != null ){
+							
+							String[] nets = dm.getDownloadState().getNetworks();
+							
+							if ( nets != null ){
+								
+								for ( String net: nets ){
+									
+									if ( net == net_name ){
+										
+										return( true );
+									}
+								}
+							}
+						}
+						
+						return( false );
+					}
+					case FT_IS_PRIVATE:{
 					
-					return( false );
+						TOTorrent t = dm.getTorrent();
+					
+						return( t != null && t.getPrivate());
+					}
+					case FT_IS_FORCE_START:{
+						
+						return( dm.isForceStart());
+					}
+	
+					case FT_IS_COMPLETE:{
+						
+						return( dm.isDownloadComplete( false ));
+					}
+					case FT_CAN_ARCHIVE:{
+						
+						Download dl = PluginCoreUtils.wrap( dm );
+						
+						return( dl != null && dl.canStubbify());
+					}
+					case FT_GE:
+					case FT_GT:
+					case FT_LE:
+					case FT_LT:
+					case FT_EQ:
+					case FT_NEQ:{
+									
+						Number n1 = getNumeric( dm, params, 0 );
+						Number n2 = getNumeric( dm, params, 1 );
+					
+						switch( fn_type ){
+						
+							case FT_GE:
+								return( n1.doubleValue() >= n2.doubleValue());
+							case FT_GT:
+								return( n1.doubleValue() > n2.doubleValue());
+							case FT_LE:
+								return( n1.doubleValue() <= n2.doubleValue());
+							case FT_LT:
+								return( n1.doubleValue() < n2.doubleValue());
+							case FT_EQ:
+								return( n1.doubleValue() == n2.doubleValue());
+							case FT_NEQ:
+								return( n1.doubleValue() != n2.doubleValue());
+						}
+						
+						return( false );
+					}
+					case FT_CONTAINS:{
+						
+						String	s1 = getString( dm, params, 0 );
+						String	s2 = getString( dm, params, 1 );
+						
+						return( s1.contains( s2 ));
+					}
+					case FT_MATCHES:{
+						
+						String	s1 = getString( dm, params, 0 );
+						
+						if ( params[1] == null ){
+							
+							return( false );
+							
+						}else if ( params[1] instanceof Pattern ){
+							
+							return(((Pattern)params[1]).matcher( s1 ).find());
+							
+						}else{
+							
+							try{
+								Pattern p = Pattern.compile((String)params[1], Pattern.CASE_INSENSITIVE );
+								
+								params[1] = p;
+								
+								return( p.matcher( s1 ).find());
+								
+							}catch( Throwable e ){
+								
+								Debug.out( "Invalid constraint pattern: " + params[1] );
+								
+								params[1] = null;
+							}
+						}
+						
+						return( false );
+					}
+					case FT_JAVASCRIPT:{
+						
+						return( evalScript( (String)params[0], dm ));
+					}
 				}
+				
+				return( false );
 			}
 			
-			return( false );
-		}
-		
-		private boolean
-		getStringLiteral(
-			Object[]	args,
-			int			index )
-		{
-			Object _arg = args[index];
-			
-			if ( _arg instanceof String ){
+			private boolean
+			getStringLiteral(
+				Object[]	args,
+				int			index )
+			{
+				Object _arg = args[index];
 				
-				String arg = (String)_arg;
-			
-				if ( arg.startsWith( "\"" ) && arg.endsWith( "\"" )){
+				if ( _arg instanceof String ){
 					
-					args[index] = arg.substring( 1, arg.length() - 1 );
-					
-					return( true );
+					String arg = (String)_arg;
+				
+					if ( arg.startsWith( "\"" ) && arg.endsWith( "\"" )){
+						
+						args[index] = arg.substring( 1, arg.length() - 1 );
+						
+						return( true );
+					}
 				}
-			}
-				
-			return( false );
-		}
-		
-		private String
-		getString(
-			DownloadManager		dm,
-			Object[]			args,
-			int					index )
-		{
-			String str = (String)args[index];
-			
-			if ( str.startsWith( "\"" ) && str.endsWith( "\"" )){
-				
-				return( str.substring( 1, str.length() - 1 ));
-				
-			}else if ( str.equals( "name" )){
-				
-				return( dm.getDisplayName());
-				
-			}else{
-				
-				Debug.out( "Invalid constraint string: " + str );
-				
-				String result = "\"\"";
-				
-				args[index] = result;
-				
-				return( result );
-			}
-		}
-
-		private Number
-		getNumeric(
-			DownloadManager		dm,
-			Object[]			args,
-			int					index )
-		{
-			Object arg = args[index];
-			
-			if ( arg instanceof Number ){
-				
-				return((Number)arg);
+					
+				return( false );
 			}
 			
-			String str = (String)arg;
-			
-			Number result = 0;
-			
-			try{
-				if ( Character.isDigit( str.charAt(0))){
+			private String
+			getString(
+				DownloadManager		dm,
+				Object[]			args,
+				int					index )
+			{
+				String str = (String)args[index];
 				
-					if ( str.contains( "." )){
-						
-						result = Float.parseFloat( str );
-						
-					}else{
-						
-						result = Long.parseLong( str );
-					}
+				if ( str.startsWith( "\"" ) && str.endsWith( "\"" )){
 					
-					return( result );
+					return( str.substring( 1, str.length() - 1 ));
 					
-				}else if ( str.equals( "shareratio" )){
+				}else if ( str.equals( "name" )){
 					
-					result = null;	// don't cache this!
-					
-					int sr = dm.getStats().getShareRatio();
-					
-					if ( sr == -1 ){
-						
-						return( Integer.MAX_VALUE );
-						
-					}else{
-						
-						return( new Float( sr/1000.0f ));
-					}
-				}else if ( str.equals( "percent" )){
-					
-					result = null;	// don't cache this!
-					
-						// 0->1000
-					
-					int percent = dm.getStats().getPercentDoneExcludingDND();
-
-					return( new Float( percent/10.0f ));
-					
-				}else if ( str.equals( "age" )){
-					
-					result = null;	// don't cache this!
-						
-					long added = dm.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
-
-					if ( added <= 0 ){
-						
-						return( 0 );
-					}
-					
-					return(( SystemTime.getCurrentTime() - added )/1000 );		// secs
-					
-				}else if ( str.equals( "downloadingfor" )){
-					
-					result = null;	// don't cache this!
-					
-					return( dm.getStats().getSecondsDownloading());
-					
-				}else if ( str.equals( "seedingfor" )){
-					
-					result = null;	// don't cache this!
-					
-					return( dm.getStats().getSecondsOnlySeeding());
+					return( dm.getDisplayName());
 					
 				}else{
 					
-					Debug.out( "Invalid constraint numeric: " + str );
+					Debug.out( "Invalid constraint string: " + str );
+					
+					String result = "\"\"";
+					
+					args[index] = result;
 					
 					return( result );
 				}
-			}catch( Throwable e){
+			}
+	
+			private Number
+			getNumeric(
+				DownloadManager		dm,
+				Object[]			args,
+				int					index )
+			{
+				Object arg = args[index];
 				
-				Debug.out( "Invalid constraint numeric: " + str );
-
-				return( result );
-				
-			}finally{
-				
-				if ( result != null ){
+				if ( arg instanceof Number ){
 					
-						// cache literal results 
+					return((Number)arg);
+				}
+				
+				String str = (String)arg;
+				
+				Number result = 0;
+				
+				try{
+					if ( Character.isDigit( str.charAt(0))){
 					
-					args[index] = result;
+						if ( str.contains( "." )){
+							
+							result = Float.parseFloat( str );
+							
+						}else{
+							
+							result = Long.parseLong( str );
+						}
+						
+						return( result );
+						
+					}else if ( str.equals( "shareratio" )){
+						
+						result = null;	// don't cache this!
+						
+						int sr = dm.getStats().getShareRatio();
+						
+						if ( sr == -1 ){
+							
+							return( Integer.MAX_VALUE );
+							
+						}else{
+							
+							return( new Float( sr/1000.0f ));
+						}
+					}else if ( str.equals( "percent" )){
+						
+						result = null;	// don't cache this!
+						
+							// 0->1000
+						
+						int percent = dm.getStats().getPercentDoneExcludingDND();
+	
+						return( new Float( percent/10.0f ));
+						
+					}else if ( str.equals( "age" )){
+						
+						result = null;	// don't cache this!
+							
+						long added = dm.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+	
+						if ( added <= 0 ){
+							
+							return( 0 );
+						}
+						
+						return(( SystemTime.getCurrentTime() - added )/1000 );		// secs
+						
+					}else if ( str.equals( "downloadingfor" )){
+						
+						result = null;	// don't cache this!
+						
+						return( dm.getStats().getSecondsDownloading());
+						
+					}else if ( str.equals( "seedingfor" )){
+						
+						result = null;	// don't cache this!
+						
+						return( dm.getStats().getSecondsOnlySeeding());
+						
+					}else{
+						
+						Debug.out( "Invalid constraint numeric: " + str );
+						
+						return( result );
+					}
+				}catch( Throwable e){
+					
+					Debug.out( "Invalid constraint numeric: " + str );
+	
+					return( result );
+					
+				}finally{
+					
+					if ( result != null ){
+						
+							// cache literal results 
+						
+						args[index] = result;
+					}
 				}
 			}
-		}
-		
-		public String
-		getString()
-		{
-			return( func_name + "(" + params_expr.getString() + ")" );
+			
+			public String
+			getString()
+			{
+				return( func_name + "(" + params_expr.getString() + ")" );
+			}
 		}
 	}
 	
