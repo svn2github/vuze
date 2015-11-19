@@ -297,9 +297,7 @@ UpdateInstallerImpl
 	{
 		if ( file.contains( "," )){
 			
-				// needs support in Updater... to fix :(
-			
-			Debug.out( "Installation is going to fail for '" + file + "' as ',' in name not supported" );
+			file = file.replaceAll( ",", "&#0002C;" );
 		}
 		
 		return( file );
