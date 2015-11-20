@@ -24,21 +24,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+
 import java.util.*;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
+
 
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
@@ -416,6 +410,8 @@ ClientIDManagerImpl
 			String		report_error	= null;
 			int			written			= 0;
 			
+			boolean	looks_like_tracker_request = false;
+			
 			try{
 						
 				setTaskState( "reading header" );
@@ -484,7 +480,7 @@ ClientIDManagerImpl
 				lines.toArray( lines_in );
 				
 				String	get = lines_in[0];
-				
+								
 				int	p1 = get.indexOf( "?cid=" );
 				int	p2 = get.indexOf( "&", p1 );
 				
@@ -506,6 +502,8 @@ ClientIDManagerImpl
 				String  hash_str	= port_hash.length==1?"":port_hash[1];
 				
 				byte[] hash = hash_str.length()==0?null:URLDecoder.decode( port_hash[1], "ISO-8859-1" ).getBytes( "ISO-8859-1" );
+				
+				looks_like_tracker_request = hash != null;
 				
 				boolean	is_ssl;
 				
@@ -587,7 +585,6 @@ ClientIDManagerImpl
 							header_out.getBytes(Constants.BYTE_ENCODING ));
 
 				try{
-					
 					target.getOutputStream().flush();
 					
 					InputStream	target_is = target.getInputStream(); 
@@ -734,7 +731,7 @@ ClientIDManagerImpl
 					
 			}finally{
 				
-				if ( report_error != null && written == 0 ){
+				if ( report_error != null && written == 0 && looks_like_tracker_request ){
 					
 					Map	failure = new HashMap();
 					
@@ -743,11 +740,27 @@ ClientIDManagerImpl
 					try{
 						byte[] x = BEncoder.encode( failure );
 					
-						socket.getOutputStream().write( x );
+						OutputStream os = socket.getOutputStream();
+						
+						String[] reply_lines = {
+						
+								"HTTP/1.1 200 OK",
+								"Content-Length: " + x.length,
+								"Connection: close"
+						};
+						
+						for ( String str: reply_lines ){
+							
+							os.write((str + "\r\n" ).getBytes( "ISO-8859-1" ));
+						}
+						
+						os.write( "\r\n" .getBytes( "ISO-8859-1" ));
+						
+						os.write( x );
 						
 					}catch( Throwable f ){
 						
-						Debug.printStackTrace(f);
+						//Debug.printStackTrace(f);
 					}
 				}
 				
