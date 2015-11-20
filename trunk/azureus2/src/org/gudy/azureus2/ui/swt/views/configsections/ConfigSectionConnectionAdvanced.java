@@ -186,6 +186,12 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData.horizontalSpan = 3;
 		bind_icon.setLayoutData(gridData);
 		
+		BooleanParameter vpn_guess_enable = new BooleanParameter(gSocket, "network.admin.maybe.vpn.enable", "network.admin.maybe.vpn.enable");
+		gridData = new GridData();
+		gridData.horizontalSpan = 3;
+		vpn_guess_enable.setLayoutData(gridData);
+		
+		
 		Label lpbind = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lpbind, CFG_PREFIX + "bind_port");
 		final IntParameter port_bind = new IntParameter(gSocket,

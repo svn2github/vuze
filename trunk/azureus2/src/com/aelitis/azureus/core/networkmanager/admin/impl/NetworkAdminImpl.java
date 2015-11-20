@@ -3077,7 +3077,14 @@ addressLoop:
 	maybeVPNDone(
 		NetworkInterface		intf )
 	{
-		return(	COConfigurationManager.getBooleanParameter( "network.admin.maybe.vpn.done." + getConfigKey( intf ), false ));
+		if ( COConfigurationManager.getBooleanParameter( "network.admin.maybe.vpn.enable" )){
+			
+			return(	COConfigurationManager.getBooleanParameter( "network.admin.maybe.vpn.done." + getConfigKey( intf ), false ));
+			
+		}else{
+			
+			return( true );
+		}
 	}
 	
 	private void

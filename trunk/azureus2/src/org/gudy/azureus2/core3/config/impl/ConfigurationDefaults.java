@@ -595,6 +595,8 @@ public class ConfigurationDefaults {
     
     def.put( "network.bind.local.port", ZERO );
     
+    def.put( "network.admin.maybe.vpn.enable", TRUE );
+    
     def.put( "crypto.keys.system.managed", FALSE );
     
     def.put( "peer.nat.traversal.request.conc.max", new Long(3));
