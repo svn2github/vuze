@@ -247,7 +247,7 @@ public class GeneralView
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     Utils.setLayoutData(piecesInfo, gridData);
 
-    piecesImage = new Canvas(gFile, SWT.NULL);
+    piecesImage = new Canvas(gFile, SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint = 150;
     gridData.heightHint = 25;
@@ -263,7 +263,7 @@ public class GeneralView
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     Utils.setLayoutData(availabilityInfo, gridData);
 
-    availabilityImage = new Canvas(gFile, SWT.NULL);
+    availabilityImage = new Canvas(gFile, SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint = 150;
     gridData.heightHint = 25;
