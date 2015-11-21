@@ -24,7 +24,12 @@ package org.gudy.azureus2.pluginsimpl;
  *
  */
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 
 public class 
 PluginUtils 
@@ -42,5 +47,113 @@ PluginUtils
 		String		version_2 )
 	{
 		return( Constants.compareVersions( version_1, version_2 ));
+	}
+	
+	private static boolean js_plugin_installing;
+	
+	public static void
+	installJavaScriptPlugin()
+	{
+		synchronized( PluginUtils.class ){
+			
+			if ( js_plugin_installing ){
+								
+				return;
+			}
+			
+			js_plugin_installing = true;
+		}
+		
+		boolean	installing = false;
+		
+		try{
+			UIFunctions uif = UIFunctionsManager.getUIFunctions();
+			
+			if ( uif == null ){
+								
+				return;
+			}
+
+			if ( !Constants.isJava8OrHigher ){
+				
+				String title = MessageText.getString("azjscripter.install.fail.jver");
+				
+				String text = MessageText.getString("azjscripter.install.fail.jver.text" );
+				
+				UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[]{
+					MessageText.getString("Button.ok"),
+				}, 0);
+
+				prompter.setAutoCloseInMS(0);
+				
+				prompter.open(null);
+			}
+					
+			String title = MessageText.getString("azjscripter.install");
+			
+			String text = MessageText.getString("azjscripter.install.text" );
+			
+			UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
+				MessageText.getString("Button.yes"),
+				MessageText.getString("Button.no")
+			}, 0);
+			
+			String remember_id = "azjscripter.install.remember.id";
+			
+			if ( remember_id != null ){
+				
+				prompter.setRemember( 
+					remember_id, 
+					false,
+					MessageText.getString("MessageBoxWindow.nomoreprompting"));
+			}
+			
+			prompter.setAutoCloseInMS(0);
+			
+			prompter.open(null);
+			
+			boolean	install = prompter.waitUntilClosed() == 0;
+			
+			if ( install ){
+								
+				uif.installPlugin(
+					"azjscripter",
+					"azjscripter.install",
+					new UIFunctions.actionListener()
+					{
+						public void
+						actionComplete(
+							Object		result )
+						{
+							try{
+								
+							}finally{
+																	
+								synchronized( PluginUtils.class ){
+										
+									js_plugin_installing = false;
+								}
+							}
+						}
+					});
+				
+				installing = true;
+				
+			}else{
+				
+			}
+			
+			return;
+			
+		}finally{
+			
+			if ( !installing ){
+			
+				synchronized( PluginUtils.class ){
+					
+					js_plugin_installing = false;
+				}
+			}
+		}
 	}
 }
