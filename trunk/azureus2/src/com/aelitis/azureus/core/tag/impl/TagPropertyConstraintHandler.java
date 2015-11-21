@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.utils.ScriptProvider;
+import org.gudy.azureus2.pluginsimpl.PluginUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -69,6 +70,8 @@ TagPropertyConstraintHandler
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "tag:constraints" );
 	
 	private TimerEventPeriodic		timer;
+	
+	private static boolean		js_plugin_install_tried;
 	
 	private
 	TagPropertyConstraintHandler()
@@ -737,11 +740,15 @@ TagPropertyConstraintHandler
 			String				script,
 			DownloadManager		dm )
 		{
+			boolean	provider_found = false;
+			
 			List<ScriptProvider> providers = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getScriptProviders();
 			
 			for ( ScriptProvider p: providers ){
 				
 				if ( p.getScriptType() == ScriptProvider.ST_JAVASCRIPT ){
+					
+					provider_found = true;
 					
 					String dm_name = dm.getDisplayName();
 					
@@ -773,6 +780,16 @@ TagPropertyConstraintHandler
 					}
 					
 					break;
+				}
+			}
+			
+			if ( !provider_found ){
+			
+				if ( !js_plugin_install_tried ){
+				
+					js_plugin_install_tried = true;
+					
+					PluginUtils.installJavaScriptPlugin();
 				}
 			}
 			

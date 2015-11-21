@@ -373,6 +373,7 @@ Constants
   }
   
   public static final boolean isJava7OrHigher;
+  public static final boolean isJava8OrHigher;
   
   static{
 	  	// http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
@@ -381,6 +382,7 @@ Constants
 	  	// unless it is Android where it is always 0
 	  
 	  boolean	_7plus;
+	  boolean	_8plus;
 	  
 	  try{
 		  String[]	bits = JAVA_VERSION.split( "\\." );
@@ -389,6 +391,7 @@ Constants
 		 int	second 	= Integer.parseInt( bits[1] );
 		  
 		  _7plus = first > 1 || second >= 7;
+		  _8plus = first > 1 || second >= 8;
 			  
 	  }catch( Throwable e ){
 		  
@@ -397,9 +400,11 @@ Constants
 		  e.printStackTrace();
 		  
 		  _7plus = false;	// derp
+		  _8plus = false;	// derp
 	  }
 	  
-	  isJava7OrHigher = _7plus;
+	  isJava7OrHigher 	= _7plus;
+	  isJava8OrHigher	= _8plus;
   }
   
   public static final String	FILE_WILDCARD = isWindows?"*.*":"*";
