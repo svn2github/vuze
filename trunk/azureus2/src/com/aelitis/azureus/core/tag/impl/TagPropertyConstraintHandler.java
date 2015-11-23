@@ -1131,6 +1131,29 @@ TagPropertyConstraintHandler
 	
 		private static final int FT_JAVASCRIPT		= 15;
 	
+		
+		private static Map<String,Integer>	keyword_map = new HashMap<String, Integer>();
+		
+		private static final int	KW_SHARE_RATIO		= 0;
+		private static final int	KW_AGE 				= 1;
+		private static final int	KW_PERCENT 			= 2;
+		private static final int	KW_DOWNLOADING_FOR 	= 3;
+		private static final int	KW_SEEDING_FOR 		= 4;
+		private static final int	KW_SWARM_MERGE 		= 5;
+		
+		static{
+			keyword_map.put( "shareratio", KW_SHARE_RATIO );
+			keyword_map.put( "share_ratio", KW_SHARE_RATIO );
+			keyword_map.put( "age", KW_AGE );
+			keyword_map.put( "percent", KW_PERCENT );
+			keyword_map.put( "downloadingfor", KW_DOWNLOADING_FOR );
+			keyword_map.put( "downloading_for", KW_DOWNLOADING_FOR );
+			keyword_map.put( "seedingfor", KW_SEEDING_FOR );
+			keyword_map.put( "seeding_for", KW_SEEDING_FOR );
+			keyword_map.put( "swarmmergebytes", KW_SWARM_MERGE );
+			keyword_map.put( "swarm_merge_bytes", KW_SWARM_MERGE );
+		}
+		
 		private class
 		ConstraintExprFunction
 			implements  ConstraintExpr
@@ -1480,61 +1503,78 @@ TagPropertyConstraintHandler
 						}
 						
 						return( result );
-						
-					}else if ( str.equals( "shareratio" )){
-						
-						result = null;	// don't cache this!
-						
-						int sr = dm.getStats().getShareRatio();
-						
-						if ( sr == -1 ){
-							
-							return( Integer.MAX_VALUE );
-							
-						}else{
-							
-							return( new Float( sr/1000.0f ));
-						}
-					}else if ( str.equals( "percent" )){
-						
-						result = null;	// don't cache this!
-						
-							// 0->1000
-						
-						int percent = dm.getStats().getPercentDoneExcludingDND();
-	
-						return( new Float( percent/10.0f ));
-						
-					}else if ( str.equals( "age" )){
-						
-						result = null;	// don't cache this!
-							
-						long added = dm.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
-	
-						if ( added <= 0 ){
-							
-							return( 0 );
-						}
-						
-						return(( SystemTime.getCurrentTime() - added )/1000 );		// secs
-						
-					}else if ( str.equals( "downloadingfor" )){
-						
-						result = null;	// don't cache this!
-						
-						return( dm.getStats().getSecondsDownloading());
-						
-					}else if ( str.equals( "seedingfor" )){
-						
-						result = null;	// don't cache this!
-						
-						return( dm.getStats().getSecondsOnlySeeding());
-						
 					}else{
 						
-						Debug.out( "Invalid constraint numeric: " + str );
+						Integer kw = keyword_map.get( str.toLowerCase( Locale.US ));
 						
-						return( result );
+						if ( kw == null ){
+							
+							Debug.out( "Invalid constraint keyword: " + str );
+							
+							return( result );
+						}
+						
+						switch( kw ){
+							case KW_SHARE_RATIO:
+								result = null;	// don't cache this!
+								
+								int sr = dm.getStats().getShareRatio();
+								
+								if ( sr == -1 ){
+									
+									return( Integer.MAX_VALUE );
+									
+								}else{
+									
+									return( new Float( sr/1000.0f ));
+								}
+							case KW_PERCENT:
+							
+								result = null;	// don't cache this!
+								
+									// 0->1000
+								
+								int percent = dm.getStats().getPercentDoneExcludingDND();
+			
+								return( new Float( percent/10.0f ));
+							
+							case KW_AGE:
+							
+								result = null;	// don't cache this!
+									
+								long added = dm.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+			
+								if ( added <= 0 ){
+									
+									return( 0 );
+								}
+								
+								return(( SystemTime.getCurrentTime() - added )/1000 );		// secs
+							
+							case KW_DOWNLOADING_FOR:
+							
+								result = null;	// don't cache this!
+								
+								return( dm.getStats().getSecondsDownloading());
+							
+							case KW_SEEDING_FOR:
+							
+								result = null;	// don't cache this!
+								
+								return( dm.getStats().getSecondsOnlySeeding());
+							
+							case KW_SWARM_MERGE:
+								
+								result = null;	// don't cache this!
+								
+								return( dm.getDownloadState().getLongAttribute( DownloadManagerState.AT_MERGED_DATA ));
+								
+							default:
+							
+								Debug.out( "Invalid constraint keyword: " + str );
+							
+								return( result );
+						}
 					}
 				}catch( Throwable e){
 					
