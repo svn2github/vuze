@@ -228,6 +228,13 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 						new String[]{ MessageText.getString( "ConfigView.label.stop.Nothing" )})+ "!");
 				
 			resetOnTrigger.setLayoutData(gridData);
+			
+		    	// prompt to allow abort
+			    
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter enablePrompt =	new BooleanParameter( gStop, "Prompt To Abort Shutdown", "ConfigView.label.prompt.abort" );
+			enablePrompt.setLayoutData(gridData);
 		}
 		
 		if ( userMode > 0 ){

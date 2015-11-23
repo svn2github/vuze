@@ -2531,21 +2531,24 @@ AzureusCoreImpl
 				LogEvent.LT_INFORMATION,
 				message ));		
 		
-		UIManager ui_manager = StaticUtilities.getUIManager( 30*1000 );
+		if ( COConfigurationManager.getBooleanParameter( "Prompt To Abort Shutdown" )){
+		
+			UIManager ui_manager = StaticUtilities.getUIManager( 30*1000 );
+					
+			if ( ui_manager != null ){
 				
-		if ( ui_manager != null ){
-			
-			Map<String,Object>	options = new HashMap<String, Object>();
-			
-			options.put( UIManager.MB_PARAM_AUTO_CLOSE_MS, 30*1000 );
-			
-			if ( ui_manager.showMessageBox(
-					"core.shutdown.prompt.title",
-					"core.shutdown.prompt.msg",
-					UIManagerEvent.MT_OK_DEFAULT | UIManagerEvent.MT_CANCEL,
-					options ) == UIManagerEvent.MT_CANCEL ){
+				Map<String,Object>	options = new HashMap<String, Object>();
 				
-				return;
+				options.put( UIManager.MB_PARAM_AUTO_CLOSE_MS, 30*1000 );
+				
+				if ( ui_manager.showMessageBox(
+						"core.shutdown.prompt.title",
+						"core.shutdown.prompt.msg",
+						UIManagerEvent.MT_OK_DEFAULT | UIManagerEvent.MT_CANCEL,
+						options ) == UIManagerEvent.MT_CANCEL ){
+					
+					return;
+				}
 			}
 		}
 		
