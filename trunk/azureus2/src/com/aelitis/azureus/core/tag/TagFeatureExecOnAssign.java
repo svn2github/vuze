@@ -32,6 +32,7 @@ TagFeatureExecOnAssign
 	public static final int ACTION_STOP				= 0x0004;
 	public static final int ACTION_FORCE_START		= 0x0008;
 	public static final int ACTION_NOT_FORCE_START	= 0x0010;
+	public static final int ACTION_SCRIPT			= 0x0020;
 	
 	public int
 	getSupportedActions();
@@ -48,4 +49,11 @@ TagFeatureExecOnAssign
 	setActionEnabled(
 		int			action,
 		boolean		enabled );
+	
+	public String
+	getActionScript();
+	
+	public void
+	setActionScript(
+		String		script );
 }

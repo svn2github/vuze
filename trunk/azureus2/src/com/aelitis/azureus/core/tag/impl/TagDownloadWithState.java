@@ -466,6 +466,28 @@ TagDownloadWithState
 							});
 					}
 					
+					if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_SCRIPT )){
+						
+						final String script = getActionScript();
+						
+						if ( script.length() > 0 ){
+							
+							rs_async.dispatch(
+								new AERunnable()
+								{
+									public void
+									runSupport()
+									{
+										TagManagerImpl.getSingleton().evalScript( 
+											TagDownloadWithState.this, 
+											script, 
+											dm,
+											"execAssign" );
+									}
+								});
+						}
+					}
+					
 				}
 			}
 		}else{
@@ -1130,7 +1152,12 @@ TagDownloadWithState
 			return( TagFeatureExecOnAssign.ACTION_START | 
 					TagFeatureExecOnAssign.ACTION_FORCE_START | 
 					TagFeatureExecOnAssign.ACTION_NOT_FORCE_START | 
-					TagFeatureExecOnAssign.ACTION_STOP );
+					TagFeatureExecOnAssign.ACTION_STOP |
+					TagFeatureExecOnAssign.ACTION_SCRIPT );
+			
+		}else if ( getTagType().getTagType() == TagType.TT_DOWNLOAD_STATE ){
+				
+			return( TagFeatureExecOnAssign.ACTION_SCRIPT );
 			
 		}else{
 			

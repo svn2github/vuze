@@ -101,14 +101,16 @@ ColumnTagProperties
 						TagFeatureExecOnAssign.ACTION_START,
 						TagFeatureExecOnAssign.ACTION_FORCE_START,
 						TagFeatureExecOnAssign.ACTION_NOT_FORCE_START,
-						TagFeatureExecOnAssign.ACTION_STOP };
+						TagFeatureExecOnAssign.ACTION_STOP,
+						TagFeatureExecOnAssign.ACTION_SCRIPT};
 				
 				String[] action_keys = 
 					{ 	"v3.MainWindow.button.delete", 
 						"v3.MainWindow.button.start", 
 						"v3.MainWindow.button.forcestart",
 						"v3.MainWindow.button.notforcestart",
-						"v3.MainWindow.button.stop" };
+						"v3.MainWindow.button.stop",
+						"label.script"};
 					
 				for ( int i=0; i<action_ids.length;i++ ){
 					
@@ -119,9 +121,22 @@ ColumnTagProperties
 						boolean enabled = eoa.isActionEnabled( action_id );
 						
 						if ( enabled ){
-						
-							actions_str += (actions_str.length()==0?"":",") +
-											MessageText.getString( action_keys[i]) + "=Y";
+							
+							if ( action_id == TagFeatureExecOnAssign.ACTION_SCRIPT ){
+								
+								String script = eoa.getActionScript();
+								
+								if ( script.length() > 63 ){
+									script = script.substring( 0, 60 ) + "...";
+								}
+								
+								actions_str += (actions_str.length()==0?"":",") +
+										MessageText.getString( action_keys[i]) + "=" + script;
+							}else{
+								
+								actions_str += (actions_str.length()==0?"":",") +
+												MessageText.getString( action_keys[i]) + "=Y";
+							}
 						}
 					}
 				}

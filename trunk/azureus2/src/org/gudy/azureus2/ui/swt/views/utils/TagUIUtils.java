@@ -633,14 +633,16 @@ public class TagUIUtils
 						TagFeatureExecOnAssign.ACTION_START,
 						TagFeatureExecOnAssign.ACTION_FORCE_START,
 						TagFeatureExecOnAssign.ACTION_NOT_FORCE_START,
-						TagFeatureExecOnAssign.ACTION_STOP };
+						TagFeatureExecOnAssign.ACTION_STOP ,
+						TagFeatureExecOnAssign.ACTION_SCRIPT };
 				
 				String[] action_keys = 
 					{ 	"v3.MainWindow.button.delete", 
 						"v3.MainWindow.button.start", 
 						"v3.MainWindow.button.forcestart",
 						"v3.MainWindow.button.notforcestart",
-						"v3.MainWindow.button.stop" };
+						"v3.MainWindow.button.stop",
+						"label.script" };
 
 				for ( int i=0;i<action_ids.length;i++ ){				
 					
@@ -648,19 +650,65 @@ public class TagUIUtils
 					
 					if ( tf_eoa.supportsAction( action_id )){
 						
-						final MenuItem action_item = new MenuItem( eoa_menu, SWT.CHECK);
-					
-						Messages.setLanguageText( action_item, action_keys[i] );
-						
-						action_item.setSelection( tf_eoa.isActionEnabled( action_id ));
-						
-						action_item.addListener( SWT.Selection, new Listener(){
+						if ( action_id == TagFeatureExecOnAssign.ACTION_SCRIPT ){
+							
+							final MenuItem action_item = new MenuItem( eoa_menu, SWT.PUSH);
+
+							String script = tf_eoa.getActionScript();
+							
+							if ( script.length() > 23 ){
+								script = script.substring( 0, 20) + "...";
+							}
+							
+							String msg = MessageText.getString( action_keys[i] );
+							
+							if ( script.length() > 0 ){
+								
+								msg += ": " + script;
+							}
+							
+							msg += "...";
+							
+							action_item.setText( msg );
+							
+							action_item.addListener( SWT.Selection, new Listener(){
 								public void 
 								handleEvent(Event event)
 								{
-									tf_eoa.setActionEnabled( action_id, action_item.getSelection());
-								}
-							});
+									String msg = MessageText.getString( "UpdateScript.message" );
+									
+									SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow( "UpdateScript.title", "!" + msg + "!" );
+									
+									entryWindow.setPreenteredText( tf_eoa.getActionScript(), false );
+									entryWindow.selectPreenteredText( true );
+									
+									entryWindow.prompt();
+									
+									if ( entryWindow.hasSubmittedInput()){
+										
+										String text = entryWindow.getSubmittedInput().trim();
+										
+										tf_eoa.setActionScript( text );
+									}
+
+								}});
+							
+						}else{
+							
+							final MenuItem action_item = new MenuItem( eoa_menu, SWT.CHECK);
+						
+							Messages.setLanguageText( action_item, action_keys[i] );
+							
+							action_item.setSelection( tf_eoa.isActionEnabled( action_id ));
+							
+							action_item.addListener( SWT.Selection, new Listener(){
+									public void 
+									handleEvent(Event event)
+									{
+										tf_eoa.setActionEnabled( action_id, action_item.getSelection());
+									}
+								});
+						}
 					}
 				}
 			}

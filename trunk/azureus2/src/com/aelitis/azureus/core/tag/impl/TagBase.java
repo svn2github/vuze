@@ -74,6 +74,7 @@ TagBase
 	protected static final String	AT_DESCRIPTION		= "desc";
 	protected static final String	AT_MAX_TAGGABLES	= "max.t";
 	protected static final String	AT_REMOVAL_STRATEGY	= "max.t.r";
+	protected static final String	AT_EOS_SCRIPT		= "eos.scr";
 
 
 	private static final String[] EMPTY_STRING_LIST = {};
@@ -830,9 +831,7 @@ TagBase
 		int		action )
 	{
 		if ( !supportsAction( action )){
-			
-			Debug.out( "not supported" );
-			
+						
 			return( false );
 		}
 		
@@ -846,12 +845,44 @@ TagBase
 	{
 		if ( !supportsAction( action )){
 			
-			Debug.out( "not supported" );
+			if ( enabled ){
+			
+				Debug.out( "not supported" );
+			}
 			
 			return;
 		}
 		
 		writeBooleanAttribute( AT_PROPERTY_PREFIX + action, enabled );
+	}
+	
+	public String
+	getActionScript()
+	{
+		String script = readStringAttribute( AT_EOS_SCRIPT, "" );
+		
+		if ( script == null ){
+			
+			script = "";
+		}
+		
+		return( script );
+	}
+	
+	public void
+	setActionScript(
+		String		script )
+	{
+		if ( script == null ){
+			
+			script = "";
+		}
+		
+		script = script.trim();
+		
+		writeStringAttribute( AT_EOS_SCRIPT, script);
+			
+		setActionEnabled( TagFeatureExecOnAssign.ACTION_SCRIPT, script.length() > 0 );
 	}
 	
 		// others

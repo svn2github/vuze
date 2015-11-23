@@ -70,9 +70,7 @@ TagPropertyConstraintHandler
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "tag:constraints" );
 	
 	private TimerEventPeriodic		timer;
-	
-	private static boolean		js_plugin_install_tried;
-	
+		
 	private
 	TagPropertyConstraintHandler()
 	{
@@ -735,66 +733,7 @@ TagPropertyConstraintHandler
 			}
 		}
 		
-		private boolean
-		evalScript(
-			String				script,
-			DownloadManager		dm )
-		{
-			boolean	provider_found = false;
-			
-			List<ScriptProvider> providers = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getScriptProviders();
-			
-			for ( ScriptProvider p: providers ){
-				
-				if ( p.getScriptType() == ScriptProvider.ST_JAVASCRIPT ){
-					
-					provider_found = true;
-					
-					String dm_name = dm.getDisplayName();
-					
-					if ( dm_name.length() > 32 ){
-						
-						dm_name = dm_name.substring( 0, 29 ) + "...";
-					}
-					
-					Map<String,Object>	bindings = new HashMap<String, Object>();
-					
-					bindings.put( "intent", "inTag(\"" + tag.getTagName() + "\",\"" + dm_name + "\")" );
 
-					bindings.put( "download", PluginCoreUtils.wrap( dm ));
-					
-					bindings.put( "tag", tag );
-											
-					try{
-						Object result = p.eval( script, bindings );
-						
-						if ( result instanceof Boolean ){
-							
-							return((Boolean)result);
-						}
-					}catch( Throwable e ){
-						
-						Debug.out( e );
-						
-						return( false );
-					}
-					
-					break;
-				}
-			}
-			
-			if ( !provider_found ){
-			
-				if ( !js_plugin_install_tried ){
-				
-					js_plugin_install_tried = true;
-					
-					PluginUtils.installJavaScriptPlugin();
-				}
-			}
-			
-			return( false );
-		}
 		
 		private boolean
 		canAddTaggable(
@@ -1415,8 +1354,20 @@ TagPropertyConstraintHandler
 						return( false );
 					}
 					case FT_JAVASCRIPT:{
+												
+						Object result =
+							handler.tag_manager.evalScript( 
+								tag, 
+								"javascript( " + (String)params[0] + ")", 
+								dm,
+								"inTag" );
 						
-						return( evalScript( (String)params[0], dm ));
+						if ( result instanceof Boolean ){
+							
+							return((Boolean)result);
+						}
+						
+						return( false );
 					}
 				}
 				

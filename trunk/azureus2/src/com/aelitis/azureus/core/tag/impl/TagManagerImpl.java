@@ -69,6 +69,8 @@ import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+import org.gudy.azureus2.plugins.utils.ScriptProvider;
+import org.gudy.azureus2.pluginsimpl.PluginUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -713,6 +715,8 @@ TagManagerImpl
 	
 	private TagPropertyUntaggedHandler	untagged_handler;
 	
+	private boolean		js_plugin_install_tried;
+
 	private
 	TagManagerImpl()
 	{
@@ -1097,6 +1101,100 @@ TagManagerImpl
 				}
 			}
 		}
+	}
+	
+	protected Object
+	evalScript(
+		Tag					tag,
+		String				script,
+		DownloadManager		dm,
+		String				intent_key )
+	{
+		String script_type = "";
+		
+		if ( script.length() >=10 && script.substring(0,10).toLowerCase( Locale.US ).startsWith( "javascript" )){
+			
+			int	p1 = script.indexOf( '(' );
+			
+			int	p2 = script.lastIndexOf( ')' );
+			
+			if ( p1 != -1 && p2 != -1 ){
+				
+				script = script.substring( p1+1, p2 ).trim();
+				
+				if ( script.startsWith( "\"" ) && script.endsWith( "\"" )){
+					
+					script = script.substring( 1, script.length()-1 );
+				}
+				
+					// allow people to escape " if it makes them feel better
+				
+				script = script.replaceAll( "\\\\\"", "\"" );
+				
+				script_type = ScriptProvider.ST_JAVASCRIPT;	
+			}
+		}
+		
+		if ( script_type == "" ){
+			
+			Debug.out( "Unrecognised script type: " + script );
+			
+			return( null );
+		}
+		
+		boolean	provider_found = false;
+		
+		List<ScriptProvider> providers = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getScriptProviders();
+		
+		for ( ScriptProvider p: providers ){
+			
+			if ( p.getScriptType() == script_type ){
+				
+				provider_found = true;
+				
+				Map<String,Object>	bindings = new HashMap<String, Object>();
+				
+				
+				String dm_name = dm.getDisplayName();
+				
+				if ( dm_name.length() > 32 ){
+					
+					dm_name = dm_name.substring( 0, 29 ) + "...";
+				}
+				
+				String intent = intent_key + "(\"" + tag.getTagName() + "\",\"" + dm_name + "\")";
+
+				bindings.put( "intent", intent );
+
+				bindings.put( "download", PluginCoreUtils.wrap( dm ));
+				
+				bindings.put( "tag", tag );
+										
+				try{
+					Object result = p.eval( script, bindings );
+					
+					return( result );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+					
+					return( null );
+				}
+			}
+		}
+		
+		if ( !provider_found ){
+		
+			if ( !js_plugin_install_tried ){
+			
+				js_plugin_install_tried = true;
+				
+				PluginUtils.installJavaScriptPlugin();
+			}
+		}
+		
+		return( null );
 	}
 	
 	private void
