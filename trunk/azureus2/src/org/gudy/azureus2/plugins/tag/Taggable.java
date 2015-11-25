@@ -1,5 +1,5 @@
 /*
- * Created on Nov 17, 2015
+ * Created on Nov 24, 2015
  * Created by Paul Gardner
  * 
  * Copyright 2015 Azureus Software, Inc.  All rights reserved.
@@ -22,24 +22,8 @@
 
 package org.gudy.azureus2.plugins.tag;
 
-import java.util.*;
-
 public interface 
-Tag 
+Taggable 
 {
-		// minimal interface oriented towards plugin use and extensibility
-	
-	public String
-	getTagName();
-	
-	public List<Taggable>
-	getTaggables();
-	
-	public void
-	addListener(
-		TagListener 	listener );
-	
-	public void
-	removeListener(
-		TagListener 	listener );
+
 }

@@ -38,6 +38,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
+import org.gudy.azureus2.plugins.tag.Tag;
 import org.gudy.azureus2.plugins.utils.ScriptProvider.ScriptProviderListener;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
@@ -474,6 +475,10 @@ Utilities
 	public void
 	removeScriptProviderListener(
 		ScriptProviderListener	provider );
+	
+	public Tag
+	lookupTag(
+		String		name );
 	
 	public interface
 	JSONServer

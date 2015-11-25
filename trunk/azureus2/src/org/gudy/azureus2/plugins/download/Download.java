@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManage
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
 import org.gudy.azureus2.plugins.tag.Tag;
+import org.gudy.azureus2.plugins.tag.Taggable;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
@@ -70,7 +71,7 @@ import org.gudy.azureus2.plugins.peers.PeerManager;
  */
 
 public interface 
-Download extends DownloadEventNotifier, DownloadStub
+Download extends DownloadEventNotifier, DownloadStub, Taggable
 {
   /** waiting to be told to start preparing */  
 	public static final int ST_WAITING     = 1;

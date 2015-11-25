@@ -18,21 +18,22 @@
  */
 
 
-package com.aelitis.azureus.core.tag;
+package org.gudy.azureus2.plugins.tag;
 
 public interface 
-Taggable 
-	extends org.gudy.azureus2.plugins.tag.Taggable
-{	
-	public static final int	TT_DOWNLOAD		= 0x00000002;		// DownloadManagers
-	public static final int	TT_PEER			= 0x00000004;		// PEPeers
+TagListener 
+{
+	public void
+	taggableAdded(
+		Tag			tag,
+		Taggable	tagged );
 	
-	public int
-	getTaggableType();
+	public void
+	taggableSync(
+		Tag			tag );
 	
-	public String
-	getTaggableID();
-	
-	public TaggableResolver 
-	getTaggableResolver();
+	public void
+	taggableRemoved(
+		Tag			tag,
+		Taggable	tagged );
 }

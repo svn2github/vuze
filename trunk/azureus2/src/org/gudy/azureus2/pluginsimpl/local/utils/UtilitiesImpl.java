@@ -44,6 +44,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.network.RateLimiter;
+import org.gudy.azureus2.plugins.tag.Tag;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.ScriptProvider.ScriptProviderListener;
@@ -99,6 +100,8 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
@@ -1999,6 +2002,25 @@ UtilitiesImpl
 		ScriptProviderListener		listener )
 	{
 		sp_listeners.remove( listener );
+	}
+	
+	public Tag
+	lookupTag(
+		String		name )
+	{
+		List<TagType> tts = TagManagerFactory.getTagManager().getTagTypes();
+		
+		for ( TagType tt: tts ){
+			
+			Tag t = tt.getTag( name, true );
+			
+			if ( t != null ){
+				
+				return( t );
+			}
+		}
+		
+		return( null );
 	}
 	
 	public List<DistributedDatabase>

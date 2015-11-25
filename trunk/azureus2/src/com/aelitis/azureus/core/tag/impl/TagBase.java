@@ -21,16 +21,20 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagException;
@@ -114,6 +118,8 @@ TagBase
 				}
 			});	
 		
+	private Map<org.gudy.azureus2.plugins.tag.TagListener, TagListener>	listener_map = new HashMap<org.gudy.azureus2.plugins.tag.TagListener, TagListener>();
+	
 	private Boolean	is_visible;
 	private Boolean	is_public;
 	private String	group;
@@ -1011,6 +1017,80 @@ TagBase
 		TagListener	listener )
 	{
 		t_listeners.removeListener( listener );
+	}
+	
+	public List<org.gudy.azureus2.plugins.tag.Taggable>
+	getTaggables()
+	{
+		Set<Taggable> taggables = getTagged();
+		
+		List<org.gudy.azureus2.plugins.tag.Taggable> result = new ArrayList<org.gudy.azureus2.plugins.tag.Taggable>( taggables.size());
+		
+		for ( Taggable t: taggables ){
+			
+			if ( t instanceof DownloadManager ){
+				
+				result.add(PluginCoreUtils.wrap((DownloadManager)t));
+			}
+		}
+		
+		return( result );
+	}
+	
+	public void 
+	addListener(
+		final org.gudy.azureus2.plugins.tag.TagListener listener ) 
+	{
+		synchronized( listener_map ){
+			
+			TagListener l = listener_map.get( listener );
+			
+			if ( l != null ){
+				
+				Debug.out( "listener already added" );
+				
+				return;
+			}
+			
+			l = new TagListener() {
+				
+				public void taggableSync(Tag tag) {
+					listener.taggableSync(tag);
+				}
+				
+				public void taggableRemoved(Tag tag, Taggable tagged) {
+					listener.taggableRemoved(tag, tagged);
+				}
+				
+				public void taggableAdded(Tag tag, Taggable tagged) {
+					listener.taggableAdded(tag, tagged);
+				}
+			};
+			
+			listener_map.put( listener, l );
+			
+			addTagListener( l, false );
+		}
+		
+	}
+	
+	public void 
+	removeListener(
+		org.gudy.azureus2.plugins.tag.TagListener listener ) 
+	{
+		synchronized( listener_map ){
+			
+			TagListener l = listener_map.remove( listener );
+			
+			if ( l == null ){
+				
+				Debug.out( "listener not found" );
+				
+				return;
+			}
+			
+			removeTagListener( l );
+		}
 	}
 	
 	protected Boolean
