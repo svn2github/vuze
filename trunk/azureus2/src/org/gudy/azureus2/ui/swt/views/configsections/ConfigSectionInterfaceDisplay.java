@@ -103,7 +103,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			new BooleanParameter(gVarious, "IconBar.enabled", MSG_PREFIX + "showiconbar");
 		}
 
-		new BooleanParameter(gVarious, "Add URL Silently", MSG_PREFIX	+ "addurlsilently");
+		// not used 11/30/2015 - see "Activate Window On External Download"
+		// new BooleanParameter(gVarious, "Add URL Silently", MSG_PREFIX	+ "addurlsilently");
 
 		new BooleanParameter(gVarious, "suppress_file_download_dialog", "ConfigView.section.interface.display.suppress.file.download.dialog");
 

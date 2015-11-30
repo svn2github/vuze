@@ -151,11 +151,11 @@ public class TorrentUIUtilsV3
 
 			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
 			if (uiFunctions != null) {
-				if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
+				//if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) { not used 11/30/2015
 					if (bringToFront) {
 						uiFunctions.bringToFront();
 					}
-				}
+				//}
 
 				Shell shell = uiFunctions.getMainShell();
 				if (shell != null) {

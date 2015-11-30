@@ -126,8 +126,10 @@ public class UIConfigDefaultsSWTv3
 					startAdvanced
 							? ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_ALWAYS
 							: ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_MANY);
-			defaults.addParameter("Add URL Silently", true);
-			defaults.addParameter("add_torrents_silently", true);
+			
+			// defaults.addParameter("Add URL Silently", true);			not used 11/30/2015 - see "Activate Window On External Download"
+			// defaults.addParameter("add_torrents_silently", true);	not used 11/30/2015
+			
 			defaults.addParameter("Popup Download Finished", false);
 			defaults.addParameter("Popup Download Added", false);
 
