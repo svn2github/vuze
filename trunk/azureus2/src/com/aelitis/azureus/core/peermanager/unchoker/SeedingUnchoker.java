@@ -189,8 +189,8 @@ public class SeedingUnchoker implements Unchoker {
     }
        
     if( check_priority_connections ) {
-    	//add Friend peers preferentially, leaving room for 1 non-friend peer for every 5 upload slots
-    	setBuddyUnchokes( max_to_unchoke - max_optimistic, all_peers );
+    	//add priority peers preferentially, leaving room for 1 non-priority peer for every 5 upload slots
+    	setPriorityUnchokes( max_to_unchoke - max_optimistic, all_peers );
     }
     
     if ( do_high_latency_peers ){
@@ -202,41 +202,54 @@ public class SeedingUnchoker implements Unchoker {
   
   
   
-  private void setBuddyUnchokes( int max_buddies, ArrayList<PEPeer> all_peers ) {
+  private void setPriorityUnchokes( int max_priority, ArrayList<PEPeer> all_peers ) {
 	  
-	  if( unchokes.isEmpty() )  return;   //don't bother trying to replace peers in an empty list
+	  if ( unchokes.isEmpty() )  return;   //don't bother trying to replace peers in an empty list
 	  
-	  ArrayList<PEPeer> buddies = new ArrayList<PEPeer>();
+	  ArrayList<PEPeer> priority_peers = new ArrayList<PEPeer>();
 	  
-	  //find all buddies
-	  for( int i=0; i < all_peers.size(); i++ ) {
+	  for ( int i=0; i < all_peers.size(); i++ ){
+		  
 		  PEPeer peer = all_peers.get( i );
 	    	
-		  if( peer.isPriorityConnection() && UnchokerUtil.isUnchokable( peer, true ) ) {
-			  buddies.add( peer );	    		
+		  if ( peer.isPriorityConnection() && UnchokerUtil.isUnchokable( peer, true )){
+			  
+			  priority_peers.add( peer );	    		
 		  }
 	  }
 	  
-	  //we want to give all connected friends an equal chance if there are more than max_friends allowed
-	  Collections.shuffle( buddies );
+	  	//we want to give all connected priority peers an equal chance if there are more than max_priority allowed
+	  
+	  Collections.shuffle( priority_peers );
 	  
 	  int num_unchoked = 0;
 	  
-	  int max = max_buddies > unchokes.size() ? unchokes.size() : max_buddies;
+	  int num_non_priority_to_retain = 2;
+
+	  int max = max_priority > unchokes.size() ? unchokes.size() : max_priority;
 	  
-	  while( num_unchoked < max && !buddies.isEmpty() ) {    //go through unchoke list and replace non-buddy peers with buddy ones 
+	  while( num_unchoked < max && !priority_peers.isEmpty() ) {    //go through unchoke list and replace non-buddy peers with buddy ones 
 		  
 		  PEPeer peer = unchokes.remove( 0 );     //pop peer from front of unchoke list
 		  
-		  if( buddies.remove( peer ) ) {   //peer is already in the buddy list
-			  unchokes.add( peer );  //so insert confirmed buddy peer back into list at the end		  
-		  }
-		  else {  //not a buddy, so replace
-			  PEPeer buddy = buddies.remove( buddies.size() - 1 );  //get next buddy
+		  if ( priority_peers.remove( peer )){   //peer is already in the priority list
+			  
+			  unchokes.add( peer );  //so insert priority peer back into list at the end
+			  
+		  }else{  //not priority, so replace
+			  			  
+			  if ( num_non_priority_to_retain-- > 0 ){
+				  
+				  	// retain if permitted
+				  
+				  unchokes.add( peer );
+			  }
+			  
+			  PEPeer buddy = priority_peers.remove( priority_peers.size() - 1 );  //get next buddy
 			  
 			  chokes.remove( buddy );    //just in case
 			  
-			  unchokes.add( buddy ); 	//add buddy to back of list		  
+			  unchokes.add( buddy ); 	//add priority to back of list		  
 		  }
 		  
 		  num_unchoked++;
