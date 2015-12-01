@@ -1671,6 +1671,12 @@ public class MainWindowImpl
 	public void setVisible(final boolean visible, final boolean tryTricks) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				String debug = COConfigurationManager.getStringParameter( "adv.setting.ui.debug.window.show", "" );
+
+				if ( debug.equals( "1" )){
+					Debug.out( "MW::setVisible" );
+				}
+				
 				boolean currentlyVisible = shell.getVisible() && !shell.getMinimized();
 				if (visible && !currentlyVisible) {
 					if (COConfigurationManager.getBooleanParameter("Password enabled")) {

@@ -67,6 +67,8 @@ public class UIConfigDefaultsSWT
 
 		//def.addParameter("Add URL Silently", false);	not used 11/30/2015 - see "Activate Window On External Download"
 		
+		def.addParameter("Reduce Auto Activate Window", false );
+				
 		def.addParameter("MyTorrents.SplitAt", 30);
 
 		def.addParameter("Wizard Completed", false);

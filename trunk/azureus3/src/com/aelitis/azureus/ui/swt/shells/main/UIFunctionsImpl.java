@@ -168,6 +168,13 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.UIFunctions#bringToFront(boolean)
 	public void bringToFront(final boolean tryTricks) {
+		
+		String debug = COConfigurationManager.getStringParameter( "adv.setting.ui.debug.window.show", "" );
+
+		if ( debug.equals( "1" )){
+			Debug.out( "UIF::bringToFront" );
+		}
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {

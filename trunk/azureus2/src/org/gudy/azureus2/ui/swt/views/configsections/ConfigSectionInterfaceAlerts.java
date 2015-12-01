@@ -318,6 +318,13 @@ public class ConfigSectionInterfaceAlerts
 		gridData.horizontalSpan = 3;
 		activate_win.setLayoutData(gridData);
 		
+		BooleanParameter no_auto_activate = new BooleanParameter(cArea,
+				"Reduce Auto Activate Window", LBLKEY_PREFIX + "reduce.auto.activate");
+		gridData = new GridData();
+		gridData.horizontalSpan = 3;
+		no_auto_activate.setLayoutData(gridData);
+		
+		
 			// popups group
 		
 		Group gPopup = new Group(cSection, SWT.NULL);

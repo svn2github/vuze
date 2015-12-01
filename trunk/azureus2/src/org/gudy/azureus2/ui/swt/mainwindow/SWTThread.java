@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
@@ -212,8 +212,11 @@ public class SWTThread {
 				if (uif != null) {
 					Shell mainShell = uif.getMainShell();
 					if (mainShell == null || !mainShell.isVisible() || mainShell.getMinimized()) {
-  					uif.bringToFront(false);
-  				}
+						if ( !COConfigurationManager.getBooleanParameter( "Reduce Auto Activate Window" )){
+						
+							uif.bringToFront(false);
+						}
+					}
 				}
 			}
 		};

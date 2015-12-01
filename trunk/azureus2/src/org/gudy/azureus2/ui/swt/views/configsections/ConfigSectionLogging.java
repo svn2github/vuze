@@ -349,11 +349,23 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 				{
 					String key = name.getValue().trim();
 					
-					if ( key.length() > 0 ){
+					if (	( key.startsWith( "'") && key.endsWith( "'" )) || 
+							( key.startsWith( "\"") && key.endsWith( "\"" ))){
 						
+						key = key.substring( 1, key.length() - 1 );
+					}
+
+					if ( key.length() > 0 ){
+												
 						key = "adv.setting." + key;
 						
 						String val = value.getValue().trim();
+						
+						if (	( val.startsWith( "'") && val.endsWith( "'" )) || 
+								( val.startsWith( "\"") && val.endsWith( "\"" ))){
+							
+							val = val.substring( 1, val.length() - 1 );
+						}
 						
 						if ( val.length() == 0 ){
 							
@@ -363,6 +375,8 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 							
 							COConfigurationManager.setParameter( key, val );
 						}
+						
+						COConfigurationManager.save();
 					}
 				
 				}
