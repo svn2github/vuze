@@ -640,14 +640,14 @@ public abstract class BaseMdiEntry
 		super.triggerEvent(eventType, data);
 		
 		if (eventType == UISWTViewEvent.TYPE_LANGUAGEUPDATE) {
-			if (getTitleID() != null) {
-				setTitleID(getTitleID());
-			} else {
+			//if (getTitleID() != null) {
+			//	setTitleID(getTitleID());
+			//} else {
 				if (viewTitleInfo != null) {
 					viewTitleInfoRefresh(viewTitleInfo);
 				}
 				updateUI();
-			}
+			//}
 
 			SWTSkinObject skinObjectMaster = getSkinObjectMaster();
 			if (skinObjectMaster != null) {

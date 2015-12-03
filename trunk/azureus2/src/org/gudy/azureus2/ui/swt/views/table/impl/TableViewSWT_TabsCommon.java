@@ -169,6 +169,9 @@ public class TableViewSWT_TabsCommon implements SelectedContentListener
 	}
 
 	public void localeChanged() {
+		if ( tabbedMDI == null ){
+			return;
+		}
 		MdiEntry[] entries = tabbedMDI.getEntries();
 		if (entries == null || entries.length == 0) {
 			return;

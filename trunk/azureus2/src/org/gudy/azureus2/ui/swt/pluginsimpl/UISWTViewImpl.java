@@ -101,9 +101,11 @@ public class UISWTViewImpl
 	protected final String id;
 
 	private String title;
-	
 	private String titleID;
 
+	private String setTitle;
+	private String setTitleID;
+	
 	private int iControlType = UISWTView.CONTROLTYPE_SWT;
 
 	private Boolean hasFocus = null;
@@ -382,10 +384,24 @@ public class UISWTViewImpl
 			}
 			// TODO: What about triggering skinObject's EVENT_DATASOURCE_CHANGED?
 		} else if (eventType == UISWTViewEvent.TYPE_LANGUAGEUPDATE) {
-			//lastFullTitle = "";
-			System.out.println(eventListener.getClass().getSimpleName());
-			if (eventListener.getClass().getSimpleName().startsWith("SBC_My")) {
-				System.out.println("STOP");
+			
+				// put it back to how it was constructed
+			
+			this.titleID = CFG_PREFIX + this.id + ".title";
+			if (!MessageText.keyExists(titleID) && MessageText.keyExists(this.id)){
+				this.titleID = id;
+			}else if ( id.contains( " " )){	// hack to fix HD Video Player which is using the expanded name as the id at the moment :(
+				this.titleID = "!" + id + "!";
+			}
+			title = null;
+			
+				// replay any explicit sets
+			
+			if ( setTitleID != null ){
+				setTitleID( setTitleID );
+			}
+			if ( setTitle != null ){
+				setTitle( setTitle );
 			}
 			Messages.updateLanguageForControl(getComposite());
 		} else if (eventType == UISWTViewEvent.TYPE_OBFUSCATE
@@ -483,6 +499,8 @@ public class UISWTViewImpl
 		if (title == null) {
 			return;
 		}
+		this.setTitle	= title;
+		
 		if (title.startsWith("{") && title.endsWith("}") && title.length() > 2) {
 			setTitleID(title.substring(1, title.length() - 1));
 			return;
@@ -505,6 +523,9 @@ public class UISWTViewImpl
 	public void setTitleID(String titleID) {
 		if (titleID != null
 				&& (MessageText.keyExists(titleID) || titleID.startsWith("!"))) {
+			
+			this.setTitleID	= titleID;
+			
 			this.titleID = titleID;
 			this.title = null;
 		}
