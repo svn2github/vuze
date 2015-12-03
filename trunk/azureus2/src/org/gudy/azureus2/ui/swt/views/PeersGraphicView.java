@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,40 +81,12 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
  *
  */
 public class PeersGraphicView
-	implements DownloadManagerPeerListener, UISWTViewCoreEventListener, UIPluginViewToolBarListener
+	implements UISWTViewCoreEventListener, UIPluginViewToolBarListener
 {
   
   public static String MSGID_PREFIX = "PeersGraphicView";
 
-	private DownloadManager manager = null;
-  
-  private static final int NB_ANGLES = 1000;  
-  private double[] angles;
-  //private double[] deltaPerimeters;
-  private double perimeter;
-  private double[] rs;
-  private double[] deltaXXs;
-  private double[] deltaXYs;
-  private double[] deltaYXs;
-  private double[] deltaYYs;
-  
-  private Point oldSize;
-  
-  private List<PEPeer> peers;
-  private AEMonitor peers_mon = new AEMonitor( "PeersGraphicView:peers" );;
-  private PeerComparator peerComparator;
-  
-  private Map<PEPeer,int[]>		peer_hit_map = new HashMap<PEPeer, int[]>();
-  private int					me_hit_x;
-  private int					me_hit_y;
-  
-  private Image					my_flag;
-  
-  //UI Stuff
-  private Display display;
-  private Composite panel;
-
-	private UISWTView swtView;
+  private UISWTView swtView;
   private static final int PEER_SIZE = 18;
   //private static final int PACKET_SIZE = 10;
   private static final int OWN_SIZE_DEFAULT = 75;
@@ -121,10 +94,23 @@ public class PeersGraphicView
   private static final int OWN_SIZE_MAX 	= 75;
   private static int OWN_SIZE = OWN_SIZE_DEFAULT;
   
+  private static final int NB_ANGLES = 1000;  
+  //private double[] deltaPerimeters;
+  private double perimeter;
+  private double[] rs;
+  
+  private final double[] angles;
+  private final double[] deltaXXs;
+  private final double[] deltaXYs;
+  private final double[] deltaYXs;
+  private final double[] deltaYYs;
   
   //Comparator Class
   //Note: this comparator imposes orderings that are inconsistent with equals.
-  class PeerComparator implements Comparator<PEPeer> {
+  private static class 
+  PeerComparator 
+  	implements Comparator<PEPeer> 
+  {
   	public int compare(PEPeer peer0, PEPeer peer1) {
 
       int percent0 = peer0.getPercentDoneInThousandNotation();
@@ -147,6 +133,76 @@ public class PeersGraphicView
     }
   }
   
+  private PeerComparator peerComparator;
+  
+  
+  private Image					my_flag;
+  
+  //UI Stuff
+  private Display 		display;
+  private Composite 	panel;
+
+  
+  private class
+  ManagerData
+  	implements DownloadManagerPeerListener
+  {
+	  private AEMonitor peers_mon = new AEMonitor( "PeersGraphicView:peers" );;
+
+	  private DownloadManager		manager;
+	  
+	  private Point 				oldSize; 
+	  private List<PEPeer> 			peers;
+	  private Map<PEPeer,int[]>		peer_hit_map = new HashMap<PEPeer, int[]>();
+	  private int					me_hit_x;
+	  private int					me_hit_y;
+	  
+	  private
+	  ManagerData(
+		 DownloadManager	_manager )
+	  {
+		  manager	= _manager;
+		  
+		  peers = new ArrayList<PEPeer>();
+		  
+		  manager.addPeerListener(this);
+	  }
+	  
+	  private void
+	  delete()
+	  {
+		  manager.removePeerListener(this);
+
+		  peer_hit_map.clear();
+	  }
+	  
+	  public void peerManagerWillBeAdded( PEPeerManager	peer_manager ){}
+	  public void peerManagerAdded(PEPeerManager manager) {}
+	  public void peerManagerRemoved(PEPeerManager manager) {}
+	  
+	  public void peerAdded(PEPeer peer) {
+	    try {
+	      peers_mon.enter();
+	      peers.add(peer);
+	    } finally {
+	      peers_mon.exit();
+	    }
+	  }
+	  
+	  public void peerRemoved(PEPeer peer) {
+	    try {
+	      peers_mon.enter();
+	      peers.remove(peer);
+	    } finally {
+	      peers_mon.exit();
+	    }
+	  }
+  }
+  
+  private Map<DownloadManager,ManagerData>	dm_map = new IdentityHashMap<DownloadManager, ManagerData>();
+
+  
+  
   
   public PeersGraphicView() {
     angles = new double[NB_ANGLES];
@@ -165,7 +221,6 @@ public class PeersGraphicView
       deltaYYs[i] = Math.sin(angles[i]+Math.PI / 2);
     }
     
-    this.peers = new ArrayList<PEPeer>();
     this.peerComparator = new PeerComparator();
   } 
   
@@ -183,7 +238,10 @@ public class PeersGraphicView
 		  
 	  }else{
 		  
-		  focus_pending_ds = manager;
+		  synchronized( dm_map ){
+			  
+			  focus_pending_ds = dm_map.values().toArray( new DownloadManager[ dm_map.size()]);
+		  }
 		  
 		  dataSourceChanged( null );
 		  
@@ -209,45 +267,64 @@ public class PeersGraphicView
 		  }
 	  }
 
-	  DownloadManager newManager = ViewUtils.getDownloadManagerFromDataSource( newDataSource );
+	  List<DownloadManager> newManagers = ViewUtils.getDownloadManagersFromDataSource( newDataSource );
 
-	  if (newManager == manager) {
-		  return;
-	  }
-
-	  if (manager != null) {
-		  manager.removePeerListener(this);
-	  }
-
-	  manager = newManager;
-
-	  try {
-		  peers_mon.enter();
-
-		  peers.clear();
-	  } finally {
-		  peers_mon.exit();
-	  }
-	  if (manager != null){
-		  manager.addPeerListener(this);
-	  }
-	  Utils.execSWTThread(new AERunnable() {
-		  public void runSupport() {
-			  if (manager != null){
-				  Utils.disposeComposite(panel, false);
-			  } else {
-				  ViewUtils.setViewRequiresOneDownload(panel);
+	  synchronized( dm_map ){
+		  
+		  List<DownloadManager>	oldManagers = new ArrayList<DownloadManager>( dm_map.keySet());
+		  
+		  boolean	changed = false;
+		  
+		  for ( DownloadManager old: oldManagers ){
+			  
+			  if ( !newManagers.contains( old )){
+				  
+				  dm_map.remove(old).delete();
+				  
+				  changed = true;
 			  }
 		  }
-	  });
+		  for ( DownloadManager nu: newManagers ){
+			  
+			  if ( !oldManagers.contains( nu )){
+			
+				  dm_map.put( nu, new ManagerData( nu ));
+				  
+				  changed = true;
+			  }
+		  }
+
+		  if ( !changed ){
+			  
+			  return;
+		  }
+		  
+		  Utils.execSWTThread(new AERunnable() {
+			  public void runSupport() {
+				  if ( !dm_map.isEmpty()){
+					  Utils.disposeComposite(panel, false);
+				  } else {
+					  ViewUtils.setViewRequiresOneDownload(panel);
+				  }
+			  }
+		  });
+	  }
   }
 
-  private void delete() {
-  	if (manager != null){
-  		manager.removePeerListener(this);
-  	}
-  	
-  	peer_hit_map.clear();
+  private void 
+  delete() 
+  {
+	synchronized( dm_map ){
+			
+		for ( Map.Entry<DownloadManager, ManagerData> dm_entry: dm_map.entrySet()){
+				
+			ManagerData		data		= dm_entry.getValue();
+
+			data.delete();
+		}
+		
+		dm_map.clear();
+	}
   }
 
   private Composite getComposite() {    
@@ -266,57 +343,73 @@ public class PeersGraphicView
     panel.addListener(SWT.MouseHover, new Listener() {
 		public void handleEvent(Event event) {
 			
-			if ( manager == null ){
-				return;
-			}
-			
 			int	x = event.x;
 			int y = event.y;
 			
-			String tt;
+			String tt = "";
 
-			if ( 	x >= me_hit_x && x <= me_hit_x+OWN_SIZE &&
-					y >= me_hit_y && y <= me_hit_y+OWN_SIZE ){
+			synchronized( dm_map ){
 				
-				tt = DisplayFormatters.formatDownloadStatus( manager ) + ", " + 
-						DisplayFormatters.formatPercentFromThousands(manager.getStats().getCompleted());
+				for ( Map.Entry<DownloadManager, ManagerData> dm_entry: dm_map.entrySet()){
 				
-			}else{
-				
-				PEPeer target = null;
-							
-				for( Map.Entry<PEPeer,int[]> entry: peer_hit_map.entrySet()){
-					
-					int[] loc = entry.getValue();
-					
-					int	loc_x = loc[0];
-					int loc_y = loc[1];
-					
-					if ( 	x >= loc_x && x <= loc_x+PEER_SIZE &&
-							y >= loc_y && y <= loc_y+PEER_SIZE ){
+					DownloadManager manager 	= dm_entry.getKey();
+					ManagerData		data		= dm_entry.getValue();
+		
+					if ( 	x >= data.me_hit_x && x <= data.me_hit_x+OWN_SIZE &&
+							y >= data.me_hit_y && y <= data.me_hit_y+OWN_SIZE ){
 						
-						target = entry.getKey();
+						if ( dm_map.size() > 1 ){
+							
+							tt = manager.getDisplayName() + "\r\n";
+						}
+						
+						tt += DisplayFormatters.formatDownloadStatus( manager ) + ", " + 
+								DisplayFormatters.formatPercentFromThousands(manager.getStats().getCompleted());
 						
 						break;
+						
+					}else{
+						
+						PEPeer target = null;
+									
+						for ( Map.Entry<PEPeer,int[]> entry: data.peer_hit_map.entrySet()){
+							
+							int[] loc = entry.getValue();
+							
+							int	loc_x = loc[0];
+							int loc_y = loc[1];
+							
+							if ( 	x >= loc_x && x <= loc_x+PEER_SIZE &&
+									y >= loc_y && y <= loc_y+PEER_SIZE ){
+								
+								target = entry.getKey();
+								
+								break;
+							}
+						}	
+						
+						if ( target != null ){
+							
+							PEPeerStats stats = target.getStats();
+							
+							String[] details = PeerUtils.getCountryDetails( target );
+							
+							String dstr = (details==null||details.length<2)?"":(" - " + details[0] + "/" + details[1]);
+							/*
+							if ( dm_map.size() > 1 ){
+								
+								tt = manager.getDisplayName() + "\r\n";
+							}
+							*/
+							
+							tt = target.getIp() + dstr + ", " + 
+									DisplayFormatters.formatPercentFromThousands(target.getPercentDoneInThousandNotation()) + "\r\n" +
+									"Up=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataSendRate() + stats.getProtocolSendRate()) + ", " +
+									"Down=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataReceiveRate() + stats.getProtocolReceiveRate());
+							
+							break;
+						}
 					}
-				}	
-				
-				if ( target == null ){
-					
-					tt = null;
-					
-				}else{
-					
-					PEPeerStats stats = target.getStats();
-					
-					String[] details = PeerUtils.getCountryDetails( target );
-					
-					String dstr = (details==null||details.length<2)?"":(" - " + details[0] + "/" + details[1]);
-					
-					tt = target.getIp() + dstr + ", " + 
-							DisplayFormatters.formatPercentFromThousands(target.getPercentDoneInThousandNotation()) + "\r\n" +
-							"Up=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataSendRate() + stats.getProtocolSendRate()) + ", " +
-							"Down=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataReceiveRate() + stats.getProtocolReceiveRate());
 				}
 			}
 			
@@ -337,24 +430,41 @@ public class PeersGraphicView
     	   			int	x = event.x;
         			int y = event.y;
         							
-        			PEPeer target = null;
+        			PEPeer 			target 			= null;
+        			DownloadManager	target_manager 	= null;
         			
-    				for( Map.Entry<PEPeer,int[]> entry: peer_hit_map.entrySet()){
-    					
-    					int[] loc = entry.getValue();
-    					
-    					int	loc_x = loc[0];
-    					int loc_y = loc[1];
-    					
-    					if ( 	x >= loc_x && x <= loc_x+PEER_SIZE &&
-    							y >= loc_y && y <= loc_y+PEER_SIZE ){
-    						
-    						target = entry.getKey();
-    						
-    						break;
-    					}
-    				}
-    				
+        			synchronized( dm_map ){
+        				
+	        			for ( Map.Entry<DownloadManager, ManagerData> dm_entry: dm_map.entrySet()){
+	        				
+	        				DownloadManager manager 	= dm_entry.getKey();
+	        				ManagerData		data		= dm_entry.getValue();
+	
+		    				for( Map.Entry<PEPeer,int[]> entry: data.peer_hit_map.entrySet()){
+		    					
+		    					int[] loc = entry.getValue();
+		    					
+		    					int	loc_x = loc[0];
+		    					int loc_y = loc[1];
+		    					
+		    					if ( 	x >= loc_x && x <= loc_x+PEER_SIZE &&
+		    							y >= loc_y && y <= loc_y+PEER_SIZE ){
+		    						
+		    						target = entry.getKey();
+		    						
+		    						target_manager	= manager;
+		    						
+		    						break;
+		    					}
+		    				}
+		    				
+		    				if ( target != null ){
+		    					
+		    					break;
+		    				}
+	        			}
+        			}
+        			
     				if ( target == null ){
     					
     					return;
@@ -369,7 +479,7 @@ public class PeersGraphicView
     				
     				menu = new Menu( panel );
     				
-    				PeersView.fillMenu( menu, target, manager );
+    				PeersView.fillMenu( menu, target, target_manager );
 								
 					final Point cursorLocation = Display.getCurrent().getCursorLocation();
 					
@@ -385,79 +495,88 @@ public class PeersGraphicView
     		{
     			int	x = event.x;
     			int y = event.y;
-    										
-				for( Map.Entry<PEPeer,int[]> entry: peer_hit_map.entrySet()){
-					
-					int[] loc = entry.getValue();
-					
-					int	loc_x = loc[0];
-					int loc_y = loc[1];
-					
-					if ( 	x >= loc_x && x <= loc_x+PEER_SIZE &&
-							y >= loc_y && y <= loc_y+PEER_SIZE ){
-						
-						PEPeer target = entry.getKey();
-						
-							// ugly code to locate any associated 'PeersView' that we can locate the peer in
-						
-						try{
-							String dm_id = "DMDetails_" + Base32.encode( manager.getTorrent().getHash());
+    				
+    			synchronized( dm_map ){
+    				
+	       			for ( Map.Entry<DownloadManager, ManagerData> dm_entry: dm_map.entrySet()){
+	    				
+	    				DownloadManager manager 	= dm_entry.getKey();
+	    				ManagerData		data		= dm_entry.getValue();
+	
+						for( Map.Entry<PEPeer,int[]> entry: data.peer_hit_map.entrySet()){
 							
-							MdiEntry mdi_entry = UIFunctionsManager.getUIFunctions().getMDI().getEntry( dm_id );
-						
-							if ( mdi_entry != null ){
-								
-								mdi_entry.setDatasource(new Object[] { manager, target } );
-							}
-								
-							Composite comp = panel.getParent();
+							int[] loc = entry.getValue();
 							
-							while( comp != null ){
+							int	loc_x = loc[0];
+							int loc_y = loc[1];
+							
+							if ( 	x >= loc_x && x <= loc_x+PEER_SIZE &&
+									y >= loc_y && y <= loc_y+PEER_SIZE ){
 								
-								if ( comp instanceof CTabFolder ){
+								PEPeer target = entry.getKey();
+								
+									// ugly code to locate any associated 'PeersView' that we can locate the peer in
+								
+								try{
+									String dm_id = "DMDetails_" + Base32.encode( manager.getTorrent().getHash());
 									
-									CTabFolder tf = (CTabFolder)comp;
-									
-									CTabItem[] items = tf.getItems();
-									
-									for ( CTabItem item: items ){
+									MdiEntry mdi_entry = UIFunctionsManager.getUIFunctions().getMDI().getEntry( dm_id );
+								
+									if ( mdi_entry != null ){
 										
-										UISWTViewCore view = (UISWTViewCore)item.getData("TabbedEntry");
-										
-										UISWTViewEventListener listener = view.getEventListener();
-										
-										if ( listener instanceof UISWTViewEventListenerHolder ){
-											
-											listener = ((UISWTViewEventListenerHolder)listener).getDelegatedEventListener( view );
-										}
-										
-										if ( listener instanceof PeersView ){
-											
-											tf.setSelection( item );
-											
-											Event ev = new Event();
-											
-											ev.item = item;
-											
-												// manual setSelection doesn't file selection event - derp
-											
-											tf.notifyListeners( SWT.Selection, ev );
-											
-											((PeersView)listener).selectPeer( target );
-											
-											return;
-										}
+										mdi_entry.setDatasource(new Object[] { manager, target } );
 									}
-								}
+										
+									Composite comp = panel.getParent();
 									
-								comp = comp.getParent();
+									while( comp != null ){
+										
+										if ( comp instanceof CTabFolder ){
+											
+											CTabFolder tf = (CTabFolder)comp;
+											
+											CTabItem[] items = tf.getItems();
+											
+											for ( CTabItem item: items ){
+												
+												UISWTViewCore view = (UISWTViewCore)item.getData("TabbedEntry");
+												
+												UISWTViewEventListener listener = view.getEventListener();
+												
+												if ( listener instanceof UISWTViewEventListenerHolder ){
+													
+													listener = ((UISWTViewEventListenerHolder)listener).getDelegatedEventListener( view );
+												}
+												
+												if ( listener instanceof PeersView ){
+													
+													tf.setSelection( item );
+													
+													Event ev = new Event();
+													
+													ev.item = item;
+													
+														// manual setSelection doesn't file selection event - derp
+													
+													tf.notifyListeners( SWT.Selection, ev );
+													
+													((PeersView)listener).selectPeer( target );
+													
+													return;
+												}
+											}
+										}
+											
+										comp = comp.getParent();
+									}
+								}catch( Throwable e ){
+									
+								}
+								
+								break;
 							}
-						}catch( Throwable e ){
-							
 						}
-						
-						break;
-					}
+	       			}
 				}		
     		}
     	});
@@ -471,55 +590,145 @@ public class PeersGraphicView
     //Comment the following line to enable the view
     //if(true) return;
     
-    PEPeer[] sortedPeers;
-    try {      
-      peers_mon.enter();      
-      List<PEPeerTransport> connectedPeers = new ArrayList<PEPeerTransport>();
-      for (PEPeer peer : peers) {
-      	if (peer instanceof PEPeerTransport) {
-      		PEPeerTransport peerTransport = (PEPeerTransport) peer;
-      		if(peerTransport.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED)
-      			connectedPeers.add(peerTransport);
-      	}
-      }
-      
-      sortedPeers = connectedPeers.toArray(new PEPeer[connectedPeers.size()]);      
-    } finally {
-      peers_mon.exit();
-    }
-    
-    if(sortedPeers == null) return;
-    
-    for (int i=0;i<3;i++){
-    	try{
-    		
-    		Arrays.sort(sortedPeers,peerComparator);
-    		
-    		break;
-    		
-    	}catch( IllegalArgumentException e ){
-    		
-    		// can happen as peer data can change during sort and result in 'comparison method violates its general contract' error
-    	}
-    }
-    render(sortedPeers);
+	synchronized( dm_map ){
+		
+	    if (panel == null || panel.isDisposed()){
+	    	return;
+	    }
+	    
+	    if ( dm_map.size() == 0  ){
+	    	GC gcPanel = new GC(panel);
+	    	gcPanel.fillRectangle( panel.getBounds());
+	    	gcPanel.dispose();
+	    	return;
+	    }
+    	
+	    int	num_dms = dm_map.size();
+	    
+	    Point panelSize = panel.getSize();
+
+	    int	pw = panelSize.x;
+	    int	ph = panelSize.y;
+	    
+	    int	h_cells;
+	    int v_cells;
+	    
+	    if ( ph <= pw ){
+	    	
+	    	v_cells = 1;
+	    	h_cells = pw/ph;
+	    			
+	    	double f = Math.sqrt(((double)num_dms)/(v_cells*h_cells));
+	    	
+	    	int factor = (int)Math.ceil(f);
+	    	
+	    	h_cells *= factor;
+	    	v_cells = factor;
+	    	
+	    }else{
+	    	
+	    	v_cells = ph/pw;
+	    	h_cells = 1;
+	    	
+	    			
+	    	double f = Math.sqrt(((double)num_dms)/(v_cells*h_cells));
+	    	
+	    	int factor = (int)Math.ceil(f);
+	    	
+	    	v_cells *= factor;
+	    	h_cells = factor;
+	    }
+	    
+	    ph = h_cells==1?(ph/num_dms):(ph/v_cells);
+	    pw = v_cells==1?(pw/num_dms):(pw/h_cells);
+	    
+	    //System.out.println( h_cells + "*" + v_cells + ": " + pw + "*" + ph );
+	    
+	    Point mySize 	= new Point( pw, ph );
+
+	    int	num = 0;
+	    
+	    Point lastOffset = null;
+	    
+		for ( Map.Entry<DownloadManager, ManagerData> dm_entry: dm_map.entrySet()){
+				
+			DownloadManager manager 	= dm_entry.getKey();
+			ManagerData		data		= dm_entry.getValue();
+
+		    PEPeer[] sortedPeers;
+		    try {      
+		      data.peers_mon.enter();      
+		      List<PEPeerTransport> connectedPeers = new ArrayList<PEPeerTransport>();
+		      for (PEPeer peer : data.peers) {
+		      	if (peer instanceof PEPeerTransport) {
+		      		PEPeerTransport peerTransport = (PEPeerTransport) peer;
+		      		if(peerTransport.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED)
+		      			connectedPeers.add(peerTransport);
+		      	}
+		      }
+		      
+		      sortedPeers = connectedPeers.toArray(new PEPeer[connectedPeers.size()]);      
+		    } finally {
+		    	data.peers_mon.exit();
+		    }
+		    
+		    if(sortedPeers == null) return;
+		    
+		    for (int i=0;i<3;i++){
+		    	try{
+		    		
+		    		Arrays.sort(sortedPeers,peerComparator);
+		    		
+		    		break;
+		    		
+		    	}catch( IllegalArgumentException e ){
+		    		
+		    		// can happen as peer data can change during sort and result in 'comparison method violates its general contract' error
+		    	}
+		    }
+		    
+		    int h = num%h_cells;
+		    int v = num/h_cells;
+
+		    Point myOffset	= new Point(h*pw,v*ph);
+		    
+		    render( manager, data, sortedPeers, mySize, myOffset);
+		    
+		    num++;
+		    
+		    lastOffset = myOffset;
+		}
+		
+		int	rem_x = panelSize.x - (lastOffset.x + mySize.x );
+		
+		if ( rem_x > 0 ){
+		  	GC gcPanel = new GC(panel);
+	    	gcPanel.setBackground(Colors.white); 
+	    	gcPanel.fillRectangle(lastOffset.x + mySize.x,lastOffset.y,rem_x,mySize.y);
+	    	gcPanel.dispose();
+		}
+		
+		int	rem_y = panelSize.y - (lastOffset.y + mySize.y );
+		
+		if ( rem_y > 0 ){
+		  	GC gcPanel = new GC(panel);
+	    	gcPanel.setBackground(Colors.white); 
+	    	gcPanel.fillRectangle(0, lastOffset.y + mySize.y, panelSize.x, rem_y);
+	    	gcPanel.dispose();
+		}
+	}
   }
   
-  private void render(PEPeer[] sortedPeers) {
-	peer_hit_map.clear();
-	  
-    if(panel == null || panel.isDisposed()){
-    	return;
-    }
-    
-    if ( manager == null ){
-    	GC gcPanel = new GC(panel);
-    	gcPanel.fillRectangle( panel.getBounds());
-    	gcPanel.dispose();
-    	return;
-    }
-    Point panelSize = panel.getSize();
-    
+  private void 
+  render(
+	DownloadManager		manager,
+	ManagerData			data, 
+	PEPeer[] 			sortedPeers,
+	Point				panelSize,
+	Point				panelOffset )
+  {
+	data.peer_hit_map.clear();
+	      
     int	min_dim = Math.min( panelSize.x, panelSize.y );
     
     if ( min_dim <= 100 ){
@@ -538,10 +747,16 @@ public class PeersGraphicView
     int y0 = panelSize.y / 2;  
     int a = x0 - 20;
     int b = y0 - 20;
-    if(a < 10 || b < 10) return;
+    if(a < 10 || b < 10){
+    	GC gcPanel = new GC(panel);
+    	gcPanel.setBackground(Colors.white); 
+    	gcPanel.fillRectangle(panelOffset.x,panelOffset.y,panelSize.x,panelSize.y);
+    	gcPanel.dispose();
+    	return;
+    }
     
-    if(oldSize == null || !oldSize.equals(panelSize)) {     
-      oldSize = panelSize;      
+    if(data.oldSize == null || !data.oldSize.equals(panelSize)) {     
+    	data.oldSize = panelSize;      
       perimeter = 0;
       for(int i = 0 ; i < NB_ANGLES ; i++) {
         rs[i] = Math.sqrt(1/(deltaYXs[i] * deltaYXs[i] / (a*a) + deltaYYs[i] * deltaYYs[i] / (b * b)));
@@ -682,7 +897,7 @@ public class PeersGraphicView
       int peer_x = x1 - PEER_SIZE / 2;
       int peer_y = y1 - PEER_SIZE / 2;
       
-      peer_hit_map.put( peer, new int[]{ peer_x, peer_y });
+      data.peer_hit_map.put( peer, new int[]{ peer_x + panelOffset.x, peer_y + panelOffset.y });
       
       Image flag = ImageRepository.getCountryFlag( peer, false );
       if ( flag != null ){
@@ -696,43 +911,25 @@ public class PeersGraphicView
     
     gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
     
-    me_hit_x = x0 - OWN_SIZE / 2;
-    me_hit_y = y0 - OWN_SIZE / 2;
+    data.me_hit_x = x0 - OWN_SIZE / 2;
+    data.me_hit_y = y0 - OWN_SIZE / 2;
       
-   	PieUtils.drawPie(gcBuffer, me_hit_x, me_hit_y,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10);
+   	PieUtils.drawPie(gcBuffer, data.me_hit_x, data.me_hit_y,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10);
 
     if ( my_flag != null ){
-    	PieUtils.drawPie(gcBuffer, my_flag, me_hit_x, me_hit_y,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10, false );
+    	PieUtils.drawPie(gcBuffer, my_flag, data.me_hit_x, data.me_hit_y,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10, false );
     }
+    
+    data.me_hit_x += panelOffset.x;
+    data.me_hit_y += panelOffset.y;
     
     gcBuffer.dispose();
     GC gcPanel = new GC(panel);
-    gcPanel.drawImage(buffer,0,0);
+    gcPanel.drawImage(buffer,panelOffset.x,panelOffset.y);
     gcPanel.dispose();
     buffer.dispose();   
   }
   
-  public void peerManagerWillBeAdded( PEPeerManager	peer_manager ){}
-  public void peerManagerAdded(PEPeerManager manager) {}
-  public void peerManagerRemoved(PEPeerManager manager) {}
-  
-  public void peerAdded(PEPeer peer) {
-    try {
-      peers_mon.enter();
-      peers.add(peer);
-    } finally {
-      peers_mon.exit();
-    }
-  }
-  
-  public void peerRemoved(PEPeer peer) {
-    try {
-      peers_mon.enter();
-      peers.remove(peer);
-    } finally {
-      peers_mon.exit();
-    }
-  }
 
 	public boolean eventOccurred(UISWTViewEvent event) {
     switch (event.getType()) {
@@ -763,22 +960,29 @@ public class PeersGraphicView
         	String id = "DMDetails_Swarm";
         	
         	setFocused( true );	// do this before next code as it can pick up the corrent 'manager' ref
-  	      
-	      	if (manager != null) {
-	      		if (manager.getTorrent() != null) {
-	  					id += "." + manager.getInternalName();
-	      		} else {
-	      			id += ":" + manager.getSize();
-	      		}
-						SelectedContentManager.changeCurrentlySelectedContent(id,
-								new SelectedContent[] {
-									new SelectedContent(manager)
-						});
-					} else {
-						SelectedContentManager.changeCurrentlySelectedContent(id, null);
-					}
-	  
-	      break;
+			synchronized( dm_map ){
+				
+				if ( dm_map.isEmpty()){
+					
+					SelectedContentManager.changeCurrentlySelectedContent(id, null);
+					
+				}else{
+					
+					DownloadManager manager 	= dm_map.keySet().iterator().next();
+					
+	        		if (manager.getTorrent() != null) {
+	        			id += "." + manager.getInternalName();
+	        		} else {
+	        			id += ":" + manager.getSize();
+	        		}
+					
+	        		SelectedContentManager.changeCurrentlySelectedContent(id,
+	        				new SelectedContent[] {
+	        				new SelectedContent(manager)
+	        		});
+				}
+			}
+			break;
       case UISWTViewEvent.TYPE_FOCUSLOST:
     	  setFocused( false );
     	  SelectedContentManager.clearCurrentlySelectedContent();

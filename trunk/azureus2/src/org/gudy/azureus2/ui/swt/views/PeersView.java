@@ -742,7 +742,7 @@ public class PeersView
 	final PEPeer		peer,
 	final int			attempt )
   {
-	  if ( attempt > 10 ){
+	  if ( attempt > 10 || tv == null ){
 		  
 		  return;
 	  }
