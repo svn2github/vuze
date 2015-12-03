@@ -530,10 +530,11 @@ public class SBC_LibraryView
 								if (stats.numDownloading != 1) {
 									id += ".p";
 								}
+								int numWaiting = Math.max( stats.numIncomplete - stats.numDownloading, 0 );
 								s = MessageText.getString(id,
 										new String[] {
 										String.valueOf(stats.numDownloading),
-										String.valueOf(stats.numIncomplete - stats.numDownloading),
+										String.valueOf(numWaiting),
 								});
 								
 							} else if ( torrentFilterMode == TORRENTS_UNOPENED ||  torrentFilterMode == TORRENTS_COMPLETE ) {

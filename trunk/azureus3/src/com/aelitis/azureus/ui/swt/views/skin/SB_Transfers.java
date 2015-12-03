@@ -101,15 +101,51 @@ public class SB_Transfers
 
 		int numUnOpened = 0;
 
-		int numStoppedAll = 0;
-
 		int numStoppedIncomplete = 0;
 
 		boolean includeLowNoise;
 		
 		long	newestIncompleteDownloadTime = 0;
+		
+		private boolean
+		sameAs(
+			stats		other )
+		{
+			return( 
+					numSeeding 						== other.numSeeding &&
+					numDownloading 					== other.numDownloading &&
+					numQueued 						== other.numQueued &&
+					numComplete 					== other.numComplete &&
+					numIncomplete 					== other.numIncomplete &&
+					numErrorComplete 				== other.numErrorComplete &&
+					numErrorInComplete 				== other.numErrorInComplete &&
+					numUnOpened 					== other.numUnOpened &&
+					numStoppedIncomplete 			== other.numStoppedIncomplete &&
+					newestIncompleteDownloadTime 	== other.newestIncompleteDownloadTime );
+		}
+		
+		private void
+		copyFrom(
+			stats		other )
+		{
+			numSeeding 							= other.numSeeding;
+			numDownloading 						= other.numDownloading;
+			numQueued 							= other.numQueued;			
+			numComplete 						= other.numComplete;
+			numIncomplete 						= other.numIncomplete;
+			numErrorComplete 					= other.numErrorComplete;
+			errorInCompleteTooltip 				= other.errorInCompleteTooltip;
+			numErrorInComplete 					= other.numErrorInComplete;
+			errorCompleteTooltip 				= other.errorCompleteTooltip;
+			numUnOpened	 						= other.numUnOpened;
+			numStoppedIncomplete				= other.numStoppedIncomplete;
+			includeLowNoise 					= other.includeLowNoise;
+			newestIncompleteDownloadTime	 	= other.newestIncompleteDownloadTime;
+		}
 	};
 
+	private static Object	statsLock = new Object();
+	
 	private static stats statsWithLowNoise = new stats();
 
 	private static stats statsNoLowNoise = new stats();
@@ -118,7 +154,8 @@ public class SB_Transfers
 
 	private static boolean first = true;
 
-	private static long		coreCreateTime;
+	private static AzureusCore	core;
+	private static long			coreCreateTime;
 	
 	static {
 		statsNoLowNoise.includeLowNoise = false;
@@ -387,7 +424,8 @@ public class SB_Transfers
 		return entry;
 	}
 
-	protected static void setupViewTitleWithCore(AzureusCore core) {
+	protected static void 
+	setupViewTitleWithCore(AzureusCore _core) {
 		
 		synchronized( SB_Transfers.class ){
 			if (!first) {
@@ -395,7 +433,8 @@ public class SB_Transfers
 			}
 			first = false;
 			
-			coreCreateTime = core.getCreateTime();
+			core			= _core;
+			coreCreateTime 	= core.getCreateTime();
 		}
 		
 		final CategoryListener categoryListener = new CategoryListener() {
@@ -639,24 +678,26 @@ public class SB_Transfers
 					return;
 				}
 
-				updateDMCounts(dm);
-
-				boolean complete = dm.getAssumedComplete();
-				Boolean wasErrorStateB = (Boolean) dm.getUserData("wasErrorState");
-				boolean wasErrorState = wasErrorStateB == null ? false
-						: wasErrorStateB.booleanValue();
-				boolean isErrorState = state == DownloadManager.STATE_ERROR;
-				if (isErrorState != wasErrorState) {
-					int rel = isErrorState ? 1 : -1;
-					if (complete) {
-						stats.numErrorComplete += rel;
-					} else {
-						stats.numErrorInComplete += rel;
+				synchronized( statsLock ){
+					updateDMCounts(dm);
+	
+					boolean complete = dm.getAssumedComplete();
+					Boolean wasErrorStateB = (Boolean) dm.getUserData("wasErrorState");
+					boolean wasErrorState = wasErrorStateB == null ? false
+							: wasErrorStateB.booleanValue();
+					boolean isErrorState = state == DownloadManager.STATE_ERROR;
+					if (isErrorState != wasErrorState) {
+						int rel = isErrorState ? 1 : -1;
+						if (complete) {
+							stats.numErrorComplete += rel;
+						} else {
+							stats.numErrorInComplete += rel;
+						}
+						updateErrorTooltip(gm,stats);
+						dm.setUserData("wasErrorState", new Boolean(isErrorState));
 					}
-					updateErrorTooltip(stats);
-					dm.setUserData("wasErrorState", new Boolean(isErrorState));
+					refreshAllLibraries();
 				}
-				refreshAllLibraries();
 			}
 
 			public void completionChanged(DownloadManager dm, boolean completed) {
@@ -671,82 +712,35 @@ public class SB_Transfers
 					return;
 				}
 
-				int dm_state = updateDMCounts(dm);
-				
-				if (completed) {
-					stats.numComplete++;
-					stats.numIncomplete--;
-					if (dm_state == DownloadManager.STATE_ERROR) {
-						stats.numErrorComplete++;
-						stats.numErrorInComplete--;
-					}
-					if (dm_state == DownloadManager.STATE_STOPPED) {
-						statsNoLowNoise.numStoppedIncomplete--;
-					}
-
-				} else {
-					stats.numComplete--;
-					stats.numIncomplete++;
-
-					if (dm_state == DownloadManager.STATE_ERROR) {
-						stats.numErrorComplete--;
-						stats.numErrorInComplete++;
-					}
-					if (dm_state == DownloadManager.STATE_STOPPED) {
-						statsNoLowNoise.numStoppedIncomplete++;
-					}
-				}
-				recountUnopened();
-				updateErrorTooltip(stats);
-				refreshAllLibraries();
-			}
-
-			protected void updateErrorTooltip(stats stats) {
-				if (stats.numErrorComplete < 0) {
-					stats.numErrorComplete = 0;
-				}
-				if (stats.numErrorInComplete < 0) {
-					stats.numErrorInComplete = 0;
-				}
-
-				if (stats.numErrorComplete > 0 || stats.numErrorInComplete > 0) {
-
-					String comp_error = null;
-					String incomp_error = null;
-
-					List<?> downloads = gm.getDownloadManagers();
-
-					for (int i = 0; i < downloads.size(); i++) {
-
-						DownloadManager download = (DownloadManager) downloads.get(i);
-
-						if (download.getState() == DownloadManager.STATE_ERROR) {
-
-							if (download.getAssumedComplete()) {
-
-								if (comp_error == null) {
-
-									comp_error = download.getDisplayName() + ": "
-											+ download.getErrorDetails();
-								} else {
-
-									comp_error += "...";
-								}
-							} else {
-								if (incomp_error == null) {
-
-									incomp_error = download.getDisplayName() + ": "
-											+ download.getErrorDetails();
-								} else {
-
-									incomp_error += "...";
-								}
-							}
+				synchronized( statsLock ){
+					int dm_state = updateDMCounts(dm);
+					
+					if (completed) {
+						stats.numComplete++;
+						stats.numIncomplete--;
+						if (dm_state == DownloadManager.STATE_ERROR) {
+							stats.numErrorComplete++;
+							stats.numErrorInComplete--;
+						}
+						if (dm_state == DownloadManager.STATE_STOPPED) {
+							statsNoLowNoise.numStoppedIncomplete--;
+						}
+	
+					} else {
+						stats.numComplete--;
+						stats.numIncomplete++;
+	
+						if (dm_state == DownloadManager.STATE_ERROR) {
+							stats.numErrorComplete--;
+							stats.numErrorInComplete++;
+						}
+						if (dm_state == DownloadManager.STATE_STOPPED) {
+							statsNoLowNoise.numStoppedIncomplete++;
 						}
 					}
-
-					stats.errorCompleteTooltip = comp_error;
-					stats.errorInCompleteTooltip = incomp_error;
+					recountUnopened();
+					updateErrorTooltip( gm, stats);
+					refreshAllLibraries();
 				}
 			}
 		};
@@ -762,47 +756,53 @@ public class SB_Transfers
 						&& PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
-				recountUnopened();
-				if (dm.getAssumedComplete()) {
-					stats.numComplete--;
-					Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
-					if (wasDownloadingB != null && wasDownloadingB.booleanValue()) {
-						stats.numDownloading--;
+				
+				synchronized( statsLock ){
+					recountUnopened();
+					if (dm.getAssumedComplete()) {
+						stats.numComplete--;
+						Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
+						if (wasDownloadingB != null && wasDownloadingB.booleanValue()) {
+							stats.numDownloading--;
+						}
+					} else {
+						stats.numIncomplete--;
+						Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
+						if (wasSeedingB != null && wasSeedingB.booleanValue()) {
+							stats.numSeeding--;
+						}
 					}
-				} else {
-					stats.numIncomplete--;
-					Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
-					if (wasSeedingB != null && wasSeedingB.booleanValue()) {
-						stats.numSeeding--;
+	
+					Boolean wasStoppedB = (Boolean) dm.getUserData("wasStopped");
+					boolean wasStopped = wasStoppedB == null ? false
+							: wasStoppedB.booleanValue();
+					if (wasStopped) {
+						if (!dm.getAssumedComplete()) {
+							stats.numStoppedIncomplete--;
+						}
 					}
-				}
-
-				Boolean wasStoppedB = (Boolean) dm.getUserData("wasStopped");
-				boolean wasStopped = wasStoppedB == null ? false
-						: wasStoppedB.booleanValue();
-				if (wasStopped) {
-					stats.numStoppedAll--;
-					if (!dm.getAssumedComplete()) {
-						stats.numStoppedIncomplete--;
+					Boolean wasQueuedB = (Boolean) dm.getUserData("wasQueued");
+					boolean wasQueued = wasQueuedB == null ? false
+							: wasQueuedB.booleanValue();
+					if (wasQueued) {
+						stats.numQueued--;
 					}
+					refreshAllLibraries();
 				}
-				Boolean wasQueuedB = (Boolean) dm.getUserData("wasQueued");
-				boolean wasQueued = wasQueuedB == null ? false
-						: wasQueuedB.booleanValue();
-				if (wasQueued) {
-					stats.numQueued--;
-				}
-				refreshAllLibraries();
+				
 				dm.removeListener(dmListener);
 			}
 
 			public void downloadManagerAdded(DownloadManager dm) {
 				dm.addListener(dmListener, false);
-				recountUnopened();
-
-				downloadManagerAdded(dm, statsNoLowNoise);
-				downloadManagerAdded(dm, statsWithLowNoise);
-				refreshAllLibraries();
+				
+				synchronized( statsLock ){
+					recountUnopened();
+	
+					downloadManagerAdded(dm, statsNoLowNoise);
+					downloadManagerAdded(dm, statsWithLowNoise);
+					refreshAllLibraries();
+				}
 			}
 
 			public void downloadManagerAdded(DownloadManager dm, stats stats) {
@@ -811,27 +811,84 @@ public class SB_Transfers
 					return;
 				}
 				boolean assumed_complete = dm.getAssumedComplete();
-				if ( dm.isPersistent() && dm.getTorrent() != null && !assumed_complete ){	// ignore borked torrents as their create time is inaccurate
-					stats.newestIncompleteDownloadTime = Math.max( stats.newestIncompleteDownloadTime, dm.getCreationTime());
-				}
-				int dm_state = dm.getState();
-				if (assumed_complete) {
-					stats.numComplete++;
-					if (dm_state == DownloadManager.STATE_SEEDING) {
-						stats.numSeeding++;
+				
+				synchronized( statsLock ){
+					if ( dm.isPersistent() && dm.getTorrent() != null && !assumed_complete ){	// ignore borked torrents as their create time is inaccurate
+						stats.newestIncompleteDownloadTime = Math.max( stats.newestIncompleteDownloadTime, dm.getCreationTime());
 					}
-				} else {
-					stats.numIncomplete++;
-					if (dm_state == DownloadManager.STATE_DOWNLOADING) {
-						dm.setUserData("wasDownloading", Boolean.TRUE);
-						stats.numDownloading++;
+					int dm_state = dm.getState();
+					if (assumed_complete) {
+						stats.numComplete++;
+						if (dm_state == DownloadManager.STATE_SEEDING) {
+							stats.numSeeding++;
+						}
 					} else {
-						dm.setUserData("wasDownloading", Boolean.FALSE);
+						stats.numIncomplete++;
+						if (dm_state == DownloadManager.STATE_DOWNLOADING) {
+							dm.setUserData("wasDownloading", Boolean.TRUE);
+							stats.numDownloading++;
+						} else {
+							dm.setUserData("wasDownloading", Boolean.FALSE);
+						}
 					}
 				}
 			}
 		}, false);
 		
+		resetStats( gm, dmListener, statsWithLowNoise, statsNoLowNoise );
+
+		refreshAllLibraries();
+		
+		SimpleTimer.addPeriodicEvent(
+			"header:refresh",
+			60*1000,
+			new TimerEventPerformer() {
+				
+				public void 
+				perform(
+					TimerEvent event) 
+				{
+					stats withNoise = new stats();
+					stats noNoise 	= new stats();
+					
+					noNoise.includeLowNoise 	= false;
+					withNoise.includeLowNoise 	= true;
+					
+					synchronized( statsLock ){
+						
+						resetStats( gm, null, withNoise, noNoise );
+						
+						boolean	fixed = false;
+						
+						if ( !withNoise.sameAs( statsWithLowNoise )){
+							statsWithLowNoise.copyFrom( withNoise );
+							fixed = true;
+						}
+						
+						if ( !noNoise.sameAs( statsNoLowNoise )){
+							statsNoLowNoise.copyFrom( noNoise );
+							fixed = true;
+						}
+						
+						if ( fixed ){
+													
+							updateErrorTooltip(gm,statsWithLowNoise);
+							updateErrorTooltip(gm,statsNoLowNoise);
+							
+							refreshAllLibraries();
+						}
+					}
+				}
+			});
+	}
+
+	private static void
+	resetStats(
+		GlobalManager				gm,
+		DownloadManagerListener		listener,
+		stats						statsWithLowNoise,
+		stats						statsNoLowNoise )
+	{
 		List<DownloadManager> downloadManagers = gm.getDownloadManagers();
 		for (Iterator<DownloadManager> iter = downloadManagers.iterator(); iter.hasNext();) {
 			DownloadManager dm = iter.next();
@@ -844,16 +901,17 @@ public class SB_Transfers
 					statsNoLowNoise.newestIncompleteDownloadTime = Math.max( statsNoLowNoise.newestIncompleteDownloadTime, createTime);
 				}
 			}
-			dm.addListener(dmListener, false);
+			if ( listener != null ){
+				dm.addListener(listener, false);
+			}
+			
 			int dm_state = dm.getState();
 			if (dm_state == DownloadManager.STATE_STOPPED) {
 				dm.setUserData("wasStopped", Boolean.TRUE);
-				statsWithLowNoise.numStoppedAll++;
 				if (!dm.getAssumedComplete()) {
 					statsWithLowNoise.numStoppedIncomplete++;
 				}
 				if (!lowNoise) {
-					statsNoLowNoise.numStoppedAll++;
 					if (!dm.getAssumedComplete()) {
 						statsNoLowNoise.numStoppedIncomplete++;
 					}
@@ -897,12 +955,66 @@ public class SB_Transfers
 					}
 				}
 			}
+			
+			if (!PlatformTorrentUtils.getHasBeenOpened(dm) && dm.getAssumedComplete()) {
+				statsNoLowNoise.numUnOpened++;
+			}
+		}
+		
+		statsWithLowNoise.numUnOpened = statsNoLowNoise.numUnOpened;
+	}
+	
+	private static void 
+	updateErrorTooltip(GlobalManager gm, stats stats) 
+	{
+		if (stats.numErrorComplete < 0) {
+			stats.numErrorComplete = 0;
+		}
+		if (stats.numErrorInComplete < 0) {
+			stats.numErrorInComplete = 0;
 		}
 
-		recountUnopened();
-		refreshAllLibraries();
-	}
+		if (stats.numErrorComplete > 0 || stats.numErrorInComplete > 0) {
 
+			String comp_error = null;
+			String incomp_error = null;
+
+			List<?> downloads = gm.getDownloadManagers();
+
+			for (int i = 0; i < downloads.size(); i++) {
+
+				DownloadManager download = (DownloadManager) downloads.get(i);
+
+				if (download.getState() == DownloadManager.STATE_ERROR) {
+
+					if (download.getAssumedComplete()) {
+
+						if (comp_error == null) {
+
+							comp_error = download.getDisplayName() + ": "
+									+ download.getErrorDetails();
+						} else {
+
+							comp_error += "...";
+						}
+					} else {
+						if (incomp_error == null) {
+
+							incomp_error = download.getDisplayName() + ": "
+									+ download.getErrorDetails();
+						} else {
+
+							incomp_error += "...";
+						}
+					}
+				}
+			}
+
+			stats.errorCompleteTooltip = comp_error;
+			stats.errorInCompleteTooltip = incomp_error;
+		}
+	}
+	
 		// category stuff
 	
 	private static void RefreshCategorySideBar(Category category) {
@@ -1420,23 +1532,19 @@ public class SB_Transfers
 
 		if (isStopped != wasStopped) {
 			if (isStopped) {
-				statsWithLowNoise.numStoppedAll++;
 				if (!dm.getAssumedComplete()) {
 					statsWithLowNoise.numStoppedIncomplete++;
 				}
 				if (!lowNoise) {
-					statsNoLowNoise.numStoppedAll++;
 					if (!dm.getAssumedComplete()) {
 						statsNoLowNoise.numStoppedIncomplete++;
 					}
 				}
 			} else {
-				statsWithLowNoise.numStoppedAll--;
 				if (!dm.getAssumedComplete()) {
 					statsWithLowNoise.numStoppedIncomplete--;
 				}
 				if (!lowNoise) {
-					statsNoLowNoise.numStoppedAll--;
 					if (!dm.getAssumedComplete()) {
 						statsNoLowNoise.numStoppedIncomplete--;
 					}
