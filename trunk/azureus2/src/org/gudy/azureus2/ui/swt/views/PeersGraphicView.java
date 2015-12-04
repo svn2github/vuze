@@ -34,6 +34,8 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -580,6 +582,15 @@ public class PeersGraphicView
 				}		
     		}
     	});
+    
+    	// without this we get a transient blank when mousing in and out of the tab folder on OSX :(
+    
+    panel.addPaintListener(
+    	new PaintListener(){
+			public void paintControl(PaintEvent e) {
+				doRefresh();
+			}
+		});
   }
 
   private void refresh() {
