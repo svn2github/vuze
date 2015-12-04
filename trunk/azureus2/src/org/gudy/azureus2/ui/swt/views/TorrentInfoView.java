@@ -422,7 +422,7 @@ public class TorrentInfoView
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (parent != null) {
+				if (parent != null && !parent.isDisposed()) {
 					initialize(parent);
 				}
 			}
