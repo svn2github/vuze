@@ -1900,12 +1900,14 @@ PluginUpdatePlugin
 			
 			if ( update_txt_found || b_disable == null || !b_disable ){
 				
-				String msg =   "Version " + new_version + " of plugin '" + update.getName() + "' " +
-								"installed successfully";
-	
+				String msg = 
+					MessageText.getString(
+						"plugin.update.ok",
+						new String[]{ new_version, update.getName() });
+					
 				if ( update_txt_found ){
 					
-					msg += " - See update log for details";
+					msg += " - " + MessageText.getString( "plugin.update.ok.msg" );
 				}
 				
 				log.logAlertRepeatable( update_txt_found?LoggerChannel.LT_WARNING:LoggerChannel.LT_INFORMATION, msg );			
@@ -1925,10 +1927,12 @@ PluginUpdatePlugin
 			update_successful = true;
 			
 		}catch( Throwable e ){
-					
-			String msg =   "Version " + new_version + " of plugin '" + 	update.getName() + "' " +
-							"failed to install - " + (e.getMessage());
-		
+							
+			String msg = 
+					MessageText.getString(
+						"plugin.update.fail",
+						new String[]{ new_version, update.getName(), e.getMessage() });
+			
 			log.logAlertRepeatable( LoggerChannel.LT_ERROR, msg );
 			
 		}finally{
