@@ -312,8 +312,35 @@ public class UISWTViewImpl
 						+ ";" + title + ";" + Debug.getCompressedStackTrace());
 			}
 		}
-		if (eventListener == null
-				&& eventType != UISWTViewEvent.TYPE_DATASOURCE_CHANGED) {
+		
+		if (eventType == UISWTViewEvent.TYPE_LANGUAGEUPDATE) {
+		
+				// put it back to how it was constructed
+			
+			this.titleID = CFG_PREFIX + this.id + ".title";
+			if (!MessageText.keyExists(titleID) && MessageText.keyExists(this.id)){
+				this.titleID = id;
+			}else if ( id.contains( " " )){	// hack to fix HD Video Player which is using the expanded name as the id at the moment :(
+				this.titleID = "!" + id + "!";
+			}
+			title = null;
+			
+				// replay any explicit sets
+			
+			if ( setTitleID != null ){
+				setTitleID( setTitleID );
+			}
+			if ( setTitle != null ){
+				setTitle( setTitle );
+			}
+			
+			refreshTitle();
+			Messages.updateLanguageForControl(getComposite());
+		}
+		
+		if (	eventListener == null &&
+				eventType != UISWTViewEvent.TYPE_DATASOURCE_CHANGED ){
+			
 			return false;
 		}
 	
@@ -383,27 +410,7 @@ public class UISWTViewImpl
 				return true;
 			}
 			// TODO: What about triggering skinObject's EVENT_DATASOURCE_CHANGED?
-		} else if (eventType == UISWTViewEvent.TYPE_LANGUAGEUPDATE) {
-			
-				// put it back to how it was constructed
-			
-			this.titleID = CFG_PREFIX + this.id + ".title";
-			if (!MessageText.keyExists(titleID) && MessageText.keyExists(this.id)){
-				this.titleID = id;
-			}else if ( id.contains( " " )){	// hack to fix HD Video Player which is using the expanded name as the id at the moment :(
-				this.titleID = "!" + id + "!";
-			}
-			title = null;
-			
-				// replay any explicit sets
-			
-			if ( setTitleID != null ){
-				setTitleID( setTitleID );
-			}
-			if ( setTitle != null ){
-				setTitle( setTitle );
-			}
-			Messages.updateLanguageForControl(getComposite());
+
 		} else if (eventType == UISWTViewEvent.TYPE_OBFUSCATE
 				&& (eventListener instanceof ObfusticateImage)) {
 			if (data instanceof Map) {
@@ -529,6 +536,11 @@ public class UISWTViewImpl
 			this.titleID = titleID;
 			this.title = null;
 		}
+	}
+	
+	protected void
+	refreshTitle()
+	{
 	}
 
 	/* (non-Javadoc)

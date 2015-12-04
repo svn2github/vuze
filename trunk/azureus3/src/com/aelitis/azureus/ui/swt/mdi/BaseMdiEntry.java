@@ -755,16 +755,20 @@ public abstract class BaseMdiEntry
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.mdi.MdiEntry#updateUI()
 	 */
-	public void updateUI() {
-		if (getEventListener() == null) {
-			return;
-		}
+	public void 
+	updateUI() 
+	{
 		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
+			public void 
+			runSupport() 
+			{
 				if (!isDisposed()) {
-					triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
+					if (getEventListener() != null) {
+					
+						triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
+					}
+					refreshTitle();
 				}
-				// XXX What about title changes?
 			}
 		});
 	}

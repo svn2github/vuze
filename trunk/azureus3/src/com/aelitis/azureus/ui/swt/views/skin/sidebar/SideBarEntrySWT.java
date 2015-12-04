@@ -1429,15 +1429,28 @@ public class SideBarEntrySWT
 	public void setTitle(String title) {
 		super.setTitle(title);
 
+		refreshTitle();
+	}
+	
+	@Override
+	protected void
+	refreshTitle()
+	{
 		Utils.execSWTThread(new AERunnable() {
-			
+		
 			@Override
 			public void runSupport() {
 				if (swtItem == null || swtItem.isDisposed()) {
 					return;
 				}
-				swtItem.setText(getTitle());
-				redraw();
+				String title = getTitle();
+				
+				if ( !swtItem.getText().equals( title )){
+					
+					swtItem.setText( title );
+					
+					redraw();
+				}
 			}
 		});
 	}
