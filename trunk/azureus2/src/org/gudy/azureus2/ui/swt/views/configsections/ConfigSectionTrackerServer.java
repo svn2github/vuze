@@ -641,6 +641,17 @@ ConfigSectionTrackerServer
     new BooleanParameter(gMainTab, "Tracker Key Enable Server",
                          CFG_PREFIX + "tracker.enablekey").setLayoutData(gridData);
 
+    	//  banned peers
+    
+    Label banned_peers_label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(banned_peers_label,  CFG_PREFIX + "tracker.banned.clients" );
+
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    
+    new StringParameter(gMainTab, "Tracker Banned Clients", "" ).setLayoutData(gridData);
+
+ 
     // Networks Group //
     
     Group networks_group = new Group( gMainTab, SWT.NULL );

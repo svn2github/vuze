@@ -122,7 +122,7 @@ TRTrackerServerProcessorTCP
 
 		boolean compact_enabled = server.isCompactEnabled();
 		
-		try{
+		try{			
 			Map	root = null;
 				
 			TRTrackerServerTorrentImpl	specific_torrent	= null;
@@ -131,8 +131,27 @@ TRTrackerServerProcessorTCP
 			
 			boolean		xml_output		= false;
 			
-			
 			try{
+				List<String> banned = TRTrackerServerImpl.banned_clients;
+				
+				if ( !banned.isEmpty()){
+					
+					int	ua_pos = lowercase_input_header.indexOf( "user-agent" );
+					
+					if ( ua_pos != -1 ){
+						
+						String user_agent = lowercase_input_header.substring( ua_pos+10, lowercase_input_header.indexOf( "\n", ua_pos )).trim().substring(1).trim();
+						
+						for ( String b: banned ){
+							
+							if ( user_agent.contains( b )){
+								
+								throw( new Exception( "Client is not supported" ));
+							}
+						}
+					}
+				}
+
 				if ( str.startsWith( "/announce?" )){
 					
 					request_type	= TRTrackerServerRequest.RT_ANNOUNCE;

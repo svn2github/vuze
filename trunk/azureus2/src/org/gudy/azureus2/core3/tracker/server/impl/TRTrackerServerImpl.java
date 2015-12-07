@@ -67,6 +67,8 @@ TRTrackerServerImpl
 	
 	public static String	redirect_on_not_found		= "";
 	
+	public static List<String>	banned_clients = new ArrayList<String>();
+	
 		// torrent map is static across all protocol servers
 	
 	private static Map		torrent_map = new HashMap(); 
@@ -139,6 +141,27 @@ TRTrackerServerImpl
 		support_experimental_extensions = COConfigurationManager.getBooleanParameter( "Tracker Server Support Experimental Extensions" );
 		
 		restrict_non_blocking_requests = COConfigurationManager.getBooleanParameter( "Tracker TCP NonBlocking Restrict Request Types" );
+		
+		String banned = COConfigurationManager.getStringParameter( "Tracker Banned Clients", "" ).trim();
+		
+		banned_clients.clear();
+		
+		if ( banned.length() > 0 ){
+			
+			banned = banned.toLowerCase( Locale.US ).replaceAll( ";", "," );
+		
+			String[] bits = banned.split( "," );
+			
+			for ( String b: bits ){
+				
+				b = b.trim();
+				
+				if ( b.length() > 0 ){
+				
+					banned_clients.add( b );
+				}
+			}
+		}
 	}
 	
 	protected static boolean
