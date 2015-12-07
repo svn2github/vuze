@@ -1123,7 +1123,30 @@ public class TabbedMDI
 						
 					if ( cont != null ){
 							
-						skinnedDialog.setTitle( result.getTitle());
+						Object ds = result.getDatasource();
+						
+						if ( ds instanceof Object[]){
+							
+							Object[] temp = (Object[])ds;
+							
+							if ( temp.length > 0 ){
+								
+								ds = temp[0];
+							}
+						}
+						
+						String ds_str = "";
+						
+						if ( ds instanceof Download ){
+							
+							ds_str = ((Download)ds).getName();
+							
+						}else if ( ds instanceof DownloadManager ){
+							
+							ds_str = ((DownloadManager)ds).getDisplayName();
+						}
+						
+						skinnedDialog.setTitle( result.getTitle() + (ds_str.length()==0?"":(" - " + ds_str )));
 						
 						skinnedDialog.open();
 						
