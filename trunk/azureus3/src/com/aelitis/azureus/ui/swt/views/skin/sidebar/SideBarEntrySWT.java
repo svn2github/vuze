@@ -554,7 +554,7 @@ public class SideBarEntrySWT
 								if (viewComposite.isDisposed()){
 									updater.removeUpdater( this );
 								}else{
-									triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
+									view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
 								}
 							}
 							

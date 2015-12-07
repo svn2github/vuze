@@ -34,8 +34,13 @@ import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -43,12 +48,11 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
-import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
@@ -56,8 +60,10 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTabFolder;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 
 public class TabbedMDI
 	extends BaseMDI
@@ -414,6 +420,8 @@ public class TabbedMDI
 				TabbedEntry entry = null;
 				if (item != null) {
 					entry = getEntryFromTabItem(item);
+					
+					
 					showEntry(entry);
 				}
 
@@ -1075,5 +1083,77 @@ public class TabbedMDI
 			}
 		}
 		return image;
+	}
+	
+	@Override
+	protected MdiEntry 
+	createEntryByCreationListener(String id, Object ds, Map<?, ?> autoOpenMap)
+	{
+		final TabbedEntry result = (TabbedEntry)super.createEntryByCreationListener(id, ds, autoOpenMap);
+		
+		if ( result != null ){
+			PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+			PluginInterface pi = pm.getDefaultPluginInterface();
+			UIManager uim = pi.getUIManager();
+			MenuManager menuManager = uim.getMenuManager();
+			org.gudy.azureus2.plugins.ui.menus.MenuItem menuItem = menuManager.addMenuItem(id + "._end_", "menu.pop.out");
+			
+			menuItem.addFillListener(
+				new org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener() {
+						
+					public void menuWillBeShown(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object data) {
+						
+						menu.setVisible( result.canBuildStandAlone());
+					}
+				});
+			
+			menuItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
+				public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target) {
+					
+					SkinnedDialog skinnedDialog = 
+							new SkinnedDialog( 
+									"skin3_dlg_sidebar_popout", 
+									"shell",
+									null,	// standalone
+									SWT.RESIZE | SWT.MAX | SWT.DIALOG_TRIM);
+	
+					SWTSkin skin = skinnedDialog.getSkin();
+					
+					SWTSkinObjectContainer cont = result.buildStandAlone((SWTSkinObjectContainer)skin.getSkinObject( "content-area" ));
+						
+					if ( cont != null ){
+							
+						skinnedDialog.setTitle( result.getTitle());
+						
+						skinnedDialog.open();
+						
+					}else{
+						
+						skinnedDialog.close();
+					}
+				}
+			});
+			
+		}
+		
+		return( result );
+	}
+	
+	@Override
+	public void fillMenu(Menu menu, final MdiEntry entry, String menuID) {
+
+		super.fillMenu(menu, entry, menuID);
+		
+		if ( entry != null ){
+			org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items = MenuItemManager.getInstance().getAllAsArray(entry.getId() + "._end_");
+	
+			if ( menu_items.length > 0 ){
+				
+				MenuBuildUtils.addPluginMenuItems(menu_items, menu, false, true,
+						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
+							entry
+						}));
+			}
+		}
 	}
 }

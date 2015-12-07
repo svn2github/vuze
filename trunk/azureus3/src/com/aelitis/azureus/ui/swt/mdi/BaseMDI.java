@@ -346,7 +346,9 @@ public abstract class BaseMDI
 		return created;
 	}
 
-	private MdiEntry createEntryByCreationListener(String id, Object ds, Map<?, ?> autoOpenMap) {
+	protected MdiEntry 
+	createEntryByCreationListener(String id, Object ds, Map<?, ?> autoOpenMap)
+	{
 		MdiEntryCreationListener mdiEntryCreationListener = null;
 		for (String key : mapIdToCreationListener.keySet()) {
 			if (Pattern.matches(key, id)) {

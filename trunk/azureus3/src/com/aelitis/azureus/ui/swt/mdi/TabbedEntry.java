@@ -37,9 +37,15 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -55,6 +61,8 @@ import com.aelitis.azureus.util.MapUtils;
 public class TabbedEntry
 	extends BaseMdiEntry implements DisposeListener
 {
+	private static final String SO_ID_ENTRY_WRAPPER = "mdi.content.item";
+
 	private CTabItem swtItem;
 
 	private SWTSkin skin;
@@ -70,6 +78,167 @@ public class TabbedEntry
 		this.skin = skin;
 	}
 
+	public boolean
+	canBuildStandAlone()
+	{
+		String skinRef = getSkinRef();
+
+		if (skinRef != null){
+			
+			return( true );
+			
+		}else {
+			
+			UISWTViewEventListener event_listener = getEventListener();
+			
+			if ( event_listener instanceof UISWTViewCoreEventListenerEx && ((UISWTViewCoreEventListenerEx)event_listener).isCloneable()){
+
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
+	public SWTSkinObjectContainer 
+	buildStandAlone(
+		SWTSkinObjectContainer		soParent )
+	{
+		Control control = null;
+
+		//SWTSkin skin = soParent.getSkin();
+		
+		Composite parent = soParent.getComposite();
+
+		String skinRef = getSkinRef();
+		
+		if ( skinRef != null ){
+			
+			Shell shell = parent.getShell();
+			Cursor cursor = shell.getCursor();
+			try {
+				shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
+
+				// wrap skinRef with a container that we control visibility of
+				// (invisible by default)
+				SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
+						"MdiContents." + uniqueNumber++, SO_ID_ENTRY_WRAPPER,
+						soParent, null);
+				
+				SWTSkinObject skinObject = skin.createSkinObject(id, skinRef,
+						soContents, getDatasourceCore());
+
+				control = skinObject.getControl();
+				control.setLayoutData(Utils.getFilledFormData());
+				control.getParent().layout(true, true);
+			
+				soContents.setVisible( true );
+							
+				return( soContents );
+				
+			} finally {
+				shell.setCursor(cursor);
+			}
+		} else {
+			// XXX: This needs to be merged into BaseMDIEntry.initialize
+
+			UISWTViewEventListener event_listener = getEventListener();
+			
+			if ( event_listener instanceof UISWTViewCoreEventListenerEx && ((UISWTViewCoreEventListenerEx)event_listener).isCloneable()){
+				
+				final UISWTViewImpl view = new UISWTViewImpl( getParentID(), id, true );
+				
+				try{
+					view.setEventListener(((UISWTViewCoreEventListenerEx)event_listener).getClone(),false);
+					
+				}catch( Throwable e ){
+					// shouldn't happen as we aren't asking for 'create' to occur which means it can't fail
+					Debug.out( e );
+				}
+				
+				view.setDatasource( datasource );
+
+				try {
+					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
+							"MdiIView." + uniqueNumber++, SO_ID_ENTRY_WRAPPER,
+							soParent );
+
+					parent.setBackgroundMode(SWT.INHERIT_NONE);
+
+					final Composite viewComposite = soContents.getComposite();
+					boolean doGridLayout = true;
+					if (getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
+						doGridLayout = false;
+					}
+					//					viewComposite.setBackground(parent.getDisplay().getSystemColor(
+					//							SWT.COLOR_WIDGET_BACKGROUND));
+					//					viewComposite.setForeground(parent.getDisplay().getSystemColor(
+					//							SWT.COLOR_WIDGET_FOREGROUND));
+					if (doGridLayout) {
+						GridLayout gridLayout = new GridLayout();
+						gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
+						viewComposite.setLayout(gridLayout);
+						viewComposite.setLayoutData(Utils.getFilledFormData());
+					}
+
+					view.setPluginSkinObject(soContents);
+					view.initialize(viewComposite);
+					
+					//swtItem.setText(view.getFullTitle());
+
+					Composite iviewComposite = view.getComposite();
+					control = iviewComposite;
+					// force layout data of IView's composite to GridData, since we set
+					// the parent to GridLayout (most plugins use grid, so we stick with
+					// that instead of form)
+					if (doGridLayout) {
+						Object existingLayoutData = iviewComposite.getLayoutData();
+						Object existingParentLayoutData = iviewComposite.getParent().getLayoutData();
+						if (existingLayoutData == null
+								|| !(existingLayoutData instanceof GridData)
+								&& (existingParentLayoutData instanceof GridLayout)) {
+							GridData gridData = new GridData(GridData.FILL_BOTH);
+							iviewComposite.setLayoutData(gridData);
+						}
+					}
+
+					parent.layout(true, true);
+					
+					final UIUpdater updater = UIFunctionsManager.getUIFunctions().getUIUpdater();
+
+					updater.addUpdater(
+						new UIUpdatable()  {
+							
+							public void updateUI() {
+								if (viewComposite.isDisposed()){
+									updater.removeUpdater( this );
+								}else{
+									view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
+								}
+							}
+							
+							public String getUpdateUIName() {
+								return( "popout" );
+							}
+						});
+					
+					soContents.setVisible( true );
+					
+					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+					
+					return( soContents );
+					
+				} catch (Throwable e) {
+					
+					Debug.out(e);
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
+	
 	/* (non-Javadoc)
 	 * @note SideBarEntrySWT is neary identical to this one.  Please keep them
 	 *       in sync until commonalities are placed in BaseMdiEntry

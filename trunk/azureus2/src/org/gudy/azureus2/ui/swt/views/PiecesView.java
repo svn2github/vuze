@@ -27,7 +27,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPieceListener;
@@ -39,6 +38,8 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.piece.MyPieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
@@ -74,7 +75,8 @@ public class PiecesView
 	DownloadManagerPieceListener,
 	TableDataSourceChangedListener,
 	TableLifeCycleListener,
-	TableViewSWTMenuFillListener
+	TableViewSWTMenuFillListener,
+	UISWTViewCoreEventListenerEx
 {
 	private static boolean registeredCoreSubViews = false;
 
@@ -116,6 +118,18 @@ public class PiecesView
 		super(MSGID_PREFIX);
 	}
 
+	public boolean
+	isCloneable()
+	{
+		return( true );
+	}
+	
+	public UISWTViewCoreEventListener
+	getClone()
+	{
+		return( new PiecesView());
+	}
+	
 	// @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
 	public TableViewSWT<PEPiece> initYourTableView() {
 		tv = TableViewFactory.createTableViewSWT(PEPiece.class,
