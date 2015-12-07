@@ -38,12 +38,17 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -90,71 +95,88 @@ public class SBC_ChatOverview
 	public static void
 	preInitialize()
 	{
-		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		
-		if ( mdi == null ){
+		UIManager ui_manager = PluginInitializer.getDefaultInterface().getUIManager();
 
-			return;
-		}
-		
-		mdi.registerEntry(
-			"Chat_.*", 
-			new MdiEntryCreationListener2() 
-			{
-				public MdiEntry 
-				createMDiEntry(
-					MultipleDocumentInterface mdi, 
-					String id,
-					Object datasource, 
-					Map<?, ?> params) 
+		ui_manager.addUIListener(
+				new UIManagerListener()
 				{
-					ChatInstance chat = null;
-					
-					if ( datasource instanceof ChatInstance ){
+					public void
+					UIAttached(
+						UIInstance		instance )
+					{
+						final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 						
-						chat = (ChatInstance)datasource;
-						
-						try{
-							chat = chat.getClone();
-							
-						}catch( Throwable e ){
-							
-							chat = null;
-							
-							Debug.out( e );
+						if ( mdi == null ){
+				
+							return;
 						}
 						
-					}else if ( id.length() > 7 ){
-						
-						BuddyPluginBeta beta = BuddyPluginUtils.getBetaPlugin();
-
-						if ( beta != null ){
-							
-							try{						
-								String[] bits = id.substring( 5 ).split( ":" );
-								
-								String network 	= AENetworkClassifier.internalise( bits[0] );
-								String key		= new String( Base32.decode( bits[1] ), "UTF-8" );
-								
-								chat = beta.getChat(network, key);
-								
-							}catch( Throwable e ){
-								
-								Debug.out( e );
-							}
-						}
-					}
-
-					if ( chat != null ){
-						
-						chat.setAutoNotify( true );
-						
-						return( createChatMdiEntry( chat ));
+						mdi.registerEntry(
+							"Chat_.*", 
+							new MdiEntryCreationListener2() 
+							{
+								public MdiEntry 
+								createMDiEntry(
+									MultipleDocumentInterface mdi, 
+									String id,
+									Object datasource, 
+									Map<?, ?> params) 
+								{
+									ChatInstance chat = null;
+									
+									if ( datasource instanceof ChatInstance ){
+										
+										chat = (ChatInstance)datasource;
+										
+										try{
+											chat = chat.getClone();
+											
+										}catch( Throwable e ){
+											
+											chat = null;
+											
+											Debug.out( e );
+										}
+										
+									}else if ( id.length() > 7 ){
+										
+										BuddyPluginBeta beta = BuddyPluginUtils.getBetaPlugin();
+				
+										if ( beta != null ){
+											
+											try{						
+												String[] bits = id.substring( 5 ).split( ":" );
+												
+												String network 	= AENetworkClassifier.internalise( bits[0] );
+												String key		= new String( Base32.decode( bits[1] ), "UTF-8" );
+												
+												chat = beta.getChat(network, key);
+												
+											}catch( Throwable e ){
+												
+												Debug.out( e );
+											}
+										}
+									}
+				
+									if ( chat != null ){
+										
+										chat.setAutoNotify( true );
+										
+										return( createChatMdiEntry( chat ));
+									}
+									
+									return( null );
+								}
+							});
 					}
 					
-					return( null );
-				}
-			});
+					public void 
+					UIDetached(
+						UIInstance instance) 
+					{
+					};
+				});
 	}
 	
 	public static void
