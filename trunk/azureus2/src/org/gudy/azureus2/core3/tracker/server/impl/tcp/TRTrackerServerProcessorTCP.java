@@ -28,10 +28,11 @@ import java.net.*;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
+
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 import org.gudy.azureus2.core3.util.*;
-
 import org.bouncycastle.util.encoders.Base64;
 
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
@@ -66,6 +67,23 @@ TRTrackerServerProcessorTCP
 
 	protected static final byte[]	HTTP_RESPONSE_END_GZIP 		= (NL + "Content-Encoding: gzip" + NL + NL).getBytes();
 	protected static final byte[]	HTTP_RESPONSE_END_NOGZIP 	= (NL + NL).getBytes();
+	
+	private static String MSG_CLIENT_NOT_SUPPORTED;
+	
+	static{
+		MessageText.addAndFireListener(
+			new MessageText.MessageTextListener()
+			{	
+				public void 
+				localeChanged(
+					Locale old_locale, 
+					Locale new_locale)
+				{
+					MSG_CLIENT_NOT_SUPPORTED = MessageText.getString( "tracker.msg.client.not.supported" );
+				
+				}
+			});
+	}
 	
 	private TRTrackerServerTCP	server;
 	private String				server_url;
@@ -146,7 +164,7 @@ TRTrackerServerProcessorTCP
 							
 							if ( user_agent.contains( b )){
 								
-								throw( new Exception( "Client is not supported" ));
+								throw( new Exception( MSG_CLIENT_NOT_SUPPORTED ));
 							}
 						}
 					}
