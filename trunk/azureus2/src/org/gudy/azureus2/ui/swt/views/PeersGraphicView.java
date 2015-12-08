@@ -45,7 +45,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -67,6 +66,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
@@ -83,7 +83,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
  *
  */
 public class PeersGraphicView
-	implements UISWTViewCoreEventListener, UIPluginViewToolBarListener
+	implements UISWTViewCoreEventListener, UIPluginViewToolBarListener, UISWTViewCoreEventListenerEx
 {
   
   public static String MSGID_PREFIX = "PeersGraphicView";
@@ -226,6 +226,18 @@ public class PeersGraphicView
     this.peerComparator = new PeerComparator();
   } 
   
+  public boolean
+  isCloneable()
+  {
+	  return( true );
+  }
+
+  public UISWTViewCoreEventListener
+  getClone()
+  {
+	  return( new PeersGraphicView());
+  }
+	
   private boolean comp_focused;
   private Object focus_pending_ds;
   

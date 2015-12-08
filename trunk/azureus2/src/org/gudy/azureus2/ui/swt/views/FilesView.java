@@ -53,8 +53,9 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BubbleTextBox;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -86,7 +87,8 @@ public class FilesView
 	implements TableDataSourceChangedListener, TableSelectionListener,
 	TableViewSWTMenuFillListener, TableRefreshListener, 
 	DownloadManagerStateAttributeListener, DownloadManagerListener,
-	TableLifeCycleListener, TableViewFilterCheckEx<DiskManagerFileInfo>, KeyListener, ParameterListener
+	TableLifeCycleListener, TableViewFilterCheckEx<DiskManagerFileInfo>, KeyListener, ParameterListener,
+	UISWTViewCoreEventListenerEx
 {
 	private static boolean registeredCoreSubViews = false;
 	boolean refreshing = false;
@@ -171,10 +173,21 @@ public class FilesView
 	}
 
 	public FilesView(boolean allowTabViews) {
-		super("FilesView");
+		super(MSGID_PREFIX);
 		this.allowTabViews = allowTabViews;
 	}
 
+	public boolean
+	isCloneable()
+	{
+		return( true );
+	}
+
+	public UISWTViewCoreEventListener
+	getClone()
+	{
+		return( new FilesView( allowTabViews ));
+	}
 
 	public TableViewSWT<DiskManagerFileInfo> initYourTableView() {
 		tv = TableViewFactory.createTableViewSWT(

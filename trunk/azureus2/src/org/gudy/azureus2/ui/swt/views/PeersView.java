@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -50,6 +49,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.peer.PeerFilesView;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
@@ -86,7 +87,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 public class PeersView
 	extends TableViewTab<PEPeer>
 	implements DownloadManagerPeerListener, TableDataSourceChangedListener,
-	TableLifeCycleListener, TableViewSWTMenuFillListener
+	TableLifeCycleListener, TableViewSWTMenuFillListener, UISWTViewCoreEventListenerEx
 {
 		
 	static TableColumnCore[] getBasicColumnItems(String table_id) {
@@ -169,6 +170,18 @@ public class PeersView
    */
   public PeersView() {
   	super(MSGID_PREFIX);
+  }
+  
+  public boolean
+  isCloneable()
+  {
+	  return( true );
+  }
+
+  public UISWTViewCoreEventListener
+  getClone()
+  {
+	  return( new PeersView());
   }
   
   // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()

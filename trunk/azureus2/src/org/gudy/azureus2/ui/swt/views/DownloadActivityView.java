@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 
 import com.aelitis.azureus.core.util.GeneralUtils;
@@ -60,7 +61,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
  */
 public class 
 DownloadActivityView 
-	implements UISWTViewCoreEventListener, UIPluginViewToolBarListener
+	implements UISWTViewCoreEventListenerEx, UIPluginViewToolBarListener
 {
 	public static final String MSGID_PREFIX = "DownloadActivityView";
 
@@ -81,6 +82,18 @@ DownloadActivityView
 	public 
 	DownloadActivityView()
 	{
+	}
+	
+	public boolean
+	isCloneable()
+	{
+		return( true );
+	}
+
+	public UISWTViewCoreEventListener
+	getClone()
+	{
+		return( new DownloadActivityView());
 	}
 	
 	private String 
