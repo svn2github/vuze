@@ -672,6 +672,7 @@ public class PieceInfoView
 
 		if (img == null) {
 			img = new Image(pieceInfoCanvas.getDisplay(), bounds.width, iNeededHeight);
+			oldBlockInfo = null;
 		}
 		GC gcImg = new GC(img);
 		
