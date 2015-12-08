@@ -57,6 +57,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 import org.gudy.azureus2.ui.swt.views.PiecesView;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 
@@ -77,7 +78,7 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class PieceInfoView
 	implements DownloadManagerPieceListener,
-	UISWTViewCoreEventListener
+	UISWTViewCoreEventListenerEx
 {
 
 	private final static int BLOCK_FILLSIZE = 14;
@@ -139,6 +140,18 @@ public class PieceInfoView
 		};
 	}
 
+	public boolean
+	isCloneable()
+	{
+		return( true );
+	}
+
+	public UISWTViewCoreEventListener
+	getClone()
+	{
+		return( new PieceInfoView());
+	}
+	
 	private void dataSourceChanged(Object newDataSource) {
 		//System.out.println( "dsc: dlm=" + dlm + ", new=" + (newDataSource instanceof Object[]?((Object[])newDataSource)[0]:newDataSource));
 			
