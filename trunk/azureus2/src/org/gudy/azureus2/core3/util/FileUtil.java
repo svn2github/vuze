@@ -104,16 +104,28 @@ public class FileUtil {
     return new File(SystemProperties.getUserPath(), filename);
   }
   
-  public static File getApplicationFile(String filename) {
-      
-    String path = SystemProperties.getApplicationPath();
-      
-      if(Constants.isOSX) {
-        path = path + SystemProperties.getApplicationName() + ".app/Contents/";
-      }
-      
-      return new File(path, filename);
-  }
+  /**
+   * Get a file relative to this program's install directory.
+   * <p>
+   * On Windows, this is usually %Program Files%\[AppName]\[filename]
+   * <br>
+   * On *nix, this is usually the [Launch Dir]/[filename]
+   * <br>
+   * On Mac, this is "/Users/Shared/Library/Application Support/[AppName]/[filename]"
+   * On legacy (unsigned) Mac, it's usually "[AppName].app/Contents"
+   */
+	public static File getApplicationFile(String filename) {
+
+		String path = SystemProperties.getApplicationPath();
+
+		if (Constants.isOSX && !new File(path, "Azureus2.jar").exists()) {
+			// Legacy Mac, we stored things inside the .app, which caused
+			// signature breakage on change.
+			path = path + SystemProperties.getApplicationName() + ".app/Contents/";
+		}
+
+		return new File(path, filename);
+	}
   
   
   
