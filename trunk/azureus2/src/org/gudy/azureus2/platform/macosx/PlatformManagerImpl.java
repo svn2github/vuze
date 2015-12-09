@@ -1151,18 +1151,31 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		}
 	}
 
+	/**
+	 * Bundle Path is the .app file that launched vuze, usually /Applications/Vuze.app
+	 */
     private String
     getBundlePath()
     {
+  		String mod_name = System.getProperty( "exe4j.moduleName", null );
+  		if (mod_name != null && mod_name.endsWith(".app")) {
+  			return mod_name;
+  		}
 		return( SystemProperties.getApplicationPath() + SystemProperties.getApplicationName() + ".app" );
     }
     
+  	/**
+  	 * Bundle Path is the .app file that launched vuze, usually /Applications/Vuze.app
+  	 */
     private File
     getAbsoluteBundleFile()
     {
     	return( new File( getBundlePath()).getAbsoluteFile());
     }
     
+  	/**
+  	 * command to launch Vuze
+  	 */
 	public String
 	getApplicationCommandLine()
 		throws PlatformManagerException
