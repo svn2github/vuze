@@ -509,7 +509,7 @@ public class SystemProperties {
   {
 	  String	str = getApplicationPath();
 
-	  if( Constants.isOSX ){
+		if( Constants.isOSX && !new File(str, "Azureus2.jar").exists() ) {
 
 		  str += SystemProperties.getApplicationName() + ".app/Contents/Resources/Java/";
 	  }
