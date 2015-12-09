@@ -311,10 +311,18 @@ PlatformManagerUpdateChecker
 						
 						installer.addResource( resource_name, zip, false );
 
-						String target = 
-							installer.getInstallDir() +
-							File.separator + SystemProperties.getApplicationName() + ".app" + 
-							File.separator + name;
+						String appDir = installer.getInstallDir() +
+								File.separator + SystemProperties.getApplicationName() + ".app"; 
+						String contentsResourceJava = "Contents/Resources/Java/"; 
+						if (name.startsWith(contentsResourceJava) &&
+								!new File(appDir, "Contents").exists()) {
+							// trying to install something into the "Java" dir
+							// New installs have the "Java" dir as the Install dir.
+							appDir = installer.getInstallDir();
+							name = name.substring(contentsResourceJava.length());
+						}
+						
+						String target = appDir + File.separator + name;
 
 						installer.addMoveAction( resource_name, target ); 
 						
