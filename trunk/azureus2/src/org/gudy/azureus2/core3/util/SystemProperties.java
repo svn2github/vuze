@@ -19,12 +19,18 @@
  */
 package org.gudy.azureus2.core3.util;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.util.Properties;
 
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.internat.*;
-import org.gudy.azureus2.platform.*;
+import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 /**
  * Utility class to manage system-dependant information.
@@ -80,6 +86,13 @@ public class SystemProperties {
 
 		if ( Constants.isOSX && !System.getProperty( "azureus.infer.app.name", "true" ).equals( "false" )){
 			
+			// Could use this, but determineApplicationName is called from
+			// COConfigrationManager.preInitialize() and we probably don't want
+			// to fire up PlatformManager just yet.
+			//String	app = PlatformManagerFactory.getPlatformManager().getApplicationCommandLine();
+			
+  		String classpath = System.getProperty( "exe4j.moduleName", null );
+			if (classpath == null || !classpath.contains(".app")) {
 			/* example class path
 			 
 			 /Applications/Utilities/Azureus.app/Contents/Resources/ 
@@ -88,7 +101,9 @@ public class SystemProperties {
 			Java/Azureus2.jar:/System/Library/Java
 			*/
 			
-			String	classpath = System.getProperty("java.class.path");
+				classpath = System.getProperty("java.class.path");
+				
+			}
 			
 			if ( classpath == null ){
 				
@@ -98,7 +113,7 @@ public class SystemProperties {
 				
 			}else{
 				
-				int	dot_pos = classpath.indexOf( ".app/Contents" );
+				int	dot_pos = classpath.indexOf( ".app" );
 				
 				if ( dot_pos == -1 ){
 					
