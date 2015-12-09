@@ -254,7 +254,7 @@ UpdateManagerImpl
 	}
 	
 	/**
-	 * @note Exactly the same as {@link UtilitiesImpl#getInstallDir()}
+	 * @note Exactly the same as {@link UtilitiesImpl#getAzureusProgramDir()}
 	 */
 	public String
 	getInstallDir()
