@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -252,6 +253,9 @@ UpdateManagerImpl
 		installers.remove( installer );
 	}
 	
+	/**
+	 * @note Exactly the same as {@link UtilitiesImpl#getInstallDir()}
+	 */
 	public String
 	getInstallDir()
 	{

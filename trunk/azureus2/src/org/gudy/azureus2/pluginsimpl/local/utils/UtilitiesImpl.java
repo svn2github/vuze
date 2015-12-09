@@ -64,6 +64,7 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentF
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.update.UpdateManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader.ResourceUploaderFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
@@ -331,6 +332,9 @@ UtilitiesImpl
 		return( res );
 	}
 	
+	/**
+	 * @note Exactly the same as {@link UpdateManagerImpl#getInstallDir()}
+	 */
 	public String
 	getAzureusProgramDir()
 	{
