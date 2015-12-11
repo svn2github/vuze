@@ -4833,23 +4833,47 @@ DiskManagerCheckRequestListener, IPFilterListener
 		boolean 	force, 
 		String 		network )	// on behalf of a particular peer OR "" for general
 	{
-		// PARG TODO:
+		// if it isn't for non-pub network then try to maintain the extra connection slots, if any, allocated
+		// to non-pub
+		
+		final int	non_pub_extra;
+		
+		if ( network != AENetworkClassifier.AT_I2P ){
+			
+			int[] max_con = getMaxConnections();
+			
+			non_pub_extra = max_con[1];
+			
+		}else{
+			
+			non_pub_extra = 0;
+		}
 		
 		final List<PEPeerTransport> peer_transports = peer_transports_cow;
-		PEPeerTransport max_transport = null;
+		
+		PEPeerTransport max_transport 			= null;
 		PEPeerTransport max_seed_transport		= null;
 		PEPeerTransport max_non_lan_transport 	= null;
+		
+		PEPeerTransport max_pub_transport 			= null;
+		PEPeerTransport max_pub_seed_transport		= null;
+		PEPeerTransport max_pub_non_lan_transport 	= null;
 
 		long max_time = 0;
 		long max_seed_time 		= 0;
 		long max_non_lan_time	= 0;
+		long max_pub_time		= 0;
+		long max_pub_seed_time 		= 0;
+		long max_pub_non_lan_time	= 0;
 		
-
+		int	non_pub_found = 0;
+		
 		List<Long> activeConnectionTimes = new ArrayList<Long>(peer_transports.size());
 
 		int	lan_peer_count	= 0;
 
-		for( int i=0; i < peer_transports.size(); i++ ) {
+		for ( int i=0; i < peer_transports.size(); i++ ){
+			
 			final PEPeerTransport peer = peer_transports.get( i );
 
 			if( peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
@@ -4890,21 +4914,32 @@ DiskManagerCheckRequestListener, IPFilterListener
 					peerTestTime = peerTestTime * 2;   //prefer to drop a local connection, to make room for more remotes
 				}
 
+				boolean	count_pubs = non_pub_extra > 0 && peer.getNetwork() == AENetworkClassifier.AT_PUBLIC;
+				
 				if ( peer.isLANLocal()){
 
 					lan_peer_count++;
 
 				}else{
 
-					if( peerTestTime > max_non_lan_time ) {
-						max_non_lan_time = peerTestTime;
-						max_non_lan_transport = peer;
+					if ( peerTestTime > max_non_lan_time ){
+						
+						max_non_lan_time 		= peerTestTime;
+						max_non_lan_transport 	= peer;
+					}
+					
+					if ( count_pubs ){
+						
+						if ( peerTestTime > max_pub_non_lan_time ){
+							
+							max_pub_non_lan_time 		= peerTestTime;
+							max_pub_non_lan_transport 	= peer;
+						}
 					}
 				}
 
-
-
-				// anti-leech checks
+					// anti-leech checks
+				
 				if( !seeding_mode ) {
 
 					// remove long-term snubbed peers with higher probability
@@ -4938,17 +4973,66 @@ DiskManagerCheckRequestListener, IPFilterListener
 				}
 
 
-				if( peerTestTime > max_time ) {
-					max_time = peerTestTime;
-					max_transport = peer;
+				if ( peerTestTime > max_time ){
+					
+					max_time 		= peerTestTime;
+					max_transport 	= peer;
 				}
 
+				if ( count_pubs ){
+					
+					if ( peerTestTime > max_pub_time ){
+						
+						max_pub_time 		= peerTestTime;
+						max_pub_transport 	= peer;
+					}
+				}else{
+					
+					non_pub_found++;
+				}
+				
 				if ( peer.isSeed() || peer.isRelativeSeed()){
 
-					if( peerTestTime > max_seed_time ) {
-						max_seed_time = peerTestTime;
-						max_seed_transport = peer;
+					if ( peerTestTime > max_seed_time ){
+						
+						max_seed_time 		= peerTestTime;
+						max_seed_transport 	= peer;
 					}
+					
+					if ( count_pubs ){
+						
+						if ( peerTestTime > max_pub_seed_time ){
+							
+							max_pub_seed_time 		= peerTestTime;
+							max_pub_seed_transport 	= peer;
+						}
+					}
+				}
+			}
+		}
+		
+		if ( non_pub_extra > 0 ){
+			
+			if ( non_pub_found <= non_pub_extra ){
+				
+					// don't kick a non-pub peer
+				
+				if ( max_transport != null && max_transport.getNetwork() != AENetworkClassifier.AT_PUBLIC ){
+					
+					max_time		= max_pub_time;
+					max_transport 	= max_pub_transport;
+				}
+				
+				if ( max_seed_transport != null && max_seed_transport.getNetwork() != AENetworkClassifier.AT_PUBLIC ){
+					
+					max_seed_time		= max_pub_seed_time;
+					max_seed_transport	= max_pub_seed_transport;
+				}
+				
+				if ( max_non_lan_transport != null && max_non_lan_transport.getNetwork() != AENetworkClassifier.AT_PUBLIC ){
+					
+					max_non_lan_time		= max_pub_non_lan_time;
+					max_non_lan_transport 	= max_pub_non_lan_transport;
 				}
 			}
 		}
