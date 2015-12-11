@@ -64,10 +64,31 @@ public class PeerDatabase {
 				}
 			});
   
+  private final TreeSet<PeerItem> discovered_peers_non_pub = 
+			 new TreeSet<PeerItem>(
+				new Comparator<PeerItem>()
+				{
+					public int 
+					compare(
+						PeerItem o1, 
+						PeerItem o2 ) 
+					{
+						long res = o2.getPriority() - o1.getPriority();
+						
+						if ( res == 0 ){
+							
+							res = o1.compareTo( o2 );
+						}
+						
+						return( res<0?-1:(res>0?1:0 ));
+					}
+				});
+  
   private final AEMonitor map_mon = new AEMonitor( "PeerDatabase" );
   
   private PeerItem[] cached_peer_popularities = null;
   private int popularity_pos = 0;
+  private int popularity_pos_non_pub = 0;
   private long last_rebuild_time 	= Integer.MIN_VALUE;
   private long last_rotation_time 	= Integer.MIN_VALUE;
   
@@ -182,11 +203,23 @@ public class PeerDatabase {
         int max_cache_size = PeerUtils.MAX_CONNECTIONS_PER_TORRENT * 2;	// cache twice the amount to allow for failures
         if( max_cache_size < 1 || max_cache_size > MAX_DISCOVERED_PEERS )  max_cache_size = MAX_DISCOVERED_PEERS;
         
-        if( discovered_peers.size() > max_cache_size ) {
+        while( discovered_peers.size() > max_cache_size ) {
         	
         	Iterator<PeerItem> it = discovered_peers.iterator();
         	it.next();
         	it.remove();
+        }
+        
+        if ( peer.getNetwork() != AENetworkClassifier.AT_PUBLIC ){
+        	
+        	 discovered_peers_non_pub.add( peer );
+        	
+        	 while( discovered_peers_non_pub.size() > max_cache_size ) {
+             	
+             	Iterator<PeerItem> it = discovered_peers_non_pub.iterator();
+             	it.next();
+             	it.remove();
+             }
         }
       }
     }
@@ -292,8 +325,9 @@ public class PeerDatabase {
    * Get the next potential peer for optimistic connect.
    * @return peer to connect, or null of no optimistic peer available
    */
-  public PeerItem getNextOptimisticConnectPeer( ) {
-	  PeerItem item = getNextOptimisticConnectPeer(0);
+  public PeerItem getNextOptimisticConnectPeer( boolean non_public ) {
+	  
+	  PeerItem item = getNextOptimisticConnectPeer(non_public,0);
 	  
 	  /*
 	  if ( item != null ){
@@ -305,7 +339,7 @@ public class PeerDatabase {
 	  return( item );
   }
   
-  private PeerItem getNextOptimisticConnectPeer( final int recursion_count ) {
+  private PeerItem getNextOptimisticConnectPeer( boolean non_public, final int recursion_count ) {
     long now = SystemTime.getMonotonousTime();
 
     boolean	starting_up = now - start_time <= STARTUP_MILLIS;
@@ -318,7 +352,7 @@ public class PeerDatabase {
     	
     		// inject a few PEX peers during startup as we know they're live and can help bootstrap the torrent
     	
-    	peer = getPeerFromPEX( now, starting_up );
+    	peer = getPeerFromPEX( now, starting_up, non_public );
     	
     	tried_pex = true;
     }
@@ -332,13 +366,35 @@ public class PeerDatabase {
 	    	
 	    	if( !discovered_peers.isEmpty() ) {
 	    		
-	    		Iterator<PeerItem> it = discovered_peers.iterator();
-	    		
-	    		peer = it.next();
-	    		
-	    		it.remove();
-	        
-	    		discovered_peer	= true;
+	    		if ( non_public ){
+	    			
+	    			if ( !discovered_peers_non_pub.isEmpty()){
+	    			
+	    				Iterator<PeerItem> it = discovered_peers_non_pub.iterator();
+	    			
+	    				peer = it.next();
+			    		
+			    		it.remove();
+			        
+			    		discovered_peer	= true;
+			    		
+			    		discovered_peers.remove( peer );
+	    			}
+	    		}else{
+	    			
+		    		Iterator<PeerItem> it = discovered_peers.iterator();
+		    		
+		    		peer = it.next();
+		    		
+		    		it.remove();
+		        
+		    		discovered_peer	= true;
+		    		
+		    		if ( peer.getNetwork() != AENetworkClassifier.AT_PUBLIC ){
+		    			
+		    			discovered_peers_non_pub.remove( peer );
+		    		}
+	    		}
 	    	}
 	    }finally{
 	    	map_mon.exit();  
@@ -349,7 +405,7 @@ public class PeerDatabase {
     
     if ( peer == null && !tried_pex ) {
   
-    	peer = getPeerFromPEX( now, starting_up );
+    	peer = getPeerFromPEX( now, starting_up, non_public );
     }
 
     //to reduce the number of wasted outgoing attempts, we limit how frequently we hand out the same optimistic peer in a given time period
@@ -374,7 +430,7 @@ public class PeerDatabase {
     	  
     	  	// we've recently given this peer, so recursively find another peer to try
       
-    	  PeerItem next_peer = getNextOptimisticConnectPeer( recursion_count + 1);
+    	  PeerItem next_peer = getNextOptimisticConnectPeer( non_public, recursion_count + 1);
     	  
     	  if ( next_peer != null ){
     		  
@@ -386,6 +442,11 @@ public class PeerDatabase {
     		    try{  map_mon.enter();
   
     		    	discovered_peers.add( peer );
+    		    	
+    		    	if ( peer.getNetwork() != AENetworkClassifier.AT_PUBLIC ){
+    		    		
+    		    		discovered_peers_non_pub.add( peer );
+    		    	}
    
    			    }finally{  
    			    	map_mon.exit();  
@@ -417,7 +478,8 @@ public class PeerDatabase {
   private PeerItem
   getPeerFromPEX(
 	long		now,
-	boolean		starting_up )
+	boolean		starting_up,
+	boolean		non_public )
   {
 	  PeerItem	peer;
 	  
@@ -428,15 +490,49 @@ public class PeerDatabase {
 		  if( time_since_rebuild > (starting_up?STARTUP_MIN_REBUILD_WAIT_TIME:MIN_REBUILD_WAIT_TIME )) {
 			  cached_peer_popularities = getExchangedPeersSortedByLeastPopularFirst();
 			  popularity_pos = 0;
+			  popularity_pos_non_pub = 0;
 			  last_rebuild_time = now;
 		  }
 	  }
 
 	  if ( cached_peer_popularities != null && cached_peer_popularities.length > 0 ) {
-		  peer = cached_peer_popularities[ popularity_pos ];
-		  popularity_pos++;
-		  pex_used_count++;
-		  last_rebuild_time = now;  //ensure rebuild waits min rebuild time after the cache is depleted before trying attempts again
+		  
+		  if ( non_public ){
+			
+			  	// we'll get stuck for a bit if we run out of non-pub peers and we're not
+			  	// using 'pub' peers because don't need to as running out of 'pub' peers is
+			  	// what drives cache rebuild. However, the only decent solution is to
+			  	// maintain a separate non-pub cache which seems to much effort...
+			  
+			  peer = null;
+			  
+			  while( popularity_pos_non_pub < cached_peer_popularities.length ){
+				  
+				  PeerItem temp = cached_peer_popularities[popularity_pos_non_pub];
+				  
+				  popularity_pos_non_pub++;
+
+				  if ( temp.getNetwork() != AENetworkClassifier.AT_PUBLIC ){
+					  
+					  peer = temp;
+					 
+					  break;
+				  }
+			  }
+		  }else{
+
+			  peer = cached_peer_popularities[ popularity_pos ];
+
+			  popularity_pos++;
+
+			  if ( peer.getNetwork() != AENetworkClassifier.AT_PUBLIC ){
+				  
+				  popularity_pos_non_pub = popularity_pos;
+			  }
+			  
+			  pex_used_count++;
+			  last_rebuild_time = now;  //ensure rebuild waits min rebuild time after the cache is depleted before trying attempts again
+		  }
 	  }else{
 		  
 		  peer = null;
@@ -523,6 +619,6 @@ public class PeerDatabase {
   public String
   getString()
   {
-	  return("pc=" + peer_connections.size() + ",dp=" + discovered_peers.size());
+	  return("pc=" + peer_connections.size() + ",dp=" + discovered_peers.size() + "/" + discovered_peers_non_pub.size());
   }
 }

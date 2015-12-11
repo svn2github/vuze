@@ -551,7 +551,8 @@ LightWeightSeed
 					}
 					
 					public int
-					getMaxNewConnectionsAllowed()
+					getMaxNewConnectionsAllowed(
+						String	network )
 					{
 						PEPeerManager	pm = peer_manager;
 

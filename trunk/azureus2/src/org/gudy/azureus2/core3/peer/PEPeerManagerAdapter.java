@@ -43,10 +43,10 @@ PEPeerManagerAdapter
 	public int
 	getMaxUploads();
 	
-	public int
+	public int[]
 	getMaxConnections();
 	
-	public int
+	public int[]
 	getMaxSeedConnections();
 	
 	public int

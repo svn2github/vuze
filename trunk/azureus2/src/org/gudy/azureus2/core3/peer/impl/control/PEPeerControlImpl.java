@@ -1129,7 +1129,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 			//make sure we need a new connection
 		
-		final int needed = getMaxNewConnectionsAllowed();
+		final int needed = getMaxNewConnectionsAllowed( net_cat );
 
 		boolean	is_priority_connection = false;
 		
@@ -1148,7 +1148,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 			if ( 	peer_source != PEPeerSource.PS_PLUGIN ||
 					!doOptimisticDisconnect(
 							AddressUtils.isLANLocalAddress( address ) != AddressUtils.LAN_LOCAL_NO,
-							is_priority_connection )){
+							is_priority_connection,
+							net_cat )){
 
 				return( "Too many connections" );
 			}
@@ -1940,8 +1941,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		final int WANT_LIMIT = 100;
 
-		int num_wanted = getMaxNewConnectionsAllowed();
+		int[] _num_wanted = getMaxNewConnectionsAllowed();
 
+		int num_wanted = _num_wanted[0] + _num_wanted[1];
+		
 		final boolean has_remote = adapter.isNATHealthy();
 		if( has_remote ) {
 			//is not firewalled, so can accept incoming connections,
@@ -3040,6 +3043,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 					if ( peer.isTCP()){
 					
+						String net = AENetworkClassifier.categoriseAddress( ip );
+						
 						if ( connect_failed ){
 							
 								// TCP connect failure, try UDP later if necessary
@@ -3072,8 +3077,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 						}else if (	network_failed && 
 									peer.isSafeForReconnect() &&
 									!(seeding_mode && (peer.isSeed() || peer.isRelativeSeed() || peer.getStats().getEstimatedSecondsToCompletion() < 60)) &&
-									getMaxConnections() > 0 && 
-									getMaxNewConnectionsAllowed() > getMaxConnections() / 3 &&
+									getMaxConnections( net ) > 0 && 
+									getMaxNewConnectionsAllowed( net ) > getMaxConnections( net ) / 3 &&
 									FeatureAvailability.isGeneralPeerReconnectEnabled()){
 					
 							tcpReconnect = true;							
@@ -4281,7 +4286,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 		int	not_yet_connected 	= peer_database.getDiscoveredPeerCount();
 		
-		int	max = getMaxConnections();
+		int	max = getMaxConnections( "" );
 		
 		int	potential = connecting + queued + not_yet_connected;
 		
@@ -4327,6 +4332,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	private void doConnectionChecks() 
 	{
+		// if mixed networks then we have potentially two connections limits
+		// 1) general peer one  - e.g. 100
+		// 2) general+reserved slots for non-public net  - e.g. 103
+		// so we get to schedule 3 'extra' non-public connections
+		
 		//every 1 second
 		if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ){
 			final List<PEPeerTransport> peer_transports = peer_transports_cow;
@@ -4349,12 +4359,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 					udp_connections++;
 				}
 			}
+			
+			int[]	allowed_seeds_info 	= getMaxSeedConnections();
 
-			int	allowed_seeds = getMaxSeedConnections();
+			int		base_allowed_seeds = allowed_seeds_info[0];
+			
+			if ( base_allowed_seeds > 0 ){
 
-			if ( allowed_seeds > 0 ){
-
-				int	to_disconnect = _seeds - allowed_seeds;
+				int	extra_seeds = allowed_seeds_info[1];
+				
+				int	to_disconnect = _seeds - base_allowed_seeds;
 
 				if ( to_disconnect > 0 ){
 
@@ -4362,121 +4376,162 @@ DiskManagerCheckRequestListener, IPFilterListener
 					// to leechers where possible. disconnect seeds from end of list to prevent
 					// cycling of seeds
 
+					Set<PEPeerTransport> to_retain = new HashSet<PEPeerTransport>();
+					
+					if ( extra_seeds > 0 ){
+						
+							// we can have up to extra_seeds additional non-public seeds on top of base
+						
+						for ( PEPeerTransport transport: peer_transports ){
+							
+							if ( transport.isSeed() && transport.getNetwork() != AENetworkClassifier.AT_PUBLIC ){
+								
+								to_retain.add( transport );
+								
+								if ( to_retain.size() == extra_seeds ){
+									
+									break;
+								}
+							}
+						}
+						
+						to_disconnect -= to_retain.size();
+					}
+					
 					for( int i=peer_transports.size()-1; i >= 0 && to_disconnect > 0; i-- ){
 
 						final PEPeerTransport transport = peer_transports.get( i );
 
 						if ( transport.isSeed()){
 
-							closeAndRemovePeer( transport, "Too many seeds", false );
-
-							to_disconnect--;
+							if ( !to_retain.contains( transport )){
+														
+								closeAndRemovePeer( transport, "Too many seeds", false );
+								
+								to_disconnect--;
+							}
 						}
 					}
 				}
 			}
 
-			//pass from storage to connector
-			int allowed = getMaxNewConnectionsAllowed();
+			// PARG TODO:
+			
+			int[] allowed_info = getMaxNewConnectionsAllowed();
+			
+			int	allowed_base = allowed_info[0];
 
-			if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
+			if( allowed_base < 0 || allowed_base > 1000 )  allowed_base = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
 
-			if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
-				final int free = getMaxConnections() / 20;  //leave 5%
-				allowed = allowed - free;
+			if( adapter.isNATHealthy()){  //if unfirewalled, leave slots avail for remote connections
+				
+				int free = getMaxConnections()[0] / 20;  //leave 5%
+				
+				allowed_base = allowed_base - free;
+				
+				allowed_info[0] = allowed_base;
 			}
 
-			if( allowed > 0 ) {
-				//try and connect only as many as necessary
+			for ( int i=0;i<allowed_info.length;i++){
 				
-				final int wanted = TCPConnectionManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
+				int	allowed = allowed_info[i];
 				
-				if( wanted > allowed ) {
-					num_waiting_establishments += wanted - allowed;
-				}
-
-				int	remaining = allowed;
-				
-				int	tcp_remaining = TCPNetworkManager.getSingleton().getConnectDisconnectManager().getMaxOutboundPermitted();
-				
-				int	udp_remaining = UDPNetworkManager.getSingleton().getConnectionManager().getMaxOutboundPermitted();
-
-				//load stored peer-infos to be established
-				while( num_waiting_establishments < TCPConnectionManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS && ( tcp_remaining > 0 || udp_remaining > 0 )){        	
-					if( !is_running )  break;        	
-
-					final PeerItem item = peer_database.getNextOptimisticConnectPeer();
-
-					if( item == null || !is_running )  break;
-
-					final PeerItem self = peer_database.getSelfPeer();
-					if( self != null && self.equals( item ) ) {
-						continue;
+				if ( allowed > 0 ){
+					
+					//try and connect only as many as necessary
+					
+					final int wanted = TCPConnectionManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
+					
+					if( wanted > allowed ) {
+						num_waiting_establishments += wanted - allowed;
 					}
-
-					if( !isAlreadyConnected( item ) ) {
-						final String source = PeerItem.convertSourceString( item.getSource() );
-
-						final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
-
-						int	tcp_port = item.getTCPPort();
-						int	udp_port = item.getUDPPort();
+	
+					int	remaining = allowed;
+					
+					int	tcp_remaining = TCPNetworkManager.getSingleton().getConnectDisconnectManager().getMaxOutboundPermitted();
+					
+					int	udp_remaining = UDPNetworkManager.getSingleton().getConnectionManager().getMaxOutboundPermitted();
+	
+					while( num_waiting_establishments < TCPConnectionManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS && ( tcp_remaining > 0 || udp_remaining > 0 )){
 						
-						if ( udp_port == 0 && udp_probe_enabled ){
-							
-								// for probing we assume udp port same as tcp
-							
-							udp_port = tcp_port;
+						if( !is_running )  break;        	
+	
+						final PeerItem item = peer_database.getNextOptimisticConnectPeer( i == 1 );
+	
+						if( item == null || !is_running )  break;
+	
+						final PeerItem self = peer_database.getSelfPeer();
+						if( self != null && self.equals( item ) ) {
+							continue;
 						}
-						
-						boolean	prefer_udp_overall = prefer_udp || prefer_udp_default;
-						
-						if ( prefer_udp_overall && udp_port == 0 ){
-						
-								// see if we have previous record of this address as udp connectable
+	
+						if( !isAlreadyConnected( item ) ) {
+							final String source = PeerItem.convertSourceString( item.getSource() );
+	
+							final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+	
+							int	tcp_port = item.getTCPPort();
+							int	udp_port = item.getUDPPort();
 							
-							byte[]	address = item.getIP().getBytes();
-							
-							BloomFilter	bloom = prefer_udp_bloom;
-							
-							if ( bloom != null && bloom.contains( address )){
-																
+							if ( udp_port == 0 && udp_probe_enabled ){
+								
+									// for probing we assume udp port same as tcp
+								
 								udp_port = tcp_port;
 							}
-						}
-						
-						boolean	tcp_ok = TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0 && tcp_remaining > 0;
-						boolean udp_ok = UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 && udp_remaining > 0;
-
-						if ( tcp_ok && !( prefer_udp_overall && udp_ok )){
-
-							if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, true, use_crypto, item.getCryptoLevel(), null) == null) {
+							
+							boolean	prefer_udp_overall = prefer_udp || prefer_udp_default;
+							
+							if ( prefer_udp_overall && udp_port == 0 ){
+							
+									// see if we have previous record of this address as udp connectable
 								
-								tcp_remaining--;
-
-								num_waiting_establishments++;
-								remaining--;
+								byte[]	address = item.getIP().getBytes();
+								
+								BloomFilter	bloom = prefer_udp_bloom;
+								
+								if ( bloom != null && bloom.contains( address )){
+																	
+									udp_port = tcp_port;
+								}
 							}
-						}else if ( udp_ok ){
-
-							if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, false, use_crypto, item.getCryptoLevel(), null) == null) {
+							
+							boolean	tcp_ok = TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0 && tcp_remaining > 0;
+							boolean udp_ok = UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 && udp_remaining > 0;
+	
+							if ( tcp_ok && !( prefer_udp_overall && udp_ok )){
+	
+								if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, true, use_crypto, item.getCryptoLevel(), null) == null) {
 									
-								udp_remaining--;
-
-								num_waiting_establishments++;
-
-								remaining--;
+									tcp_remaining--;
+	
+									num_waiting_establishments++;
+									remaining--;
+								}
+							}else if ( udp_ok ){
+	
+								if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, false, use_crypto, item.getCryptoLevel(), null) == null) {
+										
+									udp_remaining--;
+	
+									num_waiting_establishments++;
+	
+									remaining--;
+								}
 							}
+						}          
+					}
+	
+					if ( i == 0 ){
+						
+						if ( 	UDPNetworkManager.UDP_OUTGOING_ENABLED &&
+								remaining > 0 &&
+								udp_remaining > 0 && 
+								udp_connections < MAX_UDP_CONNECTIONS ){
+							
+							doUDPConnectionChecks( remaining );
 						}
-					}          
-				}
-
-				if ( 	UDPNetworkManager.UDP_OUTGOING_ENABLED &&
-						remaining > 0 &&
-						udp_remaining > 0 && 
-						udp_connections < MAX_UDP_CONNECTIONS ){
-					
-					doUDPConnectionChecks( remaining );
+					}
 				}
 			}
 		}
@@ -4515,8 +4570,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 			//if we're at our connection limit, time out the least-useful
 			//one so we can establish a possibly-better new connection
 			optimisticDisconnectCount = 0;
-			if( getMaxNewConnectionsAllowed() == 0 ) {  //we've reached limit        
-				doOptimisticDisconnect( false, false );
+			int[] allowed = getMaxNewConnectionsAllowed();
+			if ( allowed[0] + allowed[1] == 0 ){  //we've reached limit        
+				doOptimisticDisconnect( false, false, "" );
 			}
 		}
 
@@ -4771,8 +4827,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 	// counter is reset every 30s by doConnectionChecks()
 	private int optimisticDisconnectCount = 0;
 
-	public boolean doOptimisticDisconnect( boolean	pending_lan_local_peer, boolean force )
+	public boolean 
+	doOptimisticDisconnect( 
+		boolean		pending_lan_local_peer, 
+		boolean 	force, 
+		String 		network )	// on behalf of a particular peer OR "" for general
 	{
+		// PARG TODO:
 		
 		final List<PEPeerTransport> peer_transports = peer_transports_cow;
 		PEPeerTransport max_transport = null;
@@ -4902,7 +4963,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 		
 		// allow 1 disconnect every 30s per 30 peers; 2 at least every 30s
-		int maxOptimistics = Math.max(getMaxConnections()/30,2);
+		int maxOptimistics = Math.max(getMaxConnections( network )/30,2);
 		
 		// avoid unnecessary churn, e.g. 
 		if(!pending_lan_local_peer && !force && optimisticDisconnectCount >= maxOptimistics && medianConnectionTime < 5*60*1000)
@@ -4925,7 +4986,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			// if we have a seed limit, kick seeds in preference to non-seeds
 
-			if( getMaxSeedConnections() > 0 && max_seed_transport != null && max_time > 5*60*1000 ) {
+			if( getMaxSeedConnections( network ) > 0 && max_seed_transport != null && max_time > 5*60*1000 ) {
 				closeAndRemovePeer( max_seed_transport, "timed out by doOptimisticDisconnect()", true );
 				optimisticDisconnectCount++;
 				return true;
@@ -5117,26 +5178,102 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return -1;
 	}
 
-	public int
+	public int[]
 	getMaxConnections()
 	{
 		return( adapter.getMaxConnections());
 	}
 
-	public int
+	private int
+	getMaxConnections(
+		String		net )
+	{
+		int[]	data = getMaxConnections();
+		
+		int	result = data[0];
+		
+		if ( net != AENetworkClassifier.AT_PUBLIC ){
+			
+			result += data[1];
+		}
+		
+		return( result );
+	}
+	
+	public int[]
 	getMaxSeedConnections()
 	{
 		return( adapter.getMaxSeedConnections());
 	}
 
-	public int
-	getMaxNewConnectionsAllowed()
+	private int
+	getMaxSeedConnections(
+		String		net )
 	{
-		final int	dl_max = getMaxConnections();
+		int[]	data = getMaxSeedConnections();
+		
+		int	result = data[0];
+		
+		if ( net != AENetworkClassifier.AT_PUBLIC ){
+			
+			result += data[1];
+		}
+		
+		return( result );
+	}
+	
+	/**
+	 * returns the allowed connections for the given network
+	 */
+	
+	public int
+	getMaxNewConnectionsAllowed(
+		String		network )
+	{
+		int[]	max_con = getMaxConnections();
 
-		final int	allowed_peers = PeerUtils.numNewConnectionsAllowed(getPeerIdentityDataID(), dl_max );
+		int	dl_max = max_con[0];
+		
+		if ( network != AENetworkClassifier.AT_PUBLIC ){
+			
+			dl_max += max_con[1];
+		}
+		
+		int	allowed_peers = PeerUtils.numNewConnectionsAllowed(getPeerIdentityDataID(), dl_max );
 
 		return( allowed_peers );
+	}
+	
+	/**
+	 * returns number of whatever peers to connect and then extra ones that must be non-pub if available
+	 * @return
+	 */
+	
+	private int[]
+	getMaxNewConnectionsAllowed()
+	{
+		int[]	max_con = getMaxConnections();
+
+		int	dl_max 	= max_con[0];
+		int	extra	= max_con[1];
+		
+		int	allowed_peers = PeerUtils.numNewConnectionsAllowed(getPeerIdentityDataID(), dl_max + extra );
+
+		allowed_peers -= extra;
+		
+		if ( allowed_peers < 0 ){
+			
+			extra += allowed_peers;
+			
+			if ( extra < 0 ){
+				
+				extra = 0;
+			}
+			
+			allowed_peers = 0;
+		}
+		
+		return( new int[]{ allowed_peers, extra });
 	}
 	
 	public int getSchedulePriority() {

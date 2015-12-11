@@ -1204,16 +1204,26 @@ DownloadManagerImpl
 
 	}
 	
-	protected int
-	getMaxConnections()
+	protected int[]
+	getMaxConnections( boolean mixed )
 	{
-		return( max_connections );
+		if ( mixed && max_connections > 0 ){
+			
+			return( new int[]{ max_connections, 3 });
+		}
+		
+		return( new int[]{ max_connections, 0 });
 	}
 	
-	protected int
-	getMaxConnectionsWhenSeeding()
+	protected int[]
+	getMaxConnectionsWhenSeeding( boolean mixed )
 	{
-		return( max_connections_when_seeding );
+		if ( mixed && max_connections_when_seeding > 0){
+			
+			return( new int[]{ max_connections_when_seeding, 3 });
+		}
+		
+		return( new int[]{ max_connections_when_seeding, 0 });
 	}
 	
 	protected boolean
@@ -1222,10 +1232,15 @@ DownloadManagerImpl
 		return( max_connections_when_seeding_enabled );
 	}
 	
-	protected int
-	getMaxSeedConnections()
+	protected int[]
+	getMaxSeedConnections( boolean mixed )
 	{
-		return( max_seed_connections );
+		if ( mixed && max_seed_connections > 0 ){
+			
+			return( new int[]{ max_seed_connections, 3 });
+		}
+		
+		return( new int[]{ max_seed_connections, 0 });
 	}
 	
 	protected boolean

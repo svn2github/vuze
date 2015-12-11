@@ -120,16 +120,16 @@ LWSPeerManagerAdapter
 		return( 4 );
 	}
 	
-	public int
+	public int[]
 	getMaxConnections()
 	{
-		return( 0 );
+		return( new int[]{ 0, 0 } );
 	}
 	
-	public int
+	public int[]
 	getMaxSeedConnections()
 	{
-		return( 0 );
+		return( new int[]{ 0, 0 } );
 	}
 	
 	public int

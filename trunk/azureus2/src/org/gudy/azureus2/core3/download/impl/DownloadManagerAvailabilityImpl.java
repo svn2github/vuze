@@ -155,7 +155,7 @@ DownloadManagerAvailabilityImpl
 			    			}
 			    			
 			    			public int
-			    			getMaxNewConnectionsAllowed()
+			    			getMaxNewConnectionsAllowed( String network )
 			    			{
 			    				return( 1 );	// num-want -> 1
 			    			}

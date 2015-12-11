@@ -171,7 +171,7 @@ PEPeerManager
   public long getLastRemoteConnectionTime();
   
   public int
-  getMaxNewConnectionsAllowed();
+  getMaxNewConnectionsAllowed( String network );
   
   public boolean
   hasPotentialConnections();

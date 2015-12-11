@@ -49,7 +49,8 @@ TRTrackerAnnouncerDataProvider
 	getExtensions();
 	
 	public int
-	getMaxNewConnectionsAllowed();
+	getMaxNewConnectionsAllowed(
+		String	network );
 	
 	public int
 	getPendingConnectionCount();

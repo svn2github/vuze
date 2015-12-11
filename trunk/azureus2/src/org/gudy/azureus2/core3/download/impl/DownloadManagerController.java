@@ -462,9 +462,9 @@ DownloadManagerController
 					}
 					
 					public int
-					getMaxNewConnectionsAllowed()
+					getMaxNewConnectionsAllowed( String network )
 					{
-						return( temp.getMaxNewConnectionsAllowed());
+						return( temp.getMaxNewConnectionsAllowed( network ));
 					}
 					
 					public int 
@@ -2059,27 +2059,27 @@ DownloadManagerController
 		return( download_manager.getEffectiveMaxUploads());
 	}
 	
-	public int
+	public int[]
 	getMaxConnections()
 	{
-		int	result;
+		int[]	result;
 		
 		if ( download_manager.isMaxConnectionsWhenSeedingEnabled() && isStateSeeding()){
 			
-			result = download_manager.getMaxConnectionsWhenSeeding();
+			result = download_manager.getMaxConnectionsWhenSeeding( getEnabledNetworks().length > 1 );
 			
 		}else{
 			
-			result = download_manager.getMaxConnections();
+			result = download_manager.getMaxConnections( getEnabledNetworks().length > 1 );
 		}
 		
 		return( result );
 	}
 	
-	public int
+	public int[]
 	getMaxSeedConnections()
 	{
-		return( download_manager.getMaxSeedConnections());
+		return( download_manager.getMaxSeedConnections( getEnabledNetworks().length > 1 ));
 	}
 	
 	public int
@@ -2323,7 +2323,7 @@ DownloadManagerController
 			info.put( "d_rate", new Long( stats.getProtocolReceiveRate() + stats.getDataReceiveRate()));
 			
 			info.put( "u_slot", new Long( getMaxUploads()));
-			info.put( "c_max", new Long( getMaxConnections()));
+			info.put( "c_max", new Long( getMaxConnections()[0]));
 			
 			info.put( "c_leech", new Long( download_manager.getNbPeers()));
 			info.put( "c_seed", new Long( download_manager.getNbSeeds()));

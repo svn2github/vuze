@@ -21,6 +21,8 @@ package org.gudy.azureus2.core3.peer.util;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.peer.util.PeerIdentityManager.DataEntry;
+
 
 public class 
 PeerIdentityDataID 
@@ -28,7 +30,7 @@ PeerIdentityDataID
     private final byte[] dataId;
     private final int hashcode;
     
-    private Map		peer_map;
+    private DataEntry		data_entry;
     
     protected 
 	PeerIdentityDataID( 
@@ -45,17 +47,17 @@ PeerIdentityDataID
     	return( dataId );
     }
     
-    protected Map
-	getPeerMap()
+    protected DataEntry
+	getDataEntry()
     {
-    	return( peer_map );
+    	return( data_entry );
     }
 
     protected void
-	setPeerMap(
-		Map	m )
+	setDataEntry(
+		DataEntry		d )
     {
-    	peer_map	= m;
+    	data_entry = d;
     }
     
     public boolean equals( Object obj ) {

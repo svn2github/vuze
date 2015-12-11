@@ -23,6 +23,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
@@ -37,7 +38,7 @@ public class PeerIdentityManager {
 
   private static final AEMonitor 		class_mon	= new AEMonitor( "PeerIdentityManager:class");
 
-  private static final Map 				dataMap = new LightHashMap();
+  private static final Map<PeerIdentityDataID,DataEntry> dataMap = new LightHashMap<PeerIdentityDataID,DataEntry>();
 
   private static int totalIDs = 0;
  
@@ -95,25 +96,25 @@ public class PeerIdentityManager {
   {
   	PeerIdentityDataID	data_id = new PeerIdentityDataID( data );
   	
-  	Map peerMap;
+  	DataEntry dataEntry;
   	
     try{
         class_mon.enter();
       
-        peerMap = (Map)dataMap.get( data_id );
+        dataEntry = dataMap.get( data_id );
         
-        if( peerMap == null ){
+        if ( dataEntry == null ){
         	
-          peerMap = new LightHashMap();
+        	dataEntry = new DataEntry();
           
-          dataMap.put( data_id, peerMap );
+         	dataMap.put( data_id, dataEntry );
         }
     }finally{
     	
     	class_mon.exit();
     }
 	
-	data_id.setPeerMap( peerMap );
+	data_id.setDataEntry( dataEntry );
 	
 	return( data_id );
   }
@@ -171,18 +172,25 @@ public class PeerIdentityManager {
     try{
       class_mon.enter();
         
-      Map peerMap = (Map)dataMap.get( data_id );
-      if( peerMap == null ) {
-        peerMap = new HashMap();
-        dataMap.put( data_id, peerMap );
+      DataEntry dataEntry = dataMap.get( data_id );
+      
+      if ( dataEntry == null ){
+    	  
+    	  dataEntry = new DataEntry();
+    	  
+    	  dataMap.put( data_id, dataEntry );
       }
            
-      String old = (String)peerMap.put( peerID, ip );
-      if( old == null ) {
+      String old = dataEntry.addPeer( peerID, ip );
+      
+      if ( old == null ){
+    	  
         totalIDs++;
         
         return( true );
-      }else{    	
+        
+      }else{
+    	  
     	return( false );
       }
     }finally{
@@ -201,18 +209,23 @@ public class PeerIdentityManager {
     try{
     	class_mon.enter();
       
-      Map peerMap = (Map)dataMap.get( data_id );
-      if( peerMap != null ) {
-        PeerIdentity peerID = new PeerIdentity( peer_id, local_port );
-               
-        String old = (String)peerMap.remove( peerID );
-        if( old != null ) {
-          totalIDs--;
-        }else{
-      	  Debug.out( "id not present: id=" + peerID.getString());
-   	
-        }
-      }
+    	DataEntry dataEntry = dataMap.get( data_id );
+    	
+    	if( dataEntry != null ) {
+    		
+    		PeerIdentity peerID = new PeerIdentity( peer_id, local_port );
+
+    		String old = dataEntry.removePeer( peerID );
+    		
+    		if ( old != null ){
+    			
+    			totalIDs--;
+    			
+    		}else{
+    			
+    			Debug.out( "id not present: id=" + peerID.getString());
+    		}
+    	}
     }finally{
     	class_mon.exit();
     }
@@ -231,16 +244,19 @@ public class PeerIdentityManager {
     try{
     	class_mon.enter();
   
-      Map peerMap = (Map)dataMap.get( data_id );
-      if( peerMap != null ) {
-        if( peerMap.containsKey( peerID ) ) {
-          return true;
-        }
-      }
+    	DataEntry dataEntry = dataMap.get( data_id );
+    	
+    	if ( dataEntry != null ){
+    		
+    		if ( dataEntry.hasPeer( peerID )){
+    			
+    			return true;
+    		}
+    	}
     }finally{
     	class_mon.exit();
     }
-    
+
     return false;
   }
   
@@ -261,9 +277,9 @@ public class PeerIdentityManager {
    */
   public static int 
   getIdentityCount( 
-  	PeerIdentityDataID data_id )
+  	PeerIdentityDataID 	data_id )
   {
-  	return( data_id.getPeerMap().size());
+  	return( data_id.getDataEntry().getPeerCount());
   }
   
   
@@ -280,17 +296,60 @@ public class PeerIdentityManager {
     try{
     	class_mon.enter();
    	  
-      Map peerMap = (Map)dataMap.get( data_id );
-      if( peerMap != null ) {
-        if( peerMap.containsValue( ip ) ) {
-          return true;
-        }
-      }
+    	DataEntry dataEntry = dataMap.get( data_id );
+    
+    	if ( dataEntry != null ){
+    		
+    		if ( dataEntry.hasIP( ip )){
+
+    			return true;
+    		}
+    	}
     }finally{
     	class_mon.exit();
     }
-    
+
     return false;
   }
 
+  	protected static final class
+  	DataEntry
+  	{
+  		private Map<PeerIdentity,String>	_peerMap = new LightHashMap<PeerIdentity, String>();
+	    		
+  		private final boolean
+  		hasIP(
+			String	ip )
+  		{
+		  return( _peerMap.containsValue( ip ));
+		}
+  		
+  		private final boolean
+  		hasPeer(
+  			PeerIdentity	peer )
+  		{
+  			return( _peerMap.containsKey( peer ));
+  		}
+  		
+  		private final String
+  		addPeer(
+  			PeerIdentity	peer,
+  			String			ip )
+  		{
+   			return( _peerMap.put( peer, ip ));
+  		}
+  		
+ 		private final String
+  		removePeer(
+  			PeerIdentity	peer )
+  		{
+  			return( _peerMap.remove( peer ));
+  		}
+ 		
+ 		private final int
+ 		getPeerCount()
+ 		{
+ 			return( _peerMap.size());
+ 		}
+  	}
 }

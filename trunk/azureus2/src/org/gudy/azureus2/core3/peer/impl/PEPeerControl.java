@@ -90,13 +90,14 @@ PEPeerControl
 	getConnectTimeout(
 		int		ct_def );
 	
-	public int
+	public int[]
 	getMaxConnections();
     
     public boolean 
     doOptimisticDisconnect(
     	boolean pending_lan_local_peer,
-    	boolean	force );
+    	boolean	force,
+    	String	network );
     
 	public int getNbActivePieces();
 

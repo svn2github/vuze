@@ -2510,17 +2510,19 @@ implements PEPeerTransport
 			handshake.destroy();
 			return;
 		}
-
+		
 		//make sure we haven't reached our connection limit
-		final int maxAllowed = manager.getMaxNewConnectionsAllowed();
+		final int maxAllowed = manager.getMaxNewConnectionsAllowed( network );
 		if (	 maxAllowed ==0 &&
-				!manager.doOptimisticDisconnect( isLANLocal(), isPriorityConnection()))
+				!manager.doOptimisticDisconnect( isLANLocal(), isPriorityConnection(), network ))
 		{
+			int[] _con_max = manager.getMaxConnections();
+			int con_max = _con_max[0] + _con_max[1];
 			final String msg = "too many existing peer connections [p" +
 			PeerIdentityManager.getIdentityCount( my_peer_data_id )
 			+"/g" +PeerIdentityManager.getTotalIdentityCount()
 			+", pmx" +PeerUtils.MAX_CONNECTIONS_PER_TORRENT+ "/gmx"
-			+PeerUtils.MAX_CONNECTIONS_TOTAL+"/dmx" + manager.getMaxConnections()+ "]";
+			+PeerUtils.MAX_CONNECTIONS_TOTAL+"/dmx" + con_max + "]";
 			//System.out.println( msg );
 			closeConnectionInternally( msg );
 			handshake.destroy();
@@ -3197,7 +3199,7 @@ implements PEPeerTransport
 		MainlineDHTProvider provider = getDHTProvider();
 		if (provider == null) {return;}
 		
-		if ( AENetworkClassifier.categoriseAddress( getIp()) == AENetworkClassifier.AT_PUBLIC ){
+		if ( network == AENetworkClassifier.AT_PUBLIC ){
 			try {provider.notifyOfIncomingPort(getIp(), i_port);}
 			catch (Throwable t) {Debug.printStackTrace(t);}	
 		}
@@ -5379,7 +5381,7 @@ implements PEPeerTransport
 		}
 	}
 		
-	protected static List<Integer>
+	protected List<Integer>
 	generateFastSet(
 		byte[]		hash,
 		String		ip,
@@ -5389,7 +5391,7 @@ implements PEPeerTransport
 		List<Integer>	res = new ArrayList<Integer>();
 							
 		try{
-			if ( AENetworkClassifier.categoriseAddress( ip ) == AENetworkClassifier.AT_PUBLIC ){
+			if ( network == AENetworkClassifier.AT_PUBLIC ){
 				
 				byte[]	address = InetAddress.getByName( ip ).getAddress();
 				
@@ -5503,25 +5505,6 @@ implements PEPeerTransport
 				return value == ((MutableInteger)obj).value;
 			}
 			return false;
-		}
-	}
-	
-	public static void
-	main(
-		String[]		args )
-	{
-		byte[]	 hash = new byte[20];
-		
-		Arrays.fill( hash, (byte)0xAA );
-
-		try{
-			List<Integer> res = generateFastSet( hash, "80.4.4.200", 9, 5 );
-
-			System.out.println( res );
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
 		}
 	}
 }
