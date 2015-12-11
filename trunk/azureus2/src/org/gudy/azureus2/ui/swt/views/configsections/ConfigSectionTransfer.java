@@ -540,8 +540,35 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			enable_seeding_uploads.setAdditionalActionPerformer( f_enabler );
 			enable_max_peers_seeding.setAdditionalActionPerformer( f_enabler );
 			auto_adjust.setAdditionalActionPerformer( f_enabler );
+						
+							
+				// NON PUBLIC PEERS GROUP
+		
+			Group npp_group = new Group(cSection, SWT.NULL);
 			
-				// END AUTO GROUP
+			Messages.setLanguageText(npp_group, "label.non.public.peers");
+			
+			GridLayout npp_layout = new GridLayout();
+			
+			npp_layout.numColumns = 2;
+
+			npp_group.setLayout(npp_layout);
+
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 2;
+			Utils.setLayoutData(npp_group, gridData);
+				
+			label = new Label(npp_group, SWT.NULL);
+			Messages.setLanguageText(label, "ConfigView.label.npp.slots");
+
+			IntParameter npp_upload_slots = new IntParameter(npp_group,"Non-Public Peer Extra Slots Per Torrent",0,Integer.MAX_VALUE);
+
+			label = new Label(npp_group, SWT.NULL);
+			Messages.setLanguageText(label, "ConfigView.label.npp.connections");
+
+			IntParameter npp_connections = new IntParameter(npp_group,"Non-Public Peer Extra Connections Per Torrent",0,Integer.MAX_VALUE);		
+			
+				// END NON PUBLIC PEERS GROUP
 			
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;

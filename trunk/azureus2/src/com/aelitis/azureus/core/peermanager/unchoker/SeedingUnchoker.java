@@ -21,6 +21,8 @@ package com.aelitis.azureus.core.peermanager.unchoker;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 
 
@@ -29,6 +31,22 @@ import org.gudy.azureus2.core3.peer.PEPeer;
  * Unchoker implementation to be used while in seeding mode.
  */
 public class SeedingUnchoker implements Unchoker {
+	
+  private static int priority_unchoke_retention_count;
+  
+  static{
+	  COConfigurationManager.addAndFireParameterListener(
+		  "Non-Public Peer Extra Slots Per Torrent",
+		  new ParameterListener() {
+				
+				public void 
+				parameterChanged(
+					String parameterName) 
+				{	
+					priority_unchoke_retention_count = COConfigurationManager.getIntParameter( "Non-Public Peer Extra Slots Per Torrent" );
+				}
+		  });
+  }
   private ArrayList<PEPeer> chokes 		= new ArrayList<PEPeer>();
   private ArrayList<PEPeer> unchokes 	= new ArrayList<PEPeer>();
   
@@ -224,7 +242,7 @@ public class SeedingUnchoker implements Unchoker {
 	  
 	  int num_unchoked = 0;
 	  
-	  int num_non_priority_to_retain = 2;
+	  int num_non_priority_to_retain = priority_unchoke_retention_count;
 
 	  int max = max_priority > unchokes.size() ? unchokes.size() : max_priority;
 	  

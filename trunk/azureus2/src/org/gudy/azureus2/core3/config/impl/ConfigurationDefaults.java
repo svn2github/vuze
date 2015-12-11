@@ -160,7 +160,9 @@ public class ConfigurationDefaults {
     def.put("Max.Peer.Connections.Per.Torrent.When.Seeding", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT/2));
     def.put("Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", TRUE );
     def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
-
+    def.put("Non-Public Peer Extra Slots Per Torrent", 2 );
+    def.put("Non-Public Peer Extra Connections Per Torrent", 4 );
+    
     def.put( "Peer.Fast.Initial.Unchoke.Enabled", FALSE );
     
     def.put( "File Max Open", new Long(50));

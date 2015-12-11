@@ -103,20 +103,25 @@ DownloadManagerImpl
 	private final static long SCRAPE_INITDELAY_ERROR_TORRENTS = 1000 * 60 * 10;
 	private final static long SCRAPE_INITDELAY_STOPPED_TORRENTS = 1000 * 60 * 3;
 
-	private static int	upload_when_busy_min_secs;
+	private static int upload_when_busy_min_secs;
+	private static int max_connections_npp_extra;
 	
 	private static final ClientIDManagerImpl client_id_manager = ClientIDManagerImpl.getSingleton();
 	
 	static{
-		COConfigurationManager.addAndFireParameterListener(
-			"max.uploads.when.busy.inc.min.secs",
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"max.uploads.when.busy.inc.min.secs",
+			},
 			new ParameterListener()
 			{
 				public void 
 				parameterChanged(
 					String name )
 				{
-					upload_when_busy_min_secs = COConfigurationManager.getIntParameter( name );
+					upload_when_busy_min_secs = COConfigurationManager.getIntParameter( "max.uploads.when.busy.inc.min.secs" );
+					
+					max_connections_npp_extra = COConfigurationManager.getIntParameter( "Non-Public Peer Extra Connections Per Torrent" );
 				}
 			});
 	}
@@ -310,7 +315,8 @@ DownloadManagerImpl
 	
 	private AEMonitor	peer_listeners_mon	= new AEMonitor( "DM:DownloadManager:PeerL" );
 	
-	private List	current_peers 	= new ArrayList();
+	private Map<PEPeer,String>	current_peers 						= new IdentityHashMap<PEPeer, String>();
+	private Map<PEPeer,Long>	current_peers_unmatched_removal 	= new IdentityHashMap<PEPeer, Long>();
 	
 		// PieceListeners
 	
@@ -445,12 +451,12 @@ DownloadManagerImpl
 						
 						if ( torrent.getPrivate()){
 						
-							final List	peers;
+							final List<PEPeer>	peers;
 							
 							try{
 								peer_listeners_mon.enter();
 					 	
-								peers = new ArrayList( current_peers );
+								peers = new ArrayList<PEPeer>( current_peers.keySet());
 					 
 							}finally{
 								
@@ -1201,7 +1207,6 @@ DownloadManagerImpl
 		max_uploads_when_seeding = Math.max( max_uploads_when_seeding, DownloadManagerState.MIN_MAX_UPLOADS );
 		
 		upload_priority_manual					= getDownloadState().getIntParameter( DownloadManagerState.PARAM_UPLOAD_PRIORITY );
-
 	}
 	
 	protected int[]
@@ -1209,7 +1214,7 @@ DownloadManagerImpl
 	{
 		if ( mixed && max_connections > 0 ){
 			
-			return( new int[]{ max_connections, 3 });
+			return( new int[]{ max_connections, max_connections_npp_extra });
 		}
 		
 		return( new int[]{ max_connections, 0 });
@@ -1220,7 +1225,7 @@ DownloadManagerImpl
 	{
 		if ( mixed && max_connections_when_seeding > 0){
 			
-			return( new int[]{ max_connections_when_seeding, 3 });
+			return( new int[]{ max_connections_when_seeding, max_connections_npp_extra });
 		}
 		
 		return( new int[]{ max_connections_when_seeding, 0 });
@@ -1237,7 +1242,7 @@ DownloadManagerImpl
 	{
 		if ( mixed && max_seed_connections > 0 ){
 			
-			return( new int[]{ max_seed_connections, 3 });
+			return( new int[]{ max_seed_connections, max_connections_npp_extra });
 		}
 		
 		return( new int[]{ max_seed_connections, 0 });
@@ -2913,12 +2918,14 @@ DownloadManagerImpl
 			
 			peer_listeners.addListener( listener );
 			
-			if (!bDispatchForExisting)
+			if (!bDispatchForExisting){
+				
 				return; // finally will call
-  		
-			for (int i=0;i<current_peers.size();i++){
+			}
+			
+			for ( PEPeer peer: current_peers.keySet()){
   			
-				peer_listeners.dispatch( listener, LDT_PE_PEER_ADDED, current_peers.get(i));
+				peer_listeners.dispatch( listener, LDT_PE_PEER_ADDED, peer );
 			}
 				
 			PEPeerManager	temp = controller.getPeerManager();
@@ -2988,7 +2995,12 @@ DownloadManagerImpl
 		try{
 			peer_listeners_mon.enter();
  	
-			current_peers.add( peer );
+			if ( current_peers_unmatched_removal.remove( peer ) != null ){
+				
+				return;
+			}
+			
+			current_peers.put( peer, "" );
   		
 			peer_listeners.dispatch( LDT_PE_PEER_ADDED, peer );
   		
@@ -3004,8 +3016,28 @@ DownloadManagerImpl
 	{
 		try{
 			peer_listeners_mon.enter();
-    	
-			current_peers.remove( peer );
+    				
+			if ( current_peers.remove( peer ) == null ){
+			
+				long	now = SystemTime.getMonotonousTime();
+				
+				current_peers_unmatched_removal.put( peer, now );
+				
+				if ( current_peers_unmatched_removal.size() > 100 ){
+					
+					Iterator<Map.Entry<PEPeer, Long>> it = current_peers_unmatched_removal.entrySet().iterator();
+					
+					while( it.hasNext()){
+					
+						if ( now - it.next().getValue() > 10*1000 ){
+							
+							Debug.out( "Removing expired unmatched removal record" );
+							
+							it.remove();
+						}
+					}
+				}
+			}
     	
 			peer_listeners.dispatch( LDT_PE_PEER_REMOVED, peer );
     	
@@ -3034,7 +3066,7 @@ DownloadManagerImpl
 		try{
 			peer_listeners_mon.enter();
 
-			return (PEPeer[])current_peers.toArray(new PEPeer[current_peers.size()]);
+			return( current_peers.keySet().toArray(new PEPeer[current_peers.size()]));
 			
 		}finally{
 			
