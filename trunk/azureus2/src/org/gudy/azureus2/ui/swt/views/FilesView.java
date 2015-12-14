@@ -319,7 +319,7 @@ public class FilesView
 			}
 			if ( !diff ){
 				if ( disableTableWhenEmpty ){
-					tv.setEnabled(managers.size() == 0 );
+					tv.setEnabled(managers.size() > 0 );
 				}
 				return;
 			}
