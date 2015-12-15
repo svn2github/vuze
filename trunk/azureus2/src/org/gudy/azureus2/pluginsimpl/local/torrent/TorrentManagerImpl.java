@@ -37,10 +37,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.tag.Tag;
 import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -60,7 +63,7 @@ TorrentManagerImpl
 	private static TorrentAttribute comment_attribute = new TorrentAttributeUserCommentImpl();
 	private static TorrentAttribute relative_save_path_attribute = new TorrentAttributeRelativeSavePathImpl();
 
-	private static Map	attribute_map = new HashMap();
+	private static Map<String,TorrentAttribute>	attribute_map = new HashMap<String,TorrentAttribute>();
 
 	static{
 		attribute_map.put( TorrentAttribute.TA_CATEGORY, 				category_attribute );
@@ -94,7 +97,7 @@ TorrentManagerImpl
 		}
 	}
 
-	protected static List		listeners = new ArrayList();
+	protected static CopyOnWriteList<TorrentManagerListener>		listeners = new CopyOnWriteList<TorrentManagerListener>();
 
 	protected PluginInterface	plugin_interface;
 
@@ -259,7 +262,7 @@ TorrentManagerImpl
 			return(
 				new TorrentCreator()
 				{
-					private CopyOnWriteList	listeners = new CopyOnWriteList();
+					private CopyOnWriteList<TorrentCreatorListener>	listeners = new CopyOnWriteList<TorrentCreatorListener>();
 
 					public void
 					start()
@@ -271,9 +274,9 @@ TorrentManagerImpl
 								reportProgress(
 									int		percent_complete )
 								{
-									for (Iterator it=listeners.iterator();it.hasNext();){
+									for (Iterator<TorrentCreatorListener> it=listeners.iterator();it.hasNext();){
 
-										((TorrentCreatorListener)it.next()).reportPercentageDone( percent_complete );
+										it.next().reportPercentageDone( percent_complete );
 									}
 								}
 
@@ -281,33 +284,33 @@ TorrentManagerImpl
 								reportCurrentTask(
 									String	task_description )
 								{
-									for (Iterator it=listeners.iterator();it.hasNext();){
+									for (Iterator<TorrentCreatorListener> it=listeners.iterator();it.hasNext();){
 
-										((TorrentCreatorListener)it.next()).reportActivity( task_description );
+										it.next().reportActivity( task_description );
 									}
 								}
 							});
 
-						new AEThread( "TorrentManager::create", true )
+						new AEThread2( "TorrentManager::create" )
 						{
 							public void
-							runSupport()
+							run()
 							{
 								try{
 									TOTorrent	t = c.create();
 
 									Torrent	torrent = new TorrentImpl( plugin_interface, t );
 
-									for (Iterator it=listeners.iterator();it.hasNext();){
+									for (Iterator<TorrentCreatorListener> it=listeners.iterator();it.hasNext();){
 
-										((TorrentCreatorListener)it.next()).complete( torrent );
+										it.next().complete( torrent );
 									}
 
 								}catch( TOTorrentException e ){
 
-									for (Iterator it=listeners.iterator();it.hasNext();){
+									for (Iterator<TorrentCreatorListener> it=listeners.iterator();it.hasNext();){
 
-										((TorrentCreatorListener)it.next()).failed( new TorrentException( e ));
+										it.next().failed( new TorrentException( e ));
 									}
 
 								}
@@ -348,7 +351,7 @@ TorrentManagerImpl
 		try{
 			class_mon.enter();
 
-			Collection	entries = attribute_map.values();
+			Collection<TorrentAttribute>	entries = attribute_map.values();
 
 			TorrentAttribute[]	res = new TorrentAttribute[entries.size()];
 
@@ -502,11 +505,17 @@ TorrentManagerImpl
 	reportCurrentTask(
 		final String	task_description )
 	{
-		for (Iterator it = listeners.iterator();it.hasNext();){
+		for (Iterator<TorrentManagerListener> it = listeners.iterator();it.hasNext();){
 
-			((TorrentManagerListener)it.next()).event(
+			it.next().event(
 					new TorrentManagerEvent()
 					{
+						public int
+						getType()
+						{
+							return( ET_CREATION_STATUS );
+						}
+						
 						public Object
 						getData()
 						{
@@ -565,40 +574,164 @@ TorrentManagerImpl
 		}
 	}
 
+	private Map<TorrentOpenOptions,TorrentOptionsImpl>	too_state = new HashMap<TorrentOpenOptions, TorrentOptionsImpl>();
+	
+	private void
+	fireEvent(
+		final int		type,
+		final Object	data )
+	{
+		TorrentManagerEvent	ev = 
+			new TorrentManagerEvent() {
+				
+				public int getType() {
+					return( type );
+				}
+				
+				public Object getData() {
+					return( data );
+				}
+			};
+			
+		for ( TorrentManagerListener l: listeners ){
+			
+			try{
+				l.event( ev );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	private class
+	TorrentOptionsImpl
+		implements TorrentOptions
+	{
+		private	TorrentOpenOptions		options;
+		
+		private
+		TorrentOptionsImpl(
+			TorrentOpenOptions		_options )
+		{
+			options	= _options;
+		}
+		
+		public Torrent
+		getTorrent()
+		{
+			return( PluginCoreUtils.wrap( options.getTorrent()));
+		}
+		
+		public void
+		accept()
+		{
+			options.setCompleteAction( TorrentOpenOptions.CA_ACCEPT );
+		}
+		
+		public void
+		cancel()
+		{
+			options.setCompleteAction( TorrentOpenOptions.CA_REJECT );
+		}
+		
+		public List<Tag>
+		getTags()
+		{
+			List<Tag> tags = new ArrayList<Tag>( options.getInitialTags());
+			
+			return( tags );
+		}
+		
+		public void
+		addTag(
+			Tag		tag )
+		{
+			List<com.aelitis.azureus.core.tag.Tag> tags = options.getInitialTags();
+			
+			if ( !tags.contains( tag )){
+			
+				tags.add((com.aelitis.azureus.core.tag.Tag)tag );
+				
+				options.setInitialTags(tags);
+				
+				options.setDirty();
+			}
+		}
+		
+		public void
+		removeTag(
+			Tag		tag )
+		{
+			List<com.aelitis.azureus.core.tag.Tag> tags = options.getInitialTags();
+			
+			if ( tags.contains( tag )){
+			
+				tags.remove((com.aelitis.azureus.core.tag.Tag)tag );
+				
+				options.setInitialTags(tags);
+				
+				options.setDirty();
+			}
+		}
+	}
+	
+	public void
+	optionsAdded(
+		TorrentOpenOptions	options )
+	{
+		TorrentOptionsImpl my_options =  new TorrentOptionsImpl( options );
+		
+		synchronized( too_state ){
+			
+			too_state.put( options, my_options );
+			
+			fireEvent( TorrentManagerEvent.ET_TORRENT_OPTIONS_CREATED, my_options );
+		}
+	}
+	
+	public void
+	optionsAccepted(
+		TorrentOpenOptions	options )
+	{
+		synchronized( too_state ){
+			
+			TorrentOptionsImpl my_options = too_state.remove( options );
+			
+			if ( my_options != null ){
+			
+				fireEvent( TorrentManagerEvent.ET_TORRENT_OPTIONS_ACCEPTED, my_options );
+			}
+		}
+	}
+	
+	public void
+	optionsRemoved(
+		TorrentOpenOptions	options )
+	{
+		synchronized( too_state ){
+			
+			TorrentOptionsImpl my_options = too_state.remove( options );
+			
+			if ( my_options != null ){
+			
+				fireEvent( TorrentManagerEvent.ET_TORRENT_OPTIONS_CANCELLED, my_options );
+			}
+		}	
+	}
+	
 	public void
 	addListener(
 		TorrentManagerListener	l )
 	{
-		try{
-			class_mon.enter();
-
-			ArrayList	new_listeners = new ArrayList( listeners );
-
-			new_listeners.add( l );
-
-			listeners	= new_listeners;
-		}finally{
-
-			class_mon.exit();
-		}
+		listeners.add( l );
 	}
 
 	public void
 	removeListener(
 		TorrentManagerListener	l )
 	{
-		try{
-			class_mon.enter();
-
-			ArrayList	new_listeners = new ArrayList( listeners );
-
-			new_listeners.remove( l );
-
-			listeners	= new_listeners;
-
-		}finally{
-
-			class_mon.exit();
-		}
+		listeners.remove( l );
 	}
 }

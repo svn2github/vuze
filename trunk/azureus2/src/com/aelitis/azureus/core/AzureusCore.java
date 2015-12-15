@@ -41,10 +41,10 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 public interface 
 AzureusCore 
 {	
-	public static final String	CA_QUIT_VUZE	= "QuitVuze";
-	public static final String	CA_SLEEP		= "Sleep";
-	public static final String	CA_HIBERNATE	= "Hibernate";
-	public static final String	CA_SHUTDOWN		= "Shutdown";
+	public static final String	CA_QUIT_VUZE	= PluginManager.CA_QUIT_VUZE;
+	public static final String	CA_SLEEP		= PluginManager.CA_SLEEP;
+	public static final String	CA_HIBERNATE	= PluginManager.CA_HIBERNATE;
+	public static final String	CA_SHUTDOWN		= PluginManager.CA_SHUTDOWN;
 	
 	public long
 	getCreateTime();

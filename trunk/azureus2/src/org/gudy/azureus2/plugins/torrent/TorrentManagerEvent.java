@@ -27,6 +27,14 @@ package org.gudy.azureus2.plugins.torrent;
 public interface 
 TorrentManagerEvent 
 {
+	public static final int	ET_CREATION_STATUS				= 1;	// Data is String
+	public static final int	ET_TORRENT_OPTIONS_CREATED		= 2;	// Data is TorrentOptions
+	public static final int	ET_TORRENT_OPTIONS_ACCEPTED		= 3;	// Data is TorrentOptions
+	public static final int	ET_TORRENT_OPTIONS_CANCELLED	= 4;	// Data is TorrentOptions
+	
+	public int
+	getType();
+	
 	public Object
 	getData();
 }

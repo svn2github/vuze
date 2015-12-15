@@ -18,10 +18,11 @@
 package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -87,6 +88,29 @@ public class StringAreaParameter extends Parameter{
         	checkValue();
         }
     });
+    
+    inputField.addKeyListener(
+			new KeyAdapter()
+			{
+				public void 
+				keyPressed(
+					KeyEvent event ) 
+				{
+					int key = event.character;
+					
+					if ( key <= 26 && key > 0 ){
+						
+						key += 'a' - 1;
+					}
+
+					if ( key == 'a' && event.stateMask == SWT.MOD1 ){
+						
+						event.doit = false;
+						
+						inputField.selectAll();
+					}
+				}
+			});
   }
 
   public int

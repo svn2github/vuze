@@ -60,7 +60,9 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.PowerManagementListener;
+import org.gudy.azureus2.plugins.utils.ScriptProvider;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.pluginsimpl.PluginUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -2631,38 +2633,7 @@ AzureusCoreImpl
 							script = COConfigurationManager.getStringParameter( "On Seeding Complete Script", "" );
 						}
 						
-						File script_file = new File( script.trim());
-						
-						if ( !script_file.isFile()){
-							
-							Logger.log( new LogEvent(LOGID, "Script failed to run - '" + script_file + "' isn't a valid script file" ));
-							
-							Debug.out( "Invalid script: " + script_file );
-							
-						}else{
-							
-							try{
-								boolean	close_vuze = action.equals( "RunScriptAndClose" );
-								
-								if ( !close_vuze ){
-									
-										// assume script might implement a sleep
-									
-									announceAll( true );
-								}
-								
-								getPluginManager().getDefaultPluginInterface().getUtilities().createProcess( script_file.getAbsolutePath());
-								
-								if ( close_vuze ){
-									
-									requestStop();
-								}
-								
-							}catch( Throwable e ){
-								
-								Debug.out( e );
-							}
-						}
+						executeScript( script, action, download_trigger );
 						
 					}else{
 						
@@ -2670,6 +2641,118 @@ AzureusCoreImpl
 					}
 				}
 			});
+	}
+	
+	private boolean		js_plugin_install_tried;
+
+	private void
+	executeScript(
+		String		script,
+		String		action,
+		boolean		download_trigger )
+	{
+		String script_type = "";
+		
+		if ( script.length() >=10 && script.substring(0,10).toLowerCase( Locale.US ).startsWith( "javascript" )){
+			
+			int	p1 = script.indexOf( '(' );
+			
+			int	p2 = script.lastIndexOf( ')' );
+			
+			if ( p1 != -1 && p2 != -1 ){
+				
+				script = script.substring( p1+1, p2 ).trim();
+				
+				if ( script.startsWith( "\"" ) && script.endsWith( "\"" )){
+					
+					script = script.substring( 1, script.length()-1 );
+				}
+				
+					// allow people to escape " if it makes them feel better
+				
+				script = script.replaceAll( "\\\\\"", "\"" );
+				
+				script_type = ScriptProvider.ST_JAVASCRIPT;	
+			}
+		}
+		
+		File script_file	= null;
+		
+		if ( script_type == "" ){
+			
+			script_file = new File( script.trim());
+		
+			if ( !script_file.isFile()){
+						
+				Logger.log( new LogEvent(LOGID, "Script failed to run - '" + script_file + "' isn't a valid script file" ));
+				
+				Debug.out( "Invalid script: " + script_file );
+			
+				return;
+			}
+		}
+			
+		try{
+			boolean	close_vuze = action.equals( "RunScriptAndClose" );
+			
+			if ( !close_vuze ){
+				
+					// assume script might implement a sleep
+				
+				announceAll( true );
+			}
+			
+			if ( script_file != null ){
+			
+				getPluginManager().getDefaultPluginInterface().getUtilities().createProcess( script_file.getAbsolutePath());
+			
+			}else{
+				
+				boolean	provider_found = false;
+				
+				List<ScriptProvider> providers = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getScriptProviders();
+				
+				for ( ScriptProvider p: providers ){
+					
+					if ( p.getScriptType() == script_type ){
+						
+						provider_found = true;
+						
+						Map<String,Object>	bindings = new HashMap<String, Object>();
+												
+						String intent = "shutdown" + "(\"" + action + "\")";
+
+						bindings.put( "intent", intent );
+						
+						bindings.put( "is_downloading_complete", download_trigger);
+						
+						p.eval( script, bindings );
+							
+					}
+				}
+				
+				if ( !provider_found ){
+				
+					if ( !js_plugin_install_tried ){
+					
+						js_plugin_install_tried = true;
+						
+						PluginUtils.installJavaScriptPlugin();
+					}
+				}
+			}
+			
+			if ( close_vuze ){
+				
+				requestStop();
+			}
+			
+		}catch( Throwable e ){
+			
+			Logger.log( new LogAlert(true,LogAlert.AT_ERROR, "Script failed to run - '" + script + "'", e ));
+			
+			Debug.out( "Invalid script: " + script, e );
+		}	
 	}
 	
 	public AzureusCoreOperation

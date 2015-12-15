@@ -120,8 +120,15 @@ public class TorrentOpenOptions
 	
 	private boolean	hide_errors;
 	
-		// add stuff here -> update the clone constructor
+	public static final int CA_NONE			= 0;
+	public static final int CA_ACCEPT		= 1;
+	public static final int CA_REJECT		= 2;
+		
+		// add stuff above here -> update the clone constructor
 	
+	private int 		complete_action	= CA_NONE;
+	private boolean		dirty;
+
 	/**
 	 * Init
 	 * 
@@ -394,6 +401,22 @@ public class TorrentOpenOptions
 		List<Tag>		tags )
 	{
 		initialTags = tags;
+	}
+	
+	public void
+	setDirty()
+	{
+		dirty = true;
+	}
+	
+	public boolean
+	getAndClearDirt()
+	{
+		boolean	result = dirty;
+		
+		dirty = false;
+		
+		return( result );
 	}
 	
 	public List<List<String>>
@@ -876,5 +899,20 @@ public class TorrentOpenOptions
 				Debug.out( e );
 			}
 		}
+	}
+	
+	public void
+	setCompleteAction(
+		int		ca )
+	{
+			// indication of whether options are to be accepted or rejected
+		
+		complete_action = ca;
+	}
+	
+	public int
+	getCompleteAction()
+	{
+		return( complete_action );
 	}
 }

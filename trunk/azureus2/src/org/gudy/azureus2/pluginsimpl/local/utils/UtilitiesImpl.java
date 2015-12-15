@@ -45,6 +45,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.tag.Tag;
+import org.gudy.azureus2.plugins.tag.TagManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.ScriptProvider.ScriptProviderListener;
@@ -2496,6 +2497,50 @@ UtilitiesImpl
 		synchronized( json_servers ){
 
 			json_clients.remove( key );
+		}
+	}
+	
+	private TagManagerImpl	tag_manager = new TagManagerImpl();
+	
+	public TagManager 
+	getTagManager() 
+	{
+		return( tag_manager );
+	}
+	
+	
+	private static class
+	TagManagerImpl
+		implements TagManager
+	{
+		public List<Tag>
+		getTags()
+		{
+			List<com.aelitis.azureus.core.tag.Tag> tags = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTags();
+			
+			return( new ArrayList<Tag>( tags ));
+		}
+		
+		public Tag 
+		lookupTag(
+			String name) 
+		{
+			return( TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTag( name, true ));
+		}
+		
+		public Tag
+		createTag(
+			String		name )
+		{
+			try{
+				return( TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).createTag(name, true ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+				
+				return( null );
+			}
 		}
 	}
 }

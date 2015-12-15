@@ -425,6 +425,27 @@ PluginManagerImpl
 		return( pi.isInitialized());
 	}
 	
+	@Override
+	public void 
+	executeCloseAction(
+		String action) 
+		
+		throws PluginException
+	{
+		if ( azureus_core == null ){
+			
+			throw( new PluginException( Constants.APP_NAME + " is not running"));
+		}
+		
+		try{
+			azureus_core.executeCloseAction( action, "plugin requested" );
+			
+		}catch( Throwable e ){
+							
+			throw( new PluginException( "PluginManager: " + Constants.APP_NAME + " restart action failed", e));
+		}
+	}
+	
 	public List<PluginInterface>
 	getPluginsWithMethod(
 		String		name,

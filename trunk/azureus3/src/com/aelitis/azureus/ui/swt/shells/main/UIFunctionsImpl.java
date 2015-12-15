@@ -48,6 +48,7 @@ import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -1348,7 +1349,17 @@ public class UIFunctionsImpl
 				
 				if ( looks_good ){
 				
-					return( TorrentOpener.addTorrent(torrentOptions));
+					TorrentManagerImpl t_man = TorrentManagerImpl.getSingleton();
+
+					t_man.optionsAdded( torrentOptions );
+					
+					t_man.optionsAccepted( torrentOptions );
+					
+					boolean ok = TorrentOpener.addTorrent(torrentOptions);
+					
+					t_man.optionsRemoved( torrentOptions );
+					
+					return( ok );
 				}
 				
 				torrentOptions.setParentDir( "" );

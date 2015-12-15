@@ -265,6 +265,23 @@ PluginManager
 	public abstract boolean
 	isInitialized();
 	
+	public static final String	CA_QUIT_VUZE	= "QuitVuze";
+	public static final String	CA_SLEEP		= "Sleep";
+	public static final String	CA_HIBERNATE	= "Hibernate";
+	public static final String	CA_SHUTDOWN		= "Shutdown";
+
+	/**
+	 * @since 5701
+	 * @param action one of the above CA_ 
+	 * @throws PluginException 
+	 */
+	
+	public abstract void
+	executeCloseAction(
+		String		action )
+				
+		throws PluginException;
+	
 	/**
 	 * returns the plugin interface with a given id, or null if not found
 	 * @param id
