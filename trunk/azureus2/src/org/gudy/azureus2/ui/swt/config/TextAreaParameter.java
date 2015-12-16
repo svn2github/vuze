@@ -19,6 +19,8 @@ package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -61,6 +63,29 @@ TextAreaParameter
 					}
 				});
 	
+		text_area.addKeyListener(
+				new KeyAdapter()
+				{
+					public void 
+					keyPressed(
+						KeyEvent event ) 
+					{
+						int key = event.character;
+						
+						if ( key <= 26 && key > 0 ){
+							
+							key += 'a' - 1;
+						}
+
+						if ( key == 'a' && event.stateMask == SWT.MOD1 ){
+							
+							event.doit = false;
+							
+							text_area.selectAll();
+						}
+					}
+				});
+	    
 		text_area.setText(ui_text_area.getText());
 
 		ui_text_area.addPropertyChangeListener(this);		

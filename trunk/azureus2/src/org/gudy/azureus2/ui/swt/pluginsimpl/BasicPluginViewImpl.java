@@ -25,6 +25,8 @@ import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -273,6 +275,29 @@ BasicPluginViewImpl
 					}
 				});
 		
+	    log.addKeyListener(
+				new KeyAdapter()
+				{
+					public void 
+					keyPressed(
+						KeyEvent event ) 
+					{
+						int key = event.character;
+						
+						if ( key <= 26 && key > 0 ){
+							
+							key += 'a' - 1;
+						}
+
+						if ( key == 'a' && event.stateMask == SWT.MOD1 ){
+							
+							event.doit = false;
+							
+							log.selectAll();
+						}
+					}
+				});
+	    
     	//String	text = model.getLogArea().getText().trim();
     	//log.setText( text);
     	//log.setTopIndex(log.getLineCount());
