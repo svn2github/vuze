@@ -74,6 +74,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
 
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
@@ -89,7 +90,7 @@ import com.aelitis.azureus.util.MapUtils;
  * 
  */
 public class GeneralView
-	implements ParameterListener, UISWTViewCoreEventListener, UIPluginViewToolBarListener
+	implements ParameterListener, UISWTViewCoreEventListenerEx, UIPluginViewToolBarListener
 {
 	public static final String MSGID_PREFIX = "GeneralView";
 
@@ -172,6 +173,18 @@ public class GeneralView
 		});
 	}
 
+	  public boolean
+	  isCloneable()
+	  {
+		  return( true );
+	  }
+
+	  public UISWTViewCoreEventListener
+	  getClone()
+	  {
+		  return( new GeneralView());
+	  }
+	  
   public void initialize(Composite composite) {
   	parent = composite;
 
