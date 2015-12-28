@@ -38,7 +38,10 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.transfer.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.clientid.ClientIDException;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -927,6 +930,20 @@ public class VersionCheckClient {
 		URL	url = new URL( url_str );
 
 		try{
+			Properties	http_properties = new Properties();
+	 		
+	 		http_properties.put( ClientIDGenerator.PR_URL, url );
+	 		
+	 		try{
+	 			ClientIDManagerImpl.getSingleton().generateHTTPProperties( null, http_properties );
+	 			
+	 		}catch( ClientIDException e ){
+	 			
+	 			throw( new IOException( e.getMessage()));
+	 		}
+			
+	 		url = (URL)http_properties.get( ClientIDGenerator.PR_URL );
+			
 			HttpURLConnection	url_connection = (HttpURLConnection)url.openConnection();
 				
 			url_connection.setConnectTimeout( 10*1000 );
