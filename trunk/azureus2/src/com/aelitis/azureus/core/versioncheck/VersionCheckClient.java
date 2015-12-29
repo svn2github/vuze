@@ -935,9 +935,16 @@ public class VersionCheckClient {
 	 		http_properties.put( ClientIDGenerator.PR_URL, url );
 	 		
 	 		try{
-	 			ClientIDManagerImpl.getSingleton().generateHTTPProperties( null, http_properties );
+	 			ClientIDManagerImpl cman = ClientIDManagerImpl.getSingleton();
 	 			
-	 		}catch( ClientIDException e ){
+	 			if ( cman != null && cman.getGenerator() != null ){
+	 				
+	 				cman.generateHTTPProperties( null, http_properties );
+	 			}
+	 			
+	 		}catch( Throwable e ){
+	 			
+	 			Debug.out( e );
 	 			
 	 			throw( new IOException( e.getMessage()));
 	 		}
