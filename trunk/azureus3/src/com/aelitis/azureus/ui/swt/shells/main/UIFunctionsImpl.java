@@ -1471,4 +1471,8 @@ public class UIFunctionsImpl
 	public TabbedMdiInterface createTabbedMDI(Composite parent, String id) {
 		return new TabbedMDI(parent, id);
 	}
+	
+	public int adjustPXForDPI(int px) {
+		return( Utils.adjustPXForDPI( px ));
+	}
 }

@@ -27,6 +27,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -40,7 +42,6 @@ import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
-import org.gudy.azureus2.ui.swt.Utils;
 
 /** 
  * Table Column definition and modification routines.
@@ -60,6 +61,20 @@ public class TableColumnImpl
 	private static final String CFG_SORTDIRECTION 		= "config.style.table.defaultSortOrder";
 
 	private static final String ATTRIBUTE_NAME_OVERIDE =  "tablecolumn.nameoverride";
+	
+	private static UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+	
+	private static int
+	adjustPXForDPI(
+		int	px )
+	{
+		if ( uiFunctions == null ){
+			
+			return( px );
+		}
+		
+		return( uiFunctions.adjustPXForDPI( px ));
+	}
 	
 	/** Internal Name/ID of the column **/
 	private String sName;
@@ -181,7 +196,7 @@ public class TableColumnImpl
 		iConsecutiveErrCount = 0;
 		lLastSortValueChange = 0;
 		bVisible = false;
-		iMinWidth = Utils.adjustPXForDPI(16);
+		iMinWidth = adjustPXForDPI(16);
 		iPosition = POSITION_INVISIBLE;
 		int iSortDirection = COConfigurationManager.getIntParameter(CFG_SORTDIRECTION);
 		bSortAscending = iSortDirection == 1 ? false : true;
@@ -196,8 +211,8 @@ public class TableColumnImpl
 
 		this.iAlignment = this.iDefaultAlignment =  iAlignment;
 		setPosition(iPosition);
-		this.iWidth = this.iDefaultWidth = Utils.adjustPXForDPI(iWidth);
-		this.iMinWidth = Utils.adjustPXForDPI(16);
+		this.iWidth = this.iDefaultWidth = adjustPXForDPI(iWidth);
+		this.iMinWidth = adjustPXForDPI(16);
 		this.iInterval = iInterval;
 	}
 
@@ -209,8 +224,8 @@ public class TableColumnImpl
 
 		this.iAlignment = this.iDefaultAlignment = iAlignment;
 		setPosition(iPosition);
-		this.iWidth = this.iDefaultWidth = Utils.adjustPXForDPI(iWidth);
-		this.iMinWidth = Utils.adjustPXForDPI(16);
+		this.iWidth = this.iDefaultWidth = adjustPXForDPI(iWidth);
+		this.iMinWidth = adjustPXForDPI(16);
 	}
 
 	public String getName() {
@@ -245,7 +260,7 @@ public class TableColumnImpl
 	}
 	
 	public void setWidth(int realPXWidth) {
-		setWidthPX(Utils.adjustPXForDPI(realPXWidth));
+		setWidthPX(adjustPXForDPI(realPXWidth));
 	}
 	
 	public void setWidthPX(int width) {
@@ -1450,7 +1465,7 @@ public class TableColumnImpl
 	// @see org.gudy.azureus2.plugins.ui.tables.TableColumn#setMinWidth(int)
 	public void setMinWidth(int minwidth) {
 		// :(
-		minwidth = Utils.adjustPXForDPI(minwidth);
+		minwidth = adjustPXForDPI(minwidth);
 		if (minwidth > iMaxWidth && iMaxWidth >= 0) {
 			iMaxWidth = minwidth;
 		}
@@ -1471,7 +1486,7 @@ public class TableColumnImpl
 	// @see org.gudy.azureus2.plugins.ui.tables.TableColumn#setMaxWidth(int)
 	public void setMaxWidth(int maxwidth) {
 		// :(
-		maxwidth = Utils.adjustPXForDPI(maxwidth);
+		maxwidth = adjustPXForDPI(maxwidth);
 		if (maxwidth >= 0 && maxwidth < iMinWidth) {
 			iMinWidth = maxwidth;
 		}

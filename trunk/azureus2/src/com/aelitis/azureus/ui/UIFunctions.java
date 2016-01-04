@@ -222,6 +222,8 @@ public interface UIFunctions
 	
 	public void showCreateTagDialog(TagReturner tagReturner);
 	
+	public int adjustPXForDPI( int px );
+	
 	public interface 
 	TagReturner 
 	{

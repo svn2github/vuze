@@ -944,5 +944,10 @@ MainWindowDelayStub
 			log( "createTabbedMDI" );
 			return null;
 		}
+		
+		public int adjustPXForDPI(int px) {
+			log( "adjustPXForDPI" );
+			return( px );
+		}
 	}
 }
