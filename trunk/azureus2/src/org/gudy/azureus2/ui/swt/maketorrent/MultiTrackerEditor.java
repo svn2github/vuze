@@ -792,7 +792,12 @@ public class MultiTrackerEditor {
   		
   		String prot = url.getProtocol().toLowerCase();
   		
-  		if ( prot.equals( "http") || prot.equals( "https" ) || prot.equals( "udp") || prot.equals( "dht")){
+  		if ( 	prot.equals( "http") ||
+  				prot.equals( "https" ) || 
+  				prot.equals( "ws") || 
+  				prot.equals( "wss") || 
+  				prot.equals( "udp") || 
+  				prot.equals( "dht")){
   			
   			return( true );
   		}

@@ -2645,6 +2645,14 @@ outer:
 	
 		throws DHTTransportException
 	{
+		InetAddress ia = target.getAddress().getAddress();
+		
+		if ( 	( ia instanceof Inet4Address && v6  ) ||
+				( ia instanceof Inet6Address && !v6 )){
+
+			throw( new DHTTransportException( "Incompatible address" ));
+		}
+		
 		return( xfer_handler.readTransfer( listener, target, handler_key, key, timeout ));
 	}
 	
@@ -2659,6 +2667,14 @@ outer:
 	
 		throws DHTTransportException
 	{
+		InetAddress ia = target.getAddress().getAddress();
+		
+		if ( 	( ia instanceof Inet4Address && v6  ) ||
+				( ia instanceof Inet6Address && !v6 )){
+
+			throw( new DHTTransportException( "Incompatible address" ));
+		}
+		
 		xfer_handler.writeTransfer(listener, target, handler_key, key, data, timeout);
 	}
 	
@@ -2672,6 +2688,14 @@ outer:
 	
 		throws DHTTransportException
 	{
+		InetAddress ia = target.getAddress().getAddress();
+		
+		if ( 	( ia instanceof Inet4Address && v6  ) ||
+				( ia instanceof Inet6Address && !v6 )){
+
+			throw( new DHTTransportException( "Incompatible address" ));
+		}
+		
 		return( xfer_handler.writeReadTransfer( listener, target, handler_key, data, timeout ));
 	}
 	

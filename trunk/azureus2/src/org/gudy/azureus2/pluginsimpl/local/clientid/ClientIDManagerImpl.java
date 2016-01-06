@@ -24,10 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
-
+import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.*;
-
-
 
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -305,9 +303,12 @@ ClientIDManagerImpl
 			
 			URL		url 	= (URL)properties.get( ClientIDGenerator.PR_URL );
 			
-			String host = url.getHost();
+			String protocol = url.getProtocol();
+			String host 	= url.getHost();
 			
-			if ( host.equals( "127.0.0.1" ) || AENetworkClassifier.categoriseAddress( host ) != AENetworkClassifier.AT_PUBLIC ){
+			if ( 	host.equals( "127.0.0.1" ) || 
+					protocol.equals( "ws" ) || protocol.equals( "wss" ) ||
+					AENetworkClassifier.categoriseAddress( host ) != AENetworkClassifier.AT_PUBLIC ){
 				
 				filter_it = false;
 				
@@ -724,6 +725,10 @@ ClientIDManagerImpl
 				report_error = e.getMessage();
 				
 				// don't log these as common
+				
+			}catch( UnsupportedAddressTypeException e ){
+				
+				report_error = e.getMessage();
 				
 			}catch( Throwable e ){
 				
