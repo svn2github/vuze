@@ -1738,13 +1738,18 @@ public class MyTorrentsView
 							}
 							TableRowCore row = tv.getTableRowWithCursor();
 							if (row instanceof TableRowPainted) {
-  							Rectangle bounds = ((TableRowPainted) row).getBounds();
-  							tv.getComposite().redraw();
-  							tv.getComposite().update();
-  							GC gc = new GC(tv.getComposite());
-  							gc.setLineWidth(2);
-  							gc.drawLine(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y);
-  							gc.dispose();
+								boolean dragging_down = row.getIndex() > drag_drop_line_start;
+	  							Rectangle bounds = ((TableRowPainted) row).getBounds();
+	  							tv.getComposite().redraw();
+	  							tv.getComposite().update();
+	  							GC gc = new GC(tv.getComposite());
+	  							gc.setLineWidth(2);
+	  							int y_pos = bounds.y;
+	  							if ( dragging_down ){
+	  								y_pos +=bounds.height;
+	  							}
+	  							gc.drawLine(bounds.x, y_pos, bounds.x + bounds.width, y_pos );
+	  							gc.dispose();
 							}
 							event.detail = row == null ? DND.DROP_NONE : DND.DROP_MOVE;
 							event.feedback = DND.FEEDBACK_SCROLL
@@ -1812,7 +1817,6 @@ public class MyTorrentsView
       }
       DownloadManager dm = (DownloadManager) ds;
       int iOldPos = dm.getPosition();
-      
       globalManager.moveTo(dm, iNewPos);
       if (isSortAscending) {
         if (iOldPos > iNewPos)
