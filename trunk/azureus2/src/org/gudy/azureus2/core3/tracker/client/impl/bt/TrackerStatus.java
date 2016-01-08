@@ -156,6 +156,8 @@ public class TrackerStatus {
     
     try {
       trackerUrl = trackerUrl.replaceAll(" ", "");
+      String lc_trackerUrl = trackerUrl.toLowerCase(Locale.US);
+      
       int position = trackerUrl.lastIndexOf('/');
       if(	position >= 0 &&
       		trackerUrl.length() >= position+9 && 
@@ -164,11 +166,18 @@ public class TrackerStatus {
         this.scrapeURL = trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9);
         // System.out.println( "url = " + trackerUrl + ", scrape =" + scrapeURL );
         
-      }else if ( trackerUrl.toLowerCase().startsWith("udp:")){
+      }else if ( lc_trackerUrl.startsWith("udp:")){
       		// UDP scrapes aren't based on URL rewriting, just carry on
       	
       	scrapeURL = trackerUrl;
-      	
+      }else if ( lc_trackerUrl.startsWith( "ws:" ) || lc_trackerUrl.startsWith( "wss:" )){
+    	  
+    	  // websocket trackers
+    	  
+    	  scrapeURL = trackerUrl;
+    	  
+    	  bSingleHashScrapes = true;
+    	  
        }else if ( position >= 0 && trackerUrl.lastIndexOf('.') < position ){
        	
        		// some trackers support /scrape appended but don't have an /announce
