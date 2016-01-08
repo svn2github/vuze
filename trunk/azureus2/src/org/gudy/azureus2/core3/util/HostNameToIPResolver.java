@@ -97,7 +97,7 @@ HostNameToIPResolver
 			
 			for (int i=10;i<chars.length;i++){
 				
-				if ( Character.isDigit(chars[i])){
+				if ( !Character.isDigit(chars[i])){
 					
 					resolve = true;
 					
