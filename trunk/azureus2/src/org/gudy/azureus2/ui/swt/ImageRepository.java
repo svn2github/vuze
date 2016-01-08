@@ -474,7 +474,7 @@ public class ImageRepository
 					
 					if ( HostNameToIPResolver.isDNSName( ip )){
 						
-						InetAddress peer_address = InetAddress.getByName( ip );
+						InetAddress peer_address = HostNameToIPResolver.syncResolve( ip );
 					
 						String cc_key = fp.getISO3166CodeForIP( peer_address ) + (small?".s":".l");
 						

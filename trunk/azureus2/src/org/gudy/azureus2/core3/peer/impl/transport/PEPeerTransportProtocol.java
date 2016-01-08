@@ -65,6 +65,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
+import com.aelitis.azureus.core.proxy.AEProxyAddressMapper;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.tag.TaggableResolver;
 
@@ -1104,9 +1105,21 @@ implements PEPeerTransport
 
 	protected void sendBTHandshake() {
 		if ( !handshake_sent ){
+						
+			int msg_mode = manager.getExtendedMessagingMode();
+			
+			Boolean disable_az = (Boolean)connection.getEndpoint().getProperty( AEProxyAddressMapper.MAP_PROPERTY_DISABLE_AZ_MESSAGING );
+
+			if ( disable_az != null && disable_az ){
+				
+				if ( msg_mode == BTHandshake.AZ_RESERVED_MODE ){
+				
+					msg_mode = BTHandshake.LT_RESERVED_MODE;
+				}
+			}
+			
 			BTHandshake handshake =	new BTHandshake( manager.getHash(),
-					manager.getPeerId(),
-                    manager.getExtendedMessagingMode(), other_peer_handshake_version );
+					manager.getPeerId(), msg_mode, other_peer_handshake_version );
 			
 			if (Logger.isEnabled())
 			    Logger.log(new LogEvent(this, LOGID,

@@ -22,6 +22,7 @@ package com.aelitis.azureus.core.proxy;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.Map;
 
 /**
  * @author parg
@@ -31,6 +32,8 @@ import java.net.URL;
 public interface 
 AEProxyAddressMapper 
 {
+	public static final String	MAP_PROPERTY_DISABLE_AZ_MESSAGING	= "AEProxyAddressMapper.disable.az.msg";
+	
 		/**
 		 * SOCKS 5 is limited to 255 char DNS names. So for longer ones (e.g. I2P 'names')
 		 * we have to replace then with somethin shorter to get through the SOCKS layer
@@ -62,7 +65,13 @@ AEProxyAddressMapper
 		int		local_port,
 		String	ip );
 	
-	public InetSocketAddress
+	public PortMapping
+	registerPortMapping(
+		int						local_port,
+		String					ip,
+		Map<String,Object>		properties );
+	
+	public AppliedPortMapping
 	applyPortMapping(
 		InetAddress		address,
 		int				port );
@@ -72,5 +81,15 @@ AEProxyAddressMapper
 	{
 		public void
 		unregister();
+	}
+	
+	public interface
+	AppliedPortMapping
+	{
+		public InetSocketAddress
+		getAddress();
+		
+		public Map<String,Object>
+		getProperties();
 	}
 }

@@ -22,7 +22,9 @@ package com.aelitis.azureus.core.networkmanager;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -39,11 +41,45 @@ ConnectionEndpoint
 	private InetSocketAddress	notional_address;
 	private ProtocolEndpoint[]	protocols;
 	
+	private Map<String,Object>	properties;
+	
 	public
 	ConnectionEndpoint(
 		InetSocketAddress	_notional_address )
 	{
 		notional_address	= _notional_address;
+	}
+	
+	public void
+	addProperties(
+		Map<String,Object>		p )
+	{
+		synchronized( this ){
+			
+			if ( properties != null ){
+				
+				properties = new HashMap<String,Object>( p );
+				
+			}else{
+				
+				properties.putAll( p );
+			}
+		}
+	}
+	
+	public Object
+	getProperty(
+		String	name )
+	{
+		synchronized( this ){
+			
+			if ( properties != null ){
+				
+				return( properties.get( name ));
+			}
+		}
+		
+		return( null );
 	}
 	
 	public InetSocketAddress

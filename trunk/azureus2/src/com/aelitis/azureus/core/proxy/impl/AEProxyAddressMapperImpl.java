@@ -256,7 +256,7 @@ AEProxyAddressMapperImpl
 		int		local_port,
 		String	ip )
 	{
-		PortMappingImpl mapping = new PortMappingImpl( ip, local_port );
+		PortMappingImpl mapping = new PortMappingImpl( ip, local_port, null );
 		
 		synchronized( port_mappings ){
 			
@@ -266,7 +266,23 @@ AEProxyAddressMapperImpl
 		return( mapping );
 	}
 	
-	public InetSocketAddress
+	public PortMapping
+	registerPortMapping(
+		int						local_port,
+		String					ip,
+		Map<String,Object>		properties )
+	{
+		PortMappingImpl mapping = new PortMappingImpl( ip, local_port, properties );
+		
+		synchronized( port_mappings ){
+			
+			port_mappings.put( local_port, mapping );
+		}
+		
+		return( mapping );
+	}
+	
+	public AppliedPortMapping
 	applyPortMapping(
 		InetAddress		address,
 		int				port )
@@ -317,29 +333,38 @@ AEProxyAddressMapperImpl
 		
 		//System.out.println( "Applying mapping: " + address + "/" + port + " -> " + result );
 		
-		return( result );
+		return( new AppliedPortMappingImpl( result, mapping==null?null:mapping.getProperties()));
 	}
 	
 	private class
 	PortMappingImpl
 		implements PortMapping
 	{
-		private String	ip;
-		private int		port;
+		private String				ip;
+		private int					port;
+		private Map<String,Object>	properties;
 		
 		private
 		PortMappingImpl(
-			String		_ip,
-			int			_port )
+			String				_ip,
+			int					_port,
+			Map<String,Object>	_properties )
 		{
-			ip		= _ip;
-			port	= _port;
+			ip				= _ip;
+			port			= _port;
+			properties		= _properties;
 		}
 		
 		private String
 		getIP()
 		{
 			return( ip );
+		}
+		
+		public Map<String,Object>
+		getProperties()
+		{
+			return( properties );
 		}
 		
 		public void 
@@ -349,6 +374,35 @@ AEProxyAddressMapperImpl
 				
 				port_mappings.remove( port );
 			}
+		}
+	}
+	
+	private static class
+	AppliedPortMappingImpl
+		implements AppliedPortMapping
+	{
+		private final InetSocketAddress		address;
+		private final Map<String,Object>	properties;
+		
+		private
+		AppliedPortMappingImpl(
+			InetSocketAddress	_address,
+			Map<String,Object>	_properties )
+		{
+			address		= _address;
+			properties	= _properties;
+		}
+		
+		public InetSocketAddress
+		getAddress()
+		{
+			return( address );
+		}
+		
+		public Map<String,Object>
+		getProperties()
+		{
+			return( properties );
 		}
 	}
 }

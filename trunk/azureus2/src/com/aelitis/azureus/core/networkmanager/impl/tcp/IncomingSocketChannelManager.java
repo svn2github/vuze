@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -461,10 +462,19 @@ public class IncomingSocketChannelManager
       t.printStackTrace();
     }
     
-    InetSocketAddress tcp_address = proxy_address_mapper.applyPortMapping( socket.getInetAddress(), socket.getPort());
+    AEProxyAddressMapper.AppliedPortMapping applied_mapping = proxy_address_mapper.applyPortMapping( socket.getInetAddress(), socket.getPort());
+    
+    InetSocketAddress	tcp_address = applied_mapping.getAddress();
     
 	ConnectionEndpoint	co_ep = new ConnectionEndpoint(tcp_address);
 
+	Map<String,Object>	properties = applied_mapping.getProperties();
+	
+	if ( properties != null ){
+		
+		co_ep.addProperties( properties );
+	}
+	
 	ProtocolEndpointTCP	pe_tcp = (ProtocolEndpointTCP)ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, co_ep, tcp_address );
 
 	Transport transport = new TCPTransportImpl( pe_tcp, filter );
