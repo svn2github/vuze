@@ -56,7 +56,7 @@ ConnectionEndpoint
 	{
 		synchronized( this ){
 			
-			if ( properties != null ){
+			if ( properties == null ){
 				
 				properties = new HashMap<String,Object>( p );
 				
