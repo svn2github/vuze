@@ -310,6 +310,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("UT", "\u00B5Torrent", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
 		addAzStyle("UM", "\u00B5Torrent Mac", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
 		addAzStyle("WT", "Bitlet");
+		addAzStyle("WW", "WebTorrent"); 
 		addAzStyle("WY", "FireTorrent"); // formerly Wyzo.
 		addAzStyle("VG", "\u54c7\u560E (Vagaa)", VER_AZ_FOUR_DIGITS);
 		addAzStyle("XF", "Xfplay", VER_AZ_FOUR_DIGITS);

@@ -579,8 +579,8 @@ public class BTPeerIDByteDecoder {
 		assertDecode(unknown_az, "2D7746323230302D9DFF296B56AFC2DF751C609C");
 		unknown_az = MessageText.getString("PeerSocket.unknown_az_style", new String[]{"X1", "0.0.6.4"});
 		assertDecode(unknown_az, "2D5831303036342D12FB8A5B954153A114267F1F");
-		unknown_az = MessageText.getString("PeerSocket.unknown_az_style", new String[]{"bF", "2q00"}); // I made this one up.
-		assertDecode(unknown_az, "2D6246327130302D9DFF296B56AFC2DF751C609C");
+		//unknown_az = MessageText.getString("PeerSocket.unknown_az_style", new String[]{"bF", "2q00"}); // I made this one up.
+		//assertDecode(unknown_az, "2D6246327130302D9DFF296B56AFC2DF751C609C");
 		System.out.println();
 		
 		// Unknown Shadow style clients.
@@ -614,6 +614,8 @@ public class BTPeerIDByteDecoder {
 		assertDecode( "Tixati 1.1.0.7", "-TX1107-811513660630" );
 		
 		assertDecode( "Torch 6.2.9.2", "-TB6292-jhBrpKfnZ!6e" );	// I know this is wrong as the real version is apparently Torch 29.0.0.6292 according to LTEP but woreva
+		
+		assertDecode( "WebTorrent 0.0.6.8", "-WW0068-b9539e1e4f95" );
 		
 		System.out.println("Done.");
 	}
