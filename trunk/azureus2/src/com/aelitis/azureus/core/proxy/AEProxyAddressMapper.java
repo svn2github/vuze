@@ -33,6 +33,8 @@ public interface
 AEProxyAddressMapper 
 {
 	public static final String	MAP_PROPERTY_DISABLE_AZ_MESSAGING	= "AEProxyAddressMapper.disable.az.msg";
+	public static final String	MAP_PROPERTY_PROTOCOL_QUALIFIER		= "AEProxyAddressMapper.prot.qual";
+	
 	
 		/**
 		 * SOCKS 5 is limited to 255 char DNS names. So for longer ones (e.g. I2P 'names')
