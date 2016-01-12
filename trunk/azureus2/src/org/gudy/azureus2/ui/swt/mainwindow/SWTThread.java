@@ -124,6 +124,8 @@ public class SWTThread {
 		}
     Thread.currentThread().setName("SWT Thread");
     
+	Utils.initialize( display );
+
     primaryMonitor = display.getPrimaryMonitor();
     AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator() {
 			public void generate(IndentWriter writer) {

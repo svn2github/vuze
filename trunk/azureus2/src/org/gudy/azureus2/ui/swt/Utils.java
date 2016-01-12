@@ -178,6 +178,30 @@ public class Utils
     BUTTON_MARGIN = Constants.isOSX ? (smallOSXControl ? 10 : 12) : 6;
 	}
 
+	private static Set<DiskManagerFileInfo>	quick_view_active = new HashSet<DiskManagerFileInfo>();
+	private static TimerEventPeriodic		quick_view_event;
+
+	private static Point dpi;
+
+	public static void
+	initialize(
+		Display		display )
+	{
+		getDPI();	// cache now to prevent invalid-thread access under some conditions later
+					// in particular during plugin init of a custome column
+					/*	org.eclipse.swt.SWTException: Invalid thread access
+					    at org.eclipse.swt.SWT.error(SWT.java:4457)
+					    at org.eclipse.swt.SWT.error(SWT.java:4372)
+					    at org.eclipse.swt.SWT.error(SWT.java:4343)
+					    at org.eclipse.swt.widgets.Display.error(Display.java:1258)
+					    at org.eclipse.swt.widgets.Display.checkDevice(Display.java:764)
+					    at org.eclipse.swt.graphics.Device.getDPI(Device.java:466)
+					    at org.gudy.azureus2.ui.swt.Utils.getDPI(Utils.java:3641)
+					    at org.gudy.azureus2.ui.swt.Utils.adjustPXForDPI(Utils.java:3654)
+					    at com.aelitis.azureus.ui.common.table.impl.TableColumnImpl.init(TableColumnImpl.java:184)
+					 */
+	}
+	
 	public static boolean isAZ2UI() {
 		return isAZ2;
 	}
@@ -3002,11 +3026,6 @@ public class Utils
 				}
 			});
 	}
-
-	private static Set<DiskManagerFileInfo>	quick_view_active = new HashSet<DiskManagerFileInfo>();
-	private static TimerEventPeriodic		quick_view_event;
-
-	private static Point dpi;
 	
 	public static boolean
 	isQuickViewSupported(
