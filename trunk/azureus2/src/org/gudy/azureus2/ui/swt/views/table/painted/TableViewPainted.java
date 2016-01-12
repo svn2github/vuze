@@ -278,6 +278,12 @@ public class TableViewPainted
 
 			@Override
 			public void keyPressed(KeyEvent event) {
+				if ( event.keyCode == SWT.ESC ){
+					TableViewSWTFilter<?> filter = getSWTFilter();
+					if ( filter != null ){
+						filter.widget.setText( "" );
+					}
+				}
 				if (getComposite() != event.widget) {
 					super.keyPressed(event);	
 					return;
