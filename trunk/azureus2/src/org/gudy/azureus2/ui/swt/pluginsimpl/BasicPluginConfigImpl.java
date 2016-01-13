@@ -167,6 +167,11 @@ BasicPluginConfigImpl
 		
 		BasicPluginConfigModel	model = model_ref.get();
 
+		if ( model == null ){
+			
+			return( main_tab );
+		}
+		
 		org.gudy.azureus2.plugins.ui.config.Parameter[] parameters = model.getParameters();
 		
 		List<Button>	buttons = new ArrayList<Button>();
