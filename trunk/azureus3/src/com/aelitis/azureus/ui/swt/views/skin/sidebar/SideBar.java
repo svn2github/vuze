@@ -1011,6 +1011,13 @@ public class SideBar
 							for (UISWTViewCore view : SideBar.this.pluginViews) {
 								if (l.equals(view.getEventListener())) {
 									view.closeView();
+								}else{
+									if ( l instanceof UISWTViewEventListenerHolder ){
+										UISWTViewEventListener l2 = ((UISWTViewEventListenerHolder) l).getDelegatedEventListener(view);
+										if ( l2 != null && l2.equals(view.getEventListener())) {
+											view.closeView();
+										}
+									}
 								}
 							}
 						} catch (Exception e) {
