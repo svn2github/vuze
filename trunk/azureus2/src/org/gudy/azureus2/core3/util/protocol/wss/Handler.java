@@ -78,7 +78,7 @@ Handler
 				e = e.getCause();
 			}
 			
-			throw( new IOException( "Communication error with WebTorrent Support Plugin" + Debug.getNestedExceptionMessage(e)));
+			throw( new IOException( "Communication error with WebTorrent Support Plugin: " + Debug.getNestedExceptionMessage(e)));
 		}
 	}
 }
