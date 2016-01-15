@@ -30,17 +30,26 @@ package org.gudy.azureus2.core3.util.protocol.wss;
 import java.io.IOException;
 import java.net.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.pluginsimpl.PluginUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 
 public class 
 Handler 
 	extends URLStreamHandler 
 {
+	private static boolean	install_prompted	= false;
+	
 	public URLConnection 
 	openConnection(URL u)
 	
@@ -58,6 +67,8 @@ Handler
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azwebtorrent" );
 		
 		if ( pi == null ){
+			
+			installPlugin();
 			
 			throw( new IOException( "'WebTorrent Support Plugin' is required - go to 'Tools->Plugins->Installation Wizard' to install." ));
 		}
@@ -80,5 +91,105 @@ Handler
 			
 			throw( new IOException( "Communication error with WebTorrent Support Plugin: " + Debug.getNestedExceptionMessage(e)));
 		}
+	}
+	
+	private static void
+	installPlugin()
+	{
+		synchronized( Handler.class ){
+			
+			if ( install_prompted ){
+								
+				return;
+			}
+			
+			install_prompted = true;
+		}
+		
+		new AEThread2( "install::async" )
+		{
+			public void
+			run()
+			{
+				boolean	installing = false;
+				
+				try{
+					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					
+					if ( uif == null ){
+										
+						return;
+					}
+		
+					if ( !Constants.isJava7OrHigher ){
+						
+						String title = MessageText.getString("azwebtorrent.install.fail.jver");
+						
+						String text = MessageText.getString("azwebtorrent.install.fail.jver.text" );
+						
+						UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[]{
+							MessageText.getString("Button.ok"),
+						}, 0);
+		
+						prompter.setAutoCloseInMS(0);
+						
+						prompter.open(null);
+					}
+							
+					String title = MessageText.getString("azwebtorrent.install");
+					
+					String text = MessageText.getString("azwebtorrent.install.text" );
+					
+					UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
+						MessageText.getString("Button.yes"),
+						MessageText.getString("Button.no")
+					}, 0);
+					
+					String remember_id = "azwebtorrent.install.remember.id";
+					
+					if ( remember_id != null ){
+						
+						prompter.setRemember( 
+							remember_id, 
+							false,
+							MessageText.getString("MessageBoxWindow.nomoreprompting"));
+					}
+					
+					prompter.setAutoCloseInMS(0);
+					
+					prompter.open(null);
+					
+					boolean	install = prompter.waitUntilClosed() == 0;
+					
+					if ( install ){
+										
+						uif.installPlugin(
+							"azwebtorrent",
+							"azwebtorrent.install",
+							new UIFunctions.actionListener()
+							{
+								public void
+								actionComplete(
+									Object		result )
+								{
+								}
+							});
+						
+						installing = true;
+						
+					}else{
+						
+					}
+					
+					return;
+					
+				}finally{
+					
+					if ( !installing ){
+					
+					}
+				}
+			}
+		}.start();
 	}
 }
