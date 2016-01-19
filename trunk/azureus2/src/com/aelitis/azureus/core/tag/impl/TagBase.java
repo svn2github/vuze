@@ -727,6 +727,16 @@ TagBase
 		Debug.out( "not supported" );
 	}
 
+		// aggregate share ratio
+	
+	public int
+	getTagAggregateShareRatio()
+	{
+		return( -1 );
+	}
+	
+		// limits
+	
 	public int
 	getMaximumTaggables()
 	{

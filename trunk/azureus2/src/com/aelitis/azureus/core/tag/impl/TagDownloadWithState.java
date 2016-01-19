@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.pluginsimpl.PluginUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -64,6 +63,8 @@ TagDownloadWithState
 	
 	private int	upload_rate		= -1;
 	private int	download_rate	= -1;
+	
+	private int	aggregate_sr;
 	
 	private long session_up;
 	private long session_down;
@@ -736,7 +737,7 @@ TagDownloadWithState
 	public int
 	getTagCurrentUploadRate()
 	{
-		updateRates();
+		updateStuff();
 		
 		return( upload_rate );
 	}
@@ -773,7 +774,7 @@ TagDownloadWithState
 	public int
 	getTagCurrentDownloadRate()
 	{
-		updateRates();
+		updateStuff();
 		
 		return( download_rate );
 	}
@@ -953,8 +954,16 @@ TagDownloadWithState
 		getTagType().fireChanged( this );
 	}
 	
+	public int
+	getTagAggregateShareRatio()
+	{
+		updateStuff();
+		
+		return( aggregate_sr );
+	}
+	
 	private void
-	updateRates()
+	updateStuff()
 	{
 		long	now = SystemTime.getCurrentTime();
 		
@@ -962,6 +971,10 @@ TagDownloadWithState
 			
 			int	new_up		= 0;
 			int new_down	= 0;
+			
+			long new_agg_up		= 0;
+			long new_agg_down	= 0;
+			
 			
 			Set<DownloadManager> dms = getTaggedDownloads();
 			
@@ -981,11 +994,29 @@ TagDownloadWithState
 					
 					new_up 		+= stats.getDataSendRate() + stats.getProtocolSendRate();
 					new_down 	+= stats.getDataReceiveRate() + stats.getProtocolReceiveRate();
+					
+					long downloaded	= stats.getTotalGoodDataBytesReceived();
+					long uploaded	= stats.getTotalDataBytesSent();
+			        
+					if ( downloaded > 0 ){
+					  
+						new_agg_down += downloaded;
+					}
+					
+					if ( uploaded > 0 ){
+						  
+						new_agg_up += uploaded;
+					}
+					
 				}
 			}
 			
 			upload_rate			= new_up;
 			download_rate		= new_down;
+			
+			aggregate_sr = new_agg_down<=0?0:(int) ((1000 * new_agg_up) / new_agg_down);
+			
+			
 			last_rate_update 	= now;
 		}
 	}
