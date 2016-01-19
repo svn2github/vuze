@@ -97,6 +97,8 @@ public class TagSettingsView
 		public GenericFloatParameter min_sr;
 
 		public GenericFloatParameter max_sr;
+		
+		public GenericFloatParameter max_aggregate_sr;
 
 		public folderOption initalSaveFolder;
 
@@ -403,7 +405,7 @@ public class TagSettingsView
 
 			Group gTransfer = new Group(cMainComposite, SWT.NONE);
 			gTransfer.setText( MessageText.getString("label.transfer.settings"));
-			gridLayout = new GridLayout(4, false);
+			gridLayout = new GridLayout(6, false);
 			gTransfer.setLayout(gridLayout);
 
 			gd = new GridData(SWT.FILL, SWT.NONE, false, false, 4, 1);
@@ -425,6 +427,8 @@ public class TagSettingsView
 				String k_unit = DisplayFormatters.getRateUnitBase10(
 						DisplayFormatters.UNIT_KB).trim();
 
+				int	cols_used = 0;
+				
 				// Field: Download Limit
 				if (supportsTagDownloadLimit) {
 
@@ -471,6 +475,8 @@ public class TagSettingsView
 							}, gTransfer, null, -1, Integer.MAX_VALUE);
 					params.maxDownloadSpeed.setLayoutData(gd);
 					params.maxDownloadSpeed.setZeroHidden(numTags > 1);
+					
+					cols_used += 2;
 				}
 
 				// Upload Limit
@@ -517,6 +523,8 @@ public class TagSettingsView
 							}, gTransfer, null, -1, Integer.MAX_VALUE);
 					params.maxUploadSpeed.setLayoutData(gd);
 					params.maxUploadSpeed.setZeroHidden(numTags > 1);
+					
+					cols_used += 2;
 				}
 
 				// Field: Upload Priority
@@ -540,7 +548,7 @@ public class TagSettingsView
 								}
 							}, gTransfer, null, "cat.upload.priority");
 					gd = new GridData();
-					gd.horizontalSpan = 4;
+					gd.horizontalSpan = 6 - cols_used;
 					params.uploadPriority.setLayoutData(gd);
 				}
 
@@ -563,7 +571,7 @@ public class TagSettingsView
 							}, gTransfer, null, 0, Float.MAX_VALUE, true, 3);
 					gd = new GridData();
 					//gd.horizontalSpan = 3;
-					gd.widthHint = 50;
+					gd.widthHint = 75;
 					params.min_sr.setLayoutData(gd);
 				}
 
@@ -588,8 +596,33 @@ public class TagSettingsView
 							}, gTransfer, null, 0, Float.MAX_VALUE, true, 3);
 					gd = new GridData();
 					//gd.horizontalSpan = 3;
-					gd.widthHint = 50;
+					gd.widthHint = 75;
 					params.max_sr.setLayoutData(gd);
+				}
+				
+				// Field: Max Aggregate Share
+				if (numTags == 1 && rls[0].getTagAggregateShareRatio() >= 0) {
+					label = new Label(gTransfer, SWT.NONE);
+					Messages.setLanguageText(label, "TableColumn.header.max_aggregate_sr");
+					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+					Utils.setLayoutData(label, gd);
+
+					params.max_aggregate_sr = new GenericFloatParameter(
+							new GenericParameterAdapter() {
+								@Override
+								public float getFloatValue(String key) {
+									return rls[0].getTagMaxAggregateShareRatio() / 1000f;
+								}
+
+								@Override
+								public void setFloatValue(String key, float value) {
+									rls[0].setTagMaxAggregateShareRatio((int) (value * 1000));
+								}
+							}, gTransfer, null, 0, Float.MAX_VALUE, true, 3);
+					gd = new GridData();
+					//gd.horizontalSpan = 3;
+					gd.widthHint = 75;
+					params.max_aggregate_sr.setLayoutData(gd);
 				}
 			}
 			/////////////////////////////////

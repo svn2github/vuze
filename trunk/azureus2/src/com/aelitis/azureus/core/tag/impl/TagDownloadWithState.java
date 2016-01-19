@@ -75,6 +75,7 @@ TagDownloadWithState
 	private int		upload_priority;
 	private int		min_share_ratio;
 	private int		max_share_ratio;
+	private int		max_aggregate_share_ratio;
 	
 	private boolean	supports_xcode;
 	private boolean	supports_file_location;
@@ -240,9 +241,12 @@ TagDownloadWithState
 		}
 		
 		upload_priority		= readLongAttribute( AT_RATELIMIT_UP_PRI, 0L ).intValue();
+		
 		min_share_ratio		= readLongAttribute( AT_RATELIMIT_MIN_SR, 0L ).intValue();
 		max_share_ratio		= readLongAttribute( AT_RATELIMIT_MAX_SR, 0L ).intValue();
 		
+		max_aggregate_share_ratio		= readLongAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR, 0L ).intValue();
+
 		addTagListener(
 			new TagListener()
 			{
@@ -962,6 +966,35 @@ TagDownloadWithState
 		return( aggregate_sr );
 	}
 	
+	public int
+	getTagMaxAggregateShareRatio()
+	{
+		return( max_aggregate_share_ratio );
+	}
+	
+	public void
+	setTagMaxAggregateShareRatio(
+		int		sr )
+	{
+		if ( sr < 0 ){
+			
+			sr = 0;
+		}
+		
+		if ( sr == max_aggregate_share_ratio ){
+			
+			return;
+		}
+				
+		max_aggregate_share_ratio	= sr;
+		
+		writeLongAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR, sr );
+				
+		getTagType().fireChanged( this );
+		
+		checkAggregateShareRatio();
+	}
+	
 	private void
 	updateStuff()
 	{
@@ -1019,6 +1052,32 @@ TagDownloadWithState
 			
 			last_rate_update 	= now;
 		}
+	}
+	
+	private void
+	checkAggregateShareRatio()
+	{
+		if ( max_aggregate_share_ratio > 0 ){
+			
+			updateStuff();
+			
+			if ( aggregate_sr >= max_aggregate_share_ratio ){
+				
+				performOperation( TagFeatureRunState.RSC_STOP );
+				
+			}else{
+				
+				performOperation( TagFeatureRunState.RSC_START );
+			}
+		}
+	}
+	
+	protected void
+	sync()
+	{
+		checkAggregateShareRatio();
+		
+		super.sync();
 	}
 	
 	public int

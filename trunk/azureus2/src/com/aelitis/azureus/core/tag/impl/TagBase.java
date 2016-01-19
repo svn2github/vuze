@@ -54,31 +54,32 @@ public abstract class
 TagBase
 	implements Tag, SimpleTimer.TimerTickReceiver
 {
-	protected static final String	AT_RATELIMIT_UP		= "rl.up";
-	protected static final String	AT_RATELIMIT_DOWN	= "rl.down";
-	protected static final String	AT_VISIBLE			= "vis";
-	protected static final String	AT_PUBLIC			= "pub";
-	protected static final String	AT_GROUP			= "gr";
-	protected static final String	AT_CAN_BE_PUBLIC	= "canpub";
-	protected static final String	AT_ORIGINAL_NAME	= "oname";
-	protected static final String	AT_IMAGE_ID			= "img.id";
-	protected static final String	AT_COLOR_ID			= "col.rgb";
-	protected static final String	AT_RSS_ENABLE		= "rss.enable";
-	protected static final String	AT_RATELIMIT_UP_PRI	= "rl.uppri";
-	protected static final String	AT_XCODE_TARGET		= "xcode.to";
-	protected static final String	AT_FL_MOVE_COMP		= "fl.comp";
-	protected static final String	AT_FL_COPY_COMP		= "fl.copy";
-	protected static final String	AT_FL_INIT_LOC		= "fl.init";
-	protected static final String	AT_RATELIMIT_MIN_SR	= "rl.minsr";
-	protected static final String	AT_RATELIMIT_MAX_SR	= "rl.maxsr";
-	protected static final String	AT_PROPERTY_PREFIX	= "pp.";
-	protected static final String	AT_EOA_PREFIX		= "eoa.";
-	protected static final String	AT_BYTES_UP			= "b.up";
-	protected static final String	AT_BYTES_DOWN		= "b.down";
-	protected static final String	AT_DESCRIPTION		= "desc";
-	protected static final String	AT_MAX_TAGGABLES	= "max.t";
-	protected static final String	AT_REMOVAL_STRATEGY	= "max.t.r";
-	protected static final String	AT_EOS_SCRIPT		= "eos.scr";
+	protected static final String	AT_RATELIMIT_UP					= "rl.up";
+	protected static final String	AT_RATELIMIT_DOWN				= "rl.down";
+	protected static final String	AT_VISIBLE						= "vis";
+	protected static final String	AT_PUBLIC						= "pub";
+	protected static final String	AT_GROUP						= "gr";
+	protected static final String	AT_CAN_BE_PUBLIC				= "canpub";
+	protected static final String	AT_ORIGINAL_NAME				= "oname";
+	protected static final String	AT_IMAGE_ID						= "img.id";
+	protected static final String	AT_COLOR_ID						= "col.rgb";
+	protected static final String	AT_RSS_ENABLE					= "rss.enable";
+	protected static final String	AT_RATELIMIT_UP_PRI				= "rl.uppri";
+	protected static final String	AT_XCODE_TARGET					= "xcode.to";
+	protected static final String	AT_FL_MOVE_COMP					= "fl.comp";
+	protected static final String	AT_FL_COPY_COMP					= "fl.copy";
+	protected static final String	AT_FL_INIT_LOC					= "fl.init";
+	protected static final String	AT_RATELIMIT_MIN_SR				= "rl.minsr";
+	protected static final String	AT_RATELIMIT_MAX_SR				= "rl.maxsr";
+	protected static final String	AT_RATELIMIT_MAX_AGGREGATE_SR	= "rl.maxaggsr";
+	protected static final String	AT_PROPERTY_PREFIX				= "pp.";
+	protected static final String	AT_EOA_PREFIX					= "eoa.";
+	protected static final String	AT_BYTES_UP						= "b.up";
+	protected static final String	AT_BYTES_DOWN					= "b.down";
+	protected static final String	AT_DESCRIPTION					= "desc";
+	protected static final String	AT_MAX_TAGGABLES				= "max.t";
+	protected static final String	AT_REMOVAL_STRATEGY				= "max.t.r";
+	protected static final String	AT_EOS_SCRIPT					= "eos.scr";
 
 
 	private static final String[] EMPTY_STRING_LIST = {};
@@ -733,6 +734,19 @@ TagBase
 	getTagAggregateShareRatio()
 	{
 		return( -1 );
+	}
+	
+	public int
+	getTagMaxAggregateShareRatio()
+	{
+		return( -1 );
+	}
+	
+	public void
+	setTagMaxAggregateShareRatio(
+		int		sr )
+	{
+		Debug.out( "not supported" );
 	}
 	
 		// limits

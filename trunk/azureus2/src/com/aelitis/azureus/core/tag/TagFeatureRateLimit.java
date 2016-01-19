@@ -101,4 +101,11 @@ TagFeatureRateLimit
 	
 	public int
 	getTagAggregateShareRatio();
+	
+	public int
+	getTagMaxAggregateShareRatio();
+	
+	public void
+	setTagMaxAggregateShareRatio(
+		int		ratio_in_thousandths );
 }
