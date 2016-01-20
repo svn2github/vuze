@@ -94,6 +94,12 @@ ExternalSeedReaderWebSeed
 		return( "WebSeed: " + url );
 	}
 	
+	public String 
+	getType() 
+	{
+		return( "WebSeed" );
+	}
+	
 	public URL 
 	getURL() 
 	{

@@ -874,6 +874,12 @@ PeerForeignDelegate
 		return( "Plugin" );
 	}
 	
+	public String
+	getProtocolQualifier()
+	{
+		return((String)foreign.getUserData( Peer.PR_PROTOCOL_QUALIFIER ));
+	}
+	
 	public Message[] 
 	getSupportedMessages() 
 	{

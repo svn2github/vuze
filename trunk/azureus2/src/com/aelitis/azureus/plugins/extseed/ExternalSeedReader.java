@@ -37,6 +37,9 @@ ExternalSeedReader
 	getName();
 	
 	public String
+	getType();
+	
+	public String
 	getStatus();
 	
 		// transient peers are moved from the download on failure

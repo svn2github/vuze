@@ -4548,8 +4548,6 @@ implements PEPeerTransport
 	public String
 	getProtocol()
 	{
-		String qual = (String)connection.getEndpoint().getProperty( AEProxyAddressMapper.MAP_PROPERTY_PROTOCOL_QUALIFIER );
-
 		Transport	transport = connection.getTransport();
 
 		String 	result;
@@ -4563,7 +4561,13 @@ implements PEPeerTransport
 			result = transport.getProtocol();
 		}
 		
-		return( result + (qual==null?"":" (" + qual + ")") );
+		return( result );
+	}
+	
+	public String
+	getProtocolQualifier()
+	{
+		return((String)connection.getEndpoint().getProperty( AEProxyAddressMapper.MAP_PROPERTY_PROTOCOL_QUALIFIER ));
 	}
 	
 	public void 

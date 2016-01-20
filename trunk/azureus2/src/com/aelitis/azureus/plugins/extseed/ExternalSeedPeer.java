@@ -968,6 +968,10 @@ ExternalSeedPeer
 		if ( key == Peer.PR_PROTOCOL ){
 			
 			return( reader.getURL().getProtocol().toUpperCase());
+			
+		}else if ( key == Peer.PR_PROTOCOL_QUALIFIER ){
+			
+			return( reader.getType());
 		}
 		
 		if ( user_data == null ){

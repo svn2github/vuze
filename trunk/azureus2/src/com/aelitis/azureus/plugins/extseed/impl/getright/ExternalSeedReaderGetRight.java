@@ -194,6 +194,12 @@ ExternalSeedReaderGetRight
 		return( "HTTP Seed: " + url );
 	}
 	
+	public String 
+	getType() 
+	{
+		return( "HTTP Seed" );
+	}
+	
 	public URL 
 	getURL() 
 	{

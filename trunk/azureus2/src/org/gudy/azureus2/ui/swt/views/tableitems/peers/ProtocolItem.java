@@ -48,7 +48,20 @@ public class ProtocolItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    String value = peer == null ? "" : peer.getProtocol();
+    String value;
+    
+    if ( peer == null ){
+    	value = "";
+    }else{
+    	value = peer.getProtocol();
+    	
+    	String qualifier = peer.getProtocolQualifier();
+    	
+    	if ( qualifier != null ){
+    		
+    		value += " (" + qualifier + ")";
+    	}
+    }
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;
