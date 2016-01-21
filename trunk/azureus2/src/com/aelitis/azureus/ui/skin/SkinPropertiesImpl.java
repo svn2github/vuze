@@ -26,8 +26,6 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.ui.swt.utils.FontUtils;
-
 /**
  * Implementation of SkinProperties using a IntegratedResourceBundle loaded from
  * hard coded paths.
