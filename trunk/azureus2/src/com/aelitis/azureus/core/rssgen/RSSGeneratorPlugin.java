@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.util.*;
 
@@ -40,6 +41,8 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.HyperlinkParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.ui.webplugin.WebPlugin;
+
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 
 public class 
@@ -152,7 +155,20 @@ RSSGeneratorPlugin
 	public String
 	getURL()
 	{
-		return( getProtocol() + "://127.0.0.1:" + getPort() + "/" );
+		InetAddress bind_ip = getServerBindIP();
+		
+		String 	ip;
+		
+		if ( bind_ip.isAnyLocalAddress()){
+			
+			ip = "127.0.0.1";
+			
+		}else{
+			
+			ip = bind_ip.getHostAddress();
+		}
+		
+		return( getProtocol() + "://" + ip + ":" + getPort() + "/" );
 	}
 	
 	@Override
