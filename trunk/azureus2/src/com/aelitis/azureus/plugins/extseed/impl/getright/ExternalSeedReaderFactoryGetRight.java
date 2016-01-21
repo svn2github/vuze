@@ -135,12 +135,12 @@ ExternalSeedReaderFactoryGetRight
 				Map		global_params 		= _global_params instanceof Map?(Map)_global_params:new HashMap();
 				List	specific_params 	= _specific_params instanceof List?(List)_specific_params:new ArrayList();
 				
+				Collections.shuffle( urls );
+				
 				for (int i=0;i<urls.size();i++){
 					
 					if ( readers.size() > 10 ){
-						
-						Debug.out( "Too many GR seeds, truncating" );
-						
+												
 						break;
 					}
 					

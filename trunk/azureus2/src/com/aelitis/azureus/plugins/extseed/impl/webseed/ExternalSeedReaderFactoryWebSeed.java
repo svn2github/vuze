@@ -121,13 +121,12 @@ ExternalSeedReaderFactoryWebSeed
 				
 				Map	params = _params instanceof Map?(Map)_params:new HashMap();
 				
-
+				Collections.shuffle( urls );
+				
 				for (int i=0;i<urls.size();i++){
 					
 					if ( readers.size() > 10 ){
-						
-						Debug.out( "Too many WS seeds, truncating" );
-						
+												
 						break;
 					}
 					
