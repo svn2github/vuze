@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -67,8 +66,6 @@ import org.gudy.azureus2.update.UpdaterUpdateChecker;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
-import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
-import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.util.InitialisationFunctions;
 
 /**
