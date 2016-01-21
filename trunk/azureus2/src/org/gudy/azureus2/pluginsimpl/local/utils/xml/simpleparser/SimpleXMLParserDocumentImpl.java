@@ -29,6 +29,7 @@ import org.apache.commons.lang.Entities;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
@@ -169,6 +170,8 @@ SimpleXMLParserDocumentImpl
 		
 		UncloseableInputStream	uc_is = new UncloseableInputStream( _input_stream );
 		
+		Throwable error = null;
+				
 		try{
 			createSupport( uc_is );
 			
@@ -194,10 +197,24 @@ SimpleXMLParserDocumentImpl
 			
 			//Debug.out( e );
 			
+			error = e;
+			
 			throw( e );
 			
 		}finally{
 			
+			if ( Constants.isCVSVersion() && error != null ){
+				
+				try{
+					_input_stream.reset();
+					
+					String stuff = FileUtil.readInputStreamAsStringWithTruncation( _input_stream, 128 );
+					
+					Debug.out( "RSS parsing failed for '" + stuff + "': " + Debug.getExceptionMessage( error ));
+					
+				}catch( Throwable e ){
+				}
+			}
 			try{
 				_input_stream.close();
 				
