@@ -27,7 +27,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
@@ -3082,7 +3081,9 @@ public class TableViewPainted
 		return s;
 	}
 
-	public void redrawRow(final TableRowPainted row, final boolean immediateRedraw) {
+	private List<TableRowPainted>	pending_rows = new ArrayList<TableRowPainted>();
+	
+	public void redrawRow( TableRowPainted row, final boolean immediateRedraw) {
 		if (row == null) {
 			return;
 		}
@@ -3090,8 +3091,85 @@ public class TableViewPainted
 			System.out.println(SystemTime.getCurrentTime() + "} redraw "
 					+ prettyIndex(row) + " scheduled via " + Debug.getCompressedStackTrace());
 		}
+		
+			// optimize multiple row withdraws (e.g. on view construction) so invalidate the 
+			// aggregate area
+		
+		synchronized( pending_rows ){
+			
+			pending_rows.add( row );
+		}
+		
 		Utils.execSWTThread(new AERunnable() {
 
+			public void runSupport() {
+				
+				List<TableRowPainted>	rows;
+				
+				synchronized( pending_rows ){
+										
+					if ( pending_rows.size() == 0 ){
+						
+						return;
+					}
+					
+					rows = new ArrayList<TableRowPainted>( pending_rows.size());
+					
+					for ( TableRowPainted row: pending_rows ){
+					
+						if ( row.isVisible()){
+							
+							rows.add( row );
+						}
+					}
+					
+					pending_rows.clear();
+					
+					if ( !isVisible || rows.size() == 0 ){
+						
+						return;
+					}
+				}
+							
+				Rectangle bounds = null;
+				
+				boolean	has_last = false;
+				
+				for ( TableRowPainted row: rows ){
+				
+					Rectangle b = row.getDrawBounds();
+					
+					if ( b != null ){
+						
+						if ( bounds == null ){
+							
+							bounds = b;
+							
+						}else{
+							
+								// could be smarter here and only aggregate contiguous areas but whatever
+							
+							bounds = bounds.union( b );
+						}
+					}
+					
+					if ( !has_last && isLastRow(row)){
+						
+						has_last = true;
+					}
+				}
+				
+				if (bounds != null) {
+					Composite composite = getComposite();
+					if (composite != null && !composite.isDisposed()) {
+						int h = has_last ? composite.getSize().y - bounds.y
+								: bounds.height;
+						//row.debug("isLastRow?" + isLastRow(row) + ";" + bounds + ";" + h);
+						swt_updateCanvasImage(new Rectangle(bounds.x, bounds.y, bounds.width, h), immediateRedraw);
+					}
+				}
+			}
+		/*	
 			public void runSupport() {
 				if (!isVisible || !row.isVisible()) {
 					return;
@@ -3111,6 +3189,7 @@ public class TableViewPainted
 					}
 				}
 			}
+			*/
 		});
 	}
 
