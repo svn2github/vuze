@@ -585,6 +585,16 @@ TOTorrentImpl
 	setCreationDate(
 		long		_creation_date )
 	{
+			// supposed to be in seconds, not millis. Some torrents have millis so try and
+			// fix it
+		
+		long	now_secs = SystemTime.getCurrentTime()/1000;
+		
+		if ( _creation_date > now_secs + 100*365*24*60*60L){
+			
+			_creation_date = _creation_date/1000;
+		}
+		
 		creation_date 	= _creation_date;
 	}
 	
