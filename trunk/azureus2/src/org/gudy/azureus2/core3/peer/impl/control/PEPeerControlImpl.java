@@ -765,16 +765,55 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		Iterator<PEPeerTransport>	it = peer_transports_cow.iterator();
 
+		if ( address.contains( ":" )){
+			
+				// straight forward string matching can fail due to use of :: compression
+			
+			try{
+				byte[] address_bytes = InetAddress.getByName( address ).getAddress();
+				
+				while( it.hasNext()){
+					
+					PEPeerTransport	peer = it.next();
+					
+					String peer_address = peer.getIp();
+					
+					if ( peer_address.contains( ":" )){
+						
+						byte[] peer_bytes = (byte[])peer.getUserData( "ipv6.bytes" );
+						
+						if ( peer_bytes == null ){
+						
+							peer_bytes = InetAddress.getByName( peer_address ).getAddress();
+							
+							peer.setUserData( "ipv6.bytes", peer_bytes );
+						}
+						
+						if ( Arrays.equals( address_bytes, peer_bytes )){
+							
+							result.add( peer );
+						}
+					}
+				}
+				
+				return( result );
+				
+			}catch( Throwable e ){
+				
+				// weird, just carry on
+			}
+		}
+		
 		while( it.hasNext()){
-
+	
 			PEPeerTransport	peer = it.next();
-
+	
 			if ( peer.getIp().equals( address )){
-
+	
 				result.add( peer );
 			}
 		}
-
+		
 		return( result );
 	}
 
