@@ -16,6 +16,10 @@
  */
 package com.aelitis.azureus.ui;
 
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.Debug;
+
 /**
  * @author TuxPaper
  * @created Jul 12, 2006
@@ -25,19 +29,80 @@ public class UIFunctionsManager
 {
 	private static UIFunctions instance = null;
 		
+	private static List<UIFCallback>	callbacks = null;
+	
+	public static void
+	execWithUIFunctions(
+		UIFCallback		cb )
+	{
+		UIFunctions current_instance;
+		
+		synchronized( UIFunctionsManager.class ){
+			
+			current_instance = instance;
+			
+			if ( current_instance == null ){
+				
+				if ( callbacks == null ){
+					
+					callbacks = new ArrayList<UIFunctionsManager.UIFCallback>();
+				}
+				
+				callbacks.add( cb );
+				
+				return;
+			}
+		}
+		
+		cb.run( current_instance );
+	}
+	
 	public static UIFunctions 
 	getUIFunctions() 
 	{
-		return instance;
+		UIFunctions result = instance;
+		
+		return( result );
 	}
 	
 	public static void 
 	setUIFunctions(
 		UIFunctions uiFunctions )
 	{		
+		List<UIFCallback>	pending = null;
+		
 		synchronized( UIFunctionsManager.class ){
 		
 			instance = uiFunctions;
+			
+			if ( callbacks != null ){
+				
+				pending = new ArrayList<UIFunctionsManager.UIFCallback>( callbacks );
+				
+				callbacks = null;
+			}
 		}
+		
+		if ( pending != null ){
+			
+			for ( UIFCallback cb: pending ){
+				
+				try{
+					cb.run( uiFunctions );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+	}
+	
+	public interface
+	UIFCallback
+	{
+		public void
+		run(
+			UIFunctions		functions );
 	}
 }

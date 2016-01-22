@@ -46,7 +46,7 @@ import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
-import com.aelitis.azureus.plugins.net.buddy.swt.SBC_ChatOverview;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUI;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 
@@ -254,7 +254,7 @@ public class InitialisationFunctions
 					String network, 
 					String key) 
 				{
-					SBC_ChatOverview.openChat(network, key);
+					BuddyPluginUI.openChat(network, key);
 				}
 				
 				public TranscodeTarget[]
@@ -388,17 +388,21 @@ public class InitialisationFunctions
 	private static void
 	earlySWTInitialise()
 	{
-		try{
-			UIFunctions uif = UIFunctionsManager.getUIFunctions();
-	
-			if ( uif != null && uif.getUIType() == PluginManager.UI_SWT ){
-			
-				SBC_ChatOverview.preInitialize();
-			}
-		}catch( Throwable e ){
-			
-			Debug.out( e );
-		}
+			// it is possible that UIF ain't avaialable yet so try and make sure this runs sometime!
+		
+		UIFunctionsManager.execWithUIFunctions(
+			new UIFunctionsManager.UIFCallback()
+			{	
+				public void 
+				run(
+					UIFunctions uif ) 
+				{
+					if (uif.getUIType() == PluginManager.UI_SWT ){
+						
+						BuddyPluginUI.preInitialize();
+					}
+				}
+			});
 	}
 	
 	public static void 
