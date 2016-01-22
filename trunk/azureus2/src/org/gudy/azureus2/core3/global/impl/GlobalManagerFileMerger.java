@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -759,11 +761,15 @@ GlobalManagerFileMerger
 			}
 			msg += "\nToo many hash fails in " + failed.getDownloadManager().getDisplayName();
 			
+			Logger.log( new LogEvent( LogIDs.CORE, msg ));
+			
+			/* Generates too much noise
 			Logger.log(					
 					new LogAlert(
 						true,
 						LogAlert.AT_INFORMATION,
-						msg ));	
+						msg ));
+			*/	
 		}
 		
 		private void
