@@ -698,7 +698,7 @@ public class GeneralView
     setInfos(
       manager.getDisplayName(),
 	  DisplayFormatters.formatByteCountToKiBEtc(manager.getSize()),
-	  DisplayFormatters.formatDownloadStatus(manager),
+	  DisplayFormatters.formatDownloadStatus(manager), manager.getState()==DownloadManager.STATE_ERROR,
       manager.getSaveLocation().toString(),
       TorrentUtils.nicePrintTorrentHash(torrent),
       piecesDoneAndSum,
@@ -1133,17 +1133,18 @@ public class GeneralView
 
 
   private void setInfos(
-    final String _fileName,
-    final String _fileSize,
-    final String _torrentStatus,
-    final String _path,
-    final String _hash,
-    final String _pieceData,
-    final String _pieceLength,
-    final String _comment,
-	final String _creation_date,
-	final String _user_comment,
-	final String isPrivate) {
+    final String 	_fileName,
+    final String 	_fileSize,
+    final String 	_torrentStatus,
+    final boolean	_statusIsError,
+    final String 	_path,
+    final String 	_hash,
+    final String 	_pieceData,
+    final String 	_pieceLength,
+    final String 	_comment,
+	final String 	_creation_date,
+	final String 	_user_comment,
+	final String 	isPrivate) {
     if (display == null || display.isDisposed())
 			return;
 		Utils.execSWTThread(new AERunnable()
@@ -1158,6 +1159,7 @@ public class GeneralView
 				}else{
 					torrentStatus.setLink( null );
 				}
+				torrentStatus.setForeground(_statusIsError?Colors.red:null);
 				saveIn.setText(_path);
 				hash.setText(_hash);
 				pieceNumber.setText(_pieceData); //$NON-NLS-1$
