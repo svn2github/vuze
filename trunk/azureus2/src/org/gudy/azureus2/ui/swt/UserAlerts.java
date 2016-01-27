@@ -102,6 +102,24 @@ UserAlerts
 						}
 					});
 				}
+				
+				boolean error_reported = manager.getDownloadState().getFlag( DownloadManagerState.FLAG_ERROR_REPORTED );
+				
+				if ( state == DownloadManager.STATE_ERROR ){
+					
+					if ( !error_reported ){
+						
+						manager.getDownloadState().setFlag( DownloadManagerState.FLAG_ERROR_REPORTED, true );
+
+						reportError( manager );
+					}
+				}else if ( state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING ){
+					
+					if ( error_reported ){
+						
+						manager.getDownloadState().setFlag( DownloadManagerState.FLAG_ERROR_REPORTED, false );
+					}
+				}
 			}
 		}; 
 		
@@ -316,6 +334,141 @@ UserAlerts
 			}
 
         if ( COConfigurationManager.getBooleanParameter( sound_enabler, false) || isDLFEnabled( dl_file_alerts, dlf_prefix, sound_enabler )){
+
+	    		String	file = COConfigurationManager.getStringParameter( sound_file );
+
+    			file = file.trim();
+
+	    			// turn "<default>" into blank
+
+	    		if ( file.startsWith( "<" )){
+
+	    			file	= "";
+	    		}
+
+	    		if ( audio_clip == null || !file.equals( audio_resource )){
+
+	    			audio_clip	= null;
+
+	    				// try explicit file
+
+	    			if ( file.length() != 0 ){
+
+	    				File	f = new File( file );
+
+	    				try{
+
+			    			if ( f.exists()){
+
+		    					URL	file_url = f.toURI().toURL();
+
+		    					audio_clip = Applet.newAudioClip( file_url );
+			    			}
+
+	    				}catch( Throwable  e ){
+
+	    					Debug.printStackTrace(e);
+
+	    				}finally{
+
+	    					if ( audio_clip == null ){
+	    						Logger.log(new LogAlert(relatedObject, LogAlert.UNREPEATABLE,
+										LogAlert.AT_ERROR, "Failed to load audio file '" + file
+												+ "'"));
+	    					}
+	    				}
+	    			}
+
+	    				// either non-explicit or explicit missing
+
+	    			if ( audio_clip == null ){
+
+	    				audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource( default_sound ));
+
+	    			}
+
+	    			audio_resource	= file;
+	    		}
+
+	    		if ( audio_clip != null ){
+
+	            	new AEThread("DownloadSound")
+					{
+		        		public void
+						runSupport()
+		        		{
+		        			try{
+		        				audio_clip.play();
+
+		        				Thread.sleep(2500);
+
+		        			}catch( Throwable e ){
+
+		        			}
+		        		}
+		        	}.start();
+		        }
+	    	}
+  		}catch( Throwable e ){
+  			
+  			Debug.printStackTrace( e );
+  			
+  		}finally{
+  			
+  			this_mon.exit();
+  		}
+  	}
+  	
+  	private void 
+  	reportError(
+  		DownloadManager			manager )
+  	{  							
+		Object relatedObject 	= manager;
+		String item_name		= manager.getDisplayName();
+						
+  		final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
+  		
+  		
+  		final String sound_enabler 	= "Play Download Error";
+  		final String sound_file		= "Play Download Error File";
+	  		
+  		final String speech_enabler 	= "Play Download Error Announcement";
+  		final String speech_text		= "Play Download Error Announcement Text";
+	  		
+  		final String popup_enabler   = "Popup Download Error";
+  		final String popup_def_text  = "popup.download.error";
+	  		
+    		
+  		try{
+  			this_mon.enter();
+  			
+  			if ( COConfigurationManager.getBooleanParameter(popup_enabler)) {
+  				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
+					UIFunctionsManager.getUIFunctions().forceNotify(
+							UIFunctions.STATUSICON_ERROR, null, popup_text, null,
+							new Object[] {
+								relatedObject
+							}, -1);
+  			}
+
+			if (Constants.isOSX
+					&&  ( COConfigurationManager.getBooleanParameter(speech_enabler))) {
+				new AEThread("SaySound") {
+					public void runSupport() {
+						try {
+							Runtime.getRuntime().exec(new String[] {
+								"say",
+								COConfigurationManager.getStringParameter(speech_text)
+							}); // Speech Synthesis services
+
+							Thread.sleep(2500);
+						} catch (Throwable e) {
+						}
+					}
+				}.start();
+			}
+
+        if ( COConfigurationManager.getBooleanParameter( sound_enabler, false)){
 
 	    		String	file = COConfigurationManager.getStringParameter( sound_file );
 

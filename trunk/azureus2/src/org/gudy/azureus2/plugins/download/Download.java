@@ -184,6 +184,12 @@ Download extends DownloadEventNotifier, DownloadStub, Taggable
     public static final long FLAG_METADATA_DOWNLOAD = 0x00000200;
 
     public static final long FLAG_LIGHT_WEIGHT		= 0x00000400;
+    
+    /**
+     * @since 5701
+     */
+    
+    public static final long FLAG_ERROR_REPORTED	= 0x00000800;
 
     
 	/** get state from above ST_ set

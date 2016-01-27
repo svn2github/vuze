@@ -98,6 +98,7 @@ DownloadManagerState
 	public static final long FLAG_FORCE_DIRECT_DELETE			  		= Download.FLAG_FORCE_DIRECT_DELETE;
 	public static final long FLAG_DISABLE_IP_FILTER				  		= Download.FLAG_DISABLE_IP_FILTER;
 	public static final long FLAG_METADATA_DOWNLOAD				  		= Download.FLAG_METADATA_DOWNLOAD;
+	public static final long FLAG_ERROR_REPORTED				  		= Download.FLAG_ERROR_REPORTED;
 	
 	
 	public static final String	PARAM_MAX_PEERS							= "max.peers";

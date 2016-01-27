@@ -368,6 +368,13 @@ public class ConfigurationDefaults {
     def.put( "Request Attention On New Download", TRUE );
     def.put( "Activate Window On External Download", TRUE );
     
+    def.put( "Play Download Error", FALSE );
+    def.put( "Play Download Error File", "" );
+    def.put( "Play Download Error Announcement", FALSE);
+    def.put( "Play Download Error Announcement Text", "Download Error");
+    def.put( "Popup Download Error", FALSE);
+
+    
     //default torrent directory option
     def.put( "Save Torrent Files", TRUE );
     def.put( "General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");

@@ -101,6 +101,8 @@ public class ConfigSectionInterfaceAlerts
 		cArea.setLayout(layout);
 		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+		// DOWNLOAD FINISHED
+		
 		// OS X counterpart for alerts (see below for what is disabled)
 		if (Constants.isOSX) {
 			// download info 
@@ -198,9 +200,99 @@ public class ConfigSectionInterfaceAlerts
 					d_browse,
 					d_sound_info
 				}));
-		*/
-		// 
+		*/ 
 
+		// DOWNLOAD ERROR
+		// OS X counterpart for alerts (see below for what is disabled)
+		if (Constants.isOSX) {
+			// download info 
+
+			new BooleanParameter(
+					cArea, "Play Download Error Announcement", LBLKEY_PREFIX
+							+ "playdownloaderrorspeech");
+
+			final StringParameter d_speechParameter = new StringParameter(cArea,
+					"Play Download Error Announcement Text");
+			gridData = new GridData();
+			gridData.horizontalSpan = 3;
+			gridData.widthHint = 150;
+			d_speechParameter.setLayoutData(gridData);
+			((Text) d_speechParameter.getControl()).setTextLimit(40);
+
+			/* we support per-download speech now so leave sound selection always available
+			d_speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+					d_speechParameter.getControls()));
+			*/
+		}
+
+		new BooleanParameter(cArea,
+				"Play Download Error", LBLKEY_PREFIX + "playdownloaderror");
+
+		// download info
+
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+
+		final StringParameter e_pathParameter = new StringParameter(cArea,
+				"Play Download Error File", "");
+
+		if (e_pathParameter.getValue().length() == 0) {
+
+			e_pathParameter.setValue("<default>");
+		}
+
+		e_pathParameter.setLayoutData(gridData);
+
+		d_browse = new Button(cArea, SWT.PUSH);
+
+		d_browse.setImage(imgOpenFolder);
+
+		imgOpenFolder.setBackground(d_browse.getBackground());
+
+		d_browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+
+		d_browse.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				FileDialog dialog = new FileDialog(parent.getShell(),
+						SWT.APPLICATION_MODAL);
+				dialog.setFilterExtensions(new String[] {
+					"*.wav"
+				});
+				dialog.setFilterNames(new String[] {
+					"*.wav"
+				});
+
+				dialog.setText(MessageText.getString(INTERFACE_PREFIX + "wavlocation"));
+
+				final String path = dialog.open();
+
+				if (path != null) {
+
+					e_pathParameter.setValue(path);
+
+					new AEThread2("SoundTest") {
+						public void run() {
+							try {
+								Applet.newAudioClip(new File(path).toURI().toURL()).play();
+
+								Thread.sleep(2500);
+
+							} catch (Throwable e) {
+
+							}
+						}
+					}.start();
+				}
+			}
+		});
+
+		d_sound_info = new Label(cArea, SWT.WRAP);
+		Messages.setLanguageText(d_sound_info, INTERFACE_PREFIX
+				+ "wavlocation.info");
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.widthHint = 100;
+		Utils.setLayoutData(d_sound_info, gridData);
+		
+		// FILE FINISHED
 		// OS X counterpart for alerts
 		if (Constants.isOSX) {
 
@@ -299,7 +391,9 @@ public class ConfigSectionInterfaceAlerts
 					f_browse,
 					f_sound_info
 				}));
-		*/
+		*/		
+		
+			// xxxxxxxxxxxxxxxx
 		
 		boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
 		
@@ -346,6 +440,12 @@ public class ConfigSectionInterfaceAlerts
 		gridData.horizontalSpan = 2;
 		popup_dl_completed.setLayoutData(gridData);
 
+		BooleanParameter popup_dl_error = new BooleanParameter(gPopup,
+				"Popup Download Error", LBLKEY_PREFIX + "popupdownloaderror");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		popup_dl_error.setLayoutData(gridData);
+		
 		BooleanParameter popup_file_completed = new BooleanParameter(gPopup,
 				"Popup File Finished", LBLKEY_PREFIX + "popupfilefinished");
 		gridData = new GridData();
