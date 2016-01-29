@@ -24,13 +24,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.gudy.azureus2.core3.global.*;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 
 class
@@ -55,29 +56,21 @@ GlobalManagerHostSupport
 	lookupTorrent(
 		byte[]		hash )
 	{
-		List	managers = gm.getDownloadManagers();
+		DownloadManager dm = gm.getDownloadManager( new HashWrapper( hash ));
 		
-		for (int i=0;i<managers.size();i++){
+		if ( dm != null ){
 			
-			DownloadManager	dm = (DownloadManager)managers.get(i);
+			TOTorrent torrent = dm.getTorrent();
 			
-			TOTorrent t = dm.getTorrent();
-			
-			if ( t != null ){
+			if ( torrent != null ){
 				
-				try{
-					if ( Arrays.equals( hash, t.getHash())){
-						
-						return( t );
-					}
-				}catch( TOTorrentException e ){
-					
-					Debug.printStackTrace( e );
-				}
+				return( torrent );
 			}
 		}
 		
-		return( null );
+		TOTorrent torrent = DownloadManagerImpl.getStubTorrent( hash );
+			
+		return( torrent );
 	}
 	
 	protected void
@@ -111,6 +104,22 @@ GlobalManagerHostSupport
 					
 					Debug.out( "Failed to make torrent '" + torrent_file_str + "' passive: " + Debug.getNestedExceptionMessage(e));
 				}
+			}
+		}
+	}
+	
+	protected void
+	torrentAdded(
+		String			torrent_file_str,
+		TOTorrent		torrent )
+	{
+		TRHostTorrent	host_torrent = host.getHostTorrent( torrent );
+		
+		if ( host_torrent != null ){
+			
+			if ( host_torrent.getTorrent() != torrent ){
+				
+				host_torrent.setTorrent( torrent );
 			}
 		}
 	}

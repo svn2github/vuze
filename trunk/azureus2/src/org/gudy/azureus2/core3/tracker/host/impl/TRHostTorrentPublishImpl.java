@@ -153,6 +153,13 @@ TRHostTorrentPublishImpl
 		return( torrent );
 	}
 
+	public void
+	setTorrent(
+		TOTorrent	t )
+	{
+		torrent	= t;
+	}
+	
 	public TRTrackerServerTorrent 
 	getTrackerTorrent() 
 	{

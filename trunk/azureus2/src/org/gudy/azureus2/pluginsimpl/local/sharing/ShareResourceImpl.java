@@ -306,6 +306,23 @@ ShareResourceImpl
 	
 		throws ShareResourceDeletionVetoException;
 	
+	public boolean
+	isPersistent()
+	{
+		Map<String,String>	properties = getProperties();
+		
+		if ( properties == null ){
+			
+			return( false );
+		}
+		
+		String persistent_str = properties.get( ShareManager.PR_PERSISTENT );
+	
+		boolean	persistent = persistent_str!=null && persistent_str.equalsIgnoreCase( "true" );
+		
+		return( persistent );
+	}
+	
 	protected abstract void
 	deleteInternal();
 	

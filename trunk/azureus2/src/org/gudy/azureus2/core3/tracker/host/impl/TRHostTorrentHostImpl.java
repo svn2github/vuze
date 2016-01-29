@@ -280,8 +280,25 @@ TRHostTorrentHostImpl
 		return( torrent );
 	}
 
-	protected void
+	public void
 	setTorrent(
+		TOTorrent		_torrent )
+	{
+		if ( _torrent != torrent ){
+			
+			torrent = _torrent;
+			
+			if ( torrent != null ){
+				
+				passive = false;
+			}
+			
+			host.torrentUpdated( this );
+		}
+	}
+	
+	protected void
+	setTorrentInternal(
 		TOTorrent		_torrent )
 	{
 		torrent = _torrent;

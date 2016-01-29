@@ -22,6 +22,7 @@ package org.gudy.azureus2.plugins.download;
 
 import java.io.File;
 
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
 public interface 
@@ -43,6 +44,9 @@ DownloadStub
 	
 	public long
 	getTorrentSize();
+	
+	public Torrent
+	getTorrent();
 	
 	public String
 	getSavePath();

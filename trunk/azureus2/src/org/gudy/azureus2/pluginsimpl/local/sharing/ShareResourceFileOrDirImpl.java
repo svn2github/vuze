@@ -320,22 +320,29 @@ ShareResourceFileOrDirImpl
 	
 		throws ShareException
 	{
-		try{
-			if ( Arrays.equals(getFingerPrint(), item.getFingerPrint())){
-				
-				// check torrent file still exists
-				
-				if ( !manager.torrentExists( item )){
+		if ( isPersistent()){
+			
+			// we don't re-verify stuff for persistent shares
+			
+		}else{
+			
+			try{
+				if ( Arrays.equals(getFingerPrint(), item.getFingerPrint())){
 					
-					createTorrent();
+					// check torrent file still exists
+					
+					if ( !manager.torrentExists( item )){
+						
+						createTorrent();
+					}
+				}else{
+					
+					manager.addFileOrDir( null, file, getType(), personal_key != null, properties );
 				}
-			}else{
-				
-				manager.addFileOrDir( null, file, getType(), personal_key != null, properties );
+			}catch( Throwable e ){
+								
+				manager.delete( this, true );
 			}
-		}catch( Throwable e ){
-							
-			manager.delete( this, true );
 		}
 	}
 	

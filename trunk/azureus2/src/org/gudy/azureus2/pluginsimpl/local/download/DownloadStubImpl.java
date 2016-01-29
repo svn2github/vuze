@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubEx;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.util.MapUtils;
 
@@ -210,6 +211,17 @@ DownloadStubImpl
 		}
 		
 		return( manager.destubbify( this ));
+	}
+	
+	public Torrent
+	getTorrent()
+	{
+		if ( temp_download != null ){
+			
+			return( temp_download.getTorrent());
+		}
+		
+		return( PluginCoreUtils.wrap( manager.getTorrent( this )));
 	}
 	
 	public String

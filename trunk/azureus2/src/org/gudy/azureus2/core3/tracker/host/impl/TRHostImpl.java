@@ -368,7 +368,7 @@ TRHostImpl
 						
 						if ( hti.getTorrent() != torrent ){
 							
-							hti.setTorrent( torrent );	
+							hti.setTorrentInternal( torrent );	
 						
 							if ( persistent && !hti.isPersistent()){
 								
@@ -517,6 +517,25 @@ TRHostImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	protected void
+	torrentUpdated(
+		TRHostTorrentHostImpl hti )
+	{
+		int state = hti.getStatus();
+		
+		if ( state != TRHostTorrent.TS_PUBLISHED ){
+			
+			startHosting( hti );
+
+			if ( state == TRHostTorrent.TS_STARTED ){
+			
+				hti.start();
+			}
+		}	
+		
+		listeners.dispatch( LDT_TORRENT_CHANGED, hti );
 	}
 	
 	public InetAddress 

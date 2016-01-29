@@ -189,17 +189,20 @@ ShareResourceDirContentsImpl
 			
 				// dir has been deleted
 			
-				// actually, this can be bad as some os errors (e.g. "too many open files") can cause the dir
-				// to appear to have been deleted. However, we don't want to delete the share. So let's just
-				// leave it around, manual delete required if deletion required.
-			
-			if ( dir == root ){
+			if ( !isPersistent()){
 				
-				return( null );
+					// actually, this can be bad as some os errors (e.g. "too many open files") can cause the dir
+					// to appear to have been deleted. However, we don't want to delete the share. So let's just
+					// leave it around, manual delete required if deletion required.
 				
-			}else{
-			
-				manager.delete( this, true );
+				if ( dir == root ){
+					
+					return( null );
+					
+				}else{
+				
+					manager.delete( this, true );
+				}
 			}
 		}else{
 					
@@ -524,6 +527,12 @@ ShareResourceDirContentsImpl
 		getProperties() 
 		{
 			return( null );
+		}
+		
+		public boolean 
+		isPersistent() 
+		{
+			return( false );
 		}
 		
 		public void

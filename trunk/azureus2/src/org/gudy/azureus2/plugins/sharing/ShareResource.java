@@ -80,6 +80,9 @@ ShareResource
 	getProperties();
 	
 	public boolean
+	isPersistent();
+	
+	public boolean
 	canBeDeleted()
 	
 		throws ShareResourceDeletionVetoException;

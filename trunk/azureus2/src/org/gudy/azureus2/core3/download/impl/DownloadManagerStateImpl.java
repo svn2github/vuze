@@ -527,7 +527,9 @@ DownloadManagerStateImpl
 		
 		if ( target_state_file.exists()){
 			
-			throw( new DownloadManagerException( "Target state file already exists: " + target_state_file ));
+			target_state_file.delete();
+			
+			//throw( new DownloadManagerException( "Target state file already exists: " + target_state_file ));
 		}
 		
 		if ( !FileUtil.copyFile( source_state_file, target_state_file )){

@@ -37,7 +37,8 @@ ShareManager
 	public static final String	PR_NETWORKS		= "networks";		// String of nets, comma separated
 	public static final String	PR_TAGS			= "tags";			// String of long tag IDs, comma separated
 	public static final String	PR_USER_DATA	= "user_data";		// something distinct the 'creator' can recognise
-	
+	public static final String	PR_PERSISTENT	= "persistent";		// "true"/"false"
+
 	public void
 	initialise()
 	

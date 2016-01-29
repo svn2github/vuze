@@ -62,6 +62,20 @@ ShareManagerImpl
 	protected static ShareManagerImpl	singleton;
 	private static AEMonitor			class_mon	= new AEMonitor( "ShareManager:class" );
 
+	private static boolean	persistent_shares;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Sharing Is Persistent",
+			new ParameterListener() {
+				
+				public void parameterChanged(String parameterName){
+					
+					persistent_shares = COConfigurationManager.getBooleanParameter( "Sharing Is Persistent" );
+				}
+			});
+	}
+	
 	protected AEMonitor				this_mon	= new AEMonitor( "ShareManager" );
 
 	protected TOTorrentCreator		to_creator;
@@ -648,6 +662,8 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
+		properties = setPropertyDefaults( properties );
+		
 		try{
 			this_mon.enter();
 		
@@ -659,6 +675,11 @@ ShareManagerImpl
 			
 			if ( modified ){
 		
+				if ( old_resource.isPersistent()){
+					
+					return( old_resource );
+				}
+				
 				old_resource.delete( true, false );
 			}
 			
@@ -733,6 +754,8 @@ ShareManagerImpl
 			Logger.log(new LogEvent(LOGID, "ShareManager: addDirContents '"
 					+ dir.toString() + "'"));
 
+		properties = setPropertyDefaults( properties );
+		
 		try{
 			this_mon.enter();
 			
@@ -743,6 +766,11 @@ ShareManagerImpl
 			ShareResource	old_resource = (ShareResource)shares.get( name );
 			
 			if ( old_resource != null ){
+				
+				if ( old_resource.isPersistent() && old_resource instanceof ShareResourceDirContents ){
+					
+					return((ShareResourceDirContents)old_resource );
+				}
 				
 				old_resource.delete( true );
 			}
@@ -874,6 +902,26 @@ ShareManagerImpl
 		TOTorrentCreator	_to_creator )
 	{
 		to_creator	= _to_creator;
+	}
+	
+	private Map<String,String>
+	setPropertyDefaults(
+		Map<String,String>		properties )
+	{
+		if ( persistent_shares ){
+			
+			if ( properties == null ){
+				
+				properties = new HashMap<String, String>();
+			}
+			
+			if ( !properties.containsKey( ShareManager.PR_PERSISTENT )){
+				
+				properties.put( ShareManager.PR_PERSISTENT, persistent_shares?"true":"false" );
+			}
+		}
+		
+		return( properties );
 	}
 	
 	public void

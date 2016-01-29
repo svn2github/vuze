@@ -158,6 +158,15 @@ public class ConfigSectionSharing implements UISWTConfigSection {
     StringParameter torrent_comment = new StringParameter(gSharing, "Sharing Torrent Comment", "" ); 
     torrent_comment.setLayoutData(gridData);
     
+   	// row
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    BooleanParameter persistent = 
+    	new BooleanParameter(gSharing, "Sharing Is Persistent", 
+    						"ConfigView.section.sharing.persistentshares");
+    
+    persistent.setLayoutData( gridData );
+	
     return gSharing;
        
   }

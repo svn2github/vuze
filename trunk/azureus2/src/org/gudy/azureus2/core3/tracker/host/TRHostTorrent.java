@@ -79,6 +79,10 @@ TRHostTorrent
 	public TOTorrent
 	getTorrent();
 	
+	public void
+	setTorrent(
+		TOTorrent	torrent );
+	
 	public TRTrackerServerTorrent
 	getTrackerTorrent();
 	

@@ -1258,6 +1258,11 @@ public class GlobalManagerImpl
         	listeners_and_event_listeners.dispatch( LDT_MANAGER_ADDED, download_manager );
         
         	taggable_life_manager.taggableCreated( download_manager );
+        	
+            if ( host_support != null ){
+            	
+            	host_support.torrentAdded( download_manager.getTorrentFileName(), download_manager.getTorrent());
+            }
         }
         
         download_manager.addListener(this);
@@ -2432,6 +2437,11 @@ public class GlobalManagerImpl
 		  dms.add( dm );
 		  
 		  triggerAddListener( dms );
+		  
+          if ( host_support != null ){
+          	
+          	host_support.torrentAdded( dm.getTorrentFileName(), dm.getTorrent());
+          }
 	  }
 	  
 	  return( dm );

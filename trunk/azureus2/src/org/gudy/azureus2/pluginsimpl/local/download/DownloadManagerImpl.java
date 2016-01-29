@@ -1466,6 +1466,25 @@ DownloadManagerImpl
 		}
 	}
 	
+	public static TOTorrent
+	getStubTorrent(
+		byte[]		hash  )
+	{
+		File torrent_file = new File( ARCHIVE_DIR, ByteFormatter.encodeString( hash ) + ".dat" );
+		
+		if ( torrent_file.exists()){
+			
+			try{
+				return( TOTorrentFactory.deserialiseFromBEncodedFile( torrent_file ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( null );
+	}
 	protected TOTorrent
 	getTorrent(
 		DownloadStubImpl		stub )

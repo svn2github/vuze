@@ -240,48 +240,56 @@ ShareHosterPlugin
 					DownloadAttributeListener.WRITTEN
 				);
 				
+				boolean persistent = resource.isPersistent();
+				
 				Torrent	dl_torrent = new_download.getTorrent();
 				
 				if ( dl_torrent != null ){
 					
-					TrackerTorrent	tt = tracker.host(dl_torrent, false );
+					TrackerTorrent	tt = tracker.host(dl_torrent, persistent );
 					
-					tt.addRemovalListener(
-							new TrackerTorrentWillBeRemovedListener()
-							{
-								public void
-								torrentWillBeRemoved(
-									TrackerTorrent	tt )
-								
-									throws TrackerTorrentRemovalVetoException
+					if ( !persistent ){
+						
+						tt.addRemovalListener(
+								new TrackerTorrentWillBeRemovedListener()
 								{
-									if ( tt != torrent_being_removed ){
-										
-										throw( new TrackerTorrentRemovalVetoException(
-												MessageText.getString("plugin.sharing.torrent.remove.veto")));
-									}
-								}								
-							});
+									public void
+									torrentWillBeRemoved(
+										TrackerTorrent	tt )
+									
+										throws TrackerTorrentRemovalVetoException
+									{
+										if ( tt != torrent_being_removed ){
+											
+											throw( new TrackerTorrentRemovalVetoException(
+													MessageText.getString("plugin.sharing.torrent.remove.veto")));
+										}
+									}								
+								});
+					}
 					
 					resource_tt_map.put( resource, tt );
 				}
 				
-				new_download.addDownloadWillBeRemovedListener(
-						new DownloadWillBeRemovedListener()
-						{
-							public void
-							downloadWillBeRemoved(
-								Download	dl )
-							
-								throws DownloadRemovalVetoException
+				if ( !persistent ){
+					
+					new_download.addDownloadWillBeRemovedListener(
+							new DownloadWillBeRemovedListener()
 							{
-								if ( dl != download_being_removed ){
-									
-									throw( new DownloadRemovalVetoException(
-												MessageText.getString("plugin.sharing.download.remove.veto")));
+								public void
+								downloadWillBeRemoved(
+									Download	dl )
+								
+									throws DownloadRemovalVetoException
+								{
+									if ( dl != download_being_removed ){
+										
+										throw( new DownloadRemovalVetoException(
+													MessageText.getString("plugin.sharing.download.remove.veto")));
+									}
 								}
-							}
-						});
+							});
+				}
 			}
 			
 		}catch( Throwable e ){
@@ -371,8 +379,34 @@ ShareHosterPlugin
 			download_manager.addDownloadWillBeAddedListener( dwbal );
 		}
 		
-		try{
-			Download download = download_manager.addNonPersistentDownload( torrent, torrent_file, data_file );
+		try{			
+			Download download;
+			
+			if ( resource.isPersistent()){
+				
+				DownloadStub stub = download_manager.lookupDownloadStub( torrent.getHash());
+				
+				if ( stub != null ){
+				
+						// already exists in archive
+					
+					return( null );
+				}
+				
+				try{
+					torrent.setComplete( data_file );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+				
+				download = download_manager.addDownload( torrent, torrent_file, data_file );
+
+			}else{
+				
+				download = download_manager.addNonPersistentDownload( torrent, torrent_file, data_file );
+			}
 
 			if ( tags.size() > 0 ){
 				
@@ -383,6 +417,7 @@ ShareHosterPlugin
 					tag.addTaggable( dm );
 				}
 			}
+			
 			return( download );		
 			
 		}finally{
