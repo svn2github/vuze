@@ -318,8 +318,8 @@ UserAlerts
 
 			if (Constants.isOSX
 					&&  ( COConfigurationManager.getBooleanParameter(speech_enabler) || isDLFEnabled( dl_file_alerts, dlf_prefix, speech_enabler ))) {
-				new AEThread("SaySound") {
-					public void runSupport() {
+				new AEThread2("SaySound") {
+					public void run() {
 						try {
 							Runtime.getRuntime().exec(new String[] {
 								"say",
@@ -392,10 +392,10 @@ UserAlerts
 
 	    		if ( audio_clip != null ){
 
-	            	new AEThread("DownloadSound")
+	            	new AEThread2("DownloadSound")
 					{
 		        		public void
-						runSupport()
+		        		run()
 		        		{
 		        			try{
 		        				audio_clip.play();
@@ -419,12 +419,15 @@ UserAlerts
   		}
   	}
   	
+  	private long	last_error_speech;
+  	private long	last_error_sound;
+  	
   	private void 
   	reportError(
   		DownloadManager			manager )
   	{  							
-		Object relatedObject 	= manager;
-		String item_name		= manager.getDisplayName();
+		final Object relatedObject 	= manager;
+		final String item_name		= manager.getDisplayName();
 						
   		final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
   		
@@ -443,111 +446,127 @@ UserAlerts
   			this_mon.enter();
   			
   			if ( COConfigurationManager.getBooleanParameter(popup_enabler)) {
-  				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
-  					UIFunctions uif = UIFunctionsManager.getUIFunctions();
-  					
-  					if ( uif != null ){
-  						
-  						uif.forceNotify(
-							UIFunctions.STATUSICON_ERROR, null, popup_text, null,
-							new Object[] {
-								relatedObject
-							}, -1);
-  					}
+   					UIFunctionsManager.execWithUIFunctions(
+  							new UIFunctionsManager.UIFCallback() {
+								
+								public void run(UIFunctions functions) {
+									
+					 				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
+
+									functions.forceNotify(
+											UIFunctions.STATUSICON_ERROR, null, popup_text, null,
+											new Object[] {
+												relatedObject
+											}, -1);
+								}
+							});
   			}
 
-			if (Constants.isOSX
-					&&  ( COConfigurationManager.getBooleanParameter(speech_enabler))) {
-				new AEThread("SaySound") {
-					public void runSupport() {
-						try {
-							Runtime.getRuntime().exec(new String[] {
-								"say",
-								COConfigurationManager.getStringParameter(speech_text)
-							}); // Speech Synthesis services
-
-							Thread.sleep(2500);
-						} catch (Throwable e) {
+  			long now = SystemTime.getMonotonousTime();
+  			
+			if (	Constants.isOSX
+					&&  COConfigurationManager.getBooleanParameter(speech_enabler)){
+				
+				if ( last_error_speech == 0 || now - last_error_speech > 5000 ){
+					
+					last_error_speech = now;
+							
+					new AEThread2("SaySound") {
+						public void run() {
+							try {
+								Runtime.getRuntime().exec(new String[] {
+									"say",
+									COConfigurationManager.getStringParameter(speech_text)
+								}); // Speech Synthesis services
+	
+								Thread.sleep(2500);
+							} catch (Throwable e) {
+							}
 						}
-					}
-				}.start();
+					}.start();
+				}
 			}
 
-        if ( COConfigurationManager.getBooleanParameter( sound_enabler, false)){
-
-	    		String	file = COConfigurationManager.getStringParameter( sound_file );
-
-    			file = file.trim();
-
-	    			// turn "<default>" into blank
-
-	    		if ( file.startsWith( "<" )){
-
-	    			file	= "";
-	    		}
-
-	    		if ( audio_clip == null || !file.equals( audio_resource )){
-
-	    			audio_clip	= null;
-
-	    				// try explicit file
-
-	    			if ( file.length() != 0 ){
-
-	    				File	f = new File( file );
-
-	    				try{
-
-			    			if ( f.exists()){
-
-		    					URL	file_url = f.toURI().toURL();
-
-		    					audio_clip = Applet.newAudioClip( file_url );
-			    			}
-
-	    				}catch( Throwable  e ){
-
-	    					Debug.printStackTrace(e);
-
-	    				}finally{
-
-	    					if ( audio_clip == null ){
-	    						Logger.log(new LogAlert(relatedObject, LogAlert.UNREPEATABLE,
-										LogAlert.AT_ERROR, "Failed to load audio file '" + file
-												+ "'"));
-	    					}
-	    				}
-	    			}
-
-	    				// either non-explicit or explicit missing
-
-	    			if ( audio_clip == null ){
-
-	    				audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource( default_sound ));
-
-	    			}
-
-	    			audio_resource	= file;
-	    		}
-
-	    		if ( audio_clip != null ){
-
-	            	new AEThread("DownloadSound")
-					{
-		        		public void
-						runSupport()
-		        		{
-		        			try{
-		        				audio_clip.play();
-
-		        				Thread.sleep(2500);
-
-		        			}catch( Throwable e ){
-
-		        			}
-		        		}
-		        	}.start();
-		        }
+	        if ( COConfigurationManager.getBooleanParameter( sound_enabler, false)){
+	
+				if ( last_error_sound == 0 || now - last_error_sound > 5000 ){
+					
+					last_error_sound = now;
+					
+		    		String	file = COConfigurationManager.getStringParameter( sound_file );
+	
+	    			file = file.trim();
+	
+		    			// turn "<default>" into blank
+	
+		    		if ( file.startsWith( "<" )){
+	
+		    			file	= "";
+		    		}
+	
+		    		if ( audio_clip == null || !file.equals( audio_resource )){
+	
+		    			audio_clip	= null;
+	
+		    				// try explicit file
+	
+		    			if ( file.length() != 0 ){
+	
+		    				File	f = new File( file );
+	
+		    				try{
+	
+				    			if ( f.exists()){
+	
+			    					URL	file_url = f.toURI().toURL();
+	
+			    					audio_clip = Applet.newAudioClip( file_url );
+				    			}
+	
+		    				}catch( Throwable  e ){
+	
+		    					Debug.printStackTrace(e);
+	
+		    				}finally{
+	
+		    					if ( audio_clip == null ){
+		    						Logger.log(new LogAlert(relatedObject, LogAlert.UNREPEATABLE,
+											LogAlert.AT_ERROR, "Failed to load audio file '" + file
+													+ "'"));
+		    					}
+		    				}
+		    			}
+	
+		    				// either non-explicit or explicit missing
+	
+		    			if ( audio_clip == null ){
+	
+		    				audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource( default_sound ));
+	
+		    			}
+	
+		    			audio_resource	= file;
+		    		}
+	
+		    		if ( audio_clip != null ){
+	
+		            	new AEThread2("DownloadSound")
+						{
+			        		public void
+							run()
+			        		{
+			        			try{
+			        				audio_clip.play();
+	
+			        				Thread.sleep(2500);
+	
+			        			}catch( Throwable e ){
+	
+			        			}
+			        		}
+			        	}.start();
+			        }
+				}
 	    	}
   		}catch( Throwable e ){
   			
