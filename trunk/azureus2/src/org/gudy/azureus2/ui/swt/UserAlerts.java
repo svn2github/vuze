@@ -444,11 +444,16 @@ UserAlerts
   			
   			if ( COConfigurationManager.getBooleanParameter(popup_enabler)) {
   				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
-					UIFunctionsManager.getUIFunctions().forceNotify(
+  					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+  					
+  					if ( uif != null ){
+  						
+  						uif.forceNotify(
 							UIFunctions.STATUSICON_ERROR, null, popup_text, null,
 							new Object[] {
 								relatedObject
 							}, -1);
+  					}
   			}
 
 			if (Constants.isOSX

@@ -473,6 +473,9 @@ public class MainMDISetup
 								TorrentOptionsView.class,
 								MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_OPTIONS, true,
 								null, null);
+						
+						entry.setImageLeftID( "image.sidebar.torrentoptions" );
+						
 						return entry;
 					}
 				});
@@ -485,6 +488,9 @@ public class MainMDISetup
 								MySharesView.class,
 								MultipleDocumentInterface.SIDEBAR_SECTION_MY_SHARES, true,
 								null, null);
+						
+						entry.setImageLeftID( "image.sidebar.myshares" );
+						
 						return entry;
 					}
 				});
@@ -497,6 +503,9 @@ public class MainMDISetup
 								MyTrackerView.class,
 								MultipleDocumentInterface.SIDEBAR_SECTION_MY_TRACKER, true,
 								null, null);
+						
+						entry.setImageLeftID( "image.sidebar.mytracker" );
+						
 						return entry;
 					}
 				});
@@ -509,6 +518,9 @@ public class MainMDISetup
 								ClientStatsView.class,
 								MultipleDocumentInterface.SIDEBAR_SECTION_CLIENT_STATS, true,
 								null, null);
+						
+						entry.setImageLeftID( "image.sidebar.clientstats" );
+						
 						return entry;
 					}
 				});
@@ -524,13 +536,16 @@ public class MainMDISetup
 
 						boolean uiClassic = COConfigurationManager.getStringParameter(
 								"ui").equals("az2");
-						if (uiClassic || COConfigurationManager.getBooleanParameter(
-								"Show Options In Side Bar")) {
-  						MdiEntry entry = ((MultipleDocumentInterfaceSWT) mdi).createEntryFromEventListener(
-  								MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
-  								ConfigView.class,
-  								MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, true, null,
-  								null);
+						if (	uiClassic ||
+								COConfigurationManager.getBooleanParameter(	"Show Options In Side Bar")) {
+							MdiEntry entry = ((MultipleDocumentInterfaceSWT) mdi).createEntryFromEventListener(
+									MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
+									ConfigView.class,
+									MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, true, null,
+									null);
+
+							entry.setImageLeftID( "image.sidebar.config" );
+  						
   						return entry;
 						}
 						
