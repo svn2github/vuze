@@ -30,7 +30,6 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -60,6 +59,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.CategoryItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.NameItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.myshares.PersistentItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.TypeItem;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -91,6 +91,7 @@ implements ShareManagerListener,
     new NameItem(),
     new TypeItem(),
 	new CategoryItem(),
+	new PersistentItem()
   };
   
 	protected static final TorrentAttribute	category_attribute = 

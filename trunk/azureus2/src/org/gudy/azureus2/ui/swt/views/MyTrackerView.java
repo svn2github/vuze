@@ -33,7 +33,6 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.CategoryManagerListener;
@@ -105,6 +104,7 @@ public class MyTrackerView
 				new StatusItem(),
 				new CategoryItem(),
 				new PassiveItem(),
+				new PersistentItem(),
 				new SeedCountItem(),
 				new PeerCountItem(),
 				new BadNATCountItem(),
