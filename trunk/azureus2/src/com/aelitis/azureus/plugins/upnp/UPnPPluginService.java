@@ -32,17 +32,19 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.plugins.ui.config.StringParameter;
 
 import com.aelitis.net.upnp.services.*;
 
 public class 
 UPnPPluginService 
-{
-	protected UPnPWANConnection		connection;
-	protected BooleanParameter 		alert_success;
-	protected BooleanParameter 		grab_ports;
-	protected BooleanParameter 		alert_other_port_param;
-	protected BooleanParameter		release_mappings;
+{	
+	private UPnPWANConnection		connection;
+	private StringParameter			desc_prefix;
+	private BooleanParameter 		alert_success;
+	private BooleanParameter 		grab_ports;
+	private BooleanParameter 		alert_other_port_param;
+	private BooleanParameter		release_mappings;
 	
 	protected List<serviceMapping>	service_mappings = new ArrayList<serviceMapping>();
 	
@@ -52,12 +54,14 @@ UPnPPluginService
 	UPnPPluginService(
 		UPnPWANConnection				_connection,
 		UPnPWANConnectionPortMapping[]	_ports,
+		StringParameter					_desc_prefix,
 		BooleanParameter				_alert_success,
 		BooleanParameter				_grab_ports,
 		BooleanParameter				_alert_other_port_param,
 		BooleanParameter				_release_mappings)
 	{
 		connection				= _connection;
+		desc_prefix				= _desc_prefix;
 		alert_success			= _alert_success;
 		grab_ports				= _grab_ports;
 		alert_other_port_param	= _alert_other_port_param;
@@ -126,7 +130,7 @@ UPnPPluginService
 			// Remove one day - port name was changed as some routers use name uniqueness
 			// to manage ports, hence UDP and TCP with same name failed
 		
-		return( "Azureus UPnP " + port );
+		return( desc_prefix.getValue() + " " + port );
 	}
 	
 	protected String
@@ -134,7 +138,7 @@ UPnPPluginService
 		boolean	TCP,
 		int		port )
 	{
-		return( "Azureus UPnP " + port + " " + (TCP?"TCP":"UDP"));
+		return( desc_prefix.getValue() + " " + port + " " + (TCP?"TCP":"UDP"));
 	}
 	
 	protected void

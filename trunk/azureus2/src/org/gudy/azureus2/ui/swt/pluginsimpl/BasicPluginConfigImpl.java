@@ -115,17 +115,20 @@ BasicPluginConfigImpl
 	{
 		BasicPluginConfigModel	model = model_ref.get();
 		
-		org.gudy.azureus2.plugins.ui.config.Parameter[] parameters = model.getParameters();
-		
 		int	max_mode = 0;
-		
-		for (int i=0;i<parameters.length;i++){
+
+		if ( model != null ){
 			
-			final ParameterImpl	param = 	(ParameterImpl)parameters[i];
-		
-			if ( param.getMinimumRequiredUserMode() > max_mode ){
+			org.gudy.azureus2.plugins.ui.config.Parameter[] parameters = model.getParameters();
+			
+			for (int i=0;i<parameters.length;i++){
 				
-				max_mode = param.getMinimumRequiredUserMode();
+				ParameterImpl	param = 	(ParameterImpl)parameters[i];
+			
+				if ( param.getMinimumRequiredUserMode() > max_mode ){
+					
+					max_mode = param.getMinimumRequiredUserMode();
+				}
 			}
 		}
 		

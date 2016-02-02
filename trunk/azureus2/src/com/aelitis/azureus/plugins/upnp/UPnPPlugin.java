@@ -87,6 +87,7 @@ UPnPPlugin
 	private BooleanParameter 	upnp_enable_param;
 	private BooleanParameter 	trace_to_log;
 	
+	private StringParameter		desc_prefix_param;
 	private BooleanParameter	alert_success_param;
 	private BooleanParameter	grab_ports_param;
 	private BooleanParameter	alert_other_port_param;
@@ -228,7 +229,7 @@ UPnPPlugin
 		});
 		
 		upnp_config.addLabelParameter2( "blank.resource" );
-		
+						
 		alert_success_param = upnp_config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", false );
 		
 		alert_other_port_param = upnp_config.addBooleanParameter2( "upnp.alertothermappings", "upnp.alertothermappings", true );
@@ -236,7 +237,13 @@ UPnPPlugin
 		alert_device_probs_param = upnp_config.addBooleanParameter2( "upnp.alertdeviceproblems", "upnp.alertdeviceproblems", true );
 		
 		selected_interfaces_param 	= upnp_config.addStringParameter2( "upnp.selectedinterfaces", "upnp.selectedinterfaces", "" );
+		selected_interfaces_param.setGenerateIntermediateEvents( false );
+		
 		selected_addresses_param 	= upnp_config.addStringParameter2( "upnp.selectedaddresses", "upnp.selectedaddresses", "" );
+		selected_addresses_param.setGenerateIntermediateEvents( false );
+
+		desc_prefix_param 			= upnp_config.addStringParameter2( "upnp.descprefix", "upnp.descprefix", "Azureus UPnP" );
+		desc_prefix_param.setGenerateIntermediateEvents( false );
 
 		ignore_bad_devices = upnp_config.addBooleanParameter2( "upnp.ignorebaddevices", "upnp.ignorebaddevices", true );
 		
@@ -273,11 +280,13 @@ UPnPPlugin
 		upnp_enable_param.addEnabledOnSelection( alert_success_param );
 		upnp_enable_param.addEnabledOnSelection( grab_ports_param );
 		upnp_enable_param.addEnabledOnSelection( refresh_param );
+		auto_refresh_on_bad_nat_param.addEnabledOnSelection( refresh_param );
 		upnp_enable_param.addEnabledOnSelection( alert_other_port_param );
 		upnp_enable_param.addEnabledOnSelection( alert_device_probs_param );
 		upnp_enable_param.addEnabledOnSelection( release_mappings_param );
 		upnp_enable_param.addEnabledOnSelection( selected_interfaces_param );
 		upnp_enable_param.addEnabledOnSelection( selected_addresses_param );
+		upnp_enable_param.addEnabledOnSelection( desc_prefix_param );
 		upnp_enable_param.addEnabledOnSelection( ignore_bad_devices );
 		upnp_enable_param.addEnabledOnSelection( ignored_devices_list );
 		upnp_enable_param.addEnabledOnSelection( reset_param );
@@ -1191,7 +1200,7 @@ UPnPPlugin
 		try{
 			this_mon.enter();
 
-			services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param, alert_other_port_param, release_mappings_param ));
+			services.add(new UPnPPluginService( wan_service, ports, desc_prefix_param, alert_success_param, grab_ports_param, alert_other_port_param, release_mappings_param ));
 			
 			if ( services.size() > 1 ){
 				
