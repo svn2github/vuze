@@ -105,10 +105,19 @@ public class ProgressGraphItem extends CoreTableColumnSWT implements TableCellAd
 
 		public void refresh(TableCell cell, boolean sortOnly) {
 			final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
+			final DiskManager manager = fileInfo == null ? null : fileInfo.getDiskManager();
+
 			int percentDone = 0;
-			if (fileInfo != null && fileInfo.getLength() != 0)
-				percentDone = (int) ((1000 * fileInfo.getDownloaded()) / fileInfo.getLength());
-			cell.setSortValue(percentDone);
+			int sortOrder;
+			if ( manager == null ){
+				sortOrder = -1;
+			}else{
+				if (fileInfo != null && fileInfo.getLength() != 0)
+					percentDone = (int) ((1000 * fileInfo.getDownloaded()) / fileInfo.getLength());
+				
+				sortOrder = percentDone;
+			}
+			cell.setSortValue(sortOrder);
 			if (sortOnly)
 			{
 				dispose(cell);
@@ -126,7 +135,6 @@ public class ProgressGraphItem extends CoreTableColumnSWT implements TableCellAd
 			if (x1 < 10 || y1 < 3)
 				return;
 			
-			final DiskManager manager = fileInfo == null ? null : fileInfo.getDiskManager();
 			// we want to run through the image part once one the transition from with a disk manager (running)
 			// to without a disk manager (stopped) in order to clear the pieces view
 			boolean running = manager != null;
