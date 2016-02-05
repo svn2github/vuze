@@ -1604,7 +1604,13 @@ public class TagUIUtils
 												selected.remove( key );
 											}
 											
-											tp.setStringList( selected.toArray( new String[ selected.size()]));
+											Utils.getOffOfSWTThread(new AERunnable() {
+												
+												@Override
+												public void runSupport() {
+													tp.setStringList( selected.toArray( new String[ selected.size()]));
+												}
+											});
 
 										}});
 								}
