@@ -949,62 +949,67 @@ outer:
 								continue;
 							}
 							
-							String first_field = fields[0];
-							
-							if ( first_field.equals("s")){
-															
-								session_start_time = Long.parseLong( fields[2] )*MIN_IN_MILLIS;
+							try{
+								String first_field = fields[0];
 								
-								if ( file_totals == null ){
+								if ( first_field.equals("s")){
+																
+									session_start_time = Long.parseLong( fields[2] )*MIN_IN_MILLIS;
 									
-									file_totals = new long[STAT_ENTRY_COUNT];
-									
-									file_start_time = session_start_time;
-								}
-	
-								session_time = session_start_time;
-								
-								session_start_stats = new long[STAT_ENTRY_COUNT];
-								
-								for ( int i=3;i<9;i++){
-									
-									session_start_stats[i-3] = Long.parseLong( fields[i] );
-								}
-							}else if ( session_start_time > 0 ){
-								
-								session_time += MIN_IN_MILLIS;
-								
-								int	field_offset = 0;
-								
-								if ( first_field.equals( "e" )){
-									
-									field_offset = 3;
-								}
-								
-								long[] line_stats = new long[STAT_ENTRY_COUNT];
-								
-								for ( int i=0;i<6;i++){
-									
-									line_stats[i] = Long.parseLong( fields[i+field_offset] );
-									
-									file_totals[i] += line_stats[i];
-								}
-								
-								if ( 	session_time >= start_millis && 
-										session_time <= end_millis ){
-									
-									if ( accepter == null ||	accepter.acceptRecord( session_time )){
+									if ( file_totals == null ){
 										
-										for ( int i=0;i<6;i++){
+										file_totals = new long[STAT_ENTRY_COUNT];
+										
+										file_start_time = session_start_time;
+									}
+		
+									session_time = session_start_time;
+									
+									session_start_stats = new long[STAT_ENTRY_COUNT];
+									
+									for ( int i=3;i<9;i++){
+										
+										session_start_stats[i-3] = Long.parseLong( fields[i] );
+									}
+								}else if ( session_start_time > 0 ){
+									
+									session_time += MIN_IN_MILLIS;
+									
+									int	field_offset = 0;
+									
+									if ( first_field.equals( "e" )){
+										
+										field_offset = 3;
+									}
+									
+									long[] line_stats = new long[STAT_ENTRY_COUNT];
+									
+									for ( int i=0;i<6;i++){
+										
+										line_stats[i] = Long.parseLong( fields[i+field_offset] );
+										
+										file_totals[i] += line_stats[i];
+									}
+									
+									if ( 	session_time >= start_millis && 
+											session_time <= end_millis ){
+										
+										if ( accepter == null || accepter.acceptRecord( session_time )){
 											
-											result[i] += line_stats[i];
-											
-											file_result_totals[i] += line_stats[i];
+											for ( int i=0;i<6;i++){
+												
+												result[i] += line_stats[i];
+												
+												file_result_totals[i] += line_stats[i];
+											}
 										}
 									}
+									
+									//System.out.println( getString( line_stats ));
 								}
+							}catch( Throwable e ){
 								
-								//System.out.println( getString( line_stats ));
+								// skip the record, not much else that can be done
 							}
 						}
 						
