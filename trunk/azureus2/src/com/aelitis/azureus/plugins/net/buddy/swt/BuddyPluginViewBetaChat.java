@@ -3451,7 +3451,7 @@ BuddyPluginViewBetaChat
 		    		 
 		    		 int unicode = Integer.parseInt( str, 16 );
 		    		 
-		    		 m.appendReplacement(sb, String.valueOf((char)unicode));
+		    		 m.appendReplacement(sb, Matcher.quoteReplacement(String.valueOf((char)unicode)));
 		    		 
 		    		 result = m.find(); 
 		    	 }
