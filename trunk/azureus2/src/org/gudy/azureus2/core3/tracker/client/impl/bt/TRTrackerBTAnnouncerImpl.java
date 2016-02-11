@@ -2206,7 +2206,7 @@ TRTrackerBTAnnouncerImpl
    			
    		}else{
    			
-	   		if ( ip_override != null ){
+	   		if ( ip_override != null && !TorrentUtils.isDecentralised( ip_override )){
 	   			
 	   			ip = ip_override;
 	   		}
