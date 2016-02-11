@@ -86,7 +86,7 @@ ContentNetworkVuze
 		super( 	manager,
 				ContentNetwork.CONTENT_NETWORK_VUZE,
 				1,
-				"Vuze HD Network",
+				"Vuze StudioHD Network",
 				null,
 				null,
 				URL_ADDRESS,
