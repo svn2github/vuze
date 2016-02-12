@@ -1632,7 +1632,7 @@ implements PEPeerTransport
 			connection.getOutgoingMessageQueue().addMessage(new BTUninterested(other_peer_uninterested_version), false);
 		}
 		
-		interested_in_other_peer = is_interesting;
+		interested_in_other_peer = is_interesting || is_metadata_download;
 	}
 
 	/** @deprecated no longer used by CVS code
@@ -3009,6 +3009,10 @@ implements PEPeerTransport
 		}
 		addAvailability();
 		sendMainlineDHTPort();
+		
+		if ( is_metadata_download ){
+			interested_in_other_peer = true;
+		}
   	}
 
 	protected void 
