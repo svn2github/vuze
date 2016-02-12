@@ -2175,13 +2175,16 @@ public class TorrentMenuFancy
 				});
 		}
 		
-		// Move Data Files
 		boolean fileMove = true;
+		boolean locateFiles = false;
+		
 		for (int i = 0; i < dms.length; i++) {
 			DownloadManager dm = dms[i];
 			if (!dm.canMoveDataFiles()) {
 				fileMove = false;
-				break;
+			}
+			if ( !dm.isDownloadComplete( false )){
+				locateFiles = true;
 			}
 		}
 		if (fileMove) {
@@ -2200,6 +2203,15 @@ public class TorrentMenuFancy
 					}
 				});
 
+		if ( locateFiles ){
+			createRow(detailArea, "MyTorrentsView.menu.locatefiles", null,
+					new ListenerDMTask(dms) {
+						public void run(DownloadManager[] dms) {
+							ManagerUtils.locateFiles(dms,parentShell);
+						}
+					});
+		}
+		
 		createRow(detailArea, "MyTorrentsView.menu.thisColumn.toClipboard", null,
 				new Listener() {
 					public void handleEvent(Event event) {

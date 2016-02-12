@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -72,6 +73,7 @@ import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
+import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -2332,5 +2334,192 @@ public class ManagerUtils {
 		}
 
 		return( result.toArray( new DownloadManager[ result.size()]));
+	}
+	
+	public static void
+	locateFiles(
+		final DownloadManager[]		dms,
+		Shell						shell )
+	{
+		DirectoryDialog dd = new DirectoryDialog( shell );
+
+		dd.setFilterPath( TorrentOpener.getFilterPathData());
+
+		dd.setText(MessageText.getString("MyTorrentsView.menu.locatefiles.dialog"));
+
+		String path = dd.open();
+
+		if ( path != null ){
+			
+			TorrentOpener.setFilterPathData( path );
+			
+			final File	dir = new File( path );
+			
+			final TextViewerWindow viewer = 
+					new TextViewerWindow(
+							MessageText.getString( "locatefiles.view.title" ),
+							null, "", true, true );
+								
+			viewer.setEditable( false );
+
+			viewer.setOKEnabled( true );
+			
+			new AEThread2( "FileLocator" )
+			{
+				public void
+				run()
+				{
+					try{
+						Map<Long,List<File>>	file_map = new HashMap<Long,List<File>>();
+						
+						final boolean[]	quit = { false };
+						
+						viewer.addListener(
+							new TextViewerWindow.TextViewerWindowListener() {
+								
+								public void closed() {
+									quit[0] = true;
+								}
+							});
+							
+						logLine( viewer, "Enumerating files in " + dir );
+						
+						int file_count = buildFileMap( viewer, dir, file_map, new long[]{ SystemTime.getMonotonousTime() }, quit );
+						
+						logLine( viewer, "\r\nFound " + file_count + " files with " + file_map.size() + " distinct sizes" );
+						
+						for ( DownloadManager dm: dms ){
+							
+							TOTorrent torrent = dm.getTorrent();
+							
+							if ( torrent == null ){
+								
+								continue;
+							}
+							
+							long	piece_length = torrent.getPieceLength();
+							
+							logLine( viewer, "Processing '" + dm.getDisplayName() + "'" );
+							
+							DiskManagerFileInfo[] files = dm.getDiskManagerFileInfoSet().getFiles();
+													
+							for ( DiskManagerFileInfo file: files ){
+								
+								long	file_length = file.getLength();
+								
+								if ( 	file.isSkipped() || 
+										file.getDownloaded() == file_length ||
+										file_length < piece_length ){
+									
+									continue;
+								}
+								
+								List<File> candidates = file_map.get( file_length );
+								
+								if ( candidates != null ){
+									
+									if ( candidates.size() > 0 ){
+															
+										logLine( viewer, "    " + candidates.size() + " candidates for " + file.getTorrentFile().getRelativePath());
+									}
+								}
+							}
+						}
+					}catch( Throwable e ){
+						
+						log( viewer, "\r\nFailed: " + Debug.getNestedExceptionMessage( e ) + "\r\n" );
+					}
+				}
+			}.start();
+			
+			viewer.goModal();
+		}
+	}
+	
+	private static void
+	logLine(
+		TextViewerWindow	viewer,
+		String				str )
+	{
+		log( viewer, str + "\r\n" );
+	}
+	
+	private static void
+	log(
+		final TextViewerWindow		viewer,
+		final String				str )
+	{
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					if ( !viewer.isDisposed()){
+						
+						viewer.append( str );
+					}
+				}
+			});
+	}
+	
+	private static int
+	buildFileMap(
+		TextViewerWindow		viewer,
+		File					dir,
+		Map<Long,List<File>>	map,
+		long[]					last_log,
+		boolean[]				quit )
+	{		
+		File[] files = dir.listFiles();
+		
+		int	total_files = 0;
+		
+		if ( files != null ){
+			
+			for ( File f: files ){
+				
+				if ( quit[0] ){
+					
+					return( total_files );
+				}
+
+				long	now = SystemTime.getMonotonousTime();
+				
+				if ( now - last_log[0] > 250 ){
+					
+					log( viewer, "." );
+					
+					last_log[0] = now;
+				}
+				
+				if ( f.isDirectory()){
+					
+					total_files += buildFileMap( viewer, f, map, last_log, quit );
+					
+				}else{
+										
+					long size = f.length();
+					
+					if ( size > 0 ){
+						
+						total_files++;
+	
+						List<File> list = map.get( size );
+						
+						if ( list == null ){
+							
+							list = new ArrayList<File>();
+							
+							map.put( size, list );
+						}
+						
+						list.add( f );
+					}
+				}
+			}
+		}
+		
+		return( total_files );
 	}
 }

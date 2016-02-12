@@ -532,6 +532,15 @@ public class TorrentUtil
 			}
 		});
 
+		final MenuItem itemLocateFiles = new MenuItem(menuFiles, SWT.PUSH);
+		Messages.setLanguageText(itemLocateFiles,
+				"MyTorrentsView.menu.locatefiles");
+		itemLocateFiles.addListener(SWT.Selection, new ListenerDMTask(dms) {
+			public void run(DownloadManager[] dms) {
+				ManagerUtils.locateFiles( dms, menu.getShell());
+			}
+		});
+		
 		final MenuItem itemFileRescan = new MenuItem(menuFiles, SWT.CHECK);
 		Messages.setLanguageText(itemFileRescan, "MyTorrentsView.menu.rescanfile");
 		itemFileRescan.addListener(SWT.Selection, new ListenerDMTask(dms) {
