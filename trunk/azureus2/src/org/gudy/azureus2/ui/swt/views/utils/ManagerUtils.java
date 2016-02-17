@@ -26,6 +26,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -2388,7 +2389,16 @@ public class ManagerUtils {
 						
 						logLine( viewer, "\r\nFound " + file_count + " files with " + file_map.size() + " distinct sizes" );
 						
+						Set<String>	all_dm_incomplete_files = null;
+						
+						ConcurrentHasher hasher = ConcurrentHasher.getSingleton();
+						
 						for ( DownloadManager dm: dms ){
+							
+							if ( !dm.isPersistent()){
+								
+								continue;
+							}
 							
 							TOTorrent torrent = dm.getTorrent();
 							
@@ -2397,19 +2407,34 @@ public class ManagerUtils {
 								continue;
 							}
 							
-							long	piece_length = torrent.getPieceLength();
+							TOTorrentFile[] to_files = torrent.getFiles();
 							
-							logLine( viewer, "Processing '" + dm.getDisplayName() + "'" );
+							long	piece_size = torrent.getPieceLength();
+							
+							byte[][] pieces = torrent.getPieces();
+							
+							logLine( viewer, "Processing '" + dm.getDisplayName() + "', piece size=" + DisplayFormatters.formatByteCountToKiBEtc( piece_size ));
+							
+							int dm_state = dm.getState();
+							
+							if ( ! ( dm_state == DownloadManager.STATE_STOPPED || dm_state == DownloadManager.STATE_ERROR )){
+								
+								logLine( viewer, "    Download must be stopped" );
+								
+								continue;
+							}
 							
 							DiskManagerFileInfo[] files = dm.getDiskManagerFileInfoSet().getFiles();
-													
+									
+							boolean	 found_candidate = false;
+							
 							for ( DiskManagerFileInfo file: files ){
 								
 								long	file_length = file.getLength();
 								
 								if ( 	file.isSkipped() || 
 										file.getDownloaded() == file_length ||
-										file_length < piece_length ){
+										file_length < piece_size ){
 									
 									continue;
 								}
@@ -2419,10 +2444,168 @@ public class ManagerUtils {
 								if ( candidates != null ){
 									
 									if ( candidates.size() > 0 ){
+										
+										if ( all_dm_incomplete_files == null ){
+											
+											all_dm_incomplete_files = new HashSet<String>();
+											
+											List<DownloadManager> all_dms = AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers();
+											
+											for ( DownloadManager x: all_dms ){
+												
+												if ( !x.isDownloadComplete( false )){
+													
+													DiskManagerFileInfo[] fs = x.getDiskManagerFileInfoSet().getFiles();
+													
+													for ( DiskManagerFileInfo f: fs ){
+														
+														if ( 	f.isSkipped() ||
+																f.getDownloaded() != f.getLength()){
 															
-										logLine( viewer, "    " + candidates.size() + " candidates for " + file.getTorrentFile().getRelativePath());
+															all_dm_incomplete_files.add( f.getFile(true).getAbsolutePath());
+														}
+													}
+												}
+											}
+										}
+										
+										Iterator<File> it = candidates.iterator();
+										
+										while( it.hasNext()){
+											
+											File f = it.next();
+											
+											if ( all_dm_incomplete_files.contains( f.getAbsolutePath())){
+												
+												it.remove();
+											}
+										}
+									}
+									
+									if ( candidates.size() > 0 ){
+																					
+										TOTorrentFile to_file = file.getTorrentFile();
+										
+										long	offset = 0;
+										
+										for ( TOTorrentFile tf: to_files ){
+											
+											if ( tf == to_file ){
+												
+												break;
+											}
+											
+											offset += tf.getLength();
+										}
+										
+										int	to_piece_number = to_file.getFirstPieceNumber();
+										
+										long to_file_offset = offset%piece_size;
+																				
+										if ( to_file_offset != 0 ){
+											
+											to_file_offset = piece_size - to_file_offset;
+											
+											to_piece_number++;
+										}
+										
+										long	to_stop_at = file_length - piece_size;
+										
+										if ( to_file_offset < to_stop_at ){
+											
+											found_candidate = true;
+
+											logLine( viewer, "    " + candidates.size() + " candidate(s) for " + to_file.getRelativePath() + " (size=" + DisplayFormatters.formatByteCountToKiBEtc(to_file.getLength()) + ")");
+
+											byte[]	buffer = new byte[(int)piece_size];
+											
+											for ( File candidate: candidates ){
+												
+												log( viewer, "        Testing " + candidate );
+											
+												RandomAccessFile raf = null;
+												
+												boolean	failed = false;
+												
+												long	last_ok_log = SystemTime.getMonotonousTime();
+												
+												try{	
+													raf = new RandomAccessFile( candidate, "r" );
+												
+													long 	file_offset 	= to_file_offset;
+													int		piece_number 	= to_piece_number;
+													
+													while( file_offset < to_stop_at ){
+																												
+														raf.seek( file_offset );
+														
+														raf.read( buffer );
+														
+														ConcurrentHasherRequest req = hasher.addRequest( ByteBuffer.wrap( buffer ));
+														
+														byte[] hash = req.getResult();
+														
+														boolean	match = Arrays.equals( pieces[piece_number], hash );
+														
+														if ( match ){
+															
+															long now = SystemTime.getMonotonousTime();
+															
+															if ( now - last_ok_log >= 250 ){
+																
+																last_ok_log = now;
+																
+																log( viewer, "." );
+															}
+															
+															file_offset += piece_size;
+															piece_number++;
+															
+														}else{
+															
+															logLine( viewer, "X" );
+															
+															break;
+														}
+													
+													}
+												}catch( Throwable e ){
+													
+													logLine( viewer, "X" );
+													
+													failed = true;
+													
+												}finally{
+													
+													if ( raf != null ){
+														
+														try{
+															raf.close();
+															
+														}catch( Throwable e ){
+															
+														}
+													}
+												}
+												
+												if ( !failed ){
+													
+													log( viewer, "Matched" );
+													
+													file.setLink( candidate );
+													
+													break;
+												}
+											}
+
+										}
 									}
 								}
+							}
+							
+							if ( !found_candidate ){
+								
+								logLine( viewer, "    No candidates" );
 							}
 						}
 					}catch( Throwable e ){
