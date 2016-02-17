@@ -221,80 +221,83 @@ DiskManagerUtil
 	    DiskManagerFileInfo     file_info,
 	    File                    from_file,
 	    File                    to_link )
-	{
-	    File    existing_file = file_info.getFile( true );
-	
-	    if ( to_link.equals( existing_file )){
-	
-	            // already pointing to the right place
-	
-	        return( true );
-	    }
-	
-	    for (int i=0;i<info.length;i++){
-	
-	        if ( to_link.equals( info[i].getFile( true ))){
-	
-	            Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-	                            "Attempt to link to existing file '" + info[i].getFile(true)
-	                                    + "'"));
-	
-	            return( false );
-	        }
-	    }
-	
-	    if ( to_link.exists()){
-	
-	        if ( !existing_file.exists()){
-	
-	                // using a new file, make sure we recheck
-	
-	            download_manager.recheckFile( file_info );
-	
-	        }else{
-	
-	        	Object	skip_delete = download_manager.getUserData( "set_link_dont_delete_existing" );
-	        	
-	        		// user is manually re-targetting a file - this hack is to stop us from deleting the old file which 
-	        		// we really have no right to go and delete
-	        	
-	        	if ( ( skip_delete instanceof Boolean ) && (Boolean)skip_delete ){
-	        		
-	        		 download_manager.recheckFile( file_info );
-	        		 
-	        	}else{
-	        		
-	                if ( FileUtil.deleteWithRecycle( 
-	            		existing_file,
-	            		download_manager.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE ))){
+	{	
+	    if ( to_link != null ){
+	    	
+		    File    existing_file = file_info.getFile( true );
+
+		    if ( to_link.equals( existing_file )){
 		
-		                    // new file, recheck
+		            // already pointing to the right place
 		
-		                download_manager.recheckFile( file_info );
+		        return( true );
+		    }
 		
-		            }else{
+		    for (int i=0;i<info.length;i++){
+		
+		        if ( to_link.equals( info[i].getFile( true ))){
+		
+		            Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+		                            "Attempt to link to existing file '" + info[i].getFile(true)
+		                                    + "'"));
+		
+		            return( false );
+		        }
+		    }
+		
+		    if ( to_link.exists()){
+		
+		        if ( !existing_file.exists()){
+		
+		                // using a new file, make sure we recheck
+		
+		            download_manager.recheckFile( file_info );
+		
+		        }else{
+		
+		        	Object	skip_delete = download_manager.getUserData( "set_link_dont_delete_existing" );
+		        	
+		        		// user is manually re-targetting a file - this hack is to stop us from deleting the old file which 
+		        		// we really have no right to go and delete
+		        	
+		        	if ( ( skip_delete instanceof Boolean ) && (Boolean)skip_delete ){
+		        		
+		        		 download_manager.recheckFile( file_info );
+		        		 
+		        	}else{
+		        		
+		                if ( FileUtil.deleteWithRecycle( 
+		            		existing_file,
+		            		download_manager.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE ))){
+			
+			                    // new file, recheck
+			
+			                download_manager.recheckFile( file_info );
+			
+			            }else{
+			
+			                Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+			                        "Failed to delete '" + existing_file.toString() + "'"));
+			
+			                return( false );
+			            }
+		        	}
+		        }
+		    }else{
+		
+		        if ( existing_file.exists()){
+		
+		            if ( !FileUtil.renameFile( existing_file, to_link )){
 		
 		                Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-		                        "Failed to delete '" + existing_file.toString() + "'"));
+		                    "Failed to rename '" + existing_file.toString() + "'" ));
 		
 		                return( false );
 		            }
-	        	}
-	        }
-	    }else{
-	
-	        if ( existing_file.exists()){
-	
-	            if ( !FileUtil.renameFile( existing_file, to_link )){
-	
-	                Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-	                    "Failed to rename '" + existing_file.toString() + "'" ));
-	
-	                return( false );
-	            }
-	        }
+		        }
+		    }
 	    }
-	
+	    
 	    DownloadManagerState    state = download_manager.getDownloadState();
 	
 	    state.setFileLink( file_info.getIndex(), from_file, to_link );

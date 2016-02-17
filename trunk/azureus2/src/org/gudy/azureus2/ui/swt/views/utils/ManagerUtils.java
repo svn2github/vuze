@@ -2428,6 +2428,8 @@ public class ManagerUtils {
 									
 							boolean	 found_candidate = false;
 							
+							Set<String>	dm_files = null;
+							
 							for ( DiskManagerFileInfo file: files ){
 								
 								long	file_length = file.getLength();
@@ -2444,6 +2446,8 @@ public class ManagerUtils {
 								if ( candidates != null ){
 									
 									if ( candidates.size() > 0 ){
+										
+											// remove any incomplete files from existing downloads
 										
 										if ( all_dm_incomplete_files == null ){
 											
@@ -2476,6 +2480,33 @@ public class ManagerUtils {
 											File f = it.next();
 											
 											if ( all_dm_incomplete_files.contains( f.getAbsolutePath())){
+												
+												it.remove();
+											}
+										}
+									}
+									
+									if ( candidates.size() > 0 ){
+										
+											// remove all files from this download
+										
+										if ( dm_files == null ){
+											
+											dm_files = new HashSet<String>();
+											
+											for ( DiskManagerFileInfo f: files ){
+												
+												dm_files.add( f.getFile( true ).getAbsolutePath());
+											}
+										}
+										
+										Iterator<File> it = candidates.iterator();
+										
+										while( it.hasNext()){
+											
+											File f = it.next();
+											
+											if ( dm_files.contains( f.getAbsolutePath())){
 												
 												it.remove();
 											}

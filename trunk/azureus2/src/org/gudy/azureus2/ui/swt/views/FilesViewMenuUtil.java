@@ -190,6 +190,17 @@ public class FilesViewMenuUtil
 		itemRetarget.setData("rename", Boolean.valueOf(false));
 		itemRetarget.setData("retarget", Boolean.valueOf(true));
 
+		// clear links
+		MenuItem itemClearLinks = null;
+		
+		final int userMode = COConfigurationManager.getIntParameter("User Mode");
+
+		if ( userMode > 1 ){
+			
+			itemClearLinks = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(itemClearLinks, "FilesView.menu.clear.links");
+
+		}
 			// quick view
 		
 		final MenuItem itemQuickView = new MenuItem(menu, SWT.CHECK);
@@ -266,6 +277,9 @@ public class FilesViewMenuUtil
 			itemRenameOrRetarget.setEnabled(false);
 			itemRename.setEnabled(false);
 			itemRetarget.setEnabled(false);
+			if ( itemClearLinks != null ){
+				itemClearLinks.setEnabled(false);
+			}
 			itemPersonalShare.setEnabled(false);
 			
 			return;
@@ -281,9 +295,13 @@ public class FilesViewMenuUtil
 		boolean all_low_pri 			= true;
 		boolean	all_complete			= true;
 		
+		final List<DiskManagerFileInfo>		files_with_links = new ArrayList<DiskManagerFileInfo>();
+		
 		for ( int j=0;j<manager_list.length;j++){
 			
 			DownloadManager	manager = manager_list[j];
+			
+			int dm_file_count = manager.getNumFileInfos();
 			
 			if ( !manager.isPersistent()){
 				all_persistent = false;
@@ -331,10 +349,24 @@ public class FilesViewMenuUtil
 					}
 				}
 				
+				File file_link 		= file_info.getFile( true );
+				
 				if ( 	file_info.getDownloaded() != file_info.getLength() ||
-						file_info.getFile( true ).length() != file_info.getLength()){
+						file_link.length() != file_info.getLength()){
 					
 					all_complete = false;
+				}
+					
+					// only support clearing links for multi-file torrents
+				
+				if ( dm_file_count > 1 ){
+					
+					File file_nolink 	= file_info.getFile( false );
+	
+					if ( !file_nolink.getAbsolutePath().equals( file_link.getAbsolutePath())){
+							
+						files_with_links.add( file_info );
+					}
 				}
 			}
 		}
@@ -349,7 +381,7 @@ public class FilesViewMenuUtil
 		itemRenameOrRetarget.setEnabled(all_persistent);
 		itemRename.setEnabled(all_persistent);
 		itemRetarget.setEnabled(all_persistent);
-		
+				
 			// only enable for single files - people prolly don't expect a multi-selection to result
 			// in multiple shares, rather they would expect one share with the files they selected
 			// which we don't support
@@ -389,6 +421,23 @@ public class FilesViewMenuUtil
 		itemRename.addListener(SWT.Selection, rename_listener);
 		itemRetarget.addListener(SWT.Selection, rename_listener);
 
+		if ( itemClearLinks != null ){
+			
+			itemClearLinks.setEnabled( files_with_links.size() > 0 );
+
+			itemClearLinks.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					
+					for (DiskManagerFileInfo file: files_with_links ){
+	
+						file.setLink( null );
+					}
+					
+					invalidateRows( tv, files_with_links );
+				}
+			});
+		}
+		
 		itemPersonalShare.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				Map<String,String>	properties = new HashMap<String, String>();
@@ -585,6 +634,50 @@ public class FilesViewMenuUtil
 		} finally {
 			for (DownloadManager manager : pausedDownloads) {
 				manager.resume();
+			}
+		}
+	}
+	
+	private static void
+	invalidateRows(
+		TableView					tv,
+		List<DiskManagerFileInfo>	files )
+	{
+		if ( tv == null ){
+			
+			return;
+		}
+			
+		for ( DiskManagerFileInfo file: files ){
+			
+			TableRowCore row =  tv.getRow(file);
+		
+			if ( row == null ){
+							
+				row = tv.getRow( file.getDownloadManager());
+					
+				if ( row != null ){
+						
+					TableRowCore[] subrows = row.getSubRowsWithNull();
+								
+					if ( subrows != null ){
+							
+						for ( TableRowCore sr: subrows ){
+								
+							if ( sr.getDataSource(true) == file ){
+									
+								row = sr;
+									
+								break;
+							}
+						}
+					}
+				}
+			}
+			
+			if ( row != null ){
+				
+				row.invalidate( true );
 			}
 		}
 	}
