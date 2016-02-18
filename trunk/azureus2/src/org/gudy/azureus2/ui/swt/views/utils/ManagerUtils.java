@@ -2379,7 +2379,9 @@ public class ManagerUtils {
 							new TextViewerWindow.TextViewerWindowListener() {
 								
 								public void closed() {
-									quit[0] = true;
+									synchronized( quit ){
+										quit[0] = true;
+									}
 								}
 							});
 							
@@ -2394,6 +2396,12 @@ public class ManagerUtils {
 						ConcurrentHasher hasher = ConcurrentHasher.getSingleton();
 						
 						for ( DownloadManager dm: dms ){
+							
+							synchronized( quit ){
+								if ( quit[0] ){
+									break;
+								}
+							}
 							
 							if ( !dm.isPersistent()){
 								
@@ -2430,7 +2438,15 @@ public class ManagerUtils {
 							
 							Set<String>	dm_files = null;
 							
+							Map<DiskManagerFileInfo,File>	links_established = new HashMap<DiskManagerFileInfo, File>();
+							
 							for ( DiskManagerFileInfo file: files ){
+								
+								synchronized( quit ){
+									if ( quit[0] ){
+										break;
+									}
+								}
 								
 								long	file_length = file.getLength();
 								
@@ -2552,6 +2568,12 @@ public class ManagerUtils {
 											
 											for ( File candidate: candidates ){
 												
+												synchronized( quit ){
+													if ( quit[0] ){
+														break;
+													}
+												}
+												
 												log( viewer, "        Testing " + candidate );
 											
 												RandomAccessFile raf = null;
@@ -2567,7 +2589,13 @@ public class ManagerUtils {
 													int		piece_number 	= to_piece_number;
 													
 													while( file_offset < to_stop_at ){
-																												
+															
+														synchronized( quit ){
+															if ( quit[0] ){
+																break;
+															}
+														}
+														
 														raf.seek( file_offset );
 														
 														raf.read( buffer );
@@ -2621,9 +2649,18 @@ public class ManagerUtils {
 												
 												if ( !failed ){
 													
-													log( viewer, "Matched" );
+													logLine( viewer, "Matched" );
 													
-													file.setLink( candidate );
+													if ( file.setLink( candidate )){
+														
+														logLine( viewer, "        Link successful" );
+														
+														links_established.put( file, candidate );
+														
+													}else{
+														
+														logLine( viewer, "        Link failed" );
+													}
 													
 													break;
 												}
@@ -2637,6 +2674,67 @@ public class ManagerUtils {
 							if ( !found_candidate ){
 								
 								logLine( viewer, "    No candidates" );
+								
+							}else{
+								
+								if ( links_established.size() > 0 ){
+									
+									logLine( viewer, "    Looking for other name-based matches" );
+									
+									File overall_root = null;
+									
+									for ( Map.Entry<DiskManagerFileInfo,File> entry: links_established.entrySet()){
+										
+										DiskManagerFileInfo dm_file = entry.getKey();
+										File				root	= entry.getValue();
+										
+										String rel = dm_file.getTorrentFile().getRelativePath();
+																				
+										int pos = 0;
+										
+										while( root != null ){
+											
+											root = root.getParentFile();
+											
+											pos = rel.indexOf( File.separatorChar, pos );
+											
+											if ( pos >= 0 ){
+																								
+												pos = pos+1;
+												
+											}else{
+												
+												break;
+											}
+										}
+										
+										if ( root == null ){
+											
+											logLine( viewer, "        No usable root folder found" );
+											
+											break;
+										}
+										
+										if ( overall_root == null ){
+											
+											overall_root = root;
+											
+										}else{
+											
+											if ( !overall_root.equals( root )){
+												
+												overall_root = null;
+												
+												break;
+											}
+										}
+									}
+									
+									if ( overall_root != null ){
+										
+										logLine( viewer, "        Root folder is " + overall_root.getAbsolutePath());
+									}
+								}
 							}
 						}
 					}catch( Throwable e ){
