@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.config.impl.StringListImpl;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
@@ -724,7 +725,18 @@ public class ConfigSectionFile
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			new StringParameter(gFile, "File.Torrent.IgnoreFiles",
 					TOTorrent.DEFAULT_IGNORE_FILES).setLayoutData(gridData);
+			
+				// file name character mappings
 
+			if (userMode > 1){
+				Label lFileCharConv = new Label(gFile, SWT.NULL);
+				Messages.setLanguageText(lFileCharConv,
+						"ConfigView.section.file.char.conversions");
+	
+				gridData = new GridData(GridData.FILL_HORIZONTAL);
+				new StringParameter(gFile, "File.Character.Conversions",
+						ConfigurationDefaults.DEFAULT_FILE_CONVERSION_CHARS).setLayoutData(gridData);
+			}
 		}
 
 			// File Deletetion Group

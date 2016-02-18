@@ -79,6 +79,9 @@ public class ConfigurationDefaults {
   public static final String def_String = "";
   public static final byte[] def_bytes = null;
   
+  public static final String DEFAULT_FILE_CONVERSION_CHARS = "\"='";
+
+  
   private Hashtable parameter_verifiers	= new Hashtable();
 	public static final String CFG_TORRENTADD_OPENOPTIONS_MANY = "many";
 	public static final String CFG_TORRENTADD_OPENOPTIONS_ALWAYS = "always";
@@ -398,7 +401,8 @@ public class ConfigurationDefaults {
     def.put( "File.Torrent.AutoSkipExtensions", "" );
     def.put( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
     def.put( "File.save.peers.max", new Long( TRTrackerAnnouncer.DEFAULT_PEERS_TO_CACHE ) );
-    
+    def.put( "File.Character.Conversions", DEFAULT_FILE_CONVERSION_CHARS );
+
     	// tracker 
     
     def.put( "Tracker Compact Enable", TRUE );

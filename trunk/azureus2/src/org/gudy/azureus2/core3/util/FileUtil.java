@@ -29,7 +29,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -47,8 +49,9 @@ import com.aelitis.azureus.core.AzureusCoreOperationTask;
  * File utility class.
  */
 public class FileUtil {
-	private static final LogIDs LOGID = LogIDs.CORE;
+  private static final LogIDs LOGID = LogIDs.CORE;
   public static final String DIR_SEP = System.getProperty("file.separator");
+  
   
   private static final int	RESERVED_FILE_HANDLE_COUNT	= 4;
   private static boolean    first_reservation		= true;
@@ -57,6 +60,9 @@ public class FileUtil {
   private static AEMonitor	class_mon				= new AEMonitor( "FileUtil:class" );
   
   private static Method reflectOnUsableSpace;
+  
+  private static char[]	char_conversion_mapping = null;
+
   
   static {
 
@@ -329,18 +335,86 @@ public class FileUtil {
   	String		file_name_in,
   	boolean		is_folder )
   {
+	  char[] mapping;
+	  
+	  synchronized( FileUtil.class ){
+		  
+		  if ( char_conversion_mapping == null ){
+			  
+			  COConfigurationManager.addAndFireListener(
+					 new COConfigurationListener() {
+								
+						 public void configurationSaved() 
+						 {
+							 synchronized( FileUtil.class ){
+								 
+								 String map = COConfigurationManager.getStringParameter( "File.Character.Conversions" );
+
+								 String[] bits = map.split( "," );
+
+								 List<Character> chars = new ArrayList<Character>();
+
+								 for ( String bit: bits ){
+									 bit = bit.trim();
+									 if ( bit.length()==3){
+										 char from	= bit.charAt(0);
+										 char to	= bit.charAt(2);
+
+										 chars.add( from );
+										 chars.add( to );
+									 }
+								 }
+
+								 char[] new_map = new char[chars.size()];
+
+								 for ( int i=0;i<new_map.length;i++){
+
+									 new_map[i] = chars.get(i);
+								 }
+
+								 char_conversion_mapping = new_map;
+							 }
+						 }
+					});
+		  }
+		  
+		  mapping = char_conversion_mapping;
+	  }
+	  
   		// this rule originally from DiskManager
  
   	char[]	chars = file_name_in.toCharArray();
-  	
-  	for (int i=0;i<chars.length;i++){
-  		
-  		if ( chars[i] == '"' ){
+	  	
+	if ( mapping.length == 2 ){
   			
-  			chars[i] = '\'';
-  		}
+			// default case
+		
+  		char from 	= mapping[0];
+  		char to		= mapping[1];
+	  			  		
+  		for (int i=0;i<chars.length;i++){
+	  		
+  			if ( chars[i] == from ){
+		  			
+		  		chars[i] = to;
+		  	}
+	  	}
+  	}else if ( mapping.length > 0 ){
+  		
+	  	for (int i=0;i<chars.length;i++){
+	  		
+	  		char c = chars[i];
+	  		
+	 		for (int j=0;j<mapping.length;j+=2){
+		  		
+	  			if ( c == mapping[j] ){
+			  			
+			  		chars[i] = mapping[j+1];
+			  	}
+		  	}
+	  	}
   	}
-  	
+	
   	if ( !Constants.isOSX ){
   		
   		if ( Constants.isWindows ){
