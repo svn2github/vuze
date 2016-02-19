@@ -2275,7 +2275,7 @@ public class MenuFactory
 		});
 	}
 
-	public static MenuItem addBetaMenuItem(Menu menuParent) {
+	public static void addBetaMenuItem(Menu menuParent) {
 		final MenuItem menuItem = addMenuItem(menuParent, MENU_ID_BETA_PROG,
 				new Listener() {
 					public void handleEvent(Event e) {
@@ -2300,8 +2300,17 @@ public class MenuFactory
 						});
 					}
 				});
+		
+		boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
 
-		return menuItem;
+		if ( enabled ){
+			
+			addMenuItem(menuParent, MENU_ID_BETA_PROG_BUG, new Listener() {
+				public void handleEvent(Event e) {
+					Utils.launch( MessageText.getString( "beta.bug.url" ));
+				}
+			});
+		}
 	}
 	
 	public static MenuItem addPluginInstallMenuItem(Menu menuParent) {
