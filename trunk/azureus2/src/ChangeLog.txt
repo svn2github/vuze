@@ -57,6 +57,8 @@ BUGFIX: Core  | Decouple SWT dependencies to allow console UI to run without SWT
 BUGFIX: Core  | IPv6 addresses not being matched correctly [Parg]
 BUGFIX: Core  | Don't treat parse errors as fatal when encountered in long-term-stats files [Parg]
 
+
+
 2015.11.13 | Vuze 5.7.0.0
 
 FEATURE: UI   | Added peer menus to peers in the swarm view [Parg]
