@@ -1,8 +1,61 @@
 VUZE CHANGELOG
 -----------------
 
-2016.xx.yy | Vuze 5.7.0.1
+2016.02.22 | Vuze 5.7.1.0
 
+FEATURE: UI   | Added option to suppress file download popups [Parg]
+FEATURE: UI   | Added 'tor:' prefix support for simple URLs entered in the search bar [Parg]
+FEATURE: UI   | Added option to disable auto-shutdown prompt [Parg]
+FEATURE: UI   | Swarm view now supports multiple-downloads [Parg]
+FEATURE: UI   | More views can now be 'popped out' as independent windows [Parg]
+FEATURE: UI   | Added aggregate share ratio column for Tags [Parg]
+FEATURE: UI   | Added alert options for download error events [Parg]
+FEATURE: UI   | UPnP prefix string visible in router mappings can now be changed [Parg]
+FEATURE: UI   | Direct help-menu option to report Beta Program issues [Parg]
+FEATURE: Core | Option to control timeout for magnet lookups [Parg]
+FEATURE: Core | Javascript Tag constraint support [Parg]
+FEATURE: Core | Javascript access to closedown actions and torrent options [Parg]
+FEATURE: Core | Added option to disable auto-VPN detection [Parg]
+FEATURE: Core | Added 'swarm_merge_bytes' to constraints [Parg]
+FEATURE: Core | New tag-assignment option to execute script [Parg]
+FEATURE: Core | Tracker server option to mark clients as not supported [parg]
+FEATURE: Core | Separate peer connection limits by network [Parg]
+FEATURE: Core | Added Tag aggregate share ratio limit controls [Parg]
+FEATURE: Core | Shared files/directories can now be optionally persistent and archiveable [Parg]
+FEATURE: Core | Added feature to search a folder hierarchy for existing data files for one or more downloads [Parg]
+FEATURE: Core | Added option to control filename character conversions [Parg]
+FEATURE: Plug | WebTorrent client and tracker support [Parg]
+FEATURE: Plug | Javascript support for scripting Vuze actions [Parg]
+FEATURE: Plug | Exposed some more Tag features to plugins [Parg]
+
+CHANGE: UI    | Only flash Downloading sidebar entry when adding incomplete torrents [Parg]
+CHANGE: UI    | Escape key now cancels library filter operations [Parg] 
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Greek translation update [iliasm]
+CHANGE: UI    | Chinese translation update [Christopher Meng]
+CHANGE: UI    | Basque translation update [Azpidatziak]
+CHANGE: UI    | Optimize redrawing of multiple rows somewhat [Parg]
+CHANGE: UI    | Handle incorrect torrent creation dates [Parg]
+CHANGE: UI    | Added some missing sidebar icons [Parg]
+CHANGE: Core  | Use bind IP for HTTP based version checks [Parg]
+CHANGE: Core  | Allow priority peers to retain extra upload slots [Parg]
+CHANGE: Core  | Tag initial-save-location now only applies to downloads that haven't already been moved [Parg]
+
+BUGFIX: UI    | GTK3 fixes [TuxPaper]
+BUGFIX: UI    | Remove 'general view' flicker [Parg]
+BUGFIX: UI    | Periodically resynchronize library download counts [Parg]
+BUGFIX: UI    | Fix some UI elements not dynamically updating language [Parg]
+BUGFIX: UI    | Fix chat sidebar restoration when coming out of low-resource mode [Parg]
+BUGFIX: UI    | Files View wasn't being disabled correctly [Parg]
+BUGFIX: UI    | Cursor position was wrong when dragging torrents down [Parg]
+BUGFIX: UI    | Piece graph view column sorting was broken [Parg]
+BUGFIX: Core  | Fix metadata download peers soemtimes not being treated as interesting [Parg]
+BUGFIX: Core  | Fix auto-update failing when commas present in file names [Parg]
+BUGFIX: Core  | Fixed resource leak when steaming to browser [Parg]
+BUGFIX: Core  | RSS generator plugin now uses correct server IP [Parg]
+BUGFIX: Core  | Decouple SWT dependencies to allow console UI to run without SWT libraries [Parg]
+BUGFIX: Core  | IPv6 addresses not being matched correctly [Parg]
+BUGFIX: Core  | Don't treat parse errors as fatal when encountered in long-term-stats files [Parg]
 
 2015.11.13 | Vuze 5.7.0.0
 
