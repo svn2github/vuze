@@ -2369,13 +2369,16 @@ DHTTrackerPlugin
 									// the scrape values as this gets replaced when a normal
 									// scrape fails :(
 									
-								int[]	prev = (int[])scrape_injection_map.get( download );
+								synchronized( scrape_injection_map ){
 									
-								if ( 	prev != null && 
-										prev[0] == result.getSeedCount() &&
-										prev[1] == result.getNonSeedCount()){
-																						
-									inject_scrape	= true;
+									int[]	prev = (int[])scrape_injection_map.get( download );
+										
+									if ( 	prev != null && 
+											prev[0] == result.getSeedCount() &&
+											prev[1] == result.getNonSeedCount()){
+																							
+										inject_scrape	= true;
+									}
 								}
 							}
 							
@@ -2411,8 +2414,11 @@ DHTTrackerPlugin
 								final int f_adj_seeds 		= Math.max( seed_count, local_seeds );
 								final int f_adj_leechers	= Math.max( leecher_count, local_leechers );
 								
-								scrape_injection_map.put( download, new int[]{ f_adj_seeds, f_adj_leechers });
-	
+								synchronized( scrape_injection_map ){
+								
+									scrape_injection_map.put( download, new int[]{ f_adj_seeds, f_adj_leechers });
+								}
+								
 								try{
 									this_mon.enter();
 								
