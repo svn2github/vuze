@@ -27,6 +27,7 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -2387,7 +2388,7 @@ public class ManagerUtils {
 								}
 							});
 							
-						logLine( viewer, "Enumerating files in " + dir );
+						logLine( viewer, new SimpleDateFormat().format( new Date()) +  ": Enumerating files in " + dir );
 						
 						long bfm_start = SystemTime.getMonotonousTime();
 						
@@ -2400,6 +2401,8 @@ public class ManagerUtils {
 						Set<String>	all_dm_incomplete_files = null;
 						
 						ConcurrentHasher hasher = ConcurrentHasher.getSingleton();
+						
+						int	downloads_modified = 0;
 						
 						for ( DownloadManager dm: dms ){
 							
@@ -2444,7 +2447,26 @@ public class ManagerUtils {
 							
 							Map<DiskManagerFileInfo,File>		links_established = new HashMap<DiskManagerFileInfo, File>();
 							
-							List<DiskManagerFileInfo> unmatched_files = new ArrayList<DiskManagerFileInfo>( files.length );
+							Map<DiskManagerFileInfo,Set<String>> unmatched_files = 
+								new TreeMap<DiskManagerFileInfo,Set<String>>( 
+									new Comparator<DiskManagerFileInfo>(){
+										
+										public int 
+										compare(
+											DiskManagerFileInfo o1,
+											DiskManagerFileInfo o2 )
+										{
+											long	diff = o2.getLength() - o1.getLength();
+											
+											if ( diff < 0 ){
+												return( -1 );
+											}else if ( diff > 0 ){
+												return( 1 );
+											}else{
+												return( 0 );
+											}
+										}
+									});
 							
 							int	no_candidates 		= 0;
 							int	already_complete	= 0;
@@ -2453,7 +2475,7 @@ public class ManagerUtils {
 							
 							try{
 							
-	download_loop:
+download_loop:
 								for ( DiskManagerFileInfo file: files ){
 									
 									synchronized( quit ){
@@ -2551,6 +2573,8 @@ public class ManagerUtils {
 												
 											boolean	matched = false;
 											
+											Set<String>	failed_candidates = new HashSet<String>();
+											
 											TOTorrentFile to_file = file.getTorrentFile();
 											
 											long	offset = 0;
@@ -2596,7 +2620,8 @@ public class ManagerUtils {
 												
 													RandomAccessFile raf = null;
 													
-													boolean	failed = false;
+													boolean	error 			= false;
+													boolean	hash_failed		= false;
 													
 													long	last_ok_log = SystemTime.getMonotonousTime();
 													
@@ -2640,6 +2665,10 @@ public class ManagerUtils {
 																
 															}else{
 																
+																hash_failed = true;
+																
+																failed_candidates.add( candidate.getAbsolutePath());
+																
 																logLine( viewer, "X" );
 																
 																break;
@@ -2650,7 +2679,7 @@ public class ManagerUtils {
 														
 														logLine( viewer, "X" );
 														
-														failed = true;
+														error = true;
 														
 													}finally{
 														
@@ -2665,31 +2694,38 @@ public class ManagerUtils {
 														}
 													}
 													
-													if ( !failed ){
+													if ( !( error || hash_failed )){
 														
 														logLine( viewer, " Matched" );
 														
-														if ( file.setLink( candidate )){
-															
-															logLine( viewer, "        Link successful" );
-															
-															links_established.put( file, candidate );
-															
-															link_count++;
-															
-															matched = true;
-															
-															if ( link_count > MAX_LINKS ){
-	
-																logLine( viewer, "    Link limit exceeded" );
+														try{
+															dm.setUserData( "set_link_dont_delete_existing", true );
+
+															if ( file.setLink( candidate )){
 																
-																break download_loop;
+																logLine( viewer, "        Link successful" );
+																
+																links_established.put( file, candidate );
+																
+																link_count++;
+																
+																matched = true;
+																
+																if ( link_count > MAX_LINKS ){
+		
+																	logLine( viewer, "    Link limit exceeded" );
+																	
+																	break download_loop;
+																}
+															}else{
+																
+																logLine( viewer, "        Link failed" );
 															}
-														}else{
+														}finally{
 															
-															logLine( viewer, "        Link failed" );
+															dm.setUserData( "set_link_dont_delete_existing", null );
+
 														}
-														
 														break;
 													}
 												}
@@ -2698,7 +2734,7 @@ public class ManagerUtils {
 											
 											if ( !matched ){
 												
-												unmatched_files.add( file );
+												unmatched_files.put( file, failed_candidates );
 											}
 										}else{
 											
@@ -2771,30 +2807,9 @@ public class ManagerUtils {
 										
 										logLine( viewer, "        Root folder is " + overall_root.getAbsolutePath());
 										
-										Collections.sort(
-											unmatched_files,
-											new Comparator<DiskManagerFileInfo>(){
-												
-												public int 
-												compare(
-													DiskManagerFileInfo o1,
-													DiskManagerFileInfo o2 )
-												{
-													long	diff = o2.getLength() - o1.getLength();
-													
-													if ( diff < 0 ){
-														return( -1 );
-													}else if ( diff > 0 ){
-														return( 1 );
-													}else{
-														return( 0 );
-													}
-												}
-											});
-										
 										int links_ok = 0;
 										
-										for ( DiskManagerFileInfo file: unmatched_files ){
+										for ( Map.Entry<DiskManagerFileInfo,Set<String>> entry: unmatched_files.entrySet()){
 												
 											synchronized( quit ){
 												if ( quit[0] ){
@@ -2802,21 +2817,33 @@ public class ManagerUtils {
 												}
 											}
 											
+											DiskManagerFileInfo file = entry.getKey();
+											
 											File expected_file = new File( overall_root, file.getTorrentFile().getRelativePath());
 											
 											if ( expected_file.exists() && expected_file.length() == file.getLength()){
+											
+												if ( !entry.getValue().contains( expected_file.getAbsolutePath())){		
 												
-												if ( file.setLink( expected_file )){
+													try{
+														dm.setUserData( "set_link_dont_delete_existing", true );
 													
-													links_ok++;
-													
-													link_count++;
-													
-													if ( link_count > MAX_LINKS ){
-	
-														logLine( viewer, "        Link limit exceeded" );
+														if ( file.setLink( expected_file )){
+															
+															links_ok++;
+															
+															link_count++;
+															
+															if ( link_count > MAX_LINKS ){
+			
+																logLine( viewer, "        Link limit exceeded" );
+																
+																break;
+															}
+														}
+													}finally{
 														
-														break;
+														dm.setUserData( "set_link_dont_delete_existing", null );
 													}
 												}
 											}
@@ -2830,12 +2857,17 @@ public class ManagerUtils {
 								if ( link_count > 0 ){
 									
 									dm.forceRecheck();
+									
+									downloads_modified++;
 								}
 							}
 						}
+						
+						logLine( viewer, new SimpleDateFormat().format( new Date()) +  ": Complete, downloads updated=" + downloads_modified );
+
 					}catch( Throwable e ){
 						
-						log( viewer, "\r\nFailed: " + Debug.getNestedExceptionMessage( e ) + "\r\n" );
+						log( viewer, "\r\n" + new SimpleDateFormat().format( new Date()) + ": Failed: " + Debug.getNestedExceptionMessage( e ) + "\r\n" );
 					}
 				}
 			}.start();
