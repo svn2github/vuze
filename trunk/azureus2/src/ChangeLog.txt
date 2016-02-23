@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2016.xx.yy | Vuze 5.7.1.1
+
+
 2016.02.22 | Vuze 5.7.1.0
 
 FEATURE: UI   | Added option to suppress file download popups [Parg]
