@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.tag.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1063,11 +1064,25 @@ TagDownloadWithState
 			
 			if ( aggregate_sr >= max_aggregate_share_ratio ){
 				
-				performOperation( TagFeatureRunState.RSC_STOP );
+				Set<DownloadManager> dms = new HashSet<DownloadManager>( getTaggedDownloads());
+
+				Iterator<DownloadManager> it = dms.iterator();
+				
+					// don't pause incomplete downloads!
+				
+				while( it.hasNext()){
+				
+					if ( !it.next().isDownloadComplete( false )){
+						
+						it.remove();
+					}
+				}
+				
+				performOperation( TagFeatureRunState.RSC_PAUSE, dms );
 				
 			}else{
 				
-				performOperation( TagFeatureRunState.RSC_START );
+				performOperation( TagFeatureRunState.RSC_RESUME );
 			}
 		}
 	}
@@ -1165,6 +1180,14 @@ TagDownloadWithState
 	{
 		Set<DownloadManager> dms = getTaggedDownloads();
 
+		performOperation( op, dms );
+	}
+	
+	private void
+	performOperation(
+		int					op,
+		Set<DownloadManager> dms )
+	{
 		for ( final DownloadManager dm: dms ){
 			
 			int	dm_state = dm.getState();
