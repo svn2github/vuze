@@ -55,6 +55,32 @@ ClientIDManagerImpl
 	protected static final char		FF			= '\012';
 	protected static final String	NL			= "\015\012";
 	
+	private static final int	connect_timeout;
+	private static final int	read_timeout;
+	
+	static{
+	  	String	connect_timeout_str = System.getProperty("sun.net.client.defaultConnectTimeout"); 
+	  	String	read_timeout_str 	= System.getProperty("sun.net.client.defaultReadTimeout"); 
+	  			
+	  	int	ct = 60*1000;
+	  	int rt = 60*1000;
+	  	
+	  	try{
+	  		ct = Integer.parseInt( connect_timeout_str );
+	  	}catch( Throwable e ){
+	  		
+	  	}
+	  	
+	  	try{
+	  		rt = Integer.parseInt( read_timeout_str );
+	  	}catch( Throwable e ){
+	  		
+	  	}
+	  	
+	  	connect_timeout	= ct;
+	  	read_timeout	= rt;
+	}
+  	
 	public static ClientIDManagerImpl
 	getSingleton()
 	{
@@ -180,11 +206,8 @@ ClientIDManagerImpl
 			
 			try{
 				thread_pool = new ThreadPool( "ClientIDManager", 32 );
-				
-			  	String	connect_timeout = System.getProperty("sun.net.client.defaultConnectTimeout"); 
-			  	String	read_timeout 	= System.getProperty("sun.net.client.defaultReadTimeout"); 
-			  			
-			  	int	timeout = Integer.parseInt( connect_timeout ) + Integer.parseInt( read_timeout );
+							  			
+			  	int	timeout = connect_timeout + read_timeout;
 				
 				thread_pool.setExecutionLimit( timeout );
 			
@@ -583,7 +606,9 @@ ClientIDManagerImpl
 							is_ssl, 
 							target_host, 
 							target_port, 
-							header_out.getBytes(Constants.BYTE_ENCODING ));
+							header_out.getBytes(Constants.BYTE_ENCODING ),
+							connect_timeout,
+							read_timeout );
 
 				try{
 					target.getOutputStream().flush();

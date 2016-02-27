@@ -1517,7 +1517,43 @@ public class UrlUtils
 		boolean		is_ssl,
 		String		target_host,
 		int			target_port,
-		byte[]		bytes )
+		byte[]		bytes,
+		int			connect_timeout,
+		int			read_timeout )
+		
+		throws Exception
+	{
+			// some versions of java 6 don't support the creation of unconnected sockets
+			// which is required to allow connect timeout to be set before connecting
+			// think it only actually affected SSL because the SSL Factory had a bug
+		
+		boolean is_java_17_plus = Constants.isJava7OrHigher;
+
+			// try without regard for broken versions
+		
+		try{
+			return( connectSocketAndWrite( is_ssl, target_host, target_port, bytes, connect_timeout, read_timeout, false ));
+			
+		}catch( Exception e ){
+			
+			if ( is_java_17_plus ){
+				
+				throw( e );
+			}
+			
+			return( connectSocketAndWrite( is_ssl, target_host, target_port, bytes, connect_timeout, read_timeout, true ));
+		}
+	}
+	
+	public static Socket
+	connectSocketAndWrite(
+		boolean		is_ssl,
+		String		target_host,
+		int			target_port,
+		byte[]		bytes,
+		int			connect_timeout,
+		int			read_timeout,
+		boolean		unconnected_socket_hack )
 		
 		throws Exception
 	{
@@ -1540,11 +1576,7 @@ public class UrlUtils
 	
 				InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName(target_host) , target_port  );
 				
-			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
-
-					// java 1.6 or lower doesn't support creation of unconnected sockets
-				
-				boolean is_java_17_plus = Constants.isJava7OrHigher;
+			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);				
 				
 				if ( is_ssl ){
 																				
@@ -1561,12 +1593,8 @@ public class UrlUtils
 						factory = DHHackIt( factory );
 					}
 					
-					if ( is_java_17_plus ){
+					if ( unconnected_socket_hack ){
 					
-						target = factory.createSocket();
-						
-					}else{
-						
 						if ( bindIP == null ){
 							
 							target = factory.createSocket(targetSockAddress.getAddress(), targetSockAddress.getPort());
@@ -1575,14 +1603,13 @@ public class UrlUtils
 							
 							target = factory.createSocket(targetSockAddress.getAddress(), targetSockAddress.getPort(), bindIP, 0 );
 						}
+					}else{
+						
+						target = factory.createSocket();
 					}
 				}else{
 					
-					if ( is_java_17_plus ){
-					
-						target = new Socket();
-						
-					}else{
+					if ( unconnected_socket_hack ){
 						
 						if ( bindIP == null ){
 							
@@ -1592,19 +1619,22 @@ public class UrlUtils
 							
 							target = new Socket(targetSockAddress.getAddress(), targetSockAddress.getPort(), bindIP, 0 );
 						}
+					}else{
+						
+						target = new Socket();
 					}
 				}
 			
-				if ( is_java_17_plus ){
+				target.setSoTimeout( read_timeout );
+
+				if ( !unconnected_socket_hack ){
 									    
 			        if ( bindIP != null ){
 			        	
 			        	target.bind( new InetSocketAddress( bindIP, 0 ) );
 			        }
-		
-			        // System.out.println( "filtering " + target_host + ":" + target_port );
-			        
-			        target.connect( targetSockAddress);
+					        
+			        target.connect( targetSockAddress, connect_timeout );
 				}
 				
 				target.getOutputStream().write( bytes );
