@@ -78,6 +78,33 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		final IntParameter maxDLs = new IntParameter(cSection, "max downloads");
 		maxDLs.setLayoutData(gridData);
 
+			// subrow - ignore checking downloads 
+		final Composite cMaxDownloads = new Composite(cSection, SWT.NULL);
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		layout.marginWidth = 0;
+		layout.marginHeight = 0;
+		cMaxDownloads.setLayout(layout);
+		gridData = new GridData();
+		gridData.horizontalIndent = 15;
+		gridData.horizontalSpan = 2;
+		Utils.setLayoutData(cMaxDownloads, gridData);
+		
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		label = new Label(cMaxDownloads, SWT.NULL);
+		imageLoader.setLabelImage(label, "subitem");
+		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+		Utils.setLayoutData(label, gridData);
+
+		label = new Label(cMaxDownloads, SWT.NULL);
+		Messages.setLanguageText(label, "ConfigView.label.ignoreChecking");
+
+		gridData = new GridData();
+		BooleanParameter ignoreChecking = new BooleanParameter(
+				cMaxDownloads, "StartStopManager_bMaxDownloadIgnoreChecking");
+		
+		ignoreChecking.setLayoutData(gridData);
+		
 		// row
 
 		label = new Label(cSection, SWT.NULL);
@@ -98,7 +125,6 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		gridData.horizontalSpan = 2;
 		Utils.setLayoutData(cMaxActiveOptionsArea, gridData);
 
-		ImageLoader imageLoader = ImageLoader.getInstance();
 		label = new Label(cMaxActiveOptionsArea, SWT.NULL);
 		imageLoader.setLabelImage(label, "subitem");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);

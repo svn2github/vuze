@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.average.AverageFactory;
@@ -182,6 +183,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private int globalUploadWhenSeedingLimit;
 
 	private int maxConfiguredDownloads;
+	private boolean bMaxDownloadIgnoreChecking;
 
 	private int minDownloads;
 
@@ -392,6 +394,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 		// queue section
 		// ---------
+		
+		configModel.addBooleanParameter2("StartStopManager_bMaxDownloadIgnoreChecking",
+				"ConfigView.label.ignoreChecking", false);
+
 		configModel.addIntParameter2("StartStopManager_iMinSpeedForActiveDL",
 				"ConfigView.label.minSpeedForActiveDL", 512);
 		configModel.addIntParameter2("StartStopManager_iMinSpeedForActiveSeeding",
@@ -861,6 +867,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 			minDownloads = plugin_config.getIntParameter("min downloads");
 			maxConfiguredDownloads = plugin_config.getIntParameter("max downloads");
+			bMaxDownloadIgnoreChecking	= plugin_config.getBooleanParameter("StartStopManager_bMaxDownloadIgnoreChecking" );
+
 			numPeersAsFullCopy = plugin_config.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
 			iFakeFullCopySeedStart = plugin_config.getIntParameter("StartStopManager_iFakeFullCopySeedStart");
 			bAutoReposition = plugin_config.getBooleanParameter("StartStopManager_bAutoReposition");
@@ -1759,6 +1767,21 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			return;
 		}
 
+		if ( bMaxDownloadIgnoreChecking ){
+				// unfortunately download.isChecking only returns true when rechecking and seeding :(
+			
+			org.gudy.azureus2.core3.download.DownloadManager core_dm = PluginCoreUtils.unwrap( download );
+			
+			if ( core_dm != null && core_dm.getState() == org.gudy.azureus2.core3.download.DownloadManager.STATE_CHECKING ){
+				
+				if (bDebugLog) {
+					String s = "isChecking.. rules skipped";
+					log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
+					dlData.sTrace += s + "\n";
+				}
+				return;
+			}
+		}
 		// Don't mess with preparing torrents.  they could be in the 
 		// middle of resume-data building, or file allocating.
 		if (state == Download.ST_PREPARING) {
