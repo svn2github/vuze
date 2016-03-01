@@ -24,6 +24,13 @@ public interface
 TagFeatureRateLimit 
 	extends TagFeature
 {
+	public static final int SR_ACTION_QUEUE	= 0;
+	public static final int SR_ACTION_PAUSE	= 1;
+	public static final int SR_ACTION_STOP	= 2;
+	
+	public static final int SR_INDIVIDUAL_ACTION_DEFAULT = SR_ACTION_QUEUE;
+	public static final int SR_AGGREGATE_ACTION_DEFAULT	 = SR_ACTION_PAUSE;
+	
 	public boolean
 	supportsTagRates();
 	
@@ -85,6 +92,8 @@ TagFeatureRateLimit
 	setTagUploadPriority(
 		int		priority );
 	
+		// min share ratio
+	
 	public int
 	getTagMinShareRatio();
 	
@@ -92,12 +101,23 @@ TagFeatureRateLimit
 	setTagMinShareRatio(
 		int		ratio_in_thousandths );
 	
+		// max share ratio
+	
 	public int
 	getTagMaxShareRatio();
 	
 	public void
 	setTagMaxShareRatio(
 		int		ratio_in_thousandths );
+	
+	public int
+	getTagMaxShareRatioAction();
+	
+	public void
+	setTagMaxShareRatioAction(
+		int		action );
+	
+		// aggregate share ratio
 	
 	public int
 	getTagAggregateShareRatio();
@@ -108,4 +128,11 @@ TagFeatureRateLimit
 	public void
 	setTagMaxAggregateShareRatio(
 		int		ratio_in_thousandths );
+	
+	public int
+	getTagMaxAggregateShareRatioAction();
+	
+	public void
+	setTagMaxAggregateShareRatioAction(
+		int		action );
 }

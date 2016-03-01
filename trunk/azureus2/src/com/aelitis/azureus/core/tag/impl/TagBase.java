@@ -71,7 +71,9 @@ TagBase
 	protected static final String	AT_FL_INIT_LOC					= "fl.init";
 	protected static final String	AT_RATELIMIT_MIN_SR				= "rl.minsr";
 	protected static final String	AT_RATELIMIT_MAX_SR				= "rl.maxsr";
+	protected static final String	AT_RATELIMIT_MAX_SR_ACTION		= "rl.maxsr.a";
 	protected static final String	AT_RATELIMIT_MAX_AGGREGATE_SR	= "rl.maxaggsr";
+	protected static final String	AT_RATELIMIT_MAX_AGGREGATE_SR_ACTION	= "rl.maxaggsr.a";
 	protected static final String	AT_PROPERTY_PREFIX				= "pp.";
 	protected static final String	AT_EOA_PREFIX					= "eoa.";
 	protected static final String	AT_BYTES_UP						= "b.up";
@@ -728,6 +730,19 @@ TagBase
 		Debug.out( "not supported" );
 	}
 
+	public int
+	getTagMaxShareRatioAction()
+	{
+		return( -1 );
+	}
+	
+	public void
+	setTagMaxShareRatioAction(
+		int		action )
+	{
+		Debug.out( "not supported" );
+	}
+	
 		// aggregate share ratio
 	
 	public int
@@ -745,6 +760,19 @@ TagBase
 	public void
 	setTagMaxAggregateShareRatio(
 		int		sr )
+	{
+		Debug.out( "not supported" );
+	}
+	
+	public int
+	getTagMaxAggregateShareRatioAction()
+	{
+		return( -1 );
+	}
+	
+	public void
+	setTagMaxAggregateShareRatioAction(
+		int		action )
 	{
 		Debug.out( "not supported" );
 	}

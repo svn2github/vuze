@@ -76,7 +76,9 @@ TagDownloadWithState
 	private int		upload_priority;
 	private int		min_share_ratio;
 	private int		max_share_ratio;
+	private int		max_share_ratio_action;
 	private int		max_aggregate_share_ratio;
+	private int		max_aggregate_share_ratio_action;
 	
 	private boolean	supports_xcode;
 	private boolean	supports_file_location;
@@ -243,10 +245,12 @@ TagDownloadWithState
 		
 		upload_priority		= readLongAttribute( AT_RATELIMIT_UP_PRI, 0L ).intValue();
 		
-		min_share_ratio		= readLongAttribute( AT_RATELIMIT_MIN_SR, 0L ).intValue();
-		max_share_ratio		= readLongAttribute( AT_RATELIMIT_MAX_SR, 0L ).intValue();
+		min_share_ratio				= readLongAttribute( AT_RATELIMIT_MIN_SR, 0L ).intValue();
+		max_share_ratio				= readLongAttribute( AT_RATELIMIT_MAX_SR, 0L ).intValue();
+		max_share_ratio_action		= readLongAttribute( AT_RATELIMIT_MAX_SR_ACTION, (long)TagFeatureRateLimit.SR_INDIVIDUAL_ACTION_DEFAULT ).intValue();
 		
-		max_aggregate_share_ratio		= readLongAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR, 0L ).intValue();
+		max_aggregate_share_ratio			= readLongAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR, 0L ).intValue();
+		max_aggregate_share_ratio_action	= readLongAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR_ACTION, (long)TagFeatureRateLimit.SR_AGGREGATE_ACTION_DEFAULT ).intValue();
 
 		addTagListener(
 			new TagListener()
@@ -957,6 +961,32 @@ TagDownloadWithState
 		}
 
 		getTagType().fireChanged( this );
+		
+		checkIndividualShareRatio();
+	}
+	
+	public int 
+	getTagMaxShareRatioAction() 
+	{
+		return( max_share_ratio_action );
+	}
+	
+	public void
+	setTagMaxShareRatioAction(
+		int		action )
+	{
+		if ( action == max_share_ratio_action ){
+			
+			return;
+		}
+				
+		max_share_ratio_action	= action;
+		
+		writeLongAttribute( AT_RATELIMIT_MAX_SR_ACTION, action );
+
+		getTagType().fireChanged( this );
+		
+		checkIndividualShareRatio();
 	}
 	
 	public int
@@ -991,6 +1021,30 @@ TagDownloadWithState
 		
 		writeLongAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR, sr );
 				
+		getTagType().fireChanged( this );
+		
+		checkAggregateShareRatio();
+	}
+	
+	public int 
+	getTagMaxAggregateShareRatioAction() 
+	{
+		return( max_aggregate_share_ratio_action );
+	}
+	
+	public void
+	setTagMaxAggregateShareRatioAction(
+		int		action )
+	{
+		if ( action == max_aggregate_share_ratio_action ){
+			
+			return;
+		}
+				
+		max_aggregate_share_ratio_action	= action;
+		
+		writeLongAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR_ACTION, action );
+
 		getTagType().fireChanged( this );
 		
 		checkAggregateShareRatio();
@@ -1056,6 +1110,54 @@ TagDownloadWithState
 	}
 	
 	private void
+	checkIndividualShareRatio()
+	{
+		if ( max_share_ratio <= 0 ){
+			
+				// not enabled
+			
+			return;
+		}
+		
+		if ( max_share_ratio_action == TagFeatureRateLimit.SR_ACTION_QUEUE ){
+			
+				// handled by start/stop rules
+			
+			return;
+		}
+		
+		Set<DownloadManager> dms = getTaggedDownloads();
+				
+		Set<DownloadManager>	to_action = new HashSet<DownloadManager>();
+		
+		for ( DownloadManager dm: dms ){
+					
+			if ( dm.isDownloadComplete( false )){
+								
+				int state = dm.getState();
+				
+				if ( state == DownloadManager.STATE_QUEUED || state == DownloadManager.STATE_SEEDING ){
+				
+					int sr = dm.getStats().getShareRatio();
+					
+					if ( sr >= max_share_ratio ){
+						
+						to_action.add( dm );
+					}
+				}
+			}
+		}
+		
+		if ( to_action.size() > 0 ){
+			
+			performOperation(
+					max_share_ratio_action == TagFeatureRateLimit.SR_ACTION_PAUSE?
+					TagFeatureRunState.RSC_PAUSE:TagFeatureRunState.RSC_STOP,
+				to_action );
+		}
+	}
+	
+	private void
 	checkAggregateShareRatio()
 	{
 		if ( max_aggregate_share_ratio > 0 ){
@@ -1078,11 +1180,16 @@ TagDownloadWithState
 					}
 				}
 				
-				performOperation( TagFeatureRunState.RSC_PAUSE, dms );
+				performOperation(
+					max_aggregate_share_ratio_action == TagFeatureRateLimit.SR_ACTION_PAUSE?
+						TagFeatureRunState.RSC_PAUSE:TagFeatureRunState.RSC_STOP,
+					dms );
 				
 			}else{
 				
-				performOperation( TagFeatureRunState.RSC_RESUME );
+				performOperation(
+						max_aggregate_share_ratio_action == TagFeatureRateLimit.SR_ACTION_PAUSE?
+							TagFeatureRunState.RSC_RESUME:TagFeatureRunState.RSC_START );
 			}
 		}
 	}
@@ -1090,6 +1197,8 @@ TagDownloadWithState
 	protected void
 	sync()
 	{
+		checkIndividualShareRatio();
+		
 		checkAggregateShareRatio();
 		
 		super.sync();

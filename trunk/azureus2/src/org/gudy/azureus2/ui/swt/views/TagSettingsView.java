@@ -98,7 +98,11 @@ public class TagSettingsView
 
 		public GenericFloatParameter max_sr;
 		
+		public GenericStringListParameter	max_sr_action;
+		
 		public GenericFloatParameter max_aggregate_sr;
+
+		public GenericStringListParameter	max_aggregate_sr_action;
 
 		public folderOption initalSaveFolder;
 
@@ -574,7 +578,7 @@ public class TagSettingsView
 					gd.widthHint = 75;
 					params.min_sr.setLayoutData(gd);
 				}
-
+				
 				// Field: Max Share
 				if (numTags == 1 && rls[0].getTagMaxShareRatio() >= 0) {
 					label = new Label(gTransfer, SWT.NONE);
@@ -598,6 +602,51 @@ public class TagSettingsView
 					//gd.horizontalSpan = 3;
 					gd.widthHint = 75;
 					params.max_sr.setLayoutData(gd);
+					
+						// max sr action
+					
+					String[] ST_ACTION_VALUES = {
+							"" + TagFeatureRateLimit.SR_ACTION_QUEUE,
+							"" + TagFeatureRateLimit.SR_ACTION_PAUSE,
+							"" + TagFeatureRateLimit.SR_ACTION_STOP,
+					};
+					
+					String[] ST_ACTION_LABELS = {
+							MessageText.getString( "ConfigView.section.queue" ),	
+							MessageText.getString( "v3.MainWindow.button.pause" ),	
+							MessageText.getString( "v3.MainWindow.button.stop" ),	
+					};
+
+					label = new Label(gTransfer, SWT.NONE);
+					Messages.setLanguageText(label, "label.when.exceeded");
+					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+					Utils.setLayoutData(label, gd);
+					params.max_sr_action = new GenericStringListParameter(
+							new GenericParameterAdapter() {
+								@Override
+								public String getStringListValue(String key, String def ) {
+									return( getStringListValue( key ));
+								}
+								public String
+								getStringListValue(
+									String		key )
+								{
+									return( "" + rls[0].getTagMaxShareRatioAction());
+								}
+								
+								@Override
+								public void setStringListValue(String key, String value) {
+									rls[0].setTagMaxShareRatioAction( Integer.parseInt( value ));
+								}
+							}, 
+							gTransfer, "max_sr_action", ""+TagFeatureRateLimit.SR_INDIVIDUAL_ACTION_DEFAULT, 
+							ST_ACTION_LABELS, ST_ACTION_VALUES );
+					
+					gd = new GridData();
+					//gd.horizontalSpan = 3;
+					gd.widthHint = 75;
+					params.max_sr.setLayoutData(gd);
+					
 				}
 				
 				// Field: Max Aggregate Share
@@ -623,6 +672,48 @@ public class TagSettingsView
 					//gd.horizontalSpan = 3;
 					gd.widthHint = 75;
 					params.max_aggregate_sr.setLayoutData(gd);
+					
+						// max sr action
+						
+					String[] ST_ACTION_VALUES = {
+							"" + TagFeatureRateLimit.SR_ACTION_PAUSE,
+							"" + TagFeatureRateLimit.SR_ACTION_STOP,
+					};
+					
+					String[] ST_ACTION_LABELS = {
+							MessageText.getString( "v3.MainWindow.button.pause" ),	
+							MessageText.getString( "v3.MainWindow.button.stop" ),	
+					};
+	
+					label = new Label(gTransfer, SWT.NONE);
+					Messages.setLanguageText(label, "label.when.exceeded");
+					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+					Utils.setLayoutData(label, gd);
+					params.max_aggregate_sr_action = new GenericStringListParameter(
+							new GenericParameterAdapter() {
+								@Override
+								public String getStringListValue(String key, String def ) {
+									return( getStringListValue( key ));
+								}
+								public String
+								getStringListValue(
+									String		key )
+								{
+									return( "" + rls[0].getTagMaxAggregateShareRatioAction());
+								}
+								
+								@Override
+								public void setStringListValue(String key, String value) {
+									rls[0].setTagMaxAggregateShareRatioAction( Integer.parseInt( value ));
+								}
+							}, 
+							gTransfer, "max_aggregate_sr_action", ""+TagFeatureRateLimit.SR_AGGREGATE_ACTION_DEFAULT, 
+							ST_ACTION_LABELS, ST_ACTION_VALUES );
+					
+					gd = new GridData();
+					//gd.horizontalSpan = 3;
+					gd.widthHint = 75;
+					params.max_sr.setLayoutData(gd);
 				}
 			}
 			/////////////////////////////////
