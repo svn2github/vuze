@@ -103,6 +103,8 @@ public class TagSettingsView
 		public GenericFloatParameter max_aggregate_sr;
 
 		public GenericStringListParameter	max_aggregate_sr_action;
+		
+		public GenericBooleanParameter	max_aggregate_sr_priority;
 
 		public folderOption initalSaveFolder;
 
@@ -596,6 +598,8 @@ public class TagSettingsView
 								@Override
 								public void setFloatValue(String key, float value) {
 									rls[0].setTagMaxShareRatio((int) (value * 1000));
+									
+									updateTagSRParams( params );
 								}
 							}, gTransfer, null, 0, Float.MAX_VALUE, true, 3);
 					gd = new GridData();
@@ -641,12 +645,6 @@ public class TagSettingsView
 							}, 
 							gTransfer, "max_sr_action", ""+TagFeatureRateLimit.SR_INDIVIDUAL_ACTION_DEFAULT, 
 							ST_ACTION_LABELS, ST_ACTION_VALUES );
-					
-					gd = new GridData();
-					//gd.horizontalSpan = 3;
-					gd.widthHint = 75;
-					params.max_sr.setLayoutData(gd);
-					
 				}
 				
 				// Field: Max Aggregate Share
@@ -666,6 +664,8 @@ public class TagSettingsView
 								@Override
 								public void setFloatValue(String key, float value) {
 									rls[0].setTagMaxAggregateShareRatio((int) (value * 1000));
+									
+									updateTagSRParams( params );
 								}
 							}, gTransfer, null, 0, Float.MAX_VALUE, true, 3);
 					gd = new GridData();
@@ -710,10 +710,31 @@ public class TagSettingsView
 							gTransfer, "max_aggregate_sr_action", ""+TagFeatureRateLimit.SR_AGGREGATE_ACTION_DEFAULT, 
 							ST_ACTION_LABELS, ST_ACTION_VALUES );
 					
-					gd = new GridData();
-					//gd.horizontalSpan = 3;
-					gd.widthHint = 75;
-					params.max_sr.setLayoutData(gd);
+						// aggregate has priority
+					
+					label = new Label(gTransfer, SWT.NONE);
+					Messages.setLanguageText(label, "label.aggregate.has.priority");
+					gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+					Utils.setLayoutData(label, gd);
+					params.max_aggregate_sr_priority = new GenericBooleanParameter(
+							new BooleanParameterAdapter() {
+								@Override
+								public Boolean 
+								getBooleanValue(String key)
+								{
+									return( rls[0].getTagMaxAggregateShareRatioHasPriority());
+								}
+								
+								@Override
+								public void 
+								setBooleanValue(String key, boolean value)
+								{
+									 rls[0].setTagMaxAggregateShareRatioHasPriority( value );
+								}
+							}, 
+							gTransfer, "max_aggregate_sr_priority", TagFeatureRateLimit.AT_RATELIMIT_MAX_AGGREGATE_SR_PRIORITY_DEFAULT );
+					
+					updateTagSRParams( params );
 				}
 			}
 			/////////////////////////////////
@@ -953,6 +974,16 @@ public class TagSettingsView
 		sc.setMinSize(cMainComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	}
 
+	private void
+	updateTagSRParams(
+		Params	params )
+	{
+		boolean	has_individual 	= params.max_sr.getValue() > 0;
+		boolean	has_aggregate 	= params.max_aggregate_sr.getValue() > 0;
+		
+		params.max_aggregate_sr_priority.getControl().setEnabled( has_individual &&  has_aggregate );
+	}
+	
 	private int updateIntBoolean(boolean b, int intB) {
 		if (intB == -1) {
 			intB = b ? 1 : 0;

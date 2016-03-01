@@ -31,6 +31,8 @@ TagFeatureRateLimit
 	public static final int SR_INDIVIDUAL_ACTION_DEFAULT = SR_ACTION_QUEUE;
 	public static final int SR_AGGREGATE_ACTION_DEFAULT	 = SR_ACTION_PAUSE;
 	
+	public static final boolean AT_RATELIMIT_MAX_AGGREGATE_SR_PRIORITY_DEFAULT	= true;
+	
 	public boolean
 	supportsTagRates();
 	
@@ -135,4 +137,11 @@ TagFeatureRateLimit
 	public void
 	setTagMaxAggregateShareRatioAction(
 		int		action );
+	
+	public boolean
+	getTagMaxAggregateShareRatioHasPriority();
+	
+	public void
+	setTagMaxAggregateShareRatioHasPriority(
+		boolean	has_priority );
 }

@@ -79,6 +79,8 @@ TagDownloadWithState
 	private int		max_share_ratio_action;
 	private int		max_aggregate_share_ratio;
 	private int		max_aggregate_share_ratio_action;
+	private boolean	max_aggregate_share_ratio_priority;
+	
 	
 	private boolean	supports_xcode;
 	private boolean	supports_file_location;
@@ -251,7 +253,8 @@ TagDownloadWithState
 		
 		max_aggregate_share_ratio			= readLongAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR, 0L ).intValue();
 		max_aggregate_share_ratio_action	= readLongAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR_ACTION, (long)TagFeatureRateLimit.SR_AGGREGATE_ACTION_DEFAULT ).intValue();
-
+		max_aggregate_share_ratio_priority	= readBooleanAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR_PRIORITY, TagFeatureRateLimit.AT_RATELIMIT_MAX_AGGREGATE_SR_PRIORITY_DEFAULT );
+		
 		addTagListener(
 			new TagListener()
 			{
@@ -1050,6 +1053,32 @@ TagDownloadWithState
 		checkAggregateShareRatio();
 	}
 	
+	public boolean
+	getTagMaxAggregateShareRatioHasPriority()
+	{
+		return( max_aggregate_share_ratio_priority );
+	}
+	
+	public void
+	setTagMaxAggregateShareRatioHasPriority(
+		boolean		priority )
+	{
+		if ( priority == max_aggregate_share_ratio_priority ){
+			
+			return;
+		}
+				
+		max_aggregate_share_ratio_priority	= priority;
+		
+		writeBooleanAttribute( AT_RATELIMIT_MAX_AGGREGATE_SR_PRIORITY, priority );
+				
+		getTagType().fireChanged( this );
+		
+		checkIndividualShareRatio();
+
+		checkAggregateShareRatio();
+	}
+	
 	private void
 	updateStuff()
 	{
@@ -1126,6 +1155,18 @@ TagDownloadWithState
 			return;
 		}
 		
+		if ( max_aggregate_share_ratio_priority && max_aggregate_share_ratio > 0 ){
+			
+			updateStuff();
+			
+			if ( aggregate_sr < max_aggregate_share_ratio ){
+				
+					// aggregate has priority, is enabled and not met so bail until it is
+				
+				return;
+			}
+		}
+		
 		Set<DownloadManager> dms = getTaggedDownloads();
 				
 		Set<DownloadManager>	to_action = new HashSet<DownloadManager>();
@@ -1174,9 +1215,26 @@ TagDownloadWithState
 				
 				while( it.hasNext()){
 				
-					if ( !it.next().isDownloadComplete( false )){
+					DownloadManager dm = it.next();
+					
+					if ( !dm.isDownloadComplete( false )){
 						
 						it.remove();
+						
+					}else{
+						
+						if ( ( !max_aggregate_share_ratio_priority ) && max_share_ratio > 0 ){
+							
+							int sr = dm.getStats().getShareRatio();
+							
+							if ( sr < max_share_ratio ){
+								
+									// individual has priority over aggregate and this download hasn't met
+									// its ratio yet
+								
+								it.remove();
+							}
+						}
 					}
 				}
 				

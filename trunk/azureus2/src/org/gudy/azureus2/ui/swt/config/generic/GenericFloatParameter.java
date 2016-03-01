@@ -129,6 +129,12 @@ public class GenericFloatParameter {
 		});
   }
 
+  public float
+  getValue()
+  {
+	  return( adapter.getFloatValue( name ));
+  }
+  
   public void
   refresh()
   {

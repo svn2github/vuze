@@ -74,6 +74,7 @@ TagBase
 	protected static final String	AT_RATELIMIT_MAX_SR_ACTION		= "rl.maxsr.a";
 	protected static final String	AT_RATELIMIT_MAX_AGGREGATE_SR	= "rl.maxaggsr";
 	protected static final String	AT_RATELIMIT_MAX_AGGREGATE_SR_ACTION	= "rl.maxaggsr.a";
+	protected static final String	AT_RATELIMIT_MAX_AGGREGATE_SR_PRIORITY	= "rl.maxaggsr.p";
 	protected static final String	AT_PROPERTY_PREFIX				= "pp.";
 	protected static final String	AT_EOA_PREFIX					= "eoa.";
 	protected static final String	AT_BYTES_UP						= "b.up";
@@ -773,6 +774,19 @@ TagBase
 	public void
 	setTagMaxAggregateShareRatioAction(
 		int		action )
+	{
+		Debug.out( "not supported" );
+	}
+	
+	public boolean
+	getTagMaxAggregateShareRatioHasPriority()
+	{
+		return( true );
+	}
+	
+	public void
+	setTagMaxAggregateShareRatioHasPriority(
+		boolean		priority )
 	{
 		Debug.out( "not supported" );
 	}
