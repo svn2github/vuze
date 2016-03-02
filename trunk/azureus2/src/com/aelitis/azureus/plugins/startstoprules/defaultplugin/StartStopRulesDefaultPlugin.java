@@ -201,7 +201,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	
 		// downloading params
 	
-	private boolean	bDownloadAutoReposition;
+	//private boolean	bDownloadAutoReposition;
+	
+	private int		iDownloadSortType;
 	private int		iDownloadTestTimeMillis;
 	private int		iDownloadReTestMillis;
 
@@ -477,9 +479,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		
 		PREFIX_RES = "ConfigView.label.downloading.";
 
-		configModel.addBooleanParameter2("StartStopManager_Downloading_bAutoReposition",
-				PREFIX_RES + "autoReposition", false);
-
+		configModel.addIntParameter2("StartStopManager_Downloading_iSortType",
+				"ConfigView.label.downloading.autoReposition", DefaultRankCalculator.DOWNLOAD_ORDER_INDEX );
+		
 		configModel.addIntParameter2("StartStopManager_Downloading_iTestTimeSecs",
 				PREFIX_RES + "testTime", 120 );
 		
@@ -909,7 +911,17 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				}
 			}
 
-			bDownloadAutoReposition = plugin_config.getBooleanParameter("StartStopManager_Downloading_bAutoReposition");
+			iDownloadSortType		= plugin_config.getIntParameter("StartStopManager_Downloading_iSortType", -1 );
+				// migrate from old boolean setting
+			if ( iDownloadSortType == -1 ){
+				
+				boolean bDownloadAutoReposition = plugin_config.getBooleanParameter("StartStopManager_Downloading_bAutoReposition");
+				
+				iDownloadSortType= bDownloadAutoReposition?DefaultRankCalculator.DOWNLOAD_ORDER_SPEED:DefaultRankCalculator.DOWNLOAD_ORDER_INDEX;
+				
+				plugin_config.setIntParameter("StartStopManager_Downloading_iSortType", iDownloadSortType);
+			}
+			
 			iDownloadTestTimeMillis	= plugin_config.getIntParameter("StartStopManager_Downloading_iTestTimeSecs")*1000;
 			iDownloadReTestMillis	= plugin_config.getIntParameter("StartStopManager_Downloading_iRetestTimeMins")*60*1000;
 			
@@ -1554,8 +1566,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			
 			return;
 		}
-
-		if ( !bDownloadAutoReposition ){
+		
+		if ( iDownloadSortType != DefaultRankCalculator.DOWNLOAD_ORDER_SPEED ){
+			
+				// cancel any existing speed ordering stuff
 			
 			if ( dlr_current_active != null ){
 				
@@ -1563,173 +1577,216 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				
 				dlr_current_active = null;
 			}
+		}
+		
+		if ( iDownloadSortType == DefaultRankCalculator.DOWNLOAD_ORDER_INDEX ){
+			
+				// nothing to do, index is natural order
 			
 			return;
-		}
-				
-		if ( dlr_current_active != null ){
 			
-			if ( !downloads.contains( dlr_current_active )){
-				
-				dlr_current_active.setDLRInactive();
-				
-				dlr_current_active = null;
-			}
-		}
-		
-		if ( downloads.size() < 2 ){
+		}else if ( iDownloadSortType == DefaultRankCalculator.DOWNLOAD_ORDER_SEED_COUNT ){
 			
-			return;
-		}
-		
-		if ( globalDownloadLimit > 0 ){
-			
-			int	downloadKBSec = (int)((globalDownloadSpeedAverage.getAverage()*1000/PROCESS_CHECK_PERIOD)/1024);
-		
-			if ( globalDownloadLimit - downloadKBSec < 5 ){
-				
-				if ( dlr_max_rate_time == 0 ){
-					
-					dlr_max_rate_time = mono_now;
-					
-				}else if ( mono_now - dlr_max_rate_time >= 60*1000 ){
-					
-						// been at max a while, kill any remaining test that might be running as result
-						// is inaccurate due to saturation
-					
-					if ( dlr_current_active != null ){
-													
-						dlr_current_active.setDLRInactive();
+			Collections.sort( 
+				downloads,
+				new Comparator<DefaultRankCalculator>()
+				{
+					public int 
+					compare(
+						DefaultRankCalculator d1,
+						DefaultRankCalculator d2) 
+					{
+						DownloadScrapeResult s1 = d1.getDownloadObject().getAggregatedScrapeResult();
+						DownloadScrapeResult s2 = d2.getDownloadObject().getAggregatedScrapeResult();
+						
+						int result = s2.getSeedCount() - s1.getSeedCount();
+						
+						if ( result == 0 ){
 							
-						dlr_current_active = null;
+							result = s2.getNonSeedCount() - s1.getNonSeedCount();
+						}
+						
+						return( result );
 					}
+				});
+	
+			for ( int i=0;i<downloads.size();i++){
 				
-					return;
+				DefaultRankCalculator drc = downloads.get(i);
+									
+				if ( drc.dl.getPosition() != (i+1)){
+						
+					drc.dl.moveTo( i+1 );
+				}
+			}
+		}else{
+			
+				// speed ordering
+			
+			if ( dlr_current_active != null ){
+				
+				if ( !downloads.contains( dlr_current_active )){
+					
+					dlr_current_active.setDLRInactive();
+					
+					dlr_current_active = null;
+				}
+			}
+			
+			if ( downloads.size() < 2 ){
+				
+				return;
+			}
+			
+			if ( globalDownloadLimit > 0 ){
+				
+				int	downloadKBSec = (int)((globalDownloadSpeedAverage.getAverage()*1000/PROCESS_CHECK_PERIOD)/1024);
+			
+				if ( globalDownloadLimit - downloadKBSec < 5 ){
+					
+					if ( dlr_max_rate_time == 0 ){
+						
+						dlr_max_rate_time = mono_now;
+						
+					}else if ( mono_now - dlr_max_rate_time >= 60*1000 ){
+						
+							// been at max a while, kill any remaining test that might be running as result
+							// is inaccurate due to saturation
+						
+						if ( dlr_current_active != null ){
+														
+							dlr_current_active.setDLRInactive();
+								
+							dlr_current_active = null;
+						}
+					
+						return;
+					}
+				}else{
+					
+					dlr_max_rate_time = 0;
 				}
 			}else{
 				
 				dlr_max_rate_time = 0;
 			}
-		}else{
 			
-			dlr_max_rate_time = 0;
-		}
-		
-		if ( dlr_current_active != null ){
-			
-			long last_test = dlr_current_active.getDLRLastTestTime();
-			
-			long	tested_ago = mono_now - last_test;
-						
-			if ( tested_ago < iDownloadTestTimeMillis ){
+			if ( dlr_current_active != null ){
 				
-				return;
+				long last_test = dlr_current_active.getDLRLastTestTime();
+				
+				long	tested_ago = mono_now - last_test;
+							
+				if ( tested_ago < iDownloadTestTimeMillis ){
+					
+					return;
+				}
+				
+				dlr_current_active.setDLRComplete( mono_now );
+				
+				dlr_current_active = null;
 			}
 			
-			dlr_current_active.setDLRComplete( mono_now );
-			
-			dlr_current_active = null;
-		}
-		
-		if ( dlr_current_active == null ){
-			
-			DefaultRankCalculator	to_test = null;
-			
-			long	oldest_test = 0;
-			
-				// add in the time required to run a cycle of tests
-			
-			long adjustedReTest = iDownloadReTestMillis + iDownloadTestTimeMillis * downloads.size();
-
-				// note that downloads are already ordered appropriately (by position by default)
-			
-			for ( DefaultRankCalculator drc: downloads ){
+			if ( dlr_current_active == null ){
 				
-				if ( drc.isQueued()){
+				DefaultRankCalculator	to_test = null;
+				
+				long	oldest_test = 0;
+				
+					// add in the time required to run a cycle of tests
+				
+				long adjustedReTest = iDownloadReTestMillis + iDownloadTestTimeMillis * downloads.size();
+	
+					// note that downloads are already ordered appropriately (by position by default)
+				
+				for ( DefaultRankCalculator drc: downloads ){
 					
-					long last_test = drc.getDLRLastTestTime();
-					
-					if ( last_test == 0 ){
+					if ( drc.isQueued()){
 						
-							// never tested, take first we find
+						long last_test = drc.getDLRLastTestTime();
 						
-						to_test = drc;
-						
-						break;
-						
-					}else{
-						
-						if ( iDownloadReTestMillis > 0 ){
-						
-								// see if it qualifies for a retest, take oldest test
+						if ( last_test == 0 ){
 							
-							long	tested_ago = mono_now - last_test;
-																
-							if ( tested_ago >= adjustedReTest ){
+								// never tested, take first we find
+							
+							to_test = drc;
+							
+							break;
+							
+						}else{
+							
+							if ( iDownloadReTestMillis > 0 ){
+							
+									// see if it qualifies for a retest, take oldest test
 								
-								if ( tested_ago > oldest_test ){
+								long	tested_ago = mono_now - last_test;
+																	
+								if ( tested_ago >= adjustedReTest ){
 									
-									oldest_test = tested_ago;
-									to_test		= drc;
+									if ( tested_ago > oldest_test ){
+										
+										oldest_test = tested_ago;
+										to_test		= drc;
+									}
 								}
 							}
 						}
 					}
 				}
-			}
-			
-			if ( to_test != null ){
 				
-				dlr_current_active = to_test;
-				
-				to_test.setDLRActive( mono_now );
-			}
-		}
-		
-			// tidy up queue order so the fastest n (or n-1 is testing) occupy the top queue slots
-		
-		Collections.sort(
-			downloads,
-			new Comparator<DefaultRankCalculator>()
-			{
-				public int 
-				compare(
-					DefaultRankCalculator o1,
-					DefaultRankCalculator o2 ) 
-				{
-					if ( o1 == dlr_current_active ){
-						
-						return( -1 );
-						
-					}else if ( o2 == dlr_current_active ){
-						
-						return( 1 );
-					}
+				if ( to_test != null ){
 					
-					int	speed1 = o1.getDLRLastTestSpeed();
-					int	speed2 = o2.getDLRLastTestSpeed();
+					dlr_current_active = to_test;
 					
-					int	res = speed2 - speed1;
-					
-					if ( res == 0  ){
-						
-						res = o1.dl.getPosition() - o2.dl.getPosition();
-						
-					}
-					
-					return( res );
+					to_test.setDLRActive( mono_now );
 				}
-			});
-		
-		for ( int i=0;i<downloads.size();i++){
+			}
 			
-			DefaultRankCalculator drc = downloads.get(i);
+				// tidy up queue order so the fastest n (or n-1 is testing) occupy the top queue slots
 			
-			if ( drc.getDLRLastTestSpeed() > 0 ){
+			Collections.sort(
+				downloads,
+				new Comparator<DefaultRankCalculator>()
+				{
+					public int 
+					compare(
+						DefaultRankCalculator o1,
+						DefaultRankCalculator o2 ) 
+					{
+						if ( o1 == dlr_current_active ){
+							
+							return( -1 );
+							
+						}else if ( o2 == dlr_current_active ){
+							
+							return( 1 );
+						}
+						
+						int	speed1 = o1.getDLRLastTestSpeed();
+						int	speed2 = o2.getDLRLastTestSpeed();
+						
+						int	res = speed2 - speed1;
+						
+						if ( res == 0  ){
+							
+							res = o1.dl.getPosition() - o2.dl.getPosition();
+							
+						}
+						
+						return( res );
+					}
+				});
+			
+			for ( int i=0;i<downloads.size();i++){
 				
-				if ( drc.dl.getPosition() != (i+1)){
+				DefaultRankCalculator drc = downloads.get(i);
+				
+				if ( drc.getDLRLastTestSpeed() > 0 ){
 					
-					drc.dl.moveTo( i+1 );
+					if ( drc.dl.getPosition() != (i+1)){
+						
+						drc.dl.moveTo( i+1 );
+					}
 				}
 			}
 		}

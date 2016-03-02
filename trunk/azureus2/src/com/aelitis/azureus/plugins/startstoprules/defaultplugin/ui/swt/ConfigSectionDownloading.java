@@ -29,10 +29,16 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
+import org.gudy.azureus2.ui.swt.config.IntListParameter;
 import org.gudy.azureus2.ui.swt.config.IntParameter;
+import org.gudy.azureus2.ui.swt.config.Parameter;
+import org.gudy.azureus2.ui.swt.config.ParameterChangeAdapter;
+import org.gudy.azureus2.ui.swt.config.ParameterChangeListener;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
 
 
 /** Seeding Automation Specific options
@@ -75,15 +81,6 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     Utils.setLayoutData(cDownloading, gridData);
 
-    	// info
-    
-    label = new Label(cDownloading, SWT.WRAP);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
-    gridData.widthHint = 300;
-    Utils.setLayoutData(label, gridData);
-    Messages.setLanguageText(label, "ConfigView.label.downloading.info");
-
     	// wiki link
     
 	final Label linkLabel = new Label(cDownloading, SWT.NULL);
@@ -105,38 +102,85 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
 	});
 	ClipboardCopy.addCopyToClipMenu( linkLabel );
 	
-    	// enable
+		// sort type
+	
+	label = new Label(cDownloading, SWT.NULL);
+	Messages.setLanguageText(label, "label.prioritize.downloads.based.on");
+	
+	String orderLabels[] = 
+		{	MessageText.getString("label.order"), 
+			MessageText.getString("label.seed.count"),
+			MessageText.getString("label.speed"),
+		};
+	
+	int orderValues[] = 
+		{ 	DefaultRankCalculator.DOWNLOAD_ORDER_INDEX, 
+			DefaultRankCalculator.DOWNLOAD_ORDER_SEED_COUNT, 
+			DefaultRankCalculator.DOWNLOAD_ORDER_SPEED 
+		};
+	
+	final IntListParameter sort_type = 
+		new IntListParameter(cDownloading, "StartStopManager_Downloading_iSortType", 
+			orderLabels, orderValues);
     
-    gridData = new GridData();
+    Group gSpeed = new Group(cDownloading, SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    //layout.marginHeight = 0;
+    gSpeed.setLayout(layout);
+    gridData = new GridData(GridData.FILL_HORIZONTAL );
     gridData.horizontalSpan = 2;
-    BooleanParameter autoRepos = new BooleanParameter(cDownloading, "StartStopManager_Downloading_bAutoReposition",
-                         "ConfigView.label.downloading.autoReposition");
-    autoRepos.setLayoutData(gridData);
-
+    Utils.setLayoutData(gSpeed, gridData);
     
+    gSpeed.setText( MessageText.getString( "label.speed.options" ));
+  	// info
+    
+    label = new Label(gSpeed, SWT.WRAP);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    gridData.widthHint = 300;
+    Utils.setLayoutData(label, gridData);
+    Messages.setLanguageText(label, "ConfigView.label.downloading.info");
+    
+   
     	// test time
     
-    label = new Label(cDownloading, SWT.NULL);
+    label = new Label(gSpeed, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.downloading.testTime");
     gridData = new GridData();
-    IntParameter testTime = new IntParameter(cDownloading, "StartStopManager_Downloading_iTestTimeSecs");
+    final IntParameter testTime = new IntParameter(gSpeed, "StartStopManager_Downloading_iTestTimeSecs");
     testTime.setLayoutData(gridData);
     testTime.setMinimumValue( 60 );
-    
-    autoRepos.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(label));
-    autoRepos.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(testTime));
-    
+        
     	// re-test
     
-    label = new Label(cDownloading, SWT.NULL);
+    label = new Label(gSpeed, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.downloading.reTest");
     gridData = new GridData();
-    IntParameter reTest = new IntParameter(cDownloading, "StartStopManager_Downloading_iRetestTimeMins");
+    final IntParameter reTest = new IntParameter(gSpeed, "StartStopManager_Downloading_iRetestTimeMins");
     reTest.setLayoutData(gridData);
     reTest.setMinimumValue( 0 );
+        
+    ParameterChangeListener listener = 
+    	new ParameterChangeAdapter()
+    	{
+	    	public void
+	    	parameterChanged(
+	    		Parameter	p,
+	    		boolean		caused_internally )
+	    	{
+    			boolean is_speed = ((Integer)sort_type.getValueObject()) == DefaultRankCalculator.DOWNLOAD_ORDER_SPEED;
+	    			
+    			testTime.setEnabled( is_speed );
+    			reTest.setEnabled( is_speed );
+	    	}
+    	};
+    	
+    sort_type.addChangeListener( listener );
     
-    autoRepos.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(label));
-    autoRepos.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(reTest));
+    listener.parameterChanged( null, false );
     
     return cDownloading;
   }
