@@ -374,6 +374,13 @@ public class SBC_TagsOverview
 					}
 				});
 		
+		tableManager.registerColumn(Tag.class, ColumnTagAggregateSRMax.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagAggregateSRMax(column);
+					}
+				});
+
 		tableManager.registerColumn(Tag.class, ColumnTagXCode.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {

@@ -1198,6 +1198,19 @@ TagDownloadWithState
 		}
 	}
 	
+	private boolean
+	isAggregateShareRatioMet()
+	{
+		if ( max_aggregate_share_ratio == 0 ){
+			
+			return( true );
+		}
+		
+		updateStuff();
+		
+		return( aggregate_sr >= max_aggregate_share_ratio );
+	}
+	
 	private void
 	checkAggregateShareRatio()
 	{
@@ -1233,6 +1246,25 @@ TagDownloadWithState
 									// its ratio yet
 								
 								it.remove();
+								
+								continue;
+							}
+						}
+						
+						List<Tag> all_tags = getTagType().getTagManager().getTagsForTaggable( dm );
+						
+						for ( Tag tag: all_tags ){
+							
+							if ( tag != this && tag instanceof TagDownloadWithState ){
+								
+								TagDownloadWithState other_tag = (TagDownloadWithState)tag;
+								
+								if ( !other_tag.isAggregateShareRatioMet()){
+									
+									it.remove();
+									
+									break;
+								}
 							}
 						}
 					}
