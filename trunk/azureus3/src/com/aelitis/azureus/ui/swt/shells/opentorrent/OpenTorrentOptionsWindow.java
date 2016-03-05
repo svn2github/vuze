@@ -46,8 +46,10 @@ import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenFileOptions;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
+import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions.FileListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -57,6 +59,7 @@ import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -78,6 +81,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.content.ContentException;
 import com.aelitis.azureus.core.content.RelatedAttributeLookupListener;
 import com.aelitis.azureus.core.content.RelatedContentManager;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -1609,6 +1613,7 @@ public class OpenTorrentOptionsWindow
 		/* prevents loop of modifications */
 		protected boolean bSkipDataDirModify = false;
 
+		private Button btnTreeView;
 		private Button btnPrivacy;
 		private Button btnCheckComments;
 		private Button btnCheckAvailability;
@@ -1658,6 +1663,9 @@ public class OpenTorrentOptionsWindow
 		private Button btnRename;
 		private Button btnRetarget;
 		private Composite tagButtonsArea;
+		
+		private boolean 		treeViewDisableUpdates;
+		private Set<TreeNode>	treePendingExpansions = new HashSet<TreeNode>();
 		
 		private 
 		OpenTorrentInstance(
@@ -1947,6 +1955,791 @@ public class OpenTorrentOptionsWindow
 			}
 			
 			buildTagButtonPanel( tagButtonsArea, true );
+		}
+		
+		private void
+		showTreeView()
+		{
+			final Shell tree_shell = ShellFactory.createShell( shell, SWT.DIALOG_TRIM | SWT.RESIZE );
+
+			Utils.setShellIcon(tree_shell);
+			 
+			GridLayout layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			tree_shell.setLayout(layout);
+			
+			Utils.verifyShellRect(tree_shell, true);
+
+			TOTorrent t = torrentOptions.getTorrent();
+
+			Composite comp = new Composite( tree_shell, SWT.NULL );
+			GridData gridData = new GridData( GridData.FILL_BOTH );
+			Utils.setLayoutData(comp, gridData);
+			
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			comp.setLayout(layout);
+
+			TOTorrentFile[]	torrent_files = t.getFiles();
+			
+			TorrentOpenFileOptions[] files = torrentOptions.getFiles();
+						
+			char file_separator = File.separatorChar;
+			
+			final TreeNode	root = new TreeNode( null, "" );
+			
+			final Map<TorrentOpenFileOptions,TreeNode>	file_map = new HashMap<TorrentOpenFileOptions, TreeNode>();
+			
+			for ( TorrentOpenFileOptions file: files ){
+				
+				TreeNode node = root;
+				
+				TOTorrentFile t_file = torrent_files[file.getIndex()];
+				
+				String path = t_file.getRelativePath();
+				
+				int	pos = 0;
+				int	len = path.length();
+				
+				while( true ){
+
+					int p = path.indexOf( file_separator, pos );
+					
+					String	bit;
+					
+					if ( p == -1 ){
+						
+						bit = path.substring( pos );
+												
+					}else{
+						
+						bit = path.substring( pos, p );
+						
+						pos = p+1;
+					}
+					
+					TreeNode n = node.getChild( bit );
+					
+					if ( n == null ){
+						
+						n = new TreeNode( node, bit );
+						
+						node.addChild( n );
+					}
+					
+					node = n;
+					
+					if ( p == -1 || pos == len) {
+						
+						node.setFile( file );
+						
+						file_map.put( file,  node );
+						
+						break;
+					}
+				}
+			}
+		
+			
+			final Tree tree = new Tree(comp, SWT.VIRTUAL | SWT.BORDER | SWT.MULTI | SWT.CHECK | SWT.V_SCROLL | SWT.H_SCROLL);
+
+			gridData = new GridData(GridData.FILL_BOTH);
+			Utils.setLayoutData(tree, gridData);
+			
+			tree.setHeaderVisible(true);
+			
+			final TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
+			
+			column1.setText( MessageText.getString("TableColumn.header.name"));
+			column1.setWidth(600);
+			column1.setData(true);
+			
+			column1.addSelectionListener(
+				new SelectionAdapter() {
+					
+					public void widgetSelected(SelectionEvent e) {
+						
+						boolean	asc = (Boolean)column1.getData();
+						
+						asc = !asc;
+						
+						column1.setData( asc );
+						
+						sortTree( tree, root, true, asc );
+					}
+				});
+			
+			TreeColumn column2 = new TreeColumn(tree, SWT.RIGHT);
+			
+			column2.setText( MessageText.getString("TableColumn.header.size"));
+			column2.setWidth(80);
+			column2.setData(true);
+			
+			column2.addSelectionListener(
+					new SelectionAdapter() {
+						
+						public void widgetSelected(SelectionEvent e) {
+							
+							boolean	asc = (Boolean)column1.getData();
+							
+							asc = !asc;
+							
+							column1.setData( asc );
+							
+							sortTree( tree, root, false, asc );
+						}
+					});
+			
+			tree.setData(root);
+			
+			tree.addListener(SWT.SetData, new Listener() {
+				public void handleEvent(Event event) {
+					final TreeItem item = (TreeItem)event.item;
+					TreeItem parentItem = item.getParentItem();
+					
+					TreeNode parent_node;
+					
+					if ( parentItem == null ){
+					
+						parent_node = root;
+						
+					}else{
+						
+						parent_node = (TreeNode)parentItem.getData();
+					}
+					
+					
+					TreeNode[] kids = parent_node.getChildren();
+						
+					TreeNode node = kids[event.index];
+						
+					item.setData( node );
+
+					long	size = node.getSize();
+					
+					String size_str = size<0?("(" + DisplayFormatters.formatByteCountToKiBEtc( -size )+ ")"):DisplayFormatters.formatByteCountToKiBEtc( size );
+					
+					item.setText(new String[]{ node.getName(), size_str });
+
+					item.setChecked( node.isChecked());
+					
+					item.setGrayed(  node.isGrayed());
+					
+					if ( treePendingExpansions.remove( node )){
+						
+						Utils.execSWTThreadLater(
+							1,
+							new Runnable() {
+								
+								public void run() {
+									item.setExpanded( true );
+								}
+							});
+						
+					}
+					
+					TreeNode[] node_kids = node.getChildren();
+					
+					if ( node_kids.length > 0 ) {
+						
+						item.setItemCount( node_kids.length );
+					}
+				}
+			});
+			
+			tree.addListener(SWT.Selection,new Listener() {
+				public void handleEvent(Event event) {
+					if (event.detail == SWT.CHECK) {
+						
+						TreeItem item = (TreeItem)event.item;
+						
+						boolean checked = item.getChecked();
+						
+						TreeNode node = (TreeNode)item.getData();
+						
+						updateNodeFromTree( tree, item, node, checked );
+					}
+				}});
+				
+			final Menu menu = new Menu(tree);
+			
+		    tree.setMenu(menu);
+		    
+		    menu.addMenuListener(
+		    	new MenuAdapter()
+		    	{
+		    		public void 
+		    		menuShown(
+		    			MenuEvent e )
+		    		{
+		    			MenuItem[] menu_items = menu.getItems();
+		    			
+		    			for (int i = 0; i < menu_items.length; i++)
+		    			{
+		    				menu_items[i].dispose();
+		    			}
+		    			
+		    			boolean	has_selected	= false;
+		    			boolean	has_deselected	= false;
+		    			
+		    			final TreeItem[] items = tree.getSelection();
+		    			
+		    			for ( TreeItem item: items ){
+		    				if ( item.getChecked()){
+		    					has_selected = true;
+		    				}else{
+		    					has_deselected = true;
+		    				}
+		    			}
+		    			
+		    			MenuItem select_item = new MenuItem(menu, SWT.NONE);
+		    			select_item.setText( MessageText.getString( "label.select" ));
+		    			
+		    			select_item.addSelectionListener(
+	    					new SelectionAdapter() {
+								
+								public void widgetSelected(SelectionEvent e) {
+									for ( TreeItem item: items ){
+										
+										item.setChecked( true );
+										
+										TreeNode node = (TreeNode)item.getData();
+										
+										updateNodeFromTree( tree, item, node, true );
+									}
+								}
+							
+							});
+		    			
+		    			select_item.setEnabled( has_deselected );
+		    			
+		    			MenuItem deselect_item = new MenuItem(menu, SWT.NONE);
+		    			deselect_item.setText( MessageText.getString( "label.deselect" ));
+		    			
+		    			deselect_item.addSelectionListener(
+	    					new SelectionAdapter() {
+								
+								public void widgetSelected(SelectionEvent e) {
+									for ( TreeItem item: items ){
+										
+										item.setChecked( false );
+										
+										TreeNode node = (TreeNode)item.getData();
+										
+										updateNodeFromTree( tree, item, node, false );
+									}
+								}
+							
+							});
+		    			
+		    			deselect_item.setEnabled( has_selected );
+		    		}
+		    	});
+
+		    tree.addKeyListener(
+		    	new KeyAdapter()
+		    	{
+		    		public void 
+		    		keyPressed(KeyEvent e)
+		    		{
+		    			int key = e.character;
+		    			
+		    			if ( key <= 26 && key > 0 ){
+		    				
+		    				key += 'a' - 1;
+		    			}
+		    			
+		    			if ( e.stateMask == SWT.MOD1 ){
+		    				
+		    				if ( key == 'a' ){
+		    					
+		    					tree.selectAll();
+		    				}
+		    			}
+		    		}
+		    	});
+		    
+			tree.setItemCount( root.getChildren().length );
+					
+				// line
+			
+			Label labelSeparator = new Label( comp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			Utils.setLayoutData(labelSeparator, gridData);
+			
+				// buttons
+			
+			Composite buttonComp = new Composite( comp, SWT.NULL );
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			Utils.setLayoutData(buttonComp, gridData);
+			
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			buttonComp.setLayout(layout);
+			
+			new Label(buttonComp,SWT.NULL);
+			
+			Composite buttonArea = new Composite(buttonComp,SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+			gridData.grabExcessHorizontalSpace = true;
+			Utils.setLayoutData(buttonArea, gridData);
+			GridLayout layoutButtons = new GridLayout();
+			layoutButtons.numColumns = 1;
+			buttonArea.setLayout(layoutButtons);
+			
+			List<Button>	buttons = new ArrayList<Button>();
+			
+			Button bOK = new Button(buttonArea,SWT.PUSH);
+			buttons.add( bOK );
+			
+			bOK.setText(MessageText.getString("Button.ok"));
+			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+			gridData.grabExcessHorizontalSpace = true;
+			gridData.widthHint = 70;
+			Utils.setLayoutData(bOK, gridData);
+			bOK.addListener(SWT.Selection,new Listener() {
+				public void handleEvent(Event e) {
+					tree_shell.dispose();
+				}
+			});
+			
+			Utils.makeButtonsEqualWidth( buttons );
+			
+			tree_shell.setDefaultButton( bOK );
+			
+			btnTreeView.setEnabled( false );
+			
+			final FileListener	file_listener = 
+				new FileListener()
+				{
+					public void 
+					toDownloadChanged(
+						TorrentOpenFileOptions 	file, 
+						boolean 				checked )
+					{
+						updateNodeFromTable( tree, file_map.get( file ), checked );
+					}
+					public void priorityChanged(TorrentOpenFileOptions torrentOpenFileOptions, int priority ){}
+					public void parentDirChanged(){}
+				};
+			
+			torrentOptions.addListener( file_listener );
+			
+			tree_shell.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					if ( !btnTreeView.isDisposed()){
+						
+						btnTreeView.setEnabled( true );
+						torrentOptions.removeListener( file_listener );
+					}
+				}
+			});
+
+	
+			
+			tree_shell.setSize( 800, 400 );
+			tree_shell.layout(true, true);
+			
+			Utils.centerWindowRelativeTo(tree_shell,shell);
+			
+			String title = torrentOptions.getTorrentName();
+						
+			if ( t != null ){
+			
+				String str = PlatformTorrentUtils.getContentTitle( t );
+				
+				if ( str != null && str.length() > 0 ){
+					
+					title = str;
+				}
+			}
+			
+			Messages.setLanguageText( tree_shell, "torrent.files.title", new String[]{ title });
+
+			tree_shell.open();
+		}
+		
+		private void
+		sortTree(
+			final Tree			tree,
+			TreeNode			root,
+			final boolean		by_name,
+			final boolean		asc )
+		{
+			Comparator<TreeNode>	comparator = 
+				new Comparator<TreeNode>() {
+					
+					public int 
+					compare(
+						TreeNode n1, 
+						TreeNode n2) 
+					{
+						if ( !asc ){
+							TreeNode temp = n1;
+							n1 = n2;
+							n2 = temp;
+						}
+						
+						if ( by_name ){
+							String	name1 = n1.getName();
+							String	name2 = n2.getName();
+							
+							return( tree_comp.compare( name1, name2 ));
+							
+						}else{
+							
+							long	size1 = n1.getSize();
+							long	size2 = n2.getSize();
+							
+							if ( size1<0){
+								size1 = -size1;
+							}
+							if ( size2<0){
+								size2 = -size2;
+							}
+							long result = size1 - size2;
+							
+							if ( result == 0 ){
+								return( 0 );
+							}else if ( result < 0 ){
+								return( -1 );
+							}else{
+								return( 1 );
+							}
+						}
+					}
+				};
+			
+			treePendingExpansions.clear();
+			
+			getExpandedNodes( tree.getItems(), treePendingExpansions );
+			
+			tree.removeAll();
+
+			root.sort( comparator );
+									
+			tree.setItemCount( root.getChildren().length );
+			
+			/*
+			Utils.execSWTThreadLater(1, 
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						setExpandedNodes( tree.getItems(), expanded_nodes );
+					}
+				});
+			*/
+		}
+		
+		private void
+		getExpandedNodes(
+			TreeItem[]			items,
+			Set<TreeNode>		nodes )
+		{
+			for ( TreeItem item: items ){
+				
+				if ( item.getExpanded()){
+					
+					nodes.add((TreeNode)item.getData());
+				}
+				
+				getExpandedNodes( item.getItems(), nodes );
+			}
+		}
+		
+		/*
+		private void
+		setExpandedNodes(
+			TreeItem[]			items,
+			Set<TreeNode>		nodes )
+		{
+			for ( TreeItem item: items ){
+				
+				setExpandedNodes( item, nodes );
+			}
+		}
+		
+		/*
+		private void
+		setExpandedNodes(
+			TreeItem			item,
+			Set<TreeNode>		nodes )
+		{
+			TreeNode node = (TreeNode)item.getData();
+			
+			if ( nodes.contains( node )){
+				
+				System.out.println( "set expanded: " + item );
+				
+				item.setExpanded( true );
+				
+				TreeNode[] kids = node.getChildren();
+				
+				for ( int i=0;i<kids.length;i++){
+					
+					TreeNode kid = kids[i];
+					
+					if ( nodes.contains( kid )){
+						
+						TreeItem kid_item = item.getItem( i );
+						
+						// queue pending expansions!
+						kid_item.setData( "expandme", "" );
+						
+						setExpandedNodes( kid_item, nodes );
+					}
+				}
+			}
+		}
+		*/
+		
+		private TreeItem
+		getItemForNode(
+			Tree		tree,
+			TreeNode	node )
+		{
+			List<TreeNode>	nodes = new ArrayList<TreeNode>();
+			
+			nodes.add( node );
+			
+			while( true ){
+				
+				TreeNode parent = node.getParent();
+				
+				if ( parent == null ){
+					
+					break;
+				}
+				
+				nodes.add( parent );
+				
+				node = parent;
+			}
+			
+			TreeItem target_item = null;
+			
+			for ( int i=nodes.size()-2;i>=0;i--){
+				
+				TreeNode n = nodes.get(i);
+				
+				TreeItem[] items;
+				
+				if ( target_item==null ){
+					
+					items = tree.getItems();
+					
+				}else{
+					
+					if ( target_item.getItemCount() == 0 ){
+						
+						continue;
+					}
+					
+					items = target_item.getItems();
+				}
+				
+				boolean found = false;
+				
+				for ( TreeItem item: items ){
+					
+					if ( item.getData() == n ){
+						
+						target_item = item;
+						
+						found = true;
+						
+						break;
+					}
+				}
+				
+				if ( !found ){
+					
+					return( null );
+				}
+			}
+			
+			return( target_item );
+		}
+		
+		private void
+		updateNodeFromTree(
+			Tree		tree,
+			TreeItem	item,
+			TreeNode	node,
+			boolean		selected )
+		{
+			try{
+				treeViewDisableUpdates = true;
+
+				boolean	refresh_path = false;
+				
+				TorrentOpenFileOptions file = node.getFile();
+				
+				if ( file != null ){
+					
+					if ( file.isToDownload() != selected ){
+									
+						file.setToDownload( selected );
+						
+						refresh_path = true;
+					}
+				}else{
+						
+					item.setGrayed( false );
+					
+					List<TorrentOpenFileOptions>	files = node.getFiles();
+					
+					for ( TorrentOpenFileOptions f: files ){
+						
+						if ( f.isToDownload() != selected ){
+							
+							f.setToDownload( selected );
+							
+							refresh_path = true;
+						}
+					}
+					
+					if ( refresh_path ){
+						
+						updateSubTree( item.getItems());
+					}
+				}	
+				
+				if ( refresh_path ){
+					
+					while( true ){
+						
+						item 	= item.getParentItem();
+						
+						if ( item == null ){
+						
+							break;
+						}
+						
+						node	= node.getParent();
+						
+						item.setChecked( node.isChecked());
+							
+						item.setGrayed( node.isGrayed());
+					}
+				}
+			}finally{
+			
+				treeViewDisableUpdates = false;
+			}
+		}
+		
+		private void
+		updateSubTree(
+			TreeItem[]		items )
+		{
+			for ( TreeItem item: items ){
+				
+				TreeNode node = (TreeNode)item.getData();
+				
+				if ( node != null ){
+										
+					boolean	checked = node.isChecked();
+					
+					if ( item.getChecked() != checked ){
+						
+						item.setChecked( checked);
+					}
+					
+					boolean	grayed = node.isGrayed();
+	
+					if ( item.getGrayed() != grayed ){
+						
+						item.setGrayed( grayed);
+					}
+					
+					TreeItem[] sub_items = item.getItems();
+					
+					if ( sub_items.length > 0 ){
+						
+						updateSubTree( sub_items );
+					}
+				}
+			}
+		}
+		
+		private void
+		updateNodeFromTable(
+			Tree					tree,
+			TreeNode				node,
+			boolean					selected )
+		{
+			if ( treeViewDisableUpdates  ){
+				
+				return;
+			}
+			
+			TreeItem item = getItemForNode( tree, node );
+
+			if ( item != null ){
+				
+				if ( item.getChecked() != selected ){
+				
+					item.setChecked( selected );
+					
+					while( true ){
+						
+						item 	= item.getParentItem();
+						
+						if ( item == null ){
+						
+							break;
+						}
+						
+						node	= node.getParent();
+						
+						item.setChecked( node.isChecked());
+							
+						item.setGrayed( node.isGrayed());
+					}
+				}
+			}else{
+				
+				while( true ){
+					
+					node = node.getParent();
+					
+					if ( node == null ){
+						
+						break;
+					}
+					
+					item = getItemForNode( tree, node );
+					
+					if ( item != null ){
+						
+						while( true ){
+							
+							item.setChecked( node.isChecked());
+								
+							item.setGrayed( node.isGrayed());
+							
+							
+							item 	= item.getParentItem();
+							
+							if ( item == null ){
+							
+								break;
+							}
+							
+							node	= node.getParent();
+						}
+						
+						break;
+					}
+				}
+			}
 		}
 		
 		private void
@@ -2930,7 +3723,7 @@ public class OpenTorrentOptionsWindow
 			Utils.setLayoutData(line, gridData);
 
 			Composite cButtonsBottom = new Composite(cButtonsArea, SWT.NULL);
-			layout = new GridLayout(4,false);
+			layout = new GridLayout(5,false);
 			layout.marginWidth = layout.marginHeight = layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
 			cButtonsBottom.setLayout(layout);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
@@ -3026,6 +3819,16 @@ public class OpenTorrentOptionsWindow
 				btnSwarmIt.setEnabled(false);
 			}
 		
+			btnTreeView = new Button(cButtonsBottom, SWT.PUSH);
+			buttons.add( btnTreeView );
+			Messages.setLanguageText(btnTreeView, "OpenTorrentWindow.tree.view");
+			btnTreeView.setToolTipText( MessageText.getString( "OpenTorrentWindow.tree.view.info" ));
+			
+			btnTreeView.addListener(SWT.Selection, new Listener(){
+				public void handleEvent(Event event) {
+					showTreeView();
+				};
+			});
 			
 			Label pad2 = new Label(cButtonsBottom, SWT.NONE);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
@@ -5282,5 +6085,231 @@ public class OpenTorrentOptionsWindow
 			}
 		}
 		return alreadyHave;
+	}
+	
+	private static Comparator tree_comp = new FormattersImpl().getAlphanumericComparator( true );
+	
+	private static class
+	TreeNode
+	{
+		private static TreeNode[]	NO_KIDS = {};
+		
+		private final TreeNode		parent;
+		private String				name;
+		private Object				data = new TreeMap<String,TreeNode>( tree_comp );
+		private long				size	= Long.MAX_VALUE;
+		
+		private
+		TreeNode(
+			TreeNode	_parent,
+			String		_name )
+		{
+			parent		= _parent;
+			name		= _name;
+		}
+			
+		private String
+		getName()
+		{
+			if ( data instanceof TorrentOpenFileOptions ){
+				
+					// pick up any rename that might have occurred
+				
+				return(((TorrentOpenFileOptions)data).getDestFileName());
+			}
+			
+			return( name );
+		}
+		
+		private TreeNode
+		getParent()
+		{
+			return( parent );
+		}
+		
+		private TreeNode
+		getChild(
+			String	name )
+		{
+			return(((TreeMap<String,TreeNode>)data).get(name));
+		}
+		
+		private void
+		addChild(
+			TreeNode		child )
+		{
+			((TreeMap<String,TreeNode>)data).put( child.getName(), child );
+		}
+		
+		private void
+		setFile(
+			TorrentOpenFileOptions file )
+		{
+			data = file;
+		}
+				
+		private boolean
+		isChecked()
+		{
+			if ( data instanceof TorrentOpenFileOptions ){
+				
+				return(((TorrentOpenFileOptions)data).isToDownload());
+			}
+			
+			TreeNode[]	kids = getChildren();
+			
+			for ( TreeNode kid: kids ){
+			
+				if ( kid.isChecked()){
+					
+					return( true );
+				}
+			}
+			
+			return( false );
+		}
+		
+		private boolean
+		isGrayed()
+		{
+			if ( data instanceof TorrentOpenFileOptions ){
+				
+				return( false );
+			}
+			
+			TreeNode[]	kids = getChildren();
+			
+			int	state = 0;
+			
+			for ( TreeNode kid: kids ){
+				
+				if ( kid.isGrayed()){
+					
+					return( true );
+				}
+				
+				int kid_state = kid.isChecked()?1:2;
+	
+				if ( state == 0 ){
+					
+					state = kid_state;
+					
+				}else if ( state != kid_state ){
+					
+					return( true );
+				}
+			}
+			
+			return( false );
+		}
+		
+		private TreeNode[]
+		getChildren()
+		{
+			if ( data instanceof Map ){
+				
+				TreeMap<String,TreeNode> map = (TreeMap<String,TreeNode>)data;
+
+				data = map.values().toArray( new TreeNode[map.size()]);
+			}
+			
+			if ( data instanceof TreeNode[]){
+				
+				return( (TreeNode[])data );
+			}else{
+				
+				return( NO_KIDS );
+			}
+		}
+		
+		private void
+		sort(
+			Comparator<TreeNode>		comparator )	
+		{
+			TreeNode[]	kids =  getChildren();
+			
+			int	num_kids = kids.length;
+					
+			if ( num_kids >= 2 ){
+				
+				Arrays.sort( kids, comparator );
+			}
+			
+			for ( int i=0;i<num_kids;i++){
+				
+				kids[i].sort( comparator );
+			}
+		}
+		
+		private TorrentOpenFileOptions
+		getFile()
+		{
+			if ( data instanceof TorrentOpenFileOptions ){
+				
+				return((TorrentOpenFileOptions)data);
+				
+			}else{
+				
+				return( null );
+			}
+		}
+		
+		private List<TorrentOpenFileOptions>
+		getFiles()
+		{
+			List<TorrentOpenFileOptions> files = new ArrayList<TorrentOpenFileOptions>( 1024 );
+			
+			getFiles( files );
+			
+			return( files );
+		}
+		
+		private void
+		getFiles(
+			List<TorrentOpenFileOptions>		files )
+		{
+			if ( data instanceof TorrentOpenFileOptions ){
+				
+				files.add((TorrentOpenFileOptions)data);
+				
+			}else{
+				
+				TreeNode[] kids = getChildren();
+				
+				for ( TreeNode kid: kids ){
+					
+					kid.getFiles( files );
+				}
+			}
+		}
+		
+		private long
+		getSize()
+		{
+			if ( size != Long.MAX_VALUE ){
+				
+				return( size );
+			}
+			
+			if ( data instanceof TorrentOpenFileOptions ){
+				
+				size = ((TorrentOpenFileOptions)data).lSize;
+				
+			}else{
+				
+				size = 0;
+				
+				TreeNode[] kids = getChildren();
+				
+				for ( TreeNode kid: kids ){
+					
+					size += Math.abs( kid.getSize());
+				}
+				
+				size = -size;
+			}
+			
+			return( size );
+		}
 	}
 }
