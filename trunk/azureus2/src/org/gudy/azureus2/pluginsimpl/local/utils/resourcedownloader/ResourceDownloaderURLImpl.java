@@ -860,7 +860,12 @@ redirect_label:
 
 									Properties	props = new Properties();
 									
-									ClientIDManagerImpl.getSingleton().getGenerator().generateHTTPProperties( null, props );
+									ClientIDGenerator cidg = ClientIDManagerImpl.getSingleton().getGenerator();
+									
+									if ( cidg != null ){
+										
+										cidg.generateHTTPProperties( null, props );
+									}
 									
 									String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
 									
