@@ -2044,6 +2044,7 @@ public class OpenTorrentOptionsWindow
 				}
 			}
 		
+			treePendingExpansions.clear();
 			
 			final Tree tree = new Tree(comp, SWT.VIRTUAL | SWT.BORDER | SWT.MULTI | SWT.CHECK | SWT.V_SCROLL | SWT.H_SCROLL);
 
@@ -2051,48 +2052,67 @@ public class OpenTorrentOptionsWindow
 			Utils.setLayoutData(tree, gridData);
 			
 			tree.setHeaderVisible(true);
+			tree.setLinesVisible( true );
 			
-			final TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
+			int[]	COL_WIDTHS = { 600, 80, 80 };
 			
+			TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
 			column1.setText( MessageText.getString("TableColumn.header.name"));
-			column1.setWidth(600);
-			column1.setData(true);
-			
-			column1.addSelectionListener(
-				new SelectionAdapter() {
-					
-					public void widgetSelected(SelectionEvent e) {
-						
-						boolean	asc = (Boolean)column1.getData();
-						
-						asc = !asc;
-						
-						column1.setData( asc );
-						
-						sortTree( tree, root, true, asc );
-					}
-				});
 			
 			TreeColumn column2 = new TreeColumn(tree, SWT.RIGHT);
-			
 			column2.setText( MessageText.getString("TableColumn.header.size"));
-			column2.setWidth(80);
-			column2.setData(true);
 			
-			column2.addSelectionListener(
-					new SelectionAdapter() {
+			TreeColumn column3 = new TreeColumn(tree, SWT.RIGHT);
+			column3.setText( MessageText.getString("SpeedView.stats.total"));
+
+			TreeColumn[] columns = { column1, column2, column3 };				
+				
+			SelectionAdapter column_listener = 
+				new SelectionAdapter() {
 						
-						public void widgetSelected(SelectionEvent e) {
+					public void widgetSelected(SelectionEvent e) {
 							
-							boolean	asc = (Boolean)column1.getData();
+						TreeColumn column = (TreeColumn)e.widget;
+						
+						int	index = (Integer)column.getData( "index" );
+						
+						boolean	asc = (Boolean)column.getData( "asc" );
 							
-							asc = !asc;
-							
-							column1.setData( asc );
-							
-							sortTree( tree, root, false, asc );
+						asc = !asc;
+						
+						column.setData( "asc", asc );
+						
+						sortTree( tree, root, index, asc );
+					}
+				};
+			
+			for ( int i=0;i<columns.length;i++){
+
+				final TreeColumn column = columns[i];
+				
+				column.setData( "asc", true );
+				column.setData( "index", i );
+				
+				column.addSelectionListener( column_listener );
+				
+				final String key = "open.torrent.window.tree.col." + i;
+				
+				int	width = COConfigurationManager.getIntParameter( key, COL_WIDTHS[i] );
+				
+				column.setWidth( Math.max( 20, width ));
+				
+				column.addListener(
+					SWT.Resize,
+					new Listener()
+					{
+						public void 
+						handleEvent(
+							Event event) 
+						{
+							COConfigurationManager.setParameter( key, column.getWidth());
 						}
 					});
+			}
 			
 			tree.setData(root);
 			
@@ -2119,28 +2139,7 @@ public class OpenTorrentOptionsWindow
 						
 					item.setData( node );
 
-					long	size = node.getSize();
-					
-					String size_str = size<0?("(" + DisplayFormatters.formatByteCountToKiBEtc( -size )+ ")"):DisplayFormatters.formatByteCountToKiBEtc( size );
-					
-					item.setText(new String[]{ node.getName(), size_str });
-
-					item.setChecked( node.isChecked());
-					
-					item.setGrayed(  node.isGrayed());
-					
-					if ( treePendingExpansions.remove( node )){
-						
-						Utils.execSWTThreadLater(
-							1,
-							new Runnable() {
-								
-								public void run() {
-									item.setExpanded( true );
-								}
-							});
-						
-					}
+					updateTreeItem( item, node );
 					
 					TreeNode[] node_kids = node.getChildren();
 					
@@ -2178,8 +2177,8 @@ public class OpenTorrentOptionsWindow
 		    		{
 		    			MenuItem[] menu_items = menu.getItems();
 		    			
-		    			for (int i = 0; i < menu_items.length; i++)
-		    			{
+		    			for (int i = 0; i < menu_items.length; i++){
+		    			
 		    				menu_items[i].dispose();
 		    			}
 		    			
@@ -2237,6 +2236,26 @@ public class OpenTorrentOptionsWindow
 							});
 		    			
 		    			deselect_item.setEnabled( has_selected );
+		    					    			
+		    			final TreeItem[] ex_items=items.length==0?tree.getItems():items;
+		    			
+		    			final Set<TreeNode>	unexpanded_nodes = getUnExpandedNodes(ex_items);
+		    			
+		    			MenuItem expand_item = new MenuItem(menu, SWT.NONE);
+		    			expand_item.setText( MessageText.getString( "label.expand.all" ));
+		    			
+		    			expand_item.addSelectionListener(
+	    					new SelectionAdapter() {
+								
+								public void widgetSelected(SelectionEvent e) {
+									
+									treePendingExpansions.addAll( unexpanded_nodes );
+									
+									expandItems( ex_items );
+								}
+							});
+		    			
+		    			expand_item.setEnabled( unexpanded_nodes.size() > 0 );
 		    		}
 		    	});
 
@@ -2339,9 +2358,36 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 
-	
+			tree_shell.addListener(
+				SWT.Resize,
+				new Listener()
+				{
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						Rectangle bounds = tree_shell.getBounds();
+						
+						COConfigurationManager.setParameter( "open.torrent.window.tree.size", bounds.width + "," + bounds.height );
+					}
+				});
 			
-			tree_shell.setSize( 800, 400 );
+			int	shell_width		= 800;
+			int shell_height	= 400;
+			
+			try{
+				String str = COConfigurationManager.getStringParameter( "open.torrent.window.tree.size", "" );
+				
+				String[] bits = str.split(",");
+				
+				if ( bits.length == 2 ){
+					shell_width 	= Math.max( 300, Integer.parseInt( bits[0]));
+					shell_height 	= Math.max( 200, Integer.parseInt( bits[1]));
+				}
+			}catch( Throwable e ){
+			}
+			
+			tree_shell.setSize( shell_width, shell_height );
 			tree_shell.layout(true, true);
 			
 			Utils.centerWindowRelativeTo(tree_shell,shell);
@@ -2367,7 +2413,7 @@ public class OpenTorrentOptionsWindow
 		sortTree(
 			final Tree			tree,
 			TreeNode			root,
-			final boolean		by_name,
+			final int			col_index,
 			final boolean		asc )
 		{
 			Comparator<TreeNode>	comparator = 
@@ -2384,13 +2430,14 @@ public class OpenTorrentOptionsWindow
 							n2 = temp;
 						}
 						
-						if ( by_name ){
+						if ( col_index == 0 ){
+							
 							String	name1 = n1.getName();
 							String	name2 = n2.getName();
 							
 							return( tree_comp.compare( name1, name2 ));
 							
-						}else{
+						}else if ( col_index == 1 || col_index == 2 ){
 							
 							long	size1 = n1.getSize();
 							long	size2 = n2.getSize();
@@ -2410,12 +2457,13 @@ public class OpenTorrentOptionsWindow
 							}else{
 								return( 1 );
 							}
+						}else{
+							
+							return( 0 );
 						}
 					}
 				};
-			
-			treePendingExpansions.clear();
-			
+						
 			getExpandedNodes( tree.getItems(), treePendingExpansions );
 			
 			tree.removeAll();
@@ -2423,18 +2471,6 @@ public class OpenTorrentOptionsWindow
 			root.sort( comparator );
 									
 			tree.setItemCount( root.getChildren().length );
-			
-			/*
-			Utils.execSWTThreadLater(1, 
-				new Runnable()
-				{
-					public void
-					run()
-					{
-						setExpandedNodes( tree.getItems(), expanded_nodes );
-					}
-				});
-			*/
 		}
 		
 		private void
@@ -2453,51 +2489,111 @@ public class OpenTorrentOptionsWindow
 			}
 		}
 		
-		/*
+		private Set<TreeNode>
+		getUnExpandedNodes(
+			TreeItem[]		items )
+		{
+			Set<TreeNode>	all_nodes = new HashSet<TreeNode>();
+			
+			for ( TreeItem item: items ){
+				
+				getNodes((TreeNode)item.getData(), all_nodes, true );
+			}
+			
+			Set<TreeNode>	expanded_nodes = new HashSet<TreeNode>();
+			
+			getExpandedNodes( items, expanded_nodes );
+			
+			all_nodes.removeAll( expanded_nodes );
+			
+			return( all_nodes );
+		}
+		
 		private void
-		setExpandedNodes(
-			TreeItem[]			items,
-			Set<TreeNode>		nodes )
+		expandItems(
+			TreeItem[]	items )
 		{
 			for ( TreeItem item: items ){
 				
-				setExpandedNodes( item, nodes );
+				item.setExpanded( true );
+				
+				expandItems( item.getItems());
 			}
 		}
 		
-		/*
 		private void
-		setExpandedNodes(
-			TreeItem			item,
-			Set<TreeNode>		nodes )
+		getNodes(
+			TreeNode		node,
+			Set<TreeNode>	nodes,
+			boolean			parents_only )
 		{
-			TreeNode node = (TreeNode)item.getData();
+			TreeNode[] kids = node.getChildren();
 			
-			if ( nodes.contains( node )){
+			if ( parents_only && kids.length == 0 ){
 				
-				System.out.println( "set expanded: " + item );
+				return;
+			}
+			
+			nodes.add( node );
+			
+			for ( TreeNode kid: kids ){
 				
-				item.setExpanded( true );
-				
-				TreeNode[] kids = node.getChildren();
-				
-				for ( int i=0;i<kids.length;i++){
-					
-					TreeNode kid = kids[i];
-					
-					if ( nodes.contains( kid )){
-						
-						TreeItem kid_item = item.getItem( i );
-						
-						// queue pending expansions!
-						kid_item.setData( "expandme", "" );
-						
-						setExpandedNodes( kid_item, nodes );
-					}
-				}
+				getNodes( kid, nodes, parents_only );
 			}
 		}
-		*/
+		
+		private void
+		updateTreeItem(
+			final TreeItem			item,
+			final TreeNode			node )
+		{
+			long	size = node.getSize();
+			
+			String abs_size_str = DisplayFormatters.formatByteCountToKiBEtc( Math.abs( size ));
+
+			String size_str;
+			String total_str;
+			
+			if ( size >= 0 ){
+				
+				size_str 	= abs_size_str;
+				total_str	= "";
+			}else{
+				size_str	= "";
+				total_str	= abs_size_str;
+			}
+			
+			item.setText(
+				new String[]{ 
+					node.getName(),
+					size_str,
+					total_str,
+				});
+
+			item.setChecked( node.isChecked());
+			
+			item.setGrayed(  node.isGrayed());
+			item.setForeground(2, Colors.dark_grey );
+			
+			if ( treePendingExpansions.contains( node )){
+				
+				Utils.execSWTThreadLater(
+					1,
+					new Runnable() {
+						
+						public void run()
+						{
+							if ( !item.isDisposed()){
+							
+								item.setExpanded( true );
+								
+								treePendingExpansions.remove( node );
+							}
+						}
+					});
+				
+			}
+		}
 		
 		private TreeItem
 		getItemForNode(
