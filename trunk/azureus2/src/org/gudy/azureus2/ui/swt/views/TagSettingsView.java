@@ -334,8 +334,8 @@ public class TagSettingsView
 					}
 				});
 			} else {
-				label = new Label(cSection1, SWT.NONE);
-				gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+				label = new Label(cSection1, SWT.WRAP);
+				gd = Utils.getWrappableLabelGridData(1, GridData.GRAB_HORIZONTAL);
 				Utils.setLayoutData(label, gd);
 				params.cName = label;
 			}
