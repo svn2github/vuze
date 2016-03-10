@@ -1166,10 +1166,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 			return( "Peer source '" + peer_source + "' is not enabled" );
 		}
 		
-			//make sure we need a new connection
-		
-		final int needed = getMaxNewConnectionsAllowed( net_cat );
-
 		boolean	is_priority_connection = false;
 		
 		if ( user_data != null ){
@@ -1182,7 +1178,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 			}
 		}
 		
-		if( needed == 0 ){
+		//make sure we need a new connection
+		
+		boolean max_reached = getMaxNewConnectionsAllowed( net_cat ) == 0;	// -1 -> unlimited
+
+		if ( max_reached ){
 
 			if ( 	peer_source != PEPeerSource.PS_PLUGIN ||
 					!doOptimisticDisconnect(
@@ -1982,18 +1982,30 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		int[] _num_wanted = getMaxNewConnectionsAllowed();
 
-		int num_wanted = _num_wanted[0] + _num_wanted[1];
+		int num_wanted;
 		
+		if ( _num_wanted[0] < 0 ){
+			
+			num_wanted = WANT_LIMIT;	// unlimited
+			
+		}else{
+			
+			num_wanted = _num_wanted[0] + _num_wanted[1];
+			
+			if ( num_wanted > WANT_LIMIT ){
+				
+				num_wanted = WANT_LIMIT;
+			}
+		}
+	
 		final boolean has_remote = adapter.isNATHealthy();
+		
 		if( has_remote ) {
 			//is not firewalled, so can accept incoming connections,
 			//which means no need to continually keep asking the tracker for peers
 			num_wanted = (int)(num_wanted / 1.5);
 		}
 
-		if ( num_wanted < 0 || num_wanted > WANT_LIMIT ) {
-			num_wanted = WANT_LIMIT;
-		}
 
 		int current_connection_count = PeerIdentityManager.getIdentityCount( _hash );
 
@@ -3117,7 +3129,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 									peer.isSafeForReconnect() &&
 									!(seeding_mode && (peer.isSeed() || peer.isRelativeSeed() || peer.getStats().getEstimatedSecondsToCompletion() < 60)) &&
 									getMaxConnections( net ) > 0 && 
-									getMaxNewConnectionsAllowed( net ) > getMaxConnections( net ) / 3 &&
+									( getMaxNewConnectionsAllowed( net ) < 0 || getMaxNewConnectionsAllowed( net ) > getMaxConnections( net ) / 3  )&&
 									FeatureAvailability.isGeneralPeerReconnectEnabled()){
 					
 							tcpReconnect = true;							
@@ -4403,6 +4415,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			int		base_allowed_seeds = allowed_seeds_info[0];
 			
+				// base_allowed_seeds == 0 -> no limit
+			
 			if ( base_allowed_seeds > 0 ){
 
 				int	extra_seeds = allowed_seeds_info[1];
@@ -4453,14 +4467,19 @@ DiskManagerCheckRequestListener, IPFilterListener
 					}
 				}
 			}
-
-			// PARG TODO:
 			
 			int[] allowed_info = getMaxNewConnectionsAllowed();
 			
 			int	allowed_base = allowed_info[0];
 
-			if( allowed_base < 0 || allowed_base > 1000 )  allowed_base = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
+				// allowed_base < 0 -> unlimited
+			
+			if ( allowed_base < 0 || allowed_base > 1000 ){
+				
+				allowed_base = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
+				
+				allowed_info[0] = allowed_base;
+			}
 
 			if( adapter.isNATHealthy()){  //if unfirewalled, leave slots avail for remote connections
 				
@@ -5085,8 +5104,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 			medianConnectionTime = 0;
 		}
 		
+		int max_con = getMaxConnections( network );
+		
 		// allow 1 disconnect every 30s per 30 peers; 2 at least every 30s
-		int maxOptimistics = Math.max(getMaxConnections( network )/30,2);
+		int maxOptimistics = max_con==0?8:Math.max(max_con/30,2);
 		
 		// avoid unnecessary churn, e.g. 
 		if(!pending_lan_local_peer && !force && optimisticDisconnectCount >= maxOptimistics && medianConnectionTime < 5*60*1000)
@@ -5315,9 +5336,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 		int	result = data[0];
 		
-		if ( net != AENetworkClassifier.AT_PUBLIC ){
+			// 0 = unlimited
+		
+		if ( result > 0 ){
 			
-			result += data[1];
+			if ( net != AENetworkClassifier.AT_PUBLIC ){
+				
+				result += data[1];
+			}
 		}
 		
 		return( result );
@@ -5337,9 +5363,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 		int	result = data[0];
 		
-		if ( net != AENetworkClassifier.AT_PUBLIC ){
+			// 0 = unlimited
+		
+		if ( result > 0 ){
 			
-			result += data[1];
+			if ( net != AENetworkClassifier.AT_PUBLIC ){
+				
+				result += data[1];
+			}
 		}
 		
 		return( result );
@@ -5347,6 +5378,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	/**
 	 * returns the allowed connections for the given network
+	 * -1 -> unlimited
 	 */
 	
 	public int
@@ -5369,7 +5401,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	/**
 	 * returns number of whatever peers to connect and then extra ones that must be non-pub if available
-	 * @return
+	 * @return -1 -> unlimited
 	 */
 	
 	private int[]
@@ -5382,18 +5414,23 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 		int	allowed_peers = PeerUtils.numNewConnectionsAllowed(getPeerIdentityDataID(), dl_max + extra );
 
-		allowed_peers -= extra;
+			// allowed_peers == -1 -> unlimited
 		
-		if ( allowed_peers < 0 ){
+		if ( allowed_peers >= 0 ){
+
+			allowed_peers -= extra;
 			
-			extra += allowed_peers;
-			
-			if ( extra < 0 ){
+			if ( allowed_peers < 0 ){
 				
-				extra = 0;
+				extra += allowed_peers;
+				
+				if ( extra < 0 ){
+					
+					extra = 0;
+				}
+				
+				allowed_peers = 0;
 			}
-			
-			allowed_peers = 0;
 		}
 		
 		return( new int[]{ allowed_peers, extra });

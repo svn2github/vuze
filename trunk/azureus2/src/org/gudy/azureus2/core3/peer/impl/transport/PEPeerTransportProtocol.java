@@ -2525,8 +2525,9 @@ implements PEPeerTransport
 		}
 		
 		//make sure we haven't reached our connection limit
-		final int maxAllowed = manager.getMaxNewConnectionsAllowed( network );
-		if (	 maxAllowed ==0 &&
+		boolean max_reached  = manager.getMaxNewConnectionsAllowed( network ) == 0;
+		
+		if (	max_reached &&
 				!manager.doOptimisticDisconnect( isLANLocal(), isPriorityConnection(), network ))
 		{
 			int[] _con_max = manager.getMaxConnections();
