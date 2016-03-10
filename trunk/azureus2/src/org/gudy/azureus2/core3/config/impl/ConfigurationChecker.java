@@ -806,6 +806,33 @@ ConfigurationChecker
 	    	ConfigurationDefaults.getInstance().addParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );	// 1 == classic, 2 == beta
 	    }
 	    
+	    	// undo 5710 patch that switched max peers -> 1023 if unlimited
+	    
+	    try{
+	    	if ( last_version.equals( "5.7.1.0" )){
+	    		
+				long max_peers = COConfigurationManager.getLongParameter( "Max.Peer.Connections.Per.Torrent" );
+				
+				if ( max_peers == 1023 ){
+					
+					COConfigurationManager.setParameter( "Max.Peer.Connections.Per.Torrent", 0 );
+					
+					changed = true;
+				}
+				
+				long max_seeds = COConfigurationManager.getLongParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding" );
+				
+				if ( max_seeds == 1023 ){
+					
+					COConfigurationManager.setParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding", 0 );
+					
+					changed = true;
+				}
+	    	}
+	    }catch( Throwable e ){
+	    	
+	    }
+	    
 	    int check_level = COConfigurationManager.getIntParameter( "config.checker.level", 0 );
 	    
 	    if ( check_level < 1 ){
