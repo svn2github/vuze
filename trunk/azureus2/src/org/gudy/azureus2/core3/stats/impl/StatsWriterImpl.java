@@ -250,7 +250,10 @@ StatsWriterImpl
 						writeRawCookedAverageTag( "DOWNLOAD_SPEED", 	dm_stats.getDataReceiveRate());
 						writeRawCookedAverageTag( "UPLOAD_SPEED", 		dm_stats.getDataSendRate());
 						writeRawCookedAverageTag( "TOTAL_SPEED", 		dm_stats.getTotalAverage());
-																				
+							
+						writeRawCookedAverageTag( "DOWNLOAD_SPEED_SMOOTH", 	dm_stats.getSmoothedDataReceiveRate());
+						writeRawCookedAverageTag( "UPLOAD_SPEED_SMOOTH", 		dm_stats.getSmoothedDataSendRate());
+
 						writeTag( "ELAPSED", 		dm_stats.getElapsedTime());
 						writeTag( "ETA", 			DisplayFormatters.formatETA(dm_stats.getSmoothedETA()));
 						writeTag( "HASH_FAILS", 	dm_stats.getHashFailCount());
