@@ -120,22 +120,7 @@ Handler
 										
 						return;
 					}
-		
-					if ( !Constants.isJava7OrHigher ){
-						
-						String title = MessageText.getString("azwebtorrent.install.fail.jver");
-						
-						String text = MessageText.getString("azwebtorrent.install.fail.jver.text" );
-						
-						UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[]{
-							MessageText.getString("Button.ok"),
-						}, 0);
-		
-						prompter.setAutoCloseInMS(0);
-						
-						prompter.open(null);
-					}
-							
+									
 					String title = MessageText.getString("azwebtorrent.install");
 					
 					String text = MessageText.getString("azwebtorrent.install.text" );
@@ -162,23 +147,37 @@ Handler
 					boolean	install = prompter.waitUntilClosed() == 0;
 					
 					if ( install ){
-										
-						uif.installPlugin(
-							"azwebtorrent",
-							"azwebtorrent.install",
-							new UIFunctions.actionListener()
-							{
-								public void
-								actionComplete(
-									Object		result )
+							
+						if ( !Constants.isJava7OrHigher ){
+							
+							title = MessageText.getString("azwebtorrent.install.fail.jver");
+							
+							text = MessageText.getString("azwebtorrent.install.fail.jver.text" );
+							
+							prompter = uif.getUserPrompter(title, text, new String[]{
+								MessageText.getString("Button.ok"),
+							}, 0);
+			
+							prompter.setAutoCloseInMS(0);
+							
+							prompter.open(null);
+							
+						}else{
+
+							uif.installPlugin(
+								"azwebtorrent",
+								"azwebtorrent.install",
+								new UIFunctions.actionListener()
 								{
-								}
-							});
-						
-						installing = true;
-						
-					}else{
-						
+									public void
+									actionComplete(
+										Object		result )
+									{
+									}
+								});
+							
+							installing = true;
+						}
 					}
 					
 					return;

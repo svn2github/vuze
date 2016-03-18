@@ -352,13 +352,18 @@ ResourceDownloaderURLImpl
 							
 							con.setRequestMethod( "HEAD" );
 							
-							Properties	props = new Properties();
-							
-							ClientIDManagerImpl.getSingleton().getGenerator().generateHTTPProperties( null, props );
-							
-							String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
-							
-							con.setRequestProperty("User-Agent", ua );     
+							ClientIDGenerator cidg = ClientIDManagerImpl.getSingleton().getGenerator();
+
+							if ( cidg != null ){
+								
+								Properties	props = new Properties();
+								
+								cidg.generateHTTPProperties( null, props );
+								
+								String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
+								
+								con.setRequestProperty("User-Agent", ua );    
+							}
 				  
 							setRequestProperties( con, false );
 							
@@ -857,20 +862,20 @@ redirect_label:
 										
 										con.setRequestProperty( "HOST", current_plugin_proxy.getURLHostRewrite() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
 									}
-
-									Properties	props = new Properties();
 									
 									ClientIDGenerator cidg = ClientIDManagerImpl.getSingleton().getGenerator();
 									
 									if ( cidg != null ){
 										
+										Properties	props = new Properties();
+
 										cidg.generateHTTPProperties( null, props );
+										
+										String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
+										
+										con.setRequestProperty("User-Agent", ua );     
 									}
 									
-									String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
-									
-									con.setRequestProperty("User-Agent", ua );     
-						  
 									String connection = getStringProperty( "URL_Connection" );
 									
 									if ( connection != null && connection.equalsIgnoreCase( "Keep-Alive" )){
