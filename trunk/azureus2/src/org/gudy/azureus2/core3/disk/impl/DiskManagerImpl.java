@@ -512,8 +512,11 @@ DiskManagerImpl
 
             //allocate / check every file
 
-        int newFiles = allocateFiles();
+        int[] alloc_result = allocateFiles();
 
+        int	newFiles 		= alloc_result[0];
+        int	notNeededFiles	= alloc_result[1];
+        
         if ( getState() == FAULTY ){
 
                 // bail out if broken in the meantime
@@ -545,7 +548,7 @@ DiskManagerImpl
 	            	
 	            	checkFreePieceList( true );
 	            }
-	        }else if ( newFiles != files.length ){
+	        }else if ( newFiles + notNeededFiles != files.length ){
 	
 	                //  if not a fresh torrent, check pieces ignoring fast resume data
 	
@@ -945,9 +948,11 @@ DiskManagerImpl
         }
     }
 
-    private int
+    private int[]
     allocateFiles()
     {
+    	int[] fail_result = { -1, -1 };
+    	
         Set file_set    = new HashSet();
 
         DMPieceMapperFile[] pm_files = piece_mapper.getFiles();
@@ -963,8 +968,9 @@ DiskManagerImpl
 
             allocated = 0;
 
-            int numNewFiles = 0;
-
+            int numNewFiles 		= 0;
+            int notRequiredFiles	= 0;
+            
             String  root_dir = download_manager.getAbsoluteSaveLocation().getParent();
 
             if ( !torrent.isSimpleTorrent()){
@@ -986,7 +992,7 @@ DiskManagerImpl
 
                     setState( FAULTY );
 
-                    return( -1 );
+                    return( fail_result );
             	}
             	
                 final DMPieceMapperFile pm_info = pm_files[i];
@@ -1012,7 +1018,7 @@ DiskManagerImpl
 
                     setState( FAULTY );
 
-                    return( -1 );
+                    return( fail_result );
                 }
 
                 CacheFile   cache_file      = fileInfo.getCacheFile();
@@ -1031,7 +1037,7 @@ DiskManagerImpl
 
                     setState( FAULTY );
 
-                    return( -1 );
+                    return( fail_result );
                 }
 
                 file_set.add( file_key );
@@ -1115,7 +1121,7 @@ DiskManagerImpl
 
                                 setState( FAULTY );
 
-                                return( -1 );
+                                return( fail_result );
                             }
                         }else if ( existing_length < target_length ){
                         	
@@ -1126,7 +1132,7 @@ DiskManagerImpl
 	                            	
 	                      			// aborted
 	                    		
-	                         		return( -1 );
+	                         		return( fail_result );
 	                         	}
                         	}
                         }
@@ -1136,7 +1142,7 @@ DiskManagerImpl
                     	
                         setState( FAULTY );
 
-                        return( -1 );
+                        return( fail_result );
                     }
 
                     allocated += target_length;
@@ -1152,7 +1158,7 @@ DiskManagerImpl
 
                         setState( FAULTY );
 
-                        return( -1 );
+                        return( fail_result );
                     }
 
  
@@ -1162,7 +1168,7 @@ DiskManagerImpl
                     	
                       			// aborted
                     		
-                    		return( -1 );
+                    		return( fail_result );
                     	}
                     	
                     }catch( Throwable e ){
@@ -1171,10 +1177,14 @@ DiskManagerImpl
 
                         setState( FAULTY );
 
-                        return( -1 );
+                        return( fail_result );
                     }
 
                     numNewFiles++;
+                    
+                }else{
+                	
+                	notRequiredFiles++;
                 }
             }
 
@@ -1188,7 +1198,7 @@ DiskManagerImpl
 
             download_manager.setDataAlreadyAllocated( true );
 
-            return( numNewFiles );
+            return( new int[]{ numNewFiles, notRequiredFiles });
 
         }finally{
 
