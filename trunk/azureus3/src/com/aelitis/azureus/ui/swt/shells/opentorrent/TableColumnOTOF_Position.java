@@ -20,6 +20,8 @@ package com.aelitis.azureus.ui.swt.shells.opentorrent;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenFileOptions;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+
 public class TableColumnOTOF_Position
 implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
@@ -29,6 +31,9 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
   public TableColumnOTOF_Position(TableColumn column) {
   	column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 40);
   	column.addListeners(this);
+ 	if ( column instanceof TableColumnCore ){
+  		((TableColumnCore)column).setDefaultSortAscending( true );
+  	}
   }
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
@@ -45,7 +50,7 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
   	}
   	TorrentOpenFileOptions tfi = (TorrentOpenFileOptions) ds;
   	int index = tfi.getIndex();
-  	cell.setSortValue(-index);
+  	cell.setSortValue(index);
   	cell.setText("" + index);
   }
   
