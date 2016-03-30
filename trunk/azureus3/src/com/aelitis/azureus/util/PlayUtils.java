@@ -190,11 +190,13 @@ public class PlayUtils
 		int 		file_index,
 		boolean		block_for_accuracy ) 
 	{
-		
+		/* Suport linux from 5711 + azemp 4.0.0
+
 		if ( !( Constants.isWindows || Constants.isOSX )){
 			
 			return( false );
 		}
+		*/
 		
 		if (ds == null) {
 			return false;
@@ -300,10 +302,13 @@ public class PlayUtils
 		int 		file_index,
 		boolean		block_for_accuracy ) 
 	{
+		/* Suport linux from 5711 + azemp 4.0.0
+
 		if ( !( Constants.isWindows || Constants.isOSX )){
 			
 			return( false );
 		}
+		*/
 		
 		if ( ds == null ){
 			
