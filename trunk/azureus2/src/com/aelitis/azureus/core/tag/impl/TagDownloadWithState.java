@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
@@ -1215,6 +1216,16 @@ TagDownloadWithState
 	checkAggregateShareRatio()
 	{
 		if ( max_aggregate_share_ratio > 0 ){
+			
+				// don't do anything if we are in the process of deleting torrents - in particular we
+				// want to avoid resuming a download that is about to be deleted along with others 
+				// that contribute to the same ratio. We'll come back here and recheck anyway
+			
+			if ( 	TorrentUtils.isTorrentDeleting() ||
+					TorrentUtils.getMillisecondsSinceLastTorrentDelete() < 10*1000 ){
+				
+				return;
+			}
 			
 			updateStuff();
 			
