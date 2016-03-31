@@ -30,6 +30,7 @@ package org.gudy.azureus2.core3.util;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -212,6 +213,10 @@ TorrentUtils
 		}
 	}
 
+	static AtomicLong	torrent_delete_level = new AtomicLong();
+	static long			torrent_delete_time;
+	
+	
 	public static TOTorrent
 	readFromFile(
 		File		file,
@@ -4558,6 +4563,65 @@ TorrentUtils
 		getString()
 		{
 			return( (is_tcp?"TCP" :"UDP ") + port );
+		}
+	}
+	
+	public static void
+	startTorrentDelete()
+	{
+		long val = torrent_delete_level.incrementAndGet();
+		
+		System.out.println( "delete level++ -> " + val );
+	}
+	
+	public static void
+	endTorrentDelete()
+	{
+		long val = torrent_delete_level.decrementAndGet();
+		
+		System.out.println( "delete level-- -> " + val );
+	}
+	
+	public static void
+	runTorrentDelete(
+		Runnable 	target )
+	{
+		try{
+			startTorrentDelete();
+			
+			target.run();
+			
+		}finally{
+			
+			endTorrentDelete();
+		}
+	}
+	
+	public static boolean
+	isTorrentDeleting()
+	{
+		return( torrent_delete_level.get() > 0 );
+	}
+	
+	public static void
+	setTorrentDeleted()
+	{
+		synchronized( TorrentUtils.class ){
+			
+			torrent_delete_time = SystemTime.getMonotonousTime();
+		}
+	}
+	
+	public static long
+	getMillisecondsSinceLastTorrentDelete()
+	{
+		synchronized( TorrentUtils.class ){
+			
+			if ( torrent_delete_time == 0 ){
+				
+				return( Long.MAX_VALUE );
+			}
+			return( SystemTime.getMonotonousTime() - torrent_delete_time );
 		}
 	}
 	

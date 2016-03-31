@@ -2967,6 +2967,20 @@ public class TorrentUtil
 
 	public static void removeDownloads(final DownloadManager[] dms,
 			final AERunnable deleteFailed, final boolean forcePrompt) {
+		
+		TorrentUtils.runTorrentDelete(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					removeDownloadsSupport( dms, deleteFailed, forcePrompt );
+				}
+			});
+	}
+	
+	private static void removeDownloadsSupport(final DownloadManager[] dms,
+			final AERunnable deleteFailed, final boolean forcePrompt) {
 		if (dms == null) {
 			return;
 		}
@@ -3047,15 +3061,49 @@ public class TorrentUtil
 
 				final int index = i;
 
-				mb.open(new UserPrompterResultListener() {
+				TorrentUtils.startTorrentDelete();
+				
+				final boolean[] endDone = { false };
 
-					public void prompterClosed(int result) {
-						ImageLoader.getInstance().releaseImage("image.trash");
+				try{
+					mb.open(new UserPrompterResultListener() {
+	
+						public void prompterClosed(int result) {
+							try{
+						
+								ImageLoader.getInstance().releaseImage("image.trash");
+		
+								removeDownloadsPrompterClosed(dms, index, deleteFailed, result,
+										mb.isRemembered(), mb.getCheckBoxEnabled());
+								
+							}finally{
 
-						removeDownloadsPrompterClosed(dms, index, deleteFailed, result,
-								mb.isRemembered(), mb.getCheckBoxEnabled());
+								synchronized( endDone ){
+
+									if ( !endDone[0] ){
+
+										TorrentUtils.endTorrentDelete();
+
+										endDone[0] = true;
+									}
+								}
+							}
+						}
+					});
+				}catch( Throwable e ){
+					
+					Debug.out(e );
+					
+					synchronized( endDone ){
+
+						if ( !endDone[0] ){
+
+							TorrentUtils.endTorrentDelete();
+
+							endDone[0] = true;
+						}
 					}
-				});
+				}
 				return;
 			} else {
 				boolean deleteData = confirm == 1;
@@ -3065,7 +3113,22 @@ public class TorrentUtil
 		}
 	}
 
-	private static void removeDownloadsPrompterClosed(DownloadManager[] dms,
+	private static void removeDownloadsPrompterClosed(final DownloadManager[] dms,
+			final int index, final AERunnable deleteFailed, final int result, final boolean doAll,
+			final boolean deleteTorrent) {
+	
+		TorrentUtils.runTorrentDelete(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						removeDownloadsPrompterClosedSupport( dms, index, deleteFailed, result, doAll, deleteTorrent );
+					}
+				});	
+	}
+	
+	private static void removeDownloadsPrompterClosedSupport(DownloadManager[] dms,
 			int index, AERunnable deleteFailed, int result, boolean doAll,
 			boolean deleteTorrent) {
 		if (result == -1) {

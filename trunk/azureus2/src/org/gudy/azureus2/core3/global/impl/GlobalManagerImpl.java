@@ -1412,13 +1412,15 @@ public class GlobalManagerImpl
     	
     	TorrentUtils.removeCreatedTorrent( torrent );
     }
-    
+        
 	manager.destroy( false );
 	
     fixUpDownloadManagerPositions();
     
     listeners_and_event_listeners.dispatch( LDT_MANAGER_REMOVED, manager );
     
+    TorrentUtils.setTorrentDeleted();
+
     taggable_life_manager.taggableDestroyed( manager );
     
     manager.removeListener(this);
