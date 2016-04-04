@@ -2436,6 +2436,20 @@ AzureusCoreImpl
 							state = DownloadManager.STATE_SEEDING;
 						}
 					}
+				}else{
+					
+					if ( !manager.isDownloadComplete( false )){
+						
+						if ( 	state != DownloadManager.STATE_STOPPED && 
+								state != DownloadManager.STATE_ERROR ){
+							
+								// an incomplete download that is in an active state counts as downloading even
+								// if it is currently queued/waiting as it is 'on its way' to being in a downloading 
+								// state
+							
+							is_downloading = true;
+						}
+					}
 				}
 				
 				if ( state == DownloadManager.STATE_SEEDING ){
