@@ -2373,6 +2373,15 @@ public class ManagerUtils {
 		final DownloadManager[]		dms,
 		Shell						shell )
 	{
+		locateFiles( dms, null, shell );
+	}
+	
+	public static void
+	locateFiles(
+		final DownloadManager[]			dms,
+		final DiskManagerFileInfo[][]	dm_files,
+		Shell							shell )
+	{
 		DirectoryDialog dd = new DirectoryDialog( shell );
 
 		dd.setFilterPath( TorrentOpener.getFilterPathData());
@@ -2434,7 +2443,9 @@ public class ManagerUtils {
 						
 						int	downloads_modified = 0;
 						
-						for ( DownloadManager dm: dms ){
+						for ( int i=0;i<dms.length;i++){
+							
+							DownloadManager			dm 				= dms[i];
 							
 							synchronized( quit ){
 								if ( quit[0] ){
@@ -2452,6 +2463,24 @@ public class ManagerUtils {
 							if ( torrent == null ){
 								
 								continue;
+							}
+							
+							DiskManagerFileInfo[]	selected_files 	= dm_files==null?null:dm_files[i];
+
+							Set<Integer>	selected_file_indexes;
+							
+							if ( selected_files == null ){
+								
+								selected_file_indexes = null;
+								
+							}else{
+								
+								selected_file_indexes = new HashSet<Integer>();
+								
+								for ( DiskManagerFileInfo f: selected_files ){
+									
+									selected_file_indexes.add( f.getIndex());
+								}
 							}
 							
 							TOTorrentFile[] to_files = torrent.getFiles();
@@ -2506,11 +2535,19 @@ public class ManagerUtils {
 							try{
 							
 download_loop:
-								for ( DiskManagerFileInfo file: files ){
+								for ( final DiskManagerFileInfo file: files ){
 									
 									synchronized( quit ){
 										if ( quit[0] ){
 											break;
+										}
+									}
+									
+									if ( selected_file_indexes != null ){
+										
+										if ( !selected_file_indexes.contains( file.getIndex())){
+											
+											continue;
 										}
 									}
 									
@@ -2848,6 +2885,14 @@ download_loop:
 											}
 											
 											DiskManagerFileInfo file = entry.getKey();
+																					
+											if ( selected_file_indexes != null ){
+												
+												if ( !selected_file_indexes.contains( file.getIndex())){
+													
+													continue;
+												}
+											}
 											
 											File expected_file = new File( overall_root, file.getTorrentFile().getRelativePath());
 											

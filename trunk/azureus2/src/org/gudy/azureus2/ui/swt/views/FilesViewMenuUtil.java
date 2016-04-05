@@ -190,6 +190,11 @@ public class FilesViewMenuUtil
 		itemRetarget.setData("rename", Boolean.valueOf(false));
 		itemRetarget.setData("retarget", Boolean.valueOf(true));
 
+		// locate files
+		
+		final MenuItem itemLocateFiles = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemLocateFiles, "MyTorrentsView.menu.locatefiles");
+		
 		// clear links
 		MenuItem itemClearLinks = null;
 		
@@ -277,6 +282,7 @@ public class FilesViewMenuUtil
 			itemRenameOrRetarget.setEnabled(false);
 			itemRename.setEnabled(false);
 			itemRetarget.setEnabled(false);
+			itemLocateFiles.setEnabled(false);
 			if ( itemClearLinks != null ){
 				itemClearLinks.setEnabled(false);
 			}
@@ -421,6 +427,15 @@ public class FilesViewMenuUtil
 		itemRename.addListener(SWT.Selection, rename_listener);
 		itemRetarget.addListener(SWT.Selection, rename_listener);
 
+		
+		itemLocateFiles.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				ManagerUtils.locateFiles( manager_list, files_list, menu.getShell());
+			}
+		});
+		
+		itemLocateFiles.setEnabled( true );
+		
 		if ( itemClearLinks != null ){
 			
 			itemClearLinks.setEnabled( files_with_links.size() > 0 );
