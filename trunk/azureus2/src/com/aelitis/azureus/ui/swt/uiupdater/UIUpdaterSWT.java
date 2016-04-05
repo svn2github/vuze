@@ -64,8 +64,6 @@ public class UIUpdaterSWT
 
 	private boolean finished = false;
 
-	private boolean refreshed = true;
-
 	private CopyOnWriteList<UIUpdatable> updateables = new CopyOnWriteList<UIUpdatable>();
 	
 	private Map<UIUpdatable, String> debug_Updateables; 
@@ -108,10 +106,10 @@ public class UIUpdaterSWT
 
 	// @see org.gudy.azureus2.core3.util.AEThread2#run()
 	public void run() {
+		final AESemaphore	sem = new AESemaphore( "UI Updater" );
+		
 		while (!finished) {
-			if (refreshed) {
-				refreshed = false;
-				if (!Utils.execSWTThread(new AERunnable() {
+			Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						try {
 							Display display = Utils.getDisplay();
@@ -149,24 +147,38 @@ public class UIUpdaterSWT
 							Logger.log(new LogEvent(LOGID,
 									"Error while trying to update GUI", e));
 						} finally {
-							refreshed = true;
-							
-							for ( UIUpdaterListener l: listeners ){
-								
-								try{
-									l.updateComplete( ++update_count );
-								}catch( Throwable e ){
-									Debug.out( e );
+							try{
+								for ( UIUpdaterListener l: listeners ){
+	
+									try{
+										l.updateComplete( ++update_count );
+									}catch( Throwable e ){
+										Debug.out( e );
+									}
 								}
+							}finally{
+								sem.release();
 							}
 						}
 					}
-				})) {
-					refreshed = true;
-				}
+				});
+			
+			long start = SystemTime.getHighPrecisionCounter();
+			
+			sem.reserve();
+			
+			long elapsed = SystemTime.getHighPrecisionCounter() - start;
+			
+			long	to_sleep = waitTimeMS - (elapsed/1000000);
+			
+			if ( to_sleep < 10 ){
+				to_sleep = 10;
+			}else if ( to_sleep > 25000 ){
+				to_sleep = 25000;
 			}
 			try {
-				Thread.sleep(waitTimeMS);
+				//System.out.println( "sleep=" + to_sleep );
+				Thread.sleep(to_sleep);
 			} catch (Exception e) {
 				Debug.printStackTrace(e);
 			}
