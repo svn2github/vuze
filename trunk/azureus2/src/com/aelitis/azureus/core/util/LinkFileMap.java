@@ -192,6 +192,25 @@ LinkFileMap
 		}
 	}
 	
+	public boolean
+	hasLinks()
+	{
+		for (Entry entry: index_map.values()){
+			
+			File to_file = entry.getToFile();
+			
+			if ( to_file != null ){
+				
+				if ( !entry.getFromFile().equals( to_file )){
+					
+					return( true );
+				}
+			}
+		}
+		
+		return( false );
+	}
+	
 	public Iterator<Entry>
 	entryIterator()
 	{

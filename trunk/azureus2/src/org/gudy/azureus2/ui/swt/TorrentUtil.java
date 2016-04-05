@@ -160,6 +160,8 @@ public class TorrentUtil
 		boolean allStopped			 = true;
 		boolean	allResumeIncomplete	 = true;
 		
+		boolean	hasClearableLinks = false;
+		
 		if (hasSelection) {
 			for (int i = 0; i < dms.length; i++) {
 				DownloadManager dm = (DownloadManager) dms[i];
@@ -247,7 +249,9 @@ public class TorrentUtil
 					}
 				}
 
-				boolean scan = dm.getDownloadState().getFlag(
+				DownloadManagerState dm_state = dm.getDownloadState();
+				
+				boolean scan = dm_state.getFlag(
 						DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES);
 
 				// include DND files in incomplete stat, since a recheck may
@@ -279,8 +283,17 @@ public class TorrentUtil
 					superSeedAllNo = false;
 				}
 				
-				if (dm.getDownloadState().isResumeDataComplete()){
+				if (dm_state.isResumeDataComplete()){
 					allResumeIncomplete = false;
+				}
+				
+				if ( stopped && !hasClearableLinks ){
+					if ( dm.getDiskManagerFileInfoSet().nbFiles() > 1 ){
+						if ( dm_state.getFileLinks().hasLinks()){
+						
+							hasClearableLinks = true;
+						}
+					}
 				}
 			}
 
@@ -553,7 +566,39 @@ public class TorrentUtil
 		itemFileRescan.setSelection(allScanSelected);
 		itemFileRescan.setEnabled(fileRescan);
 
-		// clear allocation
+			// clear links
+		
+		final MenuItem itemClearLinks = new MenuItem(menuFiles, SWT.PUSH);
+		Messages.setLanguageText(itemClearLinks, "FilesView.menu.clear.links");
+		itemClearLinks.addListener(SWT.Selection, new ListenerDMTask(dms) {
+			public void run(DownloadManager dm) 
+			{
+				if ( ManagerUtils.isStopped(dm) && dm.getDownloadState().getFileLinks().hasLinks()){
+					
+					DiskManagerFileInfoSet fis = dm.getDiskManagerFileInfoSet();
+					
+					if ( fis.nbFiles() > 1 ){
+						
+						DiskManagerFileInfo[] files = fis.getFiles();
+						
+						for ( DiskManagerFileInfo file_info: files ){
+							
+							File file_link 		= file_info.getFile( true );
+							File file_nolink 	= file_info.getFile( false );
+			
+							if ( !file_nolink.getAbsolutePath().equals( file_link.getAbsolutePath())){
+									
+								file_info.setLink( null );
+							}
+						}
+					}
+				}
+			}
+		});
+		
+		itemClearLinks.setEnabled(hasClearableLinks);
+		
+			// clear allocation
 
 		MenuItem itemFileClearAlloc = new MenuItem(menuFiles, SWT.PUSH);
 		Messages.setLanguageText(itemFileClearAlloc,
@@ -566,7 +611,7 @@ public class TorrentUtil
 
 		itemFileClearAlloc.setEnabled(allStopped);
 
-		// clear resume
+			// clear resume
 
 		MenuItem itemFileClearResume = new MenuItem(menuFiles, SWT.PUSH);
 		Messages.setLanguageText(itemFileClearResume,

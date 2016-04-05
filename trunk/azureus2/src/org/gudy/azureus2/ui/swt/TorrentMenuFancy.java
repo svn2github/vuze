@@ -32,6 +32,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -1234,6 +1235,7 @@ public class TorrentMenuFancy
 							boolean allScanNotSelected = true;
 							boolean fileMove = true;
 							boolean allResumeIncomplete = true;
+							boolean	hasClearableLinks = false;
 							
 							for (DownloadManager dm : dms) {
 								boolean stopped = ManagerUtils.isStopped(dm);
@@ -1252,8 +1254,17 @@ public class TorrentMenuFancy
 								allScanSelected = incomplete && allScanSelected && scan;
 								allScanNotSelected = incomplete && allScanNotSelected && !scan;
 								
-								if (dm.getDownloadState().isResumeDataComplete()){
+								DownloadManagerState dms = dm.getDownloadState();
+								
+								if (dms.isResumeDataComplete()){
 									allResumeIncomplete = false;
+								}
+								if ( stopped && !hasClearableLinks ){
+									if ( dm.getDiskManagerFileInfoSet().nbFiles() > 1 ){
+										if ( dms.getFileLinks().hasLinks()){
+											hasClearableLinks = true;
+										}
+									}
 								}
 							}
 
@@ -1284,7 +1295,39 @@ public class TorrentMenuFancy
 							itemFileRescan.setSelection(allScanSelected);
 							itemFileRescan.setEnabled(fileRescan);
 
-							// clear allocation
+								// clear links
+							
+							final MenuItem itemClearLinks = new MenuItem(menu, SWT.PUSH);
+							Messages.setLanguageText(itemClearLinks, "FilesView.menu.clear.links");
+							itemClearLinks.addListener(SWT.Selection, new ListenerDMTask(dms) {
+								public void run(DownloadManager dm)
+								{
+									if ( 	ManagerUtils.isStopped(dm) && 
+											dm.getDownloadState().getFileLinks().hasLinks()){
+										
+										DiskManagerFileInfoSet fis = dm.getDiskManagerFileInfoSet();
+										
+										if ( fis.nbFiles() > 1 ){
+											
+											DiskManagerFileInfo[] files = fis.getFiles();
+											
+											for ( DiskManagerFileInfo file_info: files ){
+												
+												File file_link 		= file_info.getFile( true );
+												File file_nolink 	= file_info.getFile( false );
+								
+												if ( !file_nolink.getAbsolutePath().equals( file_link.getAbsolutePath())){
+														
+													file_info.setLink( null );
+												}
+											}
+										}
+									}
+								}
+							});
+							
+							itemClearLinks.setEnabled(hasClearableLinks);
+								// clear allocation
 
 							MenuItem itemFileClearAlloc = new MenuItem(menu, SWT.PUSH);
 							Messages.setLanguageText(itemFileClearAlloc,
