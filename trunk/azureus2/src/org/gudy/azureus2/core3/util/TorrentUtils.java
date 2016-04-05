@@ -4571,7 +4571,7 @@ TorrentUtils
 	{
 		long val = torrent_delete_level.incrementAndGet();
 		
-		System.out.println( "delete level++ -> " + val );
+		//System.out.println( "delete level++ -> " + val );
 	}
 	
 	public static void
@@ -4579,7 +4579,7 @@ TorrentUtils
 	{
 		long val = torrent_delete_level.decrementAndGet();
 		
-		System.out.println( "delete level-- -> " + val );
+		//System.out.println( "delete level-- -> " + val );
 	}
 	
 	public static void
