@@ -625,6 +625,21 @@ ContentNetworkVuzeGeneric
 			}
 		}
 		
+		fds = fm.getFeatureDetails( "no_ads" );
+		
+		for ( FeatureDetails fd: fds ){
+				
+			if ( !fd.hasExpired()){
+				
+				String finger_print = (String)fd.getProperty( FeatureDetails.PR_FINGERPRINT );
+											
+				if ( finger_print != null ){
+				
+					return( fd.getLicence().getShortID() + "-" + finger_print );
+				}
+			}
+		}
+		
 		return( null );
 	}
 }

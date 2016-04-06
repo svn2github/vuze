@@ -55,52 +55,108 @@ FeatureUtils
 				}
 			});
 	}
-			
-	public static String getMode() {
-		boolean isFull = hasFullLicence();
+		
+	public static String getPlusMode() {
+		boolean isFull = hasPlusLicence();
 		boolean isTrial = hasFullBurn() && !isFull;
 		return isFull ? "plus" : isTrial ? "trial" : "free";
 	}
 	
-	public static boolean hasFullLicence() {
+	public static String getNoAdsMode() {
+		boolean isNoAds = hasNoAdLicence();
+		return isNoAds ? "no_ads" : "free";
+	}
+	
+	public static boolean hasPlusLicence() {
 		if (featman == null) {
 			//Debug.out("featman null");
 			Set<String> featuresInstalled = UtilitiesImpl.getFeaturesInstalled();
 			return featuresInstalled.contains("dvdburn");
 		}
-		licenceDetails fullFeatureDetails = getFullFeatureDetails();
+		licenceDetails fullFeatureDetails = getPlusFeatureDetails();
 		long now = SystemTime.getCurrentTime();
 		return fullFeatureDetails != null && fullFeatureDetails.expiry > now
 				&& fullFeatureDetails.displayedExpiry > now;
 	}
 
-	public static class licenceDetails {
-		public final Licence licence;
-		public long expiry;
-		public long displayedExpiry;
-
-		public licenceDetails(long expiry, long displayedExpiry, Licence licence) {
-			this.expiry = expiry;
-			this.displayedExpiry = displayedExpiry;
-			this.licence = licence;
+	/**
+	 * Only used by old promo plugins (<=2.0)
+	 * @deprecated Use {@link #hasPlusLicence()}
+	 */
+	public static boolean
+	hasFullLicence()
+	{
+		return( hasPlusLicence());
+	}
+	
+	public static boolean
+	hasTrialLicence()
+	{
+		boolean isFull = hasPlusLicence();
+		boolean isTrial = hasFullBurn() && !isFull;
+		
+		return( isTrial );
+	}
+	
+	public static boolean
+	hasNoAdLicence()
+	{
+		if ( featman == null ){
+		
+			Set<String> featuresInstalled = UtilitiesImpl.getFeaturesInstalled();
+			
+			return featuresInstalled.contains("no_ads");
 		}
 		
-		public String getRenewalKey() {
-			FeatureDetails[] features = licence.getFeatures();
-			if (features == null) {
-				return null;
-			}
-			for (FeatureDetails fd : features) {
-				Object property = fd.getProperty(FeatureDetails.PR_RENEWAL_KEY);
-				if (property instanceof String) {
-					return (String) property;
-				}
-			}
-			return null;
-		}
+		licenceDetails details = getNoAdFeatureDetails();
+		long now = SystemTime.getCurrentTime();
+		return details != null && details.expiry > now
+				&& details.displayedExpiry > now;
+		
 	}
+	
 
-	public static licenceDetails getFullFeatureDetails() {
+	public static licenceDetails getPlusFeatureDetails() {
+		return( getFeatureDetails( "dvdburn" ));
+	}
+	private static licenceDetails getNoAdFeatureDetails() {
+		return( getFeatureDetails( "no_ads" ));
+	}
+	
+	public static licenceDetails getPlusOrNoAdFeatureDetails() {
+			// plus trumps no-ads
+		licenceDetails plusDetails = getPlusFeatureDetails();
+		
+		long now = System.currentTimeMillis();
+		
+		if ( 	plusDetails != null &&
+				plusDetails.licence.getState() == Licence.LS_AUTHENTICATED && 
+				plusDetails.expiry >= now ){
+			
+			return( plusDetails );
+		}
+		
+		licenceDetails noAdDetails = getNoAdFeatureDetails();
+		
+		if ( noAdDetails == null ){
+			
+			return( plusDetails );
+			
+		}else if ( plusDetails == null ){
+			
+			return( noAdDetails );
+		}
+		
+		if ( 	noAdDetails.licence.getState() == Licence.LS_AUTHENTICATED && 
+				noAdDetails.expiry >= now ){
+			
+			return( noAdDetails );
+		}
+		
+		return( plusDetails );
+	}
+	
+	private static licenceDetails getFeatureDetails( String feature ) {
 		if (featman == null) {
 			Debug.out("featman null");
 			return null;
@@ -108,7 +164,7 @@ FeatureUtils
 
 		TreeMap<Long, Object[]> mapOrder = new TreeMap<Long, Object[]>(
 				Collections.reverseOrder());
-		FeatureDetails[] featureDetails = featman.getFeatureDetails("dvdburn");
+		FeatureDetails[] featureDetails = featman.getFeatureDetails( feature );
 		// if any of the feature details are still valid, we have a full
 		for (FeatureDetails fd : featureDetails) {
 			Licence licence = fd.getLicence();
@@ -168,7 +224,7 @@ FeatureUtils
 		Long firstKey = mapOrder.firstKey();
 		Object[] objects = mapOrder.get(firstKey);
 		Licence licence = (Licence) objects[0];
-		return new licenceDetails(firstKey.longValue(), ((Long) objects[1]).longValue(), licence);
+		return new licenceDetails(firstKey.longValue(), ((Long) objects[1]).longValue(), licence, feature );
 	}
 	
 	public static boolean isTrialLicence(Licence licence) {
@@ -236,28 +292,72 @@ FeatureUtils
 	}
 	
 	
-	public static long getPlusExpiryTimeStamp() {
-		licenceDetails fullFeatureDetails = getFullFeatureDetails();
-		if (fullFeatureDetails == null || fullFeatureDetails.expiry == 0) {
-			return 0;
+	public static class licenceDetails {
+		private final Licence licence;
+		private final long expiry;
+		private final long displayedExpiry;
+		private final String	feature;
+		
+		public licenceDetails(long expiry, long displayedExpiry, Licence licence, String feature) {
+			this.expiry = expiry;
+			this.displayedExpiry = displayedExpiry;
+			this.licence = licence;
+			this.feature = feature;
 		}
-		return fullFeatureDetails.expiry;
-	}
-
-	public static long getPlusExpiryDisplayTimeStamp() {
-		licenceDetails fullFeatureDetails = getFullFeatureDetails();
-		if (fullFeatureDetails == null || fullFeatureDetails.expiry == 0) {
-			return 0;
+		
+		public Licence
+		getLicence()
+		{
+			return( licence );
 		}
-		return fullFeatureDetails.displayedExpiry;
-	}
-
-	public static String getPlusRenewalCode() {
-		licenceDetails fullFeatureDetails = getFullFeatureDetails();
-		if (fullFeatureDetails == null || fullFeatureDetails.expiry == 0) {
+		
+		public String 
+		getRenewalKey()
+		{
+			FeatureDetails[] features = licence.getFeatures();
+			if (features == null) {
+				return null;
+			}
+			for (FeatureDetails fd : features) {
+				Object property = fd.getProperty(FeatureDetails.PR_RENEWAL_KEY);
+				if (property instanceof String) {
+					return (String) property;
+				}
+			}
 			return null;
 		}
+		
+		public boolean
+		isPlus()
+		{
+			return( feature.equals( "dvdburn" ));
+		}
+		
+		public boolean
+		isNoAds()
+		{
+			return( !isPlus());
+		}
+		
+		public long getExpiryTimeStamp(){
+			
+			return( expiry );
+		}
 
-		return fullFeatureDetails.getRenewalKey();
+		public long getExpiryDisplayTimeStamp(){
+			if ( expiry == 0 ){
+				return 0;
+			}
+			return displayedExpiry;
+		}
+
+		public String getRenewalCode(){
+			
+			if ( expiry == 0) {
+				return null;
+			}
+
+			return getRenewalKey();
+		}
 	}
 }

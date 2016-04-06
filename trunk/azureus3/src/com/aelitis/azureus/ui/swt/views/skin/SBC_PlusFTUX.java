@@ -102,7 +102,8 @@ public class SBC_PlusFTUX
 
 	private void buildURL(boolean forceSet) {
 		String sRef2;
-		long plusExpiryTimeStamp = FeatureUtils.getPlusExpiryDisplayTimeStamp();
+		FeatureUtils.licenceDetails plusDetails = FeatureUtils.getPlusFeatureDetails();
+		long plusExpiryTimeStamp = plusDetails==null?0:plusDetails.getExpiryDisplayTimeStamp();
 		if (plusExpiryTimeStamp > 0 && plusExpiryTimeStamp < SystemTime.getCurrentTime()) {
 			sRef2 = "-/plus/renew";
 		} else {

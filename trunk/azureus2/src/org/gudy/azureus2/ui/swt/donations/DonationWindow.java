@@ -85,6 +85,16 @@ public class DonationWindow
 			}
 		}
 
+		fds = fm.getFeatureDetails( "no_ads" );
+		
+		for ( FeatureDetails fd: fds ){
+			
+			if ( !fd.hasExpired()){
+				
+				return;
+			}
+		}
+		
 		long maxDate = COConfigurationManager.getLongParameter("donations.maxDate", 0);
 		boolean force = maxDate > 0 && SystemTime.getCurrentTime() > maxDate ? true : false;	
 		

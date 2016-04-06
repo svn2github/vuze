@@ -103,7 +103,7 @@ public class VuzeListener
 			
 			if (callback != null) {
 				
-				context.executeInBrowser(callback + "('" + FeatureUtils.getMode() + "')");
+				context.executeInBrowser(callback + "('" + FeatureUtils.getPlusMode() + "')");
 				
 			} else {
 				
@@ -116,12 +116,12 @@ public class VuzeListener
 			
 			if (callback != null) {
 
-				FeatureUtils.licenceDetails fd = FeatureUtils.getFullFeatureDetails();
-				if (fd == null || fd.expiry == 0) {
+				FeatureUtils.licenceDetails fd = FeatureUtils.getPlusFeatureDetails();
+				if (fd == null || fd.getExpiryTimeStamp() == 0) {
 					context.executeInBrowser(callback + "()");
 				} else {
-					long ms1 = fd.expiry - SystemTime.getCurrentTime();
-					long ms2 = fd.displayedExpiry - SystemTime.getCurrentTime();
+					long ms1 = fd.getExpiryTimeStamp() - SystemTime.getCurrentTime();
+					long ms2 = fd.getExpiryDisplayTimeStamp() - SystemTime.getCurrentTime();
 					context.executeInBrowser(callback + "(" + ms1 + "," + ms2 + ")");
 				}
 				

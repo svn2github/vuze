@@ -293,7 +293,7 @@ public class FeatureManagerUIListener
 	}
 
 	private void _updateUI() {
-		final boolean hasFullLicence = FeatureUtils.hasFullLicence();
+		final boolean hasFullLicence = FeatureUtils.hasPlusLicence();
 
 		try {
 			buildNotifications();
@@ -345,8 +345,14 @@ public class FeatureManagerUIListener
 	}
 
 	private static void _buildNotifications() {
-		long plusDisplayExpiryTimeStamp = FeatureUtils.getPlusExpiryDisplayTimeStamp();
-		long plusExpiryTimeStamp = FeatureUtils.getPlusExpiryTimeStamp();
+		FeatureUtils.licenceDetails plusDetails = FeatureUtils.getPlusFeatureDetails();
+		
+		if ( plusDetails == null ){
+			return;
+		}
+		
+		long plusDisplayExpiryTimeStamp = plusDetails.getExpiryDisplayTimeStamp();
+		long plusExpiryTimeStamp = plusDetails.getExpiryTimeStamp();
 		
 		if (plusExpiryTimeStamp <= 0) {
 			return;

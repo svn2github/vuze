@@ -117,7 +117,7 @@ public class FeatureManagerUI
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
-						String title = FeatureUtils.hasFullLicence()
+						String title = FeatureUtils.hasPlusLicence()
 								? "{mdi.entry.plus.full}" : "{mdi.entry.plus.free}";
 						String placeBelow = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
 								? "" : MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME;
@@ -184,7 +184,7 @@ public class FeatureManagerUI
 		});
 
 		if (ConfigurationChecker.isNewVersion()
-				&& !ConfigurationChecker.isNewInstall() && !FeatureUtils.hasFullLicence()) {
+				&& !ConfigurationChecker.isNewInstall() && !FeatureUtils.hasPlusLicence()) {
 			SBC_PlusFTUX.setSourceRef("startup");
 			mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
 		}
@@ -330,9 +330,9 @@ public class FeatureManagerUI
 	  					if (prefillWith != null) {
 	  						key[0].setText(prefillWith);
 	  					} else if (!trytwo) {
-	  						FeatureUtils.licenceDetails details = FeatureUtils.getFullFeatureDetails();
-	    					if (details != null && details.licence.getState() != Licence.LS_INVALID_KEY) {
-	    						key[0].setText(details.licence.getKey());
+	  						FeatureUtils.licenceDetails details = FeatureUtils.getPlusOrNoAdFeatureDetails();
+	    					if (details != null && details.getLicence().getState() != Licence.LS_INVALID_KEY) {
+	    						key[0].setText(details.getLicence().getKey());
 	    						if (key[0].getControl() instanceof Text) {
 	    							((Text)key[0].getControl()).selectAll();
 	    						}
@@ -344,7 +344,7 @@ public class FeatureManagerUI
 	    								}
 	    							});
 	
-	    							int state = details.licence.getState();
+	    							int state = details.getLicence().getState();
 	    							if (state == Licence.LS_CANCELLED) {
 	    								soExpirey.setText(MessageText.getString("dlg.auth.enter.cancelled"));
 	    							} else if (state == Licence.LS_REVOKED) {
@@ -353,12 +353,12 @@ public class FeatureManagerUI
 	    								soExpirey.setText(MessageText.getString("dlg.auth.enter.denied"));
 	    							} else {
 	    								long now = SystemTime.getCurrentTime();
-	    								if (details.expiry < now && details.displayedExpiry > now) {
+	    								if (details.getExpiryTimeStamp() < now && details.getExpiryDisplayTimeStamp() > now) {
 	    									soExpirey.setText(MessageText.getString("plus.notificaiton.OfflineExpiredEntry"));
 	    								} else {
 	        							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
 	        									new String[] {
-	        										DisplayFormatters.formatCustomDateOnly(details.displayedExpiry)
+	        										DisplayFormatters.formatCustomDateOnly(details.getExpiryDisplayTimeStamp())
 	        									}));
 	    								}
 	    							} 
@@ -423,10 +423,12 @@ public class FeatureManagerUI
 			return;
 		}
 
-		if (FeatureUtils.hasFullLicence()) {
+		if (FeatureUtils.hasPlusLicence()) {
 			openFullLicenceSuccessWindow();
-		} else {
+		} else if (FeatureUtils.hasTrialLicence()) {
 			openTrialLicenceSuccessWindow();
+		}else{
+			
 		}
 	}
 
@@ -643,7 +645,8 @@ public class FeatureManagerUI
 	public static void openStreamPlusWindow(final String referal) {
 		String msgidPrefix;
 		String buttonID;
-		long plusExpiryTimeStamp = FeatureUtils.getPlusExpiryTimeStamp();
+		FeatureUtils.licenceDetails details = FeatureUtils.getPlusFeatureDetails();
+		long plusExpiryTimeStamp = details==null?0:details.getExpiryTimeStamp();
 		if (plusExpiryTimeStamp <= 0
 				|| plusExpiryTimeStamp >= SystemTime.getCurrentTime()) {
 			msgidPrefix = "dlg.stream.plus.";
@@ -695,13 +698,27 @@ public class FeatureManagerUI
 		});
 	}
 	
+		// used by the burn plugin...
+		// only relevant for Plus FTUX / Burn FTUX (core+plugin)
+	
 	public static String appendFeatureManagerURLParams(String url) {
 		long remainingUses = FeatureUtils.getRemaining();
-		long plusExpiryTimeStamp = FeatureUtils.getPlusExpiryDisplayTimeStamp();
-		String plusRenewalCode = FeatureUtils.getPlusRenewalCode();
+		FeatureUtils.licenceDetails details = FeatureUtils.getPlusFeatureDetails();
+		
+		long plusExpiryTimeStamp;
+		String plusRenewalCode;
 
+		if ( details == null ){
+			plusExpiryTimeStamp = 0;
+			plusRenewalCode = null;
+		}else{
+			plusExpiryTimeStamp = details.getExpiryDisplayTimeStamp();
+			plusRenewalCode = details.getRenewalCode();
+
+		}
+		
 		String newURL = url + (url.contains("?") ? "&" : "?");
-		newURL += "mode=" + FeatureUtils.getMode();
+		newURL += "mode=" + FeatureUtils.getPlusMode();
 		if (plusExpiryTimeStamp != 0) {
 			newURL += "&remaining_plus="
 					+ (plusExpiryTimeStamp - SystemTime.getCurrentTime());
@@ -721,6 +738,13 @@ public class FeatureManagerUI
 	public static long
 	getPlusExpiryTimeStamp()
 	{
-		return( FeatureUtils.getPlusExpiryTimeStamp());
+		FeatureUtils.licenceDetails details = FeatureUtils.getPlusFeatureDetails();
+
+		if ( details == null ){
+			
+			return( 0 );
+		}
+		
+		return( details.getExpiryTimeStamp());
 	}
 }
