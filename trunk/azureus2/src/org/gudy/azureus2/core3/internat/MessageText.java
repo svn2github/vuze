@@ -82,11 +82,9 @@ public class MessageText {
   
   public static void
   updateProductName()
-  {
-	  String product_name = Constants.APP_NAME;
-	  
-	  DEFAULT_EXPANSIONS.put( "base.product.name", product_name );
-	  DEFAULT_EXPANSIONS.put( "base.plus.product.name", product_name + " Plus" );
+  {	  
+	  DEFAULT_EXPANSIONS.put( "base.product.name", 		Constants.APP_NAME );
+	  DEFAULT_EXPANSIONS.put( "base.plus.product.name", Constants.APP_PLUS_NAME );
   }
   
   public static void loadBundle() {

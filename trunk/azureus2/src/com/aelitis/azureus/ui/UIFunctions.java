@@ -20,6 +20,7 @@ package com.aelitis.azureus.ui;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
+import org.gudy.azureus2.core3.util.Constants;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.tag.Tag;
@@ -34,8 +35,8 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 public interface UIFunctions
 	extends AzureusCoreComponent
 {
-	public static final String	MAIN_WINDOW_NAME 		= System.getProperty( "azureus.window.title", "Vuze Bittorrent Client" );
-	public static final String	MAIN_WINDOW_NAME_PLUS 	= System.getProperty( "azureus.window.title", "Vuze Plus Bittorrent Client" );
+	public static final String	MAIN_WINDOW_NAME 		= System.getProperty( "azureus.window.title", Constants.APP_NAME 		+ " Bittorrent Client" );
+	public static final String	MAIN_WINDOW_NAME_PLUS 	= System.getProperty( "azureus.window.title", Constants.APP_PLUS_NAME 	+ " Bittorrent Client" );
 		
 	public static int STATUSICON_NONE = 0;
 
