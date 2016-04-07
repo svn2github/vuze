@@ -237,7 +237,7 @@ public class AboutWindow {
     gridData.horizontalSpan = 2;
     gridData.horizontalIndent = gridData.verticalIndent = 0;
     Utils.setLayoutData(labelOwner, gridData);
-    labelOwner.setText("Vuze is a product of Azureus Software, Inc.");
+    labelOwner.setText(MessageText.getString( "MainWindow.about.product.info" ));
 
     
     Listener keyListener =  new Listener() {

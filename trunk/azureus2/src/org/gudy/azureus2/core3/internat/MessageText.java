@@ -52,8 +52,12 @@ public class MessageText {
   
   private static final String BUNDLE_NAME;
   
+  private static final Map<String,String>	DEFAULT_EXPANSIONS = new HashMap<String, String>();
+  
   static{
 	  BUNDLE_NAME = System.getProperty( "az.factory.internat.bundle", "org.gudy.azureus2.internat.MessagesBundle" );
+	  
+	  updateProductName();
   }
   
   private static Map pluginLocalizationPaths = new HashMap();
@@ -76,7 +80,15 @@ public class MessageText {
   
   private static IntegratedResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
   
-
+  public static void
+  updateProductName()
+  {
+	  String product_name = Constants.APP_NAME;
+	  
+	  DEFAULT_EXPANSIONS.put( "base.product.name", product_name );
+	  DEFAULT_EXPANSIONS.put( "base.plus.product.name", product_name + " Plus" );
+  }
+  
   public static void loadBundle() {
 	  loadBundle(false);
   }
@@ -335,22 +347,27 @@ public class MessageText {
 	}
   
   public static String expandValue(String value) {
-		// Replace {*} with a lookup of *
-		if (value != null && value.indexOf('}') > 0) {
-			Matcher matcher = PAT_PARAM_ALPHA.matcher(value);
-			while (matcher.find()) {
-				String key = matcher.group(1);
-		    try {
-		    	String text = getResourceBundleString(key);
-					if (text != null) {
-						value = value.replaceAll("\\Q{" + key + "}\\E", text);
-					}
-		    } catch (MissingResourceException e) {
-		    	// ignore error
-		    }
-			}
-		}
-		return value;
+	  // Replace {*} with a lookup of *
+	  if (value != null && value.indexOf('}') > 0) {
+		  Matcher matcher = PAT_PARAM_ALPHA.matcher(value);
+		  while (matcher.find()) {
+			  String key = matcher.group(1);
+			  try {
+				  String text = DEFAULT_EXPANSIONS.get( key );
+
+				  if ( text == null ){
+					  text = getResourceBundleString(key);
+				  }
+
+				  if (text != null) {
+					  value = value.replaceAll("\\Q{" + key + "}\\E", text);
+				  }
+			  } catch (MissingResourceException e) {
+				  // ignore error
+			  }
+		  }
+	  }
+	  return value;
   }
 
   /**
