@@ -111,6 +111,9 @@ public class ConfigSectionInterfaceTables
 				label = new Label(cGeneral, SWT.NULL);
 				Messages.setLanguageText(label, MSG_PREFIX + "guiUpdate");
 				int[] values = {
+					10,
+					25,
+					50,
 					100,
 					250,
 					500,
@@ -121,6 +124,9 @@ public class ConfigSectionInterfaceTables
 					15000
 				};
 				String[] labels = {
+					"10 ms",
+					"25 ms",
+					"50 ms",
 					"100 ms",
 					"250 ms",
 					"500 ms",
