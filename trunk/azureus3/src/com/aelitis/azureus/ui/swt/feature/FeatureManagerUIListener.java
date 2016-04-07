@@ -345,22 +345,22 @@ public class FeatureManagerUIListener
 	}
 
 	private static void _buildNotifications() {
-		FeatureUtils.licenceDetails plusDetails = FeatureUtils.getPlusFeatureDetails();
+		FeatureUtils.licenceDetails details = FeatureUtils.getPlusOrNoAdFeatureDetails();
 		
-		if ( plusDetails == null ){
+		if ( details == null ){
 			return;
 		}
 		
-		long plusDisplayExpiryTimeStamp = plusDetails.getExpiryDisplayTimeStamp();
-		long plusExpiryTimeStamp = plusDetails.getExpiryTimeStamp();
+		long displayExpiryTimeStamp = details.getExpiryDisplayTimeStamp();
+		long expiryTimeStamp = details.getExpiryTimeStamp();
 		
-		if (plusExpiryTimeStamp <= 0) {
+		if (expiryTimeStamp <= 0) {
 			return;
 		}
 		
-		long msDisplayLeft = plusDisplayExpiryTimeStamp - SystemTime.getCurrentTime();
+		long msDisplayLeft = displayExpiryTimeStamp - SystemTime.getCurrentTime();
 		long daysDisplayLeft = (long) Math.ceil(msDisplayLeft / 86400000.0);
-		long msLeft = plusExpiryTimeStamp - SystemTime.getCurrentTime();
+		long msLeft = expiryTimeStamp - SystemTime.getCurrentTime();
 		long daysLeft = (long) Math.ceil(msLeft / 86400000.0);
 
 		if (daysLeft > 30 || daysDisplayLeft > 30) {

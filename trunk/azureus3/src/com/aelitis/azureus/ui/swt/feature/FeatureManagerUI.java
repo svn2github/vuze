@@ -428,15 +428,26 @@ public class FeatureManagerUI
 		} else if (FeatureUtils.hasTrialLicence()) {
 			openTrialLicenceSuccessWindow();
 		}else{
-			
+			openNoAdsLicenceSuccessWindow();
 		}
 	}
 
-	/**
-	 * 
-	 *
-	 * @since 4.1.0.5
-	 */
+	private static void openNoAdsLicenceSuccessWindow() {
+		final VuzeMessageBox box = new VuzeMessageBox(
+				MessageText.getString("dlg.auth.title"),
+				MessageText.getString("dlg.auth.noads.success.line1"), new String[] {
+					MessageText.getString("Button.ok"),
+				}, 0);
+	
+		box.setSubTitle(MessageText.getString("dlg.auth.noads.success.subtitle"));
+		box.open(new UserPrompterResultListener() {
+			public void prompterClosed(int result) {
+				
+			}
+		});
+	}
+	
+	
 	private static void openTrialLicenceSuccessWindow() {
 		final VuzeMessageBox box = new VuzeMessageBox(
 				MessageText.getString("dlg.auth.trial.success.subtitle"),
