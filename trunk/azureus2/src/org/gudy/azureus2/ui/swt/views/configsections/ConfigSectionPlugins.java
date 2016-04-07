@@ -31,12 +31,9 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -52,20 +49,19 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.views.ConfigView;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.installer.PluginInstallationListener;
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
-
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.ui.model.PluginConfigModel;
 import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
@@ -704,6 +700,41 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 			}
 		});
 
+		table.addMouseListener(
+			new MouseAdapter() {
+				@Override
+				public void mouseDoubleClick(MouseEvent e) {
+					TableItem[] items = table.getSelection();
+					
+					if ( items.length == 1 ){
+						
+						int index = table.indexOf(items[0]);
+						
+						PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
+						
+						PluginConfigModel[] models = pluginIF.getUIManager().getPluginConfigModels();
+						
+						for ( PluginConfigModel model: models ){
+							
+							if ( model.getPluginInterface() == pluginIF ){
+														
+								if ( model instanceof BasicPluginConfigModel ){
+									
+									String id = ((BasicPluginConfigModel)model).getSection();
+							
+									UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+									
+									if ( uiFunctions != null ){
+										
+										uiFunctions.getMDI().showEntryByID(	MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG, id );
+									}
+								}
+							}
+						}
+					}
+				}
+			});
+			
 		table.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				TableItem item = (TableItem) e.item;
