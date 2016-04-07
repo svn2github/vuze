@@ -129,8 +129,8 @@ Constants
     //      2.0.8.3_CVS
     //      2.0.8.3_Bnn       // incremental build
   
-  public static String APP_NAME 		= "Vuze";
-  public static String APP_PLUS_NAME	 = APP_NAME + " Plus";
+  public static final String APP_NAME 		= System.getProperty( "azureus.product.name", "Vuze" );
+  public static final String APP_PLUS_NAME	= APP_NAME + " Plus";
   
   public static final String AZUREUS_NAME	  					= "Azureus";
   public static final String AZUREUS_PROTOCOL_NAME_PRE_4813	  	= "Azureus";
