@@ -26,7 +26,6 @@ import java.net.URL;
 import java.security.KeyPair;
 import java.util.*;
 
-import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
@@ -45,6 +44,7 @@ import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.bouncycastle.util.encoders.Base64;
 import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.lws.LightWeightSeed;

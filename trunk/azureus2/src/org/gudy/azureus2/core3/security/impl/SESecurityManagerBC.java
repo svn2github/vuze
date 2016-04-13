@@ -33,13 +33,14 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 
-import org.bouncycastle.jce.*;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.asn1.x509.X509Name;
+import org.gudy.bouncycastle.jce.X509V3CertificateGenerator;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.bouncycastle.asn1.x509.X509Name;
+import org.gudy.bouncycastle.jce.*;
+import org.gudy.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class 
 SESecurityManagerBC 
@@ -48,7 +49,7 @@ SESecurityManagerBC
 	initialise()
 	{		
 		try{
-			Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+			Security.addProvider(new org.gudy.bouncycastle.jce.provider.BouncyCastleProvider());
 
 			KeyFactory kf = KeyFactory.getInstance( "ECDSA", BouncyCastleProvider.PROVIDER_NAME );
 			
@@ -58,7 +59,7 @@ SESecurityManagerBC
 				
 				try{
 				
-					where = BouncyCastleProvider.class.getClassLoader().getResource( "org/bouncycastle/jce/provider/BouncyCastleProvider.class" ).toExternalForm();
+					where = BouncyCastleProvider.class.getClassLoader().getResource( "org/gudy/bouncycastle/jce/provider/BouncyCastleProvider.class" ).toExternalForm();
 					
 				}catch( Throwable e ){
 					

@@ -12,7 +12,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.DESedeKeySpec;
 
-import org.bouncycastle.util.encoders.Base64;
+import org.gudy.bouncycastle.util.encoders.Base64;
 
 /**
  * utility class to encrypt strings. this class was taken from the examples at:

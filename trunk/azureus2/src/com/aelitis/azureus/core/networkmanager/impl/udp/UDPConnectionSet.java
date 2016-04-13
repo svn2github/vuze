@@ -26,9 +26,6 @@ import java.nio.ByteBuffer;
 
 import javax.crypto.spec.SecretKeySpec;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.engines.RC4Engine;
-import org.bouncycastle.crypto.params.KeyParameter;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -36,6 +33,9 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.bouncycastle.crypto.CipherParameters;
+import org.gudy.bouncycastle.crypto.engines.RC4Engine;
+import org.gudy.bouncycastle.crypto.params.KeyParameter;
 
 import com.aelitis.net.udp.uc.PRUDPPacketReply;
 

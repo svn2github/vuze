@@ -26,10 +26,10 @@ import java.security.spec.AlgorithmParameterSpec;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.engines.RC4Engine;
-import org.bouncycastle.crypto.params.KeyParameter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.bouncycastle.crypto.CipherParameters;
+import org.gudy.bouncycastle.crypto.engines.RC4Engine;
+import org.gudy.bouncycastle.crypto.params.KeyParameter;
 
 public class 
 TransportCipher 

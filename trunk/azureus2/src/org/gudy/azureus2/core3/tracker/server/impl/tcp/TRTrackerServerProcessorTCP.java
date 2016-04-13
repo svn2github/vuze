@@ -28,12 +28,11 @@ import java.net.*;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 import org.gudy.azureus2.core3.util.*;
-import org.bouncycastle.util.encoders.Base64;
+import org.gudy.bouncycastle.util.encoders.Base64;
 
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;

@@ -20,8 +20,8 @@ package com.aelitis.azureus.util;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
-import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.bouncycastle.util.encoders.Base64;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;

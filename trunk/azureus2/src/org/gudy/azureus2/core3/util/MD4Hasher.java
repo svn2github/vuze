@@ -21,7 +21,7 @@ package org.gudy.azureus2.core3.util;
 
 import java.security.*;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.gudy.bouncycastle.jce.provider.BouncyCastleProvider;
 
 
 public class 

@@ -188,7 +188,7 @@ SESecurityManagerImpl
 		String[]	providers = 
 			{ 	"com.sun.net.ssl.internal.ssl.Provider", 
 				"org.metastatic.jessie.provider.Jessie",
-				"org.bouncycastle.jce.provider.BouncyCastleProvider"};
+				"org.gudy.bouncycastle.jce.provider.BouncyCastleProvider"};
 			
 		String	provider = null;
 		

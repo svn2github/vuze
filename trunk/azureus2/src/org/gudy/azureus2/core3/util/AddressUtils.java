@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.bouncycastle.util.encoders.Base64;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;

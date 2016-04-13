@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.bouncycastle.util.Arrays;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.KeyEvent;
@@ -54,6 +53,7 @@ import org.gudy.azureus2.ui.swt.config.generic.GenericStringListParameter;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.bouncycastle.util.Arrays;
 
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;

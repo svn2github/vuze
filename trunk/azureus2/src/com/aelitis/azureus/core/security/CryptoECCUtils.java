@@ -30,15 +30,15 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.spec.KeySpec;
 
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.interfaces.ECPrivateKey;
-import org.bouncycastle.jce.interfaces.ECPublicKey;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.bouncycastle.jce.spec.ECPrivateKeySpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
-import org.bouncycastle.math.ec.ECPoint;
+import org.gudy.bouncycastle.jce.ECNamedCurveTable;
+import org.gudy.bouncycastle.jce.interfaces.ECPrivateKey;
+import org.gudy.bouncycastle.jce.interfaces.ECPublicKey;
+import org.gudy.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.gudy.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
+import org.gudy.bouncycastle.jce.spec.ECParameterSpec;
+import org.gudy.bouncycastle.jce.spec.ECPrivateKeySpec;
+import org.gudy.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.gudy.bouncycastle.math.ec.ECPoint;
 
 public class 
 CryptoECCUtils 

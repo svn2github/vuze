@@ -28,10 +28,10 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.Map.Entry;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.engines.RC4Engine;
-import org.bouncycastle.crypto.params.KeyParameter;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.bouncycastle.crypto.CipherParameters;
+import org.gudy.bouncycastle.crypto.engines.RC4Engine;
+import org.gudy.bouncycastle.crypto.params.KeyParameter;
 
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.control.*;

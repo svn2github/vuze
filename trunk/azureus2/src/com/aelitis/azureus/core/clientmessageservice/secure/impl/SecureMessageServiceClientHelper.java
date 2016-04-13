@@ -29,14 +29,14 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.encodings.PKCS1Encoding;
-import org.bouncycastle.crypto.engines.RSAEngine;
-import org.bouncycastle.crypto.params.ParametersWithRandom;
-import org.bouncycastle.jce.provider.RSAUtil;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.bouncycastle.crypto.CipherParameters;
+import org.gudy.bouncycastle.crypto.encodings.PKCS1Encoding;
+import org.gudy.bouncycastle.crypto.engines.RSAEngine;
+import org.gudy.bouncycastle.crypto.params.ParametersWithRandom;
+import org.gudy.bouncycastle.jce.provider.RSAUtil;
 
 import com.aelitis.azureus.core.clientmessageservice.ClientMessageService;
 import com.aelitis.azureus.core.clientmessageservice.ClientMessageServiceClient;

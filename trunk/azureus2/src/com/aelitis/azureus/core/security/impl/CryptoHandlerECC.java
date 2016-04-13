@@ -34,14 +34,14 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 
-import org.bouncycastle.jce.provider.JCEIESCipher;
-import org.bouncycastle.jce.spec.IEKeySpec;
-import org.bouncycastle.jce.spec.IESParameterSpec;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.bouncycastle.jce.provider.JCEIESCipher;
+import org.gudy.bouncycastle.jce.spec.IEKeySpec;
+import org.gudy.bouncycastle.jce.spec.IESParameterSpec;
 
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.security.CryptoHandler;
