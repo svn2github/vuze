@@ -1651,6 +1651,10 @@ AzureusCoreImpl
 				AzureusRestarterFactory.create( this ).restart( true );
 			}
 			
+			if (System.getProperty("skip.shutdown.nondeamon.check", "0").equals("1")) {
+				return;
+			}
+
 			try {
 				Class c = Class.forName( "sun.awt.AWTAutoShutdown" );
 	      
