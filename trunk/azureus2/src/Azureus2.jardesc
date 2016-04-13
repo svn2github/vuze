@@ -22,9 +22,9 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.internat"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.messenger.config"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.network"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.asn1.x509"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.plugins.net.buddy.swt"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.piece"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.generators"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.utils.search"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.deprecate"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.networkmanager.admin"/>
@@ -44,12 +44,15 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.disk.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.transport.udp.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.spi"/>
-        <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.messenger"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.wss"/>
+        <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.messenger"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.jce.provider"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.versioncheck"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.magnet.swt"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.engines"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.transport.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.ui.menus"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.params"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.splash"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.table.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.remote.rpexceptions"/>
@@ -64,9 +67,9 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.tableitems.files"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.xml.schemas"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.startstoprules.always"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.encodings"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.diskmanager.cache.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.remote.utils"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.agreement"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.nat"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.none.internat"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.udp.uc"/>
@@ -76,24 +79,23 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.stats"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.clientmessageservice.secure"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.tag"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.asn1.teletrust"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.tracker.local"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.peermanager.messaging.azureus"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.security.impl"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.asn1.x9"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.internat"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.messenger.browser"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.client"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.plugins.net.buddy"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.asn1.pkcs"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.ui.tables"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.ui.tables"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.common"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.util.http"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.modes"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.category"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.platform"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.upnp"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.paddings"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.networkmanager.admin.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.wizard"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.sharing"/>
@@ -116,7 +118,6 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.stats.transfer.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.ui.SWT"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.networkmanager.admin.impl.swt"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.agreement"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.nat.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.tcp"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.peermanager"/>
@@ -146,7 +147,6 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.xml.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.diskmanager.file"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.jce.interfaces"/>
         <javaElement handleIdentifier="=azuis_svn/&lt;org.gudy.azureus2.ui.telnet"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.html.impl"/>
@@ -165,11 +165,9 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.natpmp.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.update"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.icons.statusbar"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.config.generic"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.dht"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.jce"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.peermanager.piecepicker"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.plugininstall"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.db"/>
@@ -186,6 +184,8 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.platform.macosx.access.jnilib"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.win32"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.common.updater"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.x509"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.asn1.misc"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.stats.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.swt.mdi"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.table.painted"/>
@@ -195,14 +195,13 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.tor"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.security"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.asn1.x9"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.clientstats"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.update"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.networkmanager"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.macs"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.helpers"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.toolbar"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.agreement.srp"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.shells.uiswitcher"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.tableitems.tracker"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.networkmanager.impl.test"/>
@@ -214,7 +213,6 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.clientmessageservice.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.associations"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.security.impl"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.digests"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.remote.tracker"/>
         <javaElement handleIdentifier="=azuis_svn/&lt;org.gudy.azureus2.ui.console.multiuser"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.maketorrent"/>
@@ -231,13 +229,11 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.updater2"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.speedmanager.impl.v1"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.disk.impl.piecemapper.impl"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.jce.provider"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.config.wizard"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.peer.cache"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.signers"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.utils.subscriptions"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.asn1.util"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.openssl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.host"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.ipchecker.extipchecker"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.magnet.icons"/>
@@ -251,9 +247,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.upnp.impl.ssdp"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.speed"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.i2p"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.engines"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.speedmanager.impl.v2"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.asn1"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.db.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.natpmp"/>
@@ -264,7 +258,9 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.progress"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.peermanager.piecepicker.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.table.utils"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.util.encoders"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.selectedcontent"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.jce.spec"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.extseed"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.upnp"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.swt"/>
@@ -276,23 +272,23 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.icons.status"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.update"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.asn1.misc"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.drivedetector.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl.tests"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.subs"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.ipchecker"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.proxy"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.jce.interfaces"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.magneturi"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.twistie"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.common.table.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.dht.mainline"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.metasearch.impl.web.rss"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.socks5"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.math.ec"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.vuzefile"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.images.column"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.bc"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.minibar"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.signers"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.launcher"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.update.sf.impl2"/>
@@ -345,9 +341,11 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.upnp.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.dht.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.installer"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.asn1.cms"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.messenger.browser.listeners"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.installer"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.config.plugins"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.modes"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.configsections"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.pluginsinstaller"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.util.bloom.impl"/>
@@ -373,9 +371,9 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.drivedetector"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.maggot"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.browser.listener"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.params"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.diskmanager.cache"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.stats"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.asn1.teletrust"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.logging.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.update"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.net.buddy.tracker"/>
@@ -383,16 +381,21 @@
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.browser"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.download"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.torrent"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.encodings"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.common.viewtitleinfo"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.platform.dummy"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.asn1.x509"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.networkmanager.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.peer.impl.control"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.donations"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.exporttorrent.wizard"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.ui.toolbar"/>
         <javaElement handleIdentifier="=azuis_svn/&lt;org.pf.text"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.jce"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.networkmanager.impl.udp"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.asn1.sec"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.download"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.transport.loopback"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.peer"/>
@@ -404,7 +407,6 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.global.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.upnp.services"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.tableitems.myshares"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.jce.spec"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.peermanager.peerdb"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.peer"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.icons.toolbar"/>
@@ -438,12 +440,14 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.proxy.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.backup.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.selectedcontent"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.asn1.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.ddb"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.config"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.tableitems"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swing"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.disk"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.speedmanager"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.openssl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.help"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.remote.download"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.columns.torrent"/>
@@ -459,12 +463,12 @@
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.plugins.net.buddy.swt.columns"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.skin"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.animations"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.digests"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.ipchecker.natchecker"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.torrentdownloader.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.ui.components"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.views.skin.sidebar"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.server.impl"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.generators"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.speedtest"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.tag.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.util.loopcontrol.impl"/>
@@ -476,18 +480,18 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.startstoprules.defaultplugin"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.util.encoders"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.cnetwork.impl"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.asn1.sec"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.asn1"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.natpmp.upnp.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.mainwindow"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.shells"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.messaging.bittorrent"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.components"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.peer.util"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.asn1.pkcs"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.tracker"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.columns.tag"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.sharing.hoster"/>
         <javaElement handleIdentifier="=azuis_svn/&lt;org.gudy.azureus2.ui.common"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.agreement.srp"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.extseed.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.xml.simpleparser"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.peer.impl.transport"/>
@@ -499,12 +503,14 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.protocol.udp"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.utils.xml.rss"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.images"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.peermanager.nat"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.columns.vuzeactivity"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.magnet"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.protocol"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.metasearch.impl.web"/>
         <javaElement handleIdentifier="=azuis_svn/&lt;org.pf.file"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.macs"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.net.buddy"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.apache.commons.lang"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.table"/>
@@ -515,13 +521,12 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.swt.uiupdater"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.util.bloom"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.client.impl.bt"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.paddings"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.disk"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.metasearch"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.netcoords"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.content"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.components.shell"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.math.ec"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.ipfilter.impl"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.columns.archivedls"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.config"/>
@@ -536,8 +541,6 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.remote.ipfilter"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.ui.config"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.server"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.x509"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.asn1.cms"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.extlistener"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.welcome"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.core.subs.impl"/>
