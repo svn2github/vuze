@@ -500,16 +500,18 @@ public class TCPConnectionManager {
 		  
 		  if( request.channel != null ) {
 			  String channel = request.channel.toString();
-			  String socket = request.channel.socket().toString();
-			  String local_address = request.channel.socket().getLocalAddress().toString();
-			  int local_port = request.channel.socket().getLocalPort();
-			  SocketAddress ra = request.channel.socket().getRemoteSocketAddress();
+			  Socket socket = request.channel.socket();
+			  String socket_string = socket.toString();
+			  InetAddress local_address = socket.getLocalAddress();
+			  String local_address_string = local_address == null ? "<null>" : local_address.toString();
+			  int local_port = socket.getLocalPort();
+			  SocketAddress ra = socket.getRemoteSocketAddress();
 			  String remote_address;
 			  if( ra != null )  remote_address = ra.toString();
 			  else remote_address = "<null>";
-			  int remote_port = request.channel.socket().getPort();
+			  int remote_port = socket.getPort();
 
-			  msg += "\n channel="+channel+ ", socket="+socket+ ", local_address="+local_address+ ", local_port="+local_port+ ", remote_address="+remote_address+ ", remote_port="+remote_port;
+			  msg += "\n channel="+channel+ ", socket="+socket_string+ ", local_address="+local_address_string+ ", local_port="+local_port+ ", remote_address="+remote_address+ ", remote_port="+remote_port;
 		  }
 		  else {
 			  msg += "\n channel=<null>";
