@@ -358,7 +358,7 @@ public class Colors implements ParameterListener {
     }
   }
   
-  private void allocateDynamicColors() {
+  private void allocateDynamicColors( final boolean first_time ) {
     if(display == null || display.isDisposed())
       return;
     
@@ -367,6 +367,10 @@ public class Colors implements ParameterListener {
         allocateBlues();
         allocateColorProgressBar();
         allocateColorErrorBG();
+        
+        if ( !first_time ){
+        	ColorCache.reset();
+        }
       }
     }, false);
   }
@@ -401,7 +405,7 @@ public class Colors implements ParameterListener {
     } catch (Exception e) {
     	display = Display.getDefault();
     }
-    allocateDynamicColors();
+    allocateDynamicColors( true );
     allocateNonDynamicColors();
 
     addColorsChangedListener(this);
@@ -434,7 +438,7 @@ public class Colors implements ParameterListener {
   
   public void parameterChanged(String parameterName) {
     if (parameterName.equals("Color Scheme")) {
-      allocateDynamicColors();
+      allocateDynamicColors( false );
     }
 
     if(parameterName.startsWith("Colors.progressBar")) {

@@ -69,6 +69,16 @@ public class ColorCache
 		});
 	}
 
+	public static void
+	reset()
+	{
+		// Called when the scheme has changed and thus invalidated all the scheme-adjusted colours
+		// We can't dispose of any of the existing colours as they are no doubt in use to we
+		// have to accept some leakage here
+		
+		mapColors.clear();
+	}
+	
 	public static Color getSchemedColor(Device device, int red, int green, int blue) {
 		ensureMapColorsInitialized(device);
 
