@@ -252,6 +252,12 @@ public class ConfigSectionInterfaceTables
 			}
 
 			if (isAZ3) {
+				
+				new BooleanParameter(cLibrary, "Library.EnableSimpleView", MSG_PREFIX
+						+ "EnableSimpleView").setLayoutData(new GridData(SWT.FILL,
+								SWT.LEFT, true, false, 2, 1));
+
+				
 				new BooleanParameter(cLibrary, "Library.CatInSideBar", MSG_PREFIX
 						+ "CatInSidebar").setLayoutData(new GridData(SWT.FILL,
 								SWT.LEFT, true, false, 2, 1));

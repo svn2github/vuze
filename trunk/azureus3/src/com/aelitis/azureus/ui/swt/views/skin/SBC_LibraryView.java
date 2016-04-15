@@ -287,6 +287,11 @@ public class SBC_LibraryView
 			return;
 		}
 
+		if ( !COConfigurationManager.getBooleanParameter( "Library.EnableSimpleView" )){
+
+			viewMode = MODE_SMALLTABLE;
+		}
+		
 		int oldViewMode = this.viewMode;
 
 		this.viewMode = viewMode;

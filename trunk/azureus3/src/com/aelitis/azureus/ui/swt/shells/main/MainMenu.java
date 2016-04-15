@@ -369,45 +369,48 @@ public class MainMenu
 			
 			needsSep = PluginsMenuHelper.getInstance().buildViewMenu(viewMenu, viewMenu.getShell());
 
-			if (needsSep) {
-				MenuFactory.addSeparatorMenuItem(viewMenu);
+			if ( COConfigurationManager.getBooleanParameter( "Library.EnableSimpleView" )){
+				
+				if (needsSep) {
+					MenuFactory.addSeparatorMenuItem(viewMenu);
+				}
+
+					// Ubuntu Unity (14.04) with SWT 4508 crashes when global View menu triggered as it appears
+					// that radio menu items aren't supported
+					// https://bugs.eclipse.org/bugs/show_bug.cgi?id=419729#c9
+				
+				int simple_advanced_menu_type = Constants.isLinux?SWT.CHECK:SWT.RADIO;
+				
+				MenuFactory.addMenuItem(viewMenu, simple_advanced_menu_type, PREFIX_V3
+						+ ".view.asSimpleList", new Listener() {
+					public void handleEvent(Event event) {
+						UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
+						if (tb != null) {
+							UIToolBarItem item = tb.getToolBarItem("modeBig");
+							if (item != null) {
+								item.triggerToolBarItem(
+										UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL,
+										SelectedContentManager.convertSelectedContentToObject(null));
+							}
+						}
+					}
+				});
+				MenuFactory.addMenuItem(viewMenu, simple_advanced_menu_type, PREFIX_V3
+						+ ".view.asAdvancedList", new Listener() {
+					public void handleEvent(Event event) {
+						UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
+						if (tb != null) {
+							UIToolBarItem item = tb.getToolBarItem("modeSmall");
+							if (item != null) {
+								item.triggerToolBarItem(
+										UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL,
+										SelectedContentManager.convertSelectedContentToObject(null));
+							}
+						}
+					}
+				});
 			}
-
-				// Ubuntu Unity (14.04) with SWT 4508 crashes when global View menu triggered as it appears
-				// that radio menu items aren't supported
-				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=419729#c9
 			
-			int simple_advanced_menu_type = Constants.isLinux?SWT.CHECK:SWT.RADIO;
-			
-			MenuFactory.addMenuItem(viewMenu, simple_advanced_menu_type, PREFIX_V3
-					+ ".view.asSimpleList", new Listener() {
-				public void handleEvent(Event event) {
-					UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
-					if (tb != null) {
-						UIToolBarItem item = tb.getToolBarItem("modeBig");
-						if (item != null) {
-							item.triggerToolBarItem(
-									UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL,
-									SelectedContentManager.convertSelectedContentToObject(null));
-						}
-					}
-				}
-			});
-			MenuFactory.addMenuItem(viewMenu, simple_advanced_menu_type, PREFIX_V3
-					+ ".view.asAdvancedList", new Listener() {
-				public void handleEvent(Event event) {
-					UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
-					if (tb != null) {
-						UIToolBarItem item = tb.getToolBarItem("modeSmall");
-						if (item != null) {
-							item.triggerToolBarItem(
-									UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL,
-									SelectedContentManager.convertSelectedContentToObject(null));
-						}
-					}
-				}
-			});
-
 			viewMenu.addMenuListener(new MenuListener() {
 
 				public void menuShown(MenuEvent e) {
@@ -430,26 +433,29 @@ public class MainMenu
 						}
 					}
 
-					MenuItem itemShowAsSimple = MenuFactory.findMenuItem(viewMenu,
-							PREFIX_V3 + ".view.asSimpleList");
-					if (itemShowAsSimple != null) {
-						UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
-						if (tb != null) {
-							UIToolBarItem item = tb.getToolBarItem("modeBig");
-							long state = item == null ? 0 : item.getState();
-							itemShowAsSimple.setEnabled((state & UIToolBarItem.STATE_ENABLED) > 0);
-							itemShowAsSimple.setSelection((state & UIToolBarItem.STATE_DOWN) > 0);
+					if ( COConfigurationManager.getBooleanParameter( "Library.EnableSimpleView" )){
+
+						MenuItem itemShowAsSimple = MenuFactory.findMenuItem(viewMenu,
+								PREFIX_V3 + ".view.asSimpleList");
+						if (itemShowAsSimple != null) {
+							UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
+							if (tb != null) {
+								UIToolBarItem item = tb.getToolBarItem("modeBig");
+								long state = item == null ? 0 : item.getState();
+								itemShowAsSimple.setEnabled((state & UIToolBarItem.STATE_ENABLED) > 0);
+								itemShowAsSimple.setSelection((state & UIToolBarItem.STATE_DOWN) > 0);
+							}
 						}
-					}
-					MenuItem itemShowAsAdv = MenuFactory.findMenuItem(viewMenu, PREFIX_V3
-							+ ".view.asAdvancedList");
-					if (itemShowAsAdv != null) {
-						UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
-						if (tb != null) {
-							UIToolBarItem item = tb.getToolBarItem("modeSmall");
-							long state = item == null ? 0 : item.getState();
-							itemShowAsAdv.setEnabled((state & UIToolBarItem.STATE_ENABLED) > 0);
-							itemShowAsAdv.setSelection((state & UIToolBarItem.STATE_DOWN) > 0);
+						MenuItem itemShowAsAdv = MenuFactory.findMenuItem(viewMenu, PREFIX_V3
+								+ ".view.asAdvancedList");
+						if (itemShowAsAdv != null) {
+							UIToolBarManager tb = UIToolBarManagerImpl.getInstance();
+							if (tb != null) {
+								UIToolBarItem item = tb.getToolBarItem("modeSmall");
+								long state = item == null ? 0 : item.getState();
+								itemShowAsAdv.setEnabled((state & UIToolBarItem.STATE_ENABLED) > 0);
+								itemShowAsAdv.setSelection((state & UIToolBarItem.STATE_DOWN) > 0);
+							}
 						}
 					}
 				}

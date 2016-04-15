@@ -414,17 +414,20 @@ public class ToolBarView
 
 		///////////////////////
 
-		// == mode big
-		item = createItem(this, "modeBig", "image.toolbar.table_large",
-				"v3.iconBar.view.big");
-		item.setGroupID("views");
-		tbm.addToolBarItem(item, false);
+		if ( COConfigurationManager.getBooleanParameter( "Library.EnableSimpleView" )){
 
-		// == mode small
-		item = createItem(this, "modeSmall", "image.toolbar.table_normal",
-				"v3.iconBar.view.small");
-		item.setGroupID("views");
-		tbm.addToolBarItem(item, false);
+			// == mode big
+			item = createItem(this, "modeBig", "image.toolbar.table_large",
+					"v3.iconBar.view.big");
+			item.setGroupID("views");
+			tbm.addToolBarItem(item, false);
+	
+			// == mode small
+			item = createItem(this, "modeSmall", "image.toolbar.table_normal",
+					"v3.iconBar.view.small");
+			item.setGroupID("views");
+			tbm.addToolBarItem(item, false);
+		}
 	}
 
 	public void currentlySelectedContentChanged(
