@@ -28,7 +28,6 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -36,6 +35,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ColorParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class ConfigSectionInterfaceColor implements UISWTConfigSection {
 	private static final String[] sColorsToOverride = { "progressBar", "error",
@@ -142,7 +143,68 @@ public class ConfigSectionInterfaceColor implements UISWTConfigSection {
 				}
 			});
 		}
+		
+		label = new Label(cColorOverride, SWT.NULL);
+		gridData = new GridData( GridData.FILL_HORIZONTAL );
+		gridData.horizontalSpan = 3;
+		label.setLayoutData(gridData);
+		
+		label = new Label(cColorOverride, SWT.NULL);
+		Messages.setLanguageText(label, "restart.required.for.following" );
+		gridData = new GridData( GridData.FILL_HORIZONTAL );
+		gridData.horizontalSpan = 3;
+		label.setLayoutData(gridData);
 
+		String[]	override_keys = {
+				"config.skin.color.sidebar.bg",
+				"config.skin.color.library.header",
+		};
+		
+		for ( final String key: override_keys ){
+				
+			label = new Label(cColorOverride, SWT.NULL);
+			Messages.setLanguageText(label, key );
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			label.setLayoutData(gridData);
+			
+			Color existing = null;
+			
+			boolean is_override = COConfigurationManager.getStringParameter( key, "" ).length() > 0;
+			
+			if ( is_override ){
+			
+				existing = ColorCache.getSchemedColor( parent.getDisplay(), key );
+			}
+			
+			final Button[]	f_reset = { null };
+			
+			final ColorParameter colorParm = new ColorParameter(cColorOverride, null,
+					existing==null?-1:existing.getRed(), 
+					existing==null?-1:existing.getGreen(),
+					existing==null?-1:existing.getBlue()) {
+				public void newColorChosen(RGB newColor) {
+					COConfigurationManager.setParameter( key, newColor.red+","+newColor.green+","+newColor.blue );
+					f_reset[0].setEnabled( true );
+				}
+			};
+			
+			gridData = new GridData();
+			gridData.widthHint = 50;
+			colorParm.setLayoutData(gridData);
+			
+			final Button reset = f_reset[0] = new Button(cColorOverride, SWT.PUSH);
+			Messages.setLanguageText(reset, "ConfigView.section.style.colorOverrides.reset");
+			reset.setEnabled( is_override );
+			reset.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					reset.setEnabled( false );
+					colorParm.setColor( -1, -1, -1 );
+					COConfigurationManager.removeParameter( key );
+				}
+			});
+		}
+		
+		
 		return cSection;
 	}
 }

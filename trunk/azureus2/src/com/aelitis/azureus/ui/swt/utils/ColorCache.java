@@ -21,7 +21,7 @@ import java.util.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.RGB;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
@@ -195,47 +195,72 @@ public class ColorCache
 		return getColor(device, value, true);
 	}
 
-	private static Color getColor(Device device, String value, boolean useScheme) {
+	private static Color getColor(Device device, String c_value, boolean useScheme) {
 		int[] colors = new int[3];
 
-		if (value == null || value.length() == 0) {
+		if (c_value == null || c_value.length() == 0) {
 			return null;
 		}
 
 		try {
-			if (value.charAt(0) == '#') {
+			if (c_value.charAt(0) == '#') {
 				// hex color string
-				long l = Long.parseLong(value.substring(1), 16);
+				long l = Long.parseLong(c_value.substring(1), 16);
 				colors[0] = (int) ((l >> 16) & 255);
 				colors[1] = (int) ((l >> 8) & 255);
 				colors[2] = (int) (l & 255);
-			} else if (value.indexOf(',') > 0) {
-				StringTokenizer st = new StringTokenizer(value, ",");
+			} else if (c_value.indexOf(',') > 0) {
+				StringTokenizer st = new StringTokenizer(c_value, ",");
 				colors[0] = Integer.parseInt(st.nextToken());
 				colors[1] = Integer.parseInt(st.nextToken());
 				colors[2] = Integer.parseInt(st.nextToken());
 			} else {
-				value = value.toUpperCase();
-				if (value.startsWith("COLOR_")) {
+				String u_value = c_value.toUpperCase();
+				if (u_value.startsWith("COLOR_")) {
 					for (int i = 0; i < systemColorNames.length; i++) {
 						String name = systemColorNames[i];
-						if (name.equals(value) && device != null && !device.isDisposed()) {
+						if (name.equals(u_value) && device != null && !device.isDisposed()) {
 							return device.getSystemColor(i + SYSTEMCOLOR_INDEXSTART);
 						}
 					}
-				} else if (value.startsWith("BLUE.FADED.")) {
-					int idx = Integer.parseInt(value.substring(11));
+				} else if (u_value.startsWith("BLUE.FADED.")) {
+					int idx = Integer.parseInt(u_value.substring(11));
 					return Colors.faded[idx];
-				} else if (value.startsWith("BLUE.")) {
-					int idx = Integer.parseInt(value.substring(5));
+				} else if (u_value.startsWith("BLUE.")) {
+					int idx = Integer.parseInt(u_value.substring(5));
 					return Colors.blues[idx];
-				} else if (value.equals("ALTROW")) {
+				} else if (u_value.equals("ALTROW")) {
 					return Colors.colorAltRow;
+				}else if ( c_value.startsWith( "config." )){
+					int	def_pos = c_value.indexOf( ':' );
+					
+					String	config_name;
+					String	def_value;
+					
+					if ( def_pos != -1 ){
+						
+						config_name = c_value.substring( 0, def_pos );
+						def_value	= c_value.substring( def_pos+1 );
+					}else{
+						config_name = c_value;
+						def_value	= null;
+					}
+					
+					Color result = getColor( device, COConfigurationManager.getStringParameter( config_name, def_value ), useScheme );
+					
+					if ( result == null ){
+						
+						Debug.out( "No color found for '" + c_value + "'" );
+						
+						result = Colors.white;
+					}
+					
+					return( result );
 				}
 				return null;
 			}
 		} catch (Exception e) {
-			Debug.out(value, e);
+			Debug.out(c_value, e);
 			return null;
 		}
 

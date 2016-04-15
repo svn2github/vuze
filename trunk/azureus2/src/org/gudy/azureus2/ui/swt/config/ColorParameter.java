@@ -27,6 +27,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
@@ -36,7 +37,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
@@ -89,7 +92,9 @@ public class ColorParameter extends Parameter implements ParameterListener {
     colorChooser.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         ColorDialog cd = new ColorDialog(composite.getShell());
-        cd.setRGB(new RGB(r,g,b));
+        if ( r >= 0 && g >= 0 && b >= 0 ){
+        	cd.setRGB(new RGB(r,g,b));
+        }
         RGB newColor = cd.open();
         if (newColor == null)
           return;
@@ -111,11 +116,19 @@ public class ColorParameter extends Parameter implements ParameterListener {
   
   private void updateButtonColor(final Display display, final int rV, final int gV, final int bV) {
     Image oldImg = img;
-    Color color = ColorCache.getColor(display, rV, gV, bV);
     img = new Image(display,25,10);
     GC gc = new GC(img);
-    gc.setBackground(color);
-    gc.fillRectangle(0,0,25,10);
+    if ( r >= 0 && g >= 0 && b >= 0 ){
+    	Color color = ColorCache.getColor(display, rV, gV, bV);
+        gc.setBackground(color);
+       	gc.fillRectangle(0,0,25,10);  
+     }else{
+    	Color color = colorChooser.getBackground();
+    	gc.setBackground(color);
+       	gc.fillRectangle(0,0,25,10);  
+       	new GCStringPrinter( gc, "-", new Rectangle( 0, 0, 25, 10 ), 0, SWT.CENTER ).printString();
+    }
+     
     gc.dispose();
     colorChooser.setImage(img);
     if(oldImg != null && ! oldImg.isDisposed())
