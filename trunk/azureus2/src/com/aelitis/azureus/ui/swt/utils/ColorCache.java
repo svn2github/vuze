@@ -246,7 +246,14 @@ public class ColorCache
 						def_value	= null;
 					}
 					
-					Color result = getColor( device, COConfigurationManager.getStringParameter( config_name, def_value ), useScheme );
+					String x_value = COConfigurationManager.getStringParameter( config_name, def_value );
+					
+						// default values get scheme adjustments applied, explicit values don't as the
+						// user has selected them
+					
+					useScheme = x_value == def_value;
+					
+					Color result = getColor( device, x_value, useScheme );
 					
 					if ( result == null ){
 						

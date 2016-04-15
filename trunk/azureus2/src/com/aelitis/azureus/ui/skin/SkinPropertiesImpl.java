@@ -304,12 +304,14 @@ public class SkinPropertiesImpl
   				colors[2] = (int) (l & 255);
   				colors[3] = 255;
 				}
-			} else {
+			} else if ( value.contains( "," )) {
 				StringTokenizer st = new StringTokenizer(value, ",");
 				colors[0] = Integer.parseInt(st.nextToken());
 				colors[1] = Integer.parseInt(st.nextToken());
 				colors[2] = Integer.parseInt(st.nextToken());
 				colors[3] = st.hasMoreTokens() ? Integer.parseInt(st.nextToken()) : 255;
+			}else{
+				colors[0] = colors[1] = colors[2] = -1;
 			}
 		} catch (Exception e) {
 			//e.printStackTrace();
