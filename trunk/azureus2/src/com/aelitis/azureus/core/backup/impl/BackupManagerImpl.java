@@ -1142,7 +1142,9 @@ BackupManagerImpl
 								
 								String name = f.getName();
 								
-								if ( name.endsWith( ".bad" ) || name.endsWith( ".bak" )){
+									// use 'contains' as we can get .bad .bad1 .bad2 etc
+								
+								if ( name.contains( ".bad" ) || name.contains( ".bak" )){
 									
 									listener.reportProgress( "    Ignored failure to patch bad configuration file" );
 									
