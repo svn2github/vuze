@@ -386,6 +386,24 @@ public class SideBar
 		bg = skinProperties.getColor("color.sidebar.bg");
 		fg = skinProperties.getColor("color.sidebar.fg");
 
+		COConfigurationManager.addParameterListener(
+			"config.skin.color.sidebar.bg",
+			new ParameterListener() {
+				
+				public void parameterChanged(String parameterName) {
+				
+					Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								swt_updateSideBarColors();
+							}
+						});
+				}
+			});
+			
 		tree.setBackground(bg);
 		tree.setForeground(fg);
 		FontData[] fontData = tree.getFont().getFontData();
@@ -1168,6 +1186,41 @@ public class SideBar
 		}
 	}
 
+	private void
+	swt_updateSideBarColors()
+	{
+		SWTSkinProperties skinProperties = skin.getSkinProperties();
+
+		skinProperties.clearCache();
+		
+		bg = skinProperties.getColor("color.sidebar.bg");
+		
+		tree.setBackground(bg);
+		
+		tree.redraw();
+		
+		swt_updateSideBarColors( tree.getItems());
+	}
+	
+	private void
+	swt_updateSideBarColors(
+		TreeItem[]	items )
+	{
+		for ( TreeItem ti: items){
+			
+			SideBarEntrySWT entry = (SideBarEntrySWT) ti.getData("MdiEntry");
+			
+			if ( entry != null ){
+				
+				entry.updateColors();
+				
+				entry.redraw();
+			}
+			
+			swt_updateSideBarColors( ti.getItems());
+		}
+	}
+	
 	protected int indexOf(final MdiEntry entry) {
 		Object o = Utils.execSWTThreadWithObject("indexOf", new AERunnableObject() {
 			public Object runSupport() {

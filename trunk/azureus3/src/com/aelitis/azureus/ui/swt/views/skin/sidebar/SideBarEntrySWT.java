@@ -157,7 +157,7 @@ public class SideBarEntrySWT
 		updateColors();
 	}
 
-	private void updateColors() {
+	protected void updateColors() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				SWTSkinProperties skinProperties = skin.getSkinProperties();

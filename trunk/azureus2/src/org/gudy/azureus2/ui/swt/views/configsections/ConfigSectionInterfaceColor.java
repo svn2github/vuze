@@ -67,6 +67,8 @@ public class ConfigSectionInterfaceColor implements UISWTConfigSection {
 
 
 	public Composite configSectionCreate(final Composite parent) {
+		boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
+
 		Label label;
 		GridLayout layout;
 		GridData gridData;
@@ -80,7 +82,7 @@ public class ConfigSectionInterfaceColor implements UISWTConfigSection {
 		layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		layout.numColumns = 2;
+		layout.numColumns = 3;
 		cArea.setLayout(layout);
 		cArea.setLayoutData(new GridData());
 
@@ -92,6 +94,12 @@ public class ConfigSectionInterfaceColor implements UISWTConfigSection {
 		gridData.widthHint = 50;
 		colorScheme.setLayoutData(gridData);
 
+		label = new Label(cArea, SWT.NULL);
+		
+		if ( isAZ3 ){
+			Messages.setLanguageText(label, "restart.required.for.some");
+		}
+		
 		Group cColorOverride = new Group(cArea, SWT.NULL);
 		Messages.setLanguageText(cColorOverride,
 				"ConfigView.section.style.colorOverrides");
@@ -99,7 +107,7 @@ public class ConfigSectionInterfaceColor implements UISWTConfigSection {
 		layout.numColumns = 3;
 		cColorOverride.setLayout(layout);
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-		gridData.horizontalSpan = 2;
+		gridData.horizontalSpan = 3;
 		cColorOverride.setLayoutData(gridData);
 
 		for (int i = 0; i < sColorsToOverride.length; i++) {
@@ -144,66 +152,76 @@ public class ConfigSectionInterfaceColor implements UISWTConfigSection {
 			});
 		}
 		
-		label = new Label(cColorOverride, SWT.NULL);
-		gridData = new GridData( GridData.FILL_HORIZONTAL );
-		gridData.horizontalSpan = 3;
-		label.setLayoutData(gridData);
-		
-		label = new Label(cColorOverride, SWT.NULL);
-		Messages.setLanguageText(label, "restart.required.for.following" );
-		gridData = new GridData( GridData.FILL_HORIZONTAL );
-		gridData.horizontalSpan = 3;
-		label.setLayoutData(gridData);
-
-		String[]	override_keys = {
-				"config.skin.color.sidebar.bg",
-				"config.skin.color.library.header",
-		};
-		
-		for ( final String key: override_keys ){
+		if ( isAZ3 ){
 				
-			label = new Label(cColorOverride, SWT.NULL);
-			Messages.setLanguageText(label, key );
-			gridData = new GridData( GridData.FILL_HORIZONTAL );
-			label.setLayoutData(gridData);
-			
-			Color existing = null;
-			
-			boolean is_override = COConfigurationManager.getStringParameter( key, "" ).length() > 0;
-			
-			if ( is_override ){
-			
-				existing = ColorCache.getSchemedColor( parent.getDisplay(), key );
-			}
-			
-			final Button[]	f_reset = { null };
-			
-			final ColorParameter colorParm = new ColorParameter(cColorOverride, null,
-					existing==null?-1:existing.getRed(), 
-					existing==null?-1:existing.getGreen(),
-					existing==null?-1:existing.getBlue()) {
-				public void newColorChosen(RGB newColor) {
-					COConfigurationManager.setParameter( key, newColor.red+","+newColor.green+","+newColor.blue );
-					f_reset[0].setEnabled( true );
-				}
+			String[][]	override_keys_blocks = {
+				{ "config.skin.color.sidebar.bg" },
+				{ "config.skin.color.library.header" }
 			};
 			
-			gridData = new GridData();
-			gridData.widthHint = 50;
-			colorParm.setLayoutData(gridData);
-			
-			final Button reset = f_reset[0] = new Button(cColorOverride, SWT.PUSH);
-			Messages.setLanguageText(reset, "ConfigView.section.style.colorOverrides.reset");
-			reset.setEnabled( is_override );
-			reset.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					reset.setEnabled( false );
-					colorParm.setColor( -1, -1, -1 );
-					COConfigurationManager.removeParameter( key );
+			for ( int i=0;i<override_keys_blocks.length;i++ ){
+				
+				if ( i == 1 ){
+					
+					label = new Label(cColorOverride, SWT.NULL);
+					gridData = new GridData( GridData.FILL_HORIZONTAL );
+					gridData.horizontalSpan = 3;
+					label.setLayoutData(gridData);
+					
+					label = new Label(cColorOverride, SWT.NULL);
+					Messages.setLanguageText(label, "restart.required.for.following" );
+					gridData = new GridData( GridData.FILL_HORIZONTAL );
+					gridData.horizontalSpan = 3;
+					label.setLayoutData(gridData);
 				}
-			});
+				
+				String[] override_keys = override_keys_blocks[i];
+				
+				for ( final String key: override_keys ){
+						
+					label = new Label(cColorOverride, SWT.NULL);
+					Messages.setLanguageText(label, key );
+					gridData = new GridData( GridData.FILL_HORIZONTAL );
+					label.setLayoutData(gridData);
+					
+					Color existing = null;
+					
+					boolean is_override = COConfigurationManager.getStringParameter( key, "" ).length() > 0;
+					
+					if ( is_override ){
+					
+						existing = ColorCache.getSchemedColor( parent.getDisplay(), key );
+					}
+					
+					final Button[]	f_reset = { null };
+					
+					final ColorParameter colorParm = new ColorParameter(cColorOverride, null,
+							existing==null?-1:existing.getRed(), 
+							existing==null?-1:existing.getGreen(),
+							existing==null?-1:existing.getBlue()) {
+						public void newColorChosen(RGB newColor) {
+							COConfigurationManager.setParameter( key, newColor.red+","+newColor.green+","+newColor.blue );
+							f_reset[0].setEnabled( true );
+						}
+					};
+					
+					gridData = new GridData();
+					gridData.widthHint = 50;
+					colorParm.setLayoutData(gridData);
+					
+					final Button reset = f_reset[0] = new Button(cColorOverride, SWT.PUSH);
+					Messages.setLanguageText(reset, "ConfigView.section.style.colorOverrides.reset");
+					reset.setEnabled( is_override );
+					reset.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							reset.setEnabled( false );
+							colorParm.setColor( -1, -1, -1 );
+							COConfigurationManager.removeParameter( key );
+						}
+					});
+				}
+			}
 		}
-		
 		
 		return cSection;
 	}
