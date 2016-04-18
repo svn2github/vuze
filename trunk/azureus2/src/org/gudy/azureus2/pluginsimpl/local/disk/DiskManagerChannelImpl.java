@@ -460,7 +460,7 @@ DiskManagerChannelImpl
    			pieces_to_buffer = DEFAULT_MIN_PIECES_TO_BUFFER;
    		}
    		   		
-   		// System.out.println( "rate = " + rate + ", buffer_bytes = " + buffer_bytes + ", pieces = " + pieces_to_buffer + ", millis_per_piece = " + millis_per_piece );
+   		//System.out.println( "rate=" + rate + ", buffer_bytes=" + buffer_bytes + ", first_piece=" + first_piece + ", pieces=" + pieces_to_buffer + ", millis_per_piece=" + millis_per_piece );
    		
    		Arrays.fill( rtas, 0 );
    		 
