@@ -50,46 +50,56 @@ public class PriorityItem
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
 		String tmp;
 		int sortval = 0;
-		if (fileInfo == null)
+		
+		if (fileInfo == null){
+			
 			tmp = "";
-		else
-		{
+			
+		}else{
+			
 			int	st = fileInfo.getStorageType();
-			if((st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT ) && fileInfo.isSkipped())
-			{
+			
+			if (	(	st == DiskManagerFileInfo.ST_COMPACT || 
+						st == DiskManagerFileInfo.ST_REORDER_COMPACT ) &&	
+					fileInfo.isSkipped()){
+				
 				tmp = MessageText.getString("FileItem.delete");
-				sortval = 1;				
-			} else if (fileInfo.isSkipped())
-			{
+				
+				sortval = Integer.MIN_VALUE;
+				
+			}else if ( fileInfo.isSkipped()){
+				
 				tmp = MessageText.getString("FileItem.donotdownload");
-				sortval = 2;
-			} else if (fileInfo.getPriority() > 0 ) {
+				
+				sortval = Integer.MIN_VALUE+1;
+				
+			}else{
 				
 				int pri = fileInfo.getPriority();
-				tmp = MessageText.getString("FileItem.high");
-				sortval = 4;
+
+				sortval = pri;
 				
-				if ( pri > 1 ){
-					tmp += " (" + pri + ")";
+				if ( pri > 0 ) {
 					
-					sortval += pri;
-				}
-			} else if (fileInfo.getPriority() < 0 ) {
-				
-				int pri = fileInfo.getPriority();
-				tmp = MessageText.getString("FileItem.low");
-				sortval = 4;
-				
-				if ( pri < -1 ){
-					tmp += " (" + pri + ")";
+					tmp = MessageText.getString("FileItem.high");
+										
+					if ( pri > 1 ){
+						
+						tmp += " (" + pri + ")";
+					}
+				}else if ( pri < 0 ){
 					
-					sortval += pri;
+					tmp = MessageText.getString("FileItem.low");
+										
+					if ( pri < -1 ){
+						
+						tmp += " (" + pri + ")";
+					}
+				}else{
+					
+					tmp = MessageText.getString("FileItem.normal");
 				}
-			} else {
-				tmp = MessageText.getString("FileItem.normal");
-				sortval = 3;
 			}
-				
 		}
 		cell.setText(tmp);
 		cell.setSortValue(sortval);
