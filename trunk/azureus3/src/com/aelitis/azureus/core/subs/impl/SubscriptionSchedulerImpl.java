@@ -343,6 +343,8 @@ SubscriptionSchedulerImpl
 				return;
 			}
 		
+			log( subs.getName() + ": queued result for download - " + result.getID() + "/" + download_link );
+			
 			active_result_downloaders.add( key );
 			
 			result_downloader.dispatch(
