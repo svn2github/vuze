@@ -308,8 +308,11 @@ public class ColumnProgressETA
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		Object ds = cell.getDataSource();
 		if (ds instanceof DiskManagerFileInfo) {
-			fileProgress.fillInfoProgressETA(cell.getTableRowCore(), gc,
-					(DiskManagerFileInfo) ds, cell.getBounds());
+			TableRowCore row = cell.getTableRowCore();
+			if ( row != null ){
+				fileProgress.fillInfoProgressETA(row, gc,
+						(DiskManagerFileInfo) ds, cell.getBounds());
+			}
 			return;
 		}
 
