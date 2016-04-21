@@ -417,13 +417,31 @@ public class ConfigSectionFile
 		
 		sCurConfigID = "Merge Same Size Files";
 		allConfigIDs.add(sCurConfigID);
+		BooleanParameter mergeSameSize = null;
+
 		if (userMode > 0) {
-			// truncate too large
-			BooleanParameter mergeSameSize = new BooleanParameter(gFile,
+			mergeSameSize = new BooleanParameter(gFile,
 					sCurConfigID, "ConfigView.section.file.merge.same.size");
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			mergeSameSize.setLayoutData(gridData);
+		}
+		
+			// merge extended
+		
+		sCurConfigID = "Merge Same Size Files Extended";
+		allConfigIDs.add(sCurConfigID);
+		if (mergeSameSize != null) {
+			BooleanParameter mergeSameSizeExt = new BooleanParameter(gFile,
+					sCurConfigID, "ConfigView.section.file.merge.same.size.extended");
+			gridData = new GridData();
+			gridData.horizontalIndent = 25;
+			gridData.horizontalSpan = 2;
+			mergeSameSizeExt.setLayoutData(gridData);
+		
+			IAdditionalActionPerformer mergeAP = new ChangeSelectionActionPerformer(
+					mergeSameSizeExt.getControls(), false);
+			mergeSameSize.setAdditionalActionPerformer(mergeAP);
 		}
 		
 			// recheck on complete

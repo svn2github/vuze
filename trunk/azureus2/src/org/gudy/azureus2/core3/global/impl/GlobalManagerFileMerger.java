@@ -83,6 +83,7 @@ GlobalManagerFileMerger
 	
 	private boolean	initialised;
 	private boolean	enabled;
+	private boolean	enabled_extended;
 	
 	private Map<HashWrapper,DownloadManager>		dm_map = new HashMap<HashWrapper, DownloadManager>();
 	
@@ -123,15 +124,16 @@ GlobalManagerFileMerger
 	private void
 	initialise()
 	{
-		COConfigurationManager.addAndFireParameterListener(
-			"Merge Same Size Files",
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ "Merge Same Size Files", "Merge Same Size Files Extended" },
 			new ParameterListener(){
 				
 				public void 
 				parameterChanged(
-					String name ) 
+					String _name ) 
 				{
-					enabled = COConfigurationManager.getBooleanParameter( name );
+					enabled 			= COConfigurationManager.getBooleanParameter( "Merge Same Size Files" );
+					enabled_extended 	= COConfigurationManager.getBooleanParameter( "Merge Same Size Files Extended" );
 					
 					if ( initialised ){
 						
@@ -213,7 +215,7 @@ GlobalManagerFileMerger
 						continue;
 					}
 					
-					if ( !dm.isDownloadComplete( false )){
+					if ( enabled_extended || !dm.isDownloadComplete( false )){
 					
 						TOTorrent torrent = dm.getTorrent();
 						
@@ -251,7 +253,7 @@ GlobalManagerFileMerger
 		
 			if ( changed ){
 							
-				List<Set<DiskManagerFileInfo>>	interesting = new ArrayList<Set<DiskManagerFileInfo>>();
+				List<Set<DiskManagerFileInfo>>	interesting = new LinkedList<Set<DiskManagerFileInfo>>();
 				
 				Map<Long,Set<DiskManagerFileInfo>>		size_map = new HashMap<Long, Set<DiskManagerFileInfo>>();
 				
@@ -276,8 +278,7 @@ GlobalManagerFileMerger
 						}
 						
 						long len = file.getLength();
-						
-						
+												
 						Set<DiskManagerFileInfo> set = size_map.get( len );
 						
 						if ( set == null ){
@@ -311,7 +312,33 @@ GlobalManagerFileMerger
 					}
 				}
 				
-				List<SameSizeFiles>	sames_copy = new ArrayList<SameSizeFiles>( sames );
+					// remove sets consisting of only completed files
+				
+				Iterator<Set<DiskManagerFileInfo>>	interesting_it = interesting.iterator();
+
+				while( interesting_it.hasNext()){
+					
+					Set<DiskManagerFileInfo> set = interesting_it.next();
+					
+					boolean all_done = true;
+					
+					for ( DiskManagerFileInfo file: set ){
+						
+						if ( file.getDownloaded() != file.getLength()){
+							
+							all_done = false;
+							
+							break;
+						}
+					}
+					
+					if ( all_done ){
+						
+						interesting_it.remove();
+					}
+				}
+				
+				List<SameSizeFiles>	sames_copy = new LinkedList<SameSizeFiles>( sames );
 
 				for ( Set<DiskManagerFileInfo> set: interesting ){
 					
