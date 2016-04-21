@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
@@ -57,6 +58,7 @@ import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginAdapter;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.util.IdentityHashSet;
 
 
@@ -69,9 +71,11 @@ GlobalManagerFileMerger
 	private static final int MIN_PIECES				= 5;
 	private static final int HASH_FAILS_BEFORE_QUIT	= 3;
 	
-	private static final int TIMER_PERIOD		= 5*1000;
-	private static final int SYNC_TIMER_PERIOD	= 60*1000;
-	private static final int SYNC_TIMER_TICKS	= SYNC_TIMER_PERIOD/TIMER_PERIOD;
+	private static final int TIMER_PERIOD				= 5*1000;
+	private static final int FORCE_PIECE_TIMER_PERIOD	= 15*1000;
+	private static final int FORCE_PIECE_TIMER_TICKS	= FORCE_PIECE_TIMER_PERIOD/TIMER_PERIOD;
+	private static final int SYNC_TIMER_PERIOD			= 60*1000;
+	private static final int SYNC_TIMER_TICKS			= SYNC_TIMER_PERIOD/TIMER_PERIOD;
 	
 	private static final Object merged_data_lock = new Object();
 	
@@ -630,19 +634,22 @@ GlobalManagerFileMerger
 				return;
 			}
 			
+			boolean	do_sync 	= tick_count % SYNC_TIMER_TICKS == 0;
+			boolean	do_force 	= tick_count % FORCE_PIECE_TIMER_TICKS == 0;
+			
 			if ( dl_has_restarted ){
 				
 				dl_has_restarted = false;
 				
-			}else{
+				do_sync = true;
+			}	
+			
+			if ( !( do_sync || do_force )){
 				
-				if ( tick_count % SYNC_TIMER_TICKS != 0 ){
-					
-					return;
-				}
+				return;
 			}
 			
-			List<DiskManagerFileInfo>	active = new ArrayList<DiskManagerFileInfo>();
+			Set<DiskManagerFileInfo>	active = new HashSet<DiskManagerFileInfo>();
 			
 			int		num_incomplete	= 0;
 			
@@ -668,17 +675,121 @@ GlobalManagerFileMerger
 			
 			if ( num_incomplete > 0 &&  active.size() > 1 ){
 				
+				boolean rta_active = false;
+				
 				for ( DiskManagerFileInfo file: active ){
 					
 					DownloadManager	dm = file.getDownloadManager();
 					
-					DownloadManagerPeerListenerEx dmpl = (DownloadManagerPeerListenerEx)dm.getUserData( this );
-					
-					if ( dmpl != null ){
+					if ( do_sync ){
 						
-						dmpl.sync();
+						DownloadManagerPeerListenerEx dmpl = (DownloadManagerPeerListenerEx)dm.getUserData( this );
+						
+						if ( dmpl != null ){
+							
+							dmpl.sync();
+						}
+					}
+					
+					PEPeerManager pm = dm.getPeerManager();
+					
+					if ( pm != null ){
+						
+						if ( pm.getPiecePicker().getRTAProviders().size() > 0 ){
+							
+							rta_active = true;
+						}
 					}
 				}
+				
+				if ( rta_active ){
+					
+					do_force = false;
+				}
+				
+				if ( do_force ){
+					
+					try{
+							// see if we can force some pieces in one file for a missing piece in another
+							// but only one piece at a time to avoid messing with things too much
+													
+						for ( SameSizeFileWrapper ss_file: file_wrappers ){
+		
+							DiskManagerFileInfo file = ss_file.getFile();
+							
+							if ( active.contains( file )){
+								
+								DiskManager 	dm = ss_file.getDiskManager();
+								PEPeerManager 	pm = ss_file.getPeerManager();
+								
+								if ( dm == null ){
+									
+									continue;
+								}
+								
+								DiskManagerPiece[] pieces = dm.getPieces();
+								
+								int	first_piece = file.getFirstPieceNumber();
+								int	last_piece	= file.getLastPieceNumber();
+								
+								long	file_length = file.getLength();
+								
+								long	piece_size 	= dm.getPieceLength();
+								
+								long file_start_offset = ss_file.getFileByteOffset();
+								
+								boolean	force_done = false;
+								
+								int [] availability = pm.getAvailability();
+								
+								for ( int i=first_piece; i<=last_piece && !force_done; i++ ){
+											
+									DiskManagerPiece piece = pieces[i];
+									
+									if ( piece.isInteresting() && availability[i] == 0 ){
+																				
+										long start_in_file 			= piece_size*i - file_start_offset;
+										long end_in_file_exclusive	= start_in_file + piece.getLength();
+										
+										if ( start_in_file < 0 ){
+																						
+											start_in_file = 0;
+											
+										}
+										
+										if ( end_in_file_exclusive > file_length ){
+											
+											end_in_file_exclusive = file_length;
+										}
+																				
+										for ( SameSizeFileWrapper o_ss_file: file_wrappers ){
+											
+											if ( ss_file == o_ss_file || !active.contains( o_ss_file.getFile())){
+												
+												continue;
+											}
+											
+											if ( o_ss_file.forceRange( i, start_in_file, end_in_file_exclusive )){
+												
+												force_done = true;
+												
+												break;
+											}
+										}
+									}
+								}
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+			
+			if ( !do_sync ){
+				
+				return;
 			}
 			
 			if ( !completion_logged ){
@@ -829,6 +940,9 @@ GlobalManagerFileMerger
 			
 			private int	pieces_completed;
 			private int	pieces_corrupted;
+			
+			private int	forced_start_piece		= 0;
+			private int forced_end_piece		= -1;
 			
 			private 
 			SameSizeFileWrapper(
@@ -1388,6 +1502,94 @@ GlobalManagerFileMerger
 			getMergedByteCount()
 			{
 				return( merged_byte_counnt );
+			}
+			
+			private boolean
+			forceRange(
+				int		for_piece,
+				long	start_in_file,
+				long	end_in_file_exclusive )
+			{
+				DiskManager 	dm = getDiskManager();
+				PEPeerManager 	pm = getPeerManager();
+				
+				if ( dm == null || pm == null ){
+					
+					return( false );
+				}
+				
+				int[] availability = pm.getAvailability();
+				
+				long	start_in_torrent 			= start_in_file + file_byte_offset;
+				long	end_in_torrent_inclusive	= end_in_file_exclusive + file_byte_offset - 1;
+				
+				int	piece_size = dm.getPieceLength();
+				
+				int	first_piece = (int)(start_in_torrent/piece_size);
+				int	last_piece	= (int)(end_in_torrent_inclusive/piece_size);
+				
+				DiskManagerPiece[] pieces = dm.getPieces();
+				
+				boolean	forceable = false;
+				
+				for ( int i=first_piece; i<=last_piece;i++ ){
+					
+					DiskManagerPiece piece = pieces[i];
+					
+					if ( !piece.isDone()){
+						
+						if ( 	availability[ piece.getPieceNumber()] > 0 &&
+								piece.isInteresting()){
+																				
+							forceable = true;
+							
+							break;
+						}
+					}
+				}
+				
+				if ( forceable ){
+						
+					if ( forced_start_piece == first_piece && forced_end_piece == last_piece ){
+						
+						// nothing changed
+						
+					}else{
+						
+						PiecePicker pp = pm.getPiecePicker();
+						
+						if ( forced_start_piece != first_piece || forced_end_piece != last_piece ){
+							
+							for ( int i=forced_start_piece; i<=forced_end_piece;i++ ){
+								
+								DiskManagerPiece piece = pieces[i];
+								
+								pp.setForcePiece( piece.getPieceNumber(), false );
+							}
+						}
+						
+						forced_start_piece 	= first_piece;
+						forced_end_piece	= last_piece;
+						
+						for ( int i=first_piece; i<=last_piece;i++ ){
+							
+							DiskManagerPiece piece = pieces[i];
+							
+							if ( !piece.isDone()){
+							
+								pp.setForcePiece( i, true );
+							}
+						}
+						
+						if ( TRACE ){ System.out.println( "Forced pieces for " + for_piece + ": " + forced_start_piece + " -> " + forced_end_piece + " in " + download_manager.getDisplayName() + "/" + file.getTorrentFile().getRelativePath()); }
+					}
+					
+					return( true );
+					
+				}else{
+					
+					return( false );
+				}
 			}
 		}
 	}
