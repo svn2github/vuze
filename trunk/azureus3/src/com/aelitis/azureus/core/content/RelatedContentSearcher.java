@@ -96,6 +96,8 @@ RelatedContentSearcher
 	private static final int	MAX_REMOTE_SEARCH_MILLIS		= 25*1000;
 	private static final int	REDUCED_REMOTE_SEARCH_MILLIS	= 10*1000;
 
+	private static final int	MAX_LOCAL_POPULAR_RESULTS		= 50;
+	
 	private static final int	HARVEST_MAX_BLOOMS				= 50;
 	private static final int	HARVEST_MAX_FAILS_HISTORY		= 128;
 	private static final int	HARVEST_BLOOM_UPDATE_MILLIS		= 15*60*1000;
@@ -254,7 +256,7 @@ RelatedContentSearcher
 					final Set<String>	hashes_sync_me = new HashSet<String>();
 					
 					try{				
-						List<RelatedContent>	matches = matchContent( term );
+						List<RelatedContent>	matches = matchContent( term, true );
 							
 						for ( final RelatedContent c: matches ){
 							
@@ -748,10 +750,13 @@ RelatedContentSearcher
 		return( tag );
 	}
 	
-	protected List<RelatedContent>
+	private List<RelatedContent>
 	matchContent(
-		String		term )
+		final String		term,
+		boolean				is_local )
 	{
+		boolean is_popularity = term.equals( "(.)" );
+		
 			// term is made up of space separated bits - all bits must match
 			// each bit can be prefixed by + or -, a leading - means 'bit doesn't match'. + doesn't mean anything
 			// each bit (with prefix removed) can be "(" regexp ")"
@@ -952,17 +957,59 @@ RelatedContentSearcher
 			}
 		}
 		
-		return( new ArrayList<RelatedContent>( result.values()));
+		List<RelatedContent> list = new ArrayList<RelatedContent>( result.values());
+		
+		int	max = is_local?(is_popularity?MAX_LOCAL_POPULAR_RESULTS:Integer.MAX_VALUE):MAX_REMOTE_SEARCH_RESULTS;
+		
+		if ( list.size() > max ){
+			
+			Collections.sort(
+					list,
+					new Comparator<RelatedContent>()
+					{
+						public int 
+						compare(
+							RelatedContent o1,
+							RelatedContent o2) 
+						{
+							return( o2.getRank() - o1.getRank());
+						}
+					});
+			
+			list = list.subList( 0, max );
+		}
+		
+		return( list );
 	}
 	
 	protected List<DistributedDatabaseContact>
 	sendRemoteSearch(
-		SearchInstance					si,
-		Set<String>						hashes_sync_me,
-		DistributedDatabaseContact		contact,
-		String							term,
-		SearchObserver					observer )
+		SearchInstance						si,
+		Set<String>							hashes_sync_me,
+		final DistributedDatabaseContact	contact,
+		String								term,
+		final SearchObserver				_observer )
 	{
+		SearchObserver observer = 
+			new SearchObserver() {
+				
+				public void resultReceived(SearchInstance search, SearchResult result) {
+					logSearch( "    result from " + contact.getName());
+					_observer.resultReceived(search, result);
+				}
+				
+				public Object getProperty(int property) {
+					return( _observer.getProperty(property));
+				}
+				
+				public void complete() {
+					_observer.complete();
+				}
+				
+				public void cancelled() {
+					_observer.cancelled();
+				}
+			};
 		try{
 			Map<String,Object>	request = new HashMap<String,Object>();
 			
@@ -1387,6 +1434,8 @@ RelatedContentSearcher
 
 				term = fixupTerm( term );
 				
+				// System.out.println( "Received remote search: '" + term + "' from " + originator.getAddress() + ", hits=" + hits + ", bs=" + harvest_se_requester_bloom.getEntryCount());
+
 				logSearch( "Received remote search: '" + term + "' from " + originator.getAddress() + ", hits=" + hits + ", bs=" + harvest_se_requester_bloom.getEntryCount());
 
 				if ( hits < 10 ){
@@ -1395,27 +1444,11 @@ RelatedContentSearcher
 					
 					if ( term != null ){
 												
-						List<RelatedContent>	matches = matchContent( term );
-		
-						if ( matches.size() > MAX_REMOTE_SEARCH_RESULTS ){
-							
-							Collections.sort(
-								matches,
-								new Comparator<RelatedContent>()
-								{
-									public int 
-									compare(
-										RelatedContent o1,
-										RelatedContent o2) 
-									{
-										return( o2.getRank() - o1.getRank());
-									}
-								});
-						}
-						
+						List<RelatedContent>	matches = matchContent( term, false );
+								
 						List<Map<String,Object>> l_list = new ArrayList<Map<String,Object>>();
 						
-						for (int i=0;i<Math.min( matches.size(),MAX_REMOTE_SEARCH_RESULTS);i++){
+						for (int i=0;i<matches.size();i++){
 							
 							RelatedContent	c = matches.get(i);
 							
@@ -1870,11 +1903,12 @@ RelatedContentSearcher
 					misses++;
 				}
 				
-				List<RelatedContent> hits = matchContent( word );
+				List<RelatedContent> hits = matchContent( word, true );
 				
 				if ( hits.size() == 0 ){
 					
-					hits = matchContent( word );
+					hits = matchContent( word, true );
+					
 					match_fails++;
 				}
 			}
@@ -2094,6 +2128,8 @@ outer:
 	searchForeignBlooms(
 		String		term )
 	{
+		boolean is_popularity = term.equals( "(.)" );
+
 		List<DistributedDatabaseContact>	result = new ArrayList<DistributedDatabaseContact>();
 		
 		try{
@@ -2172,79 +2208,86 @@ outer:
 				
 				for ( ForeignBloom fb: harvested_blooms.values()){
 					
-					BloomFilter filter = fb.getFilter();
-					
-					boolean	failed 	= false;
-					int		matches	= 0;
-					
-					for (int i=0;i<bit_bytes.length;i++){
+					if ( is_popularity ){
 						
-						byte[]	bit = bit_bytes[i];
+						result.add( fb.getContact());
 						
-						if ( bit == null || bit.length == 0 ){
+					}else{
+						
+						BloomFilter filter = fb.getFilter();
+						
+						boolean	failed 	= false;
+						int		matches	= 0;
+						
+						for (int i=0;i<bit_bytes.length;i++){
 							
-							continue;
-						}
-						
-						int	type = bit_types[i];
-						
-						if ( type == 3 ){
+							byte[]	bit = bit_bytes[i];
 							
-							continue;
-						}
-						
-						if ( type == 0 || type == 1 ){
-							
-							if ( filter.contains( bit )){
+							if ( bit == null || bit.length == 0 ){
 								
-								matches++;
-								
-							}else{
-								
-								failed	= true;
-								
-								break;
+								continue;
 							}
-						}else if ( type == 2 ){
-						
-							if ( !filter.contains( bit )){
+							
+							int	type = bit_types[i];
+							
+							if ( type == 3 ){
 								
-								matches++;
-								
-							}else{
-								
-								failed	= true;
-								
-								break;
+								continue;
 							}
-						}else if ( type == 4 ){
 							
-							byte[][]	parts = extras[i];
-							
-							int	old_matches = matches;
-							
-							for ( byte[] p: parts ){
+							if ( type == 0 || type == 1 ){
 								
-								if ( filter.contains( p )){
-								
+								if ( filter.contains( bit )){
+									
 									matches++;
+									
+								}else{
+									
+									failed	= true;
+									
+									break;
+								}
+							}else if ( type == 2 ){
+							
+								if ( !filter.contains( bit )){
+									
+									matches++;
+									
+								}else{
+									
+									failed	= true;
+									
+									break;
+								}
+							}else if ( type == 4 ){
+								
+								byte[][]	parts = extras[i];
+								
+								int	old_matches = matches;
+								
+								for ( byte[] p: parts ){
+									
+									if ( filter.contains( p )){
+									
+										matches++;
+										
+										break;
+									}
+								}
+								
+								if ( matches == old_matches ){
+									
+									failed = true;
 									
 									break;
 								}
 							}
-							
-							if ( matches == old_matches ){
-								
-								failed = true;
-								
-								break;
-							}
 						}
-					}
-					
-					if ( matches > 0 && !failed ){
 						
-						result.add( fb.getContact());
+						if ( matches > 0 && !failed ){
+							
+							result.add( fb.getContact());
+						}
 					}
 				}
 			}

@@ -581,6 +581,48 @@ RelatedContentManager
 		enforceMaxResults( false );
 	}
 	
+	private int[]
+	getAggregateSeedsLeechers(
+		DownloadManagerState		state )
+	{
+		String cache = state.getAttribute( DownloadManagerState.AT_AGGREGATE_SCRAPE_CACHE );
+
+		int	[] result = null;
+		
+		if ( cache != null ){
+							
+			String[]	bits = cache.split(",");
+				
+			if ( bits.length == 3 ){
+															
+				try{
+					long 	updated_mins = Long.parseLong( bits[0] );
+						
+					long	mins = SystemTime.getCurrentTime()/(1000*60);
+
+					long	age_mins = mins - updated_mins;
+					
+					long WEEK_MINS = 7*24*60;
+					
+					if ( age_mins <= WEEK_MINS ){
+						
+						int seeds = Integer.parseInt( bits[1] );
+						int peers = Integer.parseInt( bits[2] );
+						
+						if ( seeds >= 0 && peers >= 0 ){
+						
+							result = new int[]{ seeds, peers };
+						}
+					}
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		
+		return( result );
+	}
+	
 	private DHTPluginInterface
 	selectDHT(
 		byte		networks )
@@ -692,28 +734,44 @@ RelatedContentManager
 							download_infos2 	= non_pub_download_infos2;
 						}
 						
+						int version = RelatedContent.VERSION_INITIAL;
+						
 						long rand = global_random_id ^ state.getLongParameter( DownloadManagerState.PARAM_RANDOM_SEED );						
-						
-						long cache = state.getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
-
+	
 						int	seeds_leechers;
-						
-						if ( cache == -1 ){
+
+						int[]	aggregate_seeds_leechers = getAggregateSeedsLeechers( state );
+
+						if ( aggregate_seeds_leechers == null ){
 							
-							seeds_leechers = -1;
-							
+							long cache = state.getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
+								
+							if ( cache == -1 ){
+								
+								seeds_leechers = -1;
+								
+							}else{
+								
+								int seeds 		= (int)((cache>>32)&0x00ffffff);
+								int leechers 	= (int)(cache&0x00ffffff);
+								
+								seeds_leechers 	= (int)((seeds<<16)|(leechers&0xffff));
+							}
 						}else{
 							
-							int seeds 		= (int)((cache>>32)&0x00ffffff);
-							int leechers 	= (int)(cache&0x00ffffff);
+							version = RelatedContent.VERSION_BETTER_SCRAPE;
+							
+							int seeds 		= aggregate_seeds_leechers[0];
+							int leechers 	= aggregate_seeds_leechers[1];
 							
 							seeds_leechers 	= (int)((seeds<<16)|(leechers&0xffff));
 						}
-
+						
 						byte[][] keys = getKeys( download );
 						
 						DownloadInfo info = 
 							new DownloadInfo(
+								version,
 								hash,
 								hash,
 								download.getName(),
@@ -1107,6 +1165,8 @@ RelatedContentManager
 			
 				if ( d != null ){
 					
+					int	version	= RelatedContent.VERSION_INITIAL;
+					
 					Torrent torrent = d.getTorrent();
 					
 					if ( torrent != null ){
@@ -1127,16 +1187,33 @@ RelatedContentManager
 							map.put( "p", new Long( hours ));
 						}
 					}
-										
+							
+					DownloadManagerState state = PluginCoreUtils.unwrap( d ).getDownloadState();
+					
 					int leechers 	= -1;
 					int seeds 		= -1;
 					
-					long cache = PluginCoreUtils.unwrap( d ).getDownloadState().getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
+					int[]	aggregate_seeds_leechers = getAggregateSeedsLeechers( state );
+					
+					if ( aggregate_seeds_leechers == null ){
 						
-					if ( cache != -1 ){
+						long cache = state.getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
 							
-						seeds 		= (int)((cache>>32)&0x00ffffff);
-						leechers 	= (int)(cache&0x00ffffff);
+						if ( cache != -1 ){
+								
+							seeds 		= (int)((cache>>32)&0x00ffffff);
+							leechers 	= (int)(cache&0x00ffffff);
+						}
+					}else{
+						
+						seeds		= aggregate_seeds_leechers[0];
+						leechers	= aggregate_seeds_leechers[1];
+						
+						version 	= RelatedContent.VERSION_BETTER_SCRAPE;
+					}
+					
+					if ( version > 0 ){
+						map.put( "v", new Long( version ));
 					}
 					
 					if ( leechers > 0 ){
@@ -1575,6 +1652,10 @@ RelatedContentManager
 				unique_keys.add( key );
 			}
 			
+			Long	l_version 	= (Long)map.get( "v" );
+			
+			int	version = l_version==null?RelatedContent.VERSION_INITIAL:l_version.intValue();
+			
 			Long	l_size = (Long)map.get( "s" );
 			
 			long	size = l_size==null?0:l_size.longValue();
@@ -1628,6 +1709,7 @@ RelatedContentManager
 			
 			return(
 				new DownloadInfo( 
+						version,
 						from_hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, nets, level, explicit, size, 
 						published==null?0:published.intValue(),
 						seeds_leechers,
@@ -4358,6 +4440,8 @@ RelatedContentManager
 		try{
 			Map<String,Object> info_map = new HashMap<String,Object>();
 			
+			ImportExportUtils.exportLong( info_map, "v", info.getVersion());
+
 			info_map.put( "h", info.getHash());
 			
 			ImportExportUtils.exportString( info_map, "d", info.getTitle());
@@ -4415,6 +4499,7 @@ RelatedContentManager
 		ContentCache			cc )
 	{
 		try{
+			int		version	= (int)ImportExportUtils.importLong( info_map, "v", RelatedContent.VERSION_INITIAL );
 			byte[]	hash 	= (byte[])info_map.get("h");
 			String	title	= ImportExportUtils.importString( info_map, "d" );
 			int		rand	= ImportExportUtils.importInt( info_map, "r" );
@@ -4448,7 +4533,7 @@ RelatedContentManager
 
 			if ( cc == null ){
 			
-				 DownloadInfo info = new DownloadInfo( hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, nets, 0, false, size, date, seeds_leechers, cnet );
+				 DownloadInfo info = new DownloadInfo( version, hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, nets, 0, false, size, date, seeds_leechers, cnet );
 				 
 				 info.setChangedLocallyOn( lastChangedLocally );
 				 
@@ -4464,7 +4549,7 @@ RelatedContentManager
 				
 				int	level = ImportExportUtils.importInt( info_map, "e" );
 				
-				DownloadInfo info = new DownloadInfo( hash, title, rand, tracker, tracker_keys, ws_keys, tags, nets, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc );
+				DownloadInfo info = new DownloadInfo( version, hash, title, rand, tracker, tracker_keys, ws_keys, tags, nets, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc );
 				
 				info.setChangedLocallyOn( lastChangedLocally );
         
@@ -4578,9 +4663,10 @@ RelatedContentManager
 			// we *need* this reference here to manage garbage collection correctly
 		
 		private ContentCache	cc;
-		
+				
 		protected
 		DownloadInfo(
+			int			_version,
 			byte[]		_related_to,
 			byte[]		_hash,
 			String		_title,
@@ -4597,7 +4683,7 @@ RelatedContentManager
 			int			_seeds_leechers,
 			byte		_cnet )
 		{
-			super( _related_to, _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _nets, _size, _date, _seeds_leechers, _cnet );
+			super( _version, _related_to, _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _nets, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			level		= _level;
@@ -4608,6 +4694,7 @@ RelatedContentManager
 		
 		protected
 		DownloadInfo(
+			int				_version,
 			byte[]			_hash,
 			String			_title,
 			int				_rand,
@@ -4626,7 +4713,7 @@ RelatedContentManager
 			byte			_cnet,
 			ContentCache	_cc )
 		{
-			super( _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _nets, _size, _date, _seeds_leechers, _cnet );
+			super( _version, _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _nets, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			unread		= _unread;

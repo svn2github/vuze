@@ -1077,6 +1077,53 @@ DownloadImpl
 	public DownloadScrapeResult
 	getAggregatedScrapeResult()
 	{
+		DownloadScrapeResult	result = getAggregatedScrapeResultSupport();
+		
+		if ( result != null ){
+			
+			String cache = download_manager.getDownloadState().getAttribute( DownloadManagerState.AT_AGGREGATE_SCRAPE_CACHE );
+			
+			boolean	do_update = true;
+			
+			long	mins = SystemTime.getCurrentTime()/(1000*60);
+
+			if ( cache != null ){
+				
+				String[]	bits = cache.split(",");
+				
+				if ( bits.length == 3 ){
+										
+					long	updated_mins	= 0;
+					
+					try{
+						updated_mins = Long.parseLong( bits[0] );
+						
+					}catch( Throwable e ){
+						
+					}
+					
+					if ( mins - updated_mins < 15 ){
+						
+						
+						do_update = false;
+					}
+				}
+			}
+			
+			if ( do_update ){
+				
+				String str = mins + "," + result.getSeedCount() + "," + result.getNonSeedCount();
+				
+				download_manager.getDownloadState().setAttribute( DownloadManagerState.AT_AGGREGATE_SCRAPE_CACHE, str  );
+			}
+		}
+		
+		return( result );
+	}
+	
+	private DownloadScrapeResult
+	getAggregatedScrapeResultSupport()
+	{
 		List<TRTrackerScraperResponse> responses = download_manager.getGoodTrackerScrapeResponses();
 		
 		int	best_peers 	= -1;

@@ -76,7 +76,7 @@ DownloadManagerState
 	public static final String AT_FILES_EXPANDED			= "file.expand";	// boolean
 	public static final String AT_MERGED_DATA				= "mergedata";		// long
 	public static final String AT_DND_PREFIX				= "dnd_pfx";		// string
-
+	public static final String AT_AGGREGATE_SCRAPE_CACHE	= "agsc";			// string <update_time_mins>,<seeds>,<leechers>
 
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_VERSION,								new Integer( -1 )},

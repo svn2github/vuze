@@ -30,8 +30,12 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 public abstract class 
 RelatedContent 
 {
+	public static final int	VERSION_INITIAL				= 0;
+	public static final int	VERSION_BETTER_SCRAPE		= 1;
+	
 	public final static String[]	NO_TAGS = {};
 	
+	final private int			version;
 	final private String 		title;
 	final private byte[]		hash;
 	final private String		tracker;
@@ -53,6 +57,7 @@ RelatedContent
 	
 	public
 	RelatedContent(
+		int			_version,
 		byte[]		_related_to_hash,
 		String		_title,
 		byte[]		_hash,
@@ -66,6 +71,7 @@ RelatedContent
 		int			_seeds_leechers,
 		byte		_cnet )
 	{
+		version				= _version;
 		related_to_hash		= _related_to_hash;
 		title				= _title;
 		hash				= _hash;
@@ -93,7 +99,7 @@ RelatedContent
 	{
 			// legacy constructor as referenced from plugin - remove oneday!
 		
-		this( _title, _hash, _tracker, null, null, null, RelatedContentManager.NET_PUBLIC, _size, _date, _seeds_leechers, _cnet );
+		this( VERSION_BETTER_SCRAPE, _title, _hash, _tracker, null, null, null, RelatedContentManager.NET_PUBLIC, _size, _date, _seeds_leechers, _cnet );
 	}
 	
 	public
@@ -110,6 +116,27 @@ RelatedContent
 		int			_seeds_leechers,
 		byte		_cnet )
 	{
+			// legacy constructor as referenced from plugin - remove oneday!
+		
+		this( VERSION_BETTER_SCRAPE, _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _nets, _size, _date, _seeds_leechers, _cnet );
+	}
+	
+	public
+	RelatedContent(
+		int			_version,
+		String		_title,
+		byte[]		_hash,
+		String		_tracker,
+		byte[]		_tracker_keys,
+		byte[]		_ws_keys,
+		String[]	_tags,
+		byte		_nets,
+		long		_size,
+		int			_date,
+		int			_seeds_leechers,
+		byte		_cnet )
+	{
+		version				= _version;
 		title				= _title;
 		hash				= _hash;
 		tracker				= _tracker;
@@ -122,6 +149,12 @@ RelatedContent
 		seeds_leechers		= _seeds_leechers;
 		content_network		= _cnet;
 		setChangedLocallyOn(0);
+	}
+	
+	public int
+	getVersion()
+	{
+		return( version );
 	}
 	
 	protected void
