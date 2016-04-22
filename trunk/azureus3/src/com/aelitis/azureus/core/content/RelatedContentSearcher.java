@@ -88,7 +88,7 @@ public class
 RelatedContentSearcher 
 	implements DistributedDatabaseTransferHandler
 {
-	private static final boolean	SEARCH_CVS_ONLY		= Constants.isCurrentVersionLT( "4.7.0.4" );
+	private static final boolean	SEARCH_CVS_ONLY		= false;
 	private static final boolean	TRACE_SEARCH		= false;
 
 	private static final int	MAX_REMOTE_SEARCH_RESULTS		= 30;
@@ -755,7 +755,7 @@ RelatedContentSearcher
 		final String		term,
 		boolean				is_local )
 	{
-		boolean is_popularity = term.equals( "(.)" );
+		final boolean is_popularity = term.equals( "(.)" );
 		
 			// term is made up of space separated bits - all bits must match
 			// each bit can be prefixed by + or -, a leading - means 'bit doesn't match'. + doesn't mean anything
@@ -972,7 +972,33 @@ RelatedContentSearcher
 							RelatedContent o1,
 							RelatedContent o2) 
 						{
-							return( o2.getRank() - o1.getRank());
+							if ( is_popularity ){
+								
+								int	v1 = o1.getVersion();
+								int v2 = o2.getVersion();
+							
+								if ( v1 == v2 ){
+									
+									long sl1 = o1.getSeeds() + o1.getLeechers();
+									long sl2 = o2.getSeeds() + o2.getLeechers();
+									
+									long diff = sl2 - sl1;
+									
+									if ( diff < 0 ){
+										return( -1 );
+									}else if ( diff > 0 ){
+										return( 1 );
+									}else{
+										return( 0 );
+									}
+								}else{
+									
+									return( v2 - v1 );
+								}
+							}else{
+								
+								return( o2.getRank() - o1.getRank());
+							}
 						}
 					});
 			
@@ -1077,6 +1103,10 @@ RelatedContentSearcher
 						hashes_sync_me.add( hash_str );
 					}
 	
+					long version = ImportExportUtils.importLong( map, "v", RelatedContent.VERSION_INITIAL );
+
+					//System.out.println( "Search result version: " + version );
+					
 					SearchResult result = 
 						new SearchResult()
 						{
@@ -1086,7 +1116,7 @@ RelatedContentSearcher
 							{
 								try{
 									if ( property_name == SearchResult.PR_NAME ){
-										
+											
 										return( title );
 										
 									}else if ( property_name == SearchResult.PR_SIZE ){
@@ -1456,6 +1486,7 @@ RelatedContentSearcher
 							
 							l_list.add( map );
 							
+							ImportExportUtils.exportLong( map, "v", c.getVersion());
 							ImportExportUtils.exportString( map, "n", c.getTitle());
 							ImportExportUtils.exportLong( map, "s", c.getSize());
 							ImportExportUtils.exportLong( map, "r", c.getRank());
