@@ -21,7 +21,6 @@
 package com.aelitis.azureus.core.content;
 
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
 
@@ -30,17 +29,18 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 public abstract class 
 RelatedContent 
 {
+	public static final int	VERSION_NA					= -1;		// not applicable
 	public static final int	VERSION_INITIAL				= 0;
 	public static final int	VERSION_BETTER_SCRAPE		= 1;
 	
 	public final static String[]	NO_TAGS = {};
 	
-	final private int			version;
 	final private String 		title;
 	final private byte[]		hash;
 	final private String		tracker;
 	final private long			size;
 	
+	private int					version;
 	private int					date;
 	private int					seeds_leechers;
 	private byte				content_network;
@@ -99,7 +99,7 @@ RelatedContent
 	{
 			// legacy constructor as referenced from plugin - remove oneday!
 		
-		this( VERSION_BETTER_SCRAPE, _title, _hash, _tracker, null, null, null, RelatedContentManager.NET_PUBLIC, _size, _date, _seeds_leechers, _cnet );
+		this( VERSION_NA, _title, _hash, _tracker, null, null, null, RelatedContentManager.NET_PUBLIC, _size, _date, _seeds_leechers, _cnet );
 	}
 	
 	public
@@ -116,9 +116,9 @@ RelatedContent
 		int			_seeds_leechers,
 		byte		_cnet )
 	{
-			// legacy constructor as referenced from plugin - remove oneday!
+			// legacy constructor as referenced from plugin - remove once 5711 + plugin update released
 		
-		this( VERSION_BETTER_SCRAPE, _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _nets, _size, _date, _seeds_leechers, _cnet );
+		this( VERSION_NA, _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _nets, _size, _date, _seeds_leechers, _cnet );
 	}
 	
 	public
@@ -155,6 +155,13 @@ RelatedContent
 	getVersion()
 	{
 		return( version );
+	}
+	
+	protected void
+	setVersion(
+		int		_version )
+	{
+		version = _version;
 	}
 	
 	protected void
@@ -353,6 +360,6 @@ RelatedContent
 	public String
 	getString()
 	{
-		return( "title=" + title + ", hash=" + (hash==null?"null":Base32.encode( hash )) + ", tracker=" + tracker +", date=" + date + ", sl=" + seeds_leechers + ", cnet=" + content_network + ", nets=" + nets );
+		return( "title=" + title + ", ver=" + version + ", hash=" + (hash==null?"null":Base32.encode( hash )) + ", tracker=" + tracker +", date=" + date + ", sl=" + seeds_leechers + ", cnet=" + content_network + ", nets=" + nets );
 	}
 }

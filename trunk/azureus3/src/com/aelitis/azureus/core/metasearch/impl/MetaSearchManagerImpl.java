@@ -1956,6 +1956,10 @@ MetaSearchManagerImpl
      			int		property_name )
      		{
      			switch( property_name ){
+	     			case PR_VERSION:{
+		     			
+	     				return( -1L );
+	     			}
 	     			case PR_NAME:{
 	     			
 	     				return( result.getName());

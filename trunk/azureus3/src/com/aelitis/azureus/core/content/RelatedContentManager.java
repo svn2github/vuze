@@ -2910,9 +2910,12 @@ RelatedContentManager
 					}
 				}else{
 					
-						// we already know about this, see if new info
+						// we already know about this, see if new info - ignore lower versions
 					
-					changed_content = target_info.addInfo( to_info );
+					if ( to_info.getVersion() >= target_info.getVersion()){
+					
+						changed_content = target_info.addInfo( to_info );
+					}
 				}
 
 				if ( target_info != null ){
@@ -4784,6 +4787,13 @@ RelatedContentManager
 				}
 			}
 				
+			if ( info.getVersion() > getVersion()){
+				
+				setVersion( info.getVersion());
+				
+				result = true;
+			}
+			
 			if ( info.getLevel() < level ){
 				
 				level = info.getLevel();

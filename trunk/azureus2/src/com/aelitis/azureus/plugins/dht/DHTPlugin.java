@@ -1309,6 +1309,41 @@ DHTPlugin
 		}
 	}
 	
+	public List<DHTPluginValue>
+	getValues(
+		int			network,
+		boolean		ipv6 )
+	{
+		DHTPluginImpl	dht = null;
+		
+		if ( network == NW_MAIN ){
+			
+			if ( ipv6 ){
+				
+				dht = main_v6_dht;
+				
+			}else{
+				
+				dht = main_dht;
+			}
+		}else{
+			
+			if ( !ipv6 ){
+			
+				dht = cvs_dht;
+			}
+		}
+		
+		if ( dht == null ){
+			
+			return( new ArrayList<DHTPluginValue>());
+			
+		}else{
+			
+			return( dht.getValues());
+		}
+	}
+	
 	public void
 	get(
 		final byte[]								original_key,

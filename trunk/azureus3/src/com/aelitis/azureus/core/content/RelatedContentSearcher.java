@@ -78,6 +78,7 @@ import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
 import com.aelitis.azureus.plugins.dht.DHTPluginInterface.DHTInterface;
@@ -88,8 +89,8 @@ public class
 RelatedContentSearcher 
 	implements DistributedDatabaseTransferHandler
 {
-	private static final boolean	SEARCH_CVS_ONLY		= false;
-	private static final boolean	TRACE_SEARCH		= false;
+	private static final boolean	SEARCH_CVS_ONLY_DEFAULT		= true;
+	private static final boolean	TRACE_SEARCH				= false;
 
 	private static final int	MAX_REMOTE_SEARCH_RESULTS		= 30;
 	private static final int	MAX_REMOTE_SEARCH_CONTACTS		= 50;
@@ -253,10 +254,12 @@ RelatedContentSearcher
 				public void
 				run()
 				{
+					boolean search_cvs_only = SEARCH_CVS_ONLY_DEFAULT;
+					
 					final Set<String>	hashes_sync_me = new HashSet<String>();
 					
 					try{				
-						List<RelatedContent>	matches = matchContent( term, true );
+						List<RelatedContent>	matches = matchContent( term, true, search_cvs_only );
 							
 						for ( final RelatedContent c: matches ){
 							
@@ -276,7 +279,11 @@ RelatedContentSearcher
 									getProperty(
 										int		property_name )
 									{
-										if ( property_name == SearchResult.PR_NAME ){
+										if ( property_name == SearchResult.PR_VERSION ){
+											
+											return( new Long( c.getVersion()));
+											
+										}else if ( property_name == SearchResult.PR_NAME ){
 											
 											return( c.getTitle());
 											
@@ -396,7 +403,7 @@ RelatedContentSearcher
 									
 									int	network = dht.getNetwork();
 									
-									if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
+									if ( search_cvs_only && network != DHT.NW_CVS ){
 										
 										logSearch( "Search: ignoring main DHT" );
 	
@@ -440,7 +447,7 @@ RelatedContentSearcher
 										
 										int	network = dht.getNetwork();
 										
-										if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
+										if ( search_cvs_only && network != DHT.NW_CVS ){
 											
 											logSearch( "Search: ignoring main DHT" );
 	
@@ -753,7 +760,8 @@ RelatedContentSearcher
 	private List<RelatedContent>
 	matchContent(
 		final String		term,
-		boolean				is_local )
+		boolean				is_local,
+		boolean				search_cvs_only )
 	{
 		final boolean is_popularity = term.equals( "(.)" );
 		
@@ -817,7 +825,7 @@ RelatedContentSearcher
 		
 		Map<String,RelatedContent>	result = new HashMap<String,RelatedContent>();
 		
-		Iterator<DownloadInfo>	it1 = getDHTInfos().iterator();
+		Iterator<DownloadInfo>	it1 = getDHTInfos( search_cvs_only ).iterator();
 		
 		Iterator<DownloadInfo>	it2;
 		
@@ -1041,6 +1049,11 @@ RelatedContentSearcher
 			
 			request.put( "t", term );
 		
+			if ( SEARCH_CVS_ONLY_DEFAULT ){
+				
+				request.put( "n", "c" );
+			}
+			
 			DistributedDatabaseKey key = ddb.createKey( BEncoder.encode( request ));
 			
 			DistributedDatabaseValue value = 
@@ -1104,8 +1117,6 @@ RelatedContentSearcher
 					}
 	
 					long version = ImportExportUtils.importLong( map, "v", RelatedContent.VERSION_INITIAL );
-
-					//System.out.println( "Search result version: " + version );
 					
 					SearchResult result = 
 						new SearchResult()
@@ -1115,7 +1126,11 @@ RelatedContentSearcher
 								int		property_name )
 							{
 								try{
-									if ( property_name == SearchResult.PR_NAME ){
+									if ( property_name == SearchResult.PR_VERSION ){
+										
+										return( ImportExportUtils.importLong( map, "v", RelatedContent.VERSION_INITIAL ));
+
+									}else if ( property_name == SearchResult.PR_NAME ){
 											
 										return( title );
 										
@@ -1464,6 +1479,10 @@ RelatedContentSearcher
 
 				term = fixupTerm( term );
 				
+				String	network = ImportExportUtils.importString( request, "n", "" );
+
+				boolean search_cvs_only = network.equals( "c" );
+				
 				// System.out.println( "Received remote search: '" + term + "' from " + originator.getAddress() + ", hits=" + hits + ", bs=" + harvest_se_requester_bloom.getEntryCount());
 
 				logSearch( "Received remote search: '" + term + "' from " + originator.getAddress() + ", hits=" + hits + ", bs=" + harvest_se_requester_bloom.getEntryCount());
@@ -1474,7 +1493,7 @@ RelatedContentSearcher
 					
 					if ( term != null ){
 												
-						List<RelatedContent>	matches = matchContent( term, false );
+						List<RelatedContent>	matches = matchContent( term, false, search_cvs_only );
 								
 						List<Map<String,Object>> l_list = new ArrayList<Map<String,Object>>();
 						
@@ -1704,7 +1723,7 @@ RelatedContentSearcher
 			Set<String>	dht_only_words 		= new HashSet<String>();
 			Set<String>	non_dht_words 		= new HashSet<String>();
 			
-			List<DownloadInfo>		dht_infos		= getDHTInfos();
+			List<DownloadInfo>		dht_infos		= getDHTInfos( SEARCH_CVS_ONLY_DEFAULT );
 			
 			Iterator<DownloadInfo>	it_dht 			= dht_infos.iterator();
 						
@@ -1811,10 +1830,26 @@ RelatedContentSearcher
 	}
 	
 	private List<DownloadInfo>
-	getDHTInfos()
+	getDHTInfos(
+		boolean		search_cvs_only )
 	{
-		List<DHTPluginValue> vals = dht_plugin.getValues();
+		List<DHTPluginValue> vals;
+	
+		if ( search_cvs_only ){
+			
+			if ( dht_plugin instanceof DHTPlugin ){
 				
+				vals = ((DHTPlugin)dht_plugin).getValues( DHTPlugin.NW_CVS,  false );
+				
+			}else{
+				
+				vals = dht_plugin.getValues();
+			}
+		}else{
+			
+			vals = dht_plugin.getValues();
+		}
+		
 		Set<String>	unique_keys = new HashSet<String>();
 		
 		List<DownloadInfo>	dht_infos = new ArrayList<DownloadInfo>();
@@ -1864,7 +1899,7 @@ RelatedContentSearcher
 				
 				ContentCache cache = manager.loadRelatedContent();
 				
-				List<DownloadInfo>		dht_infos		= getDHTInfos();
+				List<DownloadInfo>		dht_infos		= getDHTInfos( false );
 				
 				Iterator<DownloadInfo>	it_dht 			= dht_infos.iterator();
 							
@@ -1934,11 +1969,11 @@ RelatedContentSearcher
 					misses++;
 				}
 				
-				List<RelatedContent> hits = matchContent( word, true );
+				List<RelatedContent> hits = matchContent( word, true, false );
 				
 				if ( hits.size() == 0 ){
 					
-					hits = matchContent( word, true );
+					hits = matchContent( word, true, false );
 					
 					match_fails++;
 				}
@@ -2038,7 +2073,7 @@ outer:
 								
 								int	network = dht.getNetwork();
 								
-								if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
+								if ( SEARCH_CVS_ONLY_DEFAULT && network != DHT.NW_CVS ){
 									
 									logSearch( "Harvest: ignoring main DHT" );
 									
