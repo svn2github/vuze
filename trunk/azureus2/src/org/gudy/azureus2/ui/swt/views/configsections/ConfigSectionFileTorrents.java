@@ -64,19 +64,26 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
   
 
   public Composite configSectionCreate(final Composite parent) {
-		ImageLoader imageLoader = ImageLoader.getInstance();
-		Image imgOpenFolder = imageLoader.getImage("openFolderButton");
-
-    GridData gridData;
-    GridLayout layout;
 
     // Sub-Section: File -> Torrent
     // ----------------------------
     Composite cTorrent = new Composite(parent, SWT.NULL);
 
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    configSectionCreateSupport( cTorrent );
+    
+    return( cTorrent );
+  }
+  
+  public void
+  configSectionCreateSupport(
+	final Composite cTorrent )
+{
+	ImageLoader imageLoader = ImageLoader.getInstance();
+	Image imgOpenFolder = imageLoader.getImage("openFolderButton");
+
+	GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     Utils.setLayoutData(cTorrent, gridData);
-    layout = new GridLayout();
+    GridLayout layout = new GridLayout();
     layout.numColumns = 2;
     cTorrent.setLayout(layout);
     
@@ -116,7 +123,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event event) {
-        DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
+        DirectoryDialog dialog = new DirectoryDialog(cTorrent.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(torrentPathParameter.getValue());
         dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaulttorrentpath"));
         String path = dialog.open();
@@ -173,34 +180,83 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     layout = new GridLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;
-    layout.numColumns = 3;
+    layout.numColumns = 5;
     gWatchFolder.setLayout(layout);
 
-    Label lImportDir = new Label(gWatchFolder, SWT.NULL);
-    Messages.setLanguageText(lImportDir, "ConfigView.label.importdirectory");
+    int	num_folders = COConfigurationManager.getIntParameter( "Watch Torrent Folder Path Count", 1);
+    
+    for ( int i=0;i<num_folders;i++){
+	    Label lImportDir = new Label(gWatchFolder, SWT.NULL);
+	    Messages.setLanguageText(lImportDir, "ConfigView.label.importdirectory");
+	
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    final StringParameter watchFolderPathParameter = 
+	    	new StringParameter(gWatchFolder, "Watch Torrent Folder Path" + (i==0?"":(" " + i )), "");
+	    watchFolderPathParameter.setLayoutData(gridData);
+	
+	    Button browse4 = new Button(gWatchFolder, SWT.PUSH);
+	    browse4.setImage(imgOpenFolder);
+	    imgOpenFolder.setBackground(browse4.getBackground());
+	    browse4.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+	
+	    browse4.addListener(SWT.Selection, new Listener() {
+	      public void handleEvent(Event event) {
+	        DirectoryDialog dialog = new DirectoryDialog(cTorrent.getShell(), SWT.APPLICATION_MODAL);
+	        dialog.setFilterPath(watchFolderPathParameter.getValue());
+	        dialog.setText(MessageText.getString("ConfigView.dialog.choosewatchtorrentfolderpath"));
+	        String path = dialog.open();
+	        if (path != null) {
+	          watchFolderPathParameter.setValue(path);
+	        }
+	      }
+	    });
+	    
+	    Label lTag = new Label(gWatchFolder, SWT.NULL);
+	    Messages.setLanguageText(lTag, "label.assign.to.tag");
 
+	    StringParameter tagParam = 
+	    	new StringParameter(gWatchFolder, "Watch Torrent Folder Tag" + (i==0?"":(" " + i )), "");
+	    gridData = new GridData();
+	    gridData.widthHint = 60;
+	    tagParam.setLayoutData(gridData);
+
+    }
+    
+    	// add another folder
+    Label addAnother = new Label(gWatchFolder, SWT.NULL);
+    Messages.setLanguageText(addAnother, "ConfigView.label.addanotherfolder");
+    
+    Composite gAddButton = new Composite(gWatchFolder, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final StringParameter watchFolderPathParameter = new StringParameter(gWatchFolder,
-                                                                         "Watch Torrent Folder Path", "");
-    watchFolderPathParameter.setLayoutData(gridData);
-
-    Button browse4 = new Button(gWatchFolder, SWT.PUSH);
-    browse4.setImage(imgOpenFolder);
-    imgOpenFolder.setBackground(browse4.getBackground());
-    browse4.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-
-    browse4.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
-        dialog.setFilterPath(watchFolderPathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosewatchtorrentfolderpath"));
-        String path = dialog.open();
-        if (path != null) {
-          watchFolderPathParameter.setValue(path);
-        }
-      }
-    });
-
+    gridData.horizontalSpan = 4;
+    Utils.setLayoutData(gAddButton, gridData);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 2;
+    gAddButton.setLayout(layout);
+    Button addButton = new Button(gAddButton, SWT.PUSH);
+    Messages.setLanguageText(addButton, "ConfigView.section.ipfilter.add");
+    
+    addButton.addListener(SWT.Selection, new Listener() {
+	      public void handleEvent(Event event) {
+	    	  
+	    	  int num = COConfigurationManager.getIntParameter( "Watch Torrent Folder Path Count", 1);
+	    	  
+	    	  COConfigurationManager.setParameter( "Watch Torrent Folder Path Count", num+1);
+	    	  
+	    	  Utils.disposeComposite( cTorrent, false );
+	    	  
+	    	  configSectionCreateSupport( cTorrent );
+	    	  
+	    	  cTorrent.layout( true,  true );
+	      }});
+    Label pad = new Label(gAddButton, SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    pad.setLayoutData( gridData);
+    
+    	// watch interval
+    
     Label lWatchTorrentFolderInterval = new Label(gWatchFolder, SWT.NULL);
     Messages.setLanguageText(lWatchTorrentFolderInterval, "ConfigView.label.watchtorrentfolderinterval");
     String	sec = " " + MessageText.getString("ConfigView.section.stats.seconds");
@@ -221,19 +277,19 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     }
     
     gridData = new GridData();
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 4;
     new IntListParameter(gWatchFolder, "Watch Torrent Folder Interval Secs",
                          watchTorrentFolderIntervalLabels, 
                          watchTorrentFolderIntervalValues).setLayoutData(gridData);
 
+    	// add stopped
+    
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 5;
     new BooleanParameter(gWatchFolder, "Start Watched Torrents Stopped",
                          "ConfigView.label.startwatchedtorrentsstopped").setLayoutData(gridData);
 
     controls = new Control[]{ gWatchFolder };
     watchFolder.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
-
-    return cTorrent;
   }
 }

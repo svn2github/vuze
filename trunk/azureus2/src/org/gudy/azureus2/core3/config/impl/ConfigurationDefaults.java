@@ -353,6 +353,7 @@ public class ConfigurationDefaults {
     def.put( "Watch Torrent Folder Interval Secs", SIXTY );
     def.put( "Start Watched Torrents Stopped", FALSE );
     def.put( "Watch Torrent Folder Path", "" );
+    def.put( "Watch Torrent Folder Path Count", ONE );
     def.put( "Prioritize First Piece", FALSE );
     def.put( "Prioritize Most Completed Files", FALSE );
     def.put( "Piece Picker Request Hint Enabled", TRUE );

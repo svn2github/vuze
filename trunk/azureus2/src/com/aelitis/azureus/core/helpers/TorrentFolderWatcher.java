@@ -21,15 +21,21 @@ package com.aelitis.azureus.core.helpers;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 
 /**
  * Watches a folder for new torrents and imports them.
@@ -202,8 +208,7 @@ public class TorrentFolderWatcher {
 				return;
 			}
 			
-			boolean save_torrents = COConfigurationManager
-					.getBooleanParameter("Save Torrent Files");
+			boolean save_torrents_default = COConfigurationManager.getBooleanParameter("Save Torrent Files");
 
 			String torrent_save_path = COConfigurationManager
 					.getStringParameter("General_sDefaultTorrent_Directory");
@@ -212,36 +217,57 @@ public class TorrentFolderWatcher {
 					.getBooleanParameter("Start Watched Torrents Stopped")
 					? DownloadManager.STATE_STOPPED : DownloadManager.STATE_QUEUED;
 
-			String folder_path = COConfigurationManager
-					.getStringParameter("Watch Torrent Folder Path");
+	    	int num_folders = COConfigurationManager.getIntParameter( "Watch Torrent Folder Path Count", 1);
 
-			String data_save_path = COConfigurationManager
-					.getStringParameter("Default save path");
-
-			File folder = null;
-
-			if (folder_path != null && folder_path.length() > 0) {
-				folder = new File(folder_path);
-				if (!folder.isDirectory()) {
-					if (!folder.exists()) {
-						FileUtil.mkdirs(folder);
-					}
+	    	List<File>		folders = new ArrayList<File>();
+	    	List<String>	tags	= new ArrayList<String>();
+	    	
+	    	for ( int i=0;i<num_folders;i++){
+				String folder_path = 
+					COConfigurationManager.getStringParameter("Watch Torrent Folder Path" + (i==0?"":(" " + i )));
+		
+				File folder = null;
+	
+				if (folder_path != null && folder_path.length() > 0) {
+					folder = new File(folder_path);
 					if (!folder.isDirectory()) {
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-									"[Watch Torrent Folder Path] " + "does not exist or "
-											+ "is not a dir"));
-						folder = null;
+						if (!folder.exists()) {
+							FileUtil.mkdirs(folder);
+						}
+						if (!folder.isDirectory()) {
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+										"[Watch Torrent Folder Path] " + "does not exist or "
+												+ "is not a dir"));
+							folder = null;
+						}
 					}
 				}
-			}
+				
+				if ( folder != null ){
+					
+					folders.add( folder );
 
-			if (folder == null) {
+					String tag = 
+							COConfigurationManager.getStringParameter("Watch Torrent Folder Tag" + (i==0?"":(" " + i )), null);
+
+					if ( tag != null && tag.trim().length() == 0 ){
+
+						tag = null;
+					}
+					
+					tags.add( tag );
+				}
+	    	}
+	    	
+			if (folders.isEmpty()) {
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 							"[Watch Torrent Folder Path] not configured"));
 				return;
 			}
+
+			String data_save_path = COConfigurationManager.getStringParameter("Default save path");
 
 			File f = null;
 			if (data_save_path != null && data_save_path.length() > 0) {
@@ -274,16 +300,7 @@ public class TorrentFolderWatcher {
 						"[Default save path] needs to be set for auto-.torrent-import to work"));
 			}
 			
-			// if we are saving torrents to the same location as we import them from
-			// then we can't assume that its safe to delete the torrent after import! 
-
-			if (torrent_save_path.length() == 0
-					|| torrent_save_path.equals(folder_path)
-					|| !new File(torrent_save_path).isDirectory()) {
-
-				save_torrents = false;
-			}
-
+			
 			//delete torrents from the previous import run
 
 			for (int i = 0; i < to_delete.size(); i++) {
@@ -301,74 +318,132 @@ public class TorrentFolderWatcher {
 
 			to_delete.clear();
 
-			String[] currentFileList = folder.list(filename_filter);
-			if (currentFileList == null) {
-				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-						"There was a problem trying to get a listing of torrents from " + folder));
-				return;
-			}
-
-			for (int i = 0; i < currentFileList.length; i++) {
-
-				if ( !running ){
-					
-					return;
-				}
+			for (int folder_index=0;folder_index<folders.size();folder_index++){
 				
-				File file = new File(folder, currentFileList[i]);
-
-				// make sure we've got a valid torrent file before proceeding
-
-				try {
-
-					TOTorrent torrent = TorrentUtils.readFromFile(file, false);
-
-					if (global_manager.getDownloadManager(torrent) != null) {
-
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, file.getAbsolutePath()
-									+ " is already being downloaded"));
-
-						// we can't touch the torrent file as it is (probably) 
-						// being used for the download
-
-					} else {
-						
-						byte[] hash = null;
-						try {
-							hash = torrent.getHash();
-						} catch (Exception e) { }
-
-						if (!save_torrents) {
-
-							File imported = new File(folder, file.getName() + ".imported");
-
-							TorrentUtils.move(file, imported);
-
-							global_manager.addDownloadManager(imported.getAbsolutePath(), hash,
-									data_save_path, start_state, true);
-
-						} else {
-
-							global_manager.addDownloadManager(file.getAbsolutePath(), hash,
-									data_save_path, start_state, true);
-
-							// add torrent for deletion, since there will be a 
-							// saved copy elsewhere
-							to_delete.add(torrent);
+				File	folder = folders.get(folder_index);
+				
+				final String tag_name = tags.get(folder_index);
+				
+					// if we are saving torrents to the same location as we import them from
+					// then we can't assume that its safe to delete the torrent after import! 
+	
+				boolean	save_torrents = save_torrents_default;
+				
+				if (torrent_save_path.length() == 0
+						|| new File( torrent_save_path ).getAbsolutePath().equals(folder.getAbsolutePath())
+						|| !new File(torrent_save_path).isDirectory()) {
+	
+					save_torrents = false;
+				}
+	
+				String[] currentFileList = folder.list(filename_filter);
+				
+				if (currentFileList == null) {
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+							"There was a problem trying to get a listing of torrents from " + folder));
+					
+				}else{
+	
+					for (int i = 0; i < currentFileList.length; i++) {
+		
+						if ( !running ){
+							
+							return;
 						}
+						
+						File file = new File(folder, currentFileList[i]);
+		
+						// make sure we've got a valid torrent file before proceeding
+		
+						try {
+		
+							TOTorrent torrent = TorrentUtils.readFromFile(file, false);
+		
+							if (global_manager.getDownloadManager(torrent) != null) {
+		
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(LOGID, file.getAbsolutePath()
+											+ " is already being downloaded"));
+		
+								// we can't touch the torrent file as it is (probably) 
+								// being used for the download
+		
+							} else {
+								
+								final DownloadManagerInitialisationAdapter dmia = new DownloadManagerInitialisationAdapter() {
 
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, "Auto-imported "
-									+ file.getAbsolutePath()));
+									public int 
+									getActions() 
+									{
+										return( ACT_ASSIGNS_TAGS );
+									}
+									
+									public void 
+									initialised(
+										DownloadManager 		dm, 
+										boolean 				for_seeding ) 
+									{
+										if ( tag_name != null ){
+											
+											TagManager tm = TagManagerFactory.getTagManager();
+											
+											TagType tt = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL );
+																						
+											Tag	tag = tt.getTag( tag_name, true );
+											
+											try{
+												if ( tag == null ){
+													
+													tag = tt.createTag( tag_name, true );
+												}
+												
+												tag.addTaggable( dm );
+												
+											}catch( Throwable e ){
+												
+												Debug.out( e );
+											}
+										}
+									}
+								};
+								
+								byte[] hash = null;
+								try {
+									hash = torrent.getHash();
+								} catch (Exception e) { }
+		
+								if (!save_torrents) {
+		
+									File imported = new File(folder, file.getName() + ".imported");
+		
+									TorrentUtils.move(file, imported);
+		
+									global_manager.addDownloadManager(imported.getAbsolutePath(), hash,
+											data_save_path, start_state, true,false,dmia);
+		
+								} else {
+		
+									global_manager.addDownloadManager(file.getAbsolutePath(), hash,
+											data_save_path, start_state, true, false, dmia);
+		
+									// add torrent for deletion, since there will be a 
+									// saved copy elsewhere
+									to_delete.add(torrent);
+								}
+		
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(LOGID, "Auto-imported "
+											+ file.getAbsolutePath()));
+							}
+		
+						} catch (Throwable e) {
+		
+							Debug.out("Failed to auto-import torrent file '"
+									+ file.getAbsolutePath() + "' - "
+									+ Debug.getNestedExceptionMessage(e));
+							Debug.printStackTrace(e);
+						}
 					}
-
-				} catch (Throwable e) {
-
-					Debug.out("Failed to auto-import torrent file '"
-							+ file.getAbsolutePath() + "' - "
-							+ Debug.getNestedExceptionMessage(e));
-					Debug.printStackTrace(e);
 				}
 			}
 		} finally {
