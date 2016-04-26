@@ -89,7 +89,7 @@ public class
 RelatedContentSearcher 
 	implements DistributedDatabaseTransferHandler
 {
-	private static final boolean	SEARCH_CVS_ONLY_DEFAULT		= false;
+	private static final boolean	SEARCH_CVS_ONLY_DEFAULT		= true;
 	private static final boolean	TRACE_SEARCH				= false;
 
 	private static final int	MAX_REMOTE_SEARCH_RESULTS		= 30;
@@ -850,7 +850,17 @@ RelatedContentSearcher
 				boolean	match 			= true;
 				boolean	at_least_one 	= false;
 				
-				if ( title.equalsIgnoreCase( term ) && term.trim().length() > 0 ){
+				byte[] hash = c.getHash();
+				
+				if ( 	term.startsWith( "hash:" ) && 
+						hash != null && 
+						term.substring(5).equals( Base32.encode( hash ))){
+					
+						// direct hash based match
+					
+					at_least_one = true;
+					
+				}else  if ( title.equalsIgnoreCase( term ) && term.trim().length() > 0 ){
 					
 						// pick up a direct match regardless of anything else
 					
@@ -946,9 +956,7 @@ RelatedContentSearcher
 				}
 				
 				if ( match && at_least_one ){
-					
-					byte[]	hash = c.getHash();
-					
+									
 					String key;
 					
 					if ( hash != null ){
@@ -1711,6 +1719,15 @@ RelatedContentSearcher
 			}
 		}
 		
+		byte[] hash = info.getHash();
+		
+		if ( hash != null ){
+		
+				// 5711+
+			
+			result.add( "hash:" + Base32.encode( hash ));
+		}
+		
 		return( result );
 	}
 	
@@ -1731,10 +1748,8 @@ RelatedContentSearcher
 			
 			Iterator<DownloadInfo>	it_rc 			= cc.related_content.values().iterator();			
 
-			for ( Iterator _it: new Iterator[]{ it_transient, it_rc, it_dht }){
-				
-				Iterator<DownloadInfo> it = (Iterator<DownloadInfo>)_it;
-				
+			for ( Iterator<DownloadInfo> it: new Iterator[]{ it_transient, it_rc, it_dht }){
+								
 				while( it.hasNext()){
 				
 					DownloadInfo di = it.next();
