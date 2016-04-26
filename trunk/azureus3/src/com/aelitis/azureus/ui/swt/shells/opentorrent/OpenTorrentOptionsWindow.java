@@ -1735,6 +1735,15 @@ public class OpenTorrentOptionsWindow
 					
 					if ( networks.size() > 0 ){
 						
+						List<String>	tag_cache = TorrentUtils.getTagCache( torrentOptions.getTorrent());
+						
+						synchronized( listDiscoveredTags ){
+							for ( String tag: tag_cache ){
+								if ( !listDiscoveredTags.contains( tag )){
+									listDiscoveredTags.add( tag);
+								}
+							}
+						}
 						rcm.lookupAttributes(
 							hash.getBytes(), 
 							networks.toArray( new String[networks.size()]),

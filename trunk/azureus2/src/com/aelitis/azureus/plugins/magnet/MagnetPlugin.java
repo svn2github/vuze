@@ -724,7 +724,7 @@ MagnetPlugin
 						}
 					}else if ( lhs.equals( "tag" )){
 						
-						tags.add( x[1] );
+						tags.add(UrlUtils.decode( x[1] ));
 					}
 				}
 			}
