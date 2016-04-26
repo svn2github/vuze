@@ -4809,13 +4809,18 @@ RelatedContentManager
 				setContentNetwork( cn );
 			}
 			
-			int sl = info.getSeedsLeechers();
-			
-			if ( sl != -1 && sl != getSeedsLeechers()){
+			if ( info.getVersion() >= getVersion()){
 				
-				setSeedsLeechers( sl );
+					// don't update seeds/leechers with older version (less accurate) values
 				
-				result = true;
+				int sl = info.getSeedsLeechers();
+				
+				if ( sl != -1 && sl != getSeedsLeechers()){
+					
+					setSeedsLeechers( sl );
+					
+					result = true;
+				}
 			}
 			
 			int	d = info.getDateHours();
