@@ -1052,7 +1052,10 @@ RelatedContentSearcher
 					_observer.cancelled();
 				}
 			};
+			
 		try{
+			Boolean	supports_duplicates = (Boolean)observer.getProperty( SearchObserver.PR_SUPPORTS_DUPLICATES );
+			
 			Map<String,Object>	request = new HashMap<String,Object>();
 			
 			request.put( "t", term );
@@ -1113,17 +1116,22 @@ RelatedContentSearcher
 					}
 					
 					String	hash_str = Base32.encode( hash );
-						
+												
 					synchronized( hashes_sync_me ){
-						
-						if ( hashes_sync_me.contains( hash_str )){
 							
-							continue;
+						if ( hashes_sync_me.contains( hash_str )){
+
+							if ( supports_duplicates == null || !supports_duplicates ){
+
+								continue;
+							}
+							
+						}else{
+							
+							hashes_sync_me.add( hash_str );
 						}
-						
-						hashes_sync_me.add( hash_str );
 					}
-	
+					
 					long version = ImportExportUtils.importLong( map, "v", RelatedContent.VERSION_INITIAL );
 					
 					SearchResult result = 

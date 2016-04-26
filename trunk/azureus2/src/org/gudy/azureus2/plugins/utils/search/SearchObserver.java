@@ -24,6 +24,7 @@ public interface
 SearchObserver 
 {
 	public static final int PR_MAX_RESULTS_WANTED	= 1;	// Long
+	public static final int PR_SUPPORTS_DUPLICATES	= 2;	// Boolean
 	
 	public void
 	resultReceived(
