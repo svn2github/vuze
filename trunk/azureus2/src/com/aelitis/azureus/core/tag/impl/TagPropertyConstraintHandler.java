@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.tag.impl;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -1065,8 +1066,8 @@ TagPropertyConstraintHandler
 		private static final int FT_IS_COMPLETE		= 12;
 		private static final int FT_CAN_ARCHIVE		= 13;
 		private static final int FT_IS_FORCE_START	= 14;
-	
 		private static final int FT_JAVASCRIPT		= 15;
+		private static final int FT_IS_CHECKING		= 16;
 	
 		
 		private static Map<String,Integer>	keyword_map = new HashMap<String, Integer>();
@@ -1139,8 +1140,14 @@ TagPropertyConstraintHandler
 					params_ok = params.length == 0;
 					
 				}else if ( func_name.equals( "isForceStart" )){
-	
+					
 					fn_type = FT_IS_FORCE_START;
+	
+					params_ok = params.length == 0;
+					
+				}else if ( func_name.equals( "isChecking" )){
+					
+					fn_type = FT_IS_CHECKING;
 	
 					params_ok = params.length == 0;
 					
@@ -1274,7 +1281,26 @@ TagPropertyConstraintHandler
 						
 						return( dm.isForceStart());
 					}
-	
+					case FT_IS_CHECKING:{
+						
+						int state = dm.getState();
+						
+						if ( state == DownloadManager.STATE_CHECKING ){
+							
+							return( true );
+							
+						}else if ( state == DownloadManager.STATE_SEEDING ){
+							
+							DiskManager disk_manager = dm.getDiskManager();
+
+							if ( disk_manager != null ){
+							
+								return( disk_manager.getCompleteRecheckStatus() != -1 );
+							}
+						}
+						
+						return( false );
+					}
 					case FT_IS_COMPLETE:{
 						
 						return( dm.isDownloadComplete( false ));
