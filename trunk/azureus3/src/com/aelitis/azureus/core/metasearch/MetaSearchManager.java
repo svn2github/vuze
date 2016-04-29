@@ -22,6 +22,8 @@ package com.aelitis.azureus.core.metasearch;
 
 import java.util.Map;
 
+import org.gudy.azureus2.plugins.utils.search.SearchProvider;
+
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 
 public interface 
@@ -59,6 +61,10 @@ MetaSearchManager
 		boolean		warn_user )
 	
 		throws MetaSearchException;
+	
+	public Engine
+	getEngine(
+		SearchProvider	sp );
 	
 	public void
 	addListener(

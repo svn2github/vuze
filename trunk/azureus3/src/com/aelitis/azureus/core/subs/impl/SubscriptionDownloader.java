@@ -59,6 +59,7 @@ SubscriptionDownloader
 		
 		Long 	engine_id 	= (Long)map.get( "engine_id" );
 		String	search_term	= (String)map.get( "search_term" );
+		String	networks	= (String)map.get( "networks" );
 		Map		filters		= (Map)map.get( "filters" );
 
 		Engine engine = manager.getEngine( subs, map, false );
@@ -75,6 +76,11 @@ SubscriptionDownloader
 			sps.add( new SearchParameter( "s", search_term ));
 		
 			log( "    Using search term '" + search_term + "' for engine " + engine.getString());
+		}
+		
+		if ( networks != null && networks.length() > 0 ){
+			
+			sps.add( new SearchParameter( "n", networks ));
 		}
 		
 		/*

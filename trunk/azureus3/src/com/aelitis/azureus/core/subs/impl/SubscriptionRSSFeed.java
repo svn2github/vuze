@@ -258,12 +258,12 @@ SubscriptionRSSFeed
 
 						if ( link != null ){
 							
-							pw.println( "<link>" + link + "</link>" );
+							pw.println( "<link>" + escape( link ) + "</link>" );
 						
 
 							if ( size != null ){
 							
-								pw.println( "<media:content fileSize=\"" + size + "\" url=\"" + link + "\"/>" );
+								pw.println( "<media:content fileSize=\"" + size + "\" url=\"" + escape( link ) + "\"/>" );
 							}
 						}
 						

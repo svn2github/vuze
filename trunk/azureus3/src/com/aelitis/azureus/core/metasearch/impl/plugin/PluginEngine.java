@@ -290,6 +290,12 @@ PluginEngine
 			
 				search_parameters.put( SearchProvider.SP_MATURE, new Boolean(value ));
 
+			}else if ( pattern.equals( "n" )){
+				
+				String[] networks = value.split(",");
+				
+				search_parameters.put( SearchProvider.SP_NETWORKS, networks );
+
 			}else{
 				
 				Debug.out( "Unrecognised search parameter '" + pattern + "=" + value + "' ignored" );

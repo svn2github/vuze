@@ -291,6 +291,28 @@ MetaSearchManagerImpl
 		return( result );
 	}
 	
+	public Engine 
+	getEngine(
+		SearchProvider sp) 
+	{
+		Engine[] engines = meta_search.getEngines( false, false );
+		
+		for ( Engine engine: engines ){
+			
+			if ( engine instanceof PluginEngine ){
+				
+				PluginEngine pe = (PluginEngine)engine;
+				
+				if ( pe.getProvider() == sp ){
+					
+					return( pe );
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	public Search 
 	createSearch(
 		String 		provider_ids,

@@ -361,7 +361,7 @@ DeviceManagerRSSFeed
 			  				
 			  				if ( stream_url != null ){
 			  					
-			  					String url_ext = stream_url.toExternalForm();
+			  					String url_ext = escape( stream_url.toExternalForm());
 			  					
 			  					long fileSize = file.getTargetFile().getLength();
 			  					

@@ -196,6 +196,48 @@ SubscriptionImpl
 		return( JSONUtils.encodeToJSON( map ));
 	}
 	
+	protected static String
+	getSkeletonJSON(
+		Engine		engine,
+		String		term,
+		String		networks,
+		int			check_interval_mins )
+	{
+		JSONObject	map = new JSONObject();
+		
+		map.put( "engine_id", new Long( engine.getId()));
+		
+		map.put( "search_term", term );
+		
+		if ( networks != null ){
+			
+			map.put( "networks", networks );
+		}
+
+		map.put( "filters", new HashMap());
+		
+		map.put( "options", new HashMap());
+		
+		Map schedule = new HashMap();
+		
+		schedule.put( "interval", new Long( check_interval_mins ));
+		
+		List	days = new ArrayList();
+		
+		for (int i=1;i<=7;i++){
+			
+			days.add( String.valueOf(i));
+		}
+		
+		schedule.put( "days", days );
+		
+		map.put( "schedule", schedule );
+		
+		embedEngines( map, engine );
+		
+		return( JSONUtils.encodeToJSON( map ));
+	}
+	
 	
 		// new subs constructor
 	

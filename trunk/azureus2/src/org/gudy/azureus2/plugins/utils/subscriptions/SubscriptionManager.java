@@ -21,6 +21,9 @@
 package org.gudy.azureus2.plugins.utils.subscriptions;
 
 import java.net.URL;
+import java.util.Map;
+
+import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 
 public interface 
 SubscriptionManager 
@@ -31,4 +34,11 @@ SubscriptionManager
 	public void
 	requestSubscription(
 		URL			url );
+	
+	public void
+	requestSubscription(
+		SearchProvider		sp,
+		Map<String,Object>	search_parameters )
+		
+			throws SubscriptionException;
 }

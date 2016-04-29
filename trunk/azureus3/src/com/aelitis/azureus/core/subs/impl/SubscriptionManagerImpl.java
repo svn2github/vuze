@@ -1619,6 +1619,62 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	public void 
+	requestSubscription(
+		SearchProvider 			sp,
+		Map<String, Object> 	search_parameters) 
+		
+		throws org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionException
+	{		
+		try{
+			Engine engine = MetaSearchManagerFactory.getSingleton().getEngine( sp );
+
+			if ( engine == null ){
+				
+				throw( new SubscriptionException( "Engine not found "));
+			}
+			
+			String		term 		= (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM );
+			String[]	networks 	= (String[])search_parameters.get( SearchProvider.SP_NETWORKS );
+			
+			String networks_str = null;
+			
+			if ( networks != null && networks.length > 0 ){
+				
+				networks_str = "";
+				
+				for ( String network: networks ){
+					
+					networks_str += (networks_str.length()==0?"":",") + network;
+				}
+			}
+			
+			String	json = SubscriptionImpl.getSkeletonJSON( engine, term, networks_str, 60 );
+				
+			String	name 	= (String)search_parameters.get( SearchProvider.SP_SEARCH_NAME );
+
+			if ( name == null || name.length() == 0 ){
+			
+				name = engine.getName() + ": " + search_parameters.get( SearchProvider.SP_SEARCH_TERM );
+			}
+			
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, engine.isPublic(), null, json, SubscriptionImpl.ADD_TYPE_CREATE );
+			
+			log( "Created new subscription: " + subs.getString());
+					
+			subs = addSubscription( subs );
+			
+			if ( subs.isPublic()){
+			
+				updatePublicSubscription( subs );
+			}
+		
+		}catch( Throwable e ){
+			
+			throw( new org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionException( "Failed to create subscription", e ));
+		}
+	}
+	
 	public Subscription 
 	createRSS(
 		String		name,
