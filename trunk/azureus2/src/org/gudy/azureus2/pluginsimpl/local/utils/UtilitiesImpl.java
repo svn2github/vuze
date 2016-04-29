@@ -1773,6 +1773,16 @@ UtilitiesImpl
 						sm.requestSubscription( url );
 					}
 					
+					public void 
+					requestSubscription(
+						SearchProvider 			sp,
+						Map<String, Object> 	search_parameters) 
+						
+						throws SubscriptionException
+					{
+						sm.requestSubscription( sp, search_parameters );
+					}
+					
 					public Subscription[] 
 					getSubscriptions() 
 					{
@@ -2041,6 +2051,13 @@ UtilitiesImpl
 		public void
 		requestSubscription(
 			URL		url );
+		
+		public void 
+		requestSubscription(
+			SearchProvider 			sp,
+			Map<String, Object> 	search_parameters ) 
+			
+			throws SubscriptionException;
 		
 		public PluginSubscription[]
 		getSubscriptions(
