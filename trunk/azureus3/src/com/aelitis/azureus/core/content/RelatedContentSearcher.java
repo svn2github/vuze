@@ -887,6 +887,16 @@ RelatedContentSearcher
 				
 				DownloadInfo c = it.next();
 				
+				if ( is_popularity ){
+					
+						// some random minimal values for popular stuff
+					
+					if ( c.getSeeds() < 25 || c.getLeechers() < 10 ){
+						
+						continue;
+					}
+				}
+				
 				String title 	= c.getTitle();
 				String lc_title = c.getTitle().toLowerCase();
 				
