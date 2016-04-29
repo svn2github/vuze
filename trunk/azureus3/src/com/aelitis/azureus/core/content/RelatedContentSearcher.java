@@ -90,7 +90,7 @@ public class
 RelatedContentSearcher 
 	implements DistributedDatabaseTransferHandler
 {
-	private static final boolean	SEARCH_CVS_ONLY_DEFAULT		= false;
+	private static final boolean	SEARCH_CVS_ONLY_DEFAULT		= System.getProperty( "azureus.rcm.search.cvs.only", "0" ).equals( "1" );
 	private static final boolean	TRACE_SEARCH				= false;
 
 	private static final int	MAX_REMOTE_SEARCH_RESULTS		= 30;
