@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -730,6 +731,8 @@ RelatedContentSearcher
 			}
 		}
 		
+		term = transformTerm( term );
+		
 		return( term );
 	}
 	
@@ -755,6 +758,46 @@ RelatedContentSearcher
 		}
 		
 		return( tag );
+	}
+	
+	private String
+	transformTerm(
+		String		term )
+	{
+			// if term has quoted strings (e.g. "the dog") then transform this into a regular expression (the.*?dog)
+
+		Pattern p = Pattern.compile("\"([^\"]+)\"");
+
+		Matcher m = p.matcher( term );
+
+		boolean result = m.find();
+
+		if ( result ){
+
+			StringBuffer sb = new StringBuffer();
+
+	    	while( result ){
+	    		
+	    		 String str = m.group(1);
+	    		  		 
+	    		 if ( str.contains( " " )){
+	    			 
+	    			 str = str.replaceAll( "\\s+", " " );
+	    			 
+	    			 str = "(" + str.replaceAll( " ", ".*?" ) + ")";
+	    		 }
+	    		 
+	    		 m.appendReplacement(sb, Matcher.quoteReplacement( str ));
+	    		 
+	    		 result = m.find(); 
+	    	 }
+
+			m.appendTail(sb);
+
+			term = sb.toString();
+		}
+		
+		return( term );
 	}
 	
 	private List<RelatedContent>
