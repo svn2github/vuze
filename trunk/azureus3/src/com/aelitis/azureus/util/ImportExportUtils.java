@@ -18,12 +18,13 @@
 
 package com.aelitis.azureus.util;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.json.simple.JSONArray;
 
@@ -40,12 +41,16 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		String	value )
-	
-		throws IOException
 	{
 		if ( value != null ){
 	
-			map.put( key, value.getBytes( "UTF-8" ));
+			try{
+				map.put( key, value.getBytes( "UTF-8" ));
+				
+			}catch( UnsupportedEncodingException e ){
+				
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -54,8 +59,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		String	value )
-	
-		throws IOException
 	{
 		if ( value != null ){
 	
@@ -68,8 +71,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		String	def )
-	
-		throws IOException
 	{
 		String	res = importString( map, key );
 		
@@ -85,8 +86,7 @@ public final class ImportExportUtils {
 	importString(
 		Map		map,
 		String	key )
-	
-		throws IOException
+
 	{
 		if ( map == null ){
 			
@@ -101,7 +101,13 @@ public final class ImportExportUtils {
 			
 		}else if ( obj instanceof byte[]){
 			
-			return( new String((byte[])obj, "UTF-8" ));
+			try{
+				return( new String((byte[])obj, "UTF-8" ));
+				
+			}catch( UnsupportedEncodingException e ){
+				
+				e.printStackTrace();
+			}
 		}
 		
 		return( null );
@@ -111,8 +117,6 @@ public final class ImportExportUtils {
 	importLong(
 		Map		map,
 		String	key )
-	
-		throws IOException
 	{
 		return( importLong( map, key, 0 ));
 	}
@@ -122,8 +126,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		long	def )
-	
-		throws IOException
 	{
 		if ( map == null ){
 			
@@ -166,8 +168,6 @@ public final class ImportExportUtils {
 	importInt(
 		Map		map,
 		String	key )
-	
-		throws IOException
 	{
 		return((int)importLong( map, key, 0 ));
 	}
@@ -177,8 +177,7 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		int		def )
-	
-		throws IOException
+
 	{
 		return((int)importLong( map, key, def ));
 	}
@@ -188,8 +187,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		float	value )
-	
-		throws IOException
 	{
 		exportString( map, key, String.valueOf( value ));
 	}
@@ -199,8 +196,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		float	def )
-	
-		throws IOException
 	{
 		String	str = importString( map, key );
 		
@@ -217,8 +212,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		boolean	value )
-	
-		throws IOException
 	{
 		map.put( key, new Long( value?1:0 ));
 	}
@@ -227,8 +220,6 @@ public final class ImportExportUtils {
 	importBoolean(
 		Map		map,
 		String	key )
-	
-		throws IOException
 	{
 		return( importBoolean( map, key, false ));
 	}
@@ -238,8 +229,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		boolean	def )
-	
-		throws IOException
 	{
 		if ( map == null ){
 			
@@ -265,8 +254,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		boolean	value )
-	
-		throws IOException
 	{
 		map.put( key, new Boolean( value ));
 	}
@@ -275,8 +262,6 @@ public final class ImportExportUtils {
 	importURL(
 		Map		map,
 		String	key )
-	
-		throws IOException
 	{
 		String url = importString( map, key );
 		
@@ -290,7 +275,13 @@ public final class ImportExportUtils {
 				
 			}else{
 				
-				url = URLDecoder.decode( url, "UTF-8" );
+				try{
+					url = URLDecoder.decode( url, "UTF-8" );
+					
+				}catch( UnsupportedEncodingException e ){
+					
+					e.printStackTrace();
+				}
 			}
 		}
 		
@@ -302,8 +293,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		String	value )
-	
-		throws IOException
 	{
 		exportString( map, key, value );
 	}
@@ -313,8 +302,6 @@ public final class ImportExportUtils {
 		Map		map,
 		String	key,
 		String	value )
-	
-		throws IOException
 	{
 		exportJSONString( map, key, UrlUtils.encode( value ));
 	}
@@ -323,8 +310,6 @@ public final class ImportExportUtils {
 	importStringArray(
 		Map		map,
 		String	key )
-	
-		throws IOException
 	{
 		List	list = (List)map.get( key );
 		
@@ -345,7 +330,13 @@ public final class ImportExportUtils {
 				
 			}else if ( obj instanceof byte[] ){
 				
-				res[i] = new String((byte[])obj, "UTF-8" );
+				try{
+					res[i] = new String((byte[])obj, "UTF-8" );
+					
+				}catch( UnsupportedEncodingException e ){
+					
+					e.printStackTrace();
+				}
 			}
 		}
 		
@@ -357,8 +348,6 @@ public final class ImportExportUtils {
 		Map			map,
 		String		key,
 		String[]	data )
-	
-		throws IOException
 	{
 		List	l = new ArrayList(data.length);
 		
@@ -366,7 +355,13 @@ public final class ImportExportUtils {
 		
 		for (int i=0;i<data.length;i++){
 			
-			l.add( data[i].getBytes( "UTF-8" ));
+			try{
+				l.add( data[i].getBytes( "UTF-8" ));
+				
+			}catch( UnsupportedEncodingException e ){
+				
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -375,8 +370,6 @@ public final class ImportExportUtils {
 		Map			map,
 		String		key,
 		String[]	data )
-	
-		throws IOException
 	{
 		List	l = new JSONArray(data.length);
 		
