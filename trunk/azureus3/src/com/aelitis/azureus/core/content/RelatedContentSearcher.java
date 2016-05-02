@@ -93,6 +93,11 @@ RelatedContentSearcher
 	private static final boolean	SEARCH_CVS_ONLY_DEFAULT		= System.getProperty( "azureus.rcm.search.cvs.only", "0" ).equals( "1" );
 	private static final boolean	TRACE_SEARCH				= false;
 
+	private static final int		SEARCH_MIN_SEEDS_DEFAULT	= -1;
+	private static final int		SEARCH_MIN_LEECHERS_DEFAULT	= -1;
+	private static final int		SEARCH_POP_MIN_SEEDS_DEFAULT	= 100;
+	private static final int		SEARCH_POP_MIN_LEECHERS_DEFAULT	= 25;
+	
 	private static final int	MAX_REMOTE_SEARCH_RESULTS		= 30;
 	private static final int	MAX_REMOTE_SEARCH_CONTACTS		= 50;
 	private static final int	MAX_REMOTE_SEARCH_MILLIS		= 25*1000;
@@ -255,12 +260,18 @@ RelatedContentSearcher
 				public void
 				run()
 				{
+					boolean	is_popular = isPopularity( term );
+					
+					final int	min_seeds		= is_popular?SEARCH_POP_MIN_SEEDS_DEFAULT:SEARCH_MIN_SEEDS_DEFAULT;
+					final int	min_leechers	= is_popular?SEARCH_POP_MIN_LEECHERS_DEFAULT:SEARCH_MIN_LEECHERS_DEFAULT;
+
 					boolean search_cvs_only = SEARCH_CVS_ONLY_DEFAULT;
 					
 					final Set<String>	hashes_sync_me = new HashSet<String>();
 					
-					try{				
-						List<RelatedContent>	matches = matchContent( term, true, search_cvs_only );
+					try{	
+						
+						List<RelatedContent>	matches = matchContent( term, min_seeds, min_leechers, true, search_cvs_only );
 							
 						for ( final RelatedContent c: matches ){
 							
@@ -561,7 +572,12 @@ RelatedContentSearcher
 										try{
 											logSearch( "Searching " + contact_to_search.getAddress());
 											
-											List<DistributedDatabaseContact> extra_contacts = sendRemoteSearch( si, hashes_sync_me, contact_to_search, term, observer );
+											List<DistributedDatabaseContact> extra_contacts = 
+													sendRemoteSearch( 
+														si, hashes_sync_me, contact_to_search, 
+														term,
+														min_seeds, min_leechers,
+														observer );
 													
 											if ( extra_contacts == null ){
 												
@@ -803,10 +819,12 @@ RelatedContentSearcher
 	private List<RelatedContent>
 	matchContent(
 		final String		term,
+		int					min_seeds,
+		int					min_leechers,
 		boolean				is_local,
 		boolean				search_cvs_only )
 	{
-		final boolean is_popularity = term.equals( "(.)" );
+		final boolean is_popularity = isPopularity( term );
 		
 			// term is made up of space separated bits - all bits must match
 			// each bit can be prefixed by + or -, a leading - means 'bit doesn't match'. + doesn't mean anything
@@ -879,22 +897,15 @@ RelatedContentSearcher
 
 		Iterator<DownloadInfo>	it3 = manager.getRelatedContentAsList().iterator();
 
-		for ( Iterator _it: new Iterator[]{ it1, it2, it3 }){
-			
-			Iterator<DownloadInfo> it = (Iterator<DownloadInfo>)_it;	
-			
+		for ( Iterator<DownloadInfo> it: new Iterator[]{ it1, it2, it3 }){
+						
 			while( it.hasNext()){
 				
 				DownloadInfo c = it.next();
-				
-				if ( is_popularity ){
-					
-						// some random minimal values for popular stuff
-					
-					if ( c.getSeeds() < 25 || c.getLeechers() < 10 ){
+														
+				if ( c.getSeeds() < min_seeds || c.getLeechers() < min_leechers ){
 						
-						continue;
-					}
+					continue;
 				}
 				
 				String title 	= c.getTitle();
@@ -1083,6 +1094,8 @@ RelatedContentSearcher
 		Set<String>							hashes_sync_me,
 		final DistributedDatabaseContact	contact,
 		String								term,
+		int									min_seeds,
+		int									min_leechers,
 		final SearchObserver				_observer )
 	{
 		SearchObserver observer = 
@@ -1116,6 +1129,14 @@ RelatedContentSearcher
 			if ( SEARCH_CVS_ONLY_DEFAULT ){
 				
 				request.put( "n", "c" );
+			}
+			
+			if ( min_seeds > 0 ){
+				request.put( "s", (long)min_seeds );
+			}
+			
+			if ( min_leechers > 0 ){
+				request.put( "l", (long)min_leechers );
 			}
 			
 			DistributedDatabaseKey key = ddb.createKey( BEncoder.encode( request ));
@@ -1552,6 +1573,9 @@ RelatedContentSearcher
 
 				boolean search_cvs_only = network.equals( "c" );
 				
+				int	min_seeds 		= ImportExportUtils.importInt( request, "s", SEARCH_MIN_SEEDS_DEFAULT );
+				int	min_leechers 	= ImportExportUtils.importInt( request, "l", SEARCH_MIN_LEECHERS_DEFAULT );
+				
 				// System.out.println( "Received remote search: '" + term + "' from " + originator.getAddress() + ", hits=" + hits + ", bs=" + harvest_se_requester_bloom.getEntryCount());
 
 				logSearch( "Received remote search: '" + term + "' from " + originator.getAddress() + ", hits=" + hits + ", bs=" + harvest_se_requester_bloom.getEntryCount());
@@ -1562,7 +1586,7 @@ RelatedContentSearcher
 					
 					if ( term != null ){
 												
-						List<RelatedContent>	matches = matchContent( term, false, search_cvs_only );
+						List<RelatedContent>	matches = matchContent( term, min_seeds, min_leechers, false, search_cvs_only );
 								
 						List<Map<String,Object>> l_list = new ArrayList<Map<String,Object>>();
 						
@@ -2045,11 +2069,11 @@ RelatedContentSearcher
 					misses++;
 				}
 				
-				List<RelatedContent> hits = matchContent( word, true, false );
+				List<RelatedContent> hits = matchContent( word, SEARCH_MIN_SEEDS_DEFAULT, SEARCH_MIN_LEECHERS_DEFAULT, true, false );
 				
 				if ( hits.size() == 0 ){
 					
-					hits = matchContent( word, true, false );
+					hits = matchContent( word, SEARCH_MIN_SEEDS_DEFAULT, SEARCH_MIN_LEECHERS_DEFAULT, true, false );
 					
 					match_fails++;
 				}
@@ -2266,11 +2290,18 @@ outer:
 		}
 	}
 	
+	private boolean
+	isPopularity(
+		String		term )
+	{
+		return( term.equals( "(.)" ));
+	}
+	
 	private List<DistributedDatabaseContact>
 	searchForeignBlooms(
 		String		term )
 	{
-		boolean is_popularity = term.equals( "(.)" );
+		boolean is_popularity = isPopularity( term );
 
 		List<DistributedDatabaseContact>	result = new ArrayList<DistributedDatabaseContact>();
 		
