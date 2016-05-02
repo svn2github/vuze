@@ -234,11 +234,16 @@ RelatedContentSearcher
 		SearchObserver			_observer )
 	
 		throws SearchException
-	{				
-		final MySearchObserver observer = new MySearchObserver( _observer );
-		
+	{	
 		final String	term = fixupTerm( (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM ));
+
+		final boolean	is_popular = isPopularity( term );
 		
+		final int	min_seeds 		= ImportExportUtils.importInt(search_parameters,SearchProvider.SP_MIN_SEEDS, is_popular?SEARCH_POP_MIN_SEEDS_DEFAULT:SEARCH_MIN_SEEDS_DEFAULT );
+		final int	min_leechers 	= ImportExportUtils.importInt(search_parameters,SearchProvider.SP_MIN_LEECHERS, is_popular?SEARCH_POP_MIN_LEECHERS_DEFAULT:SEARCH_MIN_LEECHERS_DEFAULT );
+		
+		final MySearchObserver observer = new MySearchObserver( _observer, min_seeds, min_leechers );
+				
 		final SearchInstance si = 
 			new SearchInstance()
 			{
@@ -260,11 +265,6 @@ RelatedContentSearcher
 				public void
 				run()
 				{
-					boolean	is_popular = isPopularity( term );
-					
-					final int	min_seeds		= is_popular?SEARCH_POP_MIN_SEEDS_DEFAULT:SEARCH_MIN_SEEDS_DEFAULT;
-					final int	min_leechers	= is_popular?SEARCH_POP_MIN_LEECHERS_DEFAULT:SEARCH_MIN_LEECHERS_DEFAULT;
-
 					boolean search_cvs_only = SEARCH_CVS_ONLY_DEFAULT;
 					
 					final Set<String>	hashes_sync_me = new HashSet<String>();
@@ -2485,14 +2485,22 @@ outer:
 	MySearchObserver
 		implements SearchObserver
 	{
-		private SearchObserver		observer;
-		private AtomicInteger		num_results = new AtomicInteger();
+		private final SearchObserver		observer;
+		
+		private final int					min_seeds;
+		private final int					min_leechers;
+		
+		private final AtomicInteger		num_results = new AtomicInteger();
 		
 		private
 		MySearchObserver(
-			SearchObserver		_observer )
+			SearchObserver		_observer,
+			int					_min_seeds,
+			int					_min_leechers )
 		{
-			observer = _observer;
+			observer 		= _observer;
+			min_seeds		= _min_seeds;
+			min_leechers	= _min_leechers;
 		}
 		
 		public void
@@ -2500,6 +2508,26 @@ outer:
 			SearchInstance		search,
 			SearchResult		result )
 		{
+			if ( min_seeds > 0 ){
+				
+				Number seeds = ((Number)result.getProperty( SearchResult.PR_SEED_COUNT ));
+				
+				if ( seeds != null && seeds.intValue() < min_seeds ){
+					
+					return;
+				}
+			}
+			
+			if ( min_leechers > 0 ){
+				
+				Number leechers = ((Number)result.getProperty( SearchResult.PR_LEECHER_COUNT ));
+				
+				if ( leechers != null && leechers.intValue() < min_leechers ){
+					
+					return;
+				}
+			}
+			
 			observer.resultReceived( search, result );
 			
 			logSearch( "results=" + num_results.incrementAndGet());
