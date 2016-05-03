@@ -101,7 +101,10 @@ TRTrackerDHTScraperImpl
 								TRTrackerScraperResponse.ST_ERROR,
 						result.getStatus()); 
 			
-				responses.put( torrent.getHashWrapper(), resp );
+				synchronized( responses ){
+				
+					responses.put( torrent.getHashWrapper(), resp );
+				}
 				
 				scraper.scrapeReceived( resp );
 				
@@ -123,7 +126,12 @@ TRTrackerDHTScraperImpl
 			try{
 				HashWrapper hw = torrent.getHashWrapper();
 				
-				TRTrackerDHTScraperResponseImpl response = responses.get( hw );
+				TRTrackerDHTScraperResponseImpl response;
+				
+				synchronized( responses ){
+					
+					response = responses.get( hw );
+				}
 				
 				if ( response == null ){
 					
@@ -151,7 +159,10 @@ TRTrackerDHTScraperImpl
 									TRTrackerScraperResponse.ST_ONLINE,
 									MessageText.getString( "Scrape.status.cached" )); 
 						
-							responses.put( torrent.getHashWrapper(), response );
+							synchronized( responses ){
+							
+								responses.put( torrent.getHashWrapper(), response );
+							}
 							
 							scraper.scrapeReceived( response );
 						}
@@ -179,8 +190,10 @@ TRTrackerDHTScraperImpl
 			try{
 				HashWrapper hw = torrent.getHashWrapper();
 				
-				return( responses.get( hw ));
+				synchronized( responses ){
 				
+					return( responses.get( hw ));
+				}
 			}catch( TOTorrentException e ){
 				
 				Debug.printStackTrace(e);
@@ -202,7 +215,10 @@ TRTrackerDHTScraperImpl
 		TOTorrent		torrent )
 	{
 		try{
-			responses.remove( torrent.getHashWrapper());
+			synchronized( responses ){
+			
+				responses.remove( torrent.getHashWrapper());
+			}
 			
 		}catch( TOTorrentException e ){
 			
