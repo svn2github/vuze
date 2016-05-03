@@ -49,6 +49,7 @@ SubscriptionHistoryImpl
 	private long		last_new_result;
 	private int			num_unread;
 	private int			num_read;
+	private long		max_results	= -1;
 	
 	private String			last_error;
 	private boolean			auth_failed;
@@ -122,7 +123,12 @@ SubscriptionHistoryImpl
 		
 		SubscriptionResultImpl[] result;
 		
-		int	max_results = manager.getMaxNonDeletedResults();
+		int max_results = getMaxNonDeletedResults();
+
+		if ( max_results < 0 ){
+		
+			max_results = manager.getMaxNonDeletedResults();
+		}
 		
 		synchronized( this ){
 			
@@ -310,6 +316,24 @@ SubscriptionHistoryImpl
 				
 				downloadNow();
 			}
+		}
+	}
+	
+	public int
+	getMaxNonDeletedResults()
+	{
+		return( max_results<0?-1:(int)max_results );
+	}
+	
+	public void
+	setMaxNonDeletedResults(
+		int		_max_results )
+	{
+		if ( _max_results != max_results ){
+			
+			max_results	= _max_results;
+		
+			saveConfig();
 		}
 	}
 	
@@ -983,7 +1007,9 @@ SubscriptionHistoryImpl
 		
 		Long	l_interval_override	= (Long)map.get( "interval_override" );		
 		interval_override	= l_interval_override==null?0:l_interval_override.intValue();
-
+		
+		Long	l_max_results	= (Long)map.get( "max_results" );		
+		max_results				= l_max_results==null?-1:l_max_results.longValue();
 	}
 	
 	protected void
@@ -999,6 +1025,7 @@ SubscriptionHistoryImpl
 		map.put( "num_unread", new Long( num_unread ));
 		map.put( "num_read", new Long( num_read ));
 		map.put( "dl_with_ref", new Long( dl_with_ref?1:0 ));
+		map.put( "max_results", new Long( max_results ));
 
 		if ( interval_override > 0 ){
 			map.put( "interval_override", new Long( interval_override ));

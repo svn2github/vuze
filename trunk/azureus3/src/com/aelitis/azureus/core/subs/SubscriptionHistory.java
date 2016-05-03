@@ -110,4 +110,11 @@ SubscriptionHistory
 	public void
 	setDownloadWithReferer(
 		boolean		b );
+	
+	public int
+	getMaxNonDeletedResults();
+	
+	public void
+	setMaxNonDeletedResults(
+		int			max );
 }

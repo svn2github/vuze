@@ -1766,11 +1766,7 @@ SubscriptionManagerUI
 					int check_freq = subs.getHistory().getCheckFrequencyMins();
 					
 					entry.setPreenteredText( check_freq==Integer.MAX_VALUE?"":String.valueOf( check_freq ), false );
-					
-					entry.maintainWhitespace(false);
-					
-					entry.allowEmptyInput( false );
-					
+										
 					entry.setLocalisedTitle(MessageText.getString("subscriptions.enter.freq"));
 			
 					entry.prompt(new UIInputReceiverListener() {
@@ -1794,6 +1790,72 @@ SubscriptionManagerUI
 				}
 			});
 		
+				// max results
+				
+			menuItem = menu_creator.createMenu( "label.set.max.results" );
+			
+			menuItem.addFillListener( new MenuItemFillListener(){
+				public void menuWillBeShown( MenuItem menu, Object data ){
+					int max_results = subs.getHistory().getMaxNonDeletedResults();
+					
+					if ( max_results < 0 ){
+						
+						SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+						
+						max_results = subs_man.getMaxNonDeletedResults();
+					}
+					
+					String max_results_str = (max_results==0?MessageText.getString( "ConfigView.unlimited" ):String.valueOf( max_results ));
+
+					String text = MessageText.getString( "label.set.max.results" );
+					
+					text += " (" + max_results_str + ")";
+				
+					menu.setText( text + "..." );
+				}});
+			
+			
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( final Subscription subs) {
+					UISWTInputReceiver entry = new SimpleTextEntryWindow();
+					entry.maintainWhitespace(false);
+					entry.allowEmptyInput( true );
+					
+					int max_results = subs.getHistory().getMaxNonDeletedResults();
+
+					if ( max_results < 0 ){
+						
+						SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+						
+						max_results = subs_man.getMaxNonDeletedResults();
+					}
+					
+					if ( max_results > 0 ){
+					
+						entry.setPreenteredText( String.valueOf( max_results ), false );
+					}
+										
+					entry.setLocalisedTitle(MessageText.getString("subscriptions.enter.max.results"));
+			
+					entry.prompt(new UIInputReceiverListener() {
+						public void UIInputReceiverClosed(UIInputReceiver entry) {
+							if (!entry.hasSubmittedInput()) {
+								return;
+							}
+							String input = entry.getSubmittedInput().trim();
+															
+							try{
+								subs.getHistory().setMaxNonDeletedResults( input.length()==0?-1:Math.abs( Integer.parseInt( input )));
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					});
+				}
+			});
+			
 				// rename
 			
 			menuItem = menu_creator.createMenu( "MyTorrentsView.menu.rename" );
@@ -2255,6 +2317,7 @@ SubscriptionManagerUI
 				"subs.prop.last_error",
 				"subs.prop.num_read",
 				"subs.prop.num_unread",
+				"label.max.results",
 				"subs.prop.assoc",
 				"subs.prop.version",
 				"subs.prop.high_version",
@@ -2286,6 +2349,17 @@ SubscriptionManagerUI
 		long last_new_result 	= history.getLastNewResultTime();
 		long next_scan 			= history.getNextScanTime();
 		
+		int max_results = history.getMaxNonDeletedResults();
+		
+		if ( max_results < 0 ){
+			
+			SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+			
+			max_results = subs_man.getMaxNonDeletedResults();
+		}
+		
+		String max_results_str = (max_results==0?MessageText.getString( "ConfigView.unlimited" ):String.valueOf( max_results ));
+		
 		String[] values = { 
 				String.valueOf( history.isEnabled()),
 				String.valueOf( subs.isPublic()),
@@ -2298,6 +2372,7 @@ SubscriptionManagerUI
 				(last_error.length()==0?MessageText.getString("PeersView.uniquepiece.none"):last_error),
 				String.valueOf( history.getNumRead()),
 				String.valueOf( history.getNumUnread()),
+				max_results_str,
 				String.valueOf( subs.getAssociationCount()),
 				String.valueOf( subs.getVersion()),
 				subs.getHighestVersion() > subs.getVersion()?String.valueOf( subs.getHighestVersion()):null,

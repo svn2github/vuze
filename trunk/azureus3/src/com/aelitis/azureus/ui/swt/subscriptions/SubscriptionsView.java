@@ -266,6 +266,7 @@ public class SubscriptionsView
 				new ColumnSubscriptionName(TABLE_ID),
 				new ColumnSubscriptionNbNewResults(TABLE_ID),
 				new ColumnSubscriptionNbResults(TABLE_ID),
+				new ColumnSubscriptionMaxResults(TABLE_ID),
 				new ColumnSubscriptionLastChecked(TABLE_ID),
 				new ColumnSubscriptionSubscribers(TABLE_ID),
 				new ColumnSubscriptionAutoDownload(TABLE_ID),
