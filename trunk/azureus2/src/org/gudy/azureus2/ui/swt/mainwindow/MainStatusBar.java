@@ -16,6 +16,7 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,9 +46,11 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.Alerts.AlertHistoryListener;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.progress.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
@@ -300,6 +303,7 @@ public class MainStatusBar
 		progressGridData.widthHint = 5;
 		Utils.setLayoutData(progressBar, progressGridData);
 
+		addRIP();
 		
 		/*
 		 * Progress reporting window image label
@@ -954,6 +958,46 @@ public class MainStatusBar
 		}
 	}
 
+	private void addRIP() {
+
+		createStatusEntry(new CLabelUpdater() {
+			public boolean update(CLabelPadding label) {
+				return( false );
+			}
+
+			public void created(CLabelPadding feedback) {
+				feedback.setText(MessageText.getString("respect.ip"));
+				
+				final String	url_str = MessageText.getString( "respect.ip.url" );
+				
+				Listener feedback_listener = new Listener() {
+					public void handleEvent(Event e) {
+						
+						try{
+							Utils.launch( new URL( url_str ));
+							
+						}catch( Throwable f ){
+							
+							Debug.out( f );
+						}
+					}
+				};
+				
+				feedback.setData( url_str );
+				ClipboardCopy.addCopyToClipMenu( feedback );
+				feedback.setToolTipText( url_str );
+				
+				feedback.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
+				feedback.setForeground(Colors.blue);
+								
+				feedback.addListener(SWT.MouseUp, feedback_listener);
+				feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
+				
+				feedback.setVisible(true);
+			}
+		});
+	}
+	
 	/**
 	 * @param statusBar2
 	 *
@@ -1578,8 +1622,8 @@ public class MainStatusBar
 
 		private static final int KEEPWIDTHFOR_MS = 30 * 1000;
 		
-		String 	text = "";
-		String	tooltip_text;
+		private String 	text = "";
+		private String	tooltip_text;
 		
 		private boolean	hovering;
 		
@@ -1676,6 +1720,15 @@ public class MainStatusBar
 			GCStringPrinter sp = new GCStringPrinter(e.gc, getText(), clientArea,
 					true, true, SWT.CENTER);
 			sp.calculateMetrics();
+			
+			if (sp.hasHitUrl()) {
+				URLInfo[] hitUrlInfo = sp.getHitUrlInfo();
+				for (int i = 0; i < hitUrlInfo.length; i++) {
+					URLInfo info = hitUrlInfo[i];
+					info.urlUnderline = true;
+				}
+			}
+			
 			Point textSize = sp.getCalculatedSize();
 
 			if (imageBounds != null) {
