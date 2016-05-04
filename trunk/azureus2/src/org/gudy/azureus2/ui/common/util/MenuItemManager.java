@@ -42,15 +42,24 @@ public class MenuItemManager {
 	 * Holds all the MenuItem objects.
 	 *    key = MENU_* type (see MenuManager in the plugin API)
 	 *    value = Map: key = menu key value = MenuItem object
+	 * Update parg: actually we can have multiple view instances that individually add and remove
+	 * their own sets of menus. Before this was updated to hold a list of MenuItems against a given
+	 * resource/menu-id then when one view was deleted it removed the menus for all view instances
+	 * and therefore remaining view instances lost their menus.
+	 * The change to maintain a list isn't perfect either as individual MenuItems can have view instance
+	 * specific data (e.g. set via setData) but by the time we get here we have no concept of view instance
+	 * and therefore can't return/delete the correct one. However, this fix is at least better than
+	 * losing menus completely...
 	 */
-	private Map<String, Map<String, MenuItem>> items;
+	
+	private Map<String, Map<String, List<MenuItem>>> items_map;
 
 	private AEMonitor items_mon = new AEMonitor("MenuManager:items");
 	
 	private ArrayList<MenuItemManagerListener> listeners = new ArrayList<MenuItemManagerListener>(0);
 
 	private MenuItemManager() {
-		this.items = new HashMap<String, Map<String, MenuItem>>();
+		items_map = new HashMap<String, Map<String, List<MenuItem>>>();
 	}
 
 	/**
@@ -67,36 +76,120 @@ public class MenuItemManager {
 		}
 	}
 
-	public void addMenuItem(MenuItem item) {
+	public void addMenuItem(MenuItem item){
 		try {
 			String name = item.getResourceKey();
 			String sMenuID = item.getMenuID();
-			try {
-				this.items_mon.enter();
-				Map<String, MenuItem> mTypes = this.items.get(sMenuID);
+			
+			try{
+				items_mon.enter();
+				Map<String, List<MenuItem>> mTypes = items_map.get(sMenuID);
+				
 				if (mTypes == null) {
-					// LinkedHashMap to preserve order
-					mTypes = new LinkedHashMap<String, MenuItem>();
-					this.items.put(sMenuID, mTypes);
+						// LinkedHashMap to preserve order
+					mTypes = new LinkedHashMap<String, List<MenuItem>>();
+					
+					items_map.put(sMenuID, mTypes);
 				}
-				mTypes.put(name, item);
+				
+				List<MenuItem> mis = mTypes.get( name );
+				
+				if ( mis == null ){
+					
+					mis = new ArrayList<MenuItem>(1);
+					
+					mTypes.put( name, mis );
+				}
+								
+				mis.add( item );
 
-			} finally {
-				this.items_mon.exit();
+			}finally{
+				
+				items_mon.exit();
 			}
-		} catch (Exception e) {
+		}catch ( Exception e ){
 			System.out.println("Error while adding Menu Item");
 			Debug.printStackTrace(e);
 		}
 	}
 	
 	public void removeAllMenuItems(String sMenuID) {
-		this.items.remove(sMenuID);
+				
+		try {
+			items_mon.enter();
+		
+			Map<String, List<MenuItem>> mTypes = items_map.get(sMenuID);
+			
+			if ( mTypes == null ){
+			
+				return;
+			}
+			
+				// remove one MenuItem for each resource-id in the assumption that each view instance
+				// will have added one entry for each
+			
+			Iterator<Map.Entry<String, List<MenuItem>>> it = mTypes.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				List<MenuItem> mis = it.next().getValue();
+				
+				if ( mis.size() > 0 ){
+					mis.remove( 0 );	// pick one at random, not great but there you go
+				}
+				
+				if ( mis.size() == 0 ){
+					
+					it.remove();
+				}
+			}
+			
+			if ( mTypes.isEmpty()){
+				
+				items_map.remove(sMenuID);
+			}
+		}finally{
+			
+			items_mon.exit();
+		}
 	}
 	
 	public void removeMenuItem(MenuItem item) {
-		Map<String, MenuItem> menu_item_map = this.items.get(item.getMenuID());
-		if (menu_item_map != null) {menu_item_map.remove(item.getResourceKey());}
+		
+		try{
+			items_mon.enter();
+			
+			Map<String, List<MenuItem>> menu_item_map = items_map.get(item.getMenuID());
+			
+			if ( menu_item_map != null ){
+				
+				List<MenuItem> mis = menu_item_map.get(item.getResourceKey());
+				
+				if ( mis != null ){
+					
+					if ( !mis.remove( item )){
+						
+						if ( mis.size() > 0 ){
+							
+							mis.remove( 0 );
+						}
+					}
+					
+					if ( mis.size() == 0 ){
+						
+						 menu_item_map.remove(item.getResourceKey());
+					}
+				}
+			}
+			
+			if ( menu_item_map.isEmpty()){
+				
+				items_map.remove(item.getMenuID());
+			}
+		}finally{
+			
+			items_mon.exit();
+		}
 	}
 
 	/**
@@ -107,18 +200,50 @@ public class MenuItemManager {
 		if (sMenuID != null) {
 			triggerMenuItemQuery(sMenuID);
 		}
-		Map<String, MenuItem> local_menu_item_map = this.items.get(sMenuID);
-		Map<String, MenuItem> global_menu_item_map = this.items.get(null);
-		if (local_menu_item_map == null && global_menu_item_map == null) {
-			return new MenuItem[0];
+		
+		try{
+			items_mon.enter();
+			
+			Map<String, List<MenuItem>> local_menu_item_map = items_map.get(sMenuID);
+			Map<String, List<MenuItem>> global_menu_item_map = items_map.get(null);
+			
+			
+			if (local_menu_item_map == null && global_menu_item_map == null) {
+				return new MenuItem[0];
+			}
+			
+			if (sMenuID == null) {local_menu_item_map = null;}
+			
+			ArrayList<MenuItem> l = new ArrayList<MenuItem>();
+			
+			if ( local_menu_item_map != null ){
+				
+				for ( List<MenuItem> mis: local_menu_item_map.values()){
+					
+					if (mis.size() > 0 ){
+						
+						l.add( mis.get(0));
+					}
+				}
+			}
+			
+			if ( global_menu_item_map != null ){
+				
+				for ( List<MenuItem> mis: global_menu_item_map.values()){
+					
+					if (mis.size() > 0 ){
+						
+						l.add( mis.get(0));
+					}
+				}
+			}
+			
+			return l.toArray(new MenuItem[l.size()]);
+			
+		}finally{
+			
+			items_mon.exit();
 		}
-		
-		if (sMenuID == null) {local_menu_item_map = null;}
-		
-		ArrayList<MenuItem> l = new ArrayList<MenuItem>();
-		if (local_menu_item_map != null) {l.addAll(local_menu_item_map.values());}
-		if (global_menu_item_map != null) {l.addAll(global_menu_item_map.values());}
-		return l.toArray(new MenuItem[l.size()]);
 	}
 	
 	/**
@@ -131,15 +256,32 @@ public class MenuItemManager {
 			if (menu_ids[i] != null) {
 				triggerMenuItemQuery(menu_ids[i]);
 			}
-			addMenuItems(menu_ids[i], l);
+			extractMenuItems(menu_ids[i], l);
 		}
-		addMenuItems(null, l);
+		extractMenuItems(null, l);
 		return l.toArray(new MenuItem[l.size()]);
 	}
 	
-	private void addMenuItems(String menu_id, ArrayList<MenuItem> l) {
-		Map<String, MenuItem> menu_map = this.items.get(menu_id);
-		if (menu_map != null) {l.addAll(menu_map.values());}
+	private void extractMenuItems(String menu_id, ArrayList<MenuItem> l) {
+		try{
+			items_mon.enter();
+			
+			Map<String, List<MenuItem>> menu_map = items_map.get(menu_id);
+			
+			if ( menu_map != null){
+				
+				for ( List<MenuItem> mis: menu_map.values()){
+				
+					if (mis.size() > 0 ){
+					
+						l.add( mis.get(0));
+					}
+				}
+			}
+		}finally{
+			
+			items_mon.exit();
+		}
 	}
 
 	public void addListener(MenuItemManagerListener l) {
