@@ -4035,9 +4035,9 @@ RelatedContentManager
 		}
 	}
 	
-	private static final int MAX_TAGS 			= 3;
-	private static final int MAX_TAG_LENGTH		= 20;
-	
+	private static final int MAX_TAG_LENGTH			= 20;
+	private static final int MAX_TAGS_TOTAL_LENGTH 	= 64;
+
 	protected byte[]
 	encodeTags(
 		String[]		tags )
@@ -4047,10 +4047,11 @@ RelatedContentManager
 			return( null );
 		}
 		
-		byte[]	temp 	= new byte[MAX_TAGS*(MAX_TAG_LENGTH+1)];
+		byte[]	temp 	= new byte[MAX_TAGS_TOTAL_LENGTH];
 		int		pos		= 0;
+		int		rem		= temp.length;
 		
-		for ( int i=0;i<Math.min( MAX_TAGS, tags.length);i++){
+		for ( int i=0;i<tags.length;i++){
 			
 			String tag = tags[i];
 			
@@ -4060,12 +4061,18 @@ RelatedContentManager
 				byte[] tag_bytes = tag.getBytes( "UTF-8" );
 					
 				int	tb_len = tag_bytes.length;
-											
+					
+				if ( rem < tb_len + 1 ){
+					
+					break;
+				}
+				
 				temp[pos++] = (byte)tb_len;
 						
 				System.arraycopy( tag_bytes, 0, temp, pos, tb_len );
 						
 				pos += tb_len;
+				rem	-= (tb_len+1);
 				
 			}catch( Throwable e ){
 
@@ -4127,7 +4134,7 @@ RelatedContentManager
 			return( null );
 		}
 		
-		List<String>	tags = new ArrayList<String>( MAX_TAGS );
+		List<String>	tags = new ArrayList<String>( 10 );
 		
 		int	pos = 0;
 		
