@@ -87,6 +87,7 @@ LWSDiskManager
 	private boolean	started;
 	private int 	state 			= DiskManager.INITIALIZING;
 	private String	error_message	= "";
+	private int		error_type		= ET_NONE;
 	
 	protected
 	LWSDiskManager(
@@ -516,6 +517,12 @@ LWSDiskManager
 		return( error_message );
 	}
   
+	public int
+	getErrorType()
+	{
+		return( error_type );
+	}
+	
 	public void
 	downloadEnded( OperationStatus op_status )
 	{
@@ -671,6 +678,7 @@ LWSDiskManager
 		state	= FAULTY;
 		
 		error_message	= reason;
+		error_type		= ET_OTHER;
 	}
 	
 	public void
@@ -683,6 +691,7 @@ LWSDiskManager
 		state	= FAULTY;
 		
 		error_message	= reason;
+		error_type		= ET_OTHER;
 	}
 	
 	public long

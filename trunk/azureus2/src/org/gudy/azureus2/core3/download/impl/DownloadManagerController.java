@@ -195,8 +195,9 @@ DownloadManagerController
 	
 	private List<Object[]>	external_rate_limiters_cow;
 	
-	private String errorDetail;
-
+	private String 	errorDetail;
+	private int		errorType	= DownloadManager.ET_NONE;
+	
 	private GlobalManagerStats		global_stats;
 	
 	private boolean bInitialized = false;
@@ -695,6 +696,7 @@ DownloadManagerController
 			}
 		
 			errorDetail	= "";
+			errorType	= DownloadManager.ET_NONE;
 					
 			setState( initialising_state, false );
 				  		
@@ -1682,8 +1684,23 @@ DownloadManagerController
 		download_manager.informStateChanged();
 	}
 	
+	private void
+	setFailed(
+		DiskManager		dm )
+	{
+		setFailed( dm.getErrorType(), dm.getErrorMessage() );
+	}
+
 	protected void
 	setFailed(
+		String		reason )
+	{
+		setFailed( DownloadManager.ET_OTHER, reason );
+	}
+	
+	private void
+	setFailed(
+		int			type,
 		String		reason )
 	{
 		if ( reason != null ){
@@ -1691,9 +1708,10 @@ DownloadManagerController
 			errorDetail = reason;
 		}
   	
+		errorType	= type;
+		
 		stopIt( DownloadManager.STATE_ERROR, false, false, false );
 	}
-
 	
 	public boolean 
 	filesExist(
@@ -1910,6 +1928,12 @@ DownloadManagerController
 	getErrorDetail()
 	{
 		return( errorDetail );
+	}
+	
+	protected int
+	getErrorType()
+	{
+		return( errorType );
 	}
 	
  	protected void
@@ -3050,7 +3074,7 @@ DownloadManagerController
 
 							setDiskManager(null, null);
 
-							setFailed(dm.getErrorMessage());
+							setFailed( dm );
 						}
 					} finally {
 
@@ -3112,7 +3136,7 @@ DownloadManagerController
 			try{
 				if ( newDMState == DiskManager.FAULTY ){
 
-					setFailed( dm.getErrorMessage());						
+					setFailed( dm );						
 				}
 
 				if ( oldDMState == DiskManager.CHECKING && newDMState != DiskManager.CHECKING ){

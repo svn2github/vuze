@@ -373,6 +373,9 @@ public class ConfigurationDefaults {
     def.put( "Request Attention On New Download", TRUE );
     def.put( "Activate Window On External Download", TRUE );
     
+    def.put( "Insufficient Space Download Restart Enable", FALSE );
+    def.put( "Insufficient Space Download Restart Period", 10 );
+    
     def.put( "Play Download Error", FALSE );
     def.put( "Play Download Error File", "" );
     def.put( "Play Download Error Announcement", FALSE);

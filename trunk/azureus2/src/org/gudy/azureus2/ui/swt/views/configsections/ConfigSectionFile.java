@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.config.impl.StringListImpl;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
@@ -490,6 +489,55 @@ public class ConfigSectionFile
 			sCurConfigID = "File.save.peers.max";
 			allConfigIDs.add(sCurConfigID);
 		} else {
+			
+				// restart out of space downloads
+			
+			sCurConfigID = "Insufficient Space Download Restart Enable";
+			allConfigIDs.add(sCurConfigID);
+			// resume data
+			final BooleanParameter OOSDRE = new BooleanParameter(gFile,
+					sCurConfigID, "ConfigView.label.restart.no.space.dls");
+			OOSDRE.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+
+			Composite cOOSDGroup = new Composite(gFile, SWT.NULL);
+			layout = new GridLayout();
+			layout.marginHeight = 0;
+			layout.marginWidth = 4;
+			layout.numColumns = 3;
+			cOOSDGroup.setLayout(layout);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalIndent = 25;
+			gridData.horizontalSpan = 2;
+			Utils.setLayoutData(cOOSDGroup, gridData);
+
+			sCurConfigID = "Insufficient Space Download Restart Period";
+			allConfigIDs.add(sCurConfigID);
+			Label lblOOSDRInterval = new Label(cOOSDGroup, SWT.NULL);
+			Messages.setLanguageText(lblOOSDRInterval,
+					"ConfigView.label.restart.no.space.dls.interval");
+
+			IntParameter paramOOSDRInterval = new IntParameter(cOOSDGroup,
+					sCurConfigID,1,-1);
+			gridData = new GridData();
+			paramOOSDRInterval.setLayoutData(gridData);
+
+			Label lblOOSDRMinutes = new Label(cOOSDGroup, SWT.NULL);
+			Messages.setLanguageText(lblOOSDRMinutes, "ConfigView.text.minutes");
+			
+			final Control[] OOSDRContrls = { cOOSDGroup };
+			
+			IAdditionalActionPerformer OOSDREnabler = 
+				new GenericActionPerformer( OOSDRContrls )
+				{
+					public void performAction() {
+						controlsSetEnabled(controls, OOSDRE.isSelected());
+					}
+				};
+			
+			OOSDRE.setAdditionalActionPerformer(OOSDREnabler);
+			
+				// use resume
+			
 			sCurConfigID = "Use Resume";
 			allConfigIDs.add(sCurConfigID);
 			// resume data

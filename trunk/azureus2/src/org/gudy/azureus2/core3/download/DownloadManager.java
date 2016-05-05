@@ -83,7 +83,11 @@ DownloadManager
     public static final int WEALTH_NO_REMOTE        = 3;
     public static final int WEALTH_OK               = 4;
     public static final int WEALTH_KO               = 5;
-    public static final int WEALTH_ERROR          = 6;
+    public static final int WEALTH_ERROR          	= 6;
+
+	public static final int ET_NONE						= DiskManager.ET_NONE;
+	public static final int ET_OTHER					= DiskManager.ET_OTHER;
+	public static final int ET_INSUFFICIENT_SPACE		= DiskManager.ET_INSUFFICIENT_SPACE;
 
     public void
     initialize();
@@ -355,6 +359,9 @@ DownloadManager
     public String
     getErrorDetails();
 
+    public int
+    getErrorType();
+    
     public DownloadManagerStats
     getStats();
 

@@ -1662,6 +1662,12 @@ DownloadManagerImpl
 		return( controller.getErrorDetail());
 	}
 
+	public int 
+	getErrorType() 
+	{
+		return( controller.getErrorType());
+	}
+	
 	public long 
 	getSize() 
 	{

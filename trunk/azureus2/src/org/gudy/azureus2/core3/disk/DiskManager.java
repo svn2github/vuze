@@ -45,6 +45,9 @@ DiskManager
 	public static final int READY = 4;
 	public static final int FAULTY = 10;
 	
+	public static final int ET_NONE						= 0;
+	public static final int ET_OTHER					= 1;
+	public static final int ET_INSUFFICIENT_SPACE		= 2;
 	
 		// CHANGE THIS AND YOU MUST CHANGE NORMAL_REQUEST_SIZE in PeerReadRequest (plugin interface)
 	
@@ -232,6 +235,9 @@ DiskManager
 	public String
 	getErrorMessage();
   
+	public int
+	getErrorType();
+	
 	public void
 	downloadEnded(
 		OperationStatus		op_status );

@@ -158,8 +158,9 @@ DiskManagerImpl
 
 
     private int state_set_via_method;
-    protected String errorMessage = "";
-
+    private String 	errorMessage = "";
+    private int		errorType	= 0;
+    
     private int pieceLength;
     private int lastPieceLength;
 
@@ -282,7 +283,8 @@ DiskManagerImpl
         setState( INITIALIZING );
 
         percentDone = 0;
-
+        errorType	= ET_NONE;
+        
         if ( torrent == null ){
 
             errorMessage     = "Torrent not available";
@@ -1370,6 +1372,8 @@ DiskManagerImpl
     	
     	if ( errorMessage.indexOf( "not enough space" ) != -1 ){
     		
+    		errorType	= ET_INSUFFICIENT_SPACE;
+    		
     		if ( length >= 4*1024*1024*1024L ){
     			
     				// might be FAT32 limit, see if we really have run out of space
@@ -1803,6 +1807,14 @@ DiskManagerImpl
 
             state_set_via_method = _state;
 
+            if ( _state == FAULTY ){
+            	
+            	if ( errorType == ET_NONE ){
+            		
+            		errorType	= ET_OTHER;
+            	}
+            }
+            
             listeners.dispatch( LDT_STATECHANGED, params);
         }
     }
@@ -1821,7 +1833,13 @@ DiskManagerImpl
     public String getErrorMessage() {
         return errorMessage;
     }
-
+    
+	public int
+	getErrorType()
+	{
+		return( errorType );
+	}
+	
     public void
     setFailed(
         final String        reason )

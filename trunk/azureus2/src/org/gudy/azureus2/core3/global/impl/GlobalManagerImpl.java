@@ -178,13 +178,32 @@ public class GlobalManagerImpl
 	
 	private static boolean enable_stopped_scrapes;
 	
+	private static boolean 	enable_no_space_dl_restarts;
+	private static int		no_space_dl_restart_check_period_millis;
 	
 	static{
-		 COConfigurationManager.addAndFireParameterListener(
-			"Tracker Client Scrape Stopped Enable",
+		 COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"Tracker Client Scrape Stopped Enable",
+				"Insufficient Space Download Restart Enable",
+				"Insufficient Space Download Restart Period"
+			},
 			new ParameterListener(){
 				public void parameterChanged(String parameterName) {
-					enable_stopped_scrapes = COConfigurationManager.getBooleanParameter( parameterName );
+					enable_stopped_scrapes = COConfigurationManager.getBooleanParameter( "Tracker Client Scrape Stopped Enable" );
+					
+					enable_no_space_dl_restarts = COConfigurationManager.getBooleanParameter( "Insufficient Space Download Restart Enable" );
+					
+					if ( enable_no_space_dl_restarts ){
+						
+						int mins = COConfigurationManager.getIntParameter( "Insufficient Space Download Restart Period" );
+						
+						no_space_dl_restart_check_period_millis = Math.max( 1, mins )*60*1000;
+						
+					}else{
+						
+						no_space_dl_restart_check_period_millis = 0;
+					}
 				}
 			});	 
 	}
@@ -377,6 +396,55 @@ public class GlobalManagerImpl
 		             * seeding rules have been moved to StartStopRulesDefaultPlugin
 		             */
 	        }  
+        	
+        	if ( no_space_dl_restart_check_period_millis > 0 ){
+        		
+        		int lc = no_space_dl_restart_check_period_millis / waitTime;
+        		
+        		if ( loopFactor % lc == 0 ) {
+
+        			List<DownloadManager>	eligible = new ArrayList<DownloadManager>();
+        			
+    		        for (Iterator<DownloadManager> it=managers_cow.iterator();it.hasNext();) {
+    	          	
+    		        	DownloadManager manager = it.next();
+    	            
+    		        	if ( 	manager.getState() == DownloadManager.STATE_ERROR &&
+    		        			(!manager.isDownloadComplete( false )) &&
+    		        			(!manager.isPaused()) &&
+    		        			manager.getErrorType() == DownloadManager.ET_INSUFFICIENT_SPACE ){
+    		        		
+    		        		eligible.add( manager );
+    		        	}
+    		        }
+    		        
+    		        if ( !eligible.isEmpty()){
+    		        	
+    		        	if ( eligible.size() > 1 ){
+    		        		
+	    		        	Collections.sort(
+	    		        		eligible,
+	    		        		new Comparator<DownloadManager>()
+	    		        		{
+	    		        			public int 
+	    		        			compare(
+	    		        				DownloadManager o1,
+	    		        				DownloadManager o2) 
+	    		        			{
+	    		        				return( o1.getPosition() - o2.getPosition());
+	    		        			}
+	    		        		});
+    		        	}
+    		  
+    		        	DownloadManager manager = eligible.get(0);
+    		        	
+    		        	Logger.log(new LogEvent(LOGID, "Restarting download '" + manager.getDisplayName() + "' to check if disk space now available" ));
+    		        		
+    		        	manager.setStateQueued();
+    		        	
+    		       	}
+        		}
+        	}
         	
         	if ( loopFactor % oneMinuteThingCount == 0 ) {
         		
