@@ -180,11 +180,11 @@ public class MenuItemManager {
 						 menu_item_map.remove(item.getResourceKey());
 					}
 				}
-			}
 			
-			if ( menu_item_map.isEmpty()){
+				if ( menu_item_map.isEmpty()){
 				
-				items_map.remove(item.getMenuID());
+					items_map.remove(item.getMenuID());
+				}
 			}
 		}finally{
 			
