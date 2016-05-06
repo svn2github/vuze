@@ -772,6 +772,8 @@ BuddyPluginViewBetaChat
 						});
 			}
 			
+				// advanced
+			
 			final Menu advanced_menu = new Menu(status_menu.getShell(), SWT.DROP_DOWN);
 			MenuItem advanced_menu_item = new MenuItem( status_menu, SWT.CASCADE);
 			advanced_menu_item.setMenu(advanced_menu);
@@ -816,6 +818,21 @@ BuddyPluginViewBetaChat
 						}
 					});		
 			
+			final MenuItem disablenotifications_mi = new MenuItem( advanced_menu, SWT.CHECK );
+			disablenotifications_mi.setText( MessageText.getString( "azbuddy.dchat.disable.notifications" ));
+			
+			disablenotifications_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							chat.setDisableNotifications( disablenotifications_mi.getSelection());
+						}
+					});	
+			
+				// setup menu
+			
 			status_menu.addMenuListener(
 					new MenuAdapter() 
 					{
@@ -827,6 +844,7 @@ BuddyPluginViewBetaChat
 							persist_mi.setSelection( chat.getSaveMessages());
 							log_mi.setSelection( chat.getLogMessages());
 							automute_mi.setSelection( chat.getAutoMute());
+							disablenotifications_mi.setSelection( chat.getDisableNotifications());
 						}
 					});
 		}else{

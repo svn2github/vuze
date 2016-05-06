@@ -598,6 +598,25 @@ BuddyPluginBeta
 		setBooleanOption( net, key, "automute", b );
 	}
 	
+		// disable notifications
+		
+	private boolean
+	getDisableNotifications(
+		String		net,
+		String		key )
+	{
+		return( getBooleanOption( net, key, "disnot", false ));
+	}
+	
+	private void
+	setDisableNotifications(
+		String		net,
+		String		key,
+		boolean		b )
+	{
+		setBooleanOption( net, key, "disnot", b );
+	}
+
 		// last message info
 	
 	public String
@@ -2343,6 +2362,7 @@ BuddyPluginBeta
 		private boolean		save_messages;
 		private boolean		log_messages;
 		private boolean		auto_mute;
+		private boolean		disable_notifications;
 		
 		private boolean		destroyed;
 		
@@ -2367,10 +2387,11 @@ BuddyPluginBeta
 			
 			if ( !is_private_chat ){
 			
-				is_favourite 	= getFavourite( network, key );
-				save_messages 	= BuddyPluginBeta.this.getSaveMessages( network, key );
-				log_messages 	= BuddyPluginBeta.this.getLogMessages( network, key );
-				auto_mute 		= BuddyPluginBeta.this.getAutoMute( network, key );
+				is_favourite 			= getFavourite( network, key );
+				save_messages 			= BuddyPluginBeta.this.getSaveMessages( network, key );
+				log_messages 			= BuddyPluginBeta.this.getLogMessages( network, key );
+				auto_mute 				= BuddyPluginBeta.this.getAutoMute( network, key );
+				disable_notifications 	= BuddyPluginBeta.this.getDisableNotifications( network, key );
 			}
 			
 			if ( _options != null ){
@@ -2608,6 +2629,28 @@ BuddyPluginBeta
 					auto_mute = b;
 					
 					BuddyPluginBeta.this.setAutoMute( network, key, b );
+					
+				}
+			}
+		}
+		
+		public boolean
+		getDisableNotifications()
+		{
+			return( disable_notifications );
+		}
+		
+		public void
+		setDisableNotifications(
+			boolean		b )
+		{
+			if ( !is_private_chat ){
+				
+				if ( b != disable_notifications ){
+					
+					disable_notifications = b;
+					
+					BuddyPluginBeta.this.setDisableNotifications( network, key, b );
 					
 				}
 			}

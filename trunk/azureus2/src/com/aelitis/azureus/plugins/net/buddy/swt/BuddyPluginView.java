@@ -1122,14 +1122,17 @@ BuddyPluginView
 													
 												}else{
 												
-													current_instances.add( chat );
-													
-													if ( !prev_instances.contains( chat )){
+													if ( !chat.getDisableNotifications()){
 														
-														has_new = true;
+														current_instances.add( chat );
+														
+														if ( !prev_instances.contains( chat )){
+															
+															has_new = true;
+														}
+														
+														instance_map.put( chat, entry[0] );
 													}
-													
-													instance_map.put( chat, entry[0] );
 												}
 											}
 										}
