@@ -406,8 +406,8 @@ Constants
 		  
 		  String[]	bits = version.split( "\\." );
 		  
-		 int	first	= Integer.parseInt( bits[0] );
-		 int	second 	= Integer.parseInt( bits[1] );
+		  int	first	= Integer.parseInt( bits[0] );
+		  int	second 	= bits.length==1?0:Integer.parseInt( bits[1] );
 		 
 		 _7plus = first > 1 || second >= 7;
 		 _8plus = first > 1 || second >= 8;
