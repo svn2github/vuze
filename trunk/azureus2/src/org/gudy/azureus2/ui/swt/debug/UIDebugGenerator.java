@@ -667,6 +667,9 @@ public class UIDebugGenerator
 	 * @param text 
 	 */
 	public static void obfusticateArea(Image image, Control control, String text) {
+		if ( control.isDisposed()){
+			return;
+		}
 		Rectangle bounds = control.getBounds();
 		Point location = Utils.getLocationRelativeToShell(control);
 		bounds.x = location.x;
