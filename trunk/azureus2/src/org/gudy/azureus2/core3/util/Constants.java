@@ -376,6 +376,8 @@ Constants
   
   public static final boolean isJava7OrHigher;
   public static final boolean isJava8OrHigher;
+  public static final boolean isJava9OrHigher;
+  public static final boolean isJava10OrHigher;
   
   static{
 	  	// http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
@@ -383,18 +385,36 @@ Constants
 	  
 	  	// unless it is Android where it is always 0
 	  
+	  	// then again, from 1.9 (9) we have http://openjdk.java.net/jeps/223
+	  
 	  boolean	_7plus;
 	  boolean	_8plus;
+	  boolean	_9plus;
+	  boolean	_10plus;
 	  
 	  try{
-		  String[]	bits = JAVA_VERSION.split( "\\." );
+		  // from Java 9 we need to drop stuff after a + or - as we can have 9-ea (well, the + case shouldn't occur in java.version but whatever)
+		  
+		  int pos = JAVA_VERSION.indexOf( '-' );
+		  
+		  if ( pos == -1 ){
+			  
+			  pos = JAVA_VERSION.indexOf( '+' );
+		  }
+		  
+		  String version = pos==-1?JAVA_VERSION:JAVA_VERSION.substring( 0, pos );
+		  
+		  String[]	bits = version.split( "\\." );
 		  
 		 int	first	= Integer.parseInt( bits[0] );
 		 int	second 	= Integer.parseInt( bits[1] );
-		  
-		  _7plus = first > 1 || second >= 7;
-		  _8plus = first > 1 || second >= 8;
-			  
+		 
+		 _7plus = first > 1 || second >= 7;
+		 _8plus = first > 1 || second >= 8;
+		 _9plus = first > 1 || second >= 9;
+		 
+		 _10plus = first >= 10;
+		 
 	  }catch( Throwable e ){
 		  
 		  System.err.println( "Unparsable Java version: " + JAVA_VERSION );
@@ -403,10 +423,14 @@ Constants
 		  
 		  _7plus = false;	// derp
 		  _8plus = false;	// derp
+		  _9plus = false;	// derp
+		  _10plus = false;	// derp
 	  }
 	  
 	  isJava7OrHigher 	= _7plus;
 	  isJava8OrHigher	= _8plus;
+	  isJava9OrHigher	= _9plus;
+	  isJava10OrHigher	= _10plus;
   }
   
   public static final String	FILE_WILDCARD = isWindows?"*.*":"*";
