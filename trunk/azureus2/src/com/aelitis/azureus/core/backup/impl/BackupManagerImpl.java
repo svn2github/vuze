@@ -624,18 +624,28 @@ BackupManagerImpl
 			
 			if ( !FileUtil.copyFile( from_file, to_file )){
 				
-					// a few exceptions here (e.g. dasu plugin has a 'lock' file that breaks things)
-				
-				String name = from_file.getName().toLowerCase();
-				
-				if ( 	name.equals( ".lock" ) || 
-						name.equals( "lock" ) || 		// dasu
-						name.equals( "stats.lck" )){	// advanced stats plugin
+				try{
+					Thread.sleep( 5000 );
 					
-					return( new long[]{ total_files, total_copied });
+				}catch( Throwable e ){	
 				}
-				
-				throw( new Exception( "Failed to copy file '" + from_file + "'" ));
+			
+				if ( !FileUtil.copyFile( from_file, to_file )){
+					
+						// a few exceptions here (e.g. dasu plugin has a 'lock' file that breaks things)
+					
+					String name = from_file.getName().toLowerCase();
+					
+					if ( 	name.equals( ".lock" ) 		|| 
+							name.equals( "lock" ) 		|| 	// dasu
+							name.equals( "stats.lck" ) 	||	// advanced stats plugin
+							name.endsWith( ".saving" )){	
+						
+						return( new long[]{ total_files, total_copied });
+					}
+					
+					throw( new Exception( "Failed to copy file '" + from_file + "'" ));
+				}
 			}
 			
 			total_files++;
