@@ -1,8 +1,49 @@
 VUZE CHANGELOG
 -----------------
 
-2016.xx.yy | Vuze 5.7.1.1
+2016.05.12 | Vuze 5.7.2.0
 
+
+FEATURE: UI   | New tree view for selecting files to download in the torrent options dialog [Parg]
+FEATURE: UI   | Higher UI refresh rates now supported [Parg]
+FEATURE: UI   | Search for existing data files now supported at the file level [Parg]
+FEATURE: UI   | Added option to disable the simple library views [Parg]
+FEATURE: UI   | Color can now be set for sidebar background and table headers [Parg]
+FEATURE: UI   | Option to disable chat notifications on a per-chat basis [Parg]
+
+FEATURE: Core | Support start/stop and pause/resume for aggregate tag actions [Parg]
+FEATURE: Core | Added option to ignore checking downloads when managing the max active downloads [Parg]
+FEATURE: Core | Added individual tag based share ratio actions [Parg]
+FEATURE: Core | Added ability to control the priority of aggregate/individual tag share ratios when both enabled [Parg]
+FEATURE: Core | Added option to prioritize downloads based on seed count [Parg]
+FEATURE: Core | Exported stats now include smoothed up/down rates [Parg]
+FEATURE: Core | Added ability to reset a download's file-links at the download level [Parg]
+FEATURE: Core | Option added for swarm merging to complete all copies of a file, not just the first [Parg]
+FEATURE: Core | Support multiple torrent import folders and tag auto-assignment [Parg]
+FEATURE: Core | Added per-subscription maximum result limits [Parg]
+FEATURE: Core | Option to periodically recheck 'out of disk space' downloads for restart [Parg]
+FEATURE: Core | Option to control the maximum supported file links in a download [Parg]
+
+FEATURE: Plug | Linux support for the embedded media player [Parg]
+FEATURE: Plug | Embedded media player plugin can now use VLC for playback [Parg]
+
+CHANGE: UI    | Double clicking on a plugin from the overview settings panel now selects a plugin's settings [Parg]
+
+CHANGE: Core  | Piece selection during swarm merging optimized for pieces with zero availability [Parg]
+CHANGE: Plug  | Improved seed/peer counts for swarm discoveries [Parg]
+
+BUGFIX: UI    | Sort order icon was reversed in torrent options dialog [Parg]
+BUGFIX: UI    | Better flushing of cached color resources on scheme change [Parg]
+BUGFIX: UI    | Sort order for file priority was inconsistent [Parg]
+BUGFIX: UI    | When one of multiple instances of a view was closed some menus were lost [Parg]
+
+BUGFIX: Core  | Don't pause incomplete downloads when an aggregate tag's share ratio is hit [Parg]
+BUGFIX: Core  | Fixed bug with peer connections for torrents with unlimited peer connection limits [Parg]
+BUGFIX: Core  | Fixed unnecessary rechecking on start of downloads with do-not-download files [Parg]
+BUGFIX: Core  | Don't process aggregate share ratio rules while downloads are being deleted [Parg]
+BUGFIX: Core  | Ensure 'on download complete' actions aren't fired while incomplete downloads are in a pending state [Parg]
+BUGFIX: Core  | Backup/Restore now ignores corrupted config and temporary files [Parg]
+BUGFIX: Core  | Fixed broken synchronization in DHT tracker [Parg]
 
 2016.02.22 | Vuze 5.7.1.0
 
