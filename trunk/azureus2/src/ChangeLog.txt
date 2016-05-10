@@ -26,8 +26,12 @@ FEATURE: Core | Option to control the maximum supported file links in a download
 
 FEATURE: Plug | Linux support for the embedded media player [Parg]
 FEATURE: Plug | Embedded media player plugin can now use VLC for playback [Parg]
+FEATURE: Plug | Swarm Discoveries - more views now support 'search more'; tag aggregation [Parg]
 
 CHANGE: UI    | Double clicking on a plugin from the overview settings panel now selects a plugin's settings [Parg]
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Basque translation update [Azpidatziak]
+CHANGE: UI    | Spanish translation update [Valtiel]
 
 CHANGE: Core  | Piece selection during swarm merging optimized for pieces with zero availability [Parg]
 CHANGE: Plug  | Improved seed/peer counts for swarm discoveries [Parg]
