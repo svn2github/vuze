@@ -82,7 +82,7 @@ public class ConfigSectionFile
 		GridData gridData;
 		Label label;
 		String sCurConfigID;
-		final ArrayList allConfigIDs = new ArrayList();
+		final ArrayList<String> allConfigIDs = new ArrayList<String>();
 
 		Composite gFile = new Composite(parent, SWT.NULL);
 
@@ -490,6 +490,33 @@ public class ConfigSectionFile
 			allConfigIDs.add(sCurConfigID);
 		} else {
 			
+				// max links
+			
+						
+			Composite maxLinksGroup = new Composite(gFile, SWT.NULL);
+			layout = new GridLayout();
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			layout.numColumns = 3;
+			maxLinksGroup.setLayout(layout);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 2;
+			Utils.setLayoutData(maxLinksGroup, gridData);
+	
+			Label maxLinks = new Label(maxLinksGroup, SWT.NULL);
+			Messages.setLanguageText(maxLinks, "ConfigView.label.max.file.links");
+	
+			sCurConfigID = "Max File Links Supported";
+			allConfigIDs.add(sCurConfigID);
+
+			new IntParameter(maxLinksGroup,	sCurConfigID,8,Integer.MAX_VALUE);
+			
+	
+			Label maxLinksWarning = new Label(maxLinksGroup, SWT.NULL);
+			Messages.setLanguageText(maxLinksWarning, "ConfigView.label.max.file.links.warning");
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			maxLinksWarning.setLayoutData(gridData);
+			
 				// restart out of space downloads
 			
 			sCurConfigID = "Insufficient Space Download Restart Enable";
@@ -517,7 +544,7 @@ public class ConfigSectionFile
 					"ConfigView.label.restart.no.space.dls.interval");
 
 			IntParameter paramOOSDRInterval = new IntParameter(cOOSDGroup,
-					sCurConfigID,1,-1);
+					sCurConfigID,1,Integer.MAX_VALUE);
 			gridData = new GridData();
 			paramOOSDRInterval.setLayoutData(gridData);
 

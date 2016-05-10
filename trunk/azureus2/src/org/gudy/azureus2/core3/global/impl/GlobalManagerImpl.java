@@ -3447,7 +3447,7 @@ public class GlobalManagerImpl
 																	
 								DiskManagerFileInfo[] fileInfos = manager.getDiskManagerFileInfo();
 								
-								if ( fileInfos.length <= DownloadManagerState.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE ){
+								if ( fileInfos.length <= DownloadManagerStateFactory.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE ){
 									
 									ext = FileUtil.convertOSSpecificChars( ext, false );
 	

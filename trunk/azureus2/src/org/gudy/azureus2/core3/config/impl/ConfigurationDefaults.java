@@ -230,6 +230,7 @@ public class ConfigurationDefaults {
     
     def.put("Enable Subfolder for DND Files", FALSE );
     def.put("Subfolder for DND Files", ".dnd_az!" );
+    def.put("Max File Links Supported", 2048 );
     
     def.put("Ip Filter Enabled", TRUE);
     def.put("Ip Filter Allow",FALSE);

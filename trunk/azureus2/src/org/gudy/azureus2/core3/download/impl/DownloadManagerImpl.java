@@ -974,7 +974,7 @@ DownloadManagerImpl
 				 		
 				 		if ( dnd_sf != null ){
 
-				 			if ( torrent.getFiles().length <= DownloadManagerState.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE ){
+				 			if ( torrent.getFiles().length <= DownloadManagerStateFactory.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE ){
             				
 				 				if ( download_manager_state.getAttribute( DownloadManagerState.AT_DND_SUBFOLDER ) == null ){
 				 					

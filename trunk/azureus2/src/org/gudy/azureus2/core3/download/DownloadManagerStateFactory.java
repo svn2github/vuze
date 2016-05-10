@@ -21,8 +21,9 @@ package org.gudy.azureus2.core3.download;
 
 import java.io.File;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.impl.*;
-
 import org.gudy.azureus2.core3.torrent.*;
 
 /**
@@ -33,6 +34,24 @@ import org.gudy.azureus2.core3.torrent.*;
 public class 
 DownloadManagerStateFactory 
 {
+		// current implementation of file links is too memory inefficient for a large number of files, disable these features
+		// for huge torrents until this can be fixed :( 
+
+	public static int MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE;
+
+	static{
+	
+		COConfigurationManager.addAndFireParameterListener(
+			"Max File Links Supported",
+			new ParameterListener() {
+				
+				public void parameterChanged( String name ){
+					
+					MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE = COConfigurationManager.getIntParameter(name );
+				}
+			});
+	}
+	
 	public static DownloadManagerState
 	getDownloadState(
 		TOTorrent		torrent )

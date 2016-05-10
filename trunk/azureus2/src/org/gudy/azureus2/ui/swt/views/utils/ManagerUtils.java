@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
@@ -2410,8 +2411,9 @@ public class ManagerUtils {
 				public void
 				run()
 				{
-					final int MAX_LINKS = 1000;
-					
+					final int 		MAX_LINKS 		= DownloadManagerStateFactory.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE;
+					final String 	LINK_LIMIT_MSG 	= "Link limit of " + MAX_LINKS + " exceeded. See Tools->Options->Files to increase this";
+						
 					try{
 						Map<Long,Set<File>>	file_map = new HashMap<Long,Set<File>>();
 						
@@ -2780,7 +2782,7 @@ download_loop:
 																
 																if ( link_count > MAX_LINKS ){
 		
-																	logLine( viewer, "    Link limit exceeded" );
+																	logLine( viewer, "    " + LINK_LIMIT_MSG );
 																	
 																	break download_loop;
 																}
@@ -2911,7 +2913,7 @@ download_loop:
 															
 															if ( link_count > MAX_LINKS ){
 			
-																logLine( viewer, "        Link limit exceeded" );
+																logLine( viewer, "        " + LINK_LIMIT_MSG );
 																
 																break;
 															}
