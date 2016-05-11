@@ -23,6 +23,7 @@ FEATURE: Core | Support multiple torrent import folders and tag auto-assignment 
 FEATURE: Core | Added per-subscription maximum result limits [Parg]
 FEATURE: Core | Option to periodically recheck 'out of disk space' downloads for restart [Parg]
 FEATURE: Core | Option to control the maximum supported file links in a download [Parg]
+FEATURE: Core | Option to auto-skip files smaller than a given size when adding a torernt [Parg]
 
 FEATURE: Plug | Linux support for the embedded media player [Parg]
 FEATURE: Plug | Embedded media player plugin can now use VLC for playback [Parg]

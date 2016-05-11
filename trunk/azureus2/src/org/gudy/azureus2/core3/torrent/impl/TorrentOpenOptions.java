@@ -494,6 +494,9 @@ public class TorrentOpenOptions
 			files = new TorrentOpenFileOptions[tfiles.length];
 			
 			Set<String>	skip_extensons = TorrentUtils.getSkipExtensionsSet();
+			
+			long	skip_min_size = COConfigurationManager.getLongParameter( "File.Torrent.AutoSkipMinSizeKB" )*1024L;
+			
 			for (int i = 0; i < files.length; i++) {
 				TOTorrentFile	torrentFile = tfiles[i];
 				
@@ -502,7 +505,11 @@ public class TorrentOpenOptions
 
 				boolean	wanted = true;
 				
-				if ( skip_extensons.size() > 0 ){
+				if ( skip_min_size > 0 && torrentFile.getLength() < skip_min_size ){
+					
+					wanted = false;
+					
+				}else if ( skip_extensons.size() > 0 ){
 					
 					int	pos = orgFileName.lastIndexOf( '.' );
 					

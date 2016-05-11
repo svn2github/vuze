@@ -800,24 +800,44 @@ public class ConfigSectionFile
 			
 			listener.parameterChanged( null, true );
 			
+			Group gIgnoredFiles = new Group(gFile, SWT.NONE);
+			Messages.setLanguageText(gIgnoredFiles,
+					"ConfigView.section.file.ignore.section");
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			layout.marginHeight = 5;
+			gIgnoredFiles.setLayout(layout);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 2;
+			Utils.setLayoutData(gIgnoredFiles, gridData);
+			
 				// torrent add auto-skip file types
 			
-			Label lSkipFiles = new Label(gFile, SWT.NULL);
+			Label lSkipFiles = new Label(gIgnoredFiles, SWT.NULL);
 			Messages.setLanguageText(lSkipFiles,
 					"ConfigView.section.file.torrent.autoskipfiles");
 
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			new StringParameter(gFile, "File.Torrent.AutoSkipExtensions").setLayoutData(gridData);
+			new StringParameter(gIgnoredFiles, "File.Torrent.AutoSkipExtensions").setLayoutData(gridData);
+			
+				// torrent add auto-skip min size
+			
+			Label lSkipFilesMinSize = new Label(gIgnoredFiles, SWT.NULL);
+			Messages.setLanguageText(lSkipFilesMinSize,
+					"ConfigView.section.file.torrent.autoskipfilesminsize");
+
+			new IntParameter(gIgnoredFiles, "File.Torrent.AutoSkipMinSizeKB", 0, Integer.MAX_VALUE );
 			
 				// torrent create/delete ignore files 
 			
-			Label lIgnoreFiles = new Label(gFile, SWT.NULL);
+			Label lIgnoreFiles = new Label(gIgnoredFiles, SWT.NULL);
 			Messages.setLanguageText(lIgnoreFiles,
 					"ConfigView.section.file.torrent.ignorefiles");
 
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			new StringParameter(gFile, "File.Torrent.IgnoreFiles",
+			new StringParameter(gIgnoredFiles, "File.Torrent.IgnoreFiles",
 					TOTorrent.DEFAULT_IGNORE_FILES).setLayoutData(gridData);
+			
 			
 				// file name character mappings
 
@@ -846,37 +866,37 @@ public class ConfigSectionFile
 		Utils.setLayoutData(gDeletion, gridData);
 		
 		if (userMode > 0) {
-  		Composite c = new Composite(gDeletion, SWT.NONE);
-  		layout = new GridLayout();
-  		layout.numColumns = 2;
-  		layout.marginHeight = 0;
-  		layout.marginWidth = 0;
-  		c.setLayout(layout);
-  		gridData = new GridData(GridData.FILL_HORIZONTAL);
-  		gridData.horizontalSpan = 2;
-  		Utils.setLayoutData(c, gridData);
-  		
-  		sCurConfigID = "tb.confirm.delete.content";
-  		label = new Label(c, SWT.NULL);
-  		Messages.setLanguageText(label, "ConfigView.section.file.tb.delete");
-  		int[] values = {
-  			0,
-  			1,
-  			2,
-  		};
-  		String[] labels = {
-  			MessageText.getString("ConfigView.tb.delete.ask"),
-  			MessageText.getString("ConfigView.tb.delete.content"),
-  			MessageText.getString("ConfigView.tb.delete.torrent"),
-  		};
-  		new IntListParameter(c, sCurConfigID, labels, values);
-
-  		
-  		sCurConfigID = "def.deletetorrent";
-  		allConfigIDs.add(sCurConfigID);
-  		gridData = new GridData();
-  		gridData.horizontalSpan = 2;
-  		new BooleanParameter(gDeletion, sCurConfigID, "ConfigView.section.file.delete.torrent").setLayoutData(gridData);
+	  		Composite c = new Composite(gDeletion, SWT.NONE);
+	  		layout = new GridLayout();
+	  		layout.numColumns = 2;
+	  		layout.marginHeight = 0;
+	  		layout.marginWidth = 0;
+	  		c.setLayout(layout);
+	  		gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  		gridData.horizontalSpan = 2;
+	  		Utils.setLayoutData(c, gridData);
+	  		
+	  		sCurConfigID = "tb.confirm.delete.content";
+	  		label = new Label(c, SWT.NULL);
+	  		Messages.setLanguageText(label, "ConfigView.section.file.tb.delete");
+	  		int[] values = {
+	  			0,
+	  			1,
+	  			2,
+	  		};
+	  		String[] labels = {
+	  			MessageText.getString("ConfigView.tb.delete.ask"),
+	  			MessageText.getString("ConfigView.tb.delete.content"),
+	  			MessageText.getString("ConfigView.tb.delete.torrent"),
+	  		};
+	  		new IntListParameter(c, sCurConfigID, labels, values);
+	
+	  		
+	  		sCurConfigID = "def.deletetorrent";
+	  		allConfigIDs.add(sCurConfigID);
+	  		gridData = new GridData();
+	  		gridData.horizontalSpan = 2;
+	  		new BooleanParameter(gDeletion, sCurConfigID, "ConfigView.section.file.delete.torrent").setLayoutData(gridData);
 		}
 
 		
