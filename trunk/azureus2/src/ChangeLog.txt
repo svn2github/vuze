@@ -48,7 +48,7 @@ BUGFIX: Core  | Fixed unnecessary rechecking on start of downloads with do-not-d
 BUGFIX: Core  | Don't process aggregate share ratio rules while downloads are being deleted [Parg]
 BUGFIX: Core  | Ensure 'on download complete' actions aren't fired while incomplete downloads are in a pending state [Parg]
 BUGFIX: Core  | Backup/Restore now ignores corrupted config and temporary files [Parg]
-BUGFIX: Core  | Fixed broken synchronization in DHT tracker [Parg]
+BUGFIX: Core  | Fixed broken synchronization in DHT tracker causing 99% CPU usage [Parg]
 
 2016.02.22 | Vuze 5.7.1.0
 
