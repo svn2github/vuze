@@ -562,25 +562,31 @@ public class TorrentOpener {
 							dm.getStats().setDownloadRateLimitBytesPerSecond( maxDown*1024 );
 						}
 						
+						DownloadManagerState dm_state = dm.getDownloadState();
+						
 						if (torrentOptions.disableIPFilter) {
 
-							dm.getDownloadState().setFlag(
+							dm_state.setFlag(
 									DownloadManagerState.FLAG_DISABLE_IP_FILTER, true);
 						}
 						
 						if (torrentOptions.peerSource != null) {
 							for (String peerSource : torrentOptions.peerSource.keySet()) {
 								boolean enable = torrentOptions.peerSource.get(peerSource);
-								dm.getDownloadState().setPeerSourceEnabled(peerSource, enable);
+								dm_state.setPeerSourceEnabled(peerSource, enable);
 							}
 						}
 
 						Map<String,Boolean> enabledNetworks = torrentOptions.getEnabledNetworks();
 
 						if ( enabledNetworks != null ){
-							for (String net : enabledNetworks.keySet()) {
-								boolean enable = enabledNetworks.get(net);
-								dm.getDownloadState().setNetworkEnabled(net, enable);
+							
+							if ( !dm_state.getFlag( DownloadManagerState.FLAG_INITIAL_NETWORKS_SET )){
+								
+								for (String net : enabledNetworks.keySet()) {
+									boolean enable = enabledNetworks.get(net);
+									dm_state.setNetworkEnabled(net, enable);
+								}
 							}
 						}
 						

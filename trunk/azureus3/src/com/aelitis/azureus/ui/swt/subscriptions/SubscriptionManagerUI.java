@@ -1790,6 +1790,28 @@ SubscriptionManagerUI
 				}
 			});
 		
+			// dl is anon
+			
+			menuItem = menu_creator.createMenu( "subs.prop.is_dl_anon");
+			menuItem.setStyle( MenuItem.STYLE_CHECK );
+			
+			menuItem.addFillListener( new MenuItemFillListener(){
+				public void menuWillBeShown( MenuItem menu, Object data ){
+					menu.setData( subs.getHistory().getDownloadNetworks()!=null);
+				}});
+			
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( Subscription subs) {
+					try{
+						boolean is_anon = subs.getHistory().getDownloadNetworks()!=null;
+						
+						subs.getHistory().setDownloadNetworks(is_anon?null:AENetworkClassifier.AT_NON_PUBLIC);
+					}catch( Throwable e ){
+						Debug.out(e);
+					}
+				}
+			});
+			
 				// max results
 				
 			menuItem = menu_creator.createMenu( "label.set.max.results" );
@@ -2310,6 +2332,7 @@ SubscriptionManagerUI
 				"subs.prop.is_public",
 				"subs.prop.is_auto",
 				"subs.prop.is_auto_ok",
+				"subs.prop.is_dl_anon",
 				"subs.prop.update_period",
 				"subs.prop.last_scan",
 				"subs.prop.last_result",
@@ -2365,6 +2388,7 @@ SubscriptionManagerUI
 				String.valueOf( subs.isPublic()),
 				String.valueOf( history.isAutoDownload()),
 				String.valueOf( subs.isAutoDownloadSupported()),
+				String.valueOf( history.getDownloadNetworks() != null ),
 				(check_freq==Integer.MAX_VALUE?"":(String.valueOf( history.getCheckFrequencyMins() + " " + MessageText.getString( "ConfigView.text.minutes")))),
 				df.format(new Date( history.getLastScanTime())),
 				( last_new_result==0?"":df.format(new Date( last_new_result ))),

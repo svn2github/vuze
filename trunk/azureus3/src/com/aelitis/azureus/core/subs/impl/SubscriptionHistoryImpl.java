@@ -24,6 +24,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.Debug;
@@ -34,6 +35,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
 SubscriptionHistoryImpl
@@ -50,6 +52,7 @@ SubscriptionHistoryImpl
 	private int			num_unread;
 	private int			num_read;
 	private long		max_results	= -1;
+	private String[]	networks	= null;
 	
 	private String			last_error;
 	private boolean			auth_failed;
@@ -336,6 +339,22 @@ SubscriptionHistoryImpl
 			saveConfig();
 		}
 	}
+	
+	public String[] 
+	getDownloadNetworks() 
+	{
+		return( networks );
+	}
+	
+	public void 
+	setDownloadNetworks(
+		String[] 	nets ) 
+	{
+		networks = nets;
+		
+		saveConfig();
+	}
+	
 	
 	public void 
 	setDetails(
@@ -1010,6 +1029,15 @@ SubscriptionHistoryImpl
 		
 		Long	l_max_results	= (Long)map.get( "max_results" );		
 		max_results				= l_max_results==null?-1:l_max_results.longValue();
+		
+		String  s_networks 		= ImportExportUtils.importString(map, "nets", null );
+		
+		if ( s_networks != null ){
+			networks = s_networks.split(",");
+			for ( int i=0;i<networks.length;i++){
+				networks[i] = AENetworkClassifier.internalise( networks[i] );
+			}
+		}
 	}
 	
 	protected void
@@ -1030,7 +1058,13 @@ SubscriptionHistoryImpl
 		if ( interval_override > 0 ){
 			map.put( "interval_override", new Long( interval_override ));
 		}
-		
+		if ( networks != null ){
+			String str = "";
+			for ( String net: networks ){
+				str += (str.length()==0?"":",") + net;
+			}
+			map.put( "nets", str );
+		}
 		subs.updateHistoryConfig( map );
 	}
 	

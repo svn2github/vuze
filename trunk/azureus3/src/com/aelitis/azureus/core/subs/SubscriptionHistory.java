@@ -117,4 +117,11 @@ SubscriptionHistory
 	public void
 	setMaxNonDeletedResults(
 		int			max );
+	
+	public String[]
+	getDownloadNetworks();
+	
+	public void
+	setDownloadNetworks(
+		String[]	nets );
 }

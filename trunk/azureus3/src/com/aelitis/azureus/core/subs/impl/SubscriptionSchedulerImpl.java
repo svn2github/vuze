@@ -450,13 +450,15 @@ SubscriptionSchedulerImpl
 									
 									Download	download;
 									
-										// if we're assigning a tag then we need to add it stopped in case the tag has any pre-start actions (e.g. set initial save location)
+										// if we're assigning a tag/networks then we need to add it stopped in case the tag has any pre-start actions (e.g. set initial save location)
+										// this is because the assignments are done in SubscriptionManagerImpl on the download(willbe)added event
 									
-									long	tag_id = subs.getTagID();
+									boolean	stop_override = subs.getTagID() >= 0 || subs.getHistory().getDownloadNetworks() != null;
+									
 									
 									boolean auto_start = manager.shouldAutoStart( torrent );
 									
-									if ( auto_start && tag_id < 0 ){
+									if ( auto_start && !stop_override ){
 									
 										download = dm.addDownload( torrent );
 										
@@ -467,9 +469,11 @@ SubscriptionSchedulerImpl
 									
 									log( subs.getName() + ": added download " + download.getName()+ ": auto-start=" + auto_start );
 
+									manager.prepareDownload(download, new Subscription[]{ subs });
+									
 									subs.addAssociation( torrent.getHash());
 									
-									if ( auto_start && tag_id >= 0 ){
+									if ( auto_start && stop_override ){
 										
 										download.restart();
 									}

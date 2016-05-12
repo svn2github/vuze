@@ -31,6 +31,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -484,6 +485,36 @@ SubscriptionManagerImpl
 					}
 				},
 				false );
+			
+			default_pi.getDownloadManager().addDownloadWillBeAddedListener(
+				new DownloadWillBeAddedListener() {
+					
+					public void 
+					initialised(
+						Download download )
+					{
+						Torrent	torrent = download.getTorrent();
+						
+						if ( torrent != null ){
+							
+							byte[]	hash = torrent.getHash();
+							
+							Object[] entry;
+							
+							synchronized( potential_associations2 ){
+								
+								entry = (Object[])potential_associations2.get( new HashWrapper( hash ));
+							}
+							
+							if ( entry != null ){
+								
+								SubscriptionImpl[] subs = (SubscriptionImpl[])entry[0];
+																
+								prepareDownload( download, subs );
+							}
+						}
+					}
+				});
 			
 			TorrentUtils.addTorrentAttributeListener(
 				new TorrentUtils.torrentAttributeListener()
@@ -4541,6 +4572,67 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	protected void
+	prepareDownload(
+		Download 				download, 
+		Subscription[]			subscriptions )
+	{		
+		try{			
+			if ( subscriptions.length > 0 ){
+				
+				Subscription subs = subscriptions[0];	// deal with first only for cat/tag/nets as will always be just one when called from downloadAdded
+				
+				String	category = subs.getCategory();
+				
+				if ( category != null ){
+					
+					String existing = download.getAttribute( ta_category );
+							
+					if ( existing == null ){
+								
+						download.setAttribute( ta_category, category );
+					}
+				}
+				
+				long	tag_id = subs.getTagID();
+				
+				if ( tag_id >= 0 ){
+					
+					Tag tag = TagManagerFactory.getTagManager().lookupTagByUID( tag_id );
+
+					if ( tag != null ){
+						
+						org.gudy.azureus2.core3.download.DownloadManager core_dm = PluginCoreUtils.unwrap( download );
+						
+						if ( !tag.hasTaggable( core_dm )){
+							
+							tag.addTaggable( core_dm );
+						}
+					}
+				}
+				
+				String[] nets = subs.getHistory().getDownloadNetworks();
+				
+				if ( nets != null ){
+									
+					org.gudy.azureus2.core3.download.DownloadManager core_dm = PluginCoreUtils.unwrap( download );
+					
+					DownloadManagerState state = core_dm.getDownloadState();
+					
+					state.setNetworks( nets );
+					
+						// ensure that other cide (e.g. the open-torrent stuff) doesn't over-write this
+					
+					state.setFlag( DownloadManagerState.FLAG_INITIAL_NETWORKS_SET, true );
+				}
+			}
+		
+		}catch( Throwable e ){
+			
+			log( "Failed to prepare association", e );
+		}
+	}
+	
 	protected boolean
 	recordAssociationsSupport(
 		byte[]						association_hash,
@@ -4556,39 +4648,6 @@ SubscriptionManagerImpl
 			Download download = pi.getDownloadManager().getDownload( association_hash );
 			
 			if ( download != null ){
-					
-				if ( subscriptions.length > 0 ){
-					
-					String	category = subscriptions[0].getCategory();
-					
-					if ( category != null ){
-						
-						String existing = download.getAttribute( ta_category );
-								
-						if ( existing == null ){
-									
-							download.setAttribute( ta_category, category );
-						}
-					}
-					
-					long	tag_id = subscriptions[0].getTagID();
-					
-					if ( tag_id >= 0 ){
-						
-						Tag tag = TagManagerFactory.getTagManager().lookupTagByUID( tag_id );
-
-						if ( tag != null ){
-							
-							org.gudy.azureus2.core3.download.DownloadManager core_dm = PluginCoreUtils.unwrap( download );
-							
-							if ( !tag.hasTaggable( core_dm )){
-								
-								tag.addTaggable( core_dm );
-							}
-						}
-					}
-					
-				}
 				
 				download_found = true;
 				
@@ -4846,7 +4905,7 @@ SubscriptionManagerImpl
 					
 					if ( hits < 10 && !diversified ){			
 			
-						log( "    Publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing=" + hits );
+						log( "    Publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing=" + hits + ", net=" + dht_plugin.getNetwork());
 
 						byte flags = DHTPlugin.FLAG_ANON;
 						

@@ -189,7 +189,13 @@ Download extends DownloadEventNotifier, DownloadStub, Taggable
      * @since 5701
      */
     
-    public static final long FLAG_ERROR_REPORTED	= 0x00000800;
+    public static final long FLAG_ERROR_REPORTED		= 0x00000800;
+    
+    /**
+     * @since 5721
+     */
+    
+    public static final long FLAG_INITIAL_NETWORKS_SET	= 0x00001000;
 
     
 	/** get state from above ST_ set
