@@ -1,8 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
-2016.05.12 | Vuze 5.7.2.0
+2016.xx.yy | Vuze 5.7.2.1
 
+2016.05.12 | Vuze 5.7.2.0
 
 FEATURE: UI   | New tree view for selecting files to download in the torrent options dialog [Parg]
 FEATURE: UI   | Higher UI refresh rates now supported [Parg]
