@@ -62,7 +62,7 @@ public class Wizard {
   Label title;
   Label currentInfo;
   Label errorMessage;
-  IWizardPanel currentPanel;
+  IWizardPanel<?> currentPanel;
   Composite panel;
   Font titleFont;
   protected Button previous, next, finish, cancel;
@@ -222,7 +222,7 @@ public class Wizard {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event arg0) {
-        IWizardPanel nextPanel = currentPanel.getNextPanel();
+        IWizardPanel<?> nextPanel = currentPanel.getNextPanel();
         clearPanel();
         currentPanel = nextPanel;
         refresh();
@@ -419,7 +419,7 @@ public class Wizard {
 	setDefaultButton();
   }
 
-  public void setFirstPanel(IWizardPanel panel) {
+  public void setFirstPanel(IWizardPanel<?> panel) {
     this.currentPanel = panel;
     refresh();
     insureSize();
@@ -488,13 +488,16 @@ public class Wizard {
   		
   		completed = true;
   		
-  		currentPanel.cancelled();
+  		if ( currentPanel != null ){
+  		
+  			currentPanel.cancelled();
+  		}
   	}
   }  
   /**
    * @return Returns the currentPanel.
    */
-  public IWizardPanel getCurrentPanel() {
+  public IWizardPanel<?> getCurrentPanel() {
     return currentPanel;
   }
   
