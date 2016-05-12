@@ -28,6 +28,7 @@ import java.util.Set;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.StringInterner;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
@@ -131,19 +132,23 @@ public class TrackerNameItem
   		
   	}else{
   		
-    	String[] parts = host.split( "\\." );
-
-    	int used = 0;
-    	for( int i = parts.length-1; i >= 0; i-- ) {
-    		if( used > 4 ) break; //don't use more than 4 segments
-    		String chunk = parts[ i ];
-    		if( used < 2 || chunk.length() < 11 ) {  //use first end two always, but trim out >10 chars (passkeys)
-    			if( used == 0 ) name = chunk;
-    			else name = chunk + "." + name;
-    			used++;
-    		}
-    		else break;
-    	}
+  		if ( AENetworkClassifier.categoriseAddress( host ) == AENetworkClassifier.AT_PUBLIC ){
+	    	String[] parts = host.split( "\\." );
+	
+	    	int used = 0;
+	    	for( int i = parts.length-1; i >= 0; i-- ) {
+	    		if( used > 4 ) break; //don't use more than 4 segments
+	    		String chunk = parts[ i ];
+	    		if( used < 2 || chunk.length() < 11 ) {  //use first end two always, but trim out >10 chars (passkeys)
+	    			if( used == 0 ) name = chunk;
+	    			else name = chunk + "." + name;
+	    			used++;
+	    		}
+	    		else break;
+	    	}
+  		}else{
+  			name = host;
+  		}
   	}
   	
   	if(name.equals(host)){
