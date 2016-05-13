@@ -53,7 +53,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -71,7 +70,6 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.utils.TagUIUtilsV3;
 
@@ -613,12 +611,19 @@ SubscriptionManagerUI
 		auto_start.addEnabledOnSelection( min_auto_start_size );
 		auto_start.addEnabledOnSelection( max_auto_start_size );
 		
+		final IntParameter mark_as_read_after = 
+				configModel.addIntParameter2( 
+					"subscriptions.config.mark.read.after", 
+					"subscriptions.config.mark.read.after", 
+					subs_man.getAutoDownloadMarkReadAfterDays());
+		
 		configModel.createGroup( 
 			"subscriptions.config.auto", 
 			new Parameter[]{
 					auto_start, 
 					min_auto_start_size,
 					max_auto_start_size,
+					mark_as_read_after,
 			});
 		
 			// int param fires intermediate events so we have to rely on the save :(
@@ -632,6 +637,7 @@ SubscriptionManagerUI
 					subs_man.setMaxNonDeletedResults(max_results.getValue());
 					subs_man.setAutoStartMinMB(min_auto_start_size.getValue());
 					subs_man.setAutoStartMaxMB(max_auto_start_size.getValue());
+					subs_man.setAutoDownloadMarkReadAfterDays(mark_as_read_after.getValue());
 				}
 			});
 

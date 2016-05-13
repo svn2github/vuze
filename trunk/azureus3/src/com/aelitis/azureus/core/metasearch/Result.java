@@ -28,6 +28,7 @@ import java.util.Random;
 
 import org.apache.commons.lang.Entities;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;
@@ -36,7 +37,8 @@ public abstract class Result {
 	private static final String HTML_TAGS = "(\\<(/?[^\\>]+)\\>)" ;
 	private static final String DUPLICATE_SPACES = "\\s{2,}";
 
-	private Engine		engine;
+	private final Engine		engine;
+	private final long			time_created_secs = SystemTime.getCurrentTime()/1000;
 	
 	public abstract Date getPublishedDate();
 	
@@ -218,6 +220,9 @@ public abstract class Result {
 	
 	public Map toJSONMap() {
 		Map object = new JSONObject();
+		
+		object.put( "tf", "" + time_created_secs );
+		
 		Date pub_date = this.getPublishedDate();
 		if ( pub_date == null ){
 			object.put("d", "unknown");

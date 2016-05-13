@@ -22,10 +22,12 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.utils.search.SearchResult;
 
 import com.aelitis.azureus.core.metasearch.Result;
@@ -36,6 +38,21 @@ public class
 SubscriptionResultImpl 
 	implements SubscriptionResult
 {
+	private static final long TIME_FOUND_DEFAULT;
+	
+	static{
+		long tfd = COConfigurationManager.getLongParameter( "subscription.result.time.found.default", 0 );
+		
+		if ( tfd == 0 ){
+			
+			tfd = SystemTime.getCurrentTime()/1000;
+			
+			COConfigurationManager.setParameter( "subscription.result.time.found.default", tfd );
+		}
+		
+		TIME_FOUND_DEFAULT = tfd*1000;
+	}
+	
 	final private SubscriptionHistoryImpl	history;
 	
 	private byte[]		key1;
@@ -312,6 +329,19 @@ SubscriptionResultImpl
 	getAssetHash() 
 	{
 		return((String)toJSONMap().get( "h" ));
+	}
+	
+	public long
+	getTimeFound()
+	{
+		String tf_secs_str = (String)toJSONMap().get( "tf" );
+		
+		if ( tf_secs_str == null ){
+			
+			return( TIME_FOUND_DEFAULT );
+		}
+		
+		return( Long.parseLong( tf_secs_str )*1000 );
 	}
 	
 	public Map<Integer,Object>

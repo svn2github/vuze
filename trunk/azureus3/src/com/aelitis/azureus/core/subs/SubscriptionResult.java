@@ -48,6 +48,9 @@ SubscriptionResult
 	public String
 	getPlayLink();
 	
+	public long
+	getTimeFound();
+	
 	public void
 	setRead(
 		boolean		read );

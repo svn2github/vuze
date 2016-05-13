@@ -141,6 +141,13 @@ SubscriptionManager
 	setAutoStartMaxMB(
 		int			mb );
 
+	public int
+	getAutoDownloadMarkReadAfterDays();
+	
+	public void
+	setAutoDownloadMarkReadAfterDays(
+		int		days );
+	
 	public boolean
 	isRSSPublishEnabled();
 	

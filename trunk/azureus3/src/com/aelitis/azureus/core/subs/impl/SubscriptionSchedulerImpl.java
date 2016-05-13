@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -86,7 +87,7 @@ SubscriptionSchedulerImpl
 	
 	private Set	active_result_downloaders		= new HashSet();
 	
-	private AsyncDispatcher	result_downloader = new AsyncDispatcher();
+	private ThreadPool	result_downloader = new ThreadPool( "SubscriptionDownloader", 5, true );
 
 	private boolean		schedulng_permitted;
 	
@@ -348,19 +349,21 @@ SubscriptionSchedulerImpl
 			
 			active_result_downloaders.add( key );
 			
-			result_downloader.dispatch(
+			result_downloader.run(
 				new AERunnable()
 				{
 					public void 
 					runSupport() 
 					{
+						boolean	success = false;
+
 						try{
 							boolean	retry = true;
 						
 							boolean	use_ref			= subs.getHistory().getDownloadWithReferer();
 							
 							boolean tried_ref_switch = false;
-							
+														
 							while( retry ){
 								
 								retry = false;
@@ -479,7 +482,9 @@ SubscriptionSchedulerImpl
 									}
 									
 									result.setRead( true );
-																		
+										
+									success = true;
+									
 									if ( tried_ref_switch ){
 										
 										subs.getHistory().setDownloadWithReferer( use_ref );
@@ -504,6 +509,30 @@ SubscriptionSchedulerImpl
 								}
 							}
 						}finally{
+							
+							try{
+								if ( !success ){
+									
+									int rad = manager.getAutoDownloadMarkReadAfterDays();
+
+									if ( rad > 0 ){
+										
+										long rad_millis = rad*24*60*60*1000L;
+										
+										long	time_found = result.getTimeFound();
+									
+										if ( time_found > 0 && time_found + rad_millis < SystemTime.getCurrentTime()){
+										
+											log( subs.getName() + ": result expired, marking as read - " + result.getID());
+
+											result.setRead( true );
+										}
+									}
+								}
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
 							
 							synchronized( active_result_downloaders ){
 

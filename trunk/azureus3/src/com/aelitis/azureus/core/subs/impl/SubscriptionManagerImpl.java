@@ -101,6 +101,7 @@ SubscriptionManagerImpl
 	private static final String CONFIG_AUTO_START_DLS 		= "subscriptions.auto.start.downloads";
 	private static final String CONFIG_AUTO_START_MIN_MB 	= "subscriptions.auto.start.min.mb";
 	private static final String CONFIG_AUTO_START_MAX_MB 	= "subscriptions.auto.start.max.mb";
+	private static final String CONFIG_AUTO_MARK_READ	 	= "subscriptions.auto.dl.mark.read.days";
 	
 	private static final String	CONFIG_RSS_ENABLE			= "subscriptions.config.rss_enable";
 
@@ -6249,6 +6250,22 @@ SubscriptionManagerImpl
 		if ( mb != getAutoStartMaxMB()){
 			
 			COConfigurationManager.setParameter( CONFIG_AUTO_START_MAX_MB, mb );
+		}
+	}
+	
+	public int
+	getAutoDownloadMarkReadAfterDays()
+	{
+		return( COConfigurationManager.getIntParameter( CONFIG_AUTO_MARK_READ ));
+	}
+	
+	public void
+	setAutoDownloadMarkReadAfterDays(
+		int		days )
+	{
+		if ( days != getAutoDownloadMarkReadAfterDays()){
+			
+			COConfigurationManager.setParameter( CONFIG_AUTO_MARK_READ, days );
 		}
 	}
 	
