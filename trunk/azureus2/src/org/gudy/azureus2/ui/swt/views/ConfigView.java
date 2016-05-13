@@ -583,10 +583,15 @@ public class ConfigView implements UISWTViewEventListener {
     	}
     }
 
-    TreeItem[] items = { tree.getItems()[0] };
-    tree.setSelection(items);
-    // setSelection doesn't trigger a SelectionListener, so..
-    showSection(items[0], false );
+    TreeItem selection = getLatestSelection();
+    
+    TreeItem[] items = { selection };
+    
+    tree.setSelection( items );
+    
+    	// setSelection doesn't trigger a SelectionListener, so..
+    
+    showSection( selection, false );
   }
 
  
@@ -765,11 +770,78 @@ public class ConfigView implements UISWTViewEventListener {
 		return false;
 	}
 
+	private void
+	saveLatestSelection(
+		TreeItem	item )
+	{
+		String path = "";
+		
+		while( item != null ){
+			
+			path = item.getText() + (path.length()==0?"":("$" + path ));
+			
+			item = item.getParentItem();
+		}
+		
+		COConfigurationManager.setParameter( "ConfigView.section.last.selection", path );
+	}
+	
+	private TreeItem
+	getLatestSelection()
+	{
+		String path = COConfigurationManager.getStringParameter( "ConfigView.section.last.selection", "" );
+		
+		String[] bits = path.split( "\\$" );
+		
+		TreeItem[]	items = tree.getItems();
+		
+		TreeItem current = null;
+		
+		boolean	located = false;
+		
+		for ( int i=0;i<bits.length;i++ ){
+			
+			String bit = bits[i];
+			
+			boolean found = false;
+			
+			for ( int j=0;j<items.length;j++ ){
+				
+				if ( items[j].getText().equals( bit )){
+					
+					current = items[j];
+					
+					items = current.getItems();
+					
+					found = true;
+					
+					if ( i == bits.length - 1 ){
+						
+						located = true;
+					}
+					
+					break;
+				}
+			}
+			
+			if ( !found ){
+				
+				break;
+			}
+		}
+		
+		TreeItem result = located?current:tree.getItems()[0];
+		
+		return( result );
+	}
+	
 	private void 
 	showSection(
 		TreeItem 	section,
 		boolean		focus ) 
 	{
+	saveLatestSelection( section );
+		
     ScrolledComposite item = (ScrolledComposite)section.getData("Panel");
 
     if (item != null) {
