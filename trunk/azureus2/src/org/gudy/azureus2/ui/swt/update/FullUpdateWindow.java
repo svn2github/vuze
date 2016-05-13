@@ -319,7 +319,7 @@ public class FullUpdateWindow
 	{
 		try {
 			open( 
-					"http://192.168.1.6:8090/client/update.php?newversion=5.6.0.0", 
+				"http://www.vuze.com/client/update.php?newversion=9.9.9.9", 
 				new UIFunctions.actionListener()
 				{
 					public void actionComplete(Object result) {
