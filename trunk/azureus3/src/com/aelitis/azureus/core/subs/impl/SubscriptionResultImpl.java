@@ -147,14 +147,32 @@ SubscriptionResultImpl
 			return( false );
 		}
 		
-		if ( getJSON().equals( other.getJSON())){
+		String	my_json_str 	= getJSON();
+		String	other_json_str 	= other.getJSON();
+		
+		if ( my_json_str.equals( other_json_str)){
 			
 			return( false );
 			
 		}else{
 			
+				// maintain time-found across an update
+			
+			Map	my_json_map 	= JSONUtils.decodeJSON( my_json_str );
+			
+			String my_tf = (String)my_json_map.get( "tf" );
+			
+			if ( my_tf != null ){
+				
+				Map	other_json_map 	= JSONUtils.decodeJSON( other_json_str );
+				
+				other_json_map.put( "tf", my_tf );
+				
+				other_json_str = JSONUtils.encodeToJSON( other_json_map );
+			}
+			
 			key2		= other.getKey2();
-			result_json = other.getJSON();
+			result_json = other_json_str;
 			
 			return( true );
 		}

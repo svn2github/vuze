@@ -95,6 +95,7 @@ SubscriptionSchedulerImpl
 	private boolean		schedule_in_progress;
 	private long		last_schedule;
 	
+	private String		last_sched_str;
 	
 	protected
 	SubscriptionSchedulerImpl(
@@ -521,6 +522,8 @@ SubscriptionSchedulerImpl
 										
 										long	time_found = result.getTimeFound();
 									
+										// log( "found=" + new SimpleDateFormat().format(new Date( time_found)) + ", ago=" + ((SystemTime.getCurrentTime()-time_found )) + ", rad=" + rad_millis );
+										
 										if ( time_found > 0 && time_found + rad_millis < SystemTime.getCurrentTime()){
 										
 											log( subs.getName() + ": result expired, marking as read - " + result.getID());
@@ -619,11 +622,19 @@ SubscriptionSchedulerImpl
 					next_ready_time = now;
 				}
 				
-				log( "Calculate : " + 
+				String sched_str = 
+						"Calculate : " + 
 						"old_time=" + new SimpleDateFormat().format(new Date(old_when)) +
 						", new_time=" + new SimpleDateFormat().format(new Date(next_ready_time)) +
-						", next_sub=" + next_ready_subs.getName());
-						
+						", next_sub=" + next_ready_subs.getName();
+				
+				if ( last_sched_str == null || !sched_str.equals( last_sched_str )){
+					
+					last_sched_str = sched_str;
+					
+					log( sched_str );
+				}
+			
 				schedule_event = SimpleTimer.addEvent(
 					"SS:Scheduler",
 					next_ready_time,
