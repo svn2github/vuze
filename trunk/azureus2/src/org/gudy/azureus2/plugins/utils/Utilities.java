@@ -457,6 +457,10 @@ Utilities
 	getDistributedDatabases(
 		String[]		networks );	 
 	
+	public List<DistributedDatabase>
+	getDistributedDatabases(
+		String[]			networks,
+		Map<String,Object>	options );
 	
 	public List<ScriptProvider>	
 	getScriptProviders();

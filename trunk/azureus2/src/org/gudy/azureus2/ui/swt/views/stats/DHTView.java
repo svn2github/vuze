@@ -740,8 +740,10 @@ public class DHTView
     if(dht == null) return;
     
     DHTTransportFullStats fullStats = dht.getTransport().getLocalContact().getStats();
-    inGraph.addIntValue((int)fullStats.getAverageBytesReceived());
-    outGraph.addIntValue((int)fullStats.getAverageBytesSent());
+    if ( fullStats != null ){
+    	inGraph.addIntValue((int)fullStats.getAverageBytesReceived());
+    	outGraph.addIntValue((int)fullStats.getAverageBytesSent());
+    }
   }
   
 	public boolean eventOccurred(UISWTViewEvent event) {

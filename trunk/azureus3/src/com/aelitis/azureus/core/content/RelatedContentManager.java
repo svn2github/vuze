@@ -535,7 +535,7 @@ RelatedContentManager
 				
 				if ( ddb.getNetwork() == AENetworkClassifier.AT_I2P ){
 					
-					DHTPluginInterface i2p_dht = ((DDBaseImpl)ddb).getDHTPlugin();
+					DHTPluginInterface i2p_dht = ddb.getDHTPlugin();
 					
 					RelatedContentSearcher i2p_searcher = new RelatedContentSearcher( RelatedContentManager.this, transfer_type, i2p_dht, false );
 					
@@ -649,7 +649,7 @@ RelatedContentManager
 							
 							if ( ddb.getNetwork() == AENetworkClassifier.AT_I2P ){
 								
-								result = ((DDBaseImpl)ddb).getDHTPlugin();
+								result = ddb.getDHTPlugin();
 							}
 						}
 					}finally{

@@ -140,7 +140,15 @@ DDBaseImpl
 	
 	public static List<DistributedDatabase>
 	getDDBs(
-		String[]		networks )
+		String[]			networks )
+	{
+		return( getDDBs( networks, null ));
+	}
+	
+	public static List<DistributedDatabase>
+	getDDBs(
+		String[]			networks,
+		Map<String,Object>	_options )
 	{
 		List<DistributedDatabase>	result = new ArrayList<DistributedDatabase>();
 							
@@ -160,6 +168,11 @@ DDBaseImpl
 				Map<String,Object>	options = new HashMap<String, Object>();
 				
 				options.put( AEProxyFactory.DP_NETWORKS, networks );
+				
+				if ( _options != null ){
+					
+					options.putAll( _options );
+				}
 				
 				DHTPluginInterface dpi = AEProxyFactory.getPluginDHTProxy( "ddb", net, options );
 				
@@ -319,6 +332,20 @@ DDBaseImpl
 		
 		return( dht.isEnabled());
 	}
+	
+	public boolean
+	isInitialized()
+	{
+		DHTPluginInterface	dht = grabDHT();
+		
+		if ( dht == null ){
+			
+			return( false );
+		}
+		
+		return( !dht.isInitialising());
+	}
+	
 	
 	public boolean
 	isExtendedUseAllowed()

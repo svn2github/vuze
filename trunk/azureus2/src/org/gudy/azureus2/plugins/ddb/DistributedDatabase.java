@@ -22,6 +22,8 @@ package org.gudy.azureus2.plugins.ddb;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
+import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
+
 /**
  * @author parg
  *
@@ -49,10 +51,16 @@ DistributedDatabase
 	isAvailable();
 
 	public boolean
+	isInitialized();
+	
+	public boolean
 	isExtendedUseAllowed();
 	
 	public String
 	getNetwork();
+	
+	public DHTPluginInterface
+	getDHTPlugin();
 	
 	public DistributedDatabaseContact
 	getLocalContact();

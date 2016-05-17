@@ -2040,11 +2040,19 @@ UtilitiesImpl
 	
 	public List<DistributedDatabase>
 	getDistributedDatabases(
-			String[]		networks )
+		String[]		networks )
 	{
-		return( DDBaseImpl.getDDBs( networks ));
+		return( DDBaseImpl.getDDBs( networks, null ));
 	}
 	   
+	public List<DistributedDatabase>
+	getDistributedDatabases(
+		String[]				networks,
+		Map<String,Object>		options )
+	{
+		return( DDBaseImpl.getDDBs( networks, options ));
+	}
+	
 	public interface
 	PluginSubscriptionManager
 	{
