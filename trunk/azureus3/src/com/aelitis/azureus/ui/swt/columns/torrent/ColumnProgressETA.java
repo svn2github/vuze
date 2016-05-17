@@ -188,7 +188,7 @@ public class ColumnProgressETA
 
 	public void cellAdded(TableCell cell) {
 		cell.setMarginHeight(3);
-		cell.setMarginWidth(8);
+		cell.setMarginWidth(2);
 	}
 
 	public void cellMouseTrigger(TableCellMouseEvent event) {
@@ -375,7 +375,7 @@ public class ColumnProgressETA
 
 		yRelProgressFillEnd = yRelProgressFillStart + boundsImgBG.height;
 
-		int progressWidth = newWidth - 2;
+		int progressWidth = newWidth - 1;
 		gc.setForeground(cBorder);
 		gc.drawRectangle(xStart + xRelProgressFillStart - 1, yStart
 				+ yRelProgressFillStart - 1, progressWidth + 1, boundsImgBG.height + 1);
