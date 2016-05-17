@@ -180,7 +180,7 @@ TagPropertyTrackerHandler
 			
 			DownloadManager dm = (DownloadManager)tag_dl;
 						
-			Set<String> hosts = TorrentUtils.getUniqueTrackerHosts( dm.getTorrent());
+			Set<String> hosts = getAugmentedHosts( dm );
 				
 			boolean	hit = false;
 			
@@ -214,7 +214,7 @@ TagPropertyTrackerHandler
 				continue;
 			}
 			
-			Set<String> hosts = TorrentUtils.getUniqueTrackerHosts( dm.getTorrent());
+			Set<String> hosts = getAugmentedHosts( dm );
 			
 			boolean	hit = false;
 			
@@ -233,6 +233,44 @@ TagPropertyTrackerHandler
 				tag.addTaggable( dm );
 			}
 		}
+	}
+	
+	private Set<String>
+	getAugmentedHosts(
+		DownloadManager		dm )
+	{
+		Set<String>	hosts = TorrentUtils.getUniqueTrackerHosts( dm.getTorrent());
+		
+		Set<String>	result = new HashSet<String>();
+		
+			// we do suffix matching (i.e. x.domain matches 'domain') by generating the suffix set
+		
+		for ( String host: hosts ){
+			
+			result.add( host );
+			
+			String[]	bits = host.split( "\\." );
+			
+			String	suffix = "";
+			
+			for (int i=bits.length-1;i>0;i--){
+				
+				String bit = bits[i];
+				
+				if ( suffix == "" ){
+					
+					suffix = bit;
+					
+				}else{
+					
+					suffix = bit + "." + suffix;
+				}
+				
+				result.add( suffix );
+			}
+		}
+		
+		return( result );
 	}
 	
 	protected List<Tag>
