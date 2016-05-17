@@ -672,8 +672,8 @@ public class DHTView
       String rem_size;
       
       if ( sa == null ){
-    	  rem_freq = "?";
-    	  rem_size = "?";
+    	  rem_freq = "-";
+    	  rem_size = "-";
       }else{
     	  rem_freq = "" + sa.getRemoteFreqDivCount();
     	  rem_size = "" + sa.getRemoteSizeDivCount(); 
