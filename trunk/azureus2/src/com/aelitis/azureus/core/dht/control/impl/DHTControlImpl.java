@@ -420,8 +420,9 @@ DHTControlImpl
 		external_lookup_pool 	= new ThreadPool("DHTControl:externallookups", EXTERNAL_LOOKUP_CONCURRENCY, true );
 		external_put_pool 		= new ThreadPool("DHTControl:puts", EXTERNAL_PUT_CONCURRENCY, true );
 
-		router	= _router;
-
+		router				= _router;
+		router_start_time	= SystemTime.getCurrentTime();
+		
 		local_contact = transport.getLocalContact();
 		
 		database.setControl( this );

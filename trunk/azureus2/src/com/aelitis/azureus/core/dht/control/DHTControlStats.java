@@ -19,6 +19,8 @@
 
 package com.aelitis.azureus.core.dht.control;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
+
 /**
  * @author parg
  *
@@ -26,6 +28,7 @@ package com.aelitis.azureus.core.dht.control;
 
 public interface 
 DHTControlStats 
+	extends DHTTransportFullStats
 {
 		/**
 		 * Uptime of the latest router instance
