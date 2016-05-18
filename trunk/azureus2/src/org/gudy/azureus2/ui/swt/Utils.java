@@ -2043,7 +2043,14 @@ public class Utils
 					ptTopLeft.x = bounds.x;
 					needsResize = true;
 				}
-
+				if ( ptBottomRight.y >= bounds.height ){
+					ptBottomRight.y = bounds.height-1;
+					needsResize = true;
+				}
+				if ( ptBottomRight.x >= bounds.width ){
+					ptBottomRight.x = bounds.width-1;
+					needsResize = true;
+				}
 				if ( needsMove ){
 					shell.setLocation(ptTopLeft);
 				}
