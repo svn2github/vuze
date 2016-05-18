@@ -726,6 +726,29 @@ DDBaseImpl
 		
 	}
 	
+	public List<DistributedDatabaseValue>
+	getValues(
+		DistributedDatabaseKey			key )
+		
+		throws DistributedDatabaseException
+	{
+		List<DHTPluginValue> values = getDHT().getValues(((DDBaseKeyImpl)key).getBytes());
+		
+		List<DistributedDatabaseValue>	result = new ArrayList<DistributedDatabaseValue>( values.size());
+		
+		for ( DHTPluginValue v: values ){
+						
+			DDBaseContactImpl originator = null;	// currently don't have access to this...
+			
+			DDBaseValueImpl value	= new DDBaseValueImpl( originator, v.getValue(), v.getCreationTime(), v.getVersion()); 
+
+			result.add( value );
+		}
+		
+		return( result );
+	}
+	
+	
 	public void
 	delete(
 		final DistributedDatabaseListener		listener,

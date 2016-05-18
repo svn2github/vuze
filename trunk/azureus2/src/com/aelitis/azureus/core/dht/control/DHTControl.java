@@ -85,6 +85,10 @@ DHTControl
 	getLocalValue(
 		byte[]		key );
 		
+	public List<DHTTransportValue>
+	getStoredValues(
+		byte[]		key );
+	
 	public void
 	get(
 		byte[]					key,

@@ -120,6 +120,10 @@ DHTPluginInterface
 	public List<DHTPluginValue>
 	getValues();
 
+	public List<DHTPluginValue>
+	getValues(
+		byte[]		key );
+
 	public void
 	remove(
 		byte[]						key,

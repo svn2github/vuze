@@ -1760,6 +1760,30 @@ DHTControlImpl
 		return( res );
 	}
 	
+	public List<DHTTransportValue>
+	getStoredValues(
+		byte[]		unencoded_key )
+	{
+		final byte[]	encoded_key = encodeKey( unencoded_key );
+
+		if ( DHTLog.isOn()){
+			DHTLog.log( "getStoredValues for " + DHTLog.getString( encoded_key ));
+		}
+
+		List<DHTDBValue>	res = database.getAllValues( new HashWrapper( encoded_key ));
+	
+		if ( res == null ){
+			
+			return( null );
+		}
+		
+		ArrayList<DHTTransportValue>	temp = new ArrayList<DHTTransportValue>( res.size());
+		
+		temp.addAll( res );
+		
+		return( temp );
+	}
+	
 	public void
 	get(
 		byte[]						unencoded_key,

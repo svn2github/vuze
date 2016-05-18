@@ -126,7 +126,7 @@ DHTTransferHandler
 		Map<String,Object>			options )
 	{
 		if ( XFER_TRACE ){
-			logger.log( "Transfer handler (" + handler.getName() + ") registered for key '" + ByteFormatter.encodeString( handler_key ));
+			log( "Transfer handler (" + handler.getName() + ") registered for key '" + ByteFormatter.encodeString( handler_key ));
 		}
 		
 		synchronized( transfer_handlers ){
@@ -150,7 +150,7 @@ DHTTransferHandler
 		DHTTransportTransferHandler	handler )
 	{
 		if ( XFER_TRACE ){
-			logger.log( "Transfer handler (" + handler.getName() + ") unregistered for key '" + ByteFormatter.encodeString( handler_key ));
+			log( "Transfer handler (" + handler.getName() + ") unregistered for key '" + ByteFormatter.encodeString( handler_key ));
 		}
 		
 		synchronized( transfer_handlers ){
@@ -183,7 +183,9 @@ DHTTransferHandler
 		if ( handler == null ){
 			
 			// can get a lot of these on startup so we'll downgrade to just ignoring
-			//logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
+			if ( XFER_TRACE ){
+				log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
+			}
 			//throw( new DHTTransportException( "No transfer handler registered for " + ByteFormatter.encodeString(transfer_key) ));
 			
 			return( -1 );
@@ -235,7 +237,7 @@ DHTTransferHandler
 					
 				}else if ( start >= data.length ){
 					
-					logger.log( "dataRequest: invalid start position" );
+					log( "dataRequest: invalid start position" );
 					
 					return( data.length );
 				}
@@ -246,7 +248,7 @@ DHTTransferHandler
 					
 				}else if ( start + length > data.length ){
 					
-					logger.log( "dataRequest: invalid length" );
+					log( "dataRequest: invalid length" );
 					
 					return( data.length );
 				}
@@ -332,6 +334,12 @@ DHTTransferHandler
 			if ( queue != null ){
 			
 				queue.add( req );
+				
+			}else{
+				
+				if ( XFER_TRACE ){
+					System.out.println( "Read queue not found" );
+				}
 			}
 			
 		}else if ( packet_type == Packet.PT_WRITE_REPLY ){
@@ -343,6 +351,12 @@ DHTTransferHandler
 			if ( queue != null ){
 				
 				queue.add( req );
+		
+			}else{
+				
+				if ( XFER_TRACE ){
+					System.out.println( "Write queue not found" );
+				}
 			}
 		}else{
 			
@@ -363,7 +377,7 @@ DHTTransferHandler
 					
 				}catch( DHTTransportException e ){
 					
-					logger.log(e);
+					log(e);
 				}
 
 			}else{
@@ -388,9 +402,9 @@ DHTTransferHandler
 					if ( handler == null ){
 						
 						// get lots of these when local endpoint removed while other's still out there...
-						
-						//logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
-						
+						if ( XFER_TRACE ){
+							log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
+						}
 					}else{
 						try{
 
@@ -491,7 +505,7 @@ DHTTransferHandler
 													
 												}catch( DHTTransportException e ){
 													
-													logger.log( "Failed to process transfer queue: " + Debug.getNestedExceptionMessage(e));
+													log( "Failed to process transfer queue: " + Debug.getNestedExceptionMessage(e));
 													
 												}finally{
 													
@@ -658,7 +672,7 @@ DHTTransferHandler
 												
 											}catch( DHTTransportException e ){
 												
-												logger.log( "Failed to process transfer queue: " + Debug.getNestedExceptionMessage(e));
+												log( "Failed to process transfer queue: " + Debug.getNestedExceptionMessage(e));
 												
 											}finally{
 												
@@ -696,9 +710,9 @@ DHTTransferHandler
 							
 								last_xferq_log = now;
 								
-								logger.log( "Failed to create transfer queue" );
+								log( "Failed to create transfer queue" );
 							
-								logger.log( e );
+								log( e );
 							}
 						}
 					}
@@ -1450,7 +1464,7 @@ DHTTransferHandler
 		int							len )
 	{
 		if ( XFER_TRACE ){
-			logger.log( "Transfer read request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+			log( "Transfer read request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
 		}
 
 		adapter.sendRequest(
@@ -1478,7 +1492,7 @@ DHTTransferHandler
 		int							total_length )
 	{					
 		if ( XFER_TRACE ){
-			logger.log( "Transfer read reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+			log( "Transfer read reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
 		}
 		
 		adapter.sendRequest(
@@ -1506,7 +1520,7 @@ DHTTransferHandler
 		int							total_length )
 	{
 		if ( XFER_TRACE ){
-			logger.log( "Transfer write request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+			log( "Transfer write request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
 		}
 		
 		adapter.sendRequest(
@@ -1532,7 +1546,7 @@ DHTTransferHandler
 		int							length )
 	{
 		if ( XFER_TRACE ){
-			logger.log( "Transfer write reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+			log( "Transfer write reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
 		}
 		
 		adapter.sendRequest(		
@@ -1546,6 +1560,28 @@ DHTTransferHandler
 				start_position, 
 				length, 
 				0 ));
+	}
+	
+	private void
+	log(
+		String		str )
+	{
+		if ( XFER_TRACE ){
+			System.out.println( str );
+		}
+		
+		logger.log( str );	
+	}
+	
+	private void
+	log(
+		Throwable	e  )
+	{
+		if ( XFER_TRACE ){
+			e.printStackTrace();
+		}
+		
+		logger.log( e );	
 	}
 	
 	protected class
@@ -1764,7 +1800,7 @@ DHTTransferHandler
 		public String
 		getString()
 		{
-			return( "tk=" + DHTLog.getString2( transfer_key ) + ",rk=" + 
+			return( "ty=" + packet_type + ",tk=" + DHTLog.getString2( transfer_key ) + ",rk=" + 
 					DHTLog.getString2( key ) + ",data=" + data.length +
 					",st=" + start_position + ",len=" + length + ",tot=" + total_length );
 		}

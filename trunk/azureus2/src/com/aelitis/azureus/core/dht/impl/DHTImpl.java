@@ -20,6 +20,7 @@
 package com.aelitis.azureus.core.dht.impl;
 
 import java.io.*;
+import java.util.List;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AERunStateHandler;
@@ -479,6 +480,13 @@ DHTImpl
 		return( control.getLocalValue( key ));
 	}
 		
+	public List<DHTTransportValue>
+	getStoredValues(
+		byte[]		key )
+	{
+		return( control.getStoredValues( key ));
+	}
+	
 	public void
 	get(
 		byte[]					key,

@@ -20,6 +20,7 @@
 package org.gudy.azureus2.plugins.ddb;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Map;
 
 import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
@@ -151,6 +152,18 @@ DistributedDatabase
 		DistributedDatabaseKey			key,
 		long							timeout )
 	
+		throws DistributedDatabaseException;
+	
+		/**
+		 * Get all locally held (direct+indirect) values for a key
+		 * @param key
+		 * @return
+		 */
+	
+	public List<DistributedDatabaseValue>
+	getValues(
+		DistributedDatabaseKey			key )
+		
 		throws DistributedDatabaseException;
 	
 	public void

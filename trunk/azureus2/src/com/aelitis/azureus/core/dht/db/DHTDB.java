@@ -99,6 +99,10 @@ DHTDB
 	getAnyValue(
 		HashWrapper		key );
 	
+	public List<DHTDBValue>
+	getAllValues(
+		HashWrapper		key );
+	
 	public boolean
 	hasKey(
 		HashWrapper		key );

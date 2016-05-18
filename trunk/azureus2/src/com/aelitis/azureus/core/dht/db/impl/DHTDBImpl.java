@@ -598,6 +598,30 @@ DHTDBImpl
 		}
 	}
 	
+	public List<DHTDBValue>
+	getAllValues(
+		HashWrapper				key )
+	{		
+		try{
+			this_mon.enter();
+		
+			DHTDBMapping mapping = (DHTDBMapping)stored_values.get( key );
+			
+			List<DHTDBValue> result = new ArrayList<DHTDBValue>();
+			
+			if ( mapping != null ){
+				
+				result.addAll( mapping.getAllValues( local_contact ));
+			}
+			
+			return( result  );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
 	public boolean
 	hasKey(
 		HashWrapper		key )

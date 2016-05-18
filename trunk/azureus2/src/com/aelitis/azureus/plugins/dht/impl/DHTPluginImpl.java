@@ -873,6 +873,32 @@ outer:
 		return( vals );
 	}
 	
+	public List<DHTPluginValue> 
+	getValues(byte[] key)
+	{
+		List<DHTPluginValue>	vals = new ArrayList<DHTPluginValue>();
+
+		if ( dht != null ){
+							
+			try{
+				List<DHTTransportValue> values = dht.getStoredValues( key );
+							
+				for ( DHTTransportValue v: values ){
+					
+					vals.add( mapValue( v ));
+				}
+				
+				return( vals );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( vals );
+	}
+	
 	public void
 	get(
 		final byte[]								key,

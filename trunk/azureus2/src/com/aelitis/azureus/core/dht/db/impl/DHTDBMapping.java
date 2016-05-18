@@ -499,6 +499,54 @@ DHTDBMapping
 		return( res );
 	}
 	
+	protected List<DHTDBValueImpl>
+	getAllValues(
+		DHTTransportContact 	originator )
+	{
+		List<DHTDBValueImpl>	res 		= new ArrayList<DHTDBValueImpl>();
+		
+		Set<HashWrapper>		duplicate_check = new HashSet<HashWrapper>();
+		
+		Map<HashWrapper,DHTDBValueImpl>[]	maps = new Map[]{ direct_originator_map_may_be_null, indirect_originator_value_map };
+			
+		for (int i=0;i<maps.length;i++){
+			
+			Map<HashWrapper,DHTDBValueImpl>			map	= maps[i];
+			
+			if ( map == null ){
+				
+				continue;
+			}
+				
+			Iterator<Map.Entry<HashWrapper,DHTDBValueImpl>>	it = map.entrySet().iterator();
+		
+			while( it.hasNext()){
+			
+				Map.Entry<HashWrapper,DHTDBValueImpl>	entry = it.next();
+								
+				DHTDBValueImpl	entry_value = entry.getValue();
+						
+				HashWrapper	x = new HashWrapper( entry_value.getValue());
+				
+				if ( duplicate_check.contains( x )){
+					
+					continue;
+				}
+				
+				duplicate_check.add( x );
+								
+					// zero length values imply deleted values so don't return them
+				
+				if ( entry_value.getValue().length > 0 ){
+					
+					res.add( entry_value );
+				}
+			}
+		}
+				
+		return( res );
+	}
+		
 	protected DHTDBValueImpl
 	remove(
 		DHTTransportContact 	originator )

@@ -1311,6 +1311,27 @@ DHTPlugin
 	
 	public List<DHTPluginValue>
 	getValues(
+		byte[]		key )
+	{
+		if ( main_dht != null ){
+			
+			return( main_dht.getValues( key ));
+			
+		}else if ( cvs_dht != null ){
+		
+			return( cvs_dht.getValues( key ));
+			
+		}else if ( main_v6_dht != null ){
+			
+			return( main_v6_dht.getValues( key ));
+		}else{
+			
+			return( new ArrayList<DHTPluginValue>());
+		}
+	}
+	
+	public List<DHTPluginValue>
+	getValues(
 		int			network,
 		boolean		ipv6 )
 	{

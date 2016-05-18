@@ -20,6 +20,7 @@
 package com.aelitis.azureus.core.dht;
 
 import java.io.*;
+import java.util.List;
 
 import com.aelitis.azureus.core.dht.control.DHTControl;
 import com.aelitis.azureus.core.dht.db.DHTDB;
@@ -139,7 +140,10 @@ DHT
 	getLocalValue(
 		byte[]		key );
 	
-	
+	public List<DHTTransportValue>
+	getStoredValues(
+		byte[]		key );
+
 		/**
 		 * @param key
 		 * @param max_values
