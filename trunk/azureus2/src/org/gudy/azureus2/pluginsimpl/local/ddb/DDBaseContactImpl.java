@@ -72,6 +72,12 @@ DDBaseContactImpl
 		return( contact.getName());
 	}
 	
+	public int
+	getVersion() 
+	{
+		return( contact.getProtocolVersion());
+	}
+	
 	public InetSocketAddress
 	getAddress()
 	{
@@ -187,20 +193,34 @@ DDBaseContactImpl
 		return( contact.openTunnel() != null );
 	}
 	
+	public DistributedDatabaseValue 
+	call(
+		DistributedDatabaseProgressListener 	listener,
+		DistributedDatabaseTransferType 		type, 
+		DistributedDatabaseValue 				data,
+		long									timeout )
+		
+		throws DistributedDatabaseException 
+	{
+		return( ddb.call( this, listener, type, data, timeout ));
+	}
+	
 	public void
 	write(
-		DistributedDatabaseTransferType		type,
-		DistributedDatabaseKey				key,
-		DistributedDatabaseValue			data )
+		DistributedDatabaseProgressListener		listener,
+		DistributedDatabaseTransferType			type,
+		DistributedDatabaseKey					key,
+		DistributedDatabaseValue				value,
+		long									timeout )
 	
 		throws DistributedDatabaseException
 	{
-		throw( new DistributedDatabaseException( "not implemented" ));
+		ddb.write( this, listener, type, key, value, timeout );
 	}
 	
 	public DistributedDatabaseValue
 	read(
-		final DistributedDatabaseProgressListener	listener,
+		DistributedDatabaseProgressListener			listener,
 		DistributedDatabaseTransferType				type,
 		DistributedDatabaseKey						key,
 		long										timeout )

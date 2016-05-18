@@ -36,6 +36,9 @@ DistributedDatabaseContact
 	public String
 	getName();
 	
+	public int
+	getVersion();
+	
 	public InetSocketAddress
 	getAddress();
 	
@@ -67,11 +70,22 @@ DistributedDatabaseContact
 	public boolean
 	openTunnel();
 	
+	public DistributedDatabaseValue
+	call(
+		DistributedDatabaseProgressListener		listener,
+		DistributedDatabaseTransferType			type,
+		DistributedDatabaseValue				data,
+		long									timeout )
+	
+		throws DistributedDatabaseException;
+	
 	public void
 	write(
-		DistributedDatabaseTransferType		type,
-		DistributedDatabaseKey				key,
-		DistributedDatabaseValue			data )
+		DistributedDatabaseProgressListener		listener,
+		DistributedDatabaseTransferType			type,
+		DistributedDatabaseKey					key,
+		DistributedDatabaseValue				data,
+		long									timeout )
 	
 		throws DistributedDatabaseException;
 	

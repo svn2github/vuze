@@ -951,6 +951,97 @@ DDBaseImpl
 		}
 	}
 	
+	protected void
+	write(
+		DDBaseContactImpl							contact,
+		final DistributedDatabaseProgressListener	listener,
+		DistributedDatabaseTransferType				type,
+		DistributedDatabaseKey						key,
+		DistributedDatabaseValue					value,
+		long										timeout )
+	
+		throws DistributedDatabaseException
+	{
+		DHTPluginContact plugin_contact = contact.getContact();
+		
+		plugin_contact.write( 
+			new DHTPluginProgressListener()
+			{
+				public void
+				reportSize(
+					long	size )
+				{
+					listener.reportSize( size );
+				}
+				
+				public void
+				reportActivity(
+					String	str )
+				{
+					listener.reportActivity( str );
+				}
+				
+				public void
+				reportCompleteness(
+					int		percent )
+				{
+					listener.reportCompleteness( percent );
+				}
+			},
+			DDBaseHelpers.getKey(type.getClass()).getHash(),
+			((DDBaseKeyImpl)key).getBytes(),
+			((DDBaseValueImpl)value).getBytes(),
+			timeout );
+	}
+	
+	protected DistributedDatabaseValue
+	call(
+		DDBaseContactImpl							contact,
+		final DistributedDatabaseProgressListener	listener,
+		DistributedDatabaseTransferType				type,
+		DistributedDatabaseValue					value,
+		long										timeout )
+	
+		throws DistributedDatabaseException
+	{
+		DHTPluginContact plugin_contact = contact.getContact();
+		
+		byte[]	data = plugin_contact.call( 
+							new DHTPluginProgressListener()
+							{
+								public void
+								reportSize(
+									long	size )
+								{
+									listener.reportSize( size );
+								}
+								
+								public void
+								reportActivity(
+									String	str )
+								{
+									listener.reportActivity( str );
+								}
+								
+								public void
+								reportCompleteness(
+									int		percent )
+								{
+									listener.reportCompleteness( percent );
+								}
+							},
+							DDBaseHelpers.getKey(type.getClass()).getHash(),
+							((DDBaseValueImpl)value).getBytes(),
+							timeout );
+							
+		if ( data == null ){
+			
+			return( null );
+		}
+		
+		return( new DDBaseValueImpl( contact, data, SystemTime.getCurrentTime(), -1));
+	}
+	
 	public void 
 	addListener(
 		DistributedDatabaseListener l ) 
