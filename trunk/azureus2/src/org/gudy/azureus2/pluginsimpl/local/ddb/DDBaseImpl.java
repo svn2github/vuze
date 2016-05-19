@@ -559,6 +559,11 @@ DDBaseImpl
 			extra_flags |= DHT.FLAG_ANON;
 		}
 		
+		if ((key_flags & DistributedDatabaseKey.FL_BRIDGED ) != 0 ){
+			
+			extra_flags |= DHT.FLAG_BRIDGED;
+		}
+		
 		if ( values.length == 0 ){
 			
 			delete( listener, key );

@@ -27,7 +27,8 @@ package org.gudy.azureus2.plugins.ddb;
 public interface 
 DistributedDatabaseKey 
 {
-	public static final int FL_ANON = 0x00000001;
+	public static final int FL_ANON 	= 0x00000001;
+	public static final int FL_BRIDGED 	= 0x00000002;
 	
 	public Object
 	getKey()

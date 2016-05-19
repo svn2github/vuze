@@ -38,7 +38,8 @@ DHTPluginInterface
 	public static final byte		FLAG_STATS			= DHT.FLAG_STATS;
 	public static final byte		FLAG_ANON			= DHT.FLAG_ANON;
 	public static final byte		FLAG_PRECIOUS		= DHT.FLAG_PRECIOUS;
-	
+	public static final byte		FLAG_BRIDGED		= DHT.FLAG_BRIDGED;
+
 	public static final int			MAX_VALUE_SIZE		= DHT.MAX_VALUE_SIZE;
 
 

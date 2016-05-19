@@ -59,10 +59,14 @@ DHT
 	public static final short		FLAG_STATS				= 0x0008;
 	public static final short		FLAG_ANON				= 0x0010;
 	public static final short		FLAG_PRECIOUS			= 0x0020;
-	public static final short		FLAG_PUT_AND_FORGET		= 0x0040;			// local only
-	public static final short		FLAG_OBFUSCATE_LOOKUP	= 0x0080;			// local only
-	public static final short		FLAG_LOOKUP_FOR_STORE	= 0x0100;			// local only
-	public static final short		FLAG_HIGH_PRIORITY		= 0x0200;			// local only, used in plugin to transmit priority through call stack
+	public static final short		FLAG_BRIDGED			= 0x0040;
+	
+		// only a single byte is serialized for flags so these ones ain't going nowhere remote!
+	
+	public static final short		FLAG_PUT_AND_FORGET		= 0x0100;			// local only
+	public static final short		FLAG_OBFUSCATE_LOOKUP	= 0x0200;			// local only
+	public static final short		FLAG_LOOKUP_FOR_STORE	= 0x0400;			// local only
+	public static final short		FLAG_HIGH_PRIORITY		= 0x0800;			// local only, used in plugin to transmit priority through call stack
 
 	public static final int 	MAX_VALUE_SIZE		= 512;
 
