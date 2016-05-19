@@ -30,6 +30,10 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseEvent;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -269,7 +273,7 @@ DHTPlugin
 					DHTPluginContact	originator,
 					DHTPluginValue		value )
 				{
-					log.log( "valueRead: " + new String(value.getValue()) + " from " + originator.getName() + "/" + originator.getAddress());
+					log.log( "valueRead: " + new String(value.getValue()) + " from " + originator.getName() + "/" + originator.getAddress() +", flags=" + Integer.toHexString(value.getFlags()&0x00ff ));
 					
 					if ( ( value.getFlags() & DHTPlugin.FLAG_STATS ) != 0 ){
 						
@@ -332,6 +336,33 @@ DHTPlugin
 										if ( !setSuspended( false )){
 											
 											Debug.out( "Resume failed" );
+										}
+										
+										return;
+										
+									}else if ( lc.equals( "bridge_put" )){
+										
+										try{
+											List<DistributedDatabase> ddbs = plugin_interface.getUtilities().getDistributedDatabases( new String[]{ AENetworkClassifier.AT_I2P });
+										
+											DistributedDatabase ddb = ddbs.get(0);
+											
+											DistributedDatabaseKey	key = ddb.createKey( "fred" );
+											
+											key.setFlags( DistributedDatabaseKey.FL_BRIDGED );
+											
+											ddb.write(
+												new DistributedDatabaseListener() {
+													
+													public void event(DistributedDatabaseEvent event) {
+														// TODO Auto-generated method stub
+														
+													}
+												}, key, ddb.createValue( "bill" ));
+											
+										}catch( Throwable e ){
+											
+											e.printStackTrace();
 										}
 										
 										return;
