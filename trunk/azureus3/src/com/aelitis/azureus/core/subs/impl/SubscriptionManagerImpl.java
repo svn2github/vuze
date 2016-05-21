@@ -3033,43 +3033,50 @@ SubscriptionManagerImpl
 			
 			if ( newest_download != null ){
 			
-				byte[] hash = newest_download.getTorrent().getHash();
+				DHTPluginInterface dht_plugin = selectDHTPlugin( newest_download );
 				
-				log( "Association lookup starts for " + newest_download.getName() + "/" + ByteFormatter.encodeString( hash ));
-
-				lookupAssociationsSupport( 
-					selectDHTPlugin( newest_download ),
-					hash,
-					new	SubscriptionLookupListener()
-					{
-						public void
-						found(
-							byte[]					hash,
-							Subscription			subscription )
-						{							
-						}
-						
-						public void
-						failed(
-							byte[]					hash,
-							SubscriptionException	error )
+				if ( dht_plugin != null ){
+					
+					byte[] hash = newest_download.getTorrent().getHash();
+					
+					log( "Association lookup starts for " + newest_download.getName() + "/" + ByteFormatter.encodeString( hash ));
+	
+					lookupAssociationsSupport( 
+						dht_plugin,
+						hash,
+						new	SubscriptionLookupListener()
 						{
-							log( "Association lookup failed for " + ByteFormatter.encodeString( hash ), error );
-
-							associationLookupComplete();
-						}
-						
-						public void 
-						complete(
-							byte[] 			hash,
-							Subscription[]	subs )
-						{
-							log( "Association lookup complete for " + ByteFormatter.encodeString( hash ));
+							public void
+							found(
+								byte[]					hash,
+								Subscription			subscription )
+							{							
+							}
 							
-							associationLookupComplete();
-						}
-					});
-						
+							public void
+							failed(
+								byte[]					hash,
+								SubscriptionException	error )
+							{
+								log( "Association lookup failed for " + ByteFormatter.encodeString( hash ), error );
+	
+								associationLookupComplete();
+							}
+							
+							public void 
+							complete(
+								byte[] 			hash,
+								Subscription[]	subs )
+							{
+								log( "Association lookup complete for " + ByteFormatter.encodeString( hash ));
+								
+								associationLookupComplete();
+							}
+						});
+				}else{	
+					
+					associationLookupComplete();
+				}
 			}else{
 				
 				associationLookupComplete();
