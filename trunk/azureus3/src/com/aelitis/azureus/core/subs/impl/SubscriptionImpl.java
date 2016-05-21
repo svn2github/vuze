@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -105,7 +106,9 @@ SubscriptionImpl
 	private int				version;
 	private int				az_version;
 	
-	private boolean			is_public;
+	private boolean			is_public;		// whether or not we publish associations
+	private boolean			is_anonymous;	// whether or not the subscription is anon
+	
 	private Map				singleton_details;
 	
 	private byte[]			hash;
@@ -246,6 +249,7 @@ SubscriptionImpl
 		SubscriptionManagerImpl		_manager,
 		String						_name,
 		boolean						_public,
+		boolean						_anonymous,
 		Map							_singleton_details,
 		String						_json_content,
 		int							_add_type )
@@ -260,6 +264,7 @@ SubscriptionImpl
 		
 		name				= _name;
 		is_public			= _public;
+		is_anonymous		= _anonymous;
 		singleton_details	= _singleton_details;
 		
 		version				= 1;
@@ -283,7 +288,7 @@ SubscriptionImpl
 			
 			String json_content = embedEngines( _json_content );
 			
-			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, json_content, public_key, version, az_version, singleton_details );
+			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, is_anonymous, json_content, public_key, version, az_version, singleton_details );
 						
 			syncToBody( body );
 			
@@ -354,6 +359,7 @@ SubscriptionImpl
 				
 		name				= body.getName();
 		is_public			= body.isPublic();
+		is_anonymous		= body.isAnonymous();
 		singleton_details	= body.getSingletonDetails();
 		
 		if ( az_version > AZ_VERSION ){
@@ -395,6 +401,8 @@ SubscriptionImpl
 			map.put( "az_version", new Long( az_version ));
 			
 			map.put( "is_public", new Long( is_public?1:0 ));
+			
+			map.put( "is_anonymous", new Long( is_anonymous?1:0 ));
 			
 			if ( singleton_details != null ){
 				
@@ -485,6 +493,8 @@ SubscriptionImpl
 		version				= ((Long)map.get( "version" )).intValue();
 		az_version			= (int)ImportExportUtils.importLong( map, "az_version", AZ_VERSION );
 		is_public			= ((Long)map.get( "is_public")).intValue() == 1;
+		Long anon			= (Long)map.get( "is_anonymous" );
+		is_anonymous		= anon!=null&&anon==1;
 		singleton_details	= (Map)map.get( "sin_details" );
 		
 		hash			= (byte[])map.get( "hash" );
@@ -811,6 +821,12 @@ SubscriptionImpl
 		return( is_public );
 	}
 	
+	public boolean
+	isAnonymous()
+	{
+		return( is_anonymous );
+	}
+	
 	public void
 	setPublic(
 		boolean		_is_public )
@@ -1068,7 +1084,7 @@ SubscriptionImpl
 					
 				embedEngines(map, engine);
 				
-				SubscriptionImpl subs = new SubscriptionImpl( manager, getName(), engine.isPublic(), null, JSONUtils.encodeToJSON(map), SubscriptionImpl.ADD_TYPE_CREATE );
+				SubscriptionImpl subs = new SubscriptionImpl( manager, getName(), engine.isPublic(), isAnonymous(), null, JSONUtils.encodeToJSON(map), SubscriptionImpl.ADD_TYPE_CREATE );
 
 				subs = manager.addSubscription( subs );
 				
@@ -1559,6 +1575,7 @@ SubscriptionImpl
 									new HashWrapper( hash ),
 									TorrentUtils.getDecentralisedEmptyURL(),
 									versioned_data_location,
+									isAnonymous()?AENetworkClassifier.AT_I2P:AENetworkClassifier.AT_PUBLIC,
 									new LightWeightSeedAdapter()
 									{
 										public TOTorrent 
@@ -2112,6 +2129,7 @@ SubscriptionImpl
 					",sid=" + ByteFormatter.encodeString( short_id ) + 
 					",ver=" + version + 
 					",pub=" + is_public +
+					",anon=" + is_anonymous +
 					",mine=" + isMine() +
 					",sub=" + is_subscribed +
 					(is_subscribed?(",hist={" + history.getString() + "}"):"") +

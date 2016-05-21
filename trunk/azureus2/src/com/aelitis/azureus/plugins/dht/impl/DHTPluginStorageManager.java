@@ -651,7 +651,15 @@ DHTPluginStorageManager
 	
 		throws IOException
 	{
-		
+		return( decodeStats( is ));
+	}
+	
+	public static DHTStorageKeyStats
+	decodeStats(
+		DataInputStream			is )
+	
+		throws IOException
+	{	
 		byte	version 	= is.readByte();
 		
 		final int	entry_count = is.readInt();

@@ -139,6 +139,7 @@ SubscriptionBodyImpl
 	
 	private String	name;
 	private boolean	is_public;
+	private boolean is_anonymous;
 	private byte[]	public_key;
 	private int		version;
 	private int		az_version;
@@ -222,6 +223,8 @@ SubscriptionBodyImpl
 		public_key	= (byte[])details.get( "public_key" );
 		version		= ((Long)details.get( "version" )).intValue();
 		is_public	= ((Long)details.get( "is_public" )).intValue()==1; 
+		Long anon	= (Long)details.get( "is_anonymous");
+		is_anonymous = anon!=null&&anon==1;
 		json		= new String((byte[])details.get( "json"), "UTF-8" );
 		
 		singleton_details = (Map)details.get( "sin_details" );
@@ -275,6 +278,7 @@ SubscriptionBodyImpl
 		SubscriptionManagerImpl	_manager,
 		String					_name,
 		boolean					_is_public,
+		boolean					_is_anonymous,
 		String					_json_content,
 		byte[]					_public_key,
 		int						_version,
@@ -283,14 +287,15 @@ SubscriptionBodyImpl
 	
 		throws IOException
 	{
-		manager		= _manager;
+		manager			= _manager;
 		
-		name		= _name;
-		is_public	= _is_public;
-		public_key	= _public_key;
-		version		= _version;
-		az_version	= _az_version;
-		json		= _json_content;
+		name			= _name;
+		is_public		= _is_public;
+		is_anonymous	= _is_anonymous;
+		public_key		= _public_key;
+		version			= _version;
+		az_version		= _az_version;
+		json			= _json_content;
 		
 		singleton_details	= _singleton_details;
 		
@@ -302,6 +307,7 @@ SubscriptionBodyImpl
 		
 		details.put( "name", name.getBytes( "UTF-8" ));
 		details.put( "is_public", new Long( is_public?1:0 ));
+		details.put( "is_anonymous", new Long( is_anonymous?1:0 ));
 		details.put( "public_key", public_key );
 		details.put( "version", new Long( version ));
 		details.put( "az_version", new Long( az_version ));
@@ -320,13 +326,16 @@ SubscriptionBodyImpl
 	
 		throws IOException
 	{
-		is_public	= subs.isPublic();
+		is_public		= subs.isPublic();
+		is_anonymous	= subs.isAnonymous();
+		
 		version		= subs.getVersion();
 		az_version	= subs.getAZVersion();
 		name		= subs.getName(false);
 		
 		details.put( "name",name.getBytes( "UTF-8" ));
 		details.put( "is_public", new Long( is_public?1:0 ));
+		details.put( "is_anonymous", new Long( is_anonymous?1:0 ));
 		details.put( "version", new Long( version ));
 		details.put( "az_version", new Long( az_version ));
 		
@@ -363,6 +372,12 @@ SubscriptionBodyImpl
 	isPublic()
 	{
 		return( is_public );
+	}
+	
+	protected boolean
+	isAnonymous()
+	{
+		return( is_anonymous );
 	}
 	
 	protected String

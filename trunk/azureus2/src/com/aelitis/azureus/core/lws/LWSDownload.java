@@ -26,7 +26,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
-import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -46,7 +45,6 @@ import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
-import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.tag.Tag;
@@ -157,6 +155,12 @@ LWSDownload
 		announcer		= _announcer;
 		
 		announce_result = new DownloadAnnounceResultImpl( this, announcer.getLastResponse());
+	}
+	
+	public LightWeightSeed
+	getLWS()
+	{
+		return( lws );
 	}
 	
 	public int
@@ -376,7 +380,7 @@ LWSDownload
 
 		if ( attribute == tm.getAttribute( TorrentAttribute.TA_NETWORKS )){
 			
-			return( new String[]{ AENetworkClassifier.AT_PUBLIC });
+			return( new String[]{ lws.getNetwork() });
 			
 		}else if ( attribute == tm.getAttribute( TorrentAttribute.TA_PEER_SOURCES )){
 			

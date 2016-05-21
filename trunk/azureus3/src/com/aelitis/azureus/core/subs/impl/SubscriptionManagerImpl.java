@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -231,7 +232,7 @@ SubscriptionManagerImpl
 	
 	private AzureusCore		azureus_core;
 	
-	private volatile DHTPlugin	dht_plugin;
+	private volatile DHTPluginInterface	dht_plugin_public;
 	
 	private List<SubscriptionImpl>		subscriptions	= new ArrayList<SubscriptionImpl>();
 	
@@ -397,7 +398,7 @@ SubscriptionManagerImpl
 				
 		if ( dht_plugin_pi != null ){
 			
-			dht_plugin = (DHTPlugin)dht_plugin_pi.getPlugin();
+			dht_plugin_public = (DHTPlugin)dht_plugin_pi.getPlugin();
 
 			/*
 			if ( Constants.isCVSVersion()){
@@ -599,7 +600,7 @@ SubscriptionManagerImpl
 										
 										if ( !downloadIsIgnored( download )){
 											
-											if ( !dht_plugin.isInitialising()){
+											if ( !dht_plugin_public.isInitialising()){
 								
 													// if new download then we want to check out its subscription status 
 												
@@ -1350,7 +1351,9 @@ SubscriptionManagerImpl
 	{
 		name = getUniqueName( name );
 		
-		SubscriptionImpl subs = new SubscriptionImpl( this, name, public_subs, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
+		boolean is_anonymous = false;
+		
+		SubscriptionImpl subs = new SubscriptionImpl( this, name, public_subs, is_anonymous, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 		
 		log( "Created new subscription: " + subs.getString());
 		
@@ -1530,7 +1533,9 @@ SubscriptionManagerImpl
 			
 			Map	singleton_details = getSingletonMap(name, url, is_public, check_interval_mins);
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, is_public, singleton_details, json, add_type );
+			boolean	is_anonymous = false;
+			
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, is_public, is_anonymous, singleton_details, json, add_type );
 			
 			subs.setSubscribed( subscribe );
 			
@@ -1666,6 +1671,8 @@ SubscriptionManagerImpl
 				throw( new SubscriptionException( "Engine not found "));
 			}
 			
+			Boolean		anonymous	= (Boolean)search_parameters.get( "_anonymous_" );
+
 			String		term 		= (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM );
 			String[]	networks 	= (String[])search_parameters.get( SearchProvider.SP_NETWORKS );
 			
@@ -1690,7 +1697,14 @@ SubscriptionManagerImpl
 				name = engine.getName() + ": " + search_parameters.get( SearchProvider.SP_SEARCH_TERM );
 			}
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, engine.isPublic(), null, json, SubscriptionImpl.ADD_TYPE_CREATE );
+			boolean anon = anonymous!=null&&anonymous;
+			
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, engine.isPublic(), anon, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
+			
+			if ( anon ){
+				
+				subs.getHistory().setDownloadNetworks( new String[]{ AENetworkClassifier.AT_I2P });
+			}
 			
 			log( "Created new subscription: " + subs.getString());
 					
@@ -1727,7 +1741,9 @@ SubscriptionManagerImpl
 			
 				// engine name may have been modified so re-read it for subscription default
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, engine.getName(), engine.isPublic(), null, json, SubscriptionImpl.ADD_TYPE_CREATE );
+			boolean is_anonymous = false;
+			
+			SubscriptionImpl subs = new SubscriptionImpl( this, engine.getName(), engine.isPublic(), is_anonymous, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 			
 			if ( user_data != null ){
 				
@@ -1857,7 +1873,7 @@ SubscriptionManagerImpl
 			setSelected( subs );
 		}
 		
-		if ( dht_plugin != null ){
+		if ( dht_plugin_public != null ){
 				
 			new AEThread2( "Publish check", true )
 			{
@@ -2029,9 +2045,9 @@ SubscriptionManagerImpl
 	updatePublicSubscription(
 		final SubscriptionImpl		subs )
 	{		
-		if ( subs.isSingleton()){
+		if ( subs.isSingleton() || subs.isAnonymous()){
 			
-				// never update singletons
+				// never update singletons or anonymous ones
 			
 			subs.setServerPublished();
 			
@@ -2122,6 +2138,11 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException
 	{
+		if ( subs.isAnonymous()){
+			
+			return;
+		}
+		
 		if ( subs.getSingletonPublishAttempted()){
 			
 			throw( new SubscriptionException( "Singleton publish already attempted" ));
@@ -2267,7 +2288,7 @@ SubscriptionManagerImpl
 						sub.setUserData( SUBS_CHAT_KEY, -1L );
 						
 						BuddyPluginUtils.peekChatAsync(
-							AENetworkClassifier.AT_PUBLIC,
+							sub.isAnonymous()?AENetworkClassifier.AT_I2P:AENetworkClassifier.AT_PUBLIC,
 							"Subscription: " + url,
 							new Runnable()
 							{
@@ -2836,17 +2857,7 @@ SubscriptionManagerImpl
 			return( true );
 		}
 		
-		String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
-				
-		for ( String net: nets ){
-			
-			if ( net == AENetworkClassifier.AT_PUBLIC ){
-				
-				return( false );
-			}
-		}
-		
-		return( true );
+		return( false );
 	}
 	
 	protected boolean
@@ -3027,6 +3038,7 @@ SubscriptionManagerImpl
 				log( "Association lookup starts for " + newest_download.getName() + "/" + ByteFormatter.encodeString( hash ));
 
 				lookupAssociationsSupport( 
+					selectDHTPlugin( newest_download ),
 					hash,
 					new	SubscriptionLookupListener()
 					{
@@ -3103,9 +3115,11 @@ SubscriptionManagerImpl
 	setSelected(
 		List		subs )
 	{
-		List	sids 		= new ArrayList();
-		List	used_subs	= new ArrayList();
+		List<byte[]>			sids 		= new ArrayList<byte[]>();
+		List<SubscriptionImpl>	used_subs	= new ArrayList<SubscriptionImpl>();
 		
+		final List<SubscriptionImpl> dht_pops = new ArrayList<SubscriptionImpl>();
+
 		for (int i=0;i<subs.size();i++){
 			
 			SubscriptionImpl	sub = (SubscriptionImpl)subs.get(i);
@@ -3114,10 +3128,16 @@ SubscriptionManagerImpl
 				
 				if ( sub.isPublic()){
 				
-					used_subs.add( sub );
-				
-					sids.add( sub.getShortID());
+					if ( !sub.isAnonymous()){
 					
+						used_subs.add( sub );
+				
+						sids.add( sub.getShortID());
+						
+					}else{
+						
+						dht_pops.add( sub );
+					}
 				}else{
 					
 					checkInitialDownload( sub );
@@ -3130,18 +3150,16 @@ SubscriptionManagerImpl
 			try{
 				List[] result = PlatformSubscriptionsMessenger.setSelected( sids );
 				
-				List	versions 		= result[0];
-				List	popularities	= result[1];
+				List<Long>	versions 		= result[0];
+				List<Long>	popularities	= result[1];
 				
 				log( "Popularity update: updated " + sids.size());
-				
-				final List dht_pops = new ArrayList();
-				
+								
 				for (int i=0;i<sids.size();i++){
 					
 					SubscriptionImpl sub = (SubscriptionImpl)used_subs.get(i);
 					
-					int	latest_version = ((Long)versions.get(i)).intValue();
+					int	latest_version = versions.get(i).intValue();
 					
 					if ( latest_version > sub.getVersion()){
 						
@@ -3155,7 +3173,7 @@ SubscriptionManagerImpl
 					if ( latest_version > 0 ){
 						
 						try{
-							long	pop = ((Long)popularities.get(i)).longValue();
+							long	pop = popularities.get(i).longValue();
 							
 							if ( pop >= 0 && pop != sub.getCachedPopularity()){
 								
@@ -3171,26 +3189,6 @@ SubscriptionManagerImpl
 					}
 				}
 				
-				if ( dht_pops.size() <= 3 ){
-					
-					for (int i=0;i<dht_pops.size();i++){
-							
-						updatePopularityFromDHT((SubscriptionImpl)dht_pops.get(i), false );
-					}
-				}else{
-					
-					new AEThread2( "SM:asyncPop", true )
-					{
-						public void
-						run()
-						{
-							for (int i=0;i<dht_pops.size();i++){
-								
-								updatePopularityFromDHT((SubscriptionImpl)dht_pops.get(i), true );
-							}
-						}
-					}.start();
-				}
 			}catch( Throwable e ){
 				
 				log( "Popularity update: Failed to record selected subscriptions", e );
@@ -3198,6 +3196,27 @@ SubscriptionManagerImpl
 		}else{
 			
 			log( "Popularity update: No selected, public subscriptions" );
+		}
+		
+		if ( dht_pops.size() <= 3 ){
+			
+			for (int i=0;i<dht_pops.size();i++){
+					
+				updatePopularityFromDHT(dht_pops.get(i), false );
+			}
+		}else{
+			
+			new AEThread2( "SM:asyncPop", true )
+			{
+				public void
+				run()
+				{
+					for (int i=0;i<dht_pops.size();i++){
+						
+						updatePopularityFromDHT(dht_pops.get(i), true );
+					}
+				}
+			}.start();
 		}
 	}
 	
@@ -3225,43 +3244,49 @@ SubscriptionManagerImpl
 						runSupport()
 						{
 							try{
-								List	sids = new ArrayList();
+								if ( !sub.isAnonymous()){
+									
+									List	sids = new ArrayList();
+									
+									sids.add( sub.getShortID());
 								
-								sids.add( sub.getShortID());
-							
-								List[] result = PlatformSubscriptionsMessenger.setSelected( sids );
-								
-								log( "setSelected: " + sub.getName());
-								
-								int	latest_version = ((Long)result[0].get(0)).intValue();
-								
-								if ( latest_version == 0 ){
+									List[] result = PlatformSubscriptionsMessenger.setSelected( sids );
 									
-									if ( sub.isSingleton()){
+									log( "setSelected: " + sub.getName());
 									
-										checkSingletonPublish( sub );
-									}
-								}else if ( latest_version > sub.getVersion()){
+									int	latest_version = ((Long)result[0].get(0)).intValue();
 									
-									updateSubscription( sub, latest_version );
-									
-								}else{
-									
-									checkInitialDownload( sub );
-								}
-								
-								if ( latest_version > 0 ){
-									
-									try{
-										long	pop = ((Long)result[1].get(0)).longValue();
+									if ( latest_version == 0 ){
 										
-										if ( pop >= 0 && pop != sub.getCachedPopularity()){
-											
-											sub.setCachedPopularity( pop );
+										if ( sub.isSingleton()){
+										
+											checkSingletonPublish( sub );
 										}
-									}catch( Throwable e ){
+									}else if ( latest_version > sub.getVersion()){
 										
-										log( "Popularity update: Failed to extract popularity", e );
+										updateSubscription( sub, latest_version );
+										
+									}else{
+										
+										checkInitialDownload( sub );
+									}
+									
+									if ( latest_version > 0 ){
+										
+										try{
+											long	pop = ((Long)result[1].get(0)).longValue();
+											
+											if ( pop >= 0 && pop != sub.getCachedPopularity()){
+												
+												sub.setCachedPopularity( pop );
+											}
+										}catch( Throwable e ){
+											
+											log( "Popularity update: Failed to extract popularity", e );
+										}
+									}else{
+										
+										updatePopularityFromDHT( sub, true );
 									}
 								}else{
 									
@@ -3316,93 +3341,94 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException
 	{
+		DHTPluginInterface	dht_plugin;
+		
 		try{
 			Download download = PluginInitializer.getDefaultInterface().getDownloadManager().getDownload( hash );
-		
+			
 			if ( download != null ){
-				
-				String[]	networks = download.getListAttribute( ta_networks );
-
-				boolean	public_net = false;
-				
-				for ( String net: networks ){
-					
-					if ( net == AENetworkClassifier.AT_PUBLIC ){
-						
-						public_net = true;
-					}
-				}
-				
-				if ( !public_net ){
-					
-					listener.failed( hash, new SubscriptionException( "Download doesn't use public network" ));
-					
-					return( null );
-				}
-			}			
-		}catch( Throwable e ){
-		}
-		
-		if ( dht_plugin != null && !dht_plugin.isInitialising()){
 			
-			return( lookupAssociationsSupport( hash, listener ));
-		}
-		
-		final boolean[]	cancelled = { false };
-		
-		final SubscriptionAssociationLookup[]	actual_res = { null };
-		
-		final SubscriptionAssociationLookup res = 
-			new SubscriptionAssociationLookup()
-			{
-				public void 
-				cancel() 
-				{
-					log( "    Association lookup cancelled" );
+				dht_plugin = selectDHTPlugin(download);
 	
-					synchronized( actual_res ){
-						
-						cancelled[0] = true;
-						
-						if ( actual_res[0] != null ){
-							
-							actual_res[0].cancel();
-						}
-					}
-				}
-			};
-			
-		new AEThread2( "SM:initwait", true )
-		{
-			public void
-			run()
-			{
-				try{
-					SubscriptionAssociationLookup x = lookupAssociationsSupport( hash, listener );
-					
-					synchronized( actual_res ){
-
-						actual_res[0] = x;
-						
-						if ( cancelled[0] ){
-							
-							x.cancel();
-						}
-					}
-					
-				}catch( SubscriptionException e ){
-					
-					listener.failed( hash, e );
-				}
+			}else{
 				
+				dht_plugin = dht_plugin_public;
 			}
-		}.start();
+		}catch( Throwable e ){
+			
+			dht_plugin = dht_plugin_public;
+		}
 		
-		return( res );
+		if ( dht_plugin != null ){
+			
+			if ( !dht_plugin.isInitialising()){
+				
+				return( lookupAssociationsSupport( dht_plugin, hash, listener ));
+			}
+			
+			final boolean[]	cancelled = { false };
+			
+			final SubscriptionAssociationLookup[]	actual_res = { null };
+			
+			final SubscriptionAssociationLookup res = 
+				new SubscriptionAssociationLookup()
+				{
+					public void 
+					cancel() 
+					{
+						log( "    Association lookup cancelled" );
+		
+						synchronized( actual_res ){
+							
+							cancelled[0] = true;
+							
+							if ( actual_res[0] != null ){
+								
+								actual_res[0].cancel();
+							}
+						}
+					}
+				};
+			
+			final DHTPluginInterface f_dht_plugin = dht_plugin;
+				
+			new AEThread2( "SM:initwait", true )
+			{
+				public void
+				run()
+				{
+					try{
+						SubscriptionAssociationLookup x = lookupAssociationsSupport( f_dht_plugin, hash, listener );
+						
+						synchronized( actual_res ){
+	
+							actual_res[0] = x;
+							
+							if ( cancelled[0] ){
+								
+								x.cancel();
+							}
+						}
+						
+					}catch( SubscriptionException e ){
+						
+						listener.failed( hash, e );
+					}
+					
+				}
+			}.start();
+			
+			return( res );
+			
+		}else{
+			
+			throw( new SubscriptionException( "No DHT available" ));
+		}
 	}
 	
 	protected SubscriptionAssociationLookup
 	lookupAssociationsSupport(
+		DHTPluginInterface						dht_plugin,
 		final byte[] 							hash,
 		final SubscriptionLookupListener		listener )
 	
@@ -3419,7 +3445,7 @@ SubscriptionManagerImpl
 			"Subs assoc read: " + Base32.encode( hash ).substring( 0, 16 ),
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			30,
-			60*1000,
+			60*1000*(dht_plugin!=dht_plugin_public?2:1),
 			true,
 			true,
 			new DHTPluginOperationListener()
@@ -3719,38 +3745,41 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException
 	{
-		try{
-			long pop = PlatformSubscriptionsMessenger.getPopularityBySID( subs.getShortID());
-
-			if ( pop >= 0 ){	
-				
-				log( "Got popularity of " + subs.getName() + " from platform: " + pop );
-				
-				listener.gotPopularity( pop );
-
-				return;
-				
-			}else{
-				
-					// unknown sid - if singleton try to register for popularity tracking purposes
-				
-				if ( subs.isSingleton()){
+		if ( !subs.isAnonymous()){
+			
+			try{
+				long pop = PlatformSubscriptionsMessenger.getPopularityBySID( subs.getShortID());
+	
+				if ( pop >= 0 ){	
 					
-					try{
-						checkSingletonPublish( subs );
-						
-					}catch( Throwable e ){						
-					}
+					log( "Got popularity of " + subs.getName() + " from platform: " + pop );
 					
-					listener.gotPopularity( subs.isSubscribed()?1:0 );
-						
+					listener.gotPopularity( pop );
+	
 					return;
+					
+				}else{
+					
+						// unknown sid - if singleton try to register for popularity tracking purposes
+					
+					if ( subs.isSingleton()){
+						
+						try{
+							checkSingletonPublish( subs );
+							
+						}catch( Throwable e ){						
+						}
+						
+						listener.gotPopularity( subs.isSubscribed()?1:0 );
+							
+						return;
+					}
 				}
+				
+			}catch( Throwable e ){
+				
+				log( "Subscription lookup via platform failed", e );
 			}
-			
-		}catch( Throwable e ){
-			
-			log( "Subscription lookup via platform failed", e );
 		}
 		
 		getPopularityFromDHT( subs, listener, true );
@@ -3763,20 +3792,28 @@ SubscriptionManagerImpl
 		final boolean							sync )
 
 	{
-		if ( dht_plugin != null && !dht_plugin.isInitialising()){
-
-			getPopularitySupport( subs, listener, sync );
+		final DHTPluginInterface	dht_plugin = selectDHTPlugin( subs );
+		
+		if ( dht_plugin != null ){
 			
+			if ( !dht_plugin.isInitialising()){
+
+				getPopularitySupport( dht_plugin, subs, listener, sync );
+			
+			}else{
+				
+				new AEThread2( "SM:popwait", true )
+				{
+					public void
+					run()
+					{
+						getPopularitySupport( dht_plugin, subs, listener, sync );
+					}
+				}.start();
+			}
 		}else{
 			
-			new AEThread2( "SM:popwait", true )
-			{
-				public void
-				run()
-				{
-					getPopularitySupport( subs, listener, sync );
-				}
-			}.start();
+			listener.failed( new SubscriptionException( "DHT unavailable" ));
 		}
 	}
 	
@@ -3808,6 +3845,7 @@ SubscriptionManagerImpl
 	
 	protected void
 	getPopularitySupport(
+		final DHTPluginInterface				dht_plugin,
 		final SubscriptionImpl					subs,
 		final SubscriptionPopularityListener	listener,
 		final boolean							sync )
@@ -3815,12 +3853,12 @@ SubscriptionManagerImpl
 		log( "Getting popularity of " + subs.getName() + " from DHT" );
 
 		byte[]	hash = subs.getPublicationHash();
-		
+				
 		final AESemaphore sem = new AESemaphore( "SM:pop" );
 		
 		final long[] result = { -1 };
 		
-		final int timeout = 15*1000;
+		final int timeout = 15*1000 * (subs.isAnonymous()?3:1);
 		
 		dht_plugin.get(
 				hash,
@@ -3986,7 +4024,7 @@ SubscriptionManagerImpl
 
 			final String	key = "subscription:publish:" + ByteFormatter.encodeString( sid ) + ":" + version; 
 			
-			dht_plugin.get(
+			dht_plugin_public.get(
 				getKeyBytes(key),
 				"Subs lookup read: " + ByteFormatter.encodeString( sid ) + ":" + version,
 				DHTPlugin.FLAG_SINGLE_VALUE,
@@ -4386,6 +4424,8 @@ SubscriptionManagerImpl
 	{
 		recordAssociations( association_hash, new SubscriptionImpl[]{ subscription }, false );
 
+		DHTPluginInterface	dht_plugin = selectDHTPlugin( subscription );
+		
 		if ( dht_plugin != null ){
 			
 			publishAssociations();
@@ -4748,7 +4788,7 @@ SubscriptionManagerImpl
 
 		synchronized( this ){
 			
-			if ( publish_associations_active >= ( dht_plugin.isSleeping()?PUB_SLEEPING_ASSOC_CONC_MAX:PUB_ASSOC_CONC_MAX )){
+			if ( publish_associations_active >= ( dht_plugin_public.isSleeping()?PUB_SLEEPING_ASSOC_CONC_MAX:PUB_ASSOC_CONC_MAX )){
 				
 				return( false );
 			}			
@@ -4819,12 +4859,19 @@ SubscriptionManagerImpl
 		put_value[2]	= (byte)sub_version;
 		put_value[3]	= (byte)subs.getFixedRandom();
 		
+		final DHTPluginInterface	dht_plugin = selectDHTPlugin( subs );
+		
+		if ( dht_plugin == null ){
+			
+			return;
+		}
+		
 		dht_plugin.get(
 			getKeyBytes(key),
 			"Subs assoc read: " + Base32.encode( assoc_hash ).substring( 0, 16 ),
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			30,
-			60*1000,
+			60*1000*(subs.isAnonymous()?2:1),
 			false,
 			false,
 			new DHTPluginOperationListener()
@@ -4914,6 +4961,11 @@ SubscriptionManagerImpl
 							
 							flags |= DHTPlugin.FLAG_PRECIOUS;
 						}
+												
+						if ( subs.isAnonymous()){
+							
+							flags |= DHTPlugin.FLAG_BRIDGED;
+						}
 						
 						dht_plugin.put(
 							getKeyBytes(key),
@@ -4982,7 +5034,7 @@ SubscriptionManagerImpl
 	private void
 	publishNextAssociation()
 	{
-		boolean	dht_sleeping = dht_plugin.isSleeping();
+		boolean	dht_sleeping = dht_plugin_public.isSleeping();
 		
 		if ( dht_sleeping ){
 			
@@ -5023,7 +5075,7 @@ SubscriptionManagerImpl
 	protected void
 	subscriptionUpdated()
 	{
-		if ( dht_plugin != null ){
+		if ( dht_plugin_public != null ){
 			
 			publishSubscriptions();
 		}
@@ -5090,13 +5142,20 @@ SubscriptionManagerImpl
 		int		sub_version	= subs.getVersion();
 				
 		final String	key = "subscription:publish:" + ByteFormatter.encodeString( sub_id ) + ":" + sub_version; 
-						
+			
+		final DHTPluginInterface dht_plugin = selectDHTPlugin( subs );
+		
+		if ( dht_plugin == null ){
+			
+			return;
+		}
+		
 		dht_plugin.get(
 			getKeyBytes(key),
 			"Subs presence read: " + ByteFormatter.encodeString( sub_id ) + ":" + sub_version,
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			24,
-			60*1000,
+			60*1000*(subs.isAnonymous()?2:1),
 			false,
 			false,
 			new DHTPluginOperationListener()
@@ -5167,6 +5226,11 @@ SubscriptionManagerImpl
 									flags |= DHTPlugin.FLAG_PRECIOUS;
 								}
 								
+								if ( subs.isAnonymous()){
+									
+									flags |= DHTPlugin.FLAG_BRIDGED;
+								}
+																
 								dht_plugin.put(
 									getKeyBytes(key),
 									"Subs presence write: " + Base32.encode( subs.getShortID() ) + ":" + subs.getVersion(),
@@ -5266,37 +5330,42 @@ SubscriptionManagerImpl
 					
 		byte[]	sub_id 		= subs.getShortID();
 			
-		try{
-			PlatformSubscriptionsMessenger.subscriptionDetails details = PlatformSubscriptionsMessenger.getSubscriptionBySID( sub_id );
+		if ( !subs.isAnonymous()){
 			
-			if ( !askIfCanUpgrade( subs, new_version )){
+			try{
+				PlatformSubscriptionsMessenger.subscriptionDetails details = PlatformSubscriptionsMessenger.getSubscriptionBySID( sub_id );
+				
+				if ( !askIfCanUpgrade( subs, new_version )){
+					
+					return;
+				}
+				
+				VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+				
+				VuzeFile vf = vfh.loadVuzeFile( Base64.decode( details.getContent()));
+								
+				vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_SUBSCRIPTION );
 				
 				return;
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to read subscription from platform, trying DHT" );
 			}
-			
-			VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
-			
-			VuzeFile vf = vfh.loadVuzeFile( Base64.decode( details.getContent()));
-							
-			vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_SUBSCRIPTION );
-			
-			return;
-			
-		}catch( Throwable e ){
-			
-			log( "Failed to read subscription from platform, trying DHT" );
 		}
 		
 		log( "Checking subscription '" + subs.getString() + "' upgrade to version " + new_version );
 
 		final String	key = "subscription:publish:" + ByteFormatter.encodeString( sub_id ) + ":" + new_version; 
-						
+			
+		DHTPluginInterface dht_plugin = selectDHTPlugin( subs );
+
 		dht_plugin.get(
 			getKeyBytes(key),
 			"Subs update read: " + Base32.encode( sub_id ) + ":" + new_version,
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			12,
-			60*1000,
+			60*1000*(subs.isAnonymous()?2:1),
 			false,
 			false,
 			new DHTPluginOperationListener()
@@ -6681,6 +6750,54 @@ SubscriptionManagerImpl
 				
 			return( res );
 		}
+	}
+	
+	private DHTPluginInterface
+	selectDHTPlugin(
+		SubscriptionImpl		subs )
+	{
+		if ( subs.isAnonymous()){
+			
+			List<DistributedDatabase> ddbs = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getDistributedDatabases( new String[]{ AENetworkClassifier.AT_I2P });
+			
+			if ( ddbs.size() > 0 ){
+				
+				return( ddbs.get(0).getDHTPlugin());
+			}
+			
+			return( null );
+			
+		}else{
+			
+			return( dht_plugin_public );
+		}
+	}
+	
+	private DHTPluginInterface
+	selectDHTPlugin(
+		Download		download )
+	{
+		String[]	networks = download.getListAttribute( ta_networks );
+		
+		if ( networks.length > 0 ){
+			
+			for ( String net: networks ){
+				
+				if ( net == AENetworkClassifier.AT_PUBLIC ){
+					
+					return( dht_plugin_public );
+				}
+			}
+						
+			List<DistributedDatabase> ddbs = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getDistributedDatabases( new String[]{ AENetworkClassifier.AT_I2P });
+			
+			if ( ddbs.size() > 0 ){
+				
+				return( ddbs.get(0).getDHTPlugin());
+			}
+		}
+		
+		return( null );
 	}
 	
 	public static void

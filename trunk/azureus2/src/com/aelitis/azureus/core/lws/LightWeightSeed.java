@@ -34,9 +34,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
-import org.gudy.azureus2.core3.peer.PEPeerManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeerManagerListenerAdapter;
-import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -57,7 +55,6 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
-import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 
 
 
@@ -78,12 +75,13 @@ LightWeightSeed
 	private static final int DEACTIVATION_TIMEOUT					= 5*60*1000;
 	private static final int DEACTIVATION_WITH_POTENTIAL_TIMEOUT	= 15*60*1000;
 
-	private LightWeightSeedManager		manager;
-	private LightWeightSeedAdapter		adapter;
-	private String						name;
-	private HashWrapper					hash;
-	private URL							announce_url;
-	private File						data_location;
+	final private LightWeightSeedManager		manager;
+	final private LightWeightSeedAdapter		adapter;
+	final private String						name;
+	final private HashWrapper					hash;
+	final private URL							announce_url;
+	final private File							data_location;
+	final private String						network;
 	
 	private PeerManagerRegistration		peer_manager_registration;
 
@@ -106,6 +104,7 @@ LightWeightSeed
 		HashWrapper				_hash,
 		URL						_announce_url,
 		File					_data_location,
+		String					_network,
 		LightWeightSeedAdapter	_adapter )
 	{
 		manager			= _manager;
@@ -113,6 +112,7 @@ LightWeightSeed
 		hash			= _hash;
 		announce_url	= _announce_url;
 		data_location	= _data_location;
+		network			= _network;
 		adapter			= _adapter;
 	}
 	
@@ -177,6 +177,12 @@ LightWeightSeed
 	getDataLocation()
 	{
 		return( data_location );
+	}
+	
+	public String
+	getNetwork()
+	{
+		return( network );
 	}
 	
 	protected long

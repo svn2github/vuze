@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -39,14 +40,15 @@ import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseTTTorrent;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 
 
@@ -64,11 +66,13 @@ LightWeightSeedManager
 	
 	private Map lws_map = new HashMap();
 	
-	private boolean			started;
-	private Set				dht_add_queue = new HashSet();
+	private boolean					started;
+	private Set<LWSDownload>		dht_add_queue = new HashSet<LWSDownload>();
 	
 	private boolean				borked;
-	private DHTTrackerPlugin	dht_tracker_plugin;
+	private DHTTrackerPlugin	public_dht_tracker_plugin;
+	private IPCInterface		anon_dht_tracker_plugin;
+	
 	private DDBaseTTTorrent		tttorrent;
 	
 	private TimerEventPeriodic	timer;
@@ -102,7 +106,9 @@ LightWeightSeedManager
 		boolean	release_now = true;
 		
 		try{
-			PluginInterface  pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTTrackerPlugin.class );
+			final PluginManager plugin_manager = AzureusCoreFactory.getSingleton().getPluginManager();
+			
+			PluginInterface  pi  = plugin_manager.getPluginInterfaceByClass( DHTTrackerPlugin.class );
 	
 			if ( pi != null ){
 				
@@ -121,22 +127,34 @@ LightWeightSeedManager
 								tttorrent = DDBaseImpl.getSingleton(AzureusCoreFactory.getSingleton()).getTTTorrent();
 							}
 							
-							Set	to_add;
+							Set<LWSDownload>	to_add;
+							
+							try{
+								PluginInterface anon_pi = plugin_manager.getPluginInterfaceByID( "azneti2phelper" );
+								
+								if ( anon_pi != null ){
+									
+									anon_dht_tracker_plugin = anon_pi.getIPC();
+								}
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
 							
 							synchronized( this ){
 				
-								dht_tracker_plugin = plugin;
+								public_dht_tracker_plugin = plugin;
 								
-								to_add = new HashSet( dht_add_queue );
+								to_add = new HashSet<LWSDownload>( dht_add_queue );
 								
 								dht_add_queue.clear();
 							}
 							
-							Iterator it = to_add.iterator();
+							Iterator<LWSDownload> it = to_add.iterator();
 							
 							while( it.hasNext()){
 								
-								addDownload( (Download)it.next());
+								addDownload( it.next());
 							}
 						}finally{
 							
@@ -171,6 +189,7 @@ LightWeightSeedManager
 		HashWrapper				hash,
 		URL						url,
 		File					data_location,
+		String					network,
 		LightWeightSeedAdapter	adapter )
 	
 		throws Exception
@@ -189,7 +208,7 @@ LightWeightSeedManager
 				throw( new Exception( "Seed for hash '" + ByteFormatter.encodeString( hash.getBytes()) + "' already added" ));
 			}
 			
-			lws = new LightWeightSeed(  this, name, hash, url, data_location, adapter );
+			lws = new LightWeightSeed( this, name, hash, url, data_location, network, adapter );
 			
 			lws_map.put( hash, lws );
 			
@@ -275,7 +294,7 @@ LightWeightSeedManager
 	
 	protected void
 	addToDHTTracker(
-		Download		download )
+		LWSDownload		download )
 	{
 		synchronized( dht_add_queue ){
 			
@@ -284,7 +303,7 @@ LightWeightSeedManager
 				return;
 			}
 			
-			if ( dht_tracker_plugin == null ){
+			if ( public_dht_tracker_plugin == null ){
 				
 				dht_add_queue.add( download );
 				
@@ -299,7 +318,7 @@ LightWeightSeedManager
 	
 	protected void
 	removeFromDHTTracker(
-		Download		download )
+		LWSDownload		download )
 	{
 		synchronized( dht_add_queue ){
 			
@@ -308,7 +327,7 @@ LightWeightSeedManager
 				return;
 			}
 			
-			if ( dht_tracker_plugin == null ){
+			if ( public_dht_tracker_plugin == null ){
 				
 				dht_add_queue.remove( download );
 				
@@ -318,15 +337,34 @@ LightWeightSeedManager
 		
 		init_sem.reserve();
 		
-		removeDownload( download );
+		removeDownload(  download );
 	}
 	
 	protected void
 	addDownload(
-		Download		download )
+		LWSDownload		download )
 	{
-		dht_tracker_plugin.addDownload( download );
+		if ( download.getLWS().getNetwork() == AENetworkClassifier.AT_PUBLIC ){
 		
+			public_dht_tracker_plugin.addDownload( download );
+			
+		}else{
+			
+			if ( anon_dht_tracker_plugin != null ){
+				
+				try{
+					anon_dht_tracker_plugin.invoke(
+						"addDownloadToTracker",
+						new Object[]{
+							download,
+							new HashMap<String,Object>()
+						});
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
 		if ( tttorrent != null ){
 			
 			tttorrent.addDownload( download );
@@ -335,9 +373,29 @@ LightWeightSeedManager
 	
 	protected void
 	removeDownload(
-		Download		download )
+		LWSDownload		download )
 	{
-		dht_tracker_plugin.removeDownload( download );
+		if ( download.getLWS().getNetwork() == AENetworkClassifier.AT_PUBLIC ){
+
+			public_dht_tracker_plugin.removeDownload( download );
+			
+		}else{
+			
+			if ( anon_dht_tracker_plugin != null ){
+				
+				try{
+					anon_dht_tracker_plugin.invoke(
+						"removeDownloadFromTracker",
+						new Object[]{
+							download,
+							new HashMap<String,Object>()
+						});
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}	
+		}
 		
 		if ( tttorrent != null ){
 			
