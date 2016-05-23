@@ -19,6 +19,7 @@
 
 package com.aelitis.azureus.core.lws;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,33 +30,51 @@ import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
-import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 
 
 public class 
 LWSPeerManagerAdapter
 	extends 	LogRelation
 	implements 	PEPeerManagerAdapter
-{
-	private final static String[]	enabled_networks = { AENetworkClassifier.AT_PUBLIC };
-	
+{	
 	private LightWeightSeed			lws;
 	
 	private PeerManagerRegistration	peer_manager_registration;
 	
+	private String[]	enabled_networks;
+	
+	private int	md_info_dict_size;
+	
+	private WeakReference<byte[]>	md_info_dict_ref = new WeakReference<byte[]>( null );
+
 	public
 	LWSPeerManagerAdapter(
 		LightWeightSeed				_lws,
 		PeerManagerRegistration		_peer_manager_registration )
 	{
 		lws		= _lws;
+		
+		String main_net = lws.getNetwork();
+		
+		if ( main_net.equals( AENetworkClassifier.AT_PUBLIC )){
+			
+			enabled_networks = AENetworkClassifier.AT_NETWORKS;
+			
+		}else{
+			
+			enabled_networks = AENetworkClassifier.AT_NON_PUBLIC;
+		}
 		
 		peer_manager_registration = _peer_manager_registration;
 	}
@@ -148,7 +167,15 @@ LWSPeerManagerAdapter
 	isNetworkEnabled(
 		String	network )
 	{
-		return( network == AENetworkClassifier.AT_PUBLIC );
+		for ( String net: enabled_networks ){
+			
+			if ( net == network ){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
 	}
 	
 	public String[]
@@ -221,14 +248,48 @@ LWSPeerManagerAdapter
 	public int 
 	getTorrentInfoDictSize() 
 	{
-		return( 0 );
+		synchronized( this ){
+			
+			if ( md_info_dict_size == 0 ){
+				
+				byte[] data = getTorrentInfoDict( null );
+				
+				if ( data == null ){
+					
+					md_info_dict_size = -1;
+					
+				}else{
+				
+					md_info_dict_size = data.length;
+				}
+			}
+			
+			return( md_info_dict_size );
+		}
 	}
 	
 	public byte[]
 	getTorrentInfoDict(
 		PEPeer	peer )
 	{
-		return( null );
+		try{
+			byte[] data = md_info_dict_ref.get();
+			
+			if ( data == null ){
+			
+				TOTorrent torrent = PluginCoreUtils.unwrap( lws.getTorrent());
+		
+				data = BEncoder.encode((Map)torrent.serialiseToMap().get( "info" ));
+			
+				md_info_dict_ref = new WeakReference<byte[]>( data );
+			}
+			
+			return( data );
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}	
 	}
 	
 	public boolean

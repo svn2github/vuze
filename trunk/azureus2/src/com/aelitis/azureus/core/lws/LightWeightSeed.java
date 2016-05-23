@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponsePeer;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -215,7 +216,7 @@ LightWeightSeed
 	activateRequest(
 		InetSocketAddress		remote_address )
 	{
-		ensureActive( "Incoming[" + remote_address.getAddress().getHostAddress() + "]", ACT_INCOMING );
+		ensureActive( "Incoming[" + AddressUtils.getHostAddress( remote_address ) + "]", ACT_INCOMING );
 		
 		return( true );
 	}
