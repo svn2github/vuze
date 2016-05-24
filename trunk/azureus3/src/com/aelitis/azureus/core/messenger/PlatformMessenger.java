@@ -369,7 +369,14 @@ public class PlatformMessenger
 					+ "&" + urlStem.toString();
 
 		if ( forceProxy ){
+			
 			sendAZID = false;
+				
+				// yah, well there's code in ContentNetworkUtils.getUrl that adds in the azid too :(
+			
+			sURL_RPC = sURL_RPC.replaceAll( "([\\?&])azid=.*?&", "$1" );
+			
+			mapPayload.remove( "azid" );
 		}
 		
 		// Build full url and data to send
@@ -398,13 +405,6 @@ public class PlatformMessenger
 			} else {
 				debug("GET: " + sURL_RPC + URL_PLATFORM_MESSAGE);
 			}
-		}
-
-		if ( !sendAZID ){
-			
-				// yah, well there's code in ContentNetworkUtils.getUrl that adds in the azid too :(
-			
-			sURL = sURL.replaceAll( "azid=.*?&", "" );
 		}
 		
 		final String fURL = sURL;
