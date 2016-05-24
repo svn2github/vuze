@@ -3309,7 +3309,11 @@ DHTDBImpl
 		// un-necessary banning which then obviously affects the main DHTs. So we disable
 		// banning for CVS
 
-		final boolean ban_ip = control.getTransport().getNetwork() != DHT.NW_CVS;
+		// same is currently true of the IPv6 one :(
+		
+		final boolean ban_ip = 
+				control.getTransport().getNetwork() != DHT.NW_CVS && 
+				!control.getTransport().isIPV6();
 		
 		new AEThread2( "DHTDBImpl:delayed flood delete", true )
 		{
