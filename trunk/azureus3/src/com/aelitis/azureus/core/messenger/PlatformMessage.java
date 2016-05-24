@@ -47,6 +47,8 @@ public class PlatformMessage
 
 	private boolean sendAZID = true;
 
+	private boolean	forceProxy;
+	
 	/**
 	 * @param messageID
 	 * @param listenerID
@@ -104,6 +106,17 @@ public class PlatformMessage
 		return result;
 	}
 
+	public boolean isForceProxy(){
+		return( forceProxy );
+	}
+	
+	public void
+	setForceProxy(
+		boolean		fp )
+	{
+		forceProxy = fp;
+	}
+	
 	public long getFireBefore() {
 		return fireBeforeDate;
 	}

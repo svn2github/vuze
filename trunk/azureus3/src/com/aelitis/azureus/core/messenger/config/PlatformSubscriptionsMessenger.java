@@ -54,6 +54,7 @@ PlatformSubscriptionsMessenger
 		byte[]		private_key,
 		byte[]		sid,
 		int			version,
+		boolean		is_anon,
 		String		content )
 	
 		throws PlatformMessengerException
@@ -94,7 +95,7 @@ PlatformSubscriptionsMessenger
 			
 			parameters.put( "signature", Base32.encode( sig_bytes ));
 
-			dispatcher.syncInvoke( operation, parameters ); 
+			dispatcher.syncInvoke( operation, parameters, is_anon ); 
 			
 		}catch( Throwable e ){
 			

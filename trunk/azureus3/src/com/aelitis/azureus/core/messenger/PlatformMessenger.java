@@ -265,6 +265,8 @@ public class PlatformMessenger
 		List<Map> listCommands = new ArrayList<Map>();
 		mapPayload.put("commands", listCommands);
 
+		boolean	forceProxy = false;
+		
 		queue_mon.enter();
 		try {
 			String lastServer = null;
@@ -276,6 +278,12 @@ public class PlatformMessenger
 				
 				Map<String, Object> mapCmd = new HashMap<String, Object>();
 
+				boolean	fp = message.isForceProxy();
+				
+				if ( fp ){
+					forceProxy = true;
+				}
+				
 				if (first) {
 					sendAZID = message.sendAZID();
 					first = false;
@@ -360,6 +368,10 @@ public class PlatformMessenger
 		String sURL_RPC = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_RPC)
 					+ "&" + urlStem.toString();
 
+		if ( forceProxy ){
+			sendAZID = false;
+		}
+		
 		// Build full url and data to send
 		String sURL;
 		String sPostData = null;
@@ -388,9 +400,17 @@ public class PlatformMessenger
 			}
 		}
 
+		if ( !sendAZID ){
+			
+				// yah, well there's code in ContentNetworkUtils.getUrl that adds in the azid too :(
+			
+			sURL = sURL.replaceAll( "azid=.*?&", "" );
+		}
+		
 		final String fURL = sURL;
 		final String fPostData = sPostData;
-
+		final boolean fForceProxy = forceProxy;
+		
 			// one at a time to take advantage of keep-alive connections
 		
 		dispatcher.dispatch(
@@ -400,7 +420,7 @@ public class PlatformMessenger
 				runSupport() 
 				{
 					try {
-						processQueueAsync(fURL, fPostData, mapProcessing);
+						processQueueAsync(fURL, fPostData, mapProcessing,fForceProxy);
 					} catch (Throwable e) {
 						e.printStackTrace();
 						if (e instanceof ResourceDownloaderException) {
@@ -434,11 +454,11 @@ public class PlatformMessenger
 	 * @throws Exception 
 	 */
 	protected static void processQueueAsync(String sURL, String sData,
-			Map mapProcessing) throws Throwable {
+			Map mapProcessing, boolean forceProxy) throws Throwable {
 		URL url;
 		url = new URL(sURL);
 
-		Object[] result = downloadURL(url, sData);
+		Object[] result = downloadURL(url, sData, forceProxy);
 
 		String s = (String)result[0];
 		List listReplies = (List)result[1];
@@ -506,58 +526,69 @@ public class PlatformMessenger
 
 	private static Object[] 
 	downloadURL(
-		URL 	rpc_url, 
-		String 	postData )
+		URL 		rpc_url, 
+		String 		postData,
+		boolean		forceProxy )
 	
 		throws Throwable 
-	{
-		Object[] result;
+	{		
+		Throwable	error	= null;
 		
-		try{
-			result = downloadURLSupport( null, null, rpc_url, postData );
-			
-			if ( result[1] == null ){
-				
-				throw( new Exception( "Request failed" ));
-				
-			}else{
-				
-				return( result );
-			}
-		}catch( Throwable e ){
+		if ( !forceProxy ){
 			
 			try{
-				PluginProxy 	plugin_proxy	= AEProxyFactory.getPluginProxy( "vuze settings", rpc_url, true );
+				Object[] result = downloadURLSupport( null, null, rpc_url, postData );
 				
-				if ( plugin_proxy == null ){
+				if ( result[1] == null ){
 					
-					throw( e );
+					throw( new Exception( "Request failed" ));
 					
 				}else{
 					
-					URL 	url		= plugin_proxy.getURL();
-					Proxy 	proxy	= plugin_proxy.getProxy();
-	
-					boolean	ok = false;
-					
-					try{
-						String proxy_host = rpc_url.getHost() + (rpc_url.getPort()==-1?"":(":" + rpc_url.getPort()));
-						
-						result = downloadURLSupport( proxy, proxy_host, url, postData );
-					
-						ok = true;
-						
-						return( result );
-						
-					}finally{
-						
-						plugin_proxy.setOK( ok );
-					}
+					return( result );
 				}
-			}catch( Throwable f ){
+			}catch( Throwable e ){
 				
-				throw( e );
+				error = e;
 			}
+		}
+		
+		try{
+			PluginProxy 	plugin_proxy	= AEProxyFactory.getPluginProxy( "vuze settings", rpc_url, true );
+			
+			if ( plugin_proxy == null ){
+				
+				if ( error != null ){
+					
+					throw( error );
+				}
+				
+				throw( new Exception( "Proxy unavailable" ));
+				
+			}else{
+				
+				URL 	url		= plugin_proxy.getURL();
+				Proxy 	proxy	= plugin_proxy.getProxy();
+
+				boolean	ok = false;
+				
+				try{
+					String proxy_host = rpc_url.getHost() + (rpc_url.getPort()==-1?"":(":" + rpc_url.getPort()));
+					
+					Object[] result = downloadURLSupport( proxy, proxy_host, url, postData );
+				
+					ok = true;
+					
+					return( result );
+					
+				}finally{
+					
+					plugin_proxy.setOK( ok );
+				}
+			}
+		}catch( Throwable f ){
+			
+			throw( error==null?f:error );
 		}
 	}
 	

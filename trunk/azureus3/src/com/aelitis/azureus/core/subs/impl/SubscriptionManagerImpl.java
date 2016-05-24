@@ -2045,9 +2045,9 @@ SubscriptionManagerImpl
 	updatePublicSubscription(
 		final SubscriptionImpl		subs )
 	{		
-		if ( subs.isSingleton() || subs.isAnonymous()){
+		if ( subs.isSingleton()){
 			
-				// never update singletons or anonymous ones
+				// never update singletons
 			
 			subs.setServerPublished();
 			
@@ -2102,6 +2102,7 @@ SubscriptionManagerImpl
 										subs.getPrivateKey(),
 										subs.getShortID(),
 										subs.getVersion(),
+										subs.isAnonymous(),
 										new String( encoded_subs ));
 								
 								subs.setUserData( SP_LAST_ATTEMPTED, null );
@@ -2138,11 +2139,6 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException
 	{
-		if ( subs.isAnonymous()){
-			
-			return;
-		}
-		
 		if ( subs.getSingletonPublishAttempted()){
 			
 			throw( new SubscriptionException( "Singleton publish already attempted" ));
@@ -2171,6 +2167,7 @@ SubscriptionManagerImpl
 					private_key,
 					subs.getShortID(),
 					1,
+					subs.isAnonymous(),
 					new String( encoded_subs ));
 			
 			log( "    created singleton public subscription " + subs.getString());

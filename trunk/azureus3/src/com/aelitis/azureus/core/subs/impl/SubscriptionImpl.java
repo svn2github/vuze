@@ -1586,7 +1586,7 @@ SubscriptionImpl
 										
 											throws Exception
 										{
-											log( " - generating torrent: " + Debug.getCompressedStackTrace());
+											log( "Generating light-weight torrent: hash=" + ByteFormatter.encodeString( hash ));
 											
 											TOTorrentCreator creator = 
 												TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 

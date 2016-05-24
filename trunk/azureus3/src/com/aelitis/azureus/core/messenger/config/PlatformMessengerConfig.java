@@ -51,6 +51,17 @@ PlatformMessengerConfig
 	
 		throws PlatformMessengerException
 	{
+		return( syncInvoke( operationID, parameters, false ));
+	}
+	
+	protected Map
+	syncInvoke(
+		String 						operationID, 
+		Map 						parameters,
+		boolean						forceProxy )
+	
+		throws PlatformMessengerException
+	{
 		PlatformMessage message = 
 			new PlatformMessage( 
 					"AZMSG", 
@@ -63,6 +74,8 @@ PlatformMessengerConfig
 		
 			message.setSendAZID( false );
 		}
+		
+		message.setForceProxy( forceProxy );
 		
 		final AESemaphore sem = new AESemaphore( "PlatformMessengerConfig:syncInvoke" );
 		
