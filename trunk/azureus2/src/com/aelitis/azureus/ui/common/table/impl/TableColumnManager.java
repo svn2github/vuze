@@ -547,9 +547,16 @@ public class TableColumnManager {
   }
   
   public void setDefaultSortColumnName(String tableID, String columnName) {
+	  setDefaultSortColumnName( tableID, columnName, false );
+  }
+  
+  public void setDefaultSortColumnName(String tableID, String columnName, boolean force) {
   	Map mapTableConfig = getTableConfigMap(tableID);
   	Object existing = mapTableConfig.get( "SortColumn" );
   	if ( existing != null ){
+  		if ( !force ){
+  			return;
+  		}
   		String str = existing instanceof byte[]?new String((byte[])existing):(String)existing;
   		if ( str.equals( columnName )){
   			return;

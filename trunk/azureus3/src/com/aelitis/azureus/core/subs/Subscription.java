@@ -92,6 +92,9 @@ Subscription
 		throws SubscriptionException;
 	
 	public boolean
+	isAnonymous();
+	
+	public boolean
 	isUpdateable();
 	
 	public boolean

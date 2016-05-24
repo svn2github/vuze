@@ -1860,8 +1860,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
   					sortColumn.setSortAscending(!sortColumn.isSortAscending());
   				}
 
-  				TableColumnManager.getInstance().setDefaultSortColumnName(tableID,
-  						sortColumn.getName());
+  				TableColumnManager.getInstance().setDefaultSortColumnName(tableID, sortColumn.getName(), true );
   			} else {
   				sortColumn.setSortAscending(!sortColumn.isSortAscending());
   			}

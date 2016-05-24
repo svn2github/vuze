@@ -2391,7 +2391,7 @@ SubscriptionManagerUI
 		
 		String[] values = { 
 				String.valueOf( history.isEnabled()),
-				String.valueOf( subs.isPublic()),
+				String.valueOf( subs.isPublic()) + "/" + (!subs.isAnonymous()),
 				String.valueOf( history.isAutoDownload()),
 				String.valueOf( subs.isAutoDownloadSupported()),
 				String.valueOf( history.getDownloadNetworks() != null ),
