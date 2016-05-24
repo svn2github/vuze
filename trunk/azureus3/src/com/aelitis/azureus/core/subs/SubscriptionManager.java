@@ -46,6 +46,16 @@ SubscriptionManager
 		
 		throws SubscriptionException;
 	
+	public Subscription
+	createRSS(
+		String		name,
+		URL			url,
+		int			check_interval_mins,
+		boolean		anonymous,
+		Map			user_data )
+		
+		throws SubscriptionException;
+	
 		// creates a subscription that will always have the same identity for the given parameters
 		// and can't be updated
 	

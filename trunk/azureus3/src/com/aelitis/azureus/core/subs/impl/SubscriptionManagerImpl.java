@@ -1730,6 +1730,19 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException 
 	{
+		return( createRSS( name, url, check_interval_mins, false, user_data ));
+	}
+	
+	public Subscription 
+	createRSS(
+		String		name,
+		URL			url,
+		int			check_interval_mins,
+		boolean		is_anonymous,
+		Map			user_data )
+	
+		throws SubscriptionException 
+	{
 		checkURL( url );
 		
 		try{
@@ -1740,9 +1753,7 @@ SubscriptionManagerImpl
 			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
 			
 				// engine name may have been modified so re-read it for subscription default
-			
-			boolean is_anonymous = false;
-			
+						
 			SubscriptionImpl subs = new SubscriptionImpl( this, engine.getName(), engine.isPublic(), is_anonymous, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 			
 			if ( user_data != null ){

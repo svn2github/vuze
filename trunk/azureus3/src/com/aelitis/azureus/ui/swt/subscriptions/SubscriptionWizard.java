@@ -54,6 +54,7 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -141,6 +142,7 @@ public class SubscriptionWizard {
 	
 	Text searchInput;
 	Text feedUrl;
+	Button anonCheck;
 	
 	
 	SubscriptionDownloadDetails[] availableSubscriptions;
@@ -513,6 +515,10 @@ public class SubscriptionWizard {
 		Label rssBullet = new Label(composite, SWT.NONE);
 		imageLoader.setLabelImage(rssBullet, "rss");
 
+		anonCheck = new Button(composite, SWT.CHECK );
+		Label anonMsg = new Label(composite,SWT.WRAP);
+		anonMsg.setText(MessageText.getString("label.anon"));
+
 		Label subTitle3 = new Label(composite,SWT.WRAP);
 		subTitle3.setFont(subTitleFont);
 		subTitle3.setText(MessageText.getString("Wizard.Subscription.rss.subtitle3"));
@@ -537,12 +543,16 @@ public class SubscriptionWizard {
 		data.height = imageBounds.height;
 		cSearchInput.setLayoutData(data);
 		
+			// feed url
+		
 		data = new FormData();
 		data.top = new FormAttachment(0,7);
 		data.left = new FormAttachment(0, 45);
 		data.right = new FormAttachment(100, -8);
 		feedUrl.setLayoutData(data);
 
+			// rss bullet and text
+			
 		data = new FormData();
 		data.top = new FormAttachment(cSearchInput,15);
 		data.left = new FormAttachment(0);
@@ -554,8 +564,23 @@ public class SubscriptionWizard {
 		data.right = new FormAttachment(100);
 		subTitle2.setLayoutData(data);
 		
+			// anon check and text
+		
 		data = new FormData();
-		data.top = new FormAttachment(subTitle2,20);
+		data.top = new FormAttachment(rssBullet,15);
+		data.left = new FormAttachment(0);
+		anonCheck.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(anonCheck,-3,SWT.TOP);
+		data.left = new FormAttachment(rssBullet,5);
+		data.right = new FormAttachment(100);
+		anonMsg.setLayoutData(data);
+		
+			// bottom text
+		
+		data = new FormData();
+		data.top = new FormAttachment(anonCheck,20);
 		data.left = new FormAttachment(0);
 		data.right = new FormAttachment(100);
 		subTitle3.setLayoutData(data);
@@ -1219,7 +1244,15 @@ public class SubscriptionWizard {
 					
 					user_data.put( SubscriptionManagerUI.SUB_EDIT_MODE_KEY, new Boolean( true ));
 					
-					Subscription subRSS = SubscriptionManagerFactory.getSingleton().createRSS( url_str, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS, user_data );
+					boolean	anonymous = anonCheck.getSelection();
+					
+					Subscription subRSS = SubscriptionManagerFactory.getSingleton().createRSS( url_str, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS, anonymous, user_data );
+					
+					if ( anonymous ){
+						
+						subRSS.getHistory().setDownloadNetworks( new String[]{ AENetworkClassifier.AT_I2P });
+					}
+					
 					shell.close();
 
 					final String key = "Subscription_" + ByteFormatter.encodeString(subRSS.getPublicKey());				
