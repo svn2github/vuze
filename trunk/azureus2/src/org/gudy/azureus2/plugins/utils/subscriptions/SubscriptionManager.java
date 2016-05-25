@@ -29,6 +29,7 @@ public interface
 SubscriptionManager 
 {
 	public static final String SO_ANONYMOUS = "_anonymous_";
+	public static final String SO_NAME		= SearchProvider.SP_SEARCH_NAME;
 	
 	public Subscription[] 
 	getSubscriptions();

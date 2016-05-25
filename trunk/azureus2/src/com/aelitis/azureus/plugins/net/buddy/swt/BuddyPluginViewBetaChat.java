@@ -2285,11 +2285,11 @@ BuddyPluginViewBetaChat
 						Map<String,Object>	options = new HashMap<String, Object>();
 						
 						if ( chat.isAnonymous()){
-							
-								// hack for the moment
-							
+														
 							options.put( SubscriptionManager.SO_ANONYMOUS, true );
 						}
+						
+						options.put( SubscriptionManager.SO_NAME, chat.getName());
 						
 						sm.requestSubscription( new URL( url ), options );
 						

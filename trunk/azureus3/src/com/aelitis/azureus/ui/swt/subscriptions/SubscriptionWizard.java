@@ -143,8 +143,10 @@ public class SubscriptionWizard {
 	
 	Text searchInput;
 	Text feedUrl;
+	Text subsName;
 	Button anonCheck;
 	
+	String subs_name_default;
 	
 	SubscriptionDownloadDetails[] availableSubscriptions;
 	Subscription[] subscriptions;
@@ -171,6 +173,8 @@ public class SubscriptionWizard {
 		Boolean anon = (Boolean)options.get(SubscriptionManager.SO_ANONYMOUS );
 		
 		anon_default = anon != null && anon;
+		
+		subs_name_default = (String)options.get(SubscriptionManager.SO_NAME );
 		
 		init();
 	}
@@ -522,6 +526,14 @@ public class SubscriptionWizard {
 		Label rssBullet = new Label(composite, SWT.NONE);
 		imageLoader.setLabelImage(rssBullet, "rss");
 
+		Label subsNameText = new Label(composite,SWT.WRAP);
+		subsNameText.setText( MessageText.getString( "TableColumn.header.name" ));
+
+		subsName = new Text(composite, SWT.BORDER);
+		subsName.setFont(textInputFont);
+		if ( subs_name_default != null ){
+			subsName.setText( subs_name_default );
+		}		
 		anonCheck = new Button(composite, SWT.CHECK );
 		Label anonMsg = new Label(composite,SWT.WRAP);
 		anonMsg.setText(MessageText.getString("label.anon"));
@@ -573,23 +585,34 @@ public class SubscriptionWizard {
 		data.right = new FormAttachment(100);
 		subTitle2.setLayoutData(data);
 		
-			// anon check and text
+			// name + anon check and text
 		
 		data = new FormData();
-		data.top = new FormAttachment(rssBullet,15);
-		data.left = new FormAttachment(0);
+		data.top = new FormAttachment(rssBullet,20);
+		data.left = new FormAttachment(subTitle2, 0, SWT.LEFT );
+		subsNameText.setLayoutData(data);
+		
+		data = new FormData();
+		data.bottom = new FormAttachment(subsNameText,0, SWT.BOTTOM);
+		data.left	= new FormAttachment(subsNameText, 5, SWT.RIGHT);
+		data.right 	= new FormAttachment(50);
+		subsName.setLayoutData(data);
+		
+		data = new FormData();
+		data.bottom = new FormAttachment(subsNameText,0, SWT.BOTTOM);
+		data.left = new FormAttachment(subsName, 5, SWT.RIGHT);
 		anonCheck.setLayoutData(data);
 
 		data = new FormData();
-		data.top = new FormAttachment(anonCheck,-3,SWT.TOP);
-		data.left = new FormAttachment(rssBullet,5);
+		data.bottom = new FormAttachment(subsNameText,0, SWT.BOTTOM);
+		data.left = new FormAttachment(anonCheck,5, SWT.RIGHT);
 		data.right = new FormAttachment(100);
 		anonMsg.setLayoutData(data);
 		
 			// bottom text
 		
 		data = new FormData();
-		data.top = new FormAttachment(anonCheck,20);
+		data.top = new FormAttachment(subsName,20);
 		data.left = new FormAttachment(0);
 		data.right = new FormAttachment(100);
 		subTitle3.setLayoutData(data);
@@ -1255,7 +1278,14 @@ public class SubscriptionWizard {
 					
 					boolean	anonymous = anonCheck.getSelection();
 					
-					Subscription subRSS = SubscriptionManagerFactory.getSingleton().createRSS( url_str, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS, anonymous, user_data );
+					String	subs_name = subsName.getText().trim();
+					
+					if ( subs_name.length() == 0 ){
+						
+						subs_name = url_str;
+					}
+					
+					Subscription subRSS = SubscriptionManagerFactory.getSingleton().createRSS( subs_name, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS, anonymous, user_data );
 					
 					if ( anonymous ){
 						
