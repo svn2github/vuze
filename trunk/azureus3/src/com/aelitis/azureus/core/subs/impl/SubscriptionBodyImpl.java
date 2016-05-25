@@ -139,7 +139,7 @@ SubscriptionBodyImpl
 	
 	private String	name;
 	private boolean	is_public;
-	private boolean is_anonymous;
+	private Boolean is_anonymous;
 	private byte[]	public_key;
 	private int		version;
 	private int		az_version;
@@ -224,7 +224,7 @@ SubscriptionBodyImpl
 		version		= ((Long)details.get( "version" )).intValue();
 		is_public	= ((Long)details.get( "is_public" )).intValue()==1; 
 		Long anon	= (Long)details.get( "is_anonymous");
-		is_anonymous = anon!=null&&anon==1;
+		is_anonymous = anon==null?null:anon==1;
 		json		= new String((byte[])details.get( "json"), "UTF-8" );
 		
 		singleton_details = (Map)details.get( "sin_details" );
@@ -307,7 +307,9 @@ SubscriptionBodyImpl
 		
 		details.put( "name", name.getBytes( "UTF-8" ));
 		details.put( "is_public", new Long( is_public?1:0 ));
-		details.put( "is_anonymous", new Long( is_anonymous?1:0 ));
+		if ( is_anonymous ){
+			details.put( "is_anonymous", new Long( 1 ));
+		}
 		details.put( "public_key", public_key );
 		details.put( "version", new Long( version ));
 		details.put( "az_version", new Long( az_version ));
@@ -327,7 +329,18 @@ SubscriptionBodyImpl
 		throws IOException
 	{
 		is_public		= subs.isPublic();
-		is_anonymous	= subs.isAnonymous();
+		
+			// must be careful to maintain is_anonymous as null for 'old' subscriptions otherwise
+			// this breaks things as it looks as if the subscription has changed and then write fails
+			// for subscriptions where we don't have the private key
+		
+		if ( is_anonymous == null ){
+			if ( subs.isAnonymous()){
+				is_anonymous = true;
+			}
+		}else{
+			is_anonymous	= subs.isAnonymous();
+		}
 		
 		version		= subs.getVersion();
 		az_version	= subs.getAZVersion();
@@ -335,7 +348,9 @@ SubscriptionBodyImpl
 		
 		details.put( "name",name.getBytes( "UTF-8" ));
 		details.put( "is_public", new Long( is_public?1:0 ));
-		details.put( "is_anonymous", new Long( is_anonymous?1:0 ));
+		if ( is_anonymous != null ){
+			details.put( "is_anonymous", new Long( is_anonymous?1:0 ));
+		}
 		details.put( "version", new Long( version ));
 		details.put( "az_version", new Long( az_version ));
 		
@@ -377,7 +392,7 @@ SubscriptionBodyImpl
 	protected boolean
 	isAnonymous()
 	{
-		return( is_anonymous );
+		return( is_anonymous==null?false:is_anonymous );
 	}
 	
 	protected String
