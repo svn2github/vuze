@@ -446,7 +446,8 @@ SubscriptionManagerUI
 				
 				public void
 				subscriptionRequested(
-					URL					url )
+					URL					url,
+					Map<String,Object>	options )
 				{	
 				}
 			});
@@ -494,7 +495,8 @@ SubscriptionManagerUI
 				
 				public void
 				subscriptionRequested(
-					final URL					url )
+					final URL					url,
+					final Map<String,Object>	options )
 				{
 					Utils.execSWTThread(
 						new AERunnable() 
@@ -502,7 +504,7 @@ SubscriptionManagerUI
 							public void
 							runSupport()
 							{
-								new SubscriptionWizard( url );
+								new SubscriptionWizard( url, options );
 							}
 						});
 				}
@@ -559,6 +561,24 @@ SubscriptionManagerUI
 				}
 			});
 		
+			// download subs enable
+			
+		final BooleanParameter activate_subs_enable = 
+			configModel.addBooleanParameter2( 
+				"subscriptions.activate.on.change.enable", "subscriptions.activate.on.change.enable",
+				subs_man.getActivateSubscriptionOnChange());
+		
+		activate_subs_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					subs_man.setActivateSubscriptionOnChange( activate_subs_enable.getValue());
+				}
+			});
+	
 		
 			// rate limits
 		
@@ -1173,12 +1193,18 @@ SubscriptionManagerUI
 
 		
 		if ( subs.isSubscribed()){
-			String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
-			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-			if ( mdi != null ){
-				mdi.loadEntryByID(key, true, true, subs);
+			
+			if ( SubscriptionManagerFactory.getSingleton().getActivateSubscriptionOnChange()){
+				
+				String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
+				
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				
+				if ( mdi != null ){
+					
+					mdi.loadEntryByID( key, true, true, subs );
+				}
 			}
-
 		} else {
 			
 			removeSubscription( subs);

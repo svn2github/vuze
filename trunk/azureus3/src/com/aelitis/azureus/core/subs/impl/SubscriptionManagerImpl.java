@@ -113,6 +113,8 @@ SubscriptionManagerImpl
 	private static final String	CONFIG_DL_SUBS_ENABLE		= "subscriptions.config.dl_subs_enable";
 	private static final String	CONFIG_DL_RATE_LIMITS		= "subscriptions.config.rate_limits";
 
+	private static final String CONFIG_ACTIVATE_ON_CHANGE	= "subscriptions.config.activate.sub.on.change";
+	
 	private static final int DELETE_UNUSED_AFTER_MILLIS = 2*7*24*60*60*1000;
 	
 	
@@ -1335,6 +1337,20 @@ SubscriptionManagerImpl
 		return( COConfigurationManager.getStringParameter( CONFIG_DL_RATE_LIMITS, "" ));
 	}
 	
+	public void
+	setActivateSubscriptionOnChange(
+		boolean		b )
+	{
+		COConfigurationManager.setParameter( CONFIG_ACTIVATE_ON_CHANGE, b );
+
+	}
+	
+	public boolean
+	getActivateSubscriptionOnChange()
+	{
+		return( COConfigurationManager.getBooleanParameter( CONFIG_ACTIVATE_ON_CHANGE, false ));
+	}
+	
 	public String
 	getRSSLink()
 	{
@@ -1642,12 +1658,13 @@ SubscriptionManagerImpl
 	
 	public void
 	requestSubscription(
-		URL			url )
+		URL						url,
+		Map<String, Object> 	options )
 	{
 		for ( SubscriptionManagerListener listener: listeners ){
 			
 			try{
-				listener.subscriptionRequested(url);
+				listener.subscriptionRequested( url, options );
 				
 			}catch( Throwable e ){
 				

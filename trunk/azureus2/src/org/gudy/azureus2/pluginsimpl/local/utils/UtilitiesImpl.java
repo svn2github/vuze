@@ -1770,13 +1770,21 @@ UtilitiesImpl
 					requestSubscription(
 						URL		url )
 					{
-						sm.requestSubscription( url );
+						sm.requestSubscription( url, new HashMap<String,Object>());
+					}
+					
+					public void 
+					requestSubscription(
+						URL 					url,
+						Map<String, Object> 	options ) 
+					{
+						sm.requestSubscription( url, options );
 					}
 					
 					public void 
 					requestSubscription(
 						SearchProvider 			sp,
-						Map<String, Object> 	search_parameters) 
+						Map<String, Object> 	search_parameters ) 
 						
 						throws SubscriptionException
 					{
@@ -2058,7 +2066,8 @@ UtilitiesImpl
 	{
 		public void
 		requestSubscription(
-			URL		url );
+			URL					url,
+			Map<String,Object>	options );
 		
 		public void 
 		requestSubscription(

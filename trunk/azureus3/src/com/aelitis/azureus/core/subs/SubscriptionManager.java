@@ -182,6 +182,13 @@ SubscriptionManager
 	public boolean
 	hideSearchTemplates();
 	
+	public void
+	setActivateSubscriptionOnChange(
+		boolean		b );
+	
+	public boolean
+	getActivateSubscriptionOnChange();
+	
 	public String
 	getRSSLink();
 	

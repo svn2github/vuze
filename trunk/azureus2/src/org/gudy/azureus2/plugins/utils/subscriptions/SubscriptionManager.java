@@ -28,12 +28,19 @@ import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 public interface 
 SubscriptionManager 
 {
+	public static final String SO_ANONYMOUS = "_anonymous_";
+	
 	public Subscription[] 
 	getSubscriptions();
 	
 	public void
 	requestSubscription(
 		URL			url );
+	
+	public void
+	requestSubscription(
+		URL						url,
+		Map<String,Object>		options );
 	
 	public void
 	requestSubscription(

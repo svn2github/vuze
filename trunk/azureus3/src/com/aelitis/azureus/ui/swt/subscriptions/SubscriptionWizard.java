@@ -63,6 +63,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -150,6 +151,7 @@ public class SubscriptionWizard {
 	
 	DownloadManager download;
 	URL				rss_feed_url;
+	boolean			anon_default = false;
 	
 	private ImageLoader imageLoader;
 	private TableViewSWT<Subscription> tvSubscriptions;
@@ -161,9 +163,14 @@ public class SubscriptionWizard {
 	
 	public 
 	SubscriptionWizard(
-		URL		url )
+		URL					url,
+		Map<String,Object>	options )
 	{
 		rss_feed_url	= url;
+		
+		Boolean anon = (Boolean)options.get(SubscriptionManager.SO_ANONYMOUS );
+		
+		anon_default = anon != null && anon;
 		
 		init();
 	}
@@ -519,6 +526,8 @@ public class SubscriptionWizard {
 		Label anonMsg = new Label(composite,SWT.WRAP);
 		anonMsg.setText(MessageText.getString("label.anon"));
 
+		anonCheck.setSelection( anon_default );
+		
 		Label subTitle3 = new Label(composite,SWT.WRAP);
 		subTitle3.setFont(subTitleFont);
 		subTitle3.setText(MessageText.getString("Wizard.Subscription.rss.subtitle3"));

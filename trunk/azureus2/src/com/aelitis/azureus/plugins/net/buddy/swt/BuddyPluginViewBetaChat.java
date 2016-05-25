@@ -2282,7 +2282,16 @@ BuddyPluginViewBetaChat
 						
 						SubscriptionManager sm = PluginInitializer.getDefaultInterface().getUtilities().getSubscriptionManager();
 	
-						sm.requestSubscription( new URL( url ));
+						Map<String,Object>	options = new HashMap<String, Object>();
+						
+						if ( chat.isAnonymous()){
+							
+								// hack for the moment
+							
+							options.put( SubscriptionManager.SO_ANONYMOUS, true );
+						}
+						
+						sm.requestSubscription( new URL( url ), options );
 						
 					}catch( Throwable e ){
 						

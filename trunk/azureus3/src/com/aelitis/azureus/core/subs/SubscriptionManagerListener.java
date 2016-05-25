@@ -21,6 +21,7 @@
 package com.aelitis.azureus.core.subs;
 
 import java.net.URL;
+import java.util.Map;
 
 public interface 
 SubscriptionManagerListener 
@@ -47,5 +48,6 @@ SubscriptionManagerListener
 	
 	public void
 	subscriptionRequested(
-		URL					url );
+		URL						url,
+		Map<String, Object> 	options );
 }

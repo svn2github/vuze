@@ -113,7 +113,8 @@ public class SubscriptionsView
 	
 	public void
 	subscriptionRequested(
-		URL					url )
+		URL					url,
+		Map<String,Object>	options )
 	{	
 	}
 	
