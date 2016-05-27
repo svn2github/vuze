@@ -1686,7 +1686,45 @@ BuddyPluginViewBetaChat
 								
 								sr = log_styles[i];
 								
-								log.setToolTipText( MessageText.getString( "label.right.click.for.options" ));
+								String tt_extra = "";
+								
+								if ( data instanceof String ){
+									
+									try{
+										URL url = new URL((String)data);
+										
+										String query = url.getQuery();
+										
+										String[] bits = query.split( "&" );
+										
+										int seeds 		= -1;
+										int leechers	= -1;
+										
+										for ( String bit: bits ){
+											
+											String[] temp = bit.split( "=" );
+											
+											String lhs = temp[0];
+											
+											if ( lhs.equals( "_s" )){
+												
+												seeds = Integer.parseInt( temp[1] );
+												
+											}else if ( lhs.equals( "_l" )){
+												
+												leechers = Integer.parseInt( temp[1] );
+											}
+										}
+										
+										if ( seeds != -1 && leechers != -1){
+											
+											tt_extra = ": seeds=" + seeds +", leechers=" + leechers;
+										}
+									}catch( Throwable f ){
+									}
+								}
+								
+								log.setToolTipText( MessageText.getString( "label.right.click.for.options" ) + tt_extra );
 								
 									
 								StyleRange derp = new StyleRange( sr );
