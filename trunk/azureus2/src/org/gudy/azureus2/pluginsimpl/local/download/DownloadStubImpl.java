@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
+import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubEx;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
@@ -53,6 +54,7 @@ DownloadStubImpl
 	private final String					save_path;
 	private final DownloadStubFileImpl[]	files;
 	private final String[]					manual_tags;
+	private final int						share_ratio;
 	
 	private final Map<String,Object>		gm_map;
 	
@@ -91,6 +93,10 @@ DownloadStubImpl
 		}
 		
 		manual_tags = _manual_tags;
+		
+		DownloadStats stats = temp_download.getStats();
+		
+		share_ratio = stats.getShareRatio();
 	}
 	
 	protected
@@ -140,6 +146,8 @@ DownloadStubImpl
 		}
 		
 		attributes = (Map<String,Object>)_map.get( "attr" );
+		
+		share_ratio	= MapUtils.getMapInt( _map, "sr", -1 );
 	}
 	
 	public Map<String,Object>
@@ -184,7 +192,12 @@ DownloadStubImpl
 		
 			map.put( "attr", attributes );
 		}
-				
+			
+		if ( share_ratio >= 0 ){
+			
+			map.put( "sr", new Long( share_ratio ));
+		}
+		
 		return( map );
 	}
 	
@@ -264,6 +277,12 @@ DownloadStubImpl
 	getManualTags()
 	{
 		return( manual_tags );
+	}
+	
+	public int 
+	getShareRatio() 
+	{
+		return( share_ratio );
 	}
 	
 	public long 

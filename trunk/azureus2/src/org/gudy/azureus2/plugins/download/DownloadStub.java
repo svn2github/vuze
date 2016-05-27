@@ -98,6 +98,9 @@ DownloadStub
 		public String[]
 		getManualTags();
 		
+		public int
+		getShareRatio();
+		
 			// could migrate to DownloadStub one day
 		
 		public void
