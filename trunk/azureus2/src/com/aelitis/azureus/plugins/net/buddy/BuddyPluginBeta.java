@@ -82,6 +82,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.I2PHelpers;
 
 public class
 BuddyPluginBeta 
@@ -1339,6 +1340,16 @@ BuddyPluginBeta
 		if ( protocol.startsWith( "chat:anon" )){
 				
 			if ( !isI2PAvailable()){
+				
+				boolean[] result = { false };
+				
+				I2PHelpers.installI2PHelper(
+						MessageText.getString( "azbuddy.dchat.anon.requested" ),
+						"azbuddy.dchat.uri.based.i2p.install", result,
+						new Runnable() {
+							public void run() {
+							}
+						});
 				
 				throw( new Exception( "I2P unavailable" ));
 			}
