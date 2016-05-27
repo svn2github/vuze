@@ -19,11 +19,9 @@ package com.aelitis.azureus.ui.swt.columns.archivedls;
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubEx;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+
 
 public class ColumnArchiveShareRatio
 	implements TableCellRefreshListener, TableColumnExtraInfoListener
@@ -83,7 +81,7 @@ public class ColumnArchiveShareRatio
 			sr_str = "";
 		}
 		
-		if ( !cell.setSortValue(sr) && cell.isValid()){
+		if ( !cell.setSortValue( sr ) && cell.isValid()){
 			
 		      return;
 		}
