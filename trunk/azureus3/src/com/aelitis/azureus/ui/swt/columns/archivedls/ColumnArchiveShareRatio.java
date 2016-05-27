@@ -58,29 +58,36 @@ public class ColumnArchiveShareRatio
 	{
 		DownloadStubEx dl = (DownloadStubEx) cell.getDataSource();
 		
-		String shareRatio;
+		String 	sr_str;
+		
+		int		sr = -1;
 		
 		if ( dl != null ){
 			
-			int sr = dl.getShareRatio();
+			sr = dl.getShareRatio();
 			
 			if ( sr < 0 ){
 				
-				shareRatio = "";	// migration
+				sr_str = "";	// migration
 				
 			}else if ( sr == Integer.MAX_VALUE ){
 				
-		        shareRatio = Constants.INFINITY_STRING;
+		        sr_str = Constants.INFINITY_STRING;
 		        
 		    }else{
 		    	
-		        shareRatio = DisplayFormatters.formatDecimal((double) sr / 1000, 3);
+		        sr_str = DisplayFormatters.formatDecimal((double) sr / 1000, 3);
 		    }
 		}else{
 			
-			shareRatio = "";
+			sr_str = "";
 		}
 		
-		cell.setText( shareRatio );
+		if ( !cell.setSortValue(sr) && cell.isValid()){
+			
+		      return;
+		}
+		
+		cell.setText( sr_str );
 	}
 }
