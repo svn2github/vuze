@@ -288,7 +288,7 @@ public class OpenTorrentOptionsWindow
 	
 	private OpenTorrentInstance			multi_selection_instance;
 
-	protected CopyOnWriteList<String> listDiscoveredTags = new CopyOnWriteList<String>();
+	protected Map<String,DiscoveredTag> listDiscoveredTags = new TreeMap<String,DiscoveredTag>();
 	
 	protected List<String> listTagsToCreate = new ArrayList<String>();
 	
@@ -1735,18 +1735,20 @@ public class OpenTorrentOptionsWindow
 					
 					if ( networks.size() > 0 ){
 						
+						final String[] nets = networks.toArray( new String[networks.size()]);
+						
 						List<String>	tag_cache = TorrentUtils.getTagCache( torrentOptions.getTorrent());
 						
 						synchronized( listDiscoveredTags ){
 							for ( String tag: tag_cache ){
-								if ( !listDiscoveredTags.contains( tag )){
-									listDiscoveredTags.add( tag);
+								if ( !listDiscoveredTags.containsKey( tag )){
+									listDiscoveredTags.put( tag, new DiscoveredTag( tag, nets));
 								}
 							}
 						}
 						rcm.lookupAttributes(
 							hash.getBytes(), 
-							networks.toArray( new String[networks.size()]),
+							nets,
 							new RelatedAttributeLookupListener(){
 	
 								public void lookupStart() {
@@ -1758,10 +1760,10 @@ public class OpenTorrentOptionsWindow
 										return;
 									}
 									synchronized( listDiscoveredTags ){
-										if (listDiscoveredTags.contains(tag)) {
+										if (listDiscoveredTags.containsKey(tag)) {
 											return;
 										}
-										listDiscoveredTags.add(tag);
+										listDiscoveredTags.put( tag, new DiscoveredTag( tag, nets));
 									}
 									
 									Utils.execSWTThread(new Runnable() {
@@ -4409,49 +4411,76 @@ public class OpenTorrentOptionsWindow
 					}
 				}
 				
-				for (final String tagName : listDiscoveredTags) {
-					boolean alreadyHave = checkAlreadyHaveTag(initialTags, tagName);
-					if (alreadyHave) {
-						break;
-					}
+				synchronized( listDiscoveredTags ){
 					
-					final Button but = new Button( parent, SWT.TOGGLE );
-					but.setImage(ImageLoader.getInstance().getImage("image.sidebar.rcm"));
-	
-					
-					if ( listTagsToCreate.contains( tagName )){
-						but.setSelection( true );
-					}
-	
-					
-					but.setText( tagName );
-					
-					but.setToolTipText(MessageText.getString("tagtype.discovered"));
-					
-					but.addSelectionListener(
-						new SelectionAdapter() {
+					for ( DiscoveredTag tag : listDiscoveredTags.values()) {
+						
+						final String tagName = tag.name;
+						
+						boolean alreadyHave = checkAlreadyHaveTag(initialTags, tagName);
+						
+						if ( alreadyHave ){
 							
-							public void 
-							widgetSelected(
-								SelectionEvent e) 
-							{
-								List<Tag>  tags = torrentOptions.getInitialTags();
-								
-								if ( but.getSelection()){
-									
-									listTagsToCreate.add(tagName);
-									
-								}else{
-									
-									listTagsToCreate.remove(tagName);
-									
+							break;
+						}
+						
+						final Button but = new Button( parent, SWT.TOGGLE );
+						but.setImage(ImageLoader.getInstance().getImage("image.sidebar.rcm"));
+		
+						
+						if ( listTagsToCreate.contains( tagName )){
+							but.setSelection( true );
+						}
+		
+						String tagDisplayName = tagName;
+						
+						String[] nets = tag.networks;
+						
+						if ( nets.length > 0 ){
+							boolean boring = false;
+							String nets_str = "";
+							
+							for ( String net: nets ){
+								if ( net == AENetworkClassifier.AT_PUBLIC ){
+									boring = true;
+									break;
 								}
-								
-								
-								updateStartOptionsHeader();
+								nets_str += (nets_str.length()==0?"":"/") + net;
 							}
-						});
-					
+							
+							if ( !boring && nets_str.length() > 0 ){
+								
+								tagDisplayName += " [" + nets_str + "]";
+							}
+						}
+						
+						but.setText( tagDisplayName );
+						
+						but.setToolTipText(MessageText.getString("tagtype.discovered"));
+						
+						but.addSelectionListener(
+							new SelectionAdapter() {
+								
+								public void 
+								widgetSelected(
+									SelectionEvent e) 
+								{
+									if ( but.getSelection()){
+										
+										listTagsToCreate.add(tagName);
+										
+									}else{
+										
+										listTagsToCreate.remove(tagName);
+										
+									}
+									
+									
+									updateStartOptionsHeader();
+								}
+							});
+						
+					}
 				}
 				
 				if ( is_rebuild ){
@@ -6415,6 +6444,22 @@ public class OpenTorrentOptionsWindow
 			}
 			
 			return( size );
+		}
+	}
+	
+	private static class
+	DiscoveredTag
+	{
+		final private String		name;
+		final private String[]		networks;
+		
+		private
+		DiscoveredTag(
+			String		_name,
+			String[]	_networks )
+		{
+			name		= _name;
+			networks	= _networks;
 		}
 	}
 }
