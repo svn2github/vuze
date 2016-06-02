@@ -75,7 +75,21 @@ SubscriptionImpl
 	public static final int	ADD_TYPE_IMPORT		= 2;
 	public static final int	ADD_TYPE_LOOKUP		= 3;
 		
-	private static final int MAX_ASSOCIATIONS				= 256;
+	private static final int MAX_ASSOCIATIONS;
+	
+	static{
+		int max_assoc = 256;
+		
+		try{
+			max_assoc = Integer.parseInt( System.getProperty( "azureus.subs.max.associations", ""+max_assoc));
+			
+		}catch( Throwable e ){
+			Debug.out( e );
+		}
+		
+		MAX_ASSOCIATIONS = max_assoc;
+	}
+	
 	private static final int MIN_RECENT_ASSOC_TO_RETAIN		= 16;
 		
 	//private static final byte[] GENERIC_PUBLIC_KEY 		= {(byte)0x04,(byte)0xd0,(byte)0x1a,(byte)0xd9,(byte)0xb9,(byte)0x99,(byte)0xd8,(byte)0x49,(byte)0x15,(byte)0x5f,(byte)0xe9,(byte)0x6b,(byte)0x3c,(byte)0xd8,(byte)0x18,(byte)0x81,(byte)0xf7,(byte)0x92,(byte)0x15,(byte)0x3f,(byte)0x24,(byte)0xaa,(byte)0x35,(byte)0x6f,(byte)0x52,(byte)0x01,(byte)0x79,(byte)0x2e,(byte)0x93,(byte)0xf6,(byte)0xf1,(byte)0x57,(byte)0x13,(byte)0x2a,(byte)0x3c,(byte)0x31,(byte)0x66,(byte)0xa5,(byte)0x34,(byte)0x9f,(byte)0x79,(byte)0x62,(byte)0x04,(byte)0x31,(byte)0x68,(byte)0x37,(byte)0x8f,(byte)0x77,(byte)0x5c};
@@ -1650,7 +1664,7 @@ SubscriptionImpl
 			
 			associations.add( new association( hash, SystemTime.getCurrentTime()));
 			
-			if ( associations.size() > MAX_ASSOCIATIONS ){
+			if ( MAX_ASSOCIATIONS > 0 && associations.size() > MAX_ASSOCIATIONS ){
 				
 				associations.remove( RandomUtils.nextInt( MAX_ASSOCIATIONS - MIN_RECENT_ASSOC_TO_RETAIN ));
 			}
