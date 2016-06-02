@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -406,6 +407,8 @@ RelatedContentSearcher
 								
 								DHTInterface[]	dhts = dht_plugin.getDHTInterfaces();
 									
+								boolean public_dht = dht_plugin.getNetwork() == AENetworkClassifier.AT_PUBLIC;
+								
 								for ( DHTInterface dht: dhts ){
 													
 									if ( dht.isIPV6()){
@@ -415,7 +418,7 @@ RelatedContentSearcher
 									
 									int	network = dht.getNetwork();
 									
-									if ( search_cvs_only && network != DHT.NW_CVS ){
+									if ( public_dht && search_cvs_only && network != DHT.NW_CVS ){
 										
 										logSearch( "Search: ignoring main DHT" );
 	
@@ -459,7 +462,7 @@ RelatedContentSearcher
 										
 										int	network = dht.getNetwork();
 										
-										if ( search_cvs_only && network != DHT.NW_CVS ){
+										if ( public_dht && search_cvs_only && network != DHT.NW_CVS ){
 											
 											logSearch( "Search: ignoring main DHT" );
 	
