@@ -107,7 +107,20 @@ RelatedContentManager
 		
 	private static final int	MAX_HISTORY					= 16;
 	private static final int	MAX_TITLE_LENGTH			= 80;
-	private static final int	MAX_CONCURRENT_PUBLISH		= 2;
+	private static final int	MAX_CONCURRENT_PUBLISH;
+	
+	static{
+		int max_conc_pub = 2;
+		
+		try{
+			max_conc_pub = Integer.parseInt( System.getProperty( "azureus.rcm.max.concurrent.publish", ""+max_conc_pub));
+			
+		}catch( Throwable e ){
+			Debug.out( e );
+		}
+		
+		MAX_CONCURRENT_PUBLISH = max_conc_pub;
+	}
 	
 	private static final int	TEMPORARY_SPACE_DELTA	= 50;
 	
@@ -715,7 +728,7 @@ RelatedContentManager
 						
 						DownloadManagerState state = PluginCoreUtils.unwrap( download ).getDownloadState();
 
-						if ( state.getFlag(DownloadManagerState.FLAG_LOW_NOISE )){
+						if ( state.getFlag(DownloadManagerState.FLAG_LOW_NOISE ) || state.getFlag(DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
 							
 							continue;
 						}
@@ -834,21 +847,25 @@ RelatedContentManager
 								download_priv_set.add( getPrivateInfoKey( info ));
 							}
 							
-							if (( info.getNetworksInternal() & NET_PUBLIC ) != 0 ){
+							byte nets = info.getNetworksInternal();
 							
-								pub_download_infos1.add( info );
-								pub_download_infos2.add( info );
-							
-							}else{
+							if ( nets != NET_NONE ){
 								
-								non_pub_download_infos1.add( info );
-								non_pub_download_infos2.add( info );
+								if (( nets & NET_PUBLIC ) != 0 ){
+								
+									pub_download_infos1.add( info );
+									pub_download_infos2.add( info );
+								
+								}else{
+									
+									non_pub_download_infos1.add( info );
+									non_pub_download_infos2.add( info );
+								}
+								
+								padd--;
 							}
-							
-							padd--;
 						}
 					}catch( Throwable e ){
-						
 					}
 				}
 				
@@ -932,8 +949,13 @@ RelatedContentManager
 				return;
 			}
 			
-			if ( pub_download_infos1.isEmpty()){
+			if ( 	pub_download_infos1.isEmpty() ||
+					( 	pub_download_infos1.size() == 1 && 
+						pub_download_infos1.getFirst() == pub_download_infos2.getFirst())){
 				
+				pub_download_infos1.clear();
+				pub_download_infos2.clear();
+
 				List<DownloadInfo> list = download_info_map.values();
 				
 				for ( DownloadInfo info: list ){
@@ -948,16 +970,26 @@ RelatedContentManager
 				Collections.shuffle( pub_download_infos1 );
 			}
 			
-			if ( non_pub_download_infos1.isEmpty()){
+			if ( non_pub_download_infos1.isEmpty() ||
+					( 	non_pub_download_infos1.size() == 1 && 
+						non_pub_download_infos1.getFirst() == non_pub_download_infos2.getFirst())){
+
+				non_pub_download_infos1.clear();
+				non_pub_download_infos2.clear();
 				
 				List<DownloadInfo> list = download_info_map.values();
 				
 				for ( DownloadInfo info: list ){
 					
-					if (( info.getNetworksInternal() & NET_PUBLIC ) == 0 ){
-				
-						non_pub_download_infos1.add( info );
-						non_pub_download_infos2.add( info );
+					byte nets = info.getNetworksInternal();
+					
+					if ( nets != NET_NONE ){
+						
+						if (( nets & NET_PUBLIC ) == 0 ){
+					
+							non_pub_download_infos1.add( info );
+							non_pub_download_infos2.add( info );
+						}
 					}
 				}
 				
@@ -978,6 +1010,10 @@ RelatedContentManager
 
 			synchronized( rcm_lock ){
 	
+				if ( TRACE ){
+					System.out.println( "publish: count=" + publishing_count + ", dim=" + download_info_map.size() + ", pub=" + pub_download_infos1.size() + "/" + pub_download_infos2.size() + ", nonpub=" + non_pub_download_infos1.size() + "/" + non_pub_download_infos2.size());
+				}
+				
 				if ( publishing_count >= MAX_CONCURRENT_PUBLISH ){
 					
 						// too busy
@@ -3147,15 +3183,20 @@ RelatedContentManager
 			
 			for ( DownloadInfo info: list ){
 				
-				if (( info.getNetworksInternal() & NET_PUBLIC ) != 0 ){
-			
-					pub_download_infos1.add( info );
-					pub_download_infos2.add( info );
-					
-				}else{
-					
-					non_pub_download_infos1.add( info );
-					non_pub_download_infos2.add( info );
+				byte nets = info.getNetworksInternal();
+				
+				if ( nets != NET_NONE ){
+									
+					if (( nets & NET_PUBLIC ) != 0 ){
+				
+						pub_download_infos1.add( info );
+						pub_download_infos2.add( info );
+						
+					}else{
+						
+						non_pub_download_infos1.add( info );
+						non_pub_download_infos2.add( info );
+					}
 				}
 			}
 			
