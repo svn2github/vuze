@@ -222,29 +222,43 @@ public class PeersItem extends CoreTableColumnSWT implements
 			long value = lConnectedPeers * 10000000;
 			if (totalPeers > 0)
 				value = value + totalPeers;
-			if (!cell.setSortValue(value) && cell.isValid())
-				return;
-
+			
+			String text;
+			
 			if ( dm != null ){
 				int state = dm.getState();
 				boolean started = state == DownloadManager.STATE_SEEDING
 						|| state == DownloadManager.STATE_DOWNLOADING;
 				boolean hasScrape = lTotalPeers >= 0;
 	
-				String tmp;
 				if (started) {
-					tmp = hasScrape ? (lConnectedPeers > lTotalPeers ? textStartedOver
+					text = hasScrape ? (lConnectedPeers > lTotalPeers ? textStartedOver
 							: textStarted) : textStartedNoScrape;
 				} else {
-					tmp = hasScrape ? textNotStarted : textNotStartedNoScrape;
+					text = hasScrape ? textNotStarted : textNotStartedNoScrape;
 				}
 				
-				tmp = tmp.replaceAll("%1", String.valueOf(lConnectedPeers));
-				tmp = tmp.replaceAll("%2", String.valueOf(totalPeers));
-				cell.setText(tmp);
+				if ( text.length() == 0 ){
+					value = -1;
+				}
+				if (!cell.setSortValue(value) && cell.isValid()){
+					// we have an accurate value now, bail if no change
+					return;
+				}
+				
+				text = text.replaceAll("%1", String.valueOf(lConnectedPeers));
+				text = text.replaceAll("%2", String.valueOf(totalPeers));
+				
 			}else{
-				cell.setText("");
+				text	 = "";
+				value	= -1;
+				
+				if (!cell.setSortValue(value) && cell.isValid()){
+					return;
+				}
 			}
+			
+			cell.setText( text );
 		}
 
 		public void cellHover(TableCell cell) {

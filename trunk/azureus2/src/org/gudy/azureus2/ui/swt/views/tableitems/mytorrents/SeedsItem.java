@@ -234,24 +234,31 @@ public class SeedsItem
 			if (lTotalPeers > 0)
 				value += lTotalPeers;
 
-			if (!cell.setSortValue(value) && cell.isValid())
-				return;
-
+			String text;
+			
 			if ( dm != null ){
 				boolean bCompleteTorrent = dm.getAssumedComplete();
 				
 				int state = dm.getState();
 				boolean started = (state == DownloadManager.STATE_SEEDING || state == DownloadManager.STATE_DOWNLOADING);
 				boolean hasScrape = lTotalSeeds >= 0;
-				String tmp;
 				
 				if (started) {
-					tmp = hasScrape ? (lConnectedSeeds > lTotalSeeds ? textStartedOver
+					text = hasScrape ? (lConnectedSeeds > lTotalSeeds ? textStartedOver
 							: textStarted) : textStartedNoScrape;
 				} else {
-					tmp = hasScrape ? textNotStarted : textNotStartedNoScrape;
+					text = hasScrape ? textNotStarted : textNotStartedNoScrape;
 				}
-				tmp = tmp.replaceAll("%1", String.valueOf(lConnectedSeeds));
+				
+				if ( text.length() == 0 ){
+					value = -1;
+				}
+				if (!cell.setSortValue(value) && cell.isValid()){
+					// we have an accurate value now, bail if no change
+					return;
+				}
+				
+				text = text.replaceAll("%1", String.valueOf(lConnectedSeeds));
 				String param2 = "?";
 				if (lTotalSeeds != -1) {
 					param2 = String.valueOf(lTotalSeeds);
@@ -263,11 +270,17 @@ public class SeedsItem
 						}
 					}
 				}
-				tmp = tmp.replaceAll("%2", param2);
-				cell.setText(tmp);
+				text = text.replaceAll("%2", param2);
 			}else{
-				cell.setText("");
+				text	 = "";
+				value	= -1;
+				
+				if (!cell.setSortValue(value) && cell.isValid()){
+					return;
+				}
 			}
+						
+			cell.setText( text );
 		}
 
 		public void cellHover(TableCell cell) {
