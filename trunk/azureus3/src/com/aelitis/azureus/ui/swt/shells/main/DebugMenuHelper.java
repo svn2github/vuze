@@ -19,6 +19,9 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.ImageTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.*;
@@ -312,6 +315,10 @@ public class DebugMenuHelper
 							shell2.setSize(size);
 							shell2.setBackgroundImage(image);
 							shell2.open();
+							
+							new Clipboard(display).setContents(new Object[] {
+								image.getImageData()
+							}, new Transfer[] { ImageTransfer.getInstance() });
 						}
 
 					} catch (Exception e) {
