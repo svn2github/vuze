@@ -815,7 +815,7 @@ public class MyTorrentsView
 	 */
 	private void buildCatAndTag(List<Tag> tags) {
 		
-		if (tags.size() == 0) {
+		if (tags.size() == 0 || cCategoriesAndTags.isDisposed()){
 			return;
 		}
 		
