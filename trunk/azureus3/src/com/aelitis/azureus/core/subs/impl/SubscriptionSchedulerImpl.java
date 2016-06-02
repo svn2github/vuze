@@ -464,7 +464,7 @@ SubscriptionSchedulerImpl
 									
 									boolean auto_start = manager.shouldAutoStart( torrent );
 									
-									manager.addPrepareTrigger( hash, new Subscription[]{ subs });
+									manager.addPrepareTrigger( hash, new Subscription[]{ subs }, new SubscriptionResult[]{ result } );
 									
 									try{
 										if ( auto_start && !stop_override ){
@@ -484,7 +484,7 @@ SubscriptionSchedulerImpl
 
 										// maybe remove this as should be actioned in the trigger?
 									
-									manager.prepareDownload(download, new Subscription[]{ subs });
+									manager.prepareDownload(download, new Subscription[]{ subs }, new SubscriptionResult[]{ result });
 									
 									subs.addAssociation( hash );
 									

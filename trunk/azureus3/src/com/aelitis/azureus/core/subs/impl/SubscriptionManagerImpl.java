@@ -261,9 +261,9 @@ SubscriptionManagerImpl
 	
 	private SubscriptionSchedulerImpl	scheduler;
 	
-	private List<Object[]>						potential_associations	= new ArrayList<Object[]>();
-	private Map<HashWrapper,Object[]>			potential_associations2	= new HashMap<HashWrapper,Object[]>();
-	private Map<HashWrapper,Subscription[]>		potential_associations3	= new HashMap<HashWrapper,Subscription[]>();
+	private List<Object[]>					potential_associations	= new ArrayList<Object[]>();
+	private Map<HashWrapper,Object[]>		potential_associations2	= new HashMap<HashWrapper,Object[]>();
+	private Map<HashWrapper,Object[]>		potential_associations3	= new HashMap<HashWrapper,Object[]>();
 	
 	private boolean					meta_search_listener_added;
 	
@@ -517,20 +517,22 @@ SubscriptionManagerImpl
 								
 								SubscriptionImpl[] subs = (SubscriptionImpl[])entry[0];
 																
-								prepareDownload( download, subs );
+								prepareDownload( download, subs, null );
 								
 							}else{
-								
-								Subscription[] subs;
-								
-								synchronized( potential_associations2 ){
+																
+								synchronized( potential_associations3 ){
 									
-									subs = potential_associations3.get( hw );
+									entry = potential_associations3.get( hw );
 								}
 								
-								if ( subs != null ){
+								if ( entry != null ){
 									
-									prepareDownload( download, subs );
+									Subscription[] subs = (Subscription[])entry[0];
+
+									SubscriptionResult[] results = (SubscriptionResult[])entry[1];
+									
+									prepareDownload( download, subs, results );
 								}
 							}
 						}
@@ -4664,12 +4666,13 @@ SubscriptionManagerImpl
 	
 	protected void
 	addPrepareTrigger(
-		byte[]				hash,
-		Subscription[]		subs )
+		byte[]					hash,
+		Subscription[]			subs,
+		SubscriptionResult[]	results )
 	{
 		synchronized( potential_associations3 ){
 			
-			potential_associations3.put( new HashWrapper( hash ), subs );
+			potential_associations3.put( new HashWrapper( hash ), new Object[]{ subs, results } );
 		}
 	}
 	
@@ -4686,12 +4689,38 @@ SubscriptionManagerImpl
 	protected void
 	prepareDownload(
 		Download 				download, 
-		Subscription[]			subscriptions )
+		Subscription[]			subscriptions,
+		SubscriptionResult[]	results )
 	{		
 		try{			
 			if ( subscriptions.length > 0 ){
 				
 				Subscription subs = subscriptions[0];	// deal with first only for cat/tag/nets as will always be just one when called from downloadAdded
+				
+				if ( results != null && results.length > 0 ){
+					
+					try{
+						SubscriptionResult result = results[0];
+						
+						Map<Integer,Object> props = result.toPropertyMap();
+						
+						Long	leechers 	= (Long)props.get( SearchResult.PR_LEECHER_COUNT );
+						Long	seeds 		= (Long)props.get( SearchResult.PR_SEED_COUNT );
+						
+						if ( leechers != null && seeds != null && leechers >= 0 && seeds >= 0 ){
+							
+							org.gudy.azureus2.core3.download.DownloadManager core_dm = PluginCoreUtils.unwrap( download );
+							
+							DownloadManagerState state = core_dm.getDownloadState();
+	
+							long cache = ((seeds&0x00ffffffL)<<32)|(leechers&0x00ffffffL);
+							
+							state.setLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE, cache );
+						}
+					}catch( Throwable e ){
+						
+					}
+				}
 				
 				String	category = subs.getCategory();
 				

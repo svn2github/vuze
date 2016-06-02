@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -271,6 +272,15 @@ public class PeersItem extends CoreTableColumnSWT implements
 					sToolTip += "\n"
 							+ MessageText.getString("PeerColumn.activationCount",
 									new String[] { "" + activationCount });
+				}
+				
+				long cache = dm.getDownloadState().getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
+				
+				if ( cache != -1 ){
+					
+					int leechers 	= (int)(cache&0x00ffffff);
+					
+					sToolTip += "\n" + leechers + " " + MessageText.getString( "Scrape.status.cached" ).toLowerCase( Locale.US );
 				}
 				
 				int[] i2p_info = (int[])dm.getUserData( DHTTrackerPlugin.DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY );
