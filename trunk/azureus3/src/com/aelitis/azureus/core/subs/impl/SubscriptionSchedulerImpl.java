@@ -448,6 +448,8 @@ SubscriptionSchedulerImpl
 										
 									}
 									
+									byte[] hash = torrent.getHash();
+									
 									// PlatformTorrentUtils.setContentTitle(torrent, torr );
 							
 									DownloadManager dm = PluginInitializer.getDefaultInterface().getDownloadManager();
@@ -462,20 +464,29 @@ SubscriptionSchedulerImpl
 									
 									boolean auto_start = manager.shouldAutoStart( torrent );
 									
-									if ( auto_start && !stop_override ){
+									manager.addPrepareTrigger( hash, new Subscription[]{ subs });
 									
-										download = dm.addDownload( torrent );
+									try{
+										if ( auto_start && !stop_override ){
 										
-									}else{
-									
-										download = dm.addDownloadStopped( torrent, null, null );
+											download = dm.addDownload( torrent );
+											
+										}else{
+										
+											download = dm.addDownloadStopped( torrent, null, null );
+										}
+									}finally{
+										
+										manager.removePrepareTrigger( hash );
 									}
 									
 									log( subs.getName() + ": added download " + download.getName()+ ": auto-start=" + auto_start );
 
+										// maybe remove this as should be actioned in the trigger?
+									
 									manager.prepareDownload(download, new Subscription[]{ subs });
 									
-									subs.addAssociation( torrent.getHash());
+									subs.addAssociation( hash );
 									
 									if ( auto_start && stop_override ){
 										

@@ -261,8 +261,9 @@ SubscriptionManagerImpl
 	
 	private SubscriptionSchedulerImpl	scheduler;
 	
-	private List<Object[]>				potential_associations	= new ArrayList<Object[]>();
-	private Map<HashWrapper,Object[]>	potential_associations2	= new HashMap<HashWrapper,Object[]>();
+	private List<Object[]>						potential_associations	= new ArrayList<Object[]>();
+	private Map<HashWrapper,Object[]>			potential_associations2	= new HashMap<HashWrapper,Object[]>();
+	private Map<HashWrapper,Subscription[]>		potential_associations3	= new HashMap<HashWrapper,Subscription[]>();
 	
 	private boolean					meta_search_listener_added;
 	
@@ -503,11 +504,13 @@ SubscriptionManagerImpl
 							
 							byte[]	hash = torrent.getHash();
 							
+							HashWrapper hw = new HashWrapper( hash );
+							
 							Object[] entry;
 							
 							synchronized( potential_associations2 ){
 								
-								entry = (Object[])potential_associations2.get( new HashWrapper( hash ));
+								entry = (Object[])potential_associations2.get( hw );
 							}
 							
 							if ( entry != null ){
@@ -515,6 +518,20 @@ SubscriptionManagerImpl
 								SubscriptionImpl[] subs = (SubscriptionImpl[])entry[0];
 																
 								prepareDownload( download, subs );
+								
+							}else{
+								
+								Subscription[] subs;
+								
+								synchronized( potential_associations2 ){
+									
+									subs = potential_associations3.get( hw );
+								}
+								
+								if ( subs != null ){
+									
+									prepareDownload( download, subs );
+								}
 							}
 						}
 					}
@@ -4642,6 +4659,27 @@ SubscriptionManagerImpl
 		}else{
 			
 			log( "Deferring association for " + ByteFormatter.encodeString( association_hash ));
+		}
+	}
+	
+	protected void
+	addPrepareTrigger(
+		byte[]				hash,
+		Subscription[]		subs )
+	{
+		synchronized( potential_associations3 ){
+			
+			potential_associations3.put( new HashWrapper( hash ), subs );
+		}
+	}
+	
+	protected void
+	removePrepareTrigger(
+		byte[]				hash )
+	{
+		synchronized( potential_associations3 ){
+			
+			potential_associations3.remove( new HashWrapper( hash ));
 		}
 	}
 	
