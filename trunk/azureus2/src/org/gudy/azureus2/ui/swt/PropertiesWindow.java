@@ -19,6 +19,9 @@
 
 package org.gudy.azureus2.ui.swt;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlAdapter;
@@ -27,7 +30,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -37,6 +39,8 @@ public class
 PropertiesWindow 
 {
 	private final Shell		shell;
+	
+	private Map<String,BufferedLabel>	field_map = new HashMap<String, BufferedLabel>();
 	
 	public 
 	PropertiesWindow(
@@ -131,6 +135,8 @@ PropertiesWindow
 		    gridData = new GridData(GridData.FILL_HORIZONTAL);
 		    gridData.horizontalIndent = 6;
 		    Utils.setLayoutData(val_label, gridData);
+		    
+		    field_map.put( key, val_label );
 	    }
 
 			// separator
@@ -179,17 +185,17 @@ PropertiesWindow
 		});
 	
 	 	if (!Utils.linkShellMetricsToConfig(shell, "PropWin")) {
-  	 	int	shell_width = 400;
-  	 	
-  	 	int	main_height = main.computeSize(shell_width, SWT.DEFAULT).y;
-  	 	
-  	 	main_height = Math.max( main_height, 250 );
-  	 	
-  	 	main_height = Math.min( main_height, 500 );
-  
-  	 	int shell_height = main_height + 50;
-  	 		
-  	 	shell.setSize( shell_width, shell_height );
+	  	 	int	shell_width = 400;
+	  	 	
+	  	 	int	main_height = main.computeSize(shell_width, SWT.DEFAULT).y;
+	  	 	
+	  	 	main_height = Math.max( main_height, 250 );
+	  	 	
+	  	 	main_height = Math.min( main_height, 500 );
+	  
+	  	 	int shell_height = main_height + 50;
+	  	 		
+	  	 	shell.setSize( shell_width, shell_height );
 	 	}
 
 		Utils.centreWindow( shell );
@@ -197,6 +203,26 @@ PropertiesWindow
 		shell.open();   
 	}      
 
+	public void
+	updateProperty(
+		final String		key,
+		final String		value )
+	{
+		Utils.execSWTThread(
+			new Runnable() {
+				
+				public void run() {
+				
+					BufferedLabel label = field_map.get( key );
+					
+					if ( label != null && !label.isDisposed()){
+						
+						label.setText( value );
+					}
+				}
+			});
+	}
+	
 	protected void
 	close()
 	{

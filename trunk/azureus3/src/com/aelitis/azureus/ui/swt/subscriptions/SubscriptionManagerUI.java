@@ -2432,14 +2432,39 @@ SubscriptionManagerUI
 				String.valueOf( subs.getAssociationCount()),
 				String.valueOf( subs.getVersion()),
 				subs.getHighestVersion() > subs.getVersion()?String.valueOf( subs.getHighestVersion()):null,
-				subs.getCachedPopularity()<=1?null:String.valueOf( subs.getCachedPopularity()),
+				subs.getCachedPopularity()<=1?"-":String.valueOf( subs.getCachedPopularity()),
 				engine_str + ", sid=" + subs.getID(),
 				auth_str,
 				category_str,
 				tag_str,
 			};
 		
-		new PropertiesWindow( subs.getName(), keys, values );
+		final PropertiesWindow pw = new PropertiesWindow( subs.getName(), keys, values );
+		
+		try{
+			// kick off a popularity update
+		
+			subs.getPopularity(
+				new SubscriptionPopularityListener()
+				{
+					public void
+					gotPopularity(
+						long						popularity )
+					{
+						pw.updateProperty(
+							"subscriptions.listwindow.popularity",
+							String.valueOf( popularity ));
+					}
+					
+					public void
+					failed(
+						SubscriptionException		error )
+					{
+					}
+				});
+			
+		}catch( Throwable e ){
+		}
 	}
 
 	private static String
