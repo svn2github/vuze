@@ -251,7 +251,17 @@ public class SeedsItem
 				}
 				
 				if ( text.length() == 0 ){
-					value = -1;
+					
+					value = Integer.MIN_VALUE;
+					
+					long cache = dm.getDownloadState().getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
+					
+					if ( cache != -1 ){
+						
+						int seeds 		= (int)((cache>>32)&0x00ffffff);
+
+						value += seeds+1;
+					}
 				}
 				if (!cell.setSortValue(value) && cell.isValid()){
 					// we have an accurate value now, bail if no change
@@ -273,7 +283,7 @@ public class SeedsItem
 				text = text.replaceAll("%2", param2);
 			}else{
 				text	 = "";
-				value	= -1;
+				value	= Integer.MIN_VALUE;
 				
 				if (!cell.setSortValue(value) && cell.isValid()){
 					return;
@@ -320,7 +330,9 @@ public class SeedsItem
 					
 					int seeds 		= (int)((cache>>32)&0x00ffffff);
 					
-					sToolTip += "\n" + seeds + " " + MessageText.getString( "Scrape.status.cached" ).toLowerCase( Locale.US );
+					if ( seeds != lTotalSeeds ){
+						sToolTip += "\n" + seeds + " " + MessageText.getString( "Scrape.status.cached" ).toLowerCase( Locale.US );
+					}
 				}
 
 				int[] i2p_info = (int[])dm.getUserData( DHTTrackerPlugin.DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY );

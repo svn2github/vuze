@@ -239,8 +239,19 @@ public class PeersItem extends CoreTableColumnSWT implements
 				}
 				
 				if ( text.length() == 0 ){
-					value = -1;
-				}
+					if ( text.length() == 0 ){
+						
+						value = Integer.MIN_VALUE;
+						
+						long cache = dm.getDownloadState().getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
+						
+						if ( cache != -1 ){
+							
+							int leechers 	= (int)(cache&0x00ffffff);
+
+							value += leechers+1;
+						}
+					}				}
 				if (!cell.setSortValue(value) && cell.isValid()){
 					// we have an accurate value now, bail if no change
 					return;
@@ -250,8 +261,8 @@ public class PeersItem extends CoreTableColumnSWT implements
 				text = text.replaceAll("%2", String.valueOf(totalPeers));
 				
 			}else{
-				text	 = "";
-				value	= -1;
+				text	= "";
+				value	= Integer.MIN_VALUE;
 				
 				if (!cell.setSortValue(value) && cell.isValid()){
 					return;
@@ -293,8 +304,10 @@ public class PeersItem extends CoreTableColumnSWT implements
 				if ( cache != -1 ){
 					
 					int leechers 	= (int)(cache&0x00ffffff);
-					
-					sToolTip += "\n" + leechers + " " + MessageText.getString( "Scrape.status.cached" ).toLowerCase( Locale.US );
+				
+					if ( leechers != lTotalPeers ){
+						sToolTip += "\n" + leechers + " " + MessageText.getString( "Scrape.status.cached" ).toLowerCase( Locale.US );
+					}
 				}
 				
 				int[] i2p_info = (int[])dm.getUserData( DHTTrackerPlugin.DOWNLOAD_USER_DATA_I2P_SCRAPE_KEY );
