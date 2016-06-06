@@ -1695,30 +1695,33 @@ BuddyPluginViewBetaChat
 										
 										String query = url.getQuery();
 										
-										String[] bits = query.split( "&" );
-										
-										int seeds 		= -1;
-										int leechers	= -1;
-										
-										for ( String bit: bits ){
+										if ( query != null ){
 											
-											String[] temp = bit.split( "=" );
+											String[] bits = query.split( "&" );
 											
-											String lhs = temp[0];
+											int seeds 		= -1;
+											int leechers	= -1;
 											
-											if ( lhs.equals( "_s" )){
+											for ( String bit: bits ){
 												
-												seeds = Integer.parseInt( temp[1] );
+												String[] temp = bit.split( "=" );
 												
-											}else if ( lhs.equals( "_l" )){
+												String lhs = temp[0];
 												
-												leechers = Integer.parseInt( temp[1] );
+												if ( lhs.equals( "_s" )){
+													
+													seeds = Integer.parseInt( temp[1] );
+													
+												}else if ( lhs.equals( "_l" )){
+													
+													leechers = Integer.parseInt( temp[1] );
+												}
 											}
-										}
-										
-										if ( seeds != -1 && leechers != -1){
 											
-											tt_extra = ": seeds=" + seeds +", leechers=" + leechers;
+											if ( seeds != -1 && leechers != -1){
+												
+												tt_extra = ": seeds=" + seeds +", leechers=" + leechers;
+											}
 										}
 									}catch( Throwable f ){
 									}
