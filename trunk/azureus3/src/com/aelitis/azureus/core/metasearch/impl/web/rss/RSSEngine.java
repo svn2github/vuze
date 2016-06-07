@@ -583,11 +583,11 @@ RSSEngine
 								}catch( Throwable e ){
 									
 								}
-							}else if( lc_child_name.equals( "infoHash" )){
+							}else if( lc_child_name.equals( "infohash" )){
 
 								item_hash = value;
 								
-							}else if( lc_child_name.equals( "magnetURI" )){
+							}else if( lc_child_name.equals( "magneturi" )){
 
 								item_magnet = value;
 							}
