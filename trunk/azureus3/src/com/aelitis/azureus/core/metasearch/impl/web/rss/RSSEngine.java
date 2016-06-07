@@ -346,6 +346,11 @@ RSSEngine
 					
 					boolean got_seeds_peers = false;
 					
+					int	item_seeds		= -1;
+					int item_peers		= -1;
+					String item_hash	= null;
+					String item_magnet	= null;
+					
 					SimpleXMLParserDocumentNode node = item.getNode();
 					
 					if ( node != null ){
@@ -375,7 +380,7 @@ RSSEngine
 							String	lc_child_name 		= child.getName().toLowerCase();
 							String	lc_full_child_name 	= child.getFullName().toLowerCase();
 							
-							String	value = child.getValue();
+							String	value = child.getValue().trim();
 							
 							if (lc_child_name.equals( "enclosure" )){
 								
@@ -561,7 +566,42 @@ RSSEngine
 							}else if ( lc_full_child_name.equals( "vuze:assethash" )){
 
 								result.setHash( value);
+								
+							}else if( lc_child_name.equals( "seeds" )){
+								
+								try{
+									item_seeds = Integer.parseInt( value );
+									
+								}catch( Throwable e ){
+									
+								}
+							}else if( lc_child_name.equals( "peers" )){
+								
+								try{
+									item_peers = Integer.parseInt( value );
+									
+								}catch( Throwable e ){
+									
+								}
+							}else if( lc_child_name.equals( "infoHash" )){
+
+								item_hash = value;
+								
+							}else if( lc_child_name.equals( "magnetURI" )){
+
+								item_magnet = value;
 							}
+						}
+					}
+					
+					if ( !got_seeds_peers ){
+						
+						if ( item_peers >= 0 && item_seeds >= 0 ){
+							
+							result.setNbSeedsFromHTML( String.valueOf( item_seeds ));
+							result.setNbPeersFromHTML( String.valueOf( item_peers ));
+							
+							got_seeds_peers = true;
 						}
 					}
 					
@@ -710,6 +750,16 @@ RSSEngine
 					}catch( Throwable e ){
 						
 						e.printStackTrace();
+					}
+					
+					if ( item_hash != null && result.getHash() == null ){
+						
+						result.setHash( item_hash );
+					}
+					
+					if ( item_magnet != null ){
+						
+						result.setTorrentLink( item_magnet );
 					}
 					
 						// if we still have no download link see if the magnet is in the title
