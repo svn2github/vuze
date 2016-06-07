@@ -55,6 +55,8 @@ PluginEngine
 		{ SearchResult.PR_SIZE,					Engine.FIELD_SIZE },
 		{ SearchResult.PR_SUPER_SEED_COUNT,		Engine.FIELD_SUPERSEEDS },
 		{ SearchResult.PR_VOTES,				Engine.FIELD_VOTES },
+		{ SearchResult.PR_TORRENT_LINK,			Engine.FIELD_TORRENTLINK },
+		{ SearchResult.PR_HASH,					Engine.FIELD_HASH },
 	};
 		
 		

@@ -2030,6 +2030,10 @@ MetaSearchManagerImpl
 	     				
 	     				return( result.getDownloadLink());
 	     			}
+	     			case PR_TORRENT_LINK:{
+	     				
+	     				return( result.getDownloadLink());
+	     			}
 	     			case PR_PLAY_LINK:{
 	     				
 	     				return( result.getPlayLink());
