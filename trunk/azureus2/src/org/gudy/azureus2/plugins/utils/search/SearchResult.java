@@ -45,7 +45,10 @@ SearchResult
 	public static final int	PR_UID					= 20;	// String
 	public static final int	PR_HASH					= 21;	// byte[] torrent hash
 	public static final int	PR_VERSION				= 22;	// Long (-1 n/a)
-	
+	public static final int	PR_TORRENT_LINK			= 23;	// URL as String - for whatever reason, PR_DOWNLOAD_LINK will be populated with the 'download button link'
+															// from a result in preference to the 'download link' - sometimes these are different... so added this one to 
+															// always return teh 'download link'
+
 
 	
 		// if you add more properties make sure you amend the mapping in PluginEngine appropriately

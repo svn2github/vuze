@@ -389,15 +389,19 @@ SubscriptionResultImpl
 			result.put( SearchResult.PR_SIZE, Long.parseLong( size ));
 		}
 		
-		String	link = (String)map.get( "dbl" );
-		
-		if ( link == null ){
+		String	dbl_link 	= (String)map.get( "dbl" );
+		String	dl_link 	= (String)map.get( "dl" );
+
+		if ( dbl_link == null ){
 			
-			link = (String)map.get( "dl" );
+			dbl_link = dl_link;
 		}		
 		
-		if ( link != null ){
-			result.put( SearchResult.PR_DOWNLOAD_LINK, link );
+		if ( dbl_link != null ){
+			result.put( SearchResult.PR_DOWNLOAD_LINK, dbl_link );
+		}
+		if ( dl_link != null ){
+			result.put( SearchResult.PR_TORRENT_LINK, dl_link );
 		}
 		
 		String	cdp_link = (String)map.get( "cdp" );

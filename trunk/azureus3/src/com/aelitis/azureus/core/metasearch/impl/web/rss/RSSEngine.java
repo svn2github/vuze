@@ -759,7 +759,12 @@ RSSEngine
 					
 					if ( item_magnet != null ){
 						
-						result.setTorrentLink( item_magnet );
+						String existing = result.getTorrentLink();
+						
+						if ( existing == null || existing.length() == 0 ){
+						
+							result.setTorrentLink( item_magnet );
+						}
 					}
 					
 						// if we still have no download link see if the magnet is in the title

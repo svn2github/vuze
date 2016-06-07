@@ -339,6 +339,16 @@ public class WebResult extends Result {
 		this.torrentLink = UrlUtils.unescapeXML(torrentLink);
 	}
 	
+	/**
+	 * Use this internally to get the current value set for the torrent link as opposed to
+	 * getDownloadLink that messes with the result
+	 * @return
+	 */
+	
+	public String getTorrentLink(){
+		return( torrentLink );
+	}
+	
 	public void setPlayLink(String playLink) {
 		this.playLink = playLink;
 	}

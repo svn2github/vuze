@@ -143,6 +143,31 @@ public class UrlUtils
 		return( net_str );
 	}
 	
+	public static byte[]
+	extractHash(
+		String			magnet_uri )
+	{
+		magnet_uri = magnet_uri.toLowerCase( Locale.US );
+		
+		int pos = magnet_uri.indexOf( "btih:" );
+		
+		if ( pos > 0 ){
+		
+			magnet_uri = magnet_uri.substring( pos+5 );
+			
+			pos = magnet_uri.indexOf( '&' );
+			
+			if ( pos != -1 ){
+			
+				magnet_uri = magnet_uri.substring( 0, pos );
+			}
+			
+			return( decodeSHA1Hash( magnet_uri ));
+		}
+		
+		return( null );
+	}
+	
 	public static Set<String>
 	extractNetworks(
 		String[]		magnet_uri )

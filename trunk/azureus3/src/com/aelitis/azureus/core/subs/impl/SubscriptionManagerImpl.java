@@ -4543,6 +4543,66 @@ SubscriptionManagerImpl
 					break;
 				}
 			}
+			
+			if ( subs == null ){
+				
+					// try again, this time by hash in case the initial download failed and was
+					// auto-convereted to a magnet download attempt
+				
+				it = potential_associations.iterator();
+				
+				while( it.hasNext()){
+					
+					Object[]	entry = it.next();
+											
+					SubscriptionImpl 	subs_temp		= (SubscriptionImpl)entry[0];
+					String				result_id_temp	= (String)entry[1];
+					
+					SubscriptionResult result = subs_temp.getHistory().getResult( result_id_temp );
+					
+					if ( result != null ){
+						
+						Map<Integer,Object>	props = result.toPropertyMap();
+						
+						byte[] result_hash = (byte[])props.get( SearchResult.PR_HASH );
+						
+						if ( result_hash == null ){
+							
+							String url = (String)props.get( SearchResult.PR_TORRENT_LINK );
+							
+							if ( url != null ){
+								
+								String lc_url = url.toLowerCase( Locale.US );
+							
+								if ( lc_url.startsWith( "http" )){
+  	  							
+									String alt_url = UrlUtils.parseTextForURL( url.substring( 5 ), true );
+									
+									if ( key.startsWith( alt_url )){
+										
+										result_hash = hash;	// force match below
+									}
+								}else if ( lc_url.startsWith( "magnet" )){
+									
+									result_hash = UrlUtils.extractHash( lc_url );
+								}
+  							}
+						}
+						
+						if ( result_hash != null && Arrays.equals( result_hash, hash )){
+							
+							subs		= subs_temp;
+							result_id	= result_id_temp;
+							
+							log( "    hash matched to subscription " + subs.getName() + "/" + result_id);
+
+							it.remove();
+							
+							break;
+						}
+					}
+				}
+			}
 		}
 		
 		if ( subs == null ){
