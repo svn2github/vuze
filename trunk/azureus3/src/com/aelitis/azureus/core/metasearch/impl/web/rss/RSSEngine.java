@@ -583,7 +583,7 @@ RSSEngine
 								}catch( Throwable e ){
 									
 								}
-							}else if( lc_child_name.equals( "infohash" )){
+							}else if( lc_child_name.equals( "infohash" ) || lc_child_name.equals( "info_hash" )){
 
 								item_hash = value;
 								
