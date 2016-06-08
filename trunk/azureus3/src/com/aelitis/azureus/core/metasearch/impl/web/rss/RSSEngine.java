@@ -567,7 +567,7 @@ RSSEngine
 
 								result.setHash( value);
 								
-							}else if( lc_child_name.equals( "seeds" )){
+							}else if( lc_child_name.equals( "seeds" ) || lc_child_name.equals( "seeders" )){
 								
 								try{
 									item_seeds = Integer.parseInt( value );
@@ -575,7 +575,7 @@ RSSEngine
 								}catch( Throwable e ){
 									
 								}
-							}else if( lc_child_name.equals( "peers" )){
+							}else if( lc_child_name.equals( "peers" ) || lc_child_name.equals( "leechers" )){
 								
 								try{
 									item_peers = Integer.parseInt( value );
