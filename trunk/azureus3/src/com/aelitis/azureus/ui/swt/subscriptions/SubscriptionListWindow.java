@@ -362,46 +362,47 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		if( ! (subscriptions.length > 0) ) {
 			failed(hash, null);
 		} else {
-			subscriptionItems = new SubscriptionItemModel[subscriptions.length];
-			for(int i = 0 ; i < subscriptions.length ; i++) {
-				final SubscriptionItemModel subscriptionItem = new SubscriptionItemModel();
-				subscriptionItems[i] = subscriptionItem;
-				subscriptionItem.name = subscriptions[i].getName();
-				subscriptionItem.popularity = -1;
-				subscriptionItem.popularityDisplay = MessageText.getString("subscriptions.listwindow.popularity.reading");
-				subscriptionItem.subscription = subscriptions[i];
-				
-				try {
-				subscriptions[i].getPopularity(
-						new SubscriptionPopularityListener()
-						{
-							public void
-							gotPopularity(
-								long		popularity )
-							{
-								update(subscriptionItem,popularity, popularity + "" );
-							}
-							
-							public void
-							failed(
-								SubscriptionException		error )
-							{
-								update(subscriptionItem,-2,MessageText.getString("subscriptions.listwindow.popularity.unknown"));
-							}
-							
-							
-						});
-				} catch(SubscriptionException e) {
-					
-					update(subscriptionItem,-2,MessageText.getString("subscriptions.listwindow.popularity.unknown"));
-				
-				}
-				
-			}
 			
 			if(display != null && !display.isDisposed()) {
 				display.asyncExec(new Runnable() {
 					public void run() {
+						subscriptionItems = new SubscriptionItemModel[subscriptions.length];
+						for(int i = 0 ; i < subscriptions.length ; i++) {
+							final SubscriptionItemModel subscriptionItem = new SubscriptionItemModel();
+							subscriptionItems[i] = subscriptionItem;
+							subscriptionItem.name = subscriptions[i].getName();
+							subscriptionItem.popularity = -1;
+							subscriptionItem.popularityDisplay = MessageText.getString("subscriptions.listwindow.popularity.reading");
+							subscriptionItem.subscription = subscriptions[i];
+							
+							try {
+							subscriptions[i].getPopularity(
+									new SubscriptionPopularityListener()
+									{
+										public void
+										gotPopularity(
+											long		popularity )
+										{
+											update(subscriptionItem,popularity, popularity + "" );
+										}
+										
+										public void
+										failed(
+											SubscriptionException		error )
+										{
+											update(subscriptionItem,-2,MessageText.getString("subscriptions.listwindow.popularity.unknown"));
+										}
+										
+										
+									});
+							} catch(SubscriptionException e) {
+								
+								update(subscriptionItem,-2,MessageText.getString("subscriptions.listwindow.popularity.unknown"));
+							
+							}
+							
+						}
+						
 						animatedImage.stop();
 
 						mainLayout.topControl = listPanel;
@@ -436,15 +437,15 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		final long		popularity,
 		final String	text )
 	{
-		subscriptionItem.popularity = popularity;
-		subscriptionItem.popularityDisplay = text;
-	
 		display.asyncExec(
 			new Runnable()
 			{
 				public void
 				run()
 				{
+					subscriptionItem.popularity = popularity;
+					subscriptionItem.popularityDisplay = text;
+				
 					sortAndRefresh();
 				}
 			});
