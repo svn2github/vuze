@@ -64,6 +64,7 @@ DownloadManagerState
 	public static final String AT_TIME_STOPPED				= "timestopped";
 	public static final String AT_INCOMP_FILE_SUFFIX		= "incompfilesuffix";
 	public static final String AT_SCRAPE_CACHE				= "scrapecache";	// long value, seeds in upper word, leechers in lower
+	public static final String AT_SCRAPE_CACHE_SOURCE		= "scsrc";			// int value - 0=tracker; 1=subscription etc
 	public static final String AT_REORDER_MIN_MB			= "reordermb";
 	public static final String AT_MD_INFO_DICT_SIZE			= "mdinfodictsize";
 	public static final String AT_FILE_OTHER_HASHES			= "fileotherhashes";
@@ -84,6 +85,7 @@ DownloadManagerState
 		{ AT_TIME_SINCE_UPLOAD,						new Integer( -1 )},
 		{ AT_AVAIL_BAD_TIME,						new Long( -1 )},
 		{ AT_SCRAPE_CACHE,							new Long( -1 )},
+		{ AT_SCRAPE_CACHE_SOURCE,					new Integer( 0 )},
 		{ AT_REORDER_MIN_MB,						new Integer( -1 )},
 		{ AT_SHARE_RATIO_PROGRESS,					new Long( 0 )},
 	};

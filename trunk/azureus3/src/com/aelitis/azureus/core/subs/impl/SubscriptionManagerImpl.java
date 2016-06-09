@@ -4775,6 +4775,7 @@ SubscriptionManagerImpl
 	
 							long cache = ((seeds&0x00ffffffL)<<32)|(leechers&0x00ffffffL);
 							
+							state.setLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE_SOURCE, 1 );
 							state.setLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE, cache );
 						}
 					}catch( Throwable e ){

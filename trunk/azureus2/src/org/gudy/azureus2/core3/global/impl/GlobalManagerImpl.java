@@ -642,10 +642,19 @@ public class GlobalManagerImpl
 					
 				}else{
 					
-					int seeds 		= (int)((cache>>32)&0x00ffffff);
-					int leechers 	= (int)(cache&0x00ffffff);
-					
-					return( new int[]{ seeds, leechers });
+					int cache_src = dm.getDownloadState().getIntAttribute( DownloadManagerState.AT_SCRAPE_CACHE_SOURCE );
+
+					if ( cache_src == 0  ){
+						
+						int seeds 		= (int)((cache>>32)&0x00ffffff);
+						int leechers 	= (int)(cache&0x00ffffff);
+						
+						return( new int[]{ seeds, leechers });
+						
+					}else{
+						
+						return( null );
+					}
 				}
     		}
     		
