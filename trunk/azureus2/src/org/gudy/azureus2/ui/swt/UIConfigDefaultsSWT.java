@@ -95,6 +95,8 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Status Area Show NAT", true);
 		def.addParameter("Status Area Show DDB", true);
 		def.addParameter("Status Area Show IPF", true);
+		def.addParameter("Status Area Show RIP", true);
+
 		def.addParameter("status.rategraphs", Utils.getUserMode() > 0);
 		
 		def.addParameter("GUI_SWT_share_count_at_close", 0 );

@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -35,7 +36,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -57,12 +57,10 @@ import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.update.UpdateException;
 import org.gudy.azureus2.plugins.update.UpdateInstaller;
 import org.gudy.azureus2.plugins.update.UpdateInstallerListener;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 public class ConfigSectionLogging implements UISWTConfigSection {
   private static final LogIDs LOGID = LogIDs.GUI;
@@ -356,15 +354,23 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 					}
 
 					if ( key.length() > 0 ){
-												
-						key = "adv.setting." + key;
+							
+						if ( key.startsWith( "!" )){
+							key = key.substring( 1 );
+						}else{
+							key = "adv.setting." + key;
+						}
 						
 						String val = value.getValue().trim();
+						
+						boolean	is_string = false;
 						
 						if (	( val.startsWith( "'") && val.endsWith( "'" )) || 
 								( val.startsWith( "\"") && val.endsWith( "\"" ))){
 							
 							val = val.substring( 1, val.length() - 1 );
+							
+							is_string = true;
 						}
 						
 						if ( val.length() == 0 ){
@@ -373,7 +379,22 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 							
 						}else{
 							
-							COConfigurationManager.setParameter( key, val );
+							if ( is_string ){
+								COConfigurationManager.setParameter( key, val );
+							}else{
+								String lc_val = val.toLowerCase( Locale.US );
+								
+								if ( lc_val.equals( "false" ) || lc_val.equals( "true" )){
+									COConfigurationManager.setParameter( key, lc_val.startsWith( "t" ));
+								}else{
+									try{
+										long l = Long.parseLong(val);
+										COConfigurationManager.setParameter( key, l );
+									}catch( Throwable e ){
+										COConfigurationManager.setParameter( key, val );
+									}
+								}
+							}
 						}
 						
 						COConfigurationManager.save();

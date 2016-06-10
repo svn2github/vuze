@@ -960,18 +960,27 @@ public class MainStatusBar
 
 	private void addRIP() {
 
+		if ( !COConfigurationManager.getBooleanParameter( "Status Area Show RIP" )){
+			
+			return;
+		}
+		
 		createStatusEntry(new CLabelUpdater() {
 			public boolean update(CLabelPadding label) {
 				return( false );
 			}
 
-			public void created(CLabelPadding feedback) {
+			public void created(final CLabelPadding feedback) {
 				feedback.setText(MessageText.getString("respect.ip"));
 				
 				final String	url_str = MessageText.getString( "respect.ip.url" );
 				
 				Listener feedback_listener = new Listener() {
 					public void handleEvent(Event e) {
+						
+						if ( e.type == SWT.MouseUp && e.button != 1 ){
+							return;
+						}
 						
 						try{
 							Utils.launch( new URL( url_str ));
@@ -984,7 +993,34 @@ public class MainStatusBar
 				};
 				
 				feedback.setData( url_str );
-				ClipboardCopy.addCopyToClipMenu( feedback );
+				
+				Menu menu = new Menu(feedback.getShell(),SWT.POP_UP);
+				
+				feedback.setMenu( menu );
+				
+				MenuItem   item = new MenuItem( menu, SWT.NONE );
+
+				item.setText( MessageText.getString( "sharing.progress.hide" ));
+
+				item.addSelectionListener(
+					new SelectionAdapter()
+					{
+						public void 
+						widgetSelected(
+							SelectionEvent arg0 )
+						{
+							COConfigurationManager.setParameter( "Status Area Show RIP", false );
+							
+							feedback.setVisible( false );
+							
+							layoutPluginComposite();
+						}
+					});
+				
+				//new MenuItem( menu, SWT.SEPARATOR );
+				
+				ClipboardCopy.addCopyToClipMenu( menu, url_str );
+				
 				feedback.setToolTipText( url_str );
 				
 				feedback.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));

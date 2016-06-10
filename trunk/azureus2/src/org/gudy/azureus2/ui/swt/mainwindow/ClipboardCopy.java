@@ -149,6 +149,30 @@ public class ClipboardCopy {
   
   public static void
   addCopyToClipMenu(
+	final Menu		menu,
+	final String	text )
+  {
+	  MenuItem   item = new MenuItem( menu,SWT.NONE );
+
+	  String	msg_text_id= "label.copy.to.clipboard";
+	  
+	  item.setText( MessageText.getString( msg_text_id ));
+
+	  item.addSelectionListener(
+		  new SelectionAdapter()
+		  {
+			  public void 
+			  widgetSelected(
+					  SelectionEvent arg0) 
+			  {
+				  new Clipboard(menu.getDisplay()).setContents(new Object[] {text}, new Transfer[] {TextTransfer.getInstance()});
+			  }
+		  });
+  }
+  
+  
+  public static void
+  addCopyToClipMenu(
 	final Control				control )
   {
 	  addCopyToClipMenu(

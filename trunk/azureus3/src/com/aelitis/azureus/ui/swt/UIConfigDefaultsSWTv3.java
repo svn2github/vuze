@@ -136,6 +136,7 @@ public class UIConfigDefaultsSWTv3
 			defaults.addParameter("Status Area Show SR", false);
 			defaults.addParameter("Status Area Show NAT", false);
 			defaults.addParameter("Status Area Show IPF", false);
+			defaults.addParameter("Status Area Show RIP", true);
 			
 			defaults.addParameter("Message Popup Autoclose in Seconds", 10 );
 
