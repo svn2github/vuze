@@ -55,7 +55,8 @@ public class
 RSSEngine 
 	extends WebEngine 
 {
-	private Pattern seed_leecher_pat = Pattern.compile("([0-9]+)\\s+(seed|leecher)s", Pattern.CASE_INSENSITIVE);
+	private Pattern seed_leecher_pat 	= Pattern.compile("([0-9]+)\\s+(seed|leecher)s", Pattern.CASE_INSENSITIVE);
+	private Pattern size_pat 			= Pattern.compile("([0-9\\.]+)\\s+(B|KB|KiB|MB|MiB|GB|GiB|TB|TiB)", Pattern.CASE_INSENSITIVE);
 
 	public static EngineImpl
 	importFromBEncodedMap(
@@ -351,6 +352,8 @@ RSSEngine
 					String item_hash	= null;
 					String item_magnet	= null;
 					
+					String	desc_size = null;
+					
 					SimpleXMLParserDocumentNode node = item.getNode();
 					
 					if ( node != null ){
@@ -616,6 +619,10 @@ RSSEngine
 								
 									// see if we can pull from description
 								
+								desc = desc.replaceAll( "\\(s\\)", "s" );
+								
+								desc = desc.replaceAll( "seeders", "seeds" );
+								
 								Matcher m = seed_leecher_pat.matcher( desc );
 							
 								while( m.find()){
@@ -633,8 +640,14 @@ RSSEngine
 										result.setNbPeersFromHTML( num );
 									}
 								}
+								
+								m = size_pat.matcher( desc );
+								
+								if ( m.find()){
+									
+									desc_size = m.group(1) + " " + m.group(2);
+								}
 							}
-							
 						}catch( Throwable e ){
 							
 						}
@@ -796,6 +809,14 @@ RSSEngine
 						result.setTorrentLink( result.getCDPLink());
 					}
 					
+					if ( result.getSize() <= 0 ){
+						
+						if ( desc_size != null ){
+							
+							result.setSizeFromHTML( desc_size );
+							
+						}
+					}
 					results.add(result);
 					
 					if ( absolute_max_matches >= 0 && results.size() == absolute_max_matches ){
