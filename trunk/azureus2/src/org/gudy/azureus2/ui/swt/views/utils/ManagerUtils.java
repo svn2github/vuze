@@ -2305,6 +2305,8 @@ public class ManagerUtils {
 							if ( tag == null ){	
 							
 								tag = tt.createTag( tag_name, true );
+								
+								tag.setPublic( false );
 							}
 						}catch( Throwable e ){
 									
