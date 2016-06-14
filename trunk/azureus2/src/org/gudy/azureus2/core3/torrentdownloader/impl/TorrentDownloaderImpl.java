@@ -462,6 +462,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	    					try_again = true;
 	    				}
 	    				
+	    				if ( url != current_url && SESecurityManager.installServerCertificates( current_url ) != null ){
+	    					
+    							// certificate has been installed
+
+	    					try_again = true;
+	    				}
+	    				
 	    				if ( try_again ){
 	    					
 	    					continue;
