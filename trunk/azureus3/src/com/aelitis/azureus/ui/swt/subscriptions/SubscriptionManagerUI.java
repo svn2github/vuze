@@ -1585,6 +1585,25 @@ SubscriptionManagerUI
 								return( "Subscription: " + url );
 							}
 						});
+				}else{
+					
+					final String 	query_key = subs.getQueryKey();
+					
+					if ( query_key != null ){
+						
+						menuItem = menu_creator.createMenu( "label.chat");
+						
+						MenuBuildUtils.addChatMenu(
+							menu_manager, 
+							menuItem,
+							new MenuBuildUtils.ChatKeyResolver() 
+							{
+								public String getChatKey(Object object) {
+									
+									return( "Subscription: " + query_key );
+								}
+							});
+					}
 				}
 			}catch( Throwable e ){
 				

@@ -59,6 +59,9 @@ Subscription
 	getNameEx();
 	
 	public String
+	getQueryKey();
+	
+	public String
 	getID();
 	
 	public byte[]

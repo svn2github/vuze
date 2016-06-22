@@ -823,6 +823,37 @@ SubscriptionImpl
 		return( name_ex );
 	}
 	
+	public String
+	getQueryKey()
+	{
+		try{
+			Map map = JSONUtils.decodeJSON( getJSON());
+			
+			String	search_term	= (String)map.get( "search_term" );
+			Map		filters		= (Map)map.get( "filters" );
+
+			Engine engine = manager.getEngine( this, map, true );
+
+			String	name = engine.getNameEx();
+					
+			if ( search_term != null && search_term.length() > 0 ){
+				
+				name += ", query=" + search_term;
+			}
+			
+			if ( filters != null && filters.size() > 0 ){
+				
+				name += ", filters=" + new SubscriptionResultFilter(filters).getString();
+			}
+			
+			return( name );
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
+	}
+	
 	public long
 	getAddTime()
 	{
