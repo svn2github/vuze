@@ -27,6 +27,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 
 public class 
 SubscriptionUtils 
@@ -82,7 +84,38 @@ SubscriptionUtils
 		return(result.toArray( new SubscriptionDownloadDetails[result.size()]));
 	}
 	
-
+	public static String
+	getSubscriptionChatKey(
+		Subscription		subs )
+	{
+		try{
+			String key = null;
+			
+			Engine engine = subs.getEngine();
+			
+			if ( engine instanceof WebEngine ){
+				
+				WebEngine web_engine = (WebEngine)subs.getEngine();
+				
+				key = web_engine.getSearchUrl( true );
+				
+			}else{
+				
+				key = subs.getQueryKey();
+			}
+			
+			if ( key != null ){
+				
+				key = "Subscription: " + key;
+			}
+			
+			return( key );
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
+	}
 	
 	public static class
 	SubscriptionDownloadDetails

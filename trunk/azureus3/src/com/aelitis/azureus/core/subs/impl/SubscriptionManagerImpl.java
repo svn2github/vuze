@@ -2317,41 +2317,32 @@ SubscriptionManagerImpl
 						continue;
 					}
 				}
+								
+				String chat_key = SubscriptionUtils.getSubscriptionChatKey( sub );
 				
-				boolean	ok = false;
-				
-				try{
-					Engine engine = sub.getEngine();
+				if ( chat_key != null ){
+															
+					sub.setUserData( SUBS_CHAT_KEY, -1L );
 					
-					if ( engine instanceof WebEngine ){
-						
-						String url = ((WebEngine)engine).getSearchUrl( true );
-						
-						ok = true;
-						
-						sub.setUserData( SUBS_CHAT_KEY, -1L );
-						
-						BuddyPluginUtils.peekChatAsync(
-							sub.isAnonymous()?AENetworkClassifier.AT_I2P:AENetworkClassifier.AT_PUBLIC,
-							"Subscription: " + url,
-							new Runnable()
+					BuddyPluginUtils.peekChatAsync(
+						sub.isAnonymous()?AENetworkClassifier.AT_I2P:AENetworkClassifier.AT_PUBLIC,
+						chat_key,
+						new Runnable()
+						{
+							public void 
+							run() 
 							{
-								public void 
-								run() 
-								{
-									sub.setUserData( SUBS_CHAT_KEY, SystemTime.getMonotonousTime());
-								}
-							});
-							
-							// just fire off one at a time
+								sub.setUserData( SUBS_CHAT_KEY, SystemTime.getMonotonousTime());
+							}
+						});
 						
-						break;
-					}
-				}catch( Throwable e ){
+						// just fire off one at a time
 					
-				}
-
-				if ( !ok ){
+					break;
+					
+				}else{
+					
+						// prevent future checks as no chat for this subs 
 					
 					sub.setUserData( SUBS_CHAT_KEY, -2L );
 				}

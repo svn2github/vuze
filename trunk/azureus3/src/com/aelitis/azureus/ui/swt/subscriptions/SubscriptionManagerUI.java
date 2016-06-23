@@ -1564,49 +1564,22 @@ SubscriptionManagerUI
 			
 				// chat
 			
-			try{
-				Engine engine = subs.getEngine();
-							
-				if ( engine instanceof WebEngine ){
+			final String key = SubscriptionUtils.getSubscriptionChatKey( subs );
+			
+			if ( key != null ){
 					
-					WebEngine web_engine = (WebEngine)subs.getEngine();
-					
-					final String url = web_engine.getSearchUrl( true );
-					
-					menuItem = menu_creator.createMenu( "label.chat");
-					
-					MenuBuildUtils.addChatMenu(
-						menu_manager, 
-						menuItem,
-						new MenuBuildUtils.ChatKeyResolver() 
-						{
-							public String getChatKey(Object object) {
-								
-								return( "Subscription: " + url );
-							}
-						});
-				}else{
-					
-					final String 	query_key = subs.getQueryKey();
-					
-					if ( query_key != null ){
-						
-						menuItem = menu_creator.createMenu( "label.chat");
-						
-						MenuBuildUtils.addChatMenu(
-							menu_manager, 
-							menuItem,
-							new MenuBuildUtils.ChatKeyResolver() 
-							{
-								public String getChatKey(Object object) {
-									
-									return( "Subscription: " + query_key );
-								}
-							});
-					}
-				}
-			}catch( Throwable e ){
+				menuItem = menu_creator.createMenu( "label.chat");
 				
+				MenuBuildUtils.addChatMenu(
+					menu_manager, 
+					menuItem,
+					new MenuBuildUtils.ChatKeyResolver() 
+					{
+						public String getChatKey(Object object) {
+							
+							return( key );
+						}
+					});
 			}
 			
 			if ( subs.isUpdateable()){
