@@ -55,7 +55,14 @@ public class ColumnSubscriptionMaxResults
 			maxResults = sub.getHistory().getMaxNonDeletedResults();
 		}
 
-		if (!cell.setSortValue(maxResults) && cell.isValid()) {
+		if ( maxResults < 0 ){
+			
+			maxResults = SubscriptionManagerFactory.getSingleton().getMaxNonDeletedResults();
+		}
+		
+		boolean is_st = sub.isSearchTemplate();
+		
+		if (!cell.setSortValue(is_st?-1:maxResults) && cell.isValid()) {
 			return;
 		}
 
@@ -63,7 +70,7 @@ public class ColumnSubscriptionMaxResults
 			return;
 		}
 		
-		if ( sub.isSearchTemplate()){
+		if ( is_st ){
 			
 			cell.setText( "" );
 			
@@ -73,11 +80,6 @@ public class ColumnSubscriptionMaxResults
 				cell.setText(MessageText.getString( "ConfigView.unlimited" ));
 				
 			}else{
-				
-				if ( maxResults < 0 ){
-			
-					maxResults = SubscriptionManagerFactory.getSingleton().getMaxNonDeletedResults();
-				}
 				
 				cell.setText("" + maxResults);
 			}
