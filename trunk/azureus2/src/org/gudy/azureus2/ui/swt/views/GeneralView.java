@@ -346,19 +346,19 @@ public class GeneralView
     
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.seeds");
-    seeds = new BufferedLabel(gTransfer, SWT.LEFT);
+    seeds = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     Utils.setLayoutData(seeds, gridData);
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.peers"); 
-    peers = new BufferedLabel(gTransfer, SWT.LEFT);
+    peers = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     Utils.setLayoutData(peers, gridData);
     
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.completed"); 
-    completedLbl = new BufferedLabel(gTransfer, SWT.LEFT);
+    completedLbl = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     Utils.setLayoutData(completedLbl, gridData);
 
