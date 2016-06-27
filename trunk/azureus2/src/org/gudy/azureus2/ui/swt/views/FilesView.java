@@ -118,6 +118,7 @@ public class FilesView
     new FileReadSpeedItem(),
     new FileWriteSpeedItem(),
     new FileETAItem(),
+    new RelocatedItem(),
   };
   
   static{

@@ -211,6 +211,27 @@ LinkFileMap
 		return( false );
 	}
 	
+	public int
+	size()
+	{
+		int	size = 0;
+		
+		for (Entry entry: index_map.values()){
+			
+			File to_file = entry.getToFile();
+			
+			if ( to_file != null ){
+				
+				if ( !entry.getFromFile().equals( to_file )){
+					
+					size++;
+				}
+			}
+		}
+		
+		return( size );
+	}
+	
 	public Iterator<Entry>
 	entryIterator()
 	{
