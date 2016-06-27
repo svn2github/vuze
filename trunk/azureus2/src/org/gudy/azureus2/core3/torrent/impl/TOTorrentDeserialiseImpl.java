@@ -386,54 +386,73 @@ TOTorrentDeserialiseImpl
 							
 							if ( temp instanceof List ){
 								
-								List	set = (List)temp;
-									
 								Vector urls = new Vector();
-									
-								for (int j=0;j<set.size();j++){
-									
-									String url_str = readStringFromMetaData((byte[])set.get(j));
-										
-									url_str = url_str.replaceAll( " ", "" );
-	                  
-						                	//check to see if the announce url is somewhere in the announce-list
-																			
-						            try{
-						            	urls.add( new URL( StringInterner.intern(url_str) ));		
-							    
-						            	if ( url_str.equalsIgnoreCase( announce_url )) {
-						                	
-						            		announce_url_found = true;
-						            	}
+
+								List	set = (List)temp;
+																				
+								while( set.size() > 0 ){
 							
-						            }catch( MalformedURLException e ){
-										
-						            	if ( url_str.indexOf( "://" ) == -1 ){
-												
-						            		url_str = "http:/" + (url_str.startsWith("/")?"":"/") + url_str;
-						            		
-										}else if ( url_str.startsWith( "utp:" )){
-										
-												// common typo
+									Object temp2 = set.remove(0);	// seen a case where this is a list with the announce url first and then some other junk
+
+									try{										
+										if ( temp2 instanceof List ){
 											
-											url_str = "udp" + url_str.substring( 3 );
+											List junk = (List)temp2;
+											
+											if ( junk.size() > 0 ){
+												
+												set.add( junk.get(0));
+											}
+											
+											continue;
 										}
-								         
-										try{
-							           		urls.add( new URL( StringInterner.intern(url_str) ));		
-							          
-							           		if ( url_str.equalsIgnoreCase( announce_url )) {
+										
+										String url_str = readStringFromMetaData((byte[])temp2);
+											
+										url_str = url_str.replaceAll( " ", "" );
+		                  
+							                	//check to see if the announce url is somewhere in the announce-list
+																				
+							            try{
+							            	urls.add( new URL( StringInterner.intern(url_str) ));		
+								    
+							            	if ( url_str.equalsIgnoreCase( announce_url )) {
 							                	
 							            		announce_url_found = true;
 							            	}
-							       
-										}catch( MalformedURLException f ){
-					
-											Debug.out( "Invalid url: " + url_str, f );
-										} 
+								
+							            }catch( MalformedURLException e ){
+											
+							            	if ( url_str.indexOf( "://" ) == -1 ){
+													
+							            		url_str = "http:/" + (url_str.startsWith("/")?"":"/") + url_str;
+							            		
+											}else if ( url_str.startsWith( "utp:" )){
+											
+													// common typo
+												
+												url_str = "udp" + url_str.substring( 3 );
+											}
+									         
+											try{
+								           		urls.add( new URL( StringInterner.intern(url_str) ));		
+								          
+								           		if ( url_str.equalsIgnoreCase( announce_url )) {
+								                	
+								            		announce_url_found = true;
+								            	}
+								       
+											}catch( MalformedURLException f ){
+						
+												Debug.out( "Invalid url: " + url_str, f );
+											} 
+							            }
+									}catch( Throwable e ){
+									
+										Debug.out( "Torrent has invalid url-list entry (" + temp2 + ") - ignoring: meta=" + meta_data, e);
 									}
 								}
-							
+								
 								if ( urls.size() > 0 ){
 								
 									URL[]	url_array = new URL[urls.size()];
