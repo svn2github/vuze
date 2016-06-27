@@ -54,6 +54,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
+import com.aelitis.azureus.core.util.LinkFileMap;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableView;
@@ -466,81 +467,7 @@ public class FilesViewMenuUtil
 		itemRevertFiles.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				
-				final List<DownloadManager>	paused = new ArrayList<DownloadManager>();
-				
-				final 	AESemaphore task_sem = new AESemaphore("tasksem" );
-
-				final List<DiskManagerFileInfo>	affected_files = new ArrayList<DiskManagerFileInfo>();
-				
-				try{
-					for (int i = 0; i < all_files.size(); i++) {
-						
-						final DiskManagerFileInfo file_info = (DiskManagerFileInfo)all_files.get(i);
-						
-						if ( file_info == null ){
-							continue;
-						}
-						
-						
-						final File file_nolink 	= file_info.getFile( false );					
-						
-						final DownloadManager manager = file_info.getDownloadManager();
-						
-						File target = file_info.getDownloadManager().getDownloadState().getFileLink( file_info.getIndex(), file_nolink );
-						
-					   	if ( target != null ){
-				    		
-					    	if ( target != file_nolink ){
-	
-					    		if ( !target.equals( file_nolink )){
-					    			
-									if ( !paused.contains( manager )){
-										
-										if ( manager.pause()){
-											
-											paused.add( manager );
-										}
-									}
-									
-									affected_files.add( file_info );
-									
-									Utils.getOffOfSWTThread(new AERunnable() {
-										public void runSupport() {
-											moveFile(
-												manager, 
-												file_info, 
-												file_nolink, 
-												true,
-												new Runnable()
-												{
-													public void
-													run()
-													{
-														task_sem.release();													}
-												});
-										}
-									});
-					    		}
-					    	}
-				    	}
-					}
-				}finally{
-					if ( affected_files.size() > 0 ){
-						
-						Utils.getOffOfSWTThread(new AERunnable() {
-							public void runSupport() {
-								for ( int i=0;i<affected_files.size();i++){
-									task_sem.reserve();
-								}
-								for (DownloadManager manager : paused) {
-									manager.resume();
-								}
-								
-								invalidateRows( tv, affected_files );
-							}
-						});
-					}
-				}
+				revertFiles( tv, all_files );
 			}
 		});
 		
@@ -768,6 +695,8 @@ public class FilesViewMenuUtil
 			return;
 		}
 			
+		Set<TableRowCore>	done = new HashSet<TableRowCore>();
+		
 		for ( DiskManagerFileInfo file: files ){
 			
 			TableRowCore row =  tv.getRow(file);
@@ -795,7 +724,9 @@ public class FilesViewMenuUtil
 				}
 			}
 			
-			if ( row != null ){
+			if ( row != null && !done.contains( row )){
+				
+				done.add( row );
 				
 				row.invalidate( true );
 			}
@@ -1298,4 +1229,117 @@ public class FilesViewMenuUtil
 		return paused;
 	}
 
+	public static void
+	revertFiles(
+		final TableView<?>		tv,
+		DownloadManager[]		dms )
+	{
+		List<DiskManagerFileInfo>	files = new ArrayList<DiskManagerFileInfo>();
+		
+		for ( DownloadManager dm: dms ){
+			
+			DiskManagerFileInfo[] dm_files = dm.getDiskManagerFileInfoSet().getFiles();;
+			
+			LinkFileMap links = dm.getDownloadState().getFileLinks();
+			
+			Iterator<LinkFileMap.Entry>	it = links.entryIterator();
+			
+			while( it.hasNext()){
+				
+				LinkFileMap.Entry entry = it.next();
+				
+				if ( entry.getToFile() != null ){
+					
+					files.add( dm_files[ entry.getIndex()]);
+				}
+			}
+		}
+	
+		if ( files.size() > 0 ){
+			
+			revertFiles( tv, files );
+		}
+	}
+
+	public static void
+	revertFiles(
+		final TableView<?>					tv,
+		List<DiskManagerFileInfo>			files )
+	{
+		final List<DownloadManager>	paused = new ArrayList<DownloadManager>();
+		
+		final 	AESemaphore task_sem = new AESemaphore("tasksem" );
+
+		final List<DiskManagerFileInfo>	affected_files = new ArrayList<DiskManagerFileInfo>();
+		
+		try{
+			for (int i = 0; i < files.size(); i++) {
+				
+				final DiskManagerFileInfo file_info = files.get(i);
+				
+				if ( file_info == null ){
+					continue;
+				}
+				
+				
+				final File file_nolink 	= file_info.getFile( false );					
+				
+				final DownloadManager manager = file_info.getDownloadManager();
+				
+				File target = file_info.getDownloadManager().getDownloadState().getFileLink( file_info.getIndex(), file_nolink );
+				
+			   	if ( target != null ){
+		    		
+			    	if ( target != file_nolink ){
+
+			    		if ( !target.equals( file_nolink )){
+			    			
+							if ( !paused.contains( manager )){
+								
+								if ( manager.pause()){
+									
+									paused.add( manager );
+								}
+							}
+							
+							affected_files.add( file_info );
+							
+							Utils.getOffOfSWTThread(new AERunnable() {
+								public void runSupport() {
+									moveFile(
+										manager, 
+										file_info, 
+										file_nolink, 
+										true,
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												task_sem.release();													}
+										});
+								}
+							});
+			    		}
+			    	}
+		    	}
+			}
+		}finally{
+			if ( affected_files.size() > 0 ){
+				
+				Utils.getOffOfSWTThread(new AERunnable() {
+					public void runSupport() {
+						for ( int i=0;i<affected_files.size();i++){
+							task_sem.reserve();
+						}
+						for (DownloadManager manager : paused) {
+							manager.resume();
+						}
+						
+						invalidateRows( tv, affected_files );
+					}
+				});
+			}
+		}
+	}
 }

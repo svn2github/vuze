@@ -161,6 +161,7 @@ public class TorrentUtil
 		boolean	allResumeIncomplete	 = true;
 		
 		boolean	hasClearableLinks = false;
+		boolean	hasRevertableFiles = false;
 		
 		if (hasSelection) {
 			for (int i = 0; i < dms.length; i++) {
@@ -294,6 +295,11 @@ public class TorrentUtil
 							hasClearableLinks = true;
 						}
 					}
+				}
+				
+				if ( dm_state.getFileLinks().size() > 0 ){
+					
+					hasRevertableFiles = true;
 				}
 			}
 
@@ -566,6 +572,19 @@ public class TorrentUtil
 		itemFileRescan.setSelection(allScanSelected);
 		itemFileRescan.setEnabled(fileRescan);
 
+			// revert
+			
+		final MenuItem itemRevertFiles = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemRevertFiles, "MyTorrentsView.menu.revertfiles");
+		itemRevertFiles.addListener(SWT.Selection, new ListenerDMTask(dms) {
+			public void run(DownloadManager[] dms)
+			{
+				FilesViewMenuUtil.revertFiles( tv, dms );
+			}
+		});
+		
+		itemRevertFiles.setEnabled(hasRevertableFiles);
+	
 			// clear links
 		
 		final MenuItem itemClearLinks = new MenuItem(menuFiles, SWT.PUSH);

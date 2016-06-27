@@ -60,6 +60,7 @@ import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
+import org.gudy.azureus2.ui.swt.views.FilesViewMenuUtil;
 import org.gudy.azureus2.ui.swt.views.table.TableSelectedRowsListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
@@ -1236,6 +1237,7 @@ public class TorrentMenuFancy
 							boolean fileMove = true;
 							boolean allResumeIncomplete = true;
 							boolean	hasClearableLinks = false;
+							boolean hasRevertableFiles	= false;
 							
 							for (DownloadManager dm : dms) {
 								boolean stopped = ManagerUtils.isStopped(dm);
@@ -1266,6 +1268,11 @@ public class TorrentMenuFancy
 										}
 									}
 								}
+								
+								if ( dm.getDownloadState().getFileLinks().size() > 0 ){
+									
+									hasRevertableFiles = true;
+								}
 							}
 
 							boolean fileRescan = allScanSelected || allScanNotSelected;
@@ -1295,6 +1302,19 @@ public class TorrentMenuFancy
 							itemFileRescan.setSelection(allScanSelected);
 							itemFileRescan.setEnabled(fileRescan);
 
+								// revert
+							
+							final MenuItem itemRevertFiles = new MenuItem(menu, SWT.PUSH);
+							Messages.setLanguageText(itemRevertFiles, "MyTorrentsView.menu.revertfiles");
+							itemRevertFiles.addListener(SWT.Selection, new ListenerDMTask(dms) {
+								public void run(DownloadManager[] dms)
+								{
+									FilesViewMenuUtil.revertFiles( tv, dms );
+								}
+							});
+							
+							itemRevertFiles.setEnabled(hasRevertableFiles);
+							
 								// clear links
 							
 							final MenuItem itemClearLinks = new MenuItem(menu, SWT.PUSH);
