@@ -705,25 +705,28 @@ DownloadManagerImpl
 				 DownloadManagerStateAttributeListener attr_listener = 
 					 new DownloadManagerStateAttributeListener() 
 				 	 {
-					 	private boolean	links_changing;
-					 	
+					 	private ThreadLocal<Boolean>	links_changing = 
+					 			new ThreadLocal<Boolean>()
+					 			{
+					 				protected Boolean initialValue(){
+					 					return Boolean.FALSE;
+					 				}
+					 			};
+					 			
 					 	public void 
 					 	attributeEventOccurred(
 							DownloadManager dm, String attribute_name, int event_type) 
 					 	{
 					 		if (attribute_name.equals(DownloadManagerState.AT_FILE_LINKS2)){
-					 			
-					 			synchronized( this ){
-					 				
-					 				if ( links_changing ){
+					 							 				
+				 				if ( links_changing.get()){
 					 					
-					 					System.out.println( "recursive!" );
+					 				System.out.println( "recursive!" );
 					 					
-					 					return;
-					 				}
-					 				
-					 				links_changing = true;
+					 				return;
 					 			}
+					 				
+					 			links_changing.set( true );
 					 			
 					 			try{
 					 			
@@ -731,10 +734,7 @@ DownloadManagerImpl
 					 				
 					 			}finally{
 					 				
-					 				synchronized( this ){
-					 					
-						 				links_changing = false;
-					 				}
+					 				links_changing.set( false );
 					 			}
 					 		}else if (attribute_name.equals(DownloadManagerState.AT_PARAMETERS)){
 					 			
