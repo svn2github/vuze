@@ -2007,35 +2007,44 @@ TRTrackerBTAnnouncerImpl
  		return( url.substring(p1+param.length()+1,p2));
  	}
  	
-  protected String
-  exceptionToString(
-  	Throwable 	e )
-  {
-  	String class_name = e.getClass().getName();
-  	
-  	int	pos = class_name.lastIndexOf( '.' );
-  	
-  	if ( pos != -1 ){
-  		
-  		class_name = class_name.substring(pos+1);
-  	}
-  	
-  	pos = class_name.indexOf( '$' );
-  	
-  	if ( pos != -1 ){
-  		
-  		class_name = class_name.substring(pos+1);
-  	}
-  	
-  	String str = class_name + ": " + Debug.getNestedExceptionMessage(e);
-  	
-  	if ( str.indexOf( "timed out") != -1 ){
-  		
-  		str  = "timeout";
-  	}
-  	
-  	return( str );
-  }
+ 	protected String
+ 	exceptionToString(
+ 		Throwable 	e )
+ 	{
+ 		String	str;
+ 		
+ 		if ( e instanceof BoringException ){
+ 			
+ 			str = Debug.getNestedExceptionMessage(e);
+ 			
+ 		}else{
+ 		
+ 			String class_name = e.getClass().getName();
+
+ 			int	pos = class_name.lastIndexOf( '.' );
+
+ 			if ( pos != -1 ){
+
+ 				class_name = class_name.substring(pos+1);
+ 			}
+
+ 			pos = class_name.indexOf( '$' );
+
+ 			if ( pos != -1 ){
+
+ 				class_name = class_name.substring(pos+1);
+ 			}
+
+ 			str = class_name + ": " + Debug.getNestedExceptionMessage(e);
+ 		}
+ 		
+ 		if ( str.indexOf( "timed out") != -1 ){
+
+ 			str  = "timeout";
+ 		}
+
+ 		return( str );
+ 	}
   
   public URL 
   constructUrl(

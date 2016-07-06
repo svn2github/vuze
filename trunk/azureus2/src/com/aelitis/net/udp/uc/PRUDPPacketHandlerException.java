@@ -22,13 +22,15 @@
 
 package com.aelitis.net.udp.uc;
 
+import org.gudy.azureus2.core3.util.BoringException;
+
 /**
  * @author parg
  *
  */
 public class 
 PRUDPPacketHandlerException
-	extends Exception
+	extends BoringException
 {
 	public
 	PRUDPPacketHandlerException(
