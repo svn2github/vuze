@@ -786,7 +786,7 @@ public class TransferStatsView
     
 	Legend.createLegendComposite(
 			autoSpeedInfoPanel,
-    		PingGraphic.colors,
+    		PingGraphic.defaultColors,
     		new String[]{
         			"TransferStatsView.legend.pingaverage",        			
         			"TransferStatsView.legend.ping1",        			

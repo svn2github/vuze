@@ -23,6 +23,8 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.dht.transport.util.DHTTransportStatsImpl;
+
 /**
  * @author parg
  *
@@ -40,6 +42,16 @@ DHTTransportReplyHandlerAdapter
 		int					_elapsed )
 	{
 		elapsed	= _elapsed;
+		
+		DHTTransportStats stats = contact.getTransport().getStats();
+		
+		if ( stats instanceof DHTTransportStatsImpl ){
+						
+			if ( _elapsed >= 0 ){
+				
+				((DHTTransportStatsImpl)stats).receivedRTT( _elapsed );
+			}
+		}
 		
 		pingReply( contact );
 	}

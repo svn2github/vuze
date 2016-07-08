@@ -270,6 +270,8 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 			gcImage = new GC(bufferImage);
 			gcImage.drawImage(bufferScale, 0, 0);
 			
+			gcImage.setAntialias( SWT.ON );
+			 
 			int oldAverage = 0;
 			int[] oldTargetValues = new int[all_values.length];
 			

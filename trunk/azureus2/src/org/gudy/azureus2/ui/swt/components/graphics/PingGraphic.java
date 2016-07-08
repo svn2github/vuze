@@ -21,6 +21,7 @@
  */
 package org.gudy.azureus2.ui.swt.components.graphics;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -40,7 +41,7 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
   
   private static final int COLOR_AVERAGE = 0;
   
-  public static Color[] colors = new Color[] {
+  public static Color[] defaultColors = new Color[] {
   	Colors.grey,Colors.blues[Colors.BLUES_MIDDARK], Colors.fadedGreen,Colors.fadedRed };
   
   private int internalLoop;
@@ -49,14 +50,14 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
   
   protected Image bufferImage;
   
-  private int average = 0;
   private int nbValues = 0;
   
   private int[][] all_values	= new int[1][ENTRIES];
   private int currentPosition;
   
-   
+  private boolean externalAverage;		// if true then average is in position [0]
   
+  private  Color[]	colors = defaultColors;
   
   private PingGraphic(Scale scale,ValueFormater formater) {
     super(scale,formater);
@@ -73,6 +74,20 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
         return value + " ms";
       }
     });
+  }
+  
+  public void
+  setColors(
+	Color[]		_colors )
+  {
+	  colors = _colors;
+  }
+  
+  public void
+  setExternalAverage(
+		boolean		b )
+  {
+	externalAverage = b;
   }
   
   public void addIntsValue(int[] new_values) {  	
@@ -95,9 +110,7 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
     		
     		all_values = new_all_values;
     	}
-    	
-	    average += new_values[0] - all_values[0][currentPosition];
-	    
+    		    
 	    for (int i=0;i<new_values.length;i++){
     		
 	        all_values[i][currentPosition] = new_values[i];
@@ -119,6 +132,12 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
     	
     	this_mon.exit();
     }
+  }
+  
+  public void
+  refresh( boolean force )
+  {
+	  refresh();
   }
   
   public void refresh() {  
@@ -172,6 +191,8 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
       
       gcImage.drawImage(bufferScale,0,0);
       
+      gcImage.setAntialias( SWT.ON );
+      
       int oldAverage = 0;   
       int[] oldTargetValues = new int[all_values.length];
       int[] maxs = new int[all_values.length];
@@ -194,7 +215,7 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
       }
       
       scale.setMax(max);
-      int maxHeight = scale.getScaledValue(max);
+      
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x -1;
         if(position < 0)
@@ -202,14 +223,14 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
         
         int xDraw = bounds.width - 71 - x;
         gcImage.setLineWidth(1);
-        for (int z=0;z<all_values.length;z++){
+        for (int z=externalAverage?1:0;z<all_values.length;z++){
 	        int targetValue 	= all_values[z][position];
 	        int oldTargetValue 	= oldTargetValues[z];
 	        
 	        if ( x > 1 ){	        	
 		        	int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
 		        	int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
-              gcImage.setForeground( z <= 2 ? colors[z+1] : colors[3]);
+		        gcImage.setForeground( externalAverage?colors[z]: (z <= 2 ? colors[z+1] : colors[3]));
 	            gcImage.drawLine(xDraw,h1,xDraw+1, h2);	        	
 	        }
 	        
@@ -250,7 +271,7 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
         pos += 2000;
       if(pos >= 2000)
         pos -= 2000;
-      for(int z=0 ; z < all_values.length ; z++) {
+      for(int z=0 ; z < (externalAverage?1:all_values.length) ; z++) {
         sum += all_values[z][pos];
         nbItems++;
       }

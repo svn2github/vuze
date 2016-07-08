@@ -19,17 +19,22 @@
 package org.gudy.azureus2.ui.swt.views.stats;
 
 
+import java.util.Arrays;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.Legend;
+import org.gudy.azureus2.ui.swt.components.graphics.PingGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -62,6 +67,9 @@ public class DHTView
   public static final int DHT_TYPE_MAIN_V6 	= DHT.NW_MAIN_V6;
   public static final String MSGID_PREFIX = "DHTView";
 
+  public static Color[] rttColours = new Color[] {
+	  	Colors.grey, Colors.fadedGreen,Colors.fadedRed };
+  
   private boolean auto_dht;
   
   DHT dht;
@@ -89,8 +97,9 @@ public class DHTView
   Label lblStores[] = new Label[4];
   Label lblData[] = new Label[4];
     
-  Canvas  in,out;  
+  Canvas  in,out,rtt;  
   SpeedGraphic inGraph,outGraph;
+  PingGraphic rttGraph;
   
   boolean activityChanged;
   DHTControlListener controlListener;
@@ -109,6 +118,10 @@ public class DHTView
 	auto_dht = _auto_dht;
     inGraph = SpeedGraphic.getInstance();
     outGraph = SpeedGraphic.getInstance();
+    rttGraph = PingGraphic.getInstance();
+    
+    rttGraph.setColors( rttColours );
+    rttGraph.setExternalAverage( true );
   }
   
   private void init(AzureusCore core) {
@@ -404,7 +417,6 @@ public class DHTView
     data.horizontalSpan = 3;
     Utils.setLayoutData(label, data);
     
-    
     in = new Canvas(gTransport,SWT.NO_BACKGROUND);
     data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 3;
@@ -422,6 +434,30 @@ public class DHTView
     data.horizontalSpan = 3;
     Utils.setLayoutData(out, data);
     outGraph.initialize(out);
+    
+    label = new Label(gTransport,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.transport.rtt");
+    data = new GridData();
+    data.horizontalSpan = 3;
+    Utils.setLayoutData(label, data);
+    
+    rtt = new Canvas(gTransport,SWT.NO_BACKGROUND);
+    data = new GridData(GridData.FILL_BOTH);
+    data.horizontalSpan = 3;
+    Utils.setLayoutData(rtt, data);
+    rttGraph.initialize(rtt);
+    
+    data = new GridData(GridData.FILL_HORIZONTAL);
+    data.horizontalSpan = 3;
+    
+	Legend.createLegendComposite(
+			gTransport,
+			rttColours,
+    		new String[]{
+        			"DHTView.rtt.legend.average",        			
+        			"DHTView.rtt.legend.best",     			
+        			"DHTView.rtt.legend.worst" },
+    				data );
   }
   
   private void initialiseOperationDetailsGroup() {
@@ -577,6 +613,7 @@ public class DHTView
     }
     outGraph.dispose();
     inGraph.dispose();
+    rttGraph.dispose();
   }
 
   private String getTitleID() {
@@ -601,6 +638,7 @@ public class DHTView
 	  // need to do these here otherwise they sit in an unpainted state
 	inGraph.refresh(false);
 	outGraph.refresh(false);
+	rttGraph.refresh();
 	
   	if (dht == null) {
   		if (core != null) {
@@ -744,6 +782,66 @@ public class DHTView
     	inGraph.addIntValue((int)fullStats.getAverageBytesReceived());
     	outGraph.addIntValue((int)fullStats.getAverageBytesSent());
     }
+    DHTTransportStats stats = dht.getTransport().getStats();
+    int[] rtts = stats.getRTTHistory().clone();
+    
+    Arrays.sort( rtts );
+    
+    int	rtt_total = 0;
+    int	rtt_num		= 0;
+    
+    int	start = 0;
+    
+    for ( int rtt: rtts ){
+    	
+    	if ( rtt > 0 ){
+    		rtt_total += rtt;
+    		rtt_num++;
+    	}else{
+    		start++;
+    	}
+    }
+    
+    int	average = 0;
+    int	best	= 0;
+    int worst	= 0;
+    
+    
+    if ( rtt_num > 0 ){
+    	average = rtt_total/rtt_num;
+    }
+    
+    int chunk = rtt_num/3;
+    	
+    int	max_best 	= start+chunk;
+    int min_worst	= rtts.length-1-chunk;
+    
+    int	worst_total = 0;
+    int	worst_num	= 0;
+    
+    int best_total	= 0;
+    int	best_num	= 0;
+    
+    for ( int i=start;i<rtts.length;i++){
+    	
+    	if ( i < max_best ){
+    		best_total+=rtts[i];
+    		best_num++;
+    	}else if ( i > min_worst ){
+    		worst_total+=rtts[i];
+        	worst_num++;
+    	}
+    }
+    
+    if ( best_num > 0 ){
+    	best = best_total/best_num;
+    }
+    
+    if ( worst_num > 0 ){
+    	worst = worst_total/worst_num;
+    }
+    
+    rttGraph.addIntsValue( new int[]{ average,best,worst });
   }
   
 	public boolean eventOccurred(UISWTViewEvent event) {

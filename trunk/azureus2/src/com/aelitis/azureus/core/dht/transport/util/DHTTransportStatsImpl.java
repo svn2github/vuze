@@ -41,6 +41,8 @@ public abstract class
 DHTTransportStatsImpl
 	implements DHTTransportStats
 {
+	private static final int RTT_HISTORY	= 50;
+	
 	private byte	protocol_version;
 	
 	private long[]	pings			= new long[4];
@@ -72,6 +74,10 @@ DHTTransportStatsImpl
 		BloomFilterFactory.createRotating(
 				BloomFilterFactory.createAddOnly( SKEW_VALUE_MAX*4 ),
 				2 );
+	
+	private int[]	rtt_history			= new int[RTT_HISTORY];
+	private int		rtt_history_pos;
+	
 	protected
 	DHTTransportStatsImpl(
 		byte	_protocol_version )
@@ -88,6 +94,32 @@ DHTTransportStatsImpl
 	getProtocolVersion()
 	{
 		return( protocol_version );
+	}
+	
+	public void
+	receivedRTT(
+		int		rtt )
+	{
+		if ( rtt <= 0 || rtt > 2*60*1000 ){
+			
+			return;	// silly times
+		}
+		
+		synchronized( rtt_history ){
+			
+			rtt_history[rtt_history_pos++%RTT_HISTORY]	= rtt;
+		}
+	}
+	
+	public int[]
+	getRTTHistory()
+	{
+		synchronized( rtt_history ){
+	
+				// safe for the caller to have access to the raw array
+			
+			return( rtt_history );
+		}
 	}
 	
 	public void
@@ -108,7 +140,7 @@ DHTTransportStatsImpl
 		outgoing_requests += other.outgoing_requests;
 	}
 	
-	protected void
+	private void
 	add(
 		long[]	a,
 		long[] 	b )

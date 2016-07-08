@@ -104,6 +104,9 @@ DHTTransportStats
 	public int
 	getRouteablePercentage();
 	
+	public int[]
+	getRTTHistory();
+	
 	public String
 	getString();
 }
