@@ -50,10 +50,11 @@ DiskManagerReadRequestImpl
   private final int hashcode;
 
   private long      timeCreated;
+  private long		timeSent;
   private boolean	flush;
   private boolean	cancelled;
   private boolean	use_cache	= true;
-  
+  private boolean	latency_test;
   
   
   /**
@@ -188,4 +189,24 @@ DiskManagerReadRequestImpl
     return this.timeCreated;
   }
 
+	public void setTimeSent( long time ){
+		timeSent = time;
+	}
+	
+	public long getTimeSent(){
+		return( timeSent );
+	}
+	
+	public void
+	setLatencyTest()
+	{
+		latency_test = true;
+	}
+	
+	public boolean
+	isLatencyTest()
+	{
+		return( latency_test );
+	}
+	
 }

@@ -38,7 +38,11 @@ DiskManagerReadRequest
  
 	public int getLength();
 	
-	public long getTimeCreated(final long now);
+	public long getTimeCreated( long now);
+	
+	public void setTimeSent( long time );
+	
+	public long getTimeSent();
 	
 		/**
 		 * If flush is set then data held in memory will be flushed to disk during the read operation
@@ -58,6 +62,12 @@ DiskManagerReadRequest
 	
 	public boolean
 	getUseCache();
+	
+	public void
+	setLatencyTest();
+	
+	public boolean
+	isLatencyTest();
 	
 	 /**
 	   * We override the equals method

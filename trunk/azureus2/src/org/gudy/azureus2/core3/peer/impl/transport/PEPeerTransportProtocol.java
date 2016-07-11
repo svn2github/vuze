@@ -105,7 +105,7 @@ implements PEPeerTransport
 
 	protected PEPeerStats peer_stats;
 
-	private final ArrayList requested = new ArrayList();
+	private final ArrayList<DiskManagerReadRequest> requested = new ArrayList<DiskManagerReadRequest>();
 	private final AEMonitor	requested_mon = new AEMonitor( "PEPeerTransportProtocol:Req" );
 
 	private Map data;
@@ -387,6 +387,8 @@ implements PEPeerTransport
 	private volatile int[]		manual_lazy_haves;
 
 	private final boolean is_metadata_download;
+	
+	private long request_latency;
 	
 	//INCOMING
 	public 
@@ -1406,9 +1408,14 @@ implements PEPeerTransport
 			requested_mon.enter();
 
 			if (!requested.contains(request)){
+								
+				if ( requested.size() == 0 ){
+					
+					request.setLatencyTest();
+				}
 				
 				requested.add(request);
-				
+
 				added = true;
 			}
 		}finally{
@@ -2132,7 +2139,33 @@ implements PEPeerTransport
 		}
 	}
 
+	private DiskManagerReadRequest
+	lookupRequest(
+		int		piece_number,
+		int		piece_offset,
+		int		length )
+	{
+		try{  
+			requested_mon.enter();
 
+			for ( DiskManagerReadRequest r: requested ){
+				
+				if ( r.getPieceNumber() == piece_number &&
+						r.getOffset()	== piece_offset &&
+						r.getLength() == length ){
+					
+					return( r );
+				}
+			}
+
+			return( null );
+			
+		}finally{  
+			
+			requested_mon.exit();  
+		}
+	}
+	
 	private boolean	hasBeenRequested( DiskManagerReadRequest request ) {
 		try{  requested_mon.enter();
 
@@ -3655,11 +3688,19 @@ implements PEPeerTransport
 			  System.out.println( "Received allow-fast piece for " + pieceNumber + "/" + offset + "/" + length + " from " + getIp());
 		  }
 	  }
-		final DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
+		final DiskManagerReadRequest existing_request = lookupRequest( pieceNumber, offset, length );
+		
 		boolean piece_error = true;
 
-		if( hasBeenRequested( request ) ) {  //from active request
-			removeRequest( request );
+		if( existing_request != null ) {  //from active request
+			if ( existing_request.isLatencyTest()){
+				long latency = SystemTime.getMonotonousTime() - existing_request.getTimeSent();
+				
+				if ( latency > 0 ){
+					request_latency = latency;
+				}
+			}
+			removeRequest( existing_request );
 			final long now =SystemTime.getCurrentTime();
 			resetRequestsTime(now);
 
@@ -3704,6 +3745,8 @@ implements PEPeerTransport
 		else {  //initial request may have already expired, but check if we can use the data anyway
 			if( !manager.isWritten( pieceNumber, offset ) ) {
 				final boolean ever_requested;
+
+				DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
 
 				try{  recent_outgoing_requests_mon.enter();
 				ever_requested = recent_outgoing_requests.containsKey( request );
@@ -4282,12 +4325,27 @@ implements PEPeerTransport
 					last_data_message_sent_time =now;
 				}
 
-				if( message.getID().equals( BTMessage.ID_BT_UNCHOKE ) ) { // is about to send piece data
+				String message_id = message.getID();
+				
+				if( message_id.equals( BTMessage.ID_BT_UNCHOKE ) ) { // is about to send piece data
+					
 					connection.enableEnhancedMessageProcessing( true, manager.getPartitionID() );  //so make sure we use a fast handler
-				}
-				else if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) { // is done sending piece data
+					
+				}else if( message_id.equals( BTMessage.ID_BT_CHOKE ) ) { // is done sending piece data
+					
 					if( effectively_choked_by_other_peer ) {
+						
 						connection.enableEnhancedMessageProcessing( false, manager.getPartitionID() );  //so downgrade back to normal handler
+					}
+				}else if( message_id.equals( BTMessage.ID_BT_REQUEST )){
+				
+					BTRequest request = (BTRequest)message;
+					
+					DiskManagerReadRequest dm_request = lookupRequest( request.getPieceNumber(), request.getPieceOffset(), request.getLength());
+					
+					if ( dm_request != null ){
+						
+						dm_request.setTimeSent( SystemTime.getMonotonousTime());
 					}
 				}
 
@@ -4535,6 +4593,12 @@ implements PEPeerTransport
 		}
 		
 		return( SystemTime.getMonotonousTime() - time );
+	}
+	
+	public long 
+	getLatency() 
+	{
+		return( request_latency );
 	}
 	
 	public String

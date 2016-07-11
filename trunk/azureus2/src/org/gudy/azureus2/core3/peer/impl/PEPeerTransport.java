@@ -203,6 +203,8 @@ PEPeerTransport
   
   public long getUnchokedForMillis();
   
+  public long getLatency();
+  
   /**
    * Do any peer exchange processing/updating.
    */

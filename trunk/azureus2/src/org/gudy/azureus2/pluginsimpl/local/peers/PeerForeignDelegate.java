@@ -441,18 +441,23 @@ PeerForeignDelegate
   	{
   		return( 0 );
   	}
-  	 public int 
-  	 getConsecutiveNoRequestCount()
-  	 {
-  		 return( consecutive_no_requests );
-  	 }
-  	  
-  	 public void 
-  	 setConsecutiveNoRequestCount( 
-  		int num )
-  	 {
-  		 consecutive_no_requests = num;
-  	 }
+  	
+  	public long getLatency() {
+  		return 0;
+  	}
+
+  	public int 
+  	getConsecutiveNoRequestCount()
+  	{
+  		return( consecutive_no_requests );
+  	}
+
+  	public void 
+  	setConsecutiveNoRequestCount( 
+  			int num )
+  	{
+  		consecutive_no_requests = num;
+  	}
 
 		// PEPeer stuff
 	

@@ -125,6 +125,7 @@ public class PeersView
 			new UpRatioItem(table_id),
 			new StateItem(table_id),
 			new ConnectedTimeItem(table_id),
+			new LatencyItem(table_id),
 			new PieceItem(table_id),
 			new IncomingRequestCountItem(table_id),
 			new OutgoingRequestCountItem(table_id),
