@@ -72,15 +72,18 @@ AzureusRestarterImpl
 	restart(
 		boolean	update_only )
 	{
-		if ( restarted ){
+		synchronized( AzureusRestarterImpl.class ){
 			
-			Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-					"AzureusRestarter: already restarted!!!!"));
+			if ( restarted ){
+				
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+						"AzureusRestarter: already restarted!!!!"));
+				
+				return;
+			}
 			
-			return;
+			restarted	= true;
 		}
-		
-		restarted	= true;
 		
 		try{
 		

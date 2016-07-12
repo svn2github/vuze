@@ -1452,14 +1452,15 @@ AzureusCoreImpl
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "Stop operation starts"));
 
-				stopSupport(true);
+				stopSupport( false, true );
 			}
 		});
 	}
 	
 	private void
 	stopSupport(
-		boolean		apply_updates )
+		final boolean		for_restart,	
+		final boolean		apply_updates )
 	
 		throws AzureusCoreException
 	{
@@ -1531,6 +1532,42 @@ AzureusCoreImpl
 						Debug.out( "Shutdown blocked, force exiting" );
 						
 						stopping_sem.releaseForever();
+						
+							// try and do something with these outstanding actions before force terminating
+						
+						if ( for_restart ){
+							
+							AzureusRestarterFactory.create( AzureusCoreImpl.this ).restart( false );
+							
+						}else if ( apply_updates ){
+							
+							if ( getPluginManager().getDefaultPluginInterface().getUpdateManager().getInstallers().length > 0 ){
+								
+								AzureusRestarterFactory.create( AzureusCoreImpl.this ).restart( true );
+							}
+						}
+						
+						if ( ca_shutdown_computer_after_stop ){
+							
+							if ( apply_updates ){
+								
+									// best we can do here is wait a while for updates to be applied
+								try{
+									Thread.sleep( 10*1000 );
+									
+								}catch( Throwable e ){
+									
+								}
+							}
+							
+							try{
+								PlatformManagerFactory.getPlatformManager().shutdown( PlatformManager.SD_SHUTDOWN );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( "PlatformManager: shutdown failed", e );
+							}
+						}
 						
 						SESecurityManager.exitVM(0);
 					}
@@ -1822,7 +1859,7 @@ AzureusCoreImpl
 
 				restarting = true;
 				
-				stopSupport(false);
+				stopSupport( true, false);
 
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "Restart operation: stop complete,"
