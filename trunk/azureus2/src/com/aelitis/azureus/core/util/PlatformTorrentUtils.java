@@ -281,6 +281,7 @@ public class PlatformTorrentUtils
 	public static void setContentThumbnail(TOTorrent torrent, byte[] thumbnail, String type ){
 		Map mapContent = getContentMap(torrent);
 		putOrRemove(mapContent, TOR_AZ_PROP_THUMBNAIL, thumbnail);
+		incVersion(mapContent);
 		setContentMapString(torrent, TOR_AZ_PROP_THUMBNAIL_TYPE, type);
 		writeTorrentIfExists(torrent);
 	}

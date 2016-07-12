@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
@@ -70,6 +71,8 @@ import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedLimitHandler;
+import com.aelitis.azureus.core.util.HTTPUtils;
+import com.aelitis.azureus.core.util.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
@@ -2146,7 +2149,7 @@ public class TorrentMenuFancy
 		}
 	}
 
-	protected void buildTorrentCustomMenu_Content(Composite detailArea,
+	protected void buildTorrentCustomMenu_Content(final Composite detailArea,
 			final DownloadManager[] dms) {
 
 		// Run Data File
@@ -2237,6 +2240,58 @@ public class TorrentMenuFancy
 					}
 				});
 		}
+		
+			// set thumbnail
+		
+		createRow(detailArea, "MyTorrentsView.menu.torrent.set.thumb", null,
+				new ListenerDMTask(dms) {
+					public void run(DownloadManager[] dms) {
+						FileDialog fDialog = new FileDialog(parentShell, SWT.OPEN | SWT.MULTI);
+						
+						fDialog.setText(MessageText.getString("MainWindow.dialog.choose.thumb"));
+						String path = fDialog.open();
+						if (path == null)
+							return;
+						
+						File file = new File( path );
+						
+						try{
+							byte[] thumbnail = FileUtil.readFileAsByteArray( file );
+							
+							String name = file.getName();
+							
+							int	pos = name.lastIndexOf( "." );
+							
+							String ext;
+							
+							if ( pos != -1 ){
+								
+								ext = name.substring( pos+1 );
+								
+							}else{
+								
+								ext = "";
+							}
+							
+							String type = HTTPUtils.guessContentTypeFromFileType( ext );
+							
+							for ( DownloadManager dm: dms ){
+								
+								try{
+									TOTorrent torrent = dm.getTorrent();
+									
+									PlatformTorrentUtils.setContentThumbnail( torrent, thumbnail, type );
+									
+								}catch( Throwable e ){
+									
+								}
+							}
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				});
 		
 		boolean fileMove = true;
 		boolean locateFiles = false;
