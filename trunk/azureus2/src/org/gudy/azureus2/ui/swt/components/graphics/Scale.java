@@ -21,12 +21,27 @@
  */
 package org.gudy.azureus2.ui.swt.components.graphics;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+
 /**
  * @author Olivier
  *
  */
 public class Scale {
   
+  private static boolean scaleBinary;
+  
+  static{
+	  COConfigurationManager.addAndFireParameterListener(
+			 "ui.scaled.graphics.binary.based",
+			 new ParameterListener() {
+				
+				public void parameterChanged(String name) {
+					scaleBinary = COConfigurationManager.getBooleanParameter( name );
+				}
+			});
+  }
   //The target number of pixels per scale level
   private int pixelsPerLevel = 50;
       
@@ -43,8 +58,8 @@ public class Scale {
   //The number of pixels
   private int nbPixels = 1;
   
-  int scaleFactor;
-  int powFactor;
+  double 	scaleFactor;
+  int 		powFactor;
   
   public void setMax(int max) {
     this.max = max;  
@@ -70,27 +85,30 @@ public class Scale {
       targetNbLevels = 1;
     scaleFactor = max / targetNbLevels;
     powFactor = 1;
-    while(scaleFactor >= 8) {
-      powFactor = 8 * powFactor;
-      scaleFactor = scaleFactor / 8;
+  
+    int scaleThing = scaleBinary?8:10;
+    while(scaleFactor >= scaleThing) {
+      powFactor = scaleThing * powFactor;
+      scaleFactor = scaleFactor / scaleThing;
     }
    
-    if(scaleFactor >= 4)
-      scaleFactor = 4;
-    else if(scaleFactor >= 2)
-      scaleFactor = 2;
-    else
+    double scaleMax = scaleBinary?4:5;
+    if(scaleFactor >= scaleMax){
+      scaleFactor = scaleMax;
+    }else if(scaleFactor >= 2){
+      scaleFactor = scaleMax/2;
+    }else{
       scaleFactor = 1;
-    
-    nbLevels = max / (scaleFactor * powFactor) + 1;
-    displayedMax = scaleFactor * powFactor * nbLevels;    
+    }
+    nbLevels = (int)(max / ( scaleFactor * powFactor) + 1);
+    displayedMax = (int)( scaleFactor * powFactor * nbLevels );    
   }
   
   
   public int[] getScaleValues() {
     int[] result = new int[nbLevels+1];
     for(int i = 0 ; i < nbLevels + 1 ; i++) {
-      result[i] = i * scaleFactor * powFactor;
+      result[i] = (int)( i * scaleFactor * powFactor );
     }
     return result;
   }

@@ -274,6 +274,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 			new BooleanParameter(cUnits, "config.style.separateProtDataStats",
 					MSG_PREFIX + "separateProtDataStats");
+			
+			new BooleanParameter(cUnits, "ui.scaled.graphics.binary.based", MSG_PREFIX + "scaleBinary");
 		}
 		
       	// formatters
