@@ -555,6 +555,23 @@ public class MyTorrentsView
 		  }
 	  });
 
+	  new MenuItem( tableHeaderMenu, SWT.SEPARATOR );
+	  
+	  	// enable simple views
+
+	  String rr = MessageText.getString( "ConfigView.section.security.restart.title" );
+	  
+	  final MenuItem menuEnableSimple = new MenuItem(tableHeaderMenu, SWT.CHECK);
+	  
+	  menuEnableSimple.setText( MessageText.getString( "ConfigView.section.style.EnableSimpleView" ) + " (" + rr + ")" );
+
+	  menuEnableSimple.addSelectionListener(new SelectionAdapter() {
+		  public void widgetSelected(SelectionEvent e) {
+			  COConfigurationManager.setParameter(
+					  "Library.EnableSimpleView", menuEnableSimple.getSelection());
+		  }
+	  });
+	  
 
 	  // hooks
 
@@ -567,12 +584,15 @@ public class MyTorrentsView
 
 			  menuItemShowCatBut.setEnabled( !neverShowCatOrTagButtons );
 			  menuItemShowTagBut.setEnabled( !neverShowCatOrTagButtons );
+			  
+			  menuEnableSimple.setSelection(COConfigurationManager.getBooleanParameter( "Library.EnableSimpleView" ));
+
 		  }
 
 		  public void menuHidden(MenuEvent e) {
 		  }
 	  });
-
+	  
 	  return( tableHeaderMenu );
   }
   
