@@ -69,7 +69,7 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
   }
   
   public static PingGraphic getInstance() {
-    return new PingGraphic(new Scale(),new ValueFormater() {
+    return new PingGraphic(new Scale( false ),new ValueFormater() {
       public String format(int value) {
         return value + " ms";
       }

@@ -30,15 +30,24 @@ import org.gudy.azureus2.core3.config.ParameterListener;
  */
 public class Scale {
   
-  private static boolean scaleBinary;
-  
+  private static boolean wantBinary;
+  private static boolean useSI;
   static{
-	  COConfigurationManager.addAndFireParameterListener(
-			 "ui.scaled.graphics.binary.based",
+	  COConfigurationManager.addAndFireParameterListeners(
+			 new String[]{
+				"ui.scaled.graphics.binary.based",
+				"config.style.useSIUnits",
+				"config.style.forceSIValues",
+			 },
 			 new ParameterListener() {
 				
 				public void parameterChanged(String name) {
-					scaleBinary = COConfigurationManager.getBooleanParameter( name );
+					wantBinary		 	= COConfigurationManager.getBooleanParameter("ui.scaled.graphics.binary.based");
+					
+					boolean wantSI 		= COConfigurationManager.getBooleanParameter("config.style.useSIUnits");
+					boolean forceSI 	= COConfigurationManager.getBooleanParameter("config.style.forceSIValues");
+					
+					useSI = wantSI || forceSI;
 				}
 			});
   }
@@ -58,8 +67,23 @@ public class Scale {
   //The number of pixels
   private int nbPixels = 1;
   
-  double 	scaleFactor;
-  int 		powFactor;
+  
+  boolean	isSIIECSensitive;
+  
+  private int[] scaleValues = {};
+  
+  public 
+  Scale()
+  {
+	  this( true );
+  }
+  
+  public
+  Scale(
+	boolean	_isSIIECSensitive )
+  {
+	  isSIIECSensitive	= _isSIIECSensitive;
+  }
   
   public void setMax(int max) {
     this.max = max;  
@@ -83,16 +107,20 @@ public class Scale {
     int targetNbLevels = nbPixels / pixelsPerLevel;
     if(targetNbLevels < 1)
       targetNbLevels = 1;
-    scaleFactor = max / targetNbLevels;
-    powFactor = 1;
+    double scaleFactor = max / targetNbLevels;
+    long powFactor = 1;
   
-    int scaleThing = scaleBinary?8:10;
+    
+    int 	scaleThing 	= wantBinary?2:10;
+    double 	scaleMax 	= wantBinary?4:5;
+    
+   
     while(scaleFactor >= scaleThing) {
       powFactor = scaleThing * powFactor;
       scaleFactor = scaleFactor / scaleThing;
     }
    
-    double scaleMax = scaleBinary?4:5;
+   
     if(scaleFactor >= scaleMax){
       scaleFactor = scaleMax;
     }else if(scaleFactor >= 2){
@@ -100,17 +128,70 @@ public class Scale {
     }else{
       scaleFactor = 1;
     }
-    nbLevels = (int)(max / ( scaleFactor * powFactor) + 1);
-    displayedMax = (int)( scaleFactor * powFactor * nbLevels );    
+    
+    long increment = (long)( scaleFactor * powFactor );
+    
+    if ( isSIIECSensitive ){
+    	 
+	    	/*
+	    	 * Problem is that when using SI units we render 1000B as 1K, 2000B as 2K etc so we have to adjust
+	    	 * the increment appropriately from a 1000 based value to a 1024 based value and vice-versa
+	    	 */   
+    	
+    	int	divBy 	= 0;
+    	int	multBy	= 0;
+    	
+    	if ( useSI && !wantBinary ){
+    		
+    		divBy 		= 1000;
+    		multBy		= 1024;
+    		
+    	}else if ( !useSI && wantBinary ){
+    		
+    		divBy 		= 1024;
+    		multBy		= 1000;
+    	}
+    	
+    	if ( divBy > 0 ){
+    		
+	    	long	temp 	= increment;
+	    	int		pow		= -1;
+	    	
+	    	while( temp > 0 ){
+	    		
+	    		temp = temp / divBy;
+	    		pow++;
+	    	}
+	    	
+	    	long	temp2 = 1;
+	    	long	temp3 = 1;
+	    	
+	    	for ( int i=0;i<pow;i++){
+	    		
+	    		temp2 *= multBy;
+	    		temp3 *= divBy;
+	    	}
+	    		    	
+	    	increment = (long)((((double)increment)/temp3)*temp2);
+    	}
+    }
+        
+    nbLevels = (int)(max / ( increment) + 1);
+    displayedMax = (int)( increment * nbLevels );  
+   
+    
+    int[] result = new int[nbLevels+1];
+    for(int i = 0 ; i < nbLevels + 1 ; i++) {
+      result[i] = (int)( i * increment );
+    }
+    
+    scaleValues = result;
   }
   
   
   public int[] getScaleValues() {
-    int[] result = new int[nbLevels+1];
-    for(int i = 0 ; i < nbLevels + 1 ; i++) {
-      result[i] = (int)( i * scaleFactor * powFactor );
-    }
-    return result;
+ 
+    return( scaleValues );
   }
   
   public int getScaledValue(int value) {
