@@ -45,6 +45,11 @@ public class ScaledGraphic extends BackGroundGraphic {
   public ScaledGraphic(Scale scale,ValueFormater formater) {
     this.scale = scale;
     this.formater = formater;
+    
+    	// should really move this to ValueFormatter rather than Scale but I'd have to update the 
+    	// monitoring plugin as it uses this stuff :(
+    
+    setSIIECSensitive( scale.isSIIECSensitive());
   }
   
   public void setUpdateDividerWidth(int width) {

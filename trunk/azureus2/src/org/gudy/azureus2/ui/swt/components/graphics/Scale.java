@@ -85,6 +85,12 @@ public class Scale {
 	  isSIIECSensitive	= _isSIIECSensitive;
   }
   
+  public boolean
+  isSIIECSensitive()
+  {
+	  return( isSIIECSensitive );
+  }
+  
   public void setMax(int max) {
     this.max = max;  
     if(max < 1)

@@ -21,11 +21,18 @@
  */
 package org.gudy.azureus2.ui.swt.components.graphics;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
@@ -47,7 +54,16 @@ public class BackGroundGraphic implements Graphic {
   
   protected AEMonitor	this_mon	= new AEMonitor( "BackGroundGraphic" );
 
+  private boolean	isSIIECSensitive;
+  
   public BackGroundGraphic() {
+  }
+  
+  protected void
+  setSIIECSensitive(
+		boolean		b )
+  {
+	  isSIIECSensitive	= b;
   }
   
   public void initialize(Canvas canvas) {
@@ -55,6 +71,36 @@ public class BackGroundGraphic implements Graphic {
     lightGrey = ColorCache.getColor(canvas.getDisplay(), 250, 250, 250);
 		lightGrey2 = ColorCache.getColor(canvas.getDisplay(), 233, 233, 233);
 		colorWhite = ColorCache.getColor(canvas.getDisplay(), 255, 255, 255);
+		
+	Menu menu = new Menu( canvas );
+	
+	final MenuItem mi_binary = new MenuItem( menu, SWT.CHECK );
+	
+	mi_binary.setText( MessageText.getString( "label.binary.basis" ));
+	
+	mi_binary.setSelection( COConfigurationManager.getBooleanParameter( "ui.scaled.graphics.binary.based" ));
+	
+	mi_binary.addListener(SWT.Selection, new Listener() {
+		public void handleEvent(Event e) {
+			COConfigurationManager.setParameter("ui.scaled.graphics.binary.based", mi_binary.getSelection());
+		}
+	});
+	
+	if ( isSIIECSensitive ){
+		
+		final MenuItem mi_iec = new MenuItem( menu, SWT.CHECK );
+		
+		mi_iec.setText(  MessageText.getString( "ConfigView.section.style.useSIUnits" ));
+		
+		mi_iec.setSelection( COConfigurationManager.getBooleanParameter( "config.style.useSIUnits" ));
+		
+		mi_iec.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				COConfigurationManager.setParameter("config.style.useSIUnits", mi_iec.getSelection());
+			}
+		});
+	}
+	canvas.setMenu( menu );
   }
   
   public void refresh(boolean force) {    

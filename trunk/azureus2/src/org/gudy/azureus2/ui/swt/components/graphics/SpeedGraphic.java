@@ -141,7 +141,11 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   
   public static SpeedGraphic getInstance(ValueFormater formatter) {
 	    return new SpeedGraphic(new Scale(),formatter);
-	  }
+  }
+  
+  public static SpeedGraphic getInstance(Scale scale, ValueFormater formatter) {
+	    return new SpeedGraphic(scale,formatter);
+  }
   
   public void addIntsValue(int[] new_values) {  	
     try{

@@ -80,6 +80,7 @@ import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.PingGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.Plot3D;
+import org.gudy.azureus2.ui.swt.components.graphics.Scale;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.ValueFormater;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -538,6 +539,7 @@ public class TransferStatsView
 	  Utils.setLayoutData(connection_canvas, gridData);
 	  connection_graphic = 
 		  SpeedGraphic.getInstance(
+			new Scale( false ),
 			new ValueFormater()
 			{
 			    public String 
