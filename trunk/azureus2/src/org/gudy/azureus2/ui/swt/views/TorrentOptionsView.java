@@ -757,7 +757,7 @@ TorrentOptionsView
 				int	result = def;
 				
 				for (int i=0;i<managers.length;i++){
-					int	val = managers[i].getStats().getUploadRateLimitBytesPerSecond()/1024;
+					int	val = managers[i].getStats().getUploadRateLimitBytesPerSecond()/DisplayFormatters.getKinB();
 					
 					if ( i==0 ){
 						result = val;
@@ -772,7 +772,7 @@ TorrentOptionsView
 				int	result = def;
 				
 				for (int i=0;i<managers.length;i++){
-					int	val = managers[i].getStats().getDownloadRateLimitBytesPerSecond()/1024;
+					int	val = managers[i].getStats().getDownloadRateLimitBytesPerSecond()/DisplayFormatters.getKinB();
 					
 					if ( i==0 ){
 						result = val;
@@ -799,9 +799,9 @@ TorrentOptionsView
 
 					DownloadManager	manager = managers[i];
 						
-					if ( value != manager.getStats().getUploadRateLimitBytesPerSecond()/1024){
+					if ( value != manager.getStats().getUploadRateLimitBytesPerSecond()/DisplayFormatters.getKinB()){
 						
-						manager.getStats().setUploadRateLimitBytesPerSecond(value*1024);
+						manager.getStats().setUploadRateLimitBytesPerSecond(value*DisplayFormatters.getKinB());
 					}
 				}
 			}else if ( key == MAX_DOWNLOAD ){
@@ -809,9 +809,9 @@ TorrentOptionsView
 
 					DownloadManager	manager = managers[i];
 						
-					if ( value != manager.getStats().getDownloadRateLimitBytesPerSecond()/1024){
+					if ( value != manager.getStats().getDownloadRateLimitBytesPerSecond()/DisplayFormatters.getKinB()){
 						
-						manager.getStats().setDownloadRateLimitBytesPerSecond(value*1024);
+						manager.getStats().setDownloadRateLimitBytesPerSecond(value*DisplayFormatters.getKinB());
 					}
 				}
 			}else{

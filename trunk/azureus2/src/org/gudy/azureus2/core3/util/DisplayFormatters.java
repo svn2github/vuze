@@ -419,6 +419,12 @@ DisplayFormatters
 		return formatByteCountToKiBEtc(n, rate, bTruncateZeros, -1);
 	}
 
+	public static int
+	getKinB()
+	{
+		return( force_si_values?1024:(use_si_units?1024:1000));
+	}
+	
 	public static
 	String formatByteCountToKiBEtc(
 		long	n,

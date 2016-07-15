@@ -54,6 +54,8 @@ public class SelectableSpeedMenu {
 	public static void generateMenuItems(final Menu parent,
 			final AzureusCore core, final GlobalManager globalManager, final boolean up_menu)
 	{
+		final int kInB = 1024;	// can't currently do this properly as global limits stored as K not B :(
+		
         final MenuItem[] oldItems = parent.getItems();
         for(int i = 0; i < oldItems.length; i++)
         {
@@ -69,7 +71,7 @@ public class SelectableSpeedMenu {
 
         int maxBandwidth = COConfigurationManager.getIntParameter(configKey);
         final boolean unlim = (maxBandwidth == 0);
-        maxBandwidth = adjustMaxBandWidth(maxBandwidth, globalManager, up_menu);
+        maxBandwidth = adjustMaxBandWidth(maxBandwidth, globalManager, up_menu, kInB );
         
         boolean	auto = false;
         
@@ -118,7 +120,7 @@ public class SelectableSpeedMenu {
         	int value = i_value.intValue();
         	if (value < 5) {continue;} // Don't allow the user to easily select slow speeds.
             item = new MenuItem(parent, SWT.RADIO);
-            item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value * 1024, true));
+            item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value * kInB, true));
             item.setData("maxkb", i_value);
             item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu, parent, globalManager, configKey));
             item.setSelection(!unlim && value == maxBandwidth && !auto);
@@ -195,15 +197,15 @@ public class SelectableSpeedMenu {
 	 * @since 3.0.1.7
 	 */
 	private static int adjustMaxBandWidth(int maxBandwidth,
-			GlobalManager globalManager, boolean up_menu) {
+			GlobalManager globalManager, boolean up_menu, int kInB) {
     if(maxBandwidth == 0 && !up_menu )
     {
   		GlobalManagerStats stats = globalManager.getStats();
   		int dataReceive = stats.getDataReceiveRate();
-  		if (dataReceive < 1024) {
+  		if (dataReceive < kInB) {
         maxBandwidth = 275;
   		} else {
-  			maxBandwidth = dataReceive / 1024;      			
+  			maxBandwidth = dataReceive / kInB;      			
   		}
     }
     return maxBandwidth;
@@ -422,11 +424,13 @@ public class SelectableSpeedMenu {
 
 		GlobalManager gm = core.getGlobalManager();
 
+		final int	kInB = DisplayFormatters.getKinB();
+		
 		int maxBandwidth = 0;
 		for (DownloadManager dm : dms) {
 			int bandwidth = (isUpSpeed
 					? dm.getStats().getUploadRateLimitBytesPerSecond()
-					: dm.getStats().getDownloadRateLimitBytesPerSecond()) / 1024;
+					: dm.getStats().getDownloadRateLimitBytesPerSecond()) / kInB;
 			if (bandwidth > maxBandwidth || bandwidth == 0) {
 				maxBandwidth = bandwidth;
 			}
@@ -447,12 +451,12 @@ public class SelectableSpeedMenu {
 				}
 				
 				String speed = DisplayFormatters.formatByteCountToKiBEtcPerSec(
-						value * 1024, true);
+						value * kInB, true);
 				if (num_entries > 1) {
 					speed = MessageText.getString(
 							"MyTorrentsView.menu.setSpeed.multi",
 							new String[] {
-								DisplayFormatters.formatByteCountToKiBEtcPerSec(value * 1024
+								DisplayFormatters.formatByteCountToKiBEtcPerSec(value * kInB
 										* num_entries),
 								String.valueOf(num_entries),
 								speed
@@ -489,13 +493,13 @@ public class SelectableSpeedMenu {
 				if (value > 0) {
 					int total = value * num_entries;
 					String speed = DisplayFormatters.formatByteCountToKiBEtcPerSec(
-							total * 1024, true);
+							total * kInB, true);
 					if (num_entries > 1) {
 						speed = MessageText.getString("MyTorrentsView.menu.setSpeed.multi",
 								new String[] {
 									speed,
 									String.valueOf(num_entries),
-									DisplayFormatters.formatByteCountToKiBEtcPerSec(value * 1024)
+									DisplayFormatters.formatByteCountToKiBEtcPerSec(value * kInB)
 								});
 					}
 
@@ -511,7 +515,7 @@ public class SelectableSpeedMenu {
 
 		if (lastValue > 0) {
 			speedScale.addOption(DisplayFormatters.formatByteCountToKiBEtcPerSec(
-					lastValue * 1024, true), lastValue);
+					lastValue * kInB, true), lastValue);
 		}
 
 		if (speedScale.open(cClickedFrom, maxBandwidth, true)) {
@@ -525,9 +529,9 @@ public class SelectableSpeedMenu {
 			if (value >= 0) {
 				for (DownloadManager dm : dms) {
   				if (isUpSpeed) {
-  					dm.getStats().setUploadRateLimitBytesPerSecond(value * 1024);
+  					dm.getStats().setUploadRateLimitBytesPerSecond(value * kInB);
   				} else {
-  					dm.getStats().setDownloadRateLimitBytesPerSecond(value * 1024);
+  					dm.getStats().setDownloadRateLimitBytesPerSecond(value * kInB);
   				}
 				}
 			}

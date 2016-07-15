@@ -76,7 +76,7 @@ public class BackGroundGraphic implements Graphic {
 	
 	final MenuItem mi_binary = new MenuItem( menu, SWT.CHECK );
 	
-	mi_binary.setText( MessageText.getString( "label.binary.basis" ));
+	mi_binary.setText( MessageText.getString( "label.binary.scale.basis" ));
 	
 	mi_binary.setSelection( COConfigurationManager.getBooleanParameter( "ui.scaled.graphics.binary.based" ));
 	
