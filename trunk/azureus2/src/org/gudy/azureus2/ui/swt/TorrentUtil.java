@@ -461,10 +461,12 @@ public class TorrentUtil
 
 		// advanced > Download Speed Menu //
 
+		long kInB = DisplayFormatters.getKinB();
+		
 		long maxDownload = COConfigurationManager.getIntParameter(
-				"Max Download Speed KBs", 0) * 1024L;
+				"Max Download Speed KBs", 0) * kInB;
 		long maxUpload = COConfigurationManager.getIntParameter(
-				"Max Upload Speed KBs", 0) * 1024L;
+				"Max Upload Speed KBs", 0) * kInB;
 
 		ViewUtils.addSpeedMenu(menu.getShell(), menuAdvanced, true, true, true,
 				hasSelection, downSpeedDisabled, downSpeedUnlimited, totalDownSpeed,

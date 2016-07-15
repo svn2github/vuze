@@ -664,15 +664,16 @@ public class GeneralView
     }
     
     
-
+    int kInB = DisplayFormatters.getKinB();
+    
     setStats(
     		DisplayFormatters.formatDownloaded(stats),
     		DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesSent()),
     		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()),
     		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()),
     		swarm_speed,
-    		""+manager.getStats().getDownloadRateLimitBytesPerSecond() /1024,
-    		""+(manager.getStats().getUploadRateLimitBytesPerSecond() /1024),
+    		""+manager.getStats().getDownloadRateLimitBytesPerSecond() /kInB,
+    		""+(manager.getStats().getUploadRateLimitBytesPerSecond() /kInB),
       	seeds_str,
       	peers_str,
       	completed,

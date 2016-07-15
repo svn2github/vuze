@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.config.wizard;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
@@ -146,15 +147,17 @@ public class ConfigureWizard extends Wizard {
 		  
 		  uploadLimit = (connectionUploadLimit/5)*4;
 		  
-		  uploadLimit = (uploadLimit/1024)*1024;
+		  int kInB = DisplayFormatters.getKinB();
 		  
-		  if ( uploadLimit < 5*1024 ){
+		  uploadLimit = (uploadLimit/kInB)*kInB;
+		  
+		  if ( uploadLimit < 5*kInB ){
 			  
-			  uploadLimit = 5*1024;
+			  uploadLimit = 5*kInB;
 		  }
 		  
-		  int nbMaxActive = (int) (Math.pow(uploadLimit/1024,0.34) * 0.92);
-		  int nbMaxUploads = (int) (Math.pow(uploadLimit/1024,0.25) * 1.68);
+		  int nbMaxActive = (int) (Math.pow(uploadLimit/kInB,0.34) * 0.92);
+		  int nbMaxUploads = (int) (Math.pow(uploadLimit/kInB,0.25) * 1.68);
 		  int nbMaxDownloads = (nbMaxActive * 4) / 5;
 
 		  if (nbMaxDownloads == 0){

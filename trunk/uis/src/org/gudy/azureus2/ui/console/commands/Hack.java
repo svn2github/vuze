@@ -22,6 +22,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
 import com.aelitis.azureus.core.tag.Tag;
@@ -124,7 +125,7 @@ public class Hack extends TorrentCommand
 				return false;
 			}
 			int newSpeed = Math.max(-1, Integer.parseInt((String) args.get(0)));
-			dm.getStats().setDownloadRateLimitBytesPerSecond(newSpeed*1024);
+			dm.getStats().setDownloadRateLimitBytesPerSecond(newSpeed*DisplayFormatters.getKinB());
 			return true;
 		}
 	}
@@ -150,7 +151,7 @@ public class Hack extends TorrentCommand
 				return false;
 			}
 			int newSpeed = Math.max(-1, Integer.parseInt((String) args.get(0)));
-			dm.getStats().setUploadRateLimitBytesPerSecond(newSpeed*1024);
+			dm.getStats().setUploadRateLimitBytesPerSecond(newSpeed*DisplayFormatters.getKinB());
 			return true;
 		}
 	}

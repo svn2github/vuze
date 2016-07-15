@@ -26,7 +26,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -35,6 +34,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -120,10 +120,12 @@ public class CategoryUIUtils
 
 		if (category.getType() != Category.TYPE_ALL) {
 
+			long kInB = DisplayFormatters.getKinB();
+			
 			long maxDownload = COConfigurationManager.getIntParameter(
-					"Max Download Speed KBs", 0) * 1024L;
+					"Max Download Speed KBs", 0) * kInB;
 			long maxUpload = COConfigurationManager.getIntParameter(
-					"Max Upload Speed KBs", 0) * 1024L;
+					"Max Upload Speed KBs", 0) * kInB;
 
 			int down_speed = category.getDownloadSpeed();
 			int up_speed = category.getUploadSpeed();

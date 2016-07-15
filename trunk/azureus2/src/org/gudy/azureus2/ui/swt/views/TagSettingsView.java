@@ -458,7 +458,7 @@ public class TagSettingsView
 											}
 										}
 									}
-									return limit < 0 ? limit : limit / 1024;
+									return limit < 0 ? limit : limit / DisplayFormatters.getKinB();
 								}
 
 								public int getIntValue(String key, int def) {
@@ -470,7 +470,7 @@ public class TagSettingsView
   									if (value == -1) {
   										rl.setTagDownloadLimit(-1);
   									} else {
-  										rl.setTagDownloadLimit(value * 1024);
+  										rl.setTagDownloadLimit(value * DisplayFormatters.getKinB());
   									}
 									}
 								}
@@ -507,7 +507,7 @@ public class TagSettingsView
 											}
 										}
 									}
-									return limit < 0 ? limit : limit / 1024;
+									return limit < 0 ? limit : limit / DisplayFormatters.getKinB();
 								}
 
 								public int getIntValue(String key, int def) {
@@ -519,7 +519,7 @@ public class TagSettingsView
 									if (value == -1) {
 										rl.setTagUploadLimit(value);
 									} else {
-										rl.setTagUploadLimit(value * 1024);
+										rl.setTagUploadLimit(value * DisplayFormatters.getKinB());
 									}}
 								}
 

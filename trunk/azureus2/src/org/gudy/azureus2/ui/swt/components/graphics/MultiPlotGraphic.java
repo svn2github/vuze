@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -521,9 +522,11 @@ MultiPlotGraphic
 				}
 			}
 			
-			if ( max > 5*1024 ){
+			int kInB = DisplayFormatters.getKinB();
+			
+			if ( max > 5*kInB ){
 				
-				max = (( max + 1023 )/1024)*1024;
+				max = (( max + kInB - 1 )/kInB)*kInB;
 			}
 			
 			scale.setMax( max );

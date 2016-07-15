@@ -384,15 +384,17 @@ ViewUtils
 				mi.addListener(SWT.Selection, itemsUpSpeedListener);
 			}
 			
+			int kInB = DisplayFormatters.getKinB();
+			
 			if (hasSelection) {
 				//using 75KiB/s as the default limit when no limit set.
 				if (maxUpload == 0){
-					maxUpload = 75 * 1024;
+					maxUpload = 75 * kInB;
 				}else{
 					if ( upSpeedSetMax <= 0 ){
-						maxUpload = 200 * 1024;
+						maxUpload = 200 * kInB;
 					}else{
-						maxUpload = 4 * ( upSpeedSetMax/1024 ) * 1024;
+						maxUpload = 4 * ( upSpeedSetMax/kInB ) * kInB;
 					}
 				}
 				for (int i = 0; i < 10; i++) {
@@ -521,11 +523,14 @@ ViewUtils
 			if (hasSelection) {
 	
 				//using 200KiB/s as the default limit when no limit set.
+				
+				int kInB = DisplayFormatters.getKinB();
+				
 				if (maxDownload == 0){		
 					if ( downSpeedSetMax <= 0 ){
-						maxDownload = 200 * 1024;
+						maxDownload = 200 * kInB;
 					}else{
-						maxDownload	= 4 * ( downSpeedSetMax/1024 ) * 1024;
+						maxDownload	= 4 * ( downSpeedSetMax/kInB ) * kInB;
 					}
 				}
 	
@@ -601,7 +606,7 @@ ViewUtils
 			return -1;
 
 		try {
-			int result = (int) (Double.valueOf(sReturn).doubleValue() * 1024);
+			int result = (int) (Double.valueOf(sReturn).doubleValue() * DisplayFormatters.getKinB());
 			
 			if ( DisplayFormatters.isRateUsingBits()){
 				

@@ -27,11 +27,11 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -82,7 +82,7 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
     if (upLimit > 0 ){
     	COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, false );
     	COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY, false );
-    	COConfigurationManager.setParameter( "Max Upload Speed KBs", upLimit/1024 );
+    	COConfigurationManager.setParameter( "Max Upload Speed KBs", upLimit/DisplayFormatters.getKinB());
     	COConfigurationManager.setParameter( "enable.seedingonly.upload.rate", false );
 	    COConfigurationManager.setParameter( "max active torrents",wizard.maxActiveTorrents);
 	    COConfigurationManager.setParameter( "max downloads",wizard.maxDownloads);

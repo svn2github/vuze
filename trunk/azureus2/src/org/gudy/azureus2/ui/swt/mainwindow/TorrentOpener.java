@@ -552,14 +552,16 @@ public class TorrentOpener {
 						
 						int	maxUp = torrentOptions.getMaxUploadSpeed();
 						
+						int kInB = DisplayFormatters.getKinB();
+								
 						if ( maxUp > 0 ){
-							dm.getStats().setUploadRateLimitBytesPerSecond( maxUp*1024 );
+							dm.getStats().setUploadRateLimitBytesPerSecond( maxUp*kInB );
 						}
 						
 						int	maxDown = torrentOptions.getMaxDownloadSpeed();
 						
 						if ( maxDown > 0 ){
-							dm.getStats().setDownloadRateLimitBytesPerSecond( maxDown*1024 );
+							dm.getStats().setDownloadRateLimitBytesPerSecond( maxDown*kInB );
 						}
 						
 						DownloadManagerState dm_state = dm.getDownloadState();
