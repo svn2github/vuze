@@ -1321,6 +1321,7 @@ TorrentUtils
 							if ( url.startsWith( s )){
 								
 								it2.remove();
+								break;
 							}
 						}
 					}else{
