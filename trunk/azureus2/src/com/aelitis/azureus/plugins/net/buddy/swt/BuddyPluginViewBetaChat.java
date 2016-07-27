@@ -165,6 +165,8 @@ BuddyPluginViewBetaChat
 				
 				if ( az3.openChat( chat.getNetwork(), chat.getKey())){
 					
+					chat.destroy();
+					
 					return;
 				}
 				
