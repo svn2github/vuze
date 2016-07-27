@@ -388,7 +388,33 @@ BuddyPluginViewInstance
 					}
 				});	
 		
+		label = new Label( ui_area, SWT.NULL );
+		grid_data = new GridData();
+		grid_data.horizontalSpan = 2;
+		Utils.setLayoutData(label, grid_data);
 		
+		if ( AZ3Functions.getProvider() != null ){
+			
+				// popout windows -> sidebar
+				
+			final Button windows_to_sidebar = new Button( ui_area, SWT.CHECK );
+			
+			windows_to_sidebar.setText( lu.getLocalisedMessageText( "azbuddy.dchat.ui.windows.to.sidebar" ));
+					
+			windows_to_sidebar.setSelection( plugin_beta.getWindowsToSidebar());
+			
+			windows_to_sidebar.addSelectionListener(
+					new SelectionAdapter() 
+					{
+						public void 
+						widgetSelected(
+							SelectionEvent ev )
+						{
+							plugin_beta.setWindowsToSidebar( windows_to_sidebar.getSelection());
+						}
+					});	
+		}
+	
 			// notifications
 		
 		final Group noti_area = new Group( main, SWT.NULL );
@@ -640,23 +666,9 @@ BuddyPluginViewInstance
 										{
 											if ( !display.isDisposed()){
 																							
-												BuddyPluginViewBetaChat chat = BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
+												BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
 													
 												import_button.setEnabled( true );
-												
-												chat.addDisposeListener(
-													new DisposeListener()
-													{
-														public void 
-														widgetDisposed(
-															DisposeEvent e) 
-														{
-															if ( !import_button.isDisposed()){
-															
-																import_button.setEnabled( true );
-															}
-														}
-													});
 											}
 										}
 									});
@@ -822,23 +834,9 @@ BuddyPluginViewInstance
 											{
 												if ( !display.isDisposed()){
 																								
-													BuddyPluginViewBetaChat chat = BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
+													BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
 														
 													create_button.setEnabled( true );
-													
-													chat.addDisposeListener(
-														new DisposeListener()
-														{
-															public void 
-															widgetDisposed(
-																DisposeEvent e) 
-															{
-																if ( !create_button.isDisposed()){
-																
-																	create_button.setEnabled( true );
-																}
-															}
-														});
 												}
 											}
 										});
@@ -1060,21 +1058,9 @@ BuddyPluginViewInstance
 										{
 											if ( !display.isDisposed()){
 																							
-												BuddyPluginViewBetaChat chat = BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
-															
-												chat.addDisposeListener(
-													new DisposeListener()
-													{
-														public void 
-														widgetDisposed(
-															DisposeEvent e) 
-														{
-															if ( !button.isDisposed()){
-															
-																button.setEnabled( true );
-															}
-														}
-													});
+												BuddyPluginViewBetaChat.createChatWindow( view, plugin, inst );
+												
+												button.setEnabled( true );
 											}
 										}
 									});

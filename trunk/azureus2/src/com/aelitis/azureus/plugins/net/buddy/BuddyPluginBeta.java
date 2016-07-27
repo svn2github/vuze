@@ -132,6 +132,7 @@ BuddyPluginBeta
 	private int						max_chat_ui_lines;
 	private int						max_chat_ui_kb;
 	private boolean					standalone_windows;
+	private boolean					windows_to_sidebar;
 	private boolean					hide_ratings;
 	
 	private int						private_chat_state;
@@ -218,6 +219,7 @@ BuddyPluginBeta
 		max_chat_ui_lines		= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.lines", 250 );
 		max_chat_ui_kb			= COConfigurationManager.getIntParameter( "azbuddy.dchat.ui.max.char.kb", 10 );
 		standalone_windows		= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.standalone.windows", false );
+		windows_to_sidebar		= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.windows.to.sidebar", false );
 		hide_ratings			= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.hide.ratings", false );
 		
 		SimpleTimer.addPeriodicEvent(
@@ -320,6 +322,24 @@ BuddyPluginBeta
 		COConfigurationManager.setDirty();
 	}
 
+	public boolean
+	getWindowsToSidebar()
+	{
+		return( windows_to_sidebar );
+	}
+	
+	public void
+	setWindowsToSidebar(
+		boolean		b )
+	{
+		windows_to_sidebar			= b;
+		
+		COConfigurationManager.setParameter( "azbuddy.dchat.ui.windows.to.sidebar", b );
+
+		COConfigurationManager.setDirty();
+	}
+
+	
 	public boolean
 	getHideRatings()
 	{

@@ -136,7 +136,7 @@ BuddyPluginViewBetaChat
 	
 	private static boolean auto_ftux_popout_done	= false;
 	
-	protected static BuddyPluginViewBetaChat
+	protected static void
 	createChatWindow(
 		BuddyPluginView	view,
 		BuddyPlugin		plugin,
@@ -153,11 +153,25 @@ BuddyPluginViewBetaChat
 					existing.setActive();
 				}
 				
-				return( win );
+				return;
 			}
 		}
 		
-		return( new BuddyPluginViewBetaChat( view, plugin, chat ));
+		if ( plugin.getBeta().getWindowsToSidebar()){
+			
+			final AZ3Functions.provider az3 = AZ3Functions.getProvider();
+			
+			if ( az3 != null ){
+				
+				if ( az3.openChat( chat.getNetwork(), chat.getKey())){
+					
+					return;
+				}
+				
+			}
+		}
+		
+		new BuddyPluginViewBetaChat( view, plugin, chat );
 	}
 	
 	private final BuddyPluginView		view;

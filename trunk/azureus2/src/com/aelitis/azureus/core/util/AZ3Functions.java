@@ -76,7 +76,7 @@ AZ3Functions
 			DownloadManager		dm,
 			int					file_index );
 
-		public void
+		public boolean
 		openChat(
 			String				network,
 			String				key );

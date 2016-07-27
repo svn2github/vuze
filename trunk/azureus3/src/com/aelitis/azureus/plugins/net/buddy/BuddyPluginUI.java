@@ -52,7 +52,7 @@ BuddyPluginUI
 		}
 	}
 	
-	public static void 
+	public static boolean 
 	openChat(
 		String network, 
 		String key) 
@@ -62,6 +62,8 @@ BuddyPluginUI
 			try{
 				impl_class.getMethod( "openChat", String.class, String.class ).invoke( null, network, key );
 				
+				return( true );
+				
 			}catch( Throwable e ){
 				
 				Debug.out( e );
@@ -70,5 +72,7 @@ BuddyPluginUI
 			
 			Debug.out( "Not supported" );
 		}
+		
+		return( false );
 	}
 }

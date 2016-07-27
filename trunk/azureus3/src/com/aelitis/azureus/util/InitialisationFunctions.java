@@ -249,12 +249,12 @@ public class InitialisationFunctions
 					}
 				}	
 				
-				public void 
+				public boolean 
 				openChat(
 					String network, 
 					String key) 
 				{
-					BuddyPluginUI.openChat(network, key);
+					return( BuddyPluginUI.openChat(network, key));
 				}
 				
 				public TranscodeTarget[]
