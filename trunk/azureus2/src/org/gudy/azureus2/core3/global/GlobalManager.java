@@ -264,7 +264,7 @@ public interface GlobalManager extends AzureusCoreComponent, TaggableResolver {
 	 */
 	public boolean isPaused(DownloadManager dm);
 
-	public boolean isSwarmMerging(DownloadManager dm);
+	public String isSwarmMerging(DownloadManager dm);
 	
 	/**
 	 * Determines whether we are only seeding, and not currently downloading

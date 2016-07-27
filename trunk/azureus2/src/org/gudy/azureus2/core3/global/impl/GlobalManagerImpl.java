@@ -2052,7 +2052,7 @@ public class GlobalManagerImpl
     return false;
   }
   
-  public boolean isSwarmMerging(DownloadManager dm) {
+  public String isSwarmMerging(DownloadManager dm) {
 	  return( file_merger.isSwarmMerging(dm));
   }
   

@@ -3723,7 +3723,7 @@ DownloadManagerImpl
   	creation_time	= t;
   }
   
-  public boolean 
+  public String 
   isSwarmMerging() 
   {
 	 return( globalManager.isSwarmMerging( this ));

@@ -67,5 +67,12 @@ public class MergedDataItem
 			return;
 
 		cell.setText(value==0?"":DisplayFormatters.formatByteCountToKiBEtc( value ));
+		
+		String info = dm.isSwarmMerging();
+		
+		if ( info == null ){
+			info = "";
+		}
+		cell.setToolTip( info );
 	}
 }

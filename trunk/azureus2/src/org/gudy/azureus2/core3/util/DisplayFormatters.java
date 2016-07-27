@@ -778,7 +778,7 @@ DisplayFormatters
 
 			case DownloadManager.STATE_DOWNLOADING:
 				tmp = ManagerItem_downloading;
-				if ( manager.isSwarmMerging()){
+				if ( manager.isSwarmMerging() != null ){
 					tmp += " + " + ManagerItem_swarmMerge;
 				}
 				break;
@@ -909,7 +909,7 @@ DisplayFormatters
 			break;
 		  case DownloadManager.STATE_DOWNLOADING :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.downloading");
-			if ( manager.isSwarmMerging()){
+			if ( manager.isSwarmMerging() != null ){
 				tmp += " + " + MessageText.getDefaultLocaleString( "TableColumn.header.mergeddata" );
 			}
 			break;

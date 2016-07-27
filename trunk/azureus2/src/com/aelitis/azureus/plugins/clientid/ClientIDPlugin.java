@@ -102,7 +102,7 @@ ClientIDPlugin
 							
 							DownloadManager dm = gm.getDownloadManager( new HashWrapper( hash ));
 							
-							if ( dm != null &&  gm.isSwarmMerging( dm )){
+							if ( dm != null &&  gm.isSwarmMerging( dm ) != null ){
 								
 								return( CLIENT_NAME_SM );
 							}

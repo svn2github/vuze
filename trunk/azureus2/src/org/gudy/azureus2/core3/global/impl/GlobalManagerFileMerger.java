@@ -166,25 +166,40 @@ GlobalManagerFileMerger
 		initialised = true;
 	}
 	
-	protected boolean
+	protected String
 	isSwarmMerging(
 		DownloadManager		dm )
-	{
+	{		
 		synchronized( dm_map ){
 			
 			if ( sames.size() > 0 ){
-							
+	
+				StringBuffer	result = null;
+
 				for ( SameSizeFiles s: sames ){
 					
 					if ( s.hasDownloadManager( dm )){
 						
-						return( true );
+						String info = s.getInfo();
+						
+						if ( result == null ){
+							
+							result = new StringBuffer( 1024 );
+							
+						}else{
+													
+							result.append( "\n" );
+						}
+						
+						result.append( info );
 					}
 				}
-			}
-			
-			return( false );
+				
+				return( result==null?null:result.toString());
+			}	
 		}	
+		
+		return( null );
 	}
 	
 	private void
@@ -908,6 +923,32 @@ GlobalManagerFileMerger
 						LogAlert.AT_INFORMATION,
 						msg ));
 			*/	
+		}
+		
+		private String
+		getInfo()
+		{
+			StringBuilder msg = new StringBuilder(1024);
+			
+			long	size = -1;
+			
+			for ( SameSizeFileWrapper file: file_wrappers ){
+				
+				DiskManagerFileInfo f = file.getFile();
+				
+				if ( size == -1 ){
+					
+					size = f.getLength();
+				}
+				
+				msg.append( "    " );
+				msg.append( file.getDownloadManager().getDisplayName());
+				msg.append( ": " );
+				msg.append( f.getTorrentFile().getRelativePath());
+				msg.append( "\n" );
+			}
+			
+			return( "Size: " + DisplayFormatters.formatByteCountToKiBEtc( size ) + "\n" + msg.toString());
 		}
 		
 		private void
