@@ -23,6 +23,7 @@ package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -435,8 +436,7 @@ public class SideBar
 			{
 				public void widgetSelected(SelectionEvent e) {
 					if ( e.detail == SWT.None ){
-						SideBarEntrySWT[] sideBarEntries = mapIdToEntry.values().toArray(
-								new SideBarEntrySWT[0]);
+						SideBarEntrySWT[] sideBarEntries = getEntries( new SideBarEntrySWT[0]);
 						swt_updateSideBarHitAreasY(sideBarEntries);
 					}
 				}
@@ -541,8 +541,7 @@ public class SideBar
 
 							if (tree.getTopItem() != lastTopItem) {
 								lastTopItem = tree.getTopItem();
-								SideBarEntrySWT[] sideBarEntries = mapIdToEntry.values().toArray(
-										new SideBarEntrySWT[0]);
+								SideBarEntrySWT[] sideBarEntries = getEntries( new SideBarEntrySWT[0]);
 								swt_updateSideBarHitAreasY(sideBarEntries);
 							}
 
@@ -1260,9 +1259,7 @@ public class SideBar
 	private void setupNewEntry(final SideBarEntrySWT entry, final String id,
 			final boolean expandParent, final boolean closeable) {
 		//System.out.println("createItem " + id + ";" + entry.getParentID() + ";" + Debug.getCompressedStackTrace());
-		synchronized (mapIdToEntry) {
-			mapIdToEntry.put(id, entry);
-		}
+		addItem( entry );
 
 		entry.setCloseable(closeable);
 		entry.setParentSkinObject(soSideBarContents);
@@ -1471,9 +1468,8 @@ public class SideBar
 			// hack: setEventListner will create the UISWTView.
 			// We need to have the entry available for the view to use
 			// if it wants
-			synchronized (mapIdToEntry) {
-				mapIdToEntry.put(id, entry);
-			}
+			
+			addItem( entry );
 
 			entry.setEventListener(l, true);
 			entry.setParentID(parentEntryID);
@@ -1669,6 +1665,57 @@ public class SideBar
 		}
 	}
 	
+		// track entry additions and selection so we can switch to previous entry when one is closed
+	
+	private Stack<SideBarEntrySWT>	stack = new Stack<SideBarEntrySWT>();
+	
+	public void addItem(MdiEntry entry) {
+		super.addItem( entry );
+		if ( entry instanceof SideBarEntrySWT ){
+			synchronized( stack ){
+				stack.remove( entry );
+				if ( entry.isSelectable()){
+					stack.push( (SideBarEntrySWT)entry );
+				}
+			}
+		}
+	}
+	
+	protected void
+	itemSelected(MdiEntry entry ){
+		super.itemSelected( entry );
+		if ( entry instanceof SideBarEntrySWT ){
+			synchronized( stack ){
+				stack.remove( entry );
+				if ( entry.isSelectable()){
+					stack.push( (SideBarEntrySWT)entry );
+				}
+			}
+		}
+	}
+	
+	public void removeItem(MdiEntry entry) {
+		super.removeItem( entry );
+		if ( entry instanceof SideBarEntrySWT ){
+			
+			SideBarEntrySWT next = null;
+			synchronized( stack ){
+				stack.remove( entry );
+				while( !stack.isEmpty()){
+					next = stack.pop();
+					if ( next.isDisposed()){
+						next = null;
+					}else{
+						break;
+					}
+				}
+			}
+			if ( next != null ){
+				showEntry( next );
+			}
+		}
+	}
+	
 	public void generate(IndentWriter writer) {
 		MdiEntrySWT[] entries = getEntriesSWT();
 		for (MdiEntrySWT entry : entries) {
@@ -1698,7 +1745,7 @@ public class SideBar
 	public Image obfusticatedImage(Image image) {
 
 		Rectangle treeBounds = tree.getBounds();
-		SideBarEntrySWT[] sideBarEntries = mapIdToEntry.values().toArray(
+		SideBarEntrySWT[] sideBarEntries = getEntries(
 				new SideBarEntrySWT[0]);
 		for (SideBarEntrySWT entry : sideBarEntries) {
 			Rectangle entryBounds = entry.swt_getBounds();

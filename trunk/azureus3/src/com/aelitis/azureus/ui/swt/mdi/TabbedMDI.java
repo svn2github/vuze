@@ -832,9 +832,7 @@ public class TabbedMDI
 
 	private void setupNewEntry(final TabbedEntry entry, final String id,
 			final int index, boolean closeable) {
-		synchronized (mapIdToEntry) {
-			mapIdToEntry.put(id, entry);
-		}
+		addItem( entry );
 
 		entry.setCloseable(closeable);
 

@@ -74,7 +74,7 @@ public abstract class BaseMDI
 	private Map<String, MdiEntryCreationListener2> mapIdToCreationListener2 = new LightHashMap<String, MdiEntryCreationListener2>();
 
 	// Sync changes to entry maps on mapIdEntry
-	protected Map<String, MdiEntrySWT> mapIdToEntry = new LinkedHashMap<String, MdiEntrySWT>(8);
+	private Map<String, MdiEntry> mapIdToEntry = new LinkedHashMap<String, MdiEntry>(8);
 
 	private List<MdiListener> listeners = new ArrayList<MdiListener>();
 
@@ -140,6 +140,8 @@ public abstract class BaseMDI
 				Debug.out(e);
 			}
 		}
+		
+		itemSelected( newEntry );
 	}
 
 	public void triggerEntryLoadedListeners(MdiEntry entry) {
@@ -242,27 +244,37 @@ public abstract class BaseMDI
 	}
 
 	public MdiEntry[] getEntries() {
-		return mapIdToEntry.values().toArray(new MdiEntry[0]);
+		return getEntries( new MdiEntry[0]);
 	}
 
 	public MdiEntrySWT[] getEntriesSWT() {
-		return mapIdToEntry.values().toArray(new MdiEntrySWT[0]);
+		return getEntries( new MdiEntrySWT[0]);
+	}
+
+	public <T extends MdiEntry> T[] getEntries( T[] array ) {
+		synchronized(mapIdToEntry){
+			return mapIdToEntry.values().toArray( array );
+		}
 	}
 
 	public MdiEntry getEntry(String id) {
 		if (SkinConstants.VIEWID_BROWSER_BROWSE.equalsIgnoreCase(id)) {
 			id = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		}
-		MdiEntry entry = mapIdToEntry.get(id);
-		return entry;
+		synchronized(mapIdToEntry){
+			MdiEntry entry = mapIdToEntry.get(id);
+			return entry;
+		}
 	}
 
 	public MdiEntrySWT getEntrySWT(String id) {
 		if (SkinConstants.VIEWID_BROWSER_BROWSE.equalsIgnoreCase(id)) {
 			id = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		}
-		MdiEntrySWT entry = mapIdToEntry.get(id);
-		return entry;
+		synchronized(mapIdToEntry){
+			MdiEntrySWT entry = (MdiEntrySWT)mapIdToEntry.get(id);
+			return entry;
+		}
 	}
 
 	/**
@@ -273,10 +285,9 @@ public abstract class BaseMDI
 	 */
 	public MdiEntry getEntryBySkinView(Object skinView) {
 		SWTSkinObject so = ((SkinView)skinView).getMainSkinObject();
-		Object[] sideBarEntries = mapIdToEntry.values().toArray();
+		BaseMdiEntry[] sideBarEntries = getEntries( new BaseMdiEntry[0] );
 		for (int i = 0; i < sideBarEntries.length; i++) {
-			//MdiEntrySWT entry = (MdiEntrySWT) sideBarEntries[i];
-			BaseMdiEntry entry = (BaseMdiEntry) sideBarEntries[i];
+			BaseMdiEntry entry = sideBarEntries[i];
 			SWTSkinObject entrySO = entry.getSkinObject();
 			SWTSkinObject entrySOParent = entrySO == null ? entrySO
 					: entrySO.getParent();
@@ -539,11 +550,13 @@ public abstract class BaseMDI
 		if (SkinConstants.VIEWID_BROWSER_BROWSE.equalsIgnoreCase(id)) {
 			id = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		}
-		MdiEntry entry = mapIdToEntry.get(id);
-		if (entry == null) {
-			return false;
+		synchronized(mapIdToEntry){
+			MdiEntry entry = mapIdToEntry.get(id);
+			if (entry == null) {
+				return false;
+			}
+			return entry.isAdded();
 		}
-		return entry.isAdded();
 	}
 
 	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#setEntryAutoOpen(java.lang.String, java.lang.Object)
@@ -765,6 +778,17 @@ public abstract class BaseMDI
 		return false;
 	}
 
+	public void addItem(MdiEntry entry) {
+		String id = entry.getId();
+		synchronized (mapIdToEntry) {
+			mapIdToEntry.put(id,entry);
+		}
+	}
+	
+	protected void
+	itemSelected(MdiEntry entry ){
+	}
+	
 	public void removeItem(MdiEntry entry) {
 		String id = entry.getId();
 		synchronized (mapIdToEntry) {
@@ -828,7 +852,9 @@ public abstract class BaseMDI
 	}
 	
 	public int getEntriesCount() {
-		return mapIdToEntry.size();
+		synchronized( mapIdToEntry ){
+			return mapIdToEntry.size();
+		}
 	}
 
 	public void setCloseableConfigFile(String closeableConfigFile) {
