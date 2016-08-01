@@ -608,7 +608,7 @@ BuddyPluginView
 			
 			beta_status.setVisible( true );
 
-			updateIdleTT();
+			updateIdleTT( false );
 			
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
@@ -698,7 +698,7 @@ BuddyPluginView
 								}
 							}
 						
-							updateIdleTT();
+							updateIdleTT( false );
 						}
 					}
 				});
@@ -879,7 +879,7 @@ BuddyPluginView
 			
 			if ( num == 1 ){
 				
-				updateIdleTT();
+				updateIdleTT( false );
 			}
 		}
 	}
@@ -905,7 +905,7 @@ BuddyPluginView
 				
 				chat_uis.remove( chat );
 			
-				updateIdleTT();
+				updateIdleTT( false );
 				
 			}else{
 				
@@ -939,11 +939,34 @@ BuddyPluginView
 	}
 	
 	private void
-	updateIdleTT()
+	updateIdleTT(
+		boolean	known_to_be_idle )
 	{
-		if ( pending_msg_map.size() == 0 ){
+		Iterator<Map.Entry<String,Object[]>> it = pending_msg_map.entrySet().iterator();
 		
+		boolean	has_pending = false;
+		
+		if ( !known_to_be_idle ){
 			
+			while( it.hasNext()){
+				
+				Map.Entry<String,Object[]> map_entry = it.next();
+				
+				Object[] entry = map_entry.getValue();
+				
+				ChatInstance chat = (ChatInstance)entry[2];
+				
+				if ( !chat.getDisableNotifications()){
+					
+					has_pending = true;
+					
+					break;
+				}
+			}
+		}
+		
+		if ( !has_pending ){
+		
 			Set<ChatInstance>	instances = new HashSet<BuddyPluginBeta.ChatInstance>();
 			
 			if ( chat_uis.size() > 0 ){
@@ -1147,10 +1170,8 @@ BuddyPluginView
 										
 										if ( current_instances.size() == 0 ){
 											
-											updateIdleTT();
-											
-											setBetaStatus( bs_chat_gray );
-											
+											updateIdleTT( true );
+																						
 										}else{
 											
 											String tt_text = "";
