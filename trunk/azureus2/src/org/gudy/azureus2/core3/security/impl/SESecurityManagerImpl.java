@@ -276,8 +276,7 @@ SESecurityManagerImpl
 				File cacerts = new File( new File( new File( System.getProperty( "java.home" ), "lib" ), "security" ), "cacerts" );
 				
 				if ( cacerts.exists()){
-					
-					
+										
 					FileUtil.copyFile( cacerts, target );
 					
 					try{
@@ -298,6 +297,14 @@ SESecurityManagerImpl
 	public boolean
 	resetTrustStore(
 		boolean	test_only )
+	{
+		return( resetTrustStore( test_only, false ));
+	}
+	
+	private boolean
+	resetTrustStore(
+		boolean	test_only,
+		boolean	recovering )
 	{
 		File cacerts = new File( new File( new File( System.getProperty( "java.home" ), "lib" ), "security" ), "cacerts" );
 		
@@ -331,7 +338,7 @@ SESecurityManagerImpl
 		}
 		
 		try{
-			getTrustStore();
+			getTrustStore( !recovering );
 			
 		}catch( Throwable e ){
 			
@@ -632,26 +639,74 @@ SESecurityManagerImpl
 	
 		throws Exception
 	{
+		return( getTrustStore( true ));
+	}
+	
+	public KeyStore
+	getTrustStore(
+		boolean		attempt_recovery )
+	
+		throws Exception
+	{
 		KeyStore keystore = KeyStore.getInstance( KEYSTORE_TYPE );
 		
-		if ( !new File(truststore_name).exists()){
-	
-			keystore.load(null,null);
+		File tf_file = new File( truststore_name );
+		
+		try{
+			if ( !tf_file.exists()){
+		
+				keystore.load(null,null);
+				
+			}else{
 			
-		}else{
-		
-			FileInputStream		in 	= null;
-
-			try{
-				in = new FileInputStream(truststore_name);
-		
-				keystore.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());
-				
-			}finally{
-				
-				if ( in != null ){
+				FileInputStream		in 	= null;
+	
+				try{
+					in = new FileInputStream( tf_file );
+			
+					keystore.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());
 					
-					in.close();
+				}finally{
+					
+					if ( in != null ){
+						
+						in.close();
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			if ( attempt_recovery ){
+				
+				Debug.out( "Failed to load trust store - resetting", e );
+				
+				try{
+					if ( tf_file.exists()){
+						
+						File bad_file = new File( tf_file.getAbsolutePath() + ".bad" );
+						
+						bad_file.delete();
+						
+						tf_file.renameTo( bad_file );
+					}
+				}catch( Throwable f ){
+					
+					Debug.out( f );
+				}
+				
+				resetTrustStore( false, true );
+				
+				return( getTrustStore( false ));
+				
+			}else{
+				
+				if ( e instanceof Exception ){
+					
+					throw((Exception)e);
+					
+				}else{
+					
+					throw( new Exception( e ));
 				}
 			}
 		}
