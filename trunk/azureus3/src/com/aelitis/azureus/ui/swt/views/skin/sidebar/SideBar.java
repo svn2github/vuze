@@ -1698,15 +1698,24 @@ public class SideBar
 		super.removeItem( entry );
 		if ( entry instanceof SideBarEntrySWT ){
 			
+			MdiEntry current = getCurrentEntry();
+			
 			SideBarEntrySWT next = null;
+			
 			synchronized( stack ){
+				
 				stack.remove( entry );
-				while( !stack.isEmpty()){
-					next = stack.pop();
-					if ( next.isDisposed()){
-						next = null;
-					}else{
-						break;
+				
+				if ( 	current == null || 
+						current == entry ){
+					
+					while( !stack.isEmpty()){
+						next = stack.pop();
+						if ( next.isDisposed()){
+							next = null;
+						}else{
+							break;
+						}
 					}
 				}
 			}
