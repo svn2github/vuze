@@ -170,7 +170,7 @@ SimpleXMLParserDocumentImpl
 		
 		UncloseableInputStream	uc_is = new UncloseableInputStream( _input_stream );
 		
-		Throwable error = null;
+		SimpleXMLParserDocumentException error = null;
 				
 		try{
 			createSupport( uc_is );
@@ -192,14 +192,20 @@ SimpleXMLParserDocumentImpl
 					return;
 					
 				}catch( Throwable f ){
+					
+					if ( f instanceof SimpleXMLParserDocumentException ){
+					
+						error = (SimpleXMLParserDocumentException)f;	
+					}
 				}
 			}
+						
+			if ( error == null ){
 			
-			//Debug.out( e );
+				error = e;
+			}
 			
-			error = e;
-			
-			throw( e );
+			throw( error );
 			
 		}finally{
 			
@@ -208,7 +214,7 @@ SimpleXMLParserDocumentImpl
 				try{
 					_input_stream.reset();
 					
-					String stuff = FileUtil.readInputStreamAsStringWithTruncation( _input_stream, 128 );
+					String stuff = FileUtil.readInputStreamAsStringWithTruncation( _input_stream, 2014 );
 					
 					Debug.out( "RSS parsing failed for '" + stuff + "': " + Debug.getExceptionMessage( error ));
 					
