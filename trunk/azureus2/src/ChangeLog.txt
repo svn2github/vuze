@@ -1,7 +1,50 @@
 VUZE CHANGELOG
 -----------------
 
-2016.xx.yy | Vuze 5.7.2.1
+2016.08.09 | Vuze 5.7.3.0
+
+FEATURE: UI   | Remember last configuration view [Parg]
+FEATURE: UI   | Added 'mark as read after failed to auto-download' option [Parg]
+FEATURE: UI   | Support for additional DHT stats/operation views [Parg]
+FEATURE: UI   | Subscription's can now be named and marked as anonymous during creation [Parg]
+FEATURE: UI   | Added share ratio to archived files view [Parg]
+FEATURE: UI   | Installer prompt added when handling non-public URIs [Parg]
+FEATURE: UI   | Network indicator for discovered tags [Parg]
+FEATURE: UI   | Option added to specify how many subscription associations are retained [Parg]
+FEATURE: UI   | Added column indicating if a download has redirected files [Parg]
+FEATURE: UI   | Menu option to revert redirected files within a download [Parg]
+FEATURE: UI   | DHT latency estimate added to views [Parg]
+FEATURE: UI   | Added a request latency column to peers view [Parg]
+FEATURE: UI   | Added simpler way to set download thumbnails [Parg]
+FEATURE: UI   | Option to switch from binary based to decimal based scales [Parg]
+FEATURE: UI   | Option to force separate chat windows to open in side bar [Parg]
+
+FEATURE: Core | Added option to make subscription downloads non-public [Parg]
+FEATURE: Core | Concurrent subscription downloads [Parg]
+FEATURE: Core | Support for anonyous subscriptions [Parg]
+FEATURE: Core | Extended subscription based chat to non-web engines where possible [Parg]
+
+CHANGE: UI    | Updated subscriptions now don't auto-select in sidebar by default - option added to enable this [Parg]
+CHANGE: UI    | Cached seeder/leecher values now shown in column tooltip [Parg]
+CHANGE: UI    | Improved tracker status error messages [Parg]
+CHANGE: UI    | Switch to previous sidebar view when one is closed [Parg]
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Spanish translation update [Valtiel]
+
+CHANGE: Core  | Tag tracker matching now uses 'endswith' instead of 'equals' [Parg]
+CHANGE: Core  | Extract some more items from RSS feeds when available [Parg]
+CHANGE: Core  | Broken trust stores are now automatically reset [Parg]
+
+BUGFIX: UI    | Progress bar fit improved [Parg]
+BUGFIX: UI    | Verification that a shell is within monitor bounds fix [Parg]
+BUGFIX: UI    | Remember sort column [Parg]
+
+BUGFIX: Core  | Maintain 'time found' across subscription updates [Parg]
+BUGFIX: Core  | Fix bug with non-public metadata tansfer [Parg]
+BUGFIX: Core  | Fix edge case where auto-download subscription properties not being set [Parg]
+BUGFIX: Core  | Fix installation of SSL certificate after a redirect [Parg]
+BUGFIX: Core  | Handle some more corrupted torrent fields [Parg]
+BUGFIX: Core  | Try to handle restart/computer close actions when Vuze shutdown is blocked [Parg]
 
 2016.05.12 | Vuze 5.7.2.0
 
