@@ -2086,7 +2086,7 @@ SubscriptionManagerImpl
 		}
 	}
 	
-	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher();
+	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher( "SubsManDispatcher");
 	
 	protected void
 	updatePublicSubscription(
@@ -3498,7 +3498,7 @@ SubscriptionManagerImpl
 				
 				private boolean	complete;
 				
-				private AsyncDispatcher 	dispatcher = new AsyncDispatcher();
+				private AsyncDispatcher 	dispatcher = new AsyncDispatcher( "SubsMan:AL");
 				
 				public boolean
 				diversified()
@@ -3629,11 +3629,6 @@ SubscriptionManagerImpl
 													done(
 														Subscription[]			subs )
 													{
-														if ( isCancelled()){
-															
-															return;
-														}
-														
 														synchronized( this ){
 															
 															if ( sem_done ){
@@ -3644,23 +3639,31 @@ SubscriptionManagerImpl
 															sem_done = true;
 														}
 														
-														if ( subs.length > 0 ){
-															
-															synchronized( hits ){
-															
-																found_subscriptions.add( subs[0] );
+														try{
+															if ( isCancelled()){
+																																
+																return;
 															}
 															
-															try{
-																listener.found( hash, subs[0] );
+															if ( subs.length > 0 ){
 																
-															}catch( Throwable e ){
+																synchronized( hits ){
 																
-																Debug.printStackTrace(e);
+																	found_subscriptions.add( subs[0] );
+																}
+																
+																try{
+																	listener.found( hash, subs[0] );
+																	
+																}catch( Throwable e ){
+																	
+																	Debug.printStackTrace(e);
+																}
 															}
+														}finally{
+															
+															hits_sem.release();
 														}
-																									
-														hits_sem.release();
 													}
 													
 													public boolean 
@@ -3688,62 +3691,60 @@ SubscriptionManagerImpl
 					byte[]				original_key,
 					boolean				timeout_occurred )
 				{
-					dispatcher.dispatch(
-						new AERunnable()
+					// can't use the dispatcher here as the complete processing might get scheduled before one of the
+					// subs lookups and then deadlock as it is waiting on hit_sem
+					
+					new AEThread2( "SubsManAL:comp" )
+					{
+						public void
+						run()
 						{
-							public void
-							runSupport()
-							{
-								int	num_hits;
+							int	num_hits;
+							
+							synchronized( hits ){
 								
-								synchronized( hits ){
-									
-									if ( complete ){
-										
-										return;
-									}
-									
-									complete = true;
-									
-									num_hits = hits.size();
-								}
-								
-								
-								for (int i=0;i<num_hits;i++){
-									
-									if ( isCancelled2()){
-										
-										return;
-									}
-	
-									hits_sem.reserve();
-								}
-	
-								if ( isCancelled2()){
+								if ( complete ){
 									
 									return;
 								}
-	
-								SubscriptionImpl[] s;
 								
-								synchronized( hits ){
-									
-									s = (SubscriptionImpl[])found_subscriptions.toArray( new SubscriptionImpl[ found_subscriptions.size() ]);
-								}
+								complete = true;
 								
-								log( "    Association lookup complete - " + s.length + " found" );
-	
-								try{	
-										// record zero assoc here for completeness
-									
-									recordAssociations( hash, s, true );
-									
-								}finally{
-									
-									listener.complete( hash, s );
-								}
+								num_hits = hits.size();
 							}
-						});
+							
+							for (int i=0;i<num_hits;i++){
+								
+								if ( isCancelled2()){
+									
+									listener.failed( hash, new SubscriptionException( "Cancelled" ));
+									
+									return;
+								}
+
+								hits_sem.reserve();
+							}
+
+							SubscriptionImpl[] s;
+							
+							synchronized( hits ){
+								
+								s = (SubscriptionImpl[])found_subscriptions.toArray( new SubscriptionImpl[ found_subscriptions.size() ]);
+							}
+							
+							log( "    Association lookup complete - " + s.length + " found" );
+
+							try{	
+									// record zero assoc here for completeness
+								
+								recordAssociations( hash, s, true );
+								
+							}finally{
+								
+								listener.complete( hash, s );
+							}
+						}
+					}.start();
 				}
 				
 				protected boolean
@@ -4044,6 +4045,8 @@ SubscriptionManagerImpl
 			
 			if ( listener.isCancelled()){
 				
+				listener.failed( association_hash, new SubscriptionException( "Cancelled" ));
+				
 				return;
 			}
 			
@@ -4181,22 +4184,19 @@ SubscriptionManagerImpl
 						byte[]				original_key,
 						boolean				timeout_occurred )
 					{
-						if ( listener.isCancelled()){
-							
-							return;
-						}
-						
 						log( "    " + sid_str + " complete" );
 						
 						synchronized( this ){
 							
-							if ( !listener_handled ){
+							if ( listener_handled ){
 						
-								listener_handled = true;
-								
-								listener.complete( association_hash, new Subscription[0] );
+								return;
 							}
+							
+							listener_handled = true;
+							
 						}
+						listener.complete( association_hash, new Subscription[0] );
 					}
 				});
 		}
@@ -4330,6 +4330,8 @@ SubscriptionManagerImpl
 			
 			if ( listener.isCancelled()){
 				
+				listener.failed( association_hash, new SubscriptionException( "Cancelled" ));
+				
 				return;
 			}
 			
@@ -4357,6 +4359,8 @@ SubscriptionManagerImpl
 						try{
 							if ( listener.isCancelled()){
 								
+								listener.failed( association_hash, new SubscriptionException( "Cancelled" ));
+
 								return;
 							}
 							
