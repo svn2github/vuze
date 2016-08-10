@@ -1,6 +1,8 @@
 VUZE CHANGELOG
 -----------------
 
+2016.xx.yy | Vuze 5.7.3.1
+
 2016.08.09 | Vuze 5.7.3.0
 
 FEATURE: UI   | Remember last configuration view [Parg]
