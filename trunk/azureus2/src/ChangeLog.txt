@@ -21,7 +21,7 @@ FEATURE: UI   | Option to force separate chat windows to open in side bar [Parg]
 
 FEATURE: Core | Added option to make subscription downloads non-public [Parg]
 FEATURE: Core | Concurrent subscription downloads [Parg]
-FEATURE: Core | Support for anonyous subscriptions [Parg]
+FEATURE: Core | Support for anonymous subscriptions [Parg]
 FEATURE: Core | Extended subscription based chat to non-web engines where possible [Parg]
 
 CHANGE: UI    | Updated subscriptions now don't auto-select in sidebar by default - option added to enable this [Parg]
@@ -40,7 +40,7 @@ BUGFIX: UI    | Verification that a shell is within monitor bounds fix [Parg]
 BUGFIX: UI    | Remember sort column [Parg]
 
 BUGFIX: Core  | Maintain 'time found' across subscription updates [Parg]
-BUGFIX: Core  | Fix bug with non-public metadata tansfer [Parg]
+BUGFIX: Core  | Fix bug with non-public metadata transfer [Parg]
 BUGFIX: Core  | Fix edge case where auto-download subscription properties not being set [Parg]
 BUGFIX: Core  | Fix installation of SSL certificate after a redirect [Parg]
 BUGFIX: Core  | Handle some more corrupted torrent fields [Parg]
