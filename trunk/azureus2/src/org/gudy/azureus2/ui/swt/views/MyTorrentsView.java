@@ -1196,7 +1196,11 @@ public class MyTorrentsView
 					{
 						"f:",
 						"",		//defer (index = 4)
-					}
+					},
+					{
+						"h:",
+						"",		//defer (index = 5)
+					},
 				};
 
 				Object o_name = name_mapping[0][1];
@@ -1248,6 +1252,26 @@ public class MyTorrentsView
 								String name = tmpSearch.contains( File.separator )?file.getAbsolutePath():file.getName();
 								
 								names.add( name );
+							}
+						}else if ( i == 5 ){
+							
+							List<String> hashes = new ArrayList<String>();
+							
+							o_name = hashes;
+							
+							TOTorrent t = dm.getTorrent();
+							
+							if ( t != null ){
+								
+								try{
+									byte[] hash = t.getHash();
+									
+									hashes.add( ByteFormatter.encodeString( hash ));
+									hashes.add( Base32.encode( hash ));
+									
+								}catch( Throwable e ){
+									
+								}
 							}
 						}else{
 							o_name = name_mapping[i][1];
