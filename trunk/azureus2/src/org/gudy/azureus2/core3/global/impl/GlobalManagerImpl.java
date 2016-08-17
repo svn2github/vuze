@@ -4250,13 +4250,13 @@ public class GlobalManagerImpl
 			{
 				int	id = getTagID();
 				
-				if ( id >= 7 && id <= 9 ){
+				if ( id >= 7 && id <= 9 ){	// active, paused, inactive
 					
 					return( user_mode > 0 );
 					
 				}else{
 					
-					return( false );
+					return( id == 7 );	// active 
 				}
 			}
 			
