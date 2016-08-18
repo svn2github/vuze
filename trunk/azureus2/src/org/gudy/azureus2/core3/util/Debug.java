@@ -153,6 +153,36 @@ public class Debug {
     }
   }
 
+  public static String getLastCallerShort() {
+	  	return getLastCallerShort(0);
+	  }
+
+	  public static String getLastCallerShort(int numToGoBackFurther) {
+	    try {
+	      throw new Exception();
+	    }
+	    catch (Exception e) {
+	      // [0] = our throw
+	      // [1] = the line that called getLastCaller
+	      // [2] = the line that called the function that has getLastCaller
+	      StackTraceElement st[] = e.getStackTrace();
+	      StackTraceElement ste;
+	      if (st == null || st.length == 0)
+	      	return "??";
+	      if (st.length > 3 + numToGoBackFurther){
+	        ste = st[3 + numToGoBackFurther];
+	      }else{
+	    	  ste = st[st.length - 1];
+	      }
+	      String fn = ste.getFileName();
+	      
+	      if ( fn != null ){
+	    	  return( fn + ":" + ste.getLineNumber());
+	      }
+	      return( ste.toString());
+	    }
+	  }
+	  
   public static void outStackTrace() {
     // skip the last, since they'll most likely be main
 	  diagLoggerLogAndOut(getStackTrace(1),false);

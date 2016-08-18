@@ -38,7 +38,7 @@ AsyncDispatcher
 	public
 	AsyncDispatcher()
 	{
-		this( "AsyncDispatcher", 10000 );
+		this( "AsyncDispatcher: " + Debug.getLastCallerShort(), 10000 );
 	}
 	
 	public
@@ -52,7 +52,7 @@ AsyncDispatcher
 	AsyncDispatcher(
 		int		quiesce_after_millis )
 	{
-		this( "AsyncDispatcher", quiesce_after_millis );
+		this( "AsyncDispatcher: " + Debug.getLastCallerShort(), quiesce_after_millis );
 	}
 	
 	public
