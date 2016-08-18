@@ -117,6 +117,22 @@ SubscriptionManagerImpl
 	
 	private static final int DELETE_UNUSED_AFTER_MILLIS = 2*7*24*60*60*1000;
 	
+	private static final int PUB_ASSOC_CONC_MAX;
+	private static final int PUB_SLEEPING_ASSOC_CONC_MAX	= 1;
+
+	static{
+		int max_conc_assoc_pub = 3;
+		
+		try{
+			
+			max_conc_assoc_pub = Integer.parseInt( System.getProperty( "azureus.subs.max.concurrent.assoc.publish", ""+max_conc_assoc_pub));
+			
+		}catch( Throwable e ){
+			Debug.out( e );
+		}
+		
+		PUB_ASSOC_CONC_MAX = max_conc_assoc_pub;
+	}
 	
 	private static SubscriptionManagerImpl		singleton;
 	private static boolean						pre_initialised;
@@ -242,10 +258,7 @@ SubscriptionManagerImpl
 	private List<SubscriptionImpl>		subscriptions	= new ArrayList<SubscriptionImpl>();
 	
 	private boolean	config_dirty;
-	
-	private static final int PUB_ASSOC_CONC_MAX				= 3;
-	private static final int PUB_SLEEPING_ASSOC_CONC_MAX	= 1;
-	
+		
 	private int		publish_associations_active;
 	private boolean	publish_next_asyc_pending;
 	
