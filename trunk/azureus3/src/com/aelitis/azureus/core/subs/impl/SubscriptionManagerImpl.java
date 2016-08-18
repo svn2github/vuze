@@ -216,6 +216,9 @@ SubscriptionManagerImpl
 	private static final int	ASSOC_CHECK_PERIOD	= 5*60*1000;
 	private static final int	ASSOC_CHECK_TICKS	= ASSOC_CHECK_PERIOD/TIMER_PERIOD;
 	
+	private static final int	ASSOC_PUBLISH_PERIOD	= 5*60*1000;
+	private static final int	ASSOC_PUBLISH_TICKS		= ASSOC_PUBLISH_PERIOD/TIMER_PERIOD;
+
 	private static final int	CHAT_CHECK_PERIOD	= 3*60*1000;
 	private static final int	CHAT_CHECK_TICKS	= CHAT_CHECK_PERIOD/TIMER_PERIOD;
 
@@ -2352,6 +2355,11 @@ SubscriptionManagerImpl
 		if ( ticks % ASSOC_CHECK_TICKS == 0 ){
 			
 			lookupAssociations( false );
+		}
+		
+		if ( ticks % ASSOC_PUBLISH_TICKS == 0 ){
+			
+			publishAssociations();
 		}
 		
 		if ( ticks % SERVER_PUB_CHECK_TICKS == 0 ){
@@ -4935,7 +4943,7 @@ SubscriptionManagerImpl
 		return( download_found );
 	}
 	
-	protected boolean
+	private boolean
 	publishAssociations()
 	{
 		SubscriptionImpl 				subs_to_publish		= null;
@@ -4949,6 +4957,8 @@ SubscriptionManagerImpl
 			}			
 			
 			publish_associations_active++;
+			
+			log( "Publishing Associations Starts (conc=" + publish_associations_active + ")" );
 			
 			List shuffled_subs = new ArrayList( subscriptions );
 
@@ -4991,7 +5001,7 @@ SubscriptionManagerImpl
 		}
 	}
 	
-	protected void
+	private void
 	publishAssociation(
 		final SubscriptionImpl					subs,
 		final SubscriptionImpl.association		assoc )
@@ -5017,6 +5027,11 @@ SubscriptionManagerImpl
 		final DHTPluginInterface	dht_plugin = selectDHTPlugin( subs );
 		
 		if ( dht_plugin == null ){
+			
+			synchronized( this ){
+
+				publish_associations_active--;
+			}
 			
 			return;
 		}
