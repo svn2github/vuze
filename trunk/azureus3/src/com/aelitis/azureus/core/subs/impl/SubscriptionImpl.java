@@ -140,7 +140,7 @@ SubscriptionImpl
 
 	private String			id;
 
-	private List			associations = new ArrayList();
+	private List<association>			associations = new ArrayList<association>();
 	
 	private int				fixed_random;
 	
@@ -1770,13 +1770,13 @@ SubscriptionImpl
 			
 			if ( rem > 0 ){
 				
-				List l = new ArrayList( associations.subList( 0, rem ));
+				List<association> l = new ArrayList<association>( associations.subList( 0, rem ));
 				
 				Collections.shuffle( l );
 				
 				for (int i=0;i<l.size();i++){
 					
-					association assoc = (association)l.get(i);
+					association assoc = l.get(i);
 
 					if ( !assoc.getPublished()){
 						
@@ -1789,6 +1789,25 @@ SubscriptionImpl
 		}
 		
 		return( null );
+	}
+	
+	protected int
+	getAssociationsRemainingForPublish()
+	{
+		synchronized( this ){
+			
+			int	result = 0;
+			
+			for ( association a: associations ){
+				
+				if ( !a.getPublished()){
+					
+					result++;
+				}
+			}
+			
+			return( result );
+		}
 	}
 	
 	protected boolean

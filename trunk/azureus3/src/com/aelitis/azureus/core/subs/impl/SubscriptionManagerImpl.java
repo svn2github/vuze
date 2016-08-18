@@ -2359,7 +2359,18 @@ SubscriptionManagerImpl
 		
 		if ( ticks % ASSOC_PUBLISH_TICKS == 0 ){
 			
-			publishAssociations();
+			int rem = getPublishRemainingCount();
+			
+			if ( rem == 0 ){
+				
+				log( "No associations to publish" );
+				
+			}else{
+				
+				log( rem + " associations remaining to publish" );
+				
+				publishAssociations();
+			}
 		}
 		
 		if ( ticks % SERVER_PUB_CHECK_TICKS == 0 ){
@@ -4960,13 +4971,13 @@ SubscriptionManagerImpl
 			
 			log( "Publishing Associations Starts (conc=" + publish_associations_active + ")" );
 			
-			List shuffled_subs = new ArrayList( subscriptions );
+			List<SubscriptionImpl> shuffled_subs = new ArrayList<SubscriptionImpl>( subscriptions );
 
 			Collections.shuffle( shuffled_subs );
 							
 			for (int i=0;i<shuffled_subs.size();i++){
 					
-				SubscriptionImpl sub = (SubscriptionImpl)shuffled_subs.get( i );
+				SubscriptionImpl sub = shuffled_subs.get( i );
 					
 				if ( sub.isSubscribed() && sub.isPublic()){
 					
@@ -4998,6 +5009,25 @@ SubscriptionManagerImpl
 			}
 			
 			return( true );
+		}
+	}
+	
+	private int
+	getPublishRemainingCount()
+	{
+		synchronized( this ){
+			
+			int	result = 0;
+			
+			for ( SubscriptionImpl sub: subscriptions ){
+				
+				if ( sub.isSubscribed() && sub.isPublic()){
+					
+					result += sub.getAssociationsRemainingForPublish();
+				}
+			}
+			
+			return( result );
 		}
 	}
 	
