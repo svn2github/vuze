@@ -105,14 +105,18 @@ RelatedContentManager
 	
 	private static final boolean 	TRACE 			= false;
 		
-	private static final int	MAX_HISTORY					= 16;
-	private static final int	MAX_TITLE_LENGTH			= 80;
-	private static final int	MAX_CONCURRENT_PUBLISH;
+	private static final int		MAX_HISTORY					= 16;
+	private static final int		MAX_TITLE_LENGTH			= 80;
+	private static final int		MAX_CONCURRENT_PUBLISH;
+	private static final boolean	DISABLE_PUBLISHING;
 	
 	static{
 		int max_conc_pub = 2;
 		
+		DISABLE_PUBLISHING = System.getProperty( "azureus.rcm.publish.disable", "0").equals( "1" );
+
 		try{
+			
 			max_conc_pub = Integer.parseInt( System.getProperty( "azureus.rcm.max.concurrent.publish", ""+max_conc_pub));
 			
 		}catch( Throwable e ){
@@ -939,9 +943,14 @@ RelatedContentManager
 		}
 	}
 	
-	protected void
+	private void
 	republish()
 	{
+		if ( DISABLE_PUBLISHING ){
+			
+			return;
+		}
+		
 		synchronized( rcm_lock ){
 
 			if ( publishing_count > 0 ){
@@ -1000,9 +1009,14 @@ RelatedContentManager
 	
 	private boolean last_pub_was_pub;
 	
-	protected void
+	private void
 	publish()
 	{
+		if ( DISABLE_PUBLISHING ){
+			
+			return;
+		}
+		
 		while( true ){
 			
 			DownloadInfo	info1 = null;
@@ -1132,7 +1146,7 @@ RelatedContentManager
 		}
 	}
 	
-	protected void
+	private void
 	publishNext()
 	{
 		synchronized( rcm_lock ){
@@ -1150,7 +1164,7 @@ RelatedContentManager
 		publish();
 	}
 	
-	protected boolean
+	private boolean
 	publish(
 		final DownloadInfo	from_info,
 		final DownloadInfo	to_info )
