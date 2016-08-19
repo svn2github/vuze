@@ -18,9 +18,11 @@
 package com.aelitis.azureus.ui.swt.views;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -39,6 +41,7 @@ import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.config.IntParameter;
 import org.gudy.azureus2.ui.swt.config.Parameter;
 import org.gudy.azureus2.ui.swt.config.ParameterChangeAdapter;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
@@ -71,17 +74,60 @@ public class ViewQuickConfig
 
 	private void 
 	initialize(
-		Composite parent) 
+		Composite ooparent) 
 	{
-		parent.setLayout( new GridLayout());
+		GridLayout layout = new GridLayout(1, false);
+		layout.marginWidth 	= 0;
+		layout.marginHeight = 0;
 		
-		composite = new Composite( parent, SWT.BORDER );
+		ooparent.setLayout( layout);
 		
+		// if you put the border on the scrolled composite parent then on every resize the computedSize
+		// grows by 4 pixels :( So stick in extra composite for the border
+		
+		final Composite oparent = new Composite( ooparent, SWT.BORDER );
 		GridData gridData = new GridData(GridData.FILL_BOTH);
+		Utils.setLayoutData(oparent, gridData);
 		
+		layout = new GridLayout(1, false);
+		layout.marginWidth 	= 0;
+		layout.marginHeight = 0;
+		
+		oparent.setLayout( layout);
+
+		final Composite parent = new Composite( oparent, SWT.NULL );
+		gridData = new GridData(GridData.FILL_BOTH);
+		Utils.setLayoutData(parent, gridData);
+		
+		layout = new GridLayout(1, false);
+		layout.marginWidth 	= 0;
+		layout.marginHeight = 0;
+		
+		parent.setLayout( layout);
+
+		final ScrolledComposite sc = new ScrolledComposite( parent, SWT.V_SCROLL );
+		sc.setExpandHorizontal( true );
+		sc.setExpandVertical( true );
+		sc.addListener( SWT.Resize,
+			new Listener() {
+				public void handleEvent(Event event) {
+					int width = sc.getClientArea().width;
+					Point size = parent.computeSize( width, SWT.DEFAULT );
+					sc.setMinSize( size );
+				}
+			} );
+
+		gridData = new GridData(GridData.FILL_BOTH);
+		Utils.setLayoutData(sc, gridData);
+
+		composite = new Composite( sc, SWT.NULL );
+
+		sc.setContent( composite );
+		
+		gridData = new GridData(GridData.FILL_BOTH);
 		Utils.setLayoutData(composite, gridData);
 		
-		GridLayout layout = new GridLayout(4, false);
+		layout = new GridLayout(4, false);
 		
 		composite.setLayout(layout);
 		
@@ -101,7 +147,8 @@ public class ViewQuickConfig
 		
 			// temporary rates
 		
-		Composite temp_rates = new Composite( composite, SWT.NULL );
+		Group temp_rates = new Group( composite, SWT.NULL );
+		Messages.setLanguageText( temp_rates, "label.temporary.rates" );
 		
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 4;
@@ -114,10 +161,13 @@ public class ViewQuickConfig
 		
 		temp_rates.setLayout(layout);
 		
-		label = new Label(temp_rates, SWT.NULL);
-		Messages.setLanguageText( label, "label.temporary.rates" );
+		//label = new Label(temp_rates, SWT.NULL);
+		//Messages.setLanguageText( label, "label.temporary.rates" );
 		
 		label = new Label(temp_rates, SWT.NULL);
+		gridData = new GridData();
+		gridData.horizontalIndent=4;
+		Utils.setLayoutData(label, gridData);
 		Messages.setLanguageText( label, "label.upload.kbps", new String[]{ DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB )});
 
 		final IntParameter tempULRate = new IntParameter( temp_rates, "global.download.rate.temp.kbps", 0, Integer.MAX_VALUE );
@@ -137,7 +187,7 @@ public class ViewQuickConfig
 		
 		final BufferedLabel remLabel = new BufferedLabel(temp_rates, SWT.DOUBLE_BUFFERED );
 		gridData = new GridData();
-		gridData.widthHint = 100;
+		gridData.widthHint = 150;
 		Utils.setLayoutData(remLabel,  gridData );
 
 		activate.addSelectionListener(
