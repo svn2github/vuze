@@ -3922,20 +3922,61 @@ SubscriptionManagerImpl
 	getPopularitySupport(
 		final DHTPluginInterface				dht_plugin,
 		final SubscriptionImpl					subs,
-		final SubscriptionPopularityListener	listener,
+		final SubscriptionPopularityListener	_listener,
 		final boolean							sync )
 	{
-		log( "Getting popularity of " + subs.getName() + " from DHT" );
-
-		byte[]	hash = subs.getPublicationHash();
-				
+		log( "Getting popularity of " + subs.getName() + " from DHT (" + dht_plugin.getNetwork() + ")" );
+			
+		byte[]	sub_id 		= subs.getShortID();
+		int		sub_version	= subs.getVersion();
+		
+		String	key = "subscription:publish:" + ByteFormatter.encodeString( sub_id ) + ":" + sub_version; 
+		
+			// check both torrent hash and pub hash
+		
+		byte[][]	keys = { subs.getPublicationHash(), getKeyBytes(key) };
+		
 		final AESemaphore sem = new AESemaphore( "SM:pop" );
 		
 		final long[] result = { -1 };
 		
 		final int timeout = 15*1000 * (subs.isAnonymous()?3:1);
 		
-		dht_plugin.get(
+		final SubscriptionPopularityListener listener = 
+			new SubscriptionPopularityListener()
+			{
+				private boolean	done;
+				
+				public void
+				gotPopularity(
+					long						popularity )
+				{
+					synchronized( this ){
+						if ( done ){
+							return;
+						}
+						done = true;
+					}
+					_listener.gotPopularity( popularity );
+				}
+				
+				public void
+				failed(
+					SubscriptionException		error )
+				{
+					synchronized( this ){
+						if ( done ){
+							return;
+						}
+						done = true;
+					}
+					_listener.failed( error );
+				}
+			};
+			
+		for ( byte[] hash: keys ){
+			
+			dht_plugin.get(
 				hash,
 				"Popularity lookup for subscription " + subs.getName(),
 				DHTPlugin.FLAG_STATS,
@@ -4035,6 +4076,7 @@ SubscriptionManagerImpl
 						}
 					}
 				});
+		}
 		
 		if ( sync ){
 			
