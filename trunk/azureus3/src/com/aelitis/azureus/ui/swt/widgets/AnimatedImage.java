@@ -21,9 +21,9 @@ package com.aelitis.azureus.ui.swt.widgets;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -43,13 +43,14 @@ public class AnimatedImage {
 	private String imageName;
 	
 	public AnimatedImage(Composite parent) {
-		canvas = new Canvas(parent,SWT.NONE);
+		canvas = new Canvas(parent,SWT.NO_BACKGROUND);
 		Color background = null;
 		Composite p = parent;
 		while(p != null && background == null) {
 			background = p.getBackground();
 			if(background != null) {
-				System.out.println("background : " + background + ", composite : " + p);
+				//System.out.println("background : " + background + ", composite : " + p);
+				break;
 			}
 			p = p.getParent();
 		}
@@ -78,11 +79,24 @@ public class AnimatedImage {
 							if(currentImage < images.length) {
 								Image image = images[currentImage];
 								if(image != null && !image.isDisposed()) {
-									GC gc = new GC(canvas);
-									Point canvasSize = canvas.getSize();
+								
 									Rectangle imageBounds = image.getBounds();
 									
-									gc.drawImage(image, (canvasSize.x-imageBounds.width)/2, (canvasSize.y-imageBounds.height)/2);
+									Image tempImage = new Image(canvas.getDisplay(),new Rectangle( 0, 0, imageBounds.width, imageBounds.height ));
+									GC gcImage = new GC(tempImage);
+									
+									gcImage.setBackground( canvas.getBackground());
+									gcImage.fillRectangle( new Rectangle( 0, 0, imageBounds.width, imageBounds.width ));
+									gcImage.drawImage(image, 0, 0 );
+									
+									GC gc = new GC(canvas);
+									
+									Point canvasSize = canvas.getSize();
+
+									gc.drawImage( tempImage, (canvasSize.x-imageBounds.width)/2, (canvasSize.y-imageBounds.height)/2);
+									
+									tempImage.dispose();
+									gcImage.dispose();
 									gc.dispose();
 								}
 							}

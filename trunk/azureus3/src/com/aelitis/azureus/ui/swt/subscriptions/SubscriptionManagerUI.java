@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginConfigListener;
@@ -142,7 +143,14 @@ SubscriptionManagerUI
 								
 								Download download = (Download)rows[0].getDataSource();
 								
-								new SubscriptionListWindow(PluginCoreUtils.unwrap(download), false);
+								String[] networks = PluginCoreUtils.unwrap( download ).getDownloadState().getListAttribute( DownloadManagerState.AT_NETWORKS );
+															
+								new SubscriptionListWindow( 
+									UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(), 
+									download.getName(), 
+									download.getTorrentHash(),
+									networks,
+									false);
 							}
 							/*
 							for (int i=0;i<rows.length;i++){

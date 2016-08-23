@@ -25,4 +25,8 @@ SubscriptionAssociationLookup
 {
 	public void
 	cancel();
+	
+	public void
+	setTimeout(
+		long	millis );
 }

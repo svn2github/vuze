@@ -39,7 +39,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -56,8 +55,9 @@ import com.aelitis.azureus.ui.swt.widgets.AnimatedImage;
 
 public class SubscriptionListWindow implements SubscriptionLookupListener {
 	
-	private DownloadManager download;
-	private boolean			useCachedSubs;
+	final private byte[]			torrent_hash;
+	final private String[]			networks;
+	final private boolean			useCachedSubs;
 	
 	private Display display;
 	private Shell shell;
@@ -89,13 +89,22 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	
 	
 	
-	public SubscriptionListWindow(DownloadManager download, boolean useCachedSubs ) {
-		this.download 		= download;
-		this.useCachedSubs	= useCachedSubs;
+	public 
+	SubscriptionListWindow(
+		Shell		parent,
+		String		display_name,
+		byte[]		torrent_hash, 
+		String[]	networks,
+		boolean 	useCachedSubs ) 
+	{
+		this.torrent_hash 		= torrent_hash;
+		this.networks			= networks;
+		this.useCachedSubs		= useCachedSubs;
 		
-		shell = ShellFactory.createMainShell(SWT.TITLE);
+		shell = ShellFactory.createShell( parent, SWT.DIALOG_TRIM | SWT.RESIZE );
+		Utils.setShellIcon(shell);
 		shell.setSize(400,300);
-		Utils.centreWindow(shell);
+		Utils.centerWindowRelativeTo( shell, parent );
 		
 		display = shell.getDisplay();
 		shell.setText(MessageText.getString("subscriptions.listwindow.title"));
@@ -213,11 +222,8 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		loadingProgress = new ProgressBar(loadingPanel,SWT.HORIZONTAL);
 		
 		animatedImage.setImageFromName("spinner_big");
-		String contentName = "Dummy";
-		if(download != null) {
-			contentName = download.getDisplayName();
-		}
-		loadingText.setText(MessageText.getString("subscriptions.listwindow.loadingtext", new String[] {contentName}));
+
+		loadingText.setText(MessageText.getString("subscriptions.listwindow.loadingtext", new String[] { display_name }));
 		
 		loadingProgress.setMinimum(0);
 		loadingProgress.setMaximum(300);
@@ -283,20 +289,19 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		action.setText(MessageText.getString("subscriptions.listwindow.subscribe"));
 		action.setEnabled(false);
 		try {
-			if(download != null) {
-				byte[] hash = download.getTorrent().getHash();
+			
 				
-				SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
-				if ( useCachedSubs ){
-					Subscription[] subs = subs_man.getKnownSubscriptions( hash );
-					complete(hash,subs);
-				}else{
-					lookup = subs_man.lookupAssociations(hash, this);
-				}
+			SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+			if ( useCachedSubs ){
+				Subscription[] subs = subs_man.getKnownSubscriptions( torrent_hash );
+				complete(torrent_hash,subs);
+			}else{
+				lookup = subs_man.lookupAssociations( torrent_hash, networks, this);
 				
-			} else {
-
+				lookup.setTimeout( 1*60*1000 );
 			}
+				
+		
 			loadingDone = false;
 			AEThread2 progressMover = new AEThread2("progressMover",true) {
 				public void run() {
@@ -498,21 +503,11 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 					animatedImage.stop();
 					animatedImage.dispose();
 					loadingProgress.dispose();
-					loadingText.setText(MessageText.getString("subscriptions.listwindow.failed"));
+					if ( !loadingText.isDisposed()){
+						loadingText.setText(MessageText.getString("subscriptions.listwindow.failed"));
+					}
 				}
 			});
-		}
-		
+		}	
 	}
-	
-	public static void main(String[] args) {
-		Display display = new Display();
-		SubscriptionListWindow slw = new SubscriptionListWindow(null,false);
-		while(!slw.shell.isDisposed()) {
-			if(!display.readAndDispatch()) {
-				display.sleep();
-			}
-		}
-	}
-
 }

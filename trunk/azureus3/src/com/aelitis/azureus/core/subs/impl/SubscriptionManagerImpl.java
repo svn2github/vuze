@@ -3410,6 +3410,17 @@ SubscriptionManagerImpl
 	
 	public SubscriptionAssociationLookup
 	lookupAssociations(
+		byte[]						hash,
+		String[]					networks,
+		SubscriptionLookupListener	listener )
+	
+		throws SubscriptionException
+	{
+		return( lookupAssociations( selectDHTPlugin(networks), hash, listener ));
+	}
+	
+	public SubscriptionAssociationLookup
+	lookupAssociations(
 		final byte[] 							hash,
 		final SubscriptionLookupListener		listener )
 	
@@ -3433,6 +3444,17 @@ SubscriptionManagerImpl
 			dht_plugin = dht_plugin_public;
 		}
 		
+		return( lookupAssociations( dht_plugin, hash, listener ));
+	}
+	
+	private SubscriptionAssociationLookup
+	lookupAssociations(
+		DHTPluginInterface						dht_plugin,
+		final byte[] 							hash,
+		final SubscriptionLookupListener		listener )
+	
+		throws SubscriptionException
+	{	
 		if ( dht_plugin != null ){
 			
 			if ( !dht_plugin.isInitialising()){
@@ -3440,7 +3462,8 @@ SubscriptionManagerImpl
 				return( lookupAssociationsSupport( dht_plugin, hash, listener ));
 			}
 			
-			final boolean[]	cancelled = { false };
+			final boolean[]	cancelled 	= { false };
+			final long[] 	timeout		= { 0 };
 			
 			final SubscriptionAssociationLookup[]	actual_res = { null };
 			
@@ -3459,6 +3482,19 @@ SubscriptionManagerImpl
 							if ( actual_res[0] != null ){
 								
 								actual_res[0].cancel();
+							}
+						}
+					}
+					
+					public void setTimeout(long millis){
+						
+						synchronized( actual_res ){
+							
+							timeout[0] = millis;
+							
+							if ( actual_res[0] != null ){
+								
+								actual_res[0].setTimeout( millis );
 							}
 						}
 					}
@@ -3482,6 +3518,11 @@ SubscriptionManagerImpl
 								
 								x.cancel();
 							}
+							
+							if ( timeout[0] != 0 ){
+								
+								x.setTimeout( timeout[0] );
+							}
 						}
 						
 					}catch( SubscriptionException e ){
@@ -3504,7 +3545,7 @@ SubscriptionManagerImpl
 	lookupAssociationsSupport(
 		DHTPluginInterface						dht_plugin,
 		final byte[] 							hash,
-		final SubscriptionLookupListener		listener )
+		final SubscriptionLookupListener		_listener )
 	
 		throws SubscriptionException 
 	{
@@ -3513,6 +3554,74 @@ SubscriptionManagerImpl
 		final String	key = "subscription:assoc:" + ByteFormatter.encodeString( hash ); 
 			
 		final boolean[]	cancelled = { false };
+		
+		final SubscriptionException	timeout_exception = new SubscriptionException( "Timeout" );
+				
+		final SubscriptionLookupListener listener = new
+			SubscriptionLookupListener()
+			{
+				private boolean	done = false;
+				
+				private List<Subscription>	subs = new ArrayList<Subscription>();
+						
+				public void
+				found(
+					byte[]					hash,
+					Subscription			subscription )
+				{
+					synchronized( this ){
+						if ( done ){
+							return;
+						}
+						subs.add( subscription );
+					}
+					
+					_listener.found(hash, subscription);
+				}	
+				
+				public void
+				complete(
+					byte[]					hash,
+					Subscription[]			subscriptions )
+				{
+					synchronized( this ){
+						if ( done ){
+							return;
+						}
+						
+						done = true;
+					}
+					
+					_listener.complete(hash, subscriptions);
+				}
+				
+				public void
+				failed(
+					byte[]					hash,
+					SubscriptionException	error )
+				{
+					Subscription[]	subscriptions;
+					
+					synchronized( this ){
+						if ( done ){
+							return;
+						}
+						
+						done = true;
+						
+						subscriptions = subs.toArray(new Subscription[ subs.size()]);
+					}
+					
+					if ( error == timeout_exception ){
+						
+						_listener.complete(hash, subscriptions);
+						
+					}else{
+					
+						_listener.failed(hash, error);
+					}
+				}
+			};
 		
 		dht_plugin.get(
 			getKeyBytes(key),
@@ -3801,6 +3910,18 @@ SubscriptionManagerImpl
 						
 						cancelled[0] = true;
 					}
+				}
+				
+				public void setTimeout(long millis) {
+					SimpleTimer.addEvent( 
+						"subs:timeout", 
+						SystemTime.getOffsetTime( millis ),
+						new TimerEventPerformer() {
+							
+							public void perform(TimerEvent event) {
+								listener.failed( hash, timeout_exception );	
+							}
+						});
 				}
 			});
 	}
@@ -7033,7 +7154,14 @@ SubscriptionManagerImpl
 		Download		download )
 	{
 		String[]	networks = download.getListAttribute( ta_networks );
-		
+
+		return( selectDHTPlugin( networks ));
+	}
+	
+	private DHTPluginInterface
+	selectDHTPlugin(
+		String[]		networks )
+	{
 		if ( networks.length > 0 ){
 			
 			for ( String net: networks ){

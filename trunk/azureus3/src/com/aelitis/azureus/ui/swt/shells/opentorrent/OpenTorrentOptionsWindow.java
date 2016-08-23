@@ -101,6 +101,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionListWindow;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.TagUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
@@ -3119,6 +3120,20 @@ public class OpenTorrentOptionsWindow
 
 			TOTorrent torrent = torrentOptions.getTorrent();
 			
+			String title_temp = torrentOptions.getTorrentName();
+			
+			if ( torrent != null ){
+			
+				String str = PlatformTorrentUtils.getContentTitle( torrent );
+				
+				if ( str != null && str.length() > 0 ){
+					
+					title_temp = str;
+				}
+			}
+			
+			final String title = title_temp;
+			
 			String[] enabled_networks = AENetworkClassifier.AT_NETWORKS;
 			
 			Map<String,Boolean> enabledNetworks = torrentOptions.getEnabledNetworks();
@@ -3133,7 +3148,9 @@ public class OpenTorrentOptionsWindow
 				}
 				enabled_networks = temp.toArray( new String[temp.size()]);
 			}
-					
+				
+			final String[] f_enabled_networks = enabled_networks;
+			
 			Composite comp = new Composite( comments_shell, SWT.NULL );
 			
 			GridData gridData = new GridData( GridData.FILL_BOTH );
@@ -3215,9 +3232,7 @@ public class OpenTorrentOptionsWindow
 					final IPCInterface ipc = rating_pi.getIPC();
 					
 					if ( ipc.canInvoke( "lookupRatingByHash", new Object[]{ new String[0], new byte[0] })){
-							
-						final String[] f_enabled_networks = enabled_networks;
-						
+													
 						az_rating_in_progress[0] = true;
 						
 						ratingText.setText( MessageText.getString( "label.searching" ));
@@ -3369,9 +3384,7 @@ public class OpenTorrentOptionsWindow
 			Map<String,Object>	chat_properties = new HashMap<String, Object>();
 			
 			chat_properties.put( BuddyPluginViewInterface.VP_SWT_COMPOSITE, chatComp );
-			
-			final String[]f_enabled_networks = enabled_networks;
-			
+						
 			final String  chat_key = BuddyPluginUtils.getChatKey( torrent );
 			
 			BuddyPluginViewInterface.DownloadAdapter 
@@ -3444,7 +3457,7 @@ public class OpenTorrentOptionsWindow
 			Utils.setLayoutData(progressComp, gridData);
 			
 			layout = new GridLayout();
-			layout.numColumns = 2;
+			layout.numColumns = 3;
 			progressComp.setLayout(layout);
 			
 			Label progLabel = new Label(progressComp,SWT.NULL);
@@ -3539,6 +3552,15 @@ public class OpenTorrentOptionsWindow
 				}
 			}.start();
 			
+			Button subscriptionLookup = new Button(progressComp,SWT.PUSH);
+			subscriptionLookup.setText( MessageText.getString( "ConfigView.section.Subscriptions" ));
+			subscriptionLookup.addSelectionListener(
+				new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						new SubscriptionListWindow( comments_shell, title, hash.getBytes(), f_enabled_networks, false);
+					}
+				});
+			
 				// line
 			
 			Label labelSeparator = new Label( comp, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -3610,18 +3632,6 @@ public class OpenTorrentOptionsWindow
 			comments_shell.layout(true, true);
 			
 			Utils.centerWindowRelativeTo(comments_shell,shell);
-			
-			String title = torrentOptions.getTorrentName();
-						
-			if ( torrent != null ){
-			
-				String str = PlatformTorrentUtils.getContentTitle( torrent );
-				
-				if ( str != null && str.length() > 0 ){
-					
-					title = str;
-				}
-			}
 			
 			Messages.setLanguageText( comments_shell, "torrent.comments.title", new String[]{ title });
 

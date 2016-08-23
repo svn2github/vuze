@@ -106,6 +106,14 @@ SubscriptionManager
 	
 		throws SubscriptionException;
 	
+	public SubscriptionAssociationLookup
+	lookupAssociations(
+		byte[]						hash,
+		String[]					networks,
+		SubscriptionLookupListener	listener )
+	
+		throws SubscriptionException;
+	
 		/**
 		 * Cached view of hash's subs
 		 * @param hash
