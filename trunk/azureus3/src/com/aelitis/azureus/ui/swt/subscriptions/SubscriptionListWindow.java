@@ -106,8 +106,22 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		shell.setSize(400,300);
 		Utils.centerWindowRelativeTo( shell, parent );
 		
+		String networks_str = "";
+		
+		for ( String net: networks ){
+			
+			networks_str += 
+					(networks_str.length()==0?"":", ") + 
+					MessageText.getString( "ConfigView.section.connection.networks." + net );
+		}
+		
+		if ( networks_str.length() == 0 ){
+			
+			networks_str = MessageText.getString( "PeersView.uniquepiece.none" );
+		}
+		
 		display = shell.getDisplay();
-		shell.setText(MessageText.getString("subscriptions.listwindow.title"));
+		shell.setText(MessageText.getString("subscriptions.listwindow.title") + " [" + networks_str + "]" );
 		
 		shell.setLayout(new FormLayout());
 		
