@@ -62,7 +62,7 @@ public class ColumnSubscriptionAutoDownload
 			}
 		}
 
-		if (!cell.setSortValue(autoDownload) && cell.isValid()) {
+		if (!cell.setSortValue(autoDownload?1:0) && cell.isValid()) {
 			return;
 		}
 
@@ -73,6 +73,9 @@ public class ColumnSubscriptionAutoDownload
 		if ( sub.isAutoDownloadSupported()){
 			cell.setText( DisplayFormatters.getYesNo( autoDownload ));
 		}else{
+			if (!cell.setSortValue(-1) && cell.isValid()) {
+				return;
+			}
 			cell.setText( "" );
 		}
 		return;

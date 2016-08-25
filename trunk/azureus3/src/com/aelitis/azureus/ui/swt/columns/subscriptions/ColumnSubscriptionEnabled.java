@@ -61,7 +61,7 @@ public class ColumnSubscriptionEnabled
 				enabled = history.isEnabled();
 			}
 
-			if (!cell.setSortValue(enabled) && cell.isValid()) {
+			if (!cell.setSortValue(enabled?1:0) && cell.isValid()) {
 				return;
 			}
 	
@@ -72,6 +72,9 @@ public class ColumnSubscriptionEnabled
 			if ( !sub.isSearchTemplate()){
 				cell.setText( DisplayFormatters.getYesNo( enabled ));
 			}else{
+				if (!cell.setSortValue(-1) && cell.isValid()) {
+					return;
+				}
 				cell.setText( "" );
 			}
 		}else{

@@ -55,7 +55,11 @@ public class ColumnSubscriptionNbNewResults
 		int nbResults = 0;
 		Subscription sub = (Subscription) cell.getDataSource();
 		if (sub != null) {
-			nbResults = sub.getHistory().getNumUnread();
+			if ( sub.isSearchTemplate()){
+				nbResults = -1;
+			}else{
+				nbResults = sub.getHistory().getNumUnread();
+			}
 		}
 
 		if (!cell.setSortValue(nbResults) && cell.isValid()) {
