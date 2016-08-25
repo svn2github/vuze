@@ -270,6 +270,7 @@ public class SubscriptionsView
 				new ColumnSubscriptionMaxResults(TABLE_ID),
 				new ColumnSubscriptionLastChecked(TABLE_ID),
 				new ColumnSubscriptionSubscribers(TABLE_ID),
+				new ColumnSubscriptionEnabled(TABLE_ID),
 				new ColumnSubscriptionAutoDownload(TABLE_ID),
 				new ColumnSubscriptionCategory(TABLE_ID),
 				new ColumnSubscriptionTag(TABLE_ID),

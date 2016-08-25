@@ -1747,6 +1747,26 @@ SubscriptionManagerUI
 				}
 			});
 			
+				// enabled
+				
+			menuItem = menu_creator.createMenu( "subs.prop.enabled");
+			menuItem.setStyle( MenuItem.STYLE_CHECK );
+			
+			menuItem.addFillListener( new MenuItemFillListener(){
+				public void menuWillBeShown( MenuItem menu, Object data ){
+					menu.setData( subs.getHistory().isEnabled());
+				}});
+		
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( Subscription subs) {
+					try{
+						subs.getHistory().setEnabled( !subs.getHistory().isEnabled());
+					}catch( Throwable e ){
+						Debug.out(e);
+					}
+				}
+			});
+		
 			if ( subs.isAutoDownloadSupported()){
 				
 					// auto-dl
