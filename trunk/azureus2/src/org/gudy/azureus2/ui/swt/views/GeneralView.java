@@ -553,11 +553,11 @@ public class GeneralView
       }
     });
 
-    updateAvailability();
-    updatePiecesInfo(false);
-
     genComposite.layout();
     
+    updateAvailability();
+    updatePiecesInfo(true);
+
     Utils.updateScrolledComposite(scrolled_comp);
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
   }
