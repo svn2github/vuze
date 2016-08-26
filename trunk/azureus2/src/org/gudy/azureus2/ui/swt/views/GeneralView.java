@@ -147,6 +147,8 @@ public class GeneralView
   
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
 
+  private boolean	piecesImageRefreshNeeded;
+  
   private Composite parent;
   private ScrolledComposite	scrolled_comp;
   private UISWTView swtView;
@@ -217,6 +219,7 @@ public class GeneralView
     scrolled_comp.setContent(genComposite);
 	scrolled_comp.addControlListener(new ControlAdapter() {
 		public void controlResized(ControlEvent e) {
+			piecesImageRefreshNeeded = true;
 			Utils.updateScrolledComposite(scrolled_comp);
 		}
 	});
@@ -887,6 +890,11 @@ public class GeneralView
 	
 	    if (piecesImage == null || piecesImage.isDisposed())
 	      return;
+	    
+	    if ( piecesImageRefreshNeeded ){
+	    	bForce = true;
+	    	piecesImageRefreshNeeded = false;
+	    }
 	    
 	    DiskManager	dm = manager.getDiskManager();
 
