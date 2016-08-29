@@ -1174,7 +1174,7 @@ TagDownloadWithState
 		
 		for ( DownloadManager dm: dms ){
 					
-			if ( dm.isDownloadComplete( false )){
+			if ( dm.isDownloadComplete( false ) && !dm.isForceStart()){
 								
 				int state = dm.getState();
 				
@@ -1241,7 +1241,7 @@ TagDownloadWithState
 				
 					DownloadManager dm = it.next();
 					
-					if ( !dm.isDownloadComplete( false )){
+					if ( dm.isForceStart() || !dm.isDownloadComplete( false )){
 						
 						it.remove();
 						
