@@ -28,6 +28,7 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -70,11 +71,9 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
-import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.FeatureAvailability;
-import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -2271,11 +2270,14 @@ public class MainWindowImpl
 			text.setBackground(colorSearchTextBG);
 		}
 
+		final TextWithHistory twh = new TextWithHistory( "mainwindow.search.history", text );
+		
 		text.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
+				int key = e.character;
+				
 				if (e.stateMask == SWT.MOD1) {
 
-					int key = e.character;
 					if (key <= 26 && key > 0) {
 						key += 'a' - 1;
 					}
@@ -2284,7 +2286,6 @@ public class MainWindowImpl
 						text.selectAll();
 					}
 				}
-
 			}
 
 			public void keyReleased(KeyEvent arg0) {
@@ -2302,7 +2303,13 @@ public class MainWindowImpl
 					return;
 				}
 				if (event.character == SWT.CR) {
-					uiFunctions.doSearch(text.getText());
+					if ( event.doit){
+						String expression = text.getText();
+						
+						uiFunctions.doSearch( expression);
+						
+						twh.addHistory( expression );
+					}
 				}
 			}
 		});
@@ -2315,6 +2322,8 @@ public class MainWindowImpl
 						SWTSkinObject skinObject, int stateMask) {
 					String sSearchText = text.getText().trim();
 					uiFunctions.doSearch(sSearchText);
+					
+					twh.addHistory( sSearchText );
 				}
 			});
 		}
@@ -2328,6 +2337,8 @@ public class MainWindowImpl
 						SWTSkinObject skinObject, int stateMask) {
 					String sSearchText = text.getText().trim();
 					uiFunctions.doSearch(sSearchText);
+					
+					twh.addHistory( sSearchText );
 				}
 			});
 		}

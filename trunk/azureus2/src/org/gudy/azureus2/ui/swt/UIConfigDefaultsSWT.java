@@ -120,6 +120,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("suppress_file_download_dialog", false);
 		def.addParameter("auto_remove_inactive_items", false);
 		def.addParameter("show_torrents_menu", true);
+		def.addParameter("mainwindow.search.history.enabled", true);
 		
 		def.addParameter("swt.forceMozilla",false);
 		def.addParameter("swt.xulRunner.path","");

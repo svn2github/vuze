@@ -110,6 +110,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		new BooleanParameter(gVarious, "show_torrents_menu", "Menu.show.torrent.menu");
 
+		new BooleanParameter(gVarious, "mainwindow.search.history.enabled", "search.history.enable");
+
 		if (Constants.isWindowsXP) {
 			final Button enableXPStyle = new Button(gVarious, SWT.CHECK);
 			Messages.setLanguageText(enableXPStyle, MSG_PREFIX + "enableXPStyle");

@@ -105,4 +105,9 @@ public class StringListImpl implements StringList {
 		return (String[])list.toArray(new String[list.size()]);
 	}
 
+	public void clear()
+	{
+		list.clear();
+	}
+	
 }

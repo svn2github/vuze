@@ -43,4 +43,6 @@ public interface StringList {
 	public String remove(int index);
 	
 	public String[] toArray();
+	
+	public void clear();
 }
