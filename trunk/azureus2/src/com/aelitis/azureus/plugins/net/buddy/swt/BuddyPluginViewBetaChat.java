@@ -57,7 +57,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -142,6 +141,16 @@ BuddyPluginViewBetaChat
 		BuddyPlugin		plugin,
 		ChatInstance	chat )	
 	{
+		createChatWindow( view, plugin, chat, false );
+	}
+	
+	protected static void
+	createChatWindow(
+		BuddyPluginView	view,
+		BuddyPlugin		plugin,
+		ChatInstance	chat,
+		boolean			force_popout )
+	{
 		for ( BuddyPluginViewBetaChat win: active_windows ){
 			
 			if ( win.getChat() == chat ){
@@ -157,19 +166,22 @@ BuddyPluginViewBetaChat
 			}
 		}
 		
-		if ( plugin.getBeta().getWindowsToSidebar()){
+		if ( !force_popout ){
 			
-			final AZ3Functions.provider az3 = AZ3Functions.getProvider();
-			
-			if ( az3 != null ){
+			if ( plugin.getBeta().getWindowsToSidebar()){
 				
-				if ( az3.openChat( chat.getNetwork(), chat.getKey())){
+				final AZ3Functions.provider az3 = AZ3Functions.getProvider();
+				
+				if ( az3 != null ){
 					
-					chat.destroy();
+					if ( az3.openChat( chat.getNetwork(), chat.getKey())){
+						
+						chat.destroy();
+						
+						return;
+					}
 					
-					return;
 				}
-				
 			}
 		}
 		
@@ -1878,7 +1890,7 @@ BuddyPluginViewBetaChat
 			pop_out.addMouseListener(new MouseAdapter() {
 				public void mouseUp(MouseEvent arg0) {
 					try{
-						createChatWindow( view, plugin, chat.getClone());
+						createChatWindow( view, plugin, chat.getClone(), true );
 						
 					}catch( Throwable e ){
 						
@@ -2510,7 +2522,7 @@ BuddyPluginViewBetaChat
 			auto_ftux_popout_done = true;
 			
 			try{
-				createChatWindow( view, plugin, chat.getClone());
+				createChatWindow( view, plugin, chat.getClone(), true );
 				
 			}catch( Throwable e ){
 				
