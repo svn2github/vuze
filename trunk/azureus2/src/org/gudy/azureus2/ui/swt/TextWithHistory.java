@@ -44,6 +44,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -131,236 +132,221 @@ TextWithHistory
 									current_shell	= null;
 									list			= null;
 									mouse_entered	= false;
+									menu_visible	= false;
 								}
 							});
 						
-						GridLayout layout = new GridLayout();
-						
-						layout.marginHeight = 0;
-						layout.marginWidth = 0;
-						
-						current_shell.setLayout( layout );
-												
-						current_shell.setBackground( text.getBackground());
-						
-						final Composite comp = new Composite( current_shell, SWT.NULL );
-						comp.setLayoutData( new GridData( GridData.FILL_BOTH ));
-						
-						layout = new GridLayout();
-						
-						layout.marginHeight = 0;
-						layout.marginWidth 	= 0;
-						layout.marginLeft 	= 2;
-						layout.marginRight 	= 6;
-						layout.marginBottom = 2;
-						
-						comp.setLayout( layout );
-						
-						comp.setBackground( text.getBackground());
-
-						comp.addPaintListener( new PaintListener() {
-							
-							public void paintControl(PaintEvent e) {
-								GC gc = e.gc;
-								
-								gc.setForeground( Colors.dark_grey );
-								
-								Rectangle bounds = comp.getBounds();
-								
-								gc.drawLine( 0, 0, 0, bounds.height-1 );
-								gc.drawLine( bounds.width-1, 0, bounds.width-1, bounds.height-1 );
-								gc.drawLine( 0, bounds.height-1, bounds.width-1, bounds.height-1 );
-							}
-						});
-						
-						list = new org.eclipse.swt.widgets.List( comp, SWT.NULL );
-						list.setLayoutData( new GridData( GridData.FILL_BOTH ));
-						
-						for ( String match: current_matches ){
-							
-							list.add( match);
-						}
-						
-						list.setFont( text.getFont());
-						
-						list.deselectAll();
-						
-						list.addMouseMoveListener( new MouseMoveListener() {
-							public void mouseMove(MouseEvent e){
-							
-								int item_height = list.getItemHeight();
-								
-								int y = e.y;
-								
-								int	item_index = y/item_height;
-								
-								if ( list.getSelectionIndex() != item_index ){
-									list.setSelection( item_index );
-								}
-							}
-						});
-							
-						list.addMouseTrackListener( new MouseTrackAdapter() {
-							public void mouseEnter(MouseEvent e) {
-								mouse_entered = true;
-							}
-							public void mouseExit(MouseEvent e) {
-								list.deselectAll();
-								mouse_entered = false;
-							}
-						});
-						
-						list.addSelectionListener(
-							new SelectionAdapter() {
-								
-								public void widgetSelected(SelectionEvent e) {
-									
-									fireSelected();
-								}
-							});
-						
-						Menu menu = new Menu( list );
-						
-						list.setMenu( menu );
-												
-							// clear history
-						
-						MenuItem mi = new MenuItem( menu, SWT.PUSH );
-
-						mi.setText( MessageText.getString( "label.clear.history" ));
-						
-						mi.addSelectionListener(
-							new SelectionAdapter() {
-								
-								public void widgetSelected(SelectionEvent e) {
-								
-									clearHistory();
-								}
-							});
-						
-						mi = new MenuItem( menu, SWT.SEPARATOR );
-						
-							// disable history
-						
-						mi = new MenuItem( menu, SWT.PUSH );
-
-						mi.setText( MessageText.getString( "label.disable.history" ));
-						
-						mi.addSelectionListener(
-							new SelectionAdapter() {
-								
-								public void widgetSelected(SelectionEvent e) {
-								
-									COConfigurationManager.setParameter( config_prefix + ".enabled", false );
-								}
-							});
-						
-						menu.addMenuListener(
-							new MenuListener() {
-								
-								public void menuShown(MenuEvent e) {
-									menu_visible = true;
-								}
-								
-								public void menuHidden(MenuEvent e) {
-									menu_visible = false;
-								}
-							});
-						
-						text.addFocusListener(
-							new FocusListener() {
-																	
-								public void focusLost(FocusEvent e){
-									
-									final Shell shell = current_shell;
-									
-									if ( shell != null ){
-
-										Utils.execSWTThreadLater(
-											mouse_entered?500:0,	// hang around for potential selection event as focus-lost fired from text
-																	// before selection event fired for combo
-											new Runnable()
-											{
-												public void
-												run()
-												{
-													if ( current_shell == shell && !menu_visible ){
-														
-														shell.dispose();
-													}
-												}
-											});
-									}
-								}
-								
-								public void focusGained(FocusEvent e) {
-								}
-							});
-						
-						current_shell.pack();
-
-						Rectangle bounds = text.getBounds();
-						
-						Point shell_pos = text.toDisplay( 0, bounds.height );
-						
-						current_shell.setLocation( shell_pos );
-						
-						Rectangle shell_size = current_shell.getBounds();
-
-						if ( shell_size.width > bounds.width ){
-							
-							shell_size.width = bounds.width;
-							
-							current_shell.setBounds( shell_size );
-						}
-						
-						current_shell.setVisible( true );
-						
+	
 					}else{
 						
-						String[] old = list.getItems();
+						String[] items = list.getItems();
 						
-						boolean same = false;
-						
-						if ( old.length == current_matches.size()){
+						if ( items.length == current_matches.size()){
 							
-							same = true;
+							boolean	same = true;
 							
-							for ( int i=0;i<old.length;i++){
-								
-								if ( !old[i].equals( current_matches.get(i))){
-									
+							for ( int i=0;i<items.length;i++){
+								if ( !items[i].equals( current_matches.get(i))){
 									same = false;
-									
 									break;
 								}
 							}
+							
+							if ( same ){
+								
+								return;
+							}
 						}
 						
-						if ( !same ){
+						Utils.disposeComposite( current_shell, false );
+					}
+					
+					GridLayout layout = new GridLayout();
+					
+					layout.marginHeight = 0;
+					layout.marginWidth = 0;
+					
+					current_shell.setLayout( layout );
+											
+					Color	background = text.getBackground();
+					
+					current_shell.setBackground( background );
+					
+					final Composite comp = new Composite( current_shell, SWT.NULL );
+					comp.setLayoutData( new GridData( GridData.FILL_BOTH ));
+					
+					layout = new GridLayout();
+					
+					layout.marginHeight = 0;
+					layout.marginWidth 	= 0;
+					layout.marginLeft 	= 2;
+					layout.marginRight 	= 6;
+					layout.marginBottom = 2;
+					
+					comp.setLayout( layout );
+					
+					comp.setBackground( background );
+
+					comp.addPaintListener( new PaintListener() {
+						
+						public void paintControl(PaintEvent e) {
+							GC gc = e.gc;
 							
-							list.removeAll();
+							gc.setForeground( Colors.dark_grey );
 							
-							for ( String match: current_matches ){
-								
-								list.add( match);
-							}
+							Rectangle bounds = comp.getBounds();
 							
-							current_shell.pack( true );
+							gc.drawLine( 0, 0, 0, bounds.height-1 );
+							gc.drawLine( bounds.width-1, 0, bounds.width-1, bounds.height-1 );
+							gc.drawLine( 0, bounds.height-1, bounds.width-1, bounds.height-1 );
+						}
+					});
+					
+					list = new org.eclipse.swt.widgets.List( comp, SWT.NULL );
+					list.setLayoutData( new GridData( GridData.FILL_BOTH ));
+					
+					for ( String match: current_matches ){
+						
+						list.add( match);
+					}
+					
+					list.setFont( text.getFont());
+					list.setBackground( background );
+					
+					list.deselectAll();
+					
+					list.addMouseMoveListener( new MouseMoveListener() {
+						public void mouseMove(MouseEvent e){
+						
+							int item_height = list.getItemHeight();
 							
-							Rectangle shell_size = current_shell.getBounds();
+							int y = e.y;
 							
-							Rectangle bounds = text.getBounds();
+							int	item_index = y/item_height;
 							
-							if ( shell_size.width > bounds.width ){
-								
-								shell_size.width = bounds.width;
-								
-								current_shell.setBounds( shell_size );
+							if ( list.getSelectionIndex() != item_index ){
+								list.setSelection( item_index );
 							}
 						}
+					});
+						
+					list.addMouseTrackListener( new MouseTrackAdapter() {
+						public void mouseEnter(MouseEvent e) {
+							mouse_entered = true;
+						}
+						public void mouseExit(MouseEvent e) {
+							list.deselectAll();
+							mouse_entered = false;
+						}
+					});
+					
+					list.addSelectionListener(
+						new SelectionAdapter() {
+							
+							public void widgetSelected(SelectionEvent e) {
+								
+								fireSelected();
+							}
+						});
+					
+					Menu menu = new Menu( list );
+					
+					list.setMenu( menu );
+											
+						// clear history
+					
+					MenuItem mi = new MenuItem( menu, SWT.PUSH );
+
+					mi.setText( MessageText.getString( "label.clear.history" ));
+					
+					mi.addSelectionListener(
+						new SelectionAdapter() {
+							
+							public void widgetSelected(SelectionEvent e) {
+							
+								clearHistory();
+							}
+						});
+					
+					mi = new MenuItem( menu, SWT.SEPARATOR );
+					
+						// disable history
+					
+					mi = new MenuItem( menu, SWT.PUSH );
+
+					mi.setText( MessageText.getString( "label.disable.history" ));
+					
+					mi.addSelectionListener(
+						new SelectionAdapter() {
+							
+							public void widgetSelected(SelectionEvent e) {
+							
+								COConfigurationManager.setParameter( config_prefix + ".enabled", false );
+							}
+						});
+					
+					menu.addMenuListener(
+						new MenuListener() {
+							
+							public void menuShown(MenuEvent e) {
+								menu_visible = true;
+							}
+							
+							public void menuHidden(MenuEvent e) {
+								menu_visible = false;
+							}
+						});
+									
+					current_shell.pack( true );
+					current_shell.layout( true, true );
+					
+					Rectangle bounds = text.getBounds();
+					
+					Point shell_pos = text.toDisplay( 0, bounds.height );
+					
+					current_shell.setLocation( shell_pos );
+					
+					Rectangle shell_size = current_shell.getBounds();
+
+					if ( shell_size.width > bounds.width ){
+						
+						shell_size.width = bounds.width;
+						
+						current_shell.setBounds( shell_size );
 					}
+					
+					current_shell.setVisible( true );
 				}				
+			});
+		
+		text.addFocusListener(
+			new FocusListener() {
+													
+				public void focusLost(FocusEvent e){
+					
+					final Shell shell = current_shell;
+					
+					if ( shell != null ){
+
+						Utils.execSWTThreadLater(
+							mouse_entered?500:0,	// hang around for potential selection event as focus-lost fired from text
+													// before selection event fired for combo
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									if ( current_shell == shell && !menu_visible ){
+										
+										shell.dispose();
+									}
+								}
+							});
+					}
+				}
+				
+				public void focusGained(FocusEvent e) {
+				}
 			});
 		
 		text.addKeyListener(new KeyAdapter(){
