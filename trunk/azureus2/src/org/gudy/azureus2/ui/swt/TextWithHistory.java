@@ -65,6 +65,7 @@ public class
 TextWithHistory 
 {
 	private static final int MAX_MATCHES	= 10;
+	private static final int MAX_HISTORY	= 64;
 	
 	private final String	config_prefix;
 	private final Text		text;
@@ -180,7 +181,7 @@ TextWithHistory
 					layout.marginHeight = 0;
 					layout.marginWidth 	= 0;
 					layout.marginLeft 	= 2;
-					layout.marginRight 	= 6;
+					layout.marginRight 	= 2;
 					layout.marginBottom = 2;
 					
 					comp.setLayout( layout );
@@ -308,13 +309,19 @@ TextWithHistory
 					
 					Rectangle shell_size = current_shell.getBounds();
 
+					shell_size.width += 4;
+					
 					if ( shell_size.width > bounds.width ){
 						
 						shell_size.width = bounds.width;
+											
+					}else if ( shell_size.width < 200 && bounds.width >= 200 ){
 						
-						current_shell.setBounds( shell_size );
+						shell_size.width = 200;						
 					}
 					
+					current_shell.setBounds( shell_size );
+
 					current_shell.setVisible( true );
 				}				
 			});
@@ -480,6 +487,11 @@ TextWithHistory
 			if ( !str.startsWith( h )){
 				
 				sl.add( h );
+				
+				if ( sl.size() == MAX_HISTORY ){
+					
+					break;
+				}
 			}
 		}
 		
