@@ -68,6 +68,7 @@ TextWithHistory
 	private static final int MAX_MATCHES	= 10;
 	private static final int MAX_HISTORY	= 64;
 	
+	private final boolean	disabled;
 	private final String	config_prefix;
 	private final Text		text;
 	
@@ -87,6 +88,18 @@ TextWithHistory
 	{
 		config_prefix	= _config_prefix;
 		text			= _text;
+		
+			// issues around the new shell grabbing focus from the Text field that I can't be bothered
+			// to see if I can fix (focus-lost causes shell to be destroyed, can't use TraverseListener
+			// to prevent the focus loss - obviously focus loss causes subsequent keystrokes to get 
+			// lost. Also the List doesn't render selection - bah
+		
+		disabled = Constants.isLinux;
+		
+		if ( disabled ){
+			
+			return;
+		}
 		
 		loadHistory();
 		
@@ -477,6 +490,11 @@ TextWithHistory
 	addHistory(
 		String		str )
 	{
+		if ( disabled ){
+			
+			return;
+		}
+
 		String key = config_prefix + ".data";
 		
 		StringList sl = COConfigurationManager.getStringListParameter( key );
