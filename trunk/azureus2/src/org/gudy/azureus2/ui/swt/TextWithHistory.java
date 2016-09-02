@@ -59,6 +59,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.StringList;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 public class 
@@ -303,7 +304,9 @@ TextWithHistory
 					
 					Rectangle bounds = text.getBounds();
 					
-					Point shell_pos = text.toDisplay( 0, bounds.height );
+					Object ld = text.getLayoutData();
+					
+					Point shell_pos = text.toDisplay( 0, bounds.height + (Constants.isOSX?2:0 ));
 					
 					current_shell.setLocation( shell_pos );
 					
