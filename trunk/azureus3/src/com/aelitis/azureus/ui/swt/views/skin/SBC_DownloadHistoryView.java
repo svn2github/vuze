@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.history.DownloadHistory;
 import org.gudy.azureus2.core3.history.DownloadHistoryEvent;
 import org.gudy.azureus2.core3.history.DownloadHistoryListener;
 import org.gudy.azureus2.core3.history.DownloadHistoryManager;
+import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -47,6 +48,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -57,6 +60,7 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.columns.archivedls.ColumnArchiveDLDate;
 import com.aelitis.azureus.ui.swt.columns.dlhistory.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
@@ -115,29 +119,68 @@ public class SBC_DownloadHistoryView
 						new ColumnDLHistoryName(column);
 					}
 				});
-
-		/*
-		tableManager.registerColumn(ColumnDLHistoryName.class,
-				ColumnArchiveDLDate.COLUMN_ID,
+		
+		tableManager.registerColumn(
+				DownloadHistory.class,
+				ColumnDLHistoryAddDate.COLUMN_ID,
 				new TableColumnCoreCreationListener() {
 					public TableColumnCore createTableColumnCore(
 							Class<?> forDataSourceType, String tableID, String columnID) {
-						return new ColumnDateSizer(ColumnDLHistoryName.class, columnID,
+						return new ColumnDateSizer(DownloadHistory.class, columnID,
 								TableColumnCreator.DATE_COLUMN_WIDTH, tableID) {
 						};
 					}
 
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnArchiveDLDate(column);
+						new ColumnDLHistoryAddDate(column);
 					}
 				});
-		*/
 
+		tableManager.registerColumn(
+				DownloadHistory.class,
+				ColumnDLHistoryCompleteDate.COLUMN_ID,
+				new TableColumnCoreCreationListener() {
+					public TableColumnCore createTableColumnCore(
+							Class<?> forDataSourceType, String tableID, String columnID) {
+						return new ColumnDateSizer(DownloadHistory.class, columnID,
+								TableColumnCreator.DATE_COLUMN_WIDTH, tableID) {
+						};
+					}
+
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnDLHistoryAddDate(column);
+					}
+				});
+		
+		tableManager.registerColumn(
+				DownloadHistory.class,
+				ColumnDLHistoryRemoveDate.COLUMN_ID,
+				new TableColumnCoreCreationListener() {
+					public TableColumnCore createTableColumnCore(
+							Class<?> forDataSourceType, String tableID, String columnID) {
+						return new ColumnDateSizer(DownloadHistory.class, columnID,
+								TableColumnCreator.DATE_COLUMN_WIDTH, tableID) {
+						};
+					}
+
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnDLHistoryAddDate(column);
+					}
+				});
+		
+		tableManager.registerColumn(DownloadHistory.class, ColumnDLHistoryHash.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnDLHistoryHash(column);
+					}
+				});
 		
 		tableManager.setDefaultColumnNames(TABLE_NAME,
 				new String[] {
 					ColumnDLHistoryName.COLUMN_ID,
-					
+					ColumnDLHistoryAddDate.COLUMN_ID,
+					ColumnDLHistoryCompleteDate.COLUMN_ID,
+					ColumnDLHistoryRemoveDate.COLUMN_ID,
 				});
 		
 		tableManager.setDefaultSortColumnName(TABLE_NAME, ColumnDLHistoryName.COLUMN_ID);

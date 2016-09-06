@@ -20,12 +20,11 @@ package com.aelitis.azureus.ui.swt.columns.dlhistory;
 import org.gudy.azureus2.core3.history.DownloadHistory;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 
-public class ColumnDLHistoryName
-	implements TableCellRefreshListener, TableColumnExtraInfoListener, ObfusticateCellText
+public class ColumnDLHistoryHash
+	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
-	public static String COLUMN_ID = "name";
+	public static String COLUMN_ID = "hash";
 
 	public void 
 	fillTableColumnInfo(
@@ -39,10 +38,10 @@ public class ColumnDLHistoryName
 	}
 	
 	public 
-	ColumnDLHistoryName(
+	ColumnDLHistoryHash(
 		TableColumn column) 
 	{
-		column.setWidth(400);
+		column.setWidth(200);
 		column.addListeners(this);
 	}
 
@@ -52,19 +51,16 @@ public class ColumnDLHistoryName
 	{
 		DownloadHistory dl = (DownloadHistory)cell.getDataSource();
 		
-		String name = null;
+		byte[]	hash = null;
 		
 		if ( dl != null ){
 			
-			name = dl.getName();
+			hash = dl.getTorrentHash();
 		}
 		
-		if ( name == null ){
-			
-			name = "";
-		}
-
-		if ( !cell.setSortValue(name) && cell.isValid()){
+		String str = hash==null?"":ByteFormatter.encodeString( hash );
+		
+		if ( !cell.setSortValue(str) && cell.isValid()){
 			
 			return;
 		}
@@ -74,20 +70,6 @@ public class ColumnDLHistoryName
 			return;
 		}
 		
-		cell.setText(name);
-	}
-	
-	public String 
-	getObfusticatedText(
-		TableCell 	cell) 
-	{
-		DownloadHistory dl = (DownloadHistory)cell.getDataSource();
-		
-		if ( dl == null ){
-			
-			return( "" );
-		}
-		
-		return( ByteFormatter.encodeString(dl.getTorrentHash()));
+		cell.setText(str);
 	}
 }
