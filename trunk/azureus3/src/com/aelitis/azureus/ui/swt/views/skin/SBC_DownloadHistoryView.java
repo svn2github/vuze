@@ -148,7 +148,7 @@ public class SBC_DownloadHistoryView
 					}
 
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnDLHistoryAddDate(column);
+						new ColumnDLHistoryCompleteDate(column);
 					}
 				});
 		
@@ -164,7 +164,7 @@ public class SBC_DownloadHistoryView
 					}
 
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnDLHistoryAddDate(column);
+						new ColumnDLHistoryRemoveDate(column);
 					}
 				});
 		

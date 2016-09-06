@@ -499,7 +499,7 @@ public class MainMDISetup
 								"{mdi.entry.downloadhistoryview}", 
 								title_info, null, true, null);
 						
-						entry.setImageLeftID( "image.sidebar.archive" );
+						entry.setImageLeftID("image.sidebar.logview");
 						
 						if ( history_manager != null ){
 

@@ -22,8 +22,7 @@
 
 package org.gudy.azureus2.core3.history.impl;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -31,15 +30,26 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.history.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
+import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreComponent;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 DownloadHistoryManagerImpl
 	implements DownloadHistoryManager
 {
+	private static final String	CONFIG_CURRENT_FILE	= "dlhistory1.config";
+	private static final String	CONFIG_REMOVED_FILE = "dlhistory2.config";
+	
+	private final AzureusCore	azureus_core;
+	
 	private ListenerManager<DownloadHistoryListener>	listeners = 
 		ListenerManager.createAsyncManager(
 			"DHM",
@@ -57,59 +67,105 @@ DownloadHistoryManagerImpl
 	
 	private Object	lock = new Object();
 	
-	private CopyOnWriteList<DownloadHistory>		history;
+	private Map<Long,DownloadHistoryImpl>		history = new HashMap<Long,DownloadHistoryImpl>();
+	
 	
 	public
-	DownloadHistoryManagerImpl(
-		GlobalManager		global_manager )
+	DownloadHistoryManagerImpl()
 	{
-		global_manager.addListener(
-			new GlobalManagerAdapter()
+		azureus_core = AzureusCoreFactory.getSingleton();
+		
+		azureus_core.addLifecycleListener(
+			new AzureusCoreLifecycleAdapter()
 			{
 				public void
-				downloadManagerAdded(
-					DownloadManager	dm )
+				componentCreated(
+					AzureusCore				core,
+					AzureusCoreComponent	component )
 				{
-					long uid = getUID( dm );
-					
-					System.out.println( uid );
-					
-					long	flags = dm.getDownloadState().getFlags();
-					
-					if (( flags & ( DownloadManagerState.FLAG_LOW_NOISE | DownloadManagerState.FLAG_METADATA_DOWNLOAD )) != 0 ){
+					if ( component instanceof GlobalManager ){
+				
+						GlobalManager global_manager = (GlobalManager)component;
 						
-						return;
-					}
+							global_manager.addListener(
+								new GlobalManagerAdapter()
+								{
+									public void
+									downloadManagerAdded(
+										DownloadManager	dm )
+									{
+										long	flags = dm.getDownloadState().getFlags();
+										
+										if (( flags & ( DownloadManagerState.FLAG_LOW_NOISE | DownloadManagerState.FLAG_METADATA_DOWNLOAD )) != 0 ){
+											
+											return;
+										}
+												
+										synchronized( lock ){
+											
+											DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( dm );
+											
+											DownloadHistoryImpl old_dh = history.put( new_dh.getUID(), new_dh );
+											
+											if ( old_dh != null ){
+												
+												List<DownloadHistory> old_list = new ArrayList<DownloadHistory>(1);
+												
+												old_list.add( old_dh );
+												
+												listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_REMOVED, old_list ));
+											}
+											
+											List<DownloadHistory> new_list = new ArrayList<DownloadHistory>(1);
+											
+											new_list.add( new_dh );
+											
+											listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_ADDED, new_list ));
+										}
+									}
+										
+									public void
+									downloadManagerRemoved( 
+										DownloadManager	dm )
+									{
+										long uid = getUID( dm );
+										
+										synchronized( lock ){
+											
+											DownloadHistoryImpl dh = history.get( uid );
+											
+											if ( dh != null ){
+												
+												dh.setRemoveTime( SystemTime.getCurrentTime());
+												
+												List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
+												
+												list.add( dh );
+												
+												listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
+											}
+
+										}
+									}	
+								}, false );
 							
-					synchronized( lock ){
-						
-						DownloadHistory gag = new  DownloadHistoryImpl();
-						
-						history.add( gag );
-						
-						List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
-						
-						list.add( gag );
-						
-						listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_ADDED, list ));
+						if ( !FileUtil.resilientConfigFileExists( CONFIG_CURRENT_FILE )){
+
+							syncFromExisting( global_manager );
+						}
 					}
 				}
-					
-				public void
-				downloadManagerRemoved( 
-					DownloadManager	dm )
-				{
-				}	
 				
 				public void
-				destroyed()
+				stopped(
+					AzureusCore		core )
 				{
 				}
-			}, false );
+			});
 		
-		history = new CopyOnWriteList<DownloadHistory>();
+
 		
-		history.add( new DownloadHistoryImpl());
+
 	}
 	
 	public boolean
@@ -118,10 +174,35 @@ DownloadHistoryManagerImpl
 		return( true );
 	}
 	
+	private void
+	syncFromExisting(
+		GlobalManager	global_manager )
+	{
+		synchronized( lock ){
+			
+			List<DownloadManager> dms = global_manager.getDownloadManagers();
+			
+			for ( DownloadManager dm: dms ){
+				
+				DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( dm );
+				
+				history.put( new_dh.getUID(), new_dh );
+			}
+			
+			listeners.dispatch( 
+				0, 
+				new DownloadHistoryEventImpl( 
+					DownloadHistoryEvent.DHE_HISTORY_ADDED,  new ArrayList<DownloadHistory>( history.values())));
+		}
+	}
+	
 	public List<DownloadHistory>
 	getHistory()
 	{
-		return( history.getList());
+		synchronized( lock ){
+		
+			return( new ArrayList<DownloadHistory>( history.values()));
+		}
 	}
 	
 	public int
@@ -130,7 +211,7 @@ DownloadHistoryManagerImpl
 		return( history.size());
 	}
 	
-	private long
+	private static long
 	getUID(
 		DownloadManager		dm )
 	{
@@ -221,14 +302,45 @@ DownloadHistoryManagerImpl
 	DownloadHistoryImpl
 		implements DownloadHistory
 	{
-		private final long 		uid		= 123;
-		private final byte[]	hash	= {};
-		private final String	name 			= "test test test";
-		private final String	save_location	= "somewhere or other";
-		private final long		add_time		= 1;
-		private final long		complete_time	= 2;
-		private final long		remove_time		= 3;
+		private final long 		uid;
+		private final byte[]	hash;
+		private String			name 			= "test test test";
+		private String			save_location	= "somewhere or other";
+		private long			add_time		= -1;
+		private long			complete_time	= -1;
+		private long			remove_time		= -1;
 
+		private
+		DownloadHistoryImpl(
+			DownloadManager		dm )
+		{
+			uid		= DownloadHistoryManagerImpl.getUID( dm );
+			
+			byte[]	h = null;
+			
+			TOTorrent torrent = dm.getTorrent();
+			
+			if ( torrent != null ){
+				
+				try{
+					h = torrent.getHash();
+					
+				}catch( Throwable e ){
+				}
+			}
+			
+			hash	= h;
+			
+			name	= dm.getDisplayName();
+			
+			save_location	= dm.getSaveLocation().getAbsolutePath();
+			
+			DownloadManagerState	dms = dm.getDownloadState();
+			
+			add_time 		= dms.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+			complete_time 	= dms.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME );
+		}
+		
 		public long
 		getUID()
 		{
@@ -263,6 +375,13 @@ DownloadHistoryManagerImpl
 		getCompleteTime()
 		{
 			return( complete_time );
+		}
+		
+		private void
+		setRemoveTime(
+			long		time )
+		{
+			remove_time	= time;
 		}
 		
 		public long

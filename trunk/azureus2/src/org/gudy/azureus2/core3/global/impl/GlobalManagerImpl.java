@@ -511,9 +511,9 @@ public class GlobalManagerImpl
 
     try{
     	try{
-    		Class impl_class = GlobalManagerImpl.class.getClassLoader().loadClass( "org.gudy.azureus2.core3.history.impl.DownloadHistoryManagerImpl" );
+    		Class<?> impl_class = GlobalManagerImpl.class.getClassLoader().loadClass( "org.gudy.azureus2.core3.history.impl.DownloadHistoryManagerImpl" );
 			
-    		download_history_manager = impl_class.getConstructor( GlobalManager.class ).newInstance( this );
+    		download_history_manager = impl_class.newInstance();
 			
     	}catch( ClassNotFoundException e ){
     		
