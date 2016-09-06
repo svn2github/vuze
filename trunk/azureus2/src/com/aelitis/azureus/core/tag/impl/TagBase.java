@@ -494,6 +494,12 @@ TagBase
 		return( rgb[0]+","+rgb[1]+","+rgb[2] );
 	}
 	
+	public boolean
+	isColorDefault()
+	{
+		return( decodeRGB( readStringAttribute( AT_COLOR_ID, null )) == null );
+	}
+	
 	public int[]
 	getColor()
 	{

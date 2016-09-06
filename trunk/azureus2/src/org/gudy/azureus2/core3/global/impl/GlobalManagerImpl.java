@@ -230,6 +230,8 @@ public class GlobalManagerImpl
 	private GlobalManagerStatsWriter 	stats_writer;
 	private GlobalManagerHostSupport	host_support;
   
+	private Object						download_history_manager;
+	
 		// for non-persistent downloads
 	private Map<HashWrapper,Map>		saved_download_manager_state	= new HashMap<HashWrapper,Map>();
 	
@@ -507,6 +509,20 @@ public class GlobalManagerImpl
     	Logger.log(new LogEvent(LOGID, "Stats unavailable", e ));
     }
 
+    try{
+    	try{
+    		Class impl_class = GlobalManagerImpl.class.getClassLoader().loadClass( "org.gudy.azureus2.core3.history.impl.DownloadHistoryManagerImpl" );
+			
+    		download_history_manager = impl_class.getConstructor( GlobalManager.class ).newInstance( this );
+			
+    	}catch( ClassNotFoundException e ){
+    		
+    	}	
+    }catch( Throwable e ){
+    	
+    	Logger.log(new LogEvent(LOGID, "Download History unavailable", e ));
+    }
+    
     // Wait at least a few seconds before loading existing torrents.
     // typically the UI will call loadExistingTorrents before this runs
     // This is here in case the UI is stupid or forgets
@@ -3655,6 +3671,12 @@ public class GlobalManagerImpl
 		dm_adapters.remove( adapter );
 	}
 	
+	public Object		// DownloadHistoryManager
+	getDownloadHistoryManager()
+	{
+		return( download_history_manager );
+	}
+	
 	public void
 	generate(
 		IndentWriter		writer )
@@ -3955,6 +3977,14 @@ public class GlobalManagerImpl
 			tag_inactive			= new MyTag( 9, "tag.type.ds.inact", false, false, false, false, TagFeatureRunState.RSC_START_STOP_PAUSE ); 
 			tag_complete			= new MyTag( 10, "tag.type.ds.comp", true, true, false, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
 			tag_incomplete			= new MyTag( 11, "tag.type.ds.incomp", true, true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
+			
+			if ( tag_active.isColorDefault()){
+				tag_active.setColor( new int[]{ 96, 160, 96 });
+			}
+			
+			if ( tag_error.isColorDefault()){
+				tag_error.setColor( new int[]{ 160, 96, 96 });
+			}
 			
 			_gm.addListener( 
 				new GlobalManagerAdapter()

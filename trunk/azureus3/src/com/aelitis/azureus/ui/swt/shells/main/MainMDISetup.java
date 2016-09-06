@@ -27,11 +27,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
-import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.history.DownloadHistoryEvent;
+import org.gudy.azureus2.core3.history.DownloadHistoryListener;
+import org.gudy.azureus2.core3.history.DownloadHistoryManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.host.TRHostListener;
@@ -39,7 +40,6 @@ import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -60,7 +60,6 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
@@ -79,17 +78,14 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.plugins.net.buddy.swt.SBC_ChatOverview;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.FeatureUtils;
 
 public class MainMDISetup
@@ -465,6 +461,79 @@ public class MainMDISetup
 					}
 				});
 		
+			// download history
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_DOWNLOAD_HISTORY,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						
+						final DownloadHistoryManager history_manager = (DownloadHistoryManager)AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadHistoryManager();
+						
+						final ViewTitleInfo title_info = 
+							new ViewTitleInfo() 
+							{
+								public Object 
+								getTitleInfoProperty(
+									int propertyID) 
+								{
+									if ( propertyID == TITLE_INDICATOR_TEXT ){
+										
+										if ( history_manager == null ){
+											
+											return( null );
+											
+										}else{
+											int num = history_manager.getHistoryCount();
+																					
+											return( String.valueOf( num ) );
+										}
+									}
+									
+									return null;
+								}
+							};
+						
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								MultipleDocumentInterface.SIDEBAR_SECTION_DOWNLOAD_HISTORY, "downloadhistoryview",
+								"{mdi.entry.downloadhistoryview}", 
+								title_info, null, true, null);
+						
+						entry.setImageLeftID( "image.sidebar.archive" );
+						
+						if ( history_manager != null ){
+
+							final DownloadHistoryListener history_listener =
+								new DownloadHistoryListener() 
+								{	
+									public void 
+									downloadHistoryEventOccurred(
+										DownloadHistoryEvent event )
+									{
+										ViewTitleInfoManager.refreshTitleInfo( title_info );
+									}
+								};
+								
+							history_manager.addListener( history_listener, false );
+							
+							entry.addListener(
+								new MdiCloseListener() {
+									
+									public void 
+									mdiEntryClosed(
+										MdiEntry entry, boolean userClosed) 
+									{
+										history_manager.removeListener( history_listener );
+									}
+								});
+						}
+						
+						return entry;
+					}
+				});
+		
+			// torrent options	
+		
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_OPTIONS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
@@ -651,6 +720,15 @@ public class MainMDISetup
 				public void selected(MenuItem menu, Object target) {
 					UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
 							MultipleDocumentInterface.SIDEBAR_SECTION_ARCHIVED_DOWNLOADS );
+				}
+			});
+			
+			menuItem = uim.getMenuManager().addMenuItem(
+					MenuManager.MENU_MENUBAR, "downloadhistoryview.view.heading");
+			menuItem.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+							MultipleDocumentInterface.SIDEBAR_SECTION_DOWNLOAD_HISTORY );
 				}
 			});
 		}

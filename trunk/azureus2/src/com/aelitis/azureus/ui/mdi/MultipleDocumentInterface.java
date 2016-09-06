@@ -92,6 +92,8 @@ public interface MultipleDocumentInterface
 	public static final String SIDEBAR_SECTION_CONFIG = "ConfigView";
 
 	public static final String SIDEBAR_SECTION_ARCHIVED_DOWNLOADS = "ArchivedDownloads";
+	
+	public static final String SIDEBAR_SECTION_DOWNLOAD_HISTORY = "DownloadHistory";
 
 	public boolean showEntryByID(String id);
 

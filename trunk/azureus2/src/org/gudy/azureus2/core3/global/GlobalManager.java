@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.download.*;
-
 import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
 
 /**
@@ -481,4 +480,7 @@ public interface GlobalManager extends AzureusCoreComponent, TaggableResolver {
 	public DownloadManager
 	importDownloadStateFromMap(
 		Map		map );
+	
+	public Object		// DownloadHistoryManager
+	getDownloadHistoryManager();
 }
