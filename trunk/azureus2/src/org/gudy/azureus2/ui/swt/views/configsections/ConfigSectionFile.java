@@ -799,6 +799,18 @@ public class ConfigSectionFile
 			rename_incomplete.addChangeListener( listener );
 			
 			listener.parameterChanged( null, true );
+		}
+				// download history
+		
+		sCurConfigID = "Download History Enabled";
+		allConfigIDs.add(sCurConfigID);
+		BooleanParameter recordDLHistory = new BooleanParameter(gFile, sCurConfigID,
+				"ConfigView.label.record.dl.history");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		recordDLHistory.setLayoutData(gridData);
+			
+		if ( userMode > 0 ){	
 			
 			Group gIgnoredFiles = new Group(gFile, SWT.NONE);
 			Messages.setLanguageText(gIgnoredFiles,

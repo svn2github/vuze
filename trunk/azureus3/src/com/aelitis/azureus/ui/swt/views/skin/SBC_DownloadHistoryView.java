@@ -40,7 +40,6 @@ import org.gudy.azureus2.core3.history.DownloadHistoryListener;
 import org.gudy.azureus2.core3.history.DownloadHistoryManager;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
