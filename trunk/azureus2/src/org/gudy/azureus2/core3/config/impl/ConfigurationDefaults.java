@@ -260,6 +260,8 @@ public class ConfigurationDefaults {
     def.put("Prevent Sleep FP Seeding", FALSE );
     def.put("Auto Restart When Idle", ZERO );
     
+    def.put( "Download History Enabled", TRUE );
+    
     // SWT GUI Settings
     
     def.put("User Mode", ZERO);

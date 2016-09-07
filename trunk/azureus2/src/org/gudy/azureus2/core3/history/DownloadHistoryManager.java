@@ -30,11 +30,22 @@ DownloadHistoryManager
 	public boolean
 	isEnabled();
 	
+	public void
+	setEnabled(
+		boolean		enabled );
+	
 	public List<DownloadHistory>
 	getHistory();
 	
 	public int
 	getHistoryCount();
+	
+	public void
+	removeHistory(
+		List<DownloadHistory>	history );
+	
+	public void
+	resetHistory();
 	
 	public void
 	addListener(

@@ -24,6 +24,8 @@ package org.gudy.azureus2.core3.history.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -39,12 +41,13 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
-import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 DownloadHistoryManagerImpl
 	implements DownloadHistoryManager
 {
+	private static final String CONFIG_ENABLED	= "Download History Enabled";
+	
 	private static final String	CONFIG_CURRENT_FILE	= "dlhistory1.config";
 	private static final String	CONFIG_REMOVED_FILE = "dlhistory2.config";
 	
@@ -69,12 +72,27 @@ DownloadHistoryManagerImpl
 	
 	private Map<Long,DownloadHistoryImpl>		history = new HashMap<Long,DownloadHistoryImpl>();
 	
+	private boolean	enabled;
 	
 	public
 	DownloadHistoryManagerImpl()
 	{
 		azureus_core = AzureusCoreFactory.getSingleton();
-		
+
+		COConfigurationManager.addAndFireParameterListener(
+				CONFIG_ENABLED,
+				new ParameterListener() {
+					
+					private boolean	first_time = true;
+					
+					public void parameterChanged( String name ){
+						
+						setEnabledSupport( COConfigurationManager.getBooleanParameter( name ), first_time );
+						
+						first_time = false;
+					}
+				});
+				
 		azureus_core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
@@ -103,6 +121,11 @@ DownloadHistoryManagerImpl
 												
 										synchronized( lock ){
 											
+											if ( !enabled ){
+												
+												return;
+											}
+
 											DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( dm );
 											
 											DownloadHistoryImpl old_dh = history.put( new_dh.getUID(), new_dh );
@@ -127,11 +150,16 @@ DownloadHistoryManagerImpl
 									public void
 									downloadManagerRemoved( 
 										DownloadManager	dm )
-									{
-										long uid = getUID( dm );
-										
+									{										
 										synchronized( lock ){
 											
+											if ( !enabled ){
+												
+												return;
+											}
+
+											long uid = getUID( dm );
+
 											DownloadHistoryImpl dh = history.get( uid );
 											
 											if ( dh != null ){
@@ -148,10 +176,13 @@ DownloadHistoryManagerImpl
 										}
 									}	
 								}, false );
-							
-						if ( !FileUtil.resilientConfigFileExists( CONFIG_CURRENT_FILE )){
+						
+						if ( enabled ){
+						
+							if ( !FileUtil.resilientConfigFileExists( CONFIG_CURRENT_FILE )){
 
-							syncFromExisting( global_manager );
+								resetHistory();
+							}
 						}
 					}
 				}
@@ -162,22 +193,58 @@ DownloadHistoryManagerImpl
 				{
 				}
 			});
-		
-
-		
-
 	}
 	
 	public boolean
 	isEnabled()
 	{
-		return( true );
+		return( enabled );
+	}
+	
+	public void
+	setEnabled(
+		boolean		enabled )
+	{
+		COConfigurationManager.setParameter( CONFIG_ENABLED, enabled );
+	}
+	
+	private void
+	setEnabledSupport(
+		boolean		b,
+		boolean		startup )
+	{
+		synchronized( lock ){
+		
+			if ( enabled == b ){
+				
+				return;
+			}
+			
+			enabled	= b;
+			
+			if ( !startup ){
+				
+				if ( enabled ){
+					
+					resetHistory();
+					
+				}else{
+					
+					clearHistory();
+				}
+			}
+		}
 	}
 	
 	private void
 	syncFromExisting(
 		GlobalManager	global_manager )
 	{
+		if ( global_manager == null ){
+			
+			return;
+		}
+		
 		synchronized( lock ){
 			
 			List<DownloadManager> dms = global_manager.getDownloadManagers();
@@ -209,6 +276,61 @@ DownloadHistoryManagerImpl
 	getHistoryCount()
 	{
 		return( history.size());
+	}
+	
+	public void
+	removeHistory(
+		List<DownloadHistory>	to_remove )
+	{
+		synchronized( lock ){
+			
+			List<DownloadHistory> removed = new ArrayList<DownloadHistory>( to_remove.size());
+			
+			for ( DownloadHistory h: to_remove ){
+				
+				DownloadHistory r = history.remove( h.getUID());
+					
+				if ( r != null ){
+					
+					removed.add( r );
+				}
+			}
+			
+			if ( removed.size() > 0 ){
+				
+				listeners.dispatch( 
+						0, 
+						new DownloadHistoryEventImpl( 
+							DownloadHistoryEvent.DHE_HISTORY_REMOVED,  removed ));
+			}
+		}
+	}
+	
+	private void
+	clearHistory()
+	{
+		synchronized( lock ){
+
+			List<DownloadHistory> entries =  new ArrayList<DownloadHistory>( history.values());
+			
+			history.clear();
+			
+			listeners.dispatch( 
+					0, 
+					new DownloadHistoryEventImpl( 
+						DownloadHistoryEvent.DHE_HISTORY_REMOVED,  entries ));
+		}
+	}
+	
+	public void
+	resetHistory()
+	{
+		synchronized( lock ){
+
+			clearHistory();
+
+			syncFromExisting( azureus_core.getGlobalManager());
+		}
 	}
 	
 	private static long

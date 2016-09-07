@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.history.DownloadHistory;
 import org.gudy.azureus2.core3.history.DownloadHistoryEvent;
 import org.gudy.azureus2.core3.history.DownloadHistoryListener;
 import org.gudy.azureus2.core3.history.DownloadHistoryManager;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -60,7 +62,6 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.swt.columns.archivedls.ColumnArchiveDLDate;
 import com.aelitis.azureus.ui.swt.columns.dlhistory.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
@@ -172,6 +173,13 @@ public class SBC_DownloadHistoryView
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnDLHistoryHash(column);
+					}
+				});
+		
+		tableManager.registerColumn(DownloadHistory.class, ColumnDLHistorySaveLocation.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnDLHistorySaveLocation(column);
 					}
 				});
 		
@@ -327,7 +335,7 @@ public class SBC_DownloadHistoryView
 					}
 				});
 			
-			if ( dh_manager == null || !dh_manager.isEnabled()){
+			if ( dh_manager == null ){
 				
 				control.setEnabled( false );
 			}
@@ -342,7 +350,7 @@ public class SBC_DownloadHistoryView
 		long activationType,
 		Object datasource) 
 	{
-		if ( tv == null || !tv.isVisible()){
+		if ( tv == null || !tv.isVisible() || dh_manager == null ){
 			
 			return( false );
 		}
@@ -362,7 +370,7 @@ public class SBC_DownloadHistoryView
 			
 			if ( id.equals("remove")) {
 			
-				
+				dh_manager.removeHistory( dms );
 			}
 			
 				
@@ -377,7 +385,7 @@ public class SBC_DownloadHistoryView
 		Map<String, Long> list) 
 	
 	{
-		if ( tv == null || !tv.isVisible()){
+		if ( tv == null || !tv.isVisible() || dh_manager == null ){
 			
 			return;
 		}
@@ -412,8 +420,64 @@ public class SBC_DownloadHistoryView
 	public void 
 	addThisColumnSubMenu(
 		String 		columnName, 
-		Menu 		menuThisColumn ) 
+		Menu 		menu ) 
 	{
+		if ( dh_manager != null ){
+			
+			new MenuItem( menu, SWT.SEPARATOR );
+
+			if ( dh_manager.isEnabled()){
+				
+					// reset 
+					
+				MenuItem itemReset = new MenuItem(menu, SWT.PUSH);
+				
+				Messages.setLanguageText(itemReset, "label.reset.history" );
+				
+				itemReset.addListener(SWT.Selection, new Listener() {
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						dh_manager.resetHistory();
+					}
+				});
+				
+					// disable
+					
+				MenuItem itemDisable = new MenuItem(menu, SWT.PUSH);
+				
+				Messages.setLanguageText( itemDisable, "label.disable.history" );
+				
+				itemDisable.addListener(SWT.Selection, new Listener() {
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						dh_manager.setEnabled( false );
+					}
+				});
+			
+			}else{
+							
+					// enable 
+					
+				MenuItem itemEnable = new MenuItem(menu, SWT.PUSH);
+				
+				Messages.setLanguageText( itemEnable, "label.enable.history" );
+				
+				itemEnable.addListener(SWT.Selection, new Listener() {
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						dh_manager.setEnabled( true );
+					}
+				});
+			}
+		
+			new MenuItem( menu, SWT.SEPARATOR );
+		}
 	}
 	
 	public void 
@@ -421,41 +485,97 @@ public class SBC_DownloadHistoryView
 		String 	sColumnName, 
 		Menu 	menu )
 	{
-		List<Object>	ds = tv.getSelectedDataSources();
-		
-		final List<DownloadHistory>	dms = new ArrayList<DownloadHistory>( ds.size());
-		
-		for ( Object o: ds ){
+		if ( dh_manager != null ){
 			
-			dms.add((DownloadHistory)o);
-		}
-		
-		boolean	hasSelection = dms.size() > 0;
-		
-			// Explore (or open containing folder)
-		
-		final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
-		
-		final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
-		
-		Messages.setLanguageText(itemExplore, "MyTorrentsView.menu."
-				+ (use_open_containing_folder ? "open_parent_folder" : "explore"));
-		
-		itemExplore.addListener(SWT.Selection, new Listener() {
-			public void 
-			handleEvent(
-				Event event) 
-			{
-				for ( DownloadHistory download: dms ){
+			if ( dh_manager.isEnabled()){
+			
+				List<Object>	ds = tv.getSelectedDataSources();
 				
-					ManagerUtils.open( new File( download.getSaveLocation()), use_open_containing_folder);
+				final List<DownloadHistory>	dms = new ArrayList<DownloadHistory>( ds.size());
+				
+				for ( Object o: ds ){
+					
+					dms.add((DownloadHistory)o);
 				}
+				
+				boolean	hasSelection = dms.size() > 0;
+				
+					// Explore (or open containing folder)
+				
+				final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+				
+				MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
+				
+				Messages.setLanguageText(itemExplore, "MyTorrentsView.menu."
+						+ (use_open_containing_folder ? "open_parent_folder" : "explore"));
+				
+				itemExplore.addListener(SWT.Selection, new Listener() {
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						for ( DownloadHistory download: dms ){
+						
+							ManagerUtils.open( new File( download.getSaveLocation()), use_open_containing_folder);
+						}
+					}
+				});
+				
+				itemExplore.setEnabled(hasSelection);
+				
+					// remove
+					
+				MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
+				Utils.setMenuItemImage(itemRemove, "delete");
+				
+				Messages.setLanguageText( itemRemove, "MySharesView.menu.remove" );
+				
+				itemRemove.addListener(SWT.Selection, new Listener() {
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						dh_manager.removeHistory( dms );
+					}
+				});
+			
+				itemRemove.setEnabled(hasSelection);
+				
+				new MenuItem( menu, SWT.SEPARATOR );
+				
+					// reset 
+				
+				MenuItem itemReset = new MenuItem(menu, SWT.PUSH);
+				
+				Messages.setLanguageText(itemReset, "label.reset.history" );
+				
+				itemReset.addListener(SWT.Selection, new Listener() {
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						dh_manager.resetHistory();
+					}
+				});
+			
+					// disable
+				
+				MenuItem itemDisable = new MenuItem(menu, SWT.PUSH);
+				
+				Messages.setLanguageText( itemDisable, "label.disable.history" );
+				
+				itemDisable.addListener(SWT.Selection, new Listener() {
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						dh_manager.setEnabled( false );
+					}
+				});
+				
+				new MenuItem( menu, SWT.SEPARATOR );
 			}
-		});
-		
-		itemExplore.setEnabled(hasSelection);
-		
-		new MenuItem( menu, SWT.SEPARATOR );
+		}
 	}
 	
 	public void 
@@ -547,9 +667,27 @@ public class SBC_DownloadHistoryView
 		String 				filter, 
 		boolean 			regex) 
 	{
-
+		Object o_name;
 			
-		String name = ds.getName();
+		if ( filter.startsWith( "t:" )){
+			
+			filter = filter.substring( 2 );
+			
+			byte[] hash = ds.getTorrentHash();
+			
+			List<String> names = new ArrayList<String>();
+			
+			names.add( ByteFormatter.encodeString( hash ));
+			
+			names.add( Base32.encode( hash ));
+			
+			o_name = names;
+			
+		}else{
+			
+			o_name = ds.getName();
+		
+		}
 		
 		String s = regex ? filter : "\\Q" + filter.replaceAll("\\s*[|;]\\s*", "\\\\E|\\\\Q") + "\\E";
 		
@@ -564,7 +702,32 @@ public class SBC_DownloadHistoryView
 		
 		Pattern pattern = RegExUtil.getCachedPattern( "downloadhistoryview:search", s, Pattern.CASE_INSENSITIVE);
 
-		return( pattern.matcher(name).find() == match_result );
+		boolean bOurs;
+		
+		if ( o_name instanceof String ){
+			
+			bOurs = pattern.matcher((String)o_name).find() == match_result;
+			
+		}else{
+			
+			List<String>	names = (List<String>)o_name;
+			
+				// match_result: true -> at least one match; false -> any fail
+			
+			bOurs = !match_result;
+			
+			for ( String name: names ){
+				
+				if ( pattern.matcher( name ).find()){
+					
+					bOurs = match_result;
+					
+					break;
+				}
+			}
+		}
+		
+		return( bOurs );
 	}
 
 	public Object 
