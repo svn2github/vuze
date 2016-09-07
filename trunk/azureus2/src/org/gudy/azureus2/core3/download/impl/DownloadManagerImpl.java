@@ -137,7 +137,8 @@ DownloadManagerImpl
 	
 	
 	private AEMonitor	listeners_mon	= new AEMonitor( "DM:DownloadManager:L" );
-
+    
+    
 	private static ListenerManager<DownloadManagerListener>	listeners_aggregator 	= ListenerManager.createAsyncManager(
 			"DM:ListenAggregatorDispatcher",
 			new ListenerManagerDispatcher<DownloadManagerListener>()
@@ -153,7 +154,7 @@ DownloadManagerImpl
 					DownloadManagerImpl	dm = (DownloadManagerImpl)value[0];
 					
 					if ( type == LDT_STATECHANGED ){
-						
+												
 						listener.stateChanged(dm, ((Integer)value[1]).intValue());
 						
 					}else if ( type == LDT_DOWNLOADCOMPLETE ){
@@ -161,21 +162,98 @@ DownloadManagerImpl
 						listener.downloadComplete(dm);
 
 					}else if ( type == LDT_COMPLETIONCHANGED ){
-						
+
 						listener.completionChanged(dm, ((Boolean)value[1]).booleanValue());
 
 					}else if ( type == LDT_FILEPRIORITYCHANGED ){
-						
+											
 						listener.filePriorityChanged(dm, (DiskManagerFileInfo)value[1]);
 
 					}else if ( type == LDT_POSITIONCHANGED ){
-												
-						listener.positionChanged( dm, ((Integer)value[1]).intValue(), ((Integer)value[2]).intValue());
-						                         
+																		
+						listener.positionChanged( dm, ((Integer)value[1]).intValue(), ((Integer)value[2]).intValue());	                         
 					}
 				}
 			});		
 	
+	private static CopyOnWriteList<DownloadManagerListener>	global_dm_listeners = new CopyOnWriteList<DownloadManagerListener>();
+
+    private static DownloadManagerListener global_dm_listener = 
+		new DownloadManagerListener() {
+			
+			public void stateChanged(DownloadManager manager, int state) {
+				for ( DownloadManagerListener listener: global_dm_listeners ){
+				
+					try{
+						listener.stateChanged(manager, state);
+					}catch( Throwable e ){
+						Debug.out( e );
+					}
+				}
+			}
+			
+			public void positionChanged(DownloadManager download, int oldPosition,
+					int newPosition) {
+				for ( DownloadManagerListener listener: global_dm_listeners ){
+					
+					try{
+						listener.positionChanged(download, oldPosition, newPosition);
+					}catch( Throwable e ){
+						Debug.out( e );
+					}
+				}				
+			}
+			
+			public void filePriorityChanged(DownloadManager download,
+					DiskManagerFileInfo file){
+				for ( DownloadManagerListener listener: global_dm_listeners ){
+					
+					try{
+						listener.filePriorityChanged(download, file);
+					}catch( Throwable e ){
+						Debug.out( e );
+					}
+				}				
+			}
+			
+			public void downloadComplete(DownloadManager manager){
+				for ( DownloadManagerListener listener: global_dm_listeners ){
+					
+					try{
+						listener.downloadComplete(manager);
+					}catch( Throwable e ){
+						Debug.out( e );
+					}
+				}				
+			}
+			
+			public void completionChanged(DownloadManager manager, boolean bCompleted){
+				for ( DownloadManagerListener listener: global_dm_listeners ){
+					
+					try{
+						listener.completionChanged(manager, bCompleted);
+					}catch( Throwable e ){
+						Debug.out( e );
+					}
+				}
+			}
+    };
+    
+	public static void
+	addGlobalDownloadListener(
+		DownloadManagerListener listener )
+	{
+		global_dm_listeners.add( listener );
+	}
+
+    public static void
+    removeGlobalDownloadListener(
+        DownloadManagerListener listener )
+    {
+    	global_dm_listeners.remove( listener );
+    }
+    
+
 	private ListenerManager<DownloadManagerListener>	listeners 	= ListenerManager.createManager(
 			"DM:ListenDispatcher",
 			new ListenerManagerDispatcher<DownloadManagerListener>()
@@ -190,6 +268,9 @@ DownloadManagerImpl
 				}
 			});	
 	
+	{
+		listeners.addListener( global_dm_listener );
+	}
 		// TrackerListeners
 	
 	private static final int LDT_TL_ANNOUNCERESULT		= 1;

@@ -81,4 +81,18 @@ DownloadManagerFactory
 	{
 		return( new DownloadManagerAvailabilityImpl( torrent, updated_trackers, enabled_peer_sources, enabled_networks ));
 	}
+	
+	public static void
+	addGlobalDownloadListener(
+		DownloadManagerListener listener )
+	{
+		DownloadManagerImpl.addGlobalDownloadListener( listener );
+	}
+
+    public static void
+    removeGlobalDownloadListener(
+        DownloadManagerListener listener )
+    {
+		DownloadManagerImpl.removeGlobalDownloadListener( listener );
+    }
 }

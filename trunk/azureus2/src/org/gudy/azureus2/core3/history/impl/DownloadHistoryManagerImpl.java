@@ -27,7 +27,9 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerFactory;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.history.*;
@@ -105,77 +107,88 @@ DownloadHistoryManagerImpl
 				
 						GlobalManager global_manager = (GlobalManager)component;
 						
-							global_manager.addListener(
-								new GlobalManagerAdapter()
+						global_manager.addListener(
+							new GlobalManagerAdapter()
+							{
+								public void
+								downloadManagerAdded(
+									DownloadManager	dm )
 								{
-									public void
-									downloadManagerAdded(
-										DownloadManager	dm )
-									{
-										long	flags = dm.getDownloadState().getFlags();
+									synchronized( lock ){
 										
-										if (( flags & ( DownloadManagerState.FLAG_LOW_NOISE | DownloadManagerState.FLAG_METADATA_DOWNLOAD )) != 0 ){
+										if ( !( enabled && isMonitored(dm))){
 											
 											return;
 										}
-												
-										synchronized( lock ){
-											
-											if ( !enabled ){
-												
-												return;
-											}
 
-											DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( dm );
-											
-											DownloadHistoryImpl old_dh = history.put( new_dh.getUID(), new_dh );
-											
-											if ( old_dh != null ){
-												
-												List<DownloadHistory> old_list = new ArrayList<DownloadHistory>(1);
-												
-												old_list.add( old_dh );
-												
-												listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_REMOVED, old_list ));
-											}
-											
-											List<DownloadHistory> new_list = new ArrayList<DownloadHistory>(1);
-											
-											new_list.add( new_dh );
-											
-											listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_ADDED, new_list ));
-										}
-									}
+										DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( dm );
 										
-									public void
-									downloadManagerRemoved( 
-										DownloadManager	dm )
-									{										
-										synchronized( lock ){
+										DownloadHistoryImpl old_dh = history.put( new_dh.getUID(), new_dh );
+										
+										if ( old_dh != null ){
 											
-											if ( !enabled ){
-												
-												return;
-											}
-
-											long uid = getUID( dm );
-
-											DownloadHistoryImpl dh = history.get( uid );
+											List<DownloadHistory> old_list = new ArrayList<DownloadHistory>(1);
 											
-											if ( dh != null ){
-												
-												dh.setRemoveTime( SystemTime.getCurrentTime());
-												
-												List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
-												
-												list.add( dh );
-												
-												listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
-											}
-
+											old_list.add( old_dh );
+											
+											listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_REMOVED, old_list ));
 										}
-									}	
-								}, false );
+										
+										List<DownloadHistory> new_list = new ArrayList<DownloadHistory>(1);
+										
+										new_list.add( new_dh );
+										
+										listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_ADDED, new_list ));
+									}
+								}
+									
+								public void
+								downloadManagerRemoved( 
+									DownloadManager	dm )
+								{										
+									synchronized( lock ){
+										
+										if ( !( enabled && isMonitored(dm))){
+											
+											return;
+										}
+
+										long uid = getUID( dm );
+
+										DownloadHistoryImpl dh = history.get( uid );
+										
+										if ( dh != null ){
+											
+											dh.setRemoveTime( SystemTime.getCurrentTime());
+											
+											List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
+											
+											list.add( dh );
+											
+											listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
+										}
+
+									}
+								}	
+							}, false );
+						
+						DownloadManagerFactory.addGlobalDownloadListener(
+							new DownloadManagerAdapter()
+							{
+								@Override
+								public void 
+								completionChanged(
+									DownloadManager 	dm,
+									boolean 			bCompleted ) 
+								{
+									if ( !( enabled && isMonitored(dm))){
+										
+										return;
+									}
+																		
+									System.out.println( "Comp Change: " + dm.getDisplayName() + " -> " + bCompleted );
+								}
+							});
 						
 						if ( enabled ){
 						
@@ -236,6 +249,26 @@ DownloadHistoryManagerImpl
 		}
 	}
 	
+	private boolean
+	isMonitored(
+		DownloadManager	dm )
+	{
+		if ( dm.isPersistent()){
+		
+			long	flags = dm.getDownloadState().getFlags();
+		
+			if (( flags & ( DownloadManagerState.FLAG_LOW_NOISE | DownloadManagerState.FLAG_METADATA_DOWNLOAD )) != 0 ){
+			
+				return( false );
+			}else{
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
 	private void
 	syncFromExisting(
 		GlobalManager	global_manager )
@@ -251,9 +284,12 @@ DownloadHistoryManagerImpl
 			
 			for ( DownloadManager dm: dms ){
 				
-				DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( dm );
+				if ( isMonitored( dm )){
 				
-				history.put( new_dh.getUID(), new_dh );
+					DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( dm );
+				
+					history.put( new_dh.getUID(), new_dh );
+				}
 			}
 			
 			listeners.dispatch( 
