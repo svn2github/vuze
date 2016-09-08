@@ -153,7 +153,7 @@ public abstract class ColumnDateSizer
 			return;
 		}
 
-		if (timestamp <= 0) {
+		if (timestamp <= 0 || timestamp == Long.MAX_VALUE ){
 			cell.setText("");
 			return;
 		}

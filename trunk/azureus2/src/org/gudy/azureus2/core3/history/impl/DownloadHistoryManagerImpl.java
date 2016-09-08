@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.history.impl;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -42,13 +43,15 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
-import com.aelitis.azureus.util.MapUtils;
 
 public class 
 DownloadHistoryManagerImpl
@@ -56,8 +59,15 @@ DownloadHistoryManagerImpl
 {
 	private static final String CONFIG_ENABLED	= "Download History Enabled";
 	
-	private static final String	CONFIG_CURRENT_FILE	= "dlhistory1.config";
-	private static final String	CONFIG_REMOVED_FILE = "dlhistory2.config";
+	private static final String	CONFIG_ACTIVE_FILE	= "dlhistorya.config";
+	private static final String	CONFIG_DEAD_FILE 	= "dlhistoryd.config";
+	
+	private static final String CONFIG_ACTIVE_SIZE	= "download.history.active.size";
+	private static final String CONFIG_DEAD_SIZE	= "download.history.dead.size";
+	
+	private static final int UPDATE_TYPE_ACTIVE	= 0x01;
+	private static final int UPDATE_TYPE_DEAD	= 0x10;
+	private static final int UPDATE_TYPE_BOTH	= UPDATE_TYPE_ACTIVE | UPDATE_TYPE_DEAD;
 	
 	private final AzureusCore	azureus_core;
 	
@@ -78,7 +88,16 @@ DownloadHistoryManagerImpl
 	
 	private Object	lock = new Object();
 	
-	private Map<Long,DownloadHistoryImpl>		history = new HashMap<Long,DownloadHistoryImpl>();
+	private WeakReference<Map<Long,DownloadHistoryImpl>>		history_active	= new WeakReference<Map<Long,DownloadHistoryImpl>>( null );
+	private WeakReference<Map<Long,DownloadHistoryImpl>>		history_dead	= new WeakReference<Map<Long,DownloadHistoryImpl>>( null );
+	
+	private volatile int	active_history_size	= COConfigurationManager.getIntParameter( CONFIG_ACTIVE_SIZE , 0 );
+	private volatile int	dead_history_size	= COConfigurationManager.getIntParameter( CONFIG_DEAD_SIZE , 0 );
+	
+	private Map<Long,DownloadHistoryImpl>	active_dirty;
+	private Map<Long,DownloadHistoryImpl>	dead_dirty;
+		
+	private TimerEvent	write_pending_event;
 	
 	private boolean	enabled;
 	
@@ -100,7 +119,7 @@ DownloadHistoryManagerImpl
 						first_time = false;
 					}
 				});
-				
+		
 		azureus_core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
@@ -127,24 +146,29 @@ DownloadHistoryManagerImpl
 											return;
 										}
 
-										DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( dm );
+										Map<Long,DownloadHistoryImpl> active_history = getActiveHistory();
 										
-										DownloadHistoryImpl old_dh = history.put( new_dh.getUID(), new_dh );
+										DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( active_history, dm );
+										
+										long	uid = new_dh.getUID();
+												
+										DownloadHistoryImpl old_dh = active_history.put( uid, new_dh );
+																				
+										if ( old_dh != null ){
+										
+											historyUpdated( old_dh, DownloadHistoryEvent.DHE_HISTORY_REMOVED, UPDATE_TYPE_ACTIVE );
+										}
+										
+											// could be an archive-restore in which case the entry might exist in the dead records
+										
+										old_dh = getDeadHistory().remove( uid );
 										
 										if ( old_dh != null ){
 											
-											List<DownloadHistory> old_list = new ArrayList<DownloadHistory>(1);
-											
-											old_list.add( old_dh );
-											
-											listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_REMOVED, old_list ));
+											historyUpdated( old_dh, DownloadHistoryEvent.DHE_HISTORY_REMOVED, UPDATE_TYPE_DEAD );
 										}
 										
-										List<DownloadHistory> new_list = new ArrayList<DownloadHistory>(1);
-										
-										new_list.add( new_dh );
-										
-										listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_ADDED, new_list ));
+										historyUpdated( new_dh, DownloadHistoryEvent.DHE_HISTORY_ADDED, UPDATE_TYPE_ACTIVE );
 									}
 								}
 									
@@ -161,19 +185,20 @@ DownloadHistoryManagerImpl
 
 										long uid = getUID( dm );
 
-										DownloadHistoryImpl dh = history.get( uid );
+										DownloadHistoryImpl dh = getActiveHistory().remove( uid );
 										
 										if ( dh != null ){
 											
+											Map<Long,DownloadHistoryImpl> dead_history = getDeadHistory();
+											
+											dead_history.put( uid, dh );
+											
+											dh.setHistoryReference( dead_history );
+											
 											dh.setRemoveTime( SystemTime.getCurrentTime());
 											
-											List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
-											
-											list.add( dh );
-											
-											listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
+											historyUpdated( dh, DownloadHistoryEvent.DHE_HISTORY_MODIFIED, UPDATE_TYPE_BOTH );
 										}
-
 									}
 								}	
 							}, false );
@@ -196,17 +221,13 @@ DownloadHistoryManagerImpl
 																			
 										long uid = getUID( dm );
 	
-										DownloadHistoryImpl dh = history.get( uid );
+										DownloadHistoryImpl dh = getActiveHistory().get( uid );
 										
 										if ( dh != null ){
 											
 											if ( dh.updateCompleteTime( dm.getDownloadState())){
-											
-												List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
-												
-												list.add( dh );
-												
-												listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
+
+												historyUpdated( dh, DownloadHistoryEvent.DHE_HISTORY_MODIFIED, UPDATE_TYPE_ACTIVE );
 											}
 										}
 									}
@@ -231,25 +252,22 @@ DownloadHistoryManagerImpl
 																			
 										long uid = getUID( dm );
 	
-										DownloadHistoryImpl dh = history.get( uid );
+										DownloadHistoryImpl dh = getActiveHistory().get( uid );
 										
 										if ( dh != null ){
 											
 											if ( dh.updateSaveLocation( dm )){
 												
-												List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
-												
-												list.add( dh );
-												
-												listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
+												historyUpdated( dh, DownloadHistoryEvent.DHE_HISTORY_MODIFIED, UPDATE_TYPE_ACTIVE );
 											}
 										}
-									}								}
+									}								
+								}
 							}, DownloadManagerState.AT_CANONICAL_SD_DMAP, DownloadManagerStateAttributeListener.WRITTEN );
 						
 						if ( enabled ){
 						
-							if ( !FileUtil.resilientConfigFileExists( CONFIG_CURRENT_FILE )){
+							if ( !FileUtil.resilientConfigFileExists( CONFIG_ACTIVE_FILE )){
 
 								resetHistory();
 							}
@@ -258,9 +276,16 @@ DownloadHistoryManagerImpl
 				}
 				
 				public void
-				stopped(
+				stopping(
 					AzureusCore		core )
 				{
+					synchronized( lock ){
+						
+						writeHistory();
+						
+						COConfigurationManager.setParameter( CONFIG_ACTIVE_SIZE , active_history_size );
+						COConfigurationManager.setParameter( CONFIG_DEAD_SIZE , dead_history_size );
+					}
 				}
 			});
 	}
@@ -317,6 +342,7 @@ DownloadHistoryManagerImpl
 			if (( flags & ( DownloadManagerState.FLAG_LOW_NOISE | DownloadManagerState.FLAG_METADATA_DOWNLOAD )) != 0 ){
 			
 				return( false );
+				
 			}else{
 				
 				return( true );
@@ -339,20 +365,28 @@ DownloadHistoryManagerImpl
 			
 			List<DownloadManager> dms = global_manager.getDownloadManagers();
 			
+			Map<Long,DownloadHistoryImpl>	history = getActiveHistory();
+			
+			if ( history.size() > 0 ){
+
+				List<DownloadHistory> existing = new ArrayList<DownloadHistory>( history.values());
+				
+				history.clear();
+
+				historyUpdated( new ArrayList<DownloadHistory>( existing ), DownloadHistoryEvent.DHE_HISTORY_REMOVED, UPDATE_TYPE_ACTIVE );
+			}
+					
 			for ( DownloadManager dm: dms ){
 				
 				if ( isMonitored( dm )){
 				
-					DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( dm );
+					DownloadHistoryImpl new_dh = new  DownloadHistoryImpl( history, dm );
 				
 					history.put( new_dh.getUID(), new_dh );
 				}
 			}
 			
-			listeners.dispatch( 
-				0, 
-				new DownloadHistoryEventImpl( 
-					DownloadHistoryEvent.DHE_HISTORY_ADDED,  new ArrayList<DownloadHistory>( history.values())));
+			historyUpdated( new ArrayList<DownloadHistory>( history.values()), DownloadHistoryEvent.DHE_HISTORY_ADDED, UPDATE_TYPE_ACTIVE );
 		}
 	}
 	
@@ -361,14 +395,22 @@ DownloadHistoryManagerImpl
 	{
 		synchronized( lock ){
 		
-			return( new ArrayList<DownloadHistory>( history.values()));
+			Map<Long,DownloadHistoryImpl>	active 	= getActiveHistory();
+			Map<Long,DownloadHistoryImpl>	dead	= getDeadHistory();
+			
+			List<DownloadHistory>	result = new ArrayList<DownloadHistory>(active.size() + dead.size());
+			
+			result.addAll( active.values());
+			result.addAll( dead.values());
+			
+			return( result );
 		}
 	}
 	
 	public int
 	getHistoryCount()
 	{
-		return( history.size());
+		return( active_history_size + dead_history_size );
 	}
 	
 	public void
@@ -379,22 +421,39 @@ DownloadHistoryManagerImpl
 			
 			List<DownloadHistory> removed = new ArrayList<DownloadHistory>( to_remove.size());
 			
+			int	update_type = 0;
+			
+			Map<Long,DownloadHistoryImpl>	active 	= getActiveHistory();
+			Map<Long,DownloadHistoryImpl>	dead	= getDeadHistory();
+		
 			for ( DownloadHistory h: to_remove ){
 				
-				DownloadHistory r = history.remove( h.getUID());
+				long	uid = h.getUID();
+				
+				DownloadHistoryImpl r = active.remove( uid );
 					
 				if ( r != null ){
 					
 					removed.add( r );
+					
+					update_type |= UPDATE_TYPE_ACTIVE;
+					
+				}else{
+				
+					r = dead.remove( uid );
+					
+					if ( r != null ){
+						
+						removed.add( r );
+						
+						update_type |= UPDATE_TYPE_DEAD;
+					}
 				}
 			}
 			
 			if ( removed.size() > 0 ){
 				
-				listeners.dispatch( 
-						0, 
-						new DownloadHistoryEventImpl( 
-							DownloadHistoryEvent.DHE_HISTORY_REMOVED,  removed ));
+				historyUpdated( removed, DownloadHistoryEvent.DHE_HISTORY_REMOVED, update_type );
 			}
 		}
 	}
@@ -404,14 +463,31 @@ DownloadHistoryManagerImpl
 	{
 		synchronized( lock ){
 
-			List<DownloadHistory> entries =  new ArrayList<DownloadHistory>( history.values());
+			Map<Long,DownloadHistoryImpl>	active 	= getActiveHistory();
+			Map<Long,DownloadHistoryImpl>	dead	= getDeadHistory();
+
+			int	update_type = 0;
 			
-			history.clear();
+			List<DownloadHistory>	entries = getHistory();
 			
-			listeners.dispatch( 
-					0, 
-					new DownloadHistoryEventImpl( 
-						DownloadHistoryEvent.DHE_HISTORY_REMOVED,  entries ));
+			if ( active.size() > 0 ){
+				
+				active.clear();
+				
+				update_type |= UPDATE_TYPE_ACTIVE;
+			}
+			
+			if ( dead.size() > 0 ){
+				
+				dead.clear();
+				
+				update_type |= UPDATE_TYPE_DEAD;
+			}		
+			
+			if ( update_type != 0 ){
+				
+				historyUpdated( entries, DownloadHistoryEvent.DHE_HISTORY_REMOVED, update_type );
+			}
 		}
 	}
 	
@@ -483,6 +559,184 @@ DownloadHistoryManagerImpl
 	{
 		listeners.removeListener( listener );
 	}
+		
+	private Map<Long,DownloadHistoryImpl>
+	getActiveHistory()
+	{
+		Map<Long,DownloadHistoryImpl>	ref = history_active.get();
+		
+		if ( ref == null ){
+						
+			ref = loadHistory( CONFIG_ACTIVE_FILE );
+			
+			history_active = new WeakReference<Map<Long,DownloadHistoryImpl>>( ref );
+			
+			active_history_size = ref.size();
+		}
+		
+		return( ref );
+	}
+	
+	private Map<Long,DownloadHistoryImpl>
+	getDeadHistory()
+	{
+		Map<Long,DownloadHistoryImpl>	ref = history_dead.get();
+		
+		if ( ref == null ){
+						
+			ref = loadHistory( CONFIG_DEAD_FILE );
+			
+			history_dead = new WeakReference<Map<Long,DownloadHistoryImpl>>( ref );
+			
+			dead_history_size = ref.size();
+		}
+		
+		return( ref );
+	}
+	
+	private void
+	historyUpdated(
+		DownloadHistory			dh,
+		int						action,
+		int						type )
+	{
+		List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
+		
+		list.add( dh );
+		
+		historyUpdated( list, action, type );
+	}
+	
+	private void
+	historyUpdated(
+		Collection<DownloadHistory>		list,
+		int								action,
+		int								type )
+	{
+		if (( type | UPDATE_TYPE_ACTIVE ) != 0 ){
+		
+			Map<Long,DownloadHistoryImpl>	active = getActiveHistory();
+			
+			active_history_size = active.size();
+			
+			active_dirty = active;
+		}
+		
+		if (( type | UPDATE_TYPE_DEAD ) != 0 ){
+			
+			Map<Long,DownloadHistoryImpl>	dead = getDeadHistory();
+			
+			dead_history_size = dead.size();
+			
+			dead_dirty	= dead;
+		}
+		
+		if ( write_pending_event == null ){
+			
+			write_pending_event = 
+				SimpleTimer.addEvent(
+					"DHL:write",
+					SystemTime.getOffsetTime( 15*1000 ),
+					new TimerEventPerformer() {
+						
+						public void perform(TimerEvent event) {
+						
+							synchronized( lock ){
+								
+								write_pending_event = null;
+								
+								writeHistory();
+							}
+						}
+					});
+		}
+		listeners.dispatch( 0, new DownloadHistoryEventImpl( action, new ArrayList<DownloadHistory>( list )));	
+	}
+	
+	private void
+	writeHistory()
+	{
+		if ( active_dirty != null ){
+			
+			saveHistory( CONFIG_ACTIVE_FILE, active_dirty );
+			
+			active_dirty = null;
+		}
+		
+		if ( dead_dirty != null ){
+						
+			saveHistory( CONFIG_DEAD_FILE, dead_dirty );
+			
+			dead_dirty = null;
+		}
+	}
+	
+	private Map<Long,DownloadHistoryImpl>
+	loadHistory(
+		String		file )
+	{
+		Map<Long,DownloadHistoryImpl>	result = new HashMap<Long, DownloadHistoryImpl>();
+		
+		try{
+			if ( FileUtil.resilientConfigFileExists( file )){
+
+				Map map = FileUtil.readResilientConfigFile( file );
+				
+				List<Map<String,Object>>	list = (List<Map<String,Object>>)map.get( "records" );
+				
+				for ( Map<String,Object> m: list ){
+					
+					try{
+						DownloadHistoryImpl record = new DownloadHistoryImpl( result, m );
+						
+						result.put( record.getUID(), record );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( result );
+	}
+	
+	private void
+	saveHistory(
+		String 							file,
+		Map<Long,DownloadHistoryImpl>	records )
+	{
+		try{
+			Map<String,Object>	map = new HashMap<String,Object>();
+	
+			List<Map<String,Object>>	list = new ArrayList<Map<String,Object>>( records.size());
+			
+			map.put( "records", list );
+			
+			for ( DownloadHistoryImpl record: records.values()){
+				
+				try{
+					Map<String,Object>	m = record.exportToMap();
+					
+					list.add( m );
+
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+			
+			FileUtil.writeResilientConfigFile( file, map );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
 	
 	private class
 	DownloadHistoryEventImpl
@@ -525,10 +779,15 @@ DownloadHistoryManagerImpl
 		private long			complete_time	= -1;
 		private long			remove_time		= -1;
 
+		private Map<Long,DownloadHistoryImpl>	history_ref;	// need this for GC purposes
+		
 		private
 		DownloadHistoryImpl(
-			DownloadManager		dm )
+			Map<Long,DownloadHistoryImpl>		_history_ref,
+			DownloadManager						dm )
 		{
+			history_ref	= _history_ref;
+			
 			uid		= DownloadHistoryManagerImpl.getUID( dm );
 			
 			byte[]	h = null;
@@ -559,10 +818,13 @@ DownloadHistoryManagerImpl
 		
 		private 
 		DownloadHistoryImpl(
-			Map<String,Object>		map )
+			Map<Long,DownloadHistoryImpl>		_history_ref,
+			Map<String,Object>					map )
 			
 			throws IOException
 		{
+			history_ref	= _history_ref;
+			
 			try{
 				uid		= (Long)map.get( "u" );
 				hash	= (byte[])map.get("h");
@@ -582,6 +844,13 @@ DownloadHistoryManagerImpl
 				
 				throw( new IOException( "History decode failed: " + Debug.getNestedExceptionMessage( e )));
 			}
+		}
+		
+		private void
+		setHistoryReference(
+			Map<Long,DownloadHistoryImpl>		ref )
+		{
+			history_ref	= ref;
 		}
 		
 		private Map<String,Object>

@@ -59,7 +59,14 @@ ColumnDLHistoryCompleteDate
 			
 			DownloadHistory dl = (DownloadHistory) cell.getDataSource();
 			
-			((ColumnDateSizer) tc).refresh(cell, dl.getCompleteTime());
+			long time = dl.getCompleteTime();
+			
+			if ( time <= 0 ){
+				
+				time = Long.MAX_VALUE;	// incomplete - force sort to be above completed ones
+			}
+			
+			((ColumnDateSizer) tc).refresh(cell, time );
 		}
 	}
 }
