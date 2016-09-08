@@ -153,6 +153,10 @@ DownloadManagerStateImpl
 	private static Map					global_state_cache			= new HashMap();
 	private static ArrayList			global_state_cache_wrappers	= new ArrayList();
 	
+	private static CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> global_listeners_read_map_cow  = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
+	private static CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> global_listeners_write_map_cow = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
+
+	
 	private DownloadManagerImpl			download_manager;
 	
 	private final TorrentUtils.ExtendedTorrent	torrent;
@@ -161,10 +165,10 @@ DownloadManagerStateImpl
 	
 	private Category 	category;
 
-	private CopyOnWriteList		listeners_cow	= new CopyOnWriteList();
+	private CopyOnWriteList<DownloadManagerStateListener>		listeners_cow	= new CopyOnWriteList<DownloadManagerStateListener>();
 	
-	private CopyOnWriteMap listeners_read_map_cow  = new CopyOnWriteMap();
-	private CopyOnWriteMap listeners_write_map_cow = new CopyOnWriteMap();
+	private CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> listeners_read_map_cow  = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
+	private CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> listeners_write_map_cow = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
 	
 	
 	private Map			parameters;
@@ -2528,13 +2532,11 @@ DownloadManagerStateImpl
 	{
 			// don't make any of this async as the link management code for cache files etc
 			// relies on callbacks here being synchronous...
-		
-		List	listeners_ref = listeners_cow.getList();
-		
-		for (int i=0;i<listeners_ref.size();i++){
+				
+		for ( DownloadManagerStateListener l: listeners_cow.getList()){
 			
 			try{
-				((DownloadManagerStateListener)listeners_ref.get(i)).stateChanged(
+				l.stateChanged(
 					this,
 					new DownloadManagerStateEvent()
 					{
@@ -2556,18 +2558,39 @@ DownloadManagerStateImpl
 			}
 		}
 		
-		listeners_ref = null;
-		CopyOnWriteList write_listeners = (CopyOnWriteList)listeners_write_map_cow.get(attribute_name);
-		if (write_listeners != null) {listeners_ref = write_listeners.getList();}
+		CopyOnWriteList<DownloadManagerStateAttributeListener> write_listeners = global_listeners_write_map_cow.get(attribute_name);
 		
-		if (listeners_ref != null) {
-			for (int i=0;i<listeners_ref.size();i++) {
-				try {((DownloadManagerStateAttributeListener)listeners_ref.get(i)).attributeEventOccurred(download_manager, attribute_name, DownloadManagerStateAttributeListener.WRITTEN);}
-				catch (Throwable t) {Debug.printStackTrace(t);}
+		if ( write_listeners != null){
+					
+			for ( DownloadManagerStateAttributeListener l: write_listeners.getList()){
+				
+				try{
+					
+					l.attributeEventOccurred(download_manager, attribute_name, DownloadManagerStateAttributeListener.WRITTEN);
+					
+				}catch (Throwable t){
+					
+					Debug.printStackTrace(t);
+				}
 			}
 		}
 
+		write_listeners = listeners_write_map_cow.get(attribute_name);
 		
+		if ( write_listeners != null){
+					
+			for ( DownloadManagerStateAttributeListener l: write_listeners.getList()){
+				
+				try{
+					
+					l.attributeEventOccurred(download_manager, attribute_name, DownloadManagerStateAttributeListener.WRITTEN);
+					
+				}catch (Throwable t){
+					
+					Debug.printStackTrace(t);
+				}
+			}
+		}
 	}
 	
 	protected void
@@ -2585,12 +2608,10 @@ DownloadManagerStateImpl
 
 			try{
 				
-				List	listeners_ref = listeners_cow.getList();
-
-				for (int i=0;i<listeners_ref.size();i++){
+				for (DownloadManagerStateListener l: listeners_cow.getList()){
 					
 					try{
-						((DownloadManagerStateListener)listeners_ref.get(i)).stateChanged(
+						l.stateChanged(
 							this,
 							new DownloadManagerStateEvent()
 							{
@@ -2612,16 +2633,35 @@ DownloadManagerStateImpl
 					}
 				}
 				
-				listeners_ref = null;
-				CopyOnWriteList read_listeners = null;
+				CopyOnWriteList<DownloadManagerStateAttributeListener> read_listeners = global_listeners_read_map_cow.get(attribute_name);
 				
-				read_listeners = (CopyOnWriteList)listeners_read_map_cow.get(attribute_name);
-				if (read_listeners != null) {listeners_ref = read_listeners.getList();}
+				if ( read_listeners != null ){
+								
+					for ( DownloadManagerStateAttributeListener l: read_listeners.getList()){
+						
+						try{
+							l.attributeEventOccurred(download_manager, attribute_name, DownloadManagerStateAttributeListener.WILL_BE_READ);
+							
+						}catch( Throwable t ){
+							
+							Debug.printStackTrace(t);
+						}
+					}
+				}
 				
-				if (listeners_ref != null) {
-					for (int i=0;i<listeners_ref.size();i++) {
-						try {((DownloadManagerStateAttributeListener)listeners_ref.get(i)).attributeEventOccurred(download_manager, attribute_name, DownloadManagerStateAttributeListener.WILL_BE_READ);}
-						catch (Throwable t) {Debug.printStackTrace(t);}
+				read_listeners = listeners_read_map_cow.get(attribute_name);
+				
+				if ( read_listeners != null ){
+								
+					for ( DownloadManagerStateAttributeListener l: read_listeners.getList()){
+						
+						try{
+							l.attributeEventOccurred(download_manager, attribute_name, DownloadManagerStateAttributeListener.WILL_BE_READ);
+							
+						}catch( Throwable t ){
+							
+							Debug.printStackTrace(t);
+						}
 					}
 				}
 			}finally{
@@ -2646,18 +2686,40 @@ DownloadManagerStateImpl
 	}
 	
 	public void addListener(DownloadManagerStateAttributeListener l, String attribute, int event_type) {
-		CopyOnWriteMap map_to_use = (event_type == DownloadManagerStateAttributeListener.WILL_BE_READ) ? this.listeners_read_map_cow : this.listeners_write_map_cow;
-		CopyOnWriteList lst = (CopyOnWriteList)map_to_use.get(attribute);
+		CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> map_to_use = (event_type == DownloadManagerStateAttributeListener.WILL_BE_READ) ? this.listeners_read_map_cow : this.listeners_write_map_cow;
+		CopyOnWriteList<DownloadManagerStateAttributeListener> lst = map_to_use.get(attribute);
 		if (lst == null) {
-			lst = new CopyOnWriteList();
+			lst = new CopyOnWriteList<DownloadManagerStateAttributeListener>();
 			map_to_use.put(attribute, lst);
 		}
 		lst.add(l);
 	}
 
 	public void removeListener(DownloadManagerStateAttributeListener l, String attribute, int event_type) {
-		CopyOnWriteMap map_to_use = (event_type == DownloadManagerStateAttributeListener.WILL_BE_READ) ? this.listeners_read_map_cow : this.listeners_write_map_cow;
-		CopyOnWriteList lst = (CopyOnWriteList)map_to_use.get(attribute);
+		CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> map_to_use = (event_type == DownloadManagerStateAttributeListener.WILL_BE_READ) ? this.listeners_read_map_cow : this.listeners_write_map_cow;
+		CopyOnWriteList<DownloadManagerStateAttributeListener> lst = map_to_use.get(attribute);
+		if (lst != null) {lst.remove(l);}
+	}
+	
+	public static void 
+	addGlobalListener(
+		DownloadManagerStateAttributeListener l, String attribute, int event_type)
+	{
+		CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> map_to_use = (event_type == DownloadManagerStateAttributeListener.WILL_BE_READ) ? global_listeners_read_map_cow : global_listeners_write_map_cow;
+		CopyOnWriteList<DownloadManagerStateAttributeListener> lst = map_to_use.get(attribute);
+		if (lst == null) {
+			lst = new CopyOnWriteList<DownloadManagerStateAttributeListener>();
+			map_to_use.put(attribute, lst);
+		}
+		lst.add(l);
+	}
+	
+	public static void 
+	removeGlobalListener(
+		DownloadManagerStateAttributeListener l, String attribute, int event_type)
+	{
+		CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> map_to_use = (event_type == DownloadManagerStateAttributeListener.WILL_BE_READ) ? global_listeners_read_map_cow : global_listeners_write_map_cow;
+		CopyOnWriteList<DownloadManagerStateAttributeListener> lst = (CopyOnWriteList)map_to_use.get(attribute);
 		if (lst != null) {lst.remove(l);}
 	}
 	

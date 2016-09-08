@@ -108,4 +108,18 @@ DownloadManagerStateFactory
 	{
 		DownloadManagerStateImpl.deleteDownloadState( source_dir, download_hash );
 	}
+	
+	public static void 
+	addGlobalListener(
+		DownloadManagerStateAttributeListener l, String attribute, int event_type)
+	{
+		DownloadManagerStateImpl.addGlobalListener( l, attribute, event_type );
+	}
+	
+	public void 
+	removeGlobalListener(
+		DownloadManagerStateAttributeListener l, String attribute, int event_type)
+	{
+		DownloadManagerStateImpl.removeGlobalListener( l, attribute, event_type );
+	}
 }

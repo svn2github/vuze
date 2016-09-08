@@ -2409,6 +2409,8 @@ DownloadManagerImpl
 
 		torrent_save_location = new_location;
 
+		String key = torrent_save_location.getAbsolutePath() + "\n";
+
 		try{
 			torrent_save_location = torrent_save_location.getCanonicalFile();
 			
@@ -2416,6 +2418,10 @@ DownloadManagerImpl
 			
 			torrent_save_location = torrent_save_location.getAbsoluteFile();
 		}
+		
+		download_manager_state.setAttribute( 
+			DownloadManagerState.AT_CANONICAL_SD_DMAP,
+			key + torrent_save_location.getAbsolutePath());
 		
 		Logger.log(new LogEvent(this, LogIDs.CORE, "Torrent save directory changing from \"" + old_location.getPath() + "\" to \"" + new_location.getPath()));
 

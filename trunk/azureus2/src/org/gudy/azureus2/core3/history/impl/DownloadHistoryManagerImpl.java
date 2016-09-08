@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.history.impl;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -29,12 +30,16 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerFactory;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
+import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.history.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -43,6 +48,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.util.MapUtils;
 
 public class 
 DownloadHistoryManagerImpl
@@ -194,17 +200,52 @@ DownloadHistoryManagerImpl
 										
 										if ( dh != null ){
 											
-											dh.updateCompleteTime( dm.getDownloadState());
+											if ( dh.updateCompleteTime( dm.getDownloadState())){
 											
-											List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
-											
-											list.add( dh );
-											
-											listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
+												List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
+												
+												list.add( dh );
+												
+												listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
+											}
 										}
 									}
 								}
 							});
+						
+						DownloadManagerStateFactory.addGlobalListener(
+							new DownloadManagerStateAttributeListener() {
+								
+								public void 
+								attributeEventOccurred(
+									DownloadManager 	dm,
+									String 				attribute, 
+									int 				event_type )
+								{
+									synchronized( lock ){
+										
+										if ( !( enabled && isMonitored(dm))){
+											
+											return;
+										}
+																			
+										long uid = getUID( dm );
+	
+										DownloadHistoryImpl dh = history.get( uid );
+										
+										if ( dh != null ){
+											
+											if ( dh.updateSaveLocation( dm )){
+												
+												List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
+												
+												list.add( dh );
+												
+												listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
+											}
+										}
+									}								}
+							}, DownloadManagerState.AT_CANONICAL_SD_DMAP, DownloadManagerStateAttributeListener.WRITTEN );
 						
 						if ( enabled ){
 						
@@ -516,20 +557,89 @@ DownloadHistoryManagerImpl
 			updateCompleteTime( dms );
 		}
 		
-		private void
+		private 
+		DownloadHistoryImpl(
+			Map<String,Object>		map )
+			
+			throws IOException
+		{
+			try{
+				uid		= (Long)map.get( "u" );
+				hash	= (byte[])map.get("h");
+				
+				name 			= new String((byte[])map.get( "n"), "UTF-8" );
+				save_location 	= new String((byte[])map.get( "s"), "UTF-8" );
+				
+				add_time 		= (Long)map.get( "a" );
+				complete_time 	= (Long)map.get( "c" );
+				remove_time 	= (Long)map.get( "r" );
+				
+			}catch( IOException e ){
+				
+				throw( e );
+				
+			}catch( Throwable e ){
+				
+				throw( new IOException( "History decode failed: " + Debug.getNestedExceptionMessage( e )));
+			}
+		}
+		
+		private Map<String,Object>
+		exportToMap()
+		
+			throws IOException
+		{
+			Map<String,Object> map = new LightHashMap<String,Object>();
+			
+			map.put( "u", uid );
+			map.put( "h", hash );
+			map.put( "n", name.getBytes( "UTF-8" ));
+			map.put( "s", save_location.getBytes( "UTF-8" ));
+			map.put( "a", add_time );
+			map.put( "c", complete_time );
+			map.put( "r", remove_time );
+			
+			return( map );
+		}
+		
+		private boolean
 		updateCompleteTime(
 			DownloadManagerState		dms )
 		{
+			long	old_time = complete_time;
+			
 			long comp = dms.getLongAttribute( DownloadManagerState.AT_COMPLETE_LAST_TIME );
 			
 			if ( comp == 0 ){
 				
-				complete_time 	= dms.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME );	// nothing recorded either way
+				complete_time = dms.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME );	// nothing recorded either way
 				
 			}else{
 				
 				complete_time = comp;
-			}	
+			}
+			
+			return( complete_time != old_time );
+		}
+		
+		private boolean
+		updateSaveLocation(
+			DownloadManager		dm )
+		{
+			String old_location = save_location;
+			
+			String loc = dm.getSaveLocation().getAbsolutePath();
+			
+			if ( !loc.equals( old_location )){
+				
+				save_location = loc;
+				
+				return( true );
+				
+			}else{
+				
+				return( false );
+			}
 		}
 		
 		public long
