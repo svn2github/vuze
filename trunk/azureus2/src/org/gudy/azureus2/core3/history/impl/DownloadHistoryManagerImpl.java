@@ -179,14 +179,30 @@ DownloadHistoryManagerImpl
 								public void 
 								completionChanged(
 									DownloadManager 	dm,
-									boolean 			bCompleted ) 
+									boolean 			comp ) 
 								{
-									if ( !( enabled && isMonitored(dm))){
+									synchronized( lock ){
+								
+										if ( !( enabled && isMonitored(dm))){
+											
+											return;
+										}
+																			
+										long uid = getUID( dm );
+	
+										DownloadHistoryImpl dh = history.get( uid );
 										
-										return;
+										if ( dh != null ){
+											
+											dh.updateCompleteTime( dm.getDownloadState());
+											
+											List<DownloadHistory> list = new ArrayList<DownloadHistory>(1);
+											
+											list.add( dh );
+											
+											listeners.dispatch( 0, new DownloadHistoryEventImpl( DownloadHistoryEvent.DHE_HISTORY_MODIFIED, list ));
+										}
 									}
-																		
-									System.out.println( "Comp Change: " + dm.getDisplayName() + " -> " + bCompleted );
 								}
 							});
 						
@@ -496,7 +512,24 @@ DownloadHistoryManagerImpl
 			DownloadManagerState	dms = dm.getDownloadState();
 			
 			add_time 		= dms.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
-			complete_time 	= dms.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME );
+			
+			updateCompleteTime( dms );
+		}
+		
+		private void
+		updateCompleteTime(
+			DownloadManagerState		dms )
+		{
+			long comp = dms.getLongAttribute( DownloadManagerState.AT_COMPLETE_LAST_TIME );
+			
+			if ( comp == 0 ){
+				
+				complete_time 	= dms.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME );	// nothing recorded either way
+				
+			}else{
+				
+				complete_time = comp;
+			}	
 		}
 		
 		public long

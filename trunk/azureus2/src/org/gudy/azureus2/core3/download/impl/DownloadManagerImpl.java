@@ -228,6 +228,32 @@ DownloadManagerImpl
 			}
 			
 			public void completionChanged(DownloadManager manager, boolean bCompleted){
+				DownloadManagerState dms = manager.getDownloadState();
+
+				long time = dms.getLongAttribute( DownloadManagerState.AT_COMPLETE_LAST_TIME );
+				
+				if ( time == -1 ){
+					if ( bCompleted ){
+						dms.setLongAttribute( DownloadManagerState.AT_COMPLETE_LAST_TIME, SystemTime.getCurrentTime());
+					}
+				}else if ( time > 0 ){
+					if ( !bCompleted ){
+						dms.setLongAttribute( DownloadManagerState.AT_COMPLETE_LAST_TIME, -1 );
+					}
+				}else{
+					if ( bCompleted ){
+						
+						long completedOn = dms.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+
+						if ( completedOn > 0 ){
+							
+							dms.setLongAttribute( DownloadManagerState.AT_COMPLETE_LAST_TIME, completedOn );
+						}
+					}else{
+						dms.setLongAttribute( DownloadManagerState.AT_COMPLETE_LAST_TIME, -1 );
+					}
+				}
+				
 				for ( DownloadManagerListener listener: global_dm_listeners ){
 					
 					try{

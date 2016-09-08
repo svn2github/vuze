@@ -78,7 +78,8 @@ DownloadManagerState
 	public static final String AT_MERGED_DATA				= "mergedata";		// long
 	public static final String AT_DND_PREFIX				= "dnd_pfx";		// string
 	public static final String AT_AGGREGATE_SCRAPE_CACHE	= "agsc";			// string <update_time_mins>,<seeds>,<leechers>
-
+	public static final String AT_COMPLETE_LAST_TIME		= "complt";			// long - last time download reported complete, -1 if reported incomplete, 0 if unknown
+	
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_VERSION,								new Integer( -1 )},
 		{ AT_TIME_SINCE_DOWNLOAD,					new Integer( -1 )},

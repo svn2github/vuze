@@ -638,7 +638,15 @@ public class SBC_DownloadHistoryView
 			
 		}else{
 			
-			// modified
+			for ( DownloadHistory d: dls ){
+			
+				TableRowCore row = tv.getRow( d );
+				
+				if ( row != null ){
+					
+					row.invalidate( true );
+				}
+			}
 		}
 	}
 	
