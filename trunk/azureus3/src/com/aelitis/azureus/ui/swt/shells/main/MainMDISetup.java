@@ -482,10 +482,15 @@ public class MainMDISetup
 											
 											return( null );
 											
-										}else{
+										}else if ( history_manager.isEnabled()){
+											
 											int num = history_manager.getHistoryCount();
 																					
-											return( String.valueOf( num ) );
+											return( String.valueOf( num ));
+											
+										}else{
+											
+											return( MessageText.getString( "pairing.status.disabled" ));
 										}
 									}
 									

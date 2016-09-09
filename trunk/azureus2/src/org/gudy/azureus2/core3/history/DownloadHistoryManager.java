@@ -33,10 +33,7 @@ DownloadHistoryManager
 	public void
 	setEnabled(
 		boolean		enabled );
-	
-	public List<DownloadHistory>
-	getHistory();
-	
+		
 	public int
 	getHistoryCount();
 	

@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreComponent;
@@ -98,6 +99,11 @@ DownloadHistoryManagerImpl
 	private Map<Long,DownloadHistoryImpl>	dead_dirty;
 		
 	private TimerEvent	write_pending_event;
+	
+	private long	active_load_time;
+	private long	dead_load_time;
+	
+	private boolean	history_escaped = false;
 	
 	private boolean	enabled;
 	
@@ -288,6 +294,20 @@ DownloadHistoryManagerImpl
 					}
 				}
 			});
+		
+		SimpleTimer.addPeriodicEvent(
+			"DHM:timer",
+			60*1000,
+			new TimerEventPerformer() {
+				
+				public void perform(TimerEvent event){
+					
+					synchronized( lock ){
+					
+						checkDiscard();
+					}
+				}
+			});
 	}
 	
 	public boolean
@@ -390,7 +410,7 @@ DownloadHistoryManagerImpl
 		}
 	}
 	
-	public List<DownloadHistory>
+	private List<DownloadHistory>
 	getHistory()
 	{
 		synchronized( lock ){
@@ -402,7 +422,7 @@ DownloadHistoryManagerImpl
 			
 			result.addAll( active.values());
 			result.addAll( dead.values());
-			
+						
 			return( result );
 		}
 	}
@@ -542,6 +562,8 @@ DownloadHistoryManagerImpl
 	{
 		synchronized( lock ){
 			
+			history_escaped = true;
+			
 			listeners.addListener( listener );
 			
 			if ( fire_for_existing ){
@@ -557,7 +579,15 @@ DownloadHistoryManagerImpl
 	removeListener(
 		DownloadHistoryListener		listener )
 	{
-		listeners.removeListener( listener );
+		synchronized( lock ){
+
+			listeners.removeListener( listener );
+			
+			if ( listeners.size() == 0 ){
+				
+				history_escaped = false;
+			}
+		}
 	}
 		
 	private Map<Long,DownloadHistoryImpl>
@@ -569,6 +599,8 @@ DownloadHistoryManagerImpl
 						
 			ref = loadHistory( CONFIG_ACTIVE_FILE );
 			
+			active_load_time = SystemTime.getMonotonousTime();
+
 			history_active = new WeakReference<Map<Long,DownloadHistoryImpl>>( ref );
 			
 			active_history_size = ref.size();
@@ -585,6 +617,8 @@ DownloadHistoryManagerImpl
 		if ( ref == null ){
 						
 			ref = loadHistory( CONFIG_DEAD_FILE );
+			
+			dead_load_time = SystemTime.getMonotonousTime();
 			
 			history_dead = new WeakReference<Map<Long,DownloadHistoryImpl>>( ref );
 			
@@ -613,7 +647,7 @@ DownloadHistoryManagerImpl
 		int								action,
 		int								type )
 	{
-		if (( type | UPDATE_TYPE_ACTIVE ) != 0 ){
+		if (( type & UPDATE_TYPE_ACTIVE ) != 0 ){
 		
 			Map<Long,DownloadHistoryImpl>	active = getActiveHistory();
 			
@@ -622,7 +656,7 @@ DownloadHistoryManagerImpl
 			active_dirty = active;
 		}
 		
-		if (( type | UPDATE_TYPE_DEAD ) != 0 ){
+		if (( type & UPDATE_TYPE_DEAD ) != 0 ){
 			
 			Map<Long,DownloadHistoryImpl>	dead = getDeadHistory();
 			
@@ -650,7 +684,29 @@ DownloadHistoryManagerImpl
 						}
 					});
 		}
+		
 		listeners.dispatch( 0, new DownloadHistoryEventImpl( action, new ArrayList<DownloadHistory>( list )));	
+	}
+	
+	private void
+	checkDiscard()
+	{
+		if ( history_escaped ){
+			
+			return;
+		}
+		
+		long	now = SystemTime.getMonotonousTime();
+		
+		if ( now - active_load_time > 30*1000 && active_dirty == null && history_active.get() != null ){
+			
+			history_active.clear();
+		}
+		
+		if ( now - dead_load_time > 30*1000 && dead_dirty == null && history_dead.get() != null ){
+			
+			history_dead.clear();
+		}
 	}
 	
 	private void
@@ -676,6 +732,8 @@ DownloadHistoryManagerImpl
 		String		file )
 	{
 		Map<Long,DownloadHistoryImpl>	result = new HashMap<Long, DownloadHistoryImpl>();
+		
+		// System.out.println( "loading " + file );
 		
 		try{
 			if ( FileUtil.resilientConfigFileExists( file )){
@@ -710,6 +768,8 @@ DownloadHistoryManagerImpl
 		String 							file,
 		Map<Long,DownloadHistoryImpl>	records )
 	{
+		// System.out.println( "saving " + file );
+		
 		try{
 			Map<String,Object>	map = new HashMap<String,Object>();
 	
@@ -890,7 +950,7 @@ DownloadHistoryManagerImpl
 			
 			return( complete_time != old_time );
 		}
-		
+
 		private boolean
 		updateSaveLocation(
 			DownloadManager		dm )
