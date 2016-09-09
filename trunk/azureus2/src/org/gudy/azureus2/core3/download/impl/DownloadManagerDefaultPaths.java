@@ -267,8 +267,17 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		if ( move_to != null ){
 			
 	    	SourceSpecification source = new SourceSpecification();
-			source.setBoolean( "default dir", "Move Only When In Default Save Dir" );
-			source.setBoolean( "default subdir", SUBDIR_PARAM );
+	    	
+	    		// we want to ignore the 'move only in def folder' constraint if the user hasn't
+	    		// enabled overall move-on-complete otherwise this is confusing  
+	    	
+	    	if ( def_mi.target.getBoolean( "enabled" ) ){
+	    		source.setBoolean( "default dir", "Move Only When In Default Save Dir" );
+	    		source.setBoolean( "default subdir", SUBDIR_PARAM );
+	    	}else{
+	    		source.setBoolean( "default dir", false );
+	    	}
+	    	
 			source.setBoolean( "incomplete dl", false );
 				
 			TargetSpecification dest = new TargetSpecification();
