@@ -145,16 +145,20 @@ public abstract class ColumnDateSizer
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh( TableCell cell, long timestamp) {
-		refresh( cell, timestamp, null );
+		refresh( cell, timestamp, timestamp, null );
 	}
 	
-	public void refresh(final TableCell cell, final long timestamp, final String prefix ) {
-		if (!cell.setSortValue(timestamp) && cell.isValid()) {
+	public void refresh(TableCell cell, long timestamp, String prefix ) {
+		refresh( cell, timestamp, timestamp, prefix );
+	}
+	
+	public void refresh(final TableCell cell, final long timestamp, long sort_order, final String prefix ) {
+		if (!cell.setSortValue(sort_order) && cell.isValid()) {
 			return;
 		}
 
 		if (timestamp <= 0 || timestamp == Long.MAX_VALUE ){
-			cell.setText("");
+			cell.setText( prefix );
 			return;
 		}
 		
