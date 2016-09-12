@@ -201,33 +201,26 @@ ShareRatioProgressItem
 								*/
 								
 								long time_to_sr = (( next_target_sr * downloaded )/1000 - uploaded ) / ( up_speed - ( down_speed * next_target_sr )/1000 );
-								
-								if ( time_to_sr <= 0 ){
+																	
+								long time_to_completion = remaining / down_speed;
 									
-									next_eta = 0;
+								if ( time_to_sr > 0 &&  time_to_sr <= time_to_completion ){
+										
+									next_eta = time_to_sr;
 									
 								}else{
 									
-									long time_to_completion = remaining / down_speed;
+										// basic calculation shows eta is > download complete time so we need
+										// to refactor things
 									
-									if ( time_to_sr <= time_to_completion ){
-										
-										next_eta = time_to_sr;
-										
-									}else{
-										
-											// basic calculation shows eta is > download complete time so we need
-											// to refactor things
-										
-										long uploaded_at_completion 	= uploaded + ( up_speed * time_to_completion );
-										long downloaded_at_completion 	= downloaded + ( down_speed * time_to_completion );
-										
-											// usual seeding calculation for time after completion
-										
-										long	target_upload = ( next_target_sr * downloaded_at_completion ) / 1000;
-										
-										next_eta = time_to_completion + ( target_upload - uploaded_at_completion )/up_speed;
-									}
+									long uploaded_at_completion 	= uploaded + ( up_speed * time_to_completion );
+									long downloaded_at_completion 	= downloaded + ( down_speed * time_to_completion );
+									
+										// usual seeding calculation for time after completion
+									
+									long	target_upload = ( next_target_sr * downloaded_at_completion ) / 1000;
+									
+									next_eta = time_to_completion + ( target_upload - uploaded_at_completion )/up_speed;
 								}
 							}
 						}else{
