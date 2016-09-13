@@ -659,7 +659,7 @@ addressLoop:
 				try
 				{
 					// allow wildcard address as 1st address, otherwise only interface addresses
-					if((!parsedAddress.isAnyLocalAddress() || addrs.size() > 0) && NetworkInterface.getByInetAddress(parsedAddress) == null)
+					if((!parsedAddress.isAnyLocalAddress() || addrs.size() > 0) && NetUtils.getByInetAddress(parsedAddress) == null)
 						continue;
 				} catch (SocketException e)
 				{
@@ -676,7 +676,7 @@ addressLoop:
 			NetworkInterface netInterface = null;
 			try
 			{
-				netInterface = NetworkInterface.getByName(ifaces[0]);
+				netInterface = NetUtils.getByName(ifaces[0]);
 			} catch (SocketException e)
 			{
 				e.printStackTrace(); // should not happen
@@ -776,7 +776,7 @@ addressLoop:
 				
 				try{	
 					if (  	parsedAddress.isAnyLocalAddress() || 
-							NetworkInterface.getByInetAddress( parsedAddress ) != null ){
+							NetUtils.getByInetAddress( parsedAddress ) != null ){
 						
 						ok = true;
 					}
@@ -792,7 +792,7 @@ addressLoop:
 				NetworkInterface netInterface = null;
 				
 				try{
-					netInterface = NetworkInterface.getByName( ifaces[0] );
+					netInterface = NetUtils.getByName( ifaces[0] );
 					
 				}catch( Throwable e ){
 				}

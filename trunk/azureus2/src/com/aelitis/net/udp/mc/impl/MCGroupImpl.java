@@ -168,6 +168,8 @@ MCGroupImpl
 	private volatile boolean		instance_suspended;
 	private List<Object[]>			suspended_threads = new ArrayList<Object[]>();
 	
+	private Map<String,MulticastSocket>		socket_cache = new HashMap<String, MulticastSocket>();
+	
 	private
 	MCGroupImpl(
 		MCGroupAdapter		_adapter,
@@ -588,7 +590,7 @@ MCGroupImpl
 				
 				Enumeration<InetAddress> ni_addresses = network_interface.getInetAddresses();
 				
-				boolean	ok = false;
+				String	socket_key = null;
 				
 				while( ni_addresses.hasMoreElements()){
 					
@@ -596,47 +598,72 @@ MCGroupImpl
 				
 					if ( !( ni_address instanceof Inet6Address || ni_address.isLoopbackAddress())){
 						
-						ok	= true;
+						socket_key = ni_address.toString();
 						
 						break;
 					}
 				}
 				
-				if ( !ok ){
+				if ( socket_key == null ){
 					
 					continue;
 				}
 				
+				socket_key += ":" + control_port;
+										
 				try{
-					
-					MulticastSocket mc_sock = new MulticastSocket(null);
+										
+					synchronized( socket_cache ){
+						
+						MulticastSocket mc_sock = socket_cache.get( socket_key );
+						
+						if ( mc_sock == null ){
+							
+							mc_sock = new MulticastSocket(null);
 	
-					mc_sock.setReuseAddress(true);
+							mc_sock.setReuseAddress(true);
 					
-					try{
-						mc_sock.setTimeToLive( TTL );
-						
-					}catch( Throwable e ){
-						
-						if ( !ttl_problem_reported ){
+							try{
+								mc_sock.setTimeToLive( TTL );
+								
+							}catch( Throwable e ){
+								
+								if ( !ttl_problem_reported ){
+									
+									ttl_problem_reported	= true;
+									
+									adapter.log( e );
+								}
+							}
 							
-							ttl_problem_reported	= true;
+							mc_sock.bind( new InetSocketAddress( control_port ));
+			
+							mc_sock.setNetworkInterface( network_interface );
 							
-							adapter.log( e );
+							socket_cache.put( socket_key, mc_sock );								
+						}
+					
+						// System.out.println( "sendToGroup: ni = " + network_interface.getName() + ", data = " + new String(data));
+						
+						DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), group_port );
+						
+						try{
+							mc_sock.send(packet);
+					
+						}catch( Throwable e ){
+							
+							try{
+								mc_sock.close();
+								
+							}catch( Throwable f ){
+								
+							}
+							
+							socket_cache.remove( socket_key );
+							
+							throw( e );
 						}
 					}
-					
-					mc_sock.bind( new InetSocketAddress( control_port ));
-	
-					mc_sock.setNetworkInterface( network_interface );
-					
-					// System.out.println( "sendToGroup: ni = " + network_interface.getName() + ", data = " + new String(data));
-					
-					DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), group_port );
-					
-					mc_sock.send(packet);
-					
-					mc_sock.close();
 						
 				}catch( Throwable e ){
 				
@@ -704,44 +731,68 @@ MCGroupImpl
 					}
 				}
 				
-				if ( an_address == null){
+				if ( an_address == null ){
 					
 					continue;
 				}
 				
+				String socket_key = an_address.toString() + ":" + control_port;
+				
 				try{
 					
-					MulticastSocket mc_sock = new MulticastSocket(null);
+					synchronized( socket_cache ){
+						
+						MulticastSocket mc_sock = socket_cache.get( socket_key );
+						
+						if ( mc_sock == null ){
+							
+							mc_sock = new MulticastSocket(null);
 	
-					mc_sock.setReuseAddress(true);
+							mc_sock.setReuseAddress(true);
 					
-					try{
-						mc_sock.setTimeToLive( TTL );
-						
-					}catch( Throwable e ){
-						
-						if ( !ttl_problem_reported ){
+							try{
+								mc_sock.setTimeToLive( TTL );
+								
+							}catch( Throwable e ){
+								
+								if ( !ttl_problem_reported ){
+									
+									ttl_problem_reported	= true;
+									
+									adapter.log( e );
+								}
+							}
 							
-							ttl_problem_reported	= true;
+							mc_sock.bind( new InetSocketAddress( control_port ));
+			
+							mc_sock.setNetworkInterface( network_interface );
 							
-							adapter.log( e );
+							socket_cache.put( socket_key, mc_sock );								
+						}
+					
+						byte[]	data = param_data.replaceAll("%AZINTERFACE%", an_address.getHostAddress()).getBytes();
+					
+						// System.out.println( "sendToGroup: ni = " + network_interface.getName() + ", data = " + new String(data));
+					
+						DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), group_port );
+						
+						try{
+							mc_sock.send(packet);
+					
+						}catch( Throwable e ){
+							
+							try{
+								mc_sock.close();
+								
+							}catch( Throwable f ){
+								
+							}
+							
+							socket_cache.remove( socket_key );
+							
+							throw( e );
 						}
 					}
-					
-					mc_sock.bind( new InetSocketAddress( control_port ));
-	
-					mc_sock.setNetworkInterface( network_interface );
-					
-					byte[]	data = param_data.replaceAll("%AZINTERFACE%", an_address.getHostAddress()).getBytes();
-					
-					// System.out.println( "sendToGroup: ni = " + network_interface.getName() + ", data = " + new String(data));
-					
-					DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), group_port );
-					
-					mc_sock.send(packet);
-					
-					mc_sock.close();
-						
 				}catch( Throwable e ){
 				
 					if ( !sso_problem_reported ){

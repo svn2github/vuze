@@ -20,14 +20,8 @@
 
 package com.aelitis.azureus.core.util;
 
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.net.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -53,6 +47,9 @@ NetUtils
 	private static boolean						check_in_progress;
 	
 	private static AESemaphore					ni_sem = new AESemaphore( "NetUtils:ni" );
+	
+	private static Map<Object,Object[]>			host_or_address_map 	= new HashMap<Object, Object[]>();
+	
 	
 	public static List<NetworkInterface>
 	getNetworkInterfaces()
@@ -229,6 +226,133 @@ NetUtils
 			}
 			
 			return( InetAddress.getByName( "127.0.0.1" ));
+		}
+	}
+	
+	public static NetworkInterface 
+	getByName(
+		String name ) 
+		
+		throws SocketException
+	{		
+		return( getBySupport( name ));
+	}
+	
+	public static NetworkInterface 
+	getByInetAddress(
+		InetAddress addr )
+				
+		throws SocketException 
+	{
+		return( getBySupport( addr ));
+	}
+	
+	private static NetworkInterface 
+	getBySupport(
+		Object 	name_or_address ) 
+		
+		throws SocketException
+	{		
+		Object[] entry;
+		
+		synchronized( host_or_address_map ){
+			
+			entry = host_or_address_map.get( name_or_address );
+			
+			if ( entry != null ){
+				
+				synchronized( entry ){
+					
+					long	now = SystemTime.getMonotonousTime();
+	
+					Object result_or_error = entry[0];
+					
+					if ( result_or_error != null ){
+						
+						if (((Long)entry[1]) > now ){
+							
+								// not expired
+								
+							if ( result_or_error instanceof NetworkInterface ){
+							
+								return((NetworkInterface)result_or_error );
+								
+							}else{
+								
+								throw((SocketException)result_or_error );
+							}
+						}
+						
+						entry[0] = null;
+					}
+				}
+			}else{
+				
+				entry = new Object[2];
+				
+				host_or_address_map.put( name_or_address, entry );
+			}
+		}
+		
+		synchronized( entry ){
+			
+				// if another thread has done a concurrent lookup then re-use result
+			
+			Object result_or_error = entry[0];
+			
+			if ( result_or_error != null ){
+				
+				if ( result_or_error instanceof NetworkInterface ){
+					
+					return((NetworkInterface)result_or_error );
+					
+				}else{
+					
+					throw((SocketException)result_or_error );
+				}
+			}
+			
+			long	start 	= SystemTime.getHighPrecisionCounter();
+	
+			NetworkInterface 	result 	= null;
+			SocketException		error	= null;
+			
+			try{
+				if ( name_or_address instanceof String ){
+					
+					result = NetworkInterface.getByName((String)name_or_address );
+					
+				}else{
+					
+					result = NetworkInterface.getByInetAddress((InetAddress)name_or_address );
+	
+				}
+			}catch( SocketException e ){
+				
+				error = e;
+			}
+			
+			long elapsed = ( SystemTime.getHighPrecisionCounter() - start ) / 1000000;
+						
+			entry[0] = result==null?error:result;
+			
+			long delay = 250*elapsed;
+			
+			if ( delay > 5*60*1000 ){
+				
+				delay = 5*60*1000;
+			}
+						
+			entry[1] = SystemTime.getMonotonousTime() + delay;
+			
+			if ( result == null ){
+				
+				throw( error );
+				
+			}else{
+				
+				return( result );
+			}
 		}
 	}
 }

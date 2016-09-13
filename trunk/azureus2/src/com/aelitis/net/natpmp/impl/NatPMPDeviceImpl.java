@@ -158,7 +158,7 @@ public class NatPMPDeviceImpl implements NatPMPDevice
         
         natPriInet = InetAddress.getByName(natAddr);
         
-        networkInterface = NetworkInterface.getByInetAddress( natPriInet );
+        networkInterface = NetUtils.getByInetAddress( natPriInet );
     }
     
     

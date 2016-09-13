@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 
 import com.aelitis.azureus.core.util.HTTPUtils;
+import com.aelitis.azureus.core.util.NetUtils;
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.device.*;
 
@@ -140,7 +141,7 @@ UPnPImpl
 			String	usn 	= new String((byte[])cache.get( "usn" ), "UTF-8" );
 			String	loc_s 	= new String((byte[])cache.get( "loc" ), "UTF-8" );
 			
-			NetworkInterface	network_interface = NetworkInterface.getByName( ni_s );
+			NetworkInterface	network_interface = NetUtils.getByName( ni_s );
 			
 			if ( network_interface == null ){
 				
