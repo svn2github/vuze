@@ -276,7 +276,11 @@ public abstract class ColumnDateSizer
 				}
 				SimpleDateFormat temp = new SimpleDateFormat(
 						TimeFormatter.DATEFORMATS_DESC[i] + suffix);
-				Point newSize = gc.stringExtent(temp.format(date));
+				String date_str = temp.format(date);
+				if ( prefix != null ){
+					date_str = prefix + date_str;
+				}
+				Point newSize = gc.stringExtent(date_str);
 				if (newSize.x < width - PADDING) {
 					idxFormat = i;
 					if (maxWidthUsed[i] < newSize.x) {
