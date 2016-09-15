@@ -44,6 +44,10 @@ DownloadHistoryManager
 	public void
 	resetHistory();
 	
+	public long
+	getAddedDate(
+		byte[]		hash );
+	
 	public void
 	addListener(
 		DownloadHistoryListener		listener,

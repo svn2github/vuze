@@ -522,6 +522,23 @@ DownloadHistoryManagerImpl
 		}
 	}
 	
+	public long
+	getAddedDate(
+		byte[]		hash )
+	{
+		List<DownloadHistory> history = getHistory();
+		
+		for ( DownloadHistory dh: history ){
+			
+			if ( Arrays.equals( hash, dh.getTorrentHash())){
+				
+				return( dh.getAddTime());
+			}
+		}
+		
+		return( -1 );
+	}
+	
 	private static long
 	getUID(
 		DownloadManager		dm )

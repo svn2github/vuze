@@ -18,6 +18,8 @@ package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.io.File;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -34,6 +36,7 @@ import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerEvent;
+import org.gudy.azureus2.core3.history.DownloadHistoryManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -1291,6 +1294,41 @@ public class UIFunctionsImpl
 					}
 				}catch( Throwable e ){
 					Debug.out( e );
+				}
+				
+				if ( !is_silent ){
+					
+					try{
+						DownloadHistoryManager dlm = (DownloadHistoryManager)core.getGlobalManager().getDownloadHistoryManager();
+						
+						final long existing = dlm.getAddedDate( torrentOptions.getTorrent().getHash());
+						
+						if ( existing > 0 ){
+							
+							Utils.execSWTThread(new AERunnable() {
+								public void runSupport() {
+									Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+		
+									if ( mainShell != null && !mainShell.isDisposed()){
+										
+										new MessageSlideShell(
+											mainShell.getDisplay(), SWT.ICON_INFORMATION,
+											"OpenTorrentWindow.mb.inHistory", null, 
+											new String[] {
+													torrentOptions.getTorrentName(),
+													new SimpleDateFormat().format( new Date( existing ))
+											}, 
+											new Object[] {
+													
+											}, -1);
+									}
+								}
+							});
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
 				}
 			}
 		}
