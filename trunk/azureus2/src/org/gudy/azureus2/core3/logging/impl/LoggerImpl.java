@@ -276,7 +276,7 @@ public class LoggerImpl {
 		
 		if ( error != null ){
 			
-			logText += " (" + Debug.getNestedExceptionMessage( error ) + ")";
+			logText += " (" + Debug.getNestedExceptionMessageAndStack( error ) + ")";
 		}
 		
 		alertLogger.log(logText);
