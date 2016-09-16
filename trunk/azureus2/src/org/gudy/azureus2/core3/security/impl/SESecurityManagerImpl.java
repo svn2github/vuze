@@ -123,7 +123,8 @@ SESecurityManagerImpl
 	protected String	keystore_name;
 	protected String	truststore_name;
 	
-	protected List				certificate_listeners 	= new ArrayList();
+	protected List<SECertificateListener>		certificate_listeners 	= new ArrayList<SECertificateListener>();
+	
 	protected CopyOnWriteList	password_listeners 		= new CopyOnWriteList();
 	
 	
@@ -1097,99 +1098,103 @@ SESecurityManagerImpl
 				socket.startHandshake();
 				
 				java.security.cert.Certificate[] serverCerts = socket.getSession().getPeerCertificates();
+								
+				SSLSocketFactory	result = null;
 				
-				if ( serverCerts.length == 0 ){
-									
-					return( null );
-				}
-				
-				java.security.cert.Certificate	cert = serverCerts[0];
-							
-				java.security.cert.X509Certificate x509_cert;
-				
-				if ( cert instanceof java.security.cert.X509Certificate ){
+				for (int i=0;i<serverCerts.length;i++){
 					
-					x509_cert = (java.security.cert.X509Certificate)cert;
+					java.security.cert.Certificate	cert = serverCerts[i];
+								
+					java.security.cert.X509Certificate x509_cert;
 					
-				}else{
-					
-					java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
-					
-					x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
-				}
-					
-				String	resource = https_url.toString();
-				
-				int	param_pos = resource.indexOf("?");
-				
-				if ( param_pos != -1 ){
-					
-					resource = resource.substring(0,param_pos);
-				}
-			
-					// recalc - don't use port above as it may have been changed
-				
-				String url_s	= https_url.getProtocol() + "://" + https_url.getHost() + ":" + https_url.getPort() + "/";
-				
-				Object[]	handler = (Object[])certificate_handlers.get( url_s );
-				
-				String	alias = host.concat(":").concat(String.valueOf(port));
-				
-				KeyStore keystore = getTrustStore();
-
-				byte[]	new_encoded = x509_cert.getEncoded();
-				
-				int	count = 0;
-				
-				while( count < 256 ){
-					
-					String	test_alias = count==0?alias:(alias + "." + count );
-					
-					Certificate existing = keystore.getCertificate( test_alias );
-				
-					if ( existing != null ){
-					
-						if ( Arrays.equals( new_encoded, existing.getEncoded())){
+					if ( cert instanceof java.security.cert.X509Certificate ){
 						
+						x509_cert = (java.security.cert.X509Certificate)cert;
+						
+					}else{
+						
+						java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+						
+						x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
+					}
+						
+					String	resource = https_url.toString();
+					
+					int	param_pos = resource.indexOf("?");
+					
+					if ( param_pos != -1 ){
+						
+						resource = resource.substring(0,param_pos);
+					}
+				
+						// recalc - don't use port above as it may have been changed
+					
+					String url_s	= https_url.getProtocol() + "://" + https_url.getHost() + ":" + https_url.getPort() + "/";
+					
+					Object[]	handler = (Object[])certificate_handlers.get( url_s );
+					
+					String	alias = host.concat(":").concat(String.valueOf(port));
+					
+					if ( i > 0 ){
+						
+						alias += "[" + i + "]";
+					}
+					
+					KeyStore keystore = getTrustStore();
+	
+					byte[]	new_encoded = x509_cert.getEncoded();
+					
+					int	count = 0;
+					
+					while( count < 256 ){
+						
+						String	test_alias = count==0?alias:(alias + "." + count );
+						
+						Certificate existing = keystore.getCertificate( test_alias );
+					
+						if ( existing != null ){
+						
+							if ( Arrays.equals( new_encoded, existing.getEncoded())){
+							
+								alias = test_alias;
+								
+								break;
+							}
+						}else{
+							
 							alias = test_alias;
 							
 							break;
 						}
+						
+						count++;
+					}
+	
+					if ( auto_install_certs || result != null ){
+						
+						result = addCertToTrustStore( alias, cert, true );
+	
 					}else{
-						
-						alias = test_alias;
-						
-						break;
-					}
 					
-					count++;
-				}
-
-				if ( auto_install_certs ){
-					
-					return( addCertToTrustStore( alias, cert, true ));
-
-				}else{
-				
-					if ( handler != null ){
-						
-						if (((SECertificateListener)handler[0]).trustCertificate( resource, x509_cert )){
-											
-							return( addCertToTrustStore( alias, cert, true ));
-						}
-					}
-					
-					for (int i=0;i<certificate_listeners.size();i++){
-						
-						if (((SECertificateListener)certificate_listeners.get(i)).trustCertificate( resource, x509_cert )){
+						if ( handler != null ){
 							
-					
-							return( addCertToTrustStore( alias, cert, true ));
+							if (((SECertificateListener)handler[0]).trustCertificate( resource, x509_cert )){
+												
+								result = addCertToTrustStore( alias, cert, true );
+							}
+						}
+						
+						for (SECertificateListener listener: certificate_listeners ){
+							
+							if ( listener.trustCertificate( resource, x509_cert )){
+												
+								result = addCertToTrustStore( alias, cert, true );
+							}
 						}
 					}
 				}
 				
-				return( null );
+				return( result );
 				
 			}catch( Throwable e ){
 				
@@ -1308,29 +1313,29 @@ SESecurityManagerImpl
 				socket.startHandshake();
 				
 				java.security.cert.Certificate[] serverCerts = socket.getSession().getPeerCertificates();
-				
-				if ( serverCerts.length == 0 ){
-									
-					return( null );
-				}
-				
-				java.security.cert.Certificate	cert = serverCerts[0];
-							
-				java.security.cert.X509Certificate x509_cert;
-				
-				if ( cert instanceof java.security.cert.X509Certificate ){
-					
-					x509_cert = (java.security.cert.X509Certificate)cert;
-					
-				}else{
-					
-					java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
-					
-					x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
-				}
-					
-				return( addCertToTrustStore( alias, x509_cert, false ));
 								
+				SSLSocketFactory	result = null;
+				
+				for ( java.security.cert.Certificate cert: serverCerts ){
+								
+					java.security.cert.X509Certificate x509_cert;
+					
+					if ( cert instanceof java.security.cert.X509Certificate ){
+						
+						x509_cert = (java.security.cert.X509Certificate)cert;
+						
+					}else{
+						
+						java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+						
+						x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
+					}
+						
+					result = addCertToTrustStore( alias, x509_cert, false );
+				}
+				
+				return( result );
+				
 			}catch( Throwable e ){
 				
 				if ( Debug.getNestedExceptionMessage( e ).contains( "unrecognized_name" )){

@@ -256,6 +256,25 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 							UrlUtils.DHHackIt( ssl_con );
 						}
 						
+						if ( connect_loop > 0 ){
+				 				
+			 					// meh, some https trackers are just screwed
+			 				
+							TrustManager[] trustAllCerts = SESecurityManager.getAllTrustingTrustManager();
+						
+							try{
+								SSLContext sc = SSLContext.getInstance("SSL");
+								
+								sc.init(null, trustAllCerts, RandomUtils.SECURE_RANDOM);
+								
+								SSLSocketFactory factory = sc.getSocketFactory();
+								
+								ssl_con.setSSLSocketFactory( factory );
+								
+							}catch( Throwable e ){
+							}
+			 			}
+					
 	    				con = ssl_con;
 	
 	    			}else{
