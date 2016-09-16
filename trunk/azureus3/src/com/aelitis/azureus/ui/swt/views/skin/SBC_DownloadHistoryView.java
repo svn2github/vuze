@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.history.DownloadHistory;
 import org.gudy.azureus2.core3.history.DownloadHistoryEvent;
 import org.gudy.azureus2.core3.history.DownloadHistoryListener;
 import org.gudy.azureus2.core3.history.DownloadHistoryManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
@@ -46,6 +47,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
@@ -53,10 +55,13 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
@@ -438,7 +443,7 @@ public class SBC_DownloadHistoryView
 					handleEvent(
 						Event event) 
 					{
-						dh_manager.resetHistory();
+						resetHistory();
 					}
 				});
 				
@@ -553,7 +558,7 @@ public class SBC_DownloadHistoryView
 					handleEvent(
 						Event event) 
 					{
-						dh_manager.resetHistory();
+						resetHistory();
 					}
 				});
 			
@@ -575,6 +580,27 @@ public class SBC_DownloadHistoryView
 				new MenuItem( menu, SWT.SEPARATOR );
 			}
 		}
+	}
+	
+	private void
+	resetHistory()
+	{
+		MessageBoxShell mb = new MessageBoxShell(
+				MessageText.getString("downloadhistoryview.reset.title"),
+				MessageText.getString("downloadhistoryview.reset.text"));
+		
+		mb.setButtons(0, new String[] {
+			MessageText.getString("Button.yes"),
+			MessageText.getString("Button.no"),
+		}, new Integer[] { 0, 1 });
+
+		mb.open(new UserPrompterResultListener(){
+			public void prompterClosed(int result) {
+				if (result == 0) {
+					dh_manager.resetHistory();
+				}
+			}
+		});
 	}
 	
 	public void 
