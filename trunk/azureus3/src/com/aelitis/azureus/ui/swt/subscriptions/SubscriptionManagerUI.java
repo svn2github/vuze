@@ -1969,6 +1969,9 @@ SubscriptionManagerUI
 		
 		
 		menuItem = menu_creator.createMenu( "Subscription.menu.remove");
+		
+		Utils.setMenuItemImage(menuItem, "delete");
+		
 		menuItem.addListener(new SubsMenuItemListener() {
 			public void selected( Subscription subs) {
 				removeWithConfirm( subs );

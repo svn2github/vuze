@@ -62,12 +62,14 @@ import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -604,6 +606,16 @@ public class Utils
   		});
   	}
 
+  	public static void setMenuItemImage(final org.gudy.azureus2.plugins.ui.menus.MenuItem item, final String repoKey) {
+  		if (Constants.isOSX || repoKey == null) {
+  			return;
+  		}
+  		ImageLoader imageLoader = ImageLoader.getInstance();
+  		Graphic graphic = new UISWTGraphicImpl( imageLoader.getImage(repoKey));
+  		
+  		item.setGraphic(graphic);
+  	}
+  	
 	public static void setMenuItemImage(CLabel item, final String repoKey) {
 		if (Constants.isOSX || repoKey == null) {
 			return;
