@@ -41,12 +41,14 @@ import org.gudy.azureus2.core3.history.DownloadHistoryManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -527,6 +529,27 @@ public class SBC_DownloadHistoryView
 				
 				itemExplore.setEnabled(hasSelection);
 				
+					// redownload
+				
+				MenuItem itemRedownload = new MenuItem(menu, SWT.PUSH);
+				
+				Messages.setLanguageText(itemRedownload, "label.redownload" );
+				
+				itemRedownload.addListener(SWT.Selection, new Listener() {
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						for ( DownloadHistory download: dms ){
+						
+							String magnet = UrlUtils.getMagnetURI( download.getTorrentHash(), download.getName(), null );
+							
+							TorrentOpener.openTorrent( magnet );
+						}
+					}
+				});
+				
+				itemExplore.setEnabled(hasSelection);
 					// remove
 					
 				MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
