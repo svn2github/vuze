@@ -1167,7 +1167,7 @@ public class UIFunctionsImpl
 									
 									new MessageSlideShell(Display.getCurrent(), SWT.ICON_INFORMATION,
 											MSG_ALREADY_EXISTS, null, new String[] {
-												":" + torrentOptions.sOriginatingLocation,
+												":" + torrentOptions.sOriginatingLocation, // : prefix is deliberate to disable click on ref in message as might be an unwanted action
 												fExistingName,
 												MessageText.getString(MSG_ALREADY_EXISTS_NAME),
 											}, new Object[] {
