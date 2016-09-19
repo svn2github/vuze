@@ -120,225 +120,7 @@ TextWithHistory
 					
 					String current_text = text.getText().trim();
 					
-					List<String>	current_matches = match( current_text );
-					
-					if ( current_text.length() == 0 || current_matches.size() == 0 ){
-						
-						if ( current_shell != null ){
-							
-							current_shell.dispose();
-						}
-						
-						return;
-					}
-					
-					
-					if ( current_shell == null ){
-						
-						mouse_entered 	= false;
-						menu_visible	= false;
-						
-						current_shell = new Shell( text.getShell(), SWT.NO_FOCUS | SWT.NO_TRIM );
-						
-						current_shell.addDisposeListener(
-							new DisposeListener() {
-								
-								public void widgetDisposed(DisposeEvent e) {
-									current_shell	= null;
-									list			= null;
-									mouse_entered	= false;
-									menu_visible	= false;
-								}
-							});
-						
-	
-					}else{
-						
-						String[] items = list.getItems();
-						
-						if ( items.length == current_matches.size()){
-							
-							boolean	same = true;
-							
-							for ( int i=0;i<items.length;i++){
-								if ( !items[i].equals( current_matches.get(i))){
-									same = false;
-									break;
-								}
-							}
-							
-							if ( same ){
-								
-								return;
-							}
-						}
-						
-						Utils.disposeComposite( current_shell, false );
-					}
-					
-					GridLayout layout = new GridLayout();
-					
-					layout.marginHeight = 0;
-					layout.marginWidth = 0;
-					
-					current_shell.setLayout( layout );
-											
-					Color	background = text.getBackground();
-					
-					current_shell.setBackground( background );
-					
-					final Composite comp = new Composite( current_shell, SWT.NULL );
-					comp.setLayoutData( new GridData( GridData.FILL_BOTH ));
-					
-					layout = new GridLayout();
-					
-					layout.marginHeight = 0;
-					layout.marginWidth 	= 0;
-					layout.marginLeft 	= 2;
-					layout.marginRight 	= 2;
-					layout.marginBottom = 2;
-					
-					comp.setLayout( layout );
-					
-					comp.setBackground( background );
-
-					comp.addPaintListener( new PaintListener() {
-						
-						public void paintControl(PaintEvent e) {
-							GC gc = e.gc;
-							
-							gc.setForeground( Colors.dark_grey );
-							
-							Rectangle bounds = comp.getBounds();
-							
-							gc.drawLine( 0, 0, 0, bounds.height-1 );
-							gc.drawLine( bounds.width-1, 0, bounds.width-1, bounds.height-1 );
-							gc.drawLine( 0, bounds.height-1, bounds.width-1, bounds.height-1 );
-						}
-					});
-					
-					list = new org.eclipse.swt.widgets.List( comp, SWT.NULL );
-					list.setLayoutData( new GridData( GridData.FILL_BOTH ));
-					
-					for ( String match: current_matches ){
-						
-						list.add( match);
-					}
-					
-					list.setFont( text.getFont());
-					list.setBackground( background );
-					
-					list.deselectAll();
-					
-					list.addMouseMoveListener( new MouseMoveListener() {
-						public void mouseMove(MouseEvent e){
-						
-							int item_height = list.getItemHeight();
-							
-							int y = e.y;
-							
-							int	item_index = y/item_height;
-							
-							if ( list.getSelectionIndex() != item_index ){
-								list.setSelection( item_index );
-							}
-						}
-					});
-						
-					list.addMouseTrackListener( new MouseTrackAdapter() {
-						public void mouseEnter(MouseEvent e) {
-							mouse_entered = true;
-						}
-						public void mouseExit(MouseEvent e) {
-							list.deselectAll();
-							mouse_entered = false;
-						}
-					});
-					
-					list.addSelectionListener(
-						new SelectionAdapter() {
-							
-							public void widgetSelected(SelectionEvent e) {
-								
-								fireSelected();
-							}
-						});
-					
-					Menu menu = new Menu( list );
-					
-					list.setMenu( menu );
-											
-						// clear history
-					
-					MenuItem mi = new MenuItem( menu, SWT.PUSH );
-
-					mi.setText( MessageText.getString( "label.clear.history" ));
-					
-					mi.addSelectionListener(
-						new SelectionAdapter() {
-							
-							public void widgetSelected(SelectionEvent e) {
-							
-								clearHistory();
-							}
-						});
-					
-					mi = new MenuItem( menu, SWT.SEPARATOR );
-					
-						// disable history
-					
-					mi = new MenuItem( menu, SWT.PUSH );
-
-					mi.setText( MessageText.getString( "label.disable.history" ));
-					
-					mi.addSelectionListener(
-						new SelectionAdapter() {
-							
-							public void widgetSelected(SelectionEvent e) {
-							
-								COConfigurationManager.setParameter( config_prefix + ".enabled", false );
-							}
-						});
-					
-					menu.addMenuListener(
-						new MenuListener() {
-							
-							public void menuShown(MenuEvent e) {
-								menu_visible = true;
-							}
-							
-							public void menuHidden(MenuEvent e) {
-								menu_visible = false;
-							}
-						});
-									
-					current_shell.pack( true );
-					current_shell.layout( true, true );
-					
-					Rectangle bounds = text.getBounds();
-					
-					Object ld = text.getLayoutData();
-					
-					Point shell_pos = text.toDisplay( 0, bounds.height + (Constants.isOSX?2:0 ));
-					
-					current_shell.setLocation( shell_pos );
-					
-					Rectangle shell_size = current_shell.getBounds();
-
-					shell_size.width += 4;
-					
-					if ( shell_size.width > bounds.width ){
-						
-						shell_size.width = bounds.width;
-											
-					}else if ( shell_size.width < 200 && bounds.width >= 200 ){
-						
-						shell_size.width = 200;						
-					}
-					
-					current_shell.setBounds( shell_size );
-
-					current_shell.setVisible( true );
+					handleSearch( current_text, false );
 				}				
 			});
 		
@@ -374,21 +156,29 @@ TextWithHistory
 		
 		text.addKeyListener(new KeyAdapter(){
 			public void keyPressed(KeyEvent e) {
-				
+				int key = e.keyCode;
+
 				if ( list == null || list.isDisposed()){
-										
+						
+						// down arrow with no current search shows history
+					
+					if ( key == SWT.ARROW_DOWN ){
+						String current_text = text.getText().trim();
+						if ( current_text.length() == 0 ){
+							handleSearch(current_text, true);
+							e.doit = false;
+						}
+					}
 					return;
 				}
 				
-				int key = e.keyCode;
-
 				if ( key == SWT.ARROW_DOWN ){
+					e.doit = false;
 					int curr = list.getSelectionIndex();
 					curr++;
 					if ( curr < list.getItemCount()){
 						list.setSelection( curr );
 					}
-					e.doit = false;
 				}else if ( key == SWT.ARROW_UP ){
 					int curr = list.getSelectionIndex();
 					curr--;
@@ -405,6 +195,233 @@ TextWithHistory
 				}
 			}
 		});
+	}
+	
+	private void
+	handleSearch(
+		String		current_text,
+		boolean		force )
+	{
+		List<String>	current_matches = match( current_text );
+		
+		if ( current_text.length() == 0 || current_matches.size() == 0 ){
+			
+			if ( !force ){
+				
+				if ( current_shell != null ){
+					
+					current_shell.dispose();
+				}
+				
+				return;
+			}
+		}
+		
+		
+		if ( current_shell == null ){
+			
+			mouse_entered 	= false;
+			menu_visible	= false;
+			
+			current_shell = new Shell( text.getShell(), SWT.NO_FOCUS | SWT.NO_TRIM );
+			
+			current_shell.addDisposeListener(
+				new DisposeListener() {
+					
+					public void widgetDisposed(DisposeEvent e) {
+						current_shell	= null;
+						list			= null;
+						mouse_entered	= false;
+						menu_visible	= false;
+					}
+				});
+			
+
+		}else{
+			
+			String[] items = list.getItems();
+			
+			if ( items.length == current_matches.size()){
+				
+				boolean	same = true;
+				
+				for ( int i=0;i<items.length;i++){
+					if ( !items[i].equals( current_matches.get(i))){
+						same = false;
+						break;
+					}
+				}
+				
+				if ( same ){
+					
+					return;
+				}
+			}
+			
+			Utils.disposeComposite( current_shell, false );
+		}
+		
+		GridLayout layout = new GridLayout();
+		
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		
+		current_shell.setLayout( layout );
+								
+		Color	background = text.getBackground();
+		
+		current_shell.setBackground( background );
+		
+		final Composite comp = new Composite( current_shell, SWT.NULL );
+		comp.setLayoutData( new GridData( GridData.FILL_BOTH ));
+		
+		layout = new GridLayout();
+		
+		layout.marginHeight = 0;
+		layout.marginWidth 	= 0;
+		layout.marginLeft 	= 2;
+		layout.marginRight 	= 2;
+		layout.marginBottom = 2;
+		
+		comp.setLayout( layout );
+		
+		comp.setBackground( background );
+
+		comp.addPaintListener( new PaintListener() {
+			
+			public void paintControl(PaintEvent e) {
+				GC gc = e.gc;
+				
+				gc.setForeground( Colors.dark_grey );
+				
+				Rectangle bounds = comp.getBounds();
+				
+				gc.drawLine( 0, 0, 0, bounds.height-1 );
+				gc.drawLine( bounds.width-1, 0, bounds.width-1, bounds.height-1 );
+				gc.drawLine( 0, bounds.height-1, bounds.width-1, bounds.height-1 );
+			}
+		});
+		
+		list = new org.eclipse.swt.widgets.List( comp, SWT.NULL );
+		list.setLayoutData( new GridData( GridData.FILL_BOTH ));
+		
+		for ( String match: current_matches ){
+			
+			list.add( match);
+		}
+		
+		list.setFont( text.getFont());
+		list.setBackground( background );
+		
+		list.deselectAll();
+		
+		list.addMouseMoveListener( new MouseMoveListener() {
+			public void mouseMove(MouseEvent e){
+			
+				int item_height = list.getItemHeight();
+				
+				int y = e.y;
+				
+				int	item_index = y/item_height;
+				
+				if ( list.getSelectionIndex() != item_index ){
+					list.setSelection( item_index );
+				}
+			}
+		});
+			
+		list.addMouseTrackListener( new MouseTrackAdapter() {
+			public void mouseEnter(MouseEvent e) {
+				mouse_entered = true;
+			}
+			public void mouseExit(MouseEvent e) {
+				list.deselectAll();
+				mouse_entered = false;
+			}
+		});
+		
+		list.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void widgetSelected(SelectionEvent e) {
+					
+					fireSelected();
+				}
+			});
+		
+		Menu menu = new Menu( list );
+		
+		list.setMenu( menu );
+								
+			// clear history
+		
+		MenuItem mi = new MenuItem( menu, SWT.PUSH );
+
+		mi.setText( MessageText.getString( "label.clear.history" ));
+		
+		mi.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void widgetSelected(SelectionEvent e) {
+				
+					clearHistory();
+				}
+			});
+		
+		mi = new MenuItem( menu, SWT.SEPARATOR );
+		
+			// disable history
+		
+		mi = new MenuItem( menu, SWT.PUSH );
+
+		mi.setText( MessageText.getString( "label.disable.history" ));
+		
+		mi.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void widgetSelected(SelectionEvent e) {
+				
+					COConfigurationManager.setParameter( config_prefix + ".enabled", false );
+				}
+			});
+		
+		menu.addMenuListener(
+			new MenuListener() {
+				
+				public void menuShown(MenuEvent e) {
+					menu_visible = true;
+				}
+				
+				public void menuHidden(MenuEvent e) {
+					menu_visible = false;
+				}
+			});
+						
+		current_shell.pack( true );
+		current_shell.layout( true, true );
+		
+		Rectangle bounds = text.getBounds();
+				
+		Point shell_pos = text.toDisplay( 0, bounds.height + (Constants.isOSX?2:0 ));
+		
+		current_shell.setLocation( shell_pos );
+		
+		Rectangle shell_size = current_shell.getBounds();
+
+		shell_size.width += 4;
+		
+		if ( shell_size.width > bounds.width ){
+			
+			shell_size.width = bounds.width;
+								
+		}else if ( shell_size.width < 200 && bounds.width >= 200 ){
+			
+			shell_size.width = 200;						
+		}
+		
+		current_shell.setBounds( shell_size );
+
+		current_shell.setVisible( true );
 	}
 	
 	private boolean
