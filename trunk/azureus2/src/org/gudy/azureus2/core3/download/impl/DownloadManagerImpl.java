@@ -83,6 +83,7 @@ import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.LinkFileMap;
+import com.aelitis.azureus.core.util.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
@@ -1159,6 +1160,16 @@ DownloadManagerImpl
 				 }else{
 				 					 
 					 setAssumedComplete(false);
+				}
+				 
+				if ( download_manager_state.getDisplayName() == null ){
+				 
+					String title = PlatformTorrentUtils.getContentTitle( torrent );
+					
+					if ( title != null && title.length() > 0 ){
+						
+						download_manager_state.setDisplayName(title);
+					}
 				}
 			}catch( TOTorrentException e ){
 			

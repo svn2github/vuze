@@ -237,6 +237,9 @@ public class PlatformTorrentUtils
 		return(v==null?0:v.intValue());
 	}
 	
+	public static String getContentTitle(TOTorrent torrent) {
+		return getContentMapString(torrent, TOR_AZ_PROP_TITLE);
+	}
 	public static void setContentTitle(TOTorrent torrent, String title) {
 		setContentMapString(torrent, TOR_AZ_PROP_TITLE, title);
 	}

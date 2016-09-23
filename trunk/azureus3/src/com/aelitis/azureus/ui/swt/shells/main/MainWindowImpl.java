@@ -429,12 +429,6 @@ public class MainWindowImpl
 				continue;
 			}
 
-			String title = PlatformTorrentUtils.getContentTitle(torrent);
-			if (title != null && title.length() > 0
-					&& dmState.getDisplayName() == null) {
-				dmState.setDisplayName(title);
-			}
-
 			int pfi = PlatformTorrentUtils.getContentPrimaryFileIndex(torrent);
 			
 			if ( pfi >= 0 ){
