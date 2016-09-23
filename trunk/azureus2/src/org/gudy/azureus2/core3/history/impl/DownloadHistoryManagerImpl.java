@@ -104,6 +104,8 @@ DownloadHistoryManagerImpl
 	
 	private boolean	history_escaped = false;
 	
+	private Map<Long,Long>	redownload_cache	= new HashMap<Long, Long>();
+	
 	private boolean	enabled;
 	
 	public
@@ -521,8 +523,8 @@ DownloadHistoryManagerImpl
 		}
 	}
 	
-	public long
-	getAddedDate(
+	public long[]
+	getDates(
 		byte[]		hash )
 	{
 		List<DownloadHistory> history = getHistory();
@@ -531,11 +533,22 @@ DownloadHistoryManagerImpl
 			
 			if ( Arrays.equals( hash, dh.getTorrentHash())){
 				
-				return( dh.getAddTime());
+				Long rdl = redownload_cache.remove( dh.getUID());
+				
+				long[] result = { dh.getAddTime(), dh.getCompleteTime(), dh.getRemoveTime(), rdl==null?0:rdl };
+				
+				return( result );
 			}
 		}
 		
-		return( -1 );
+		return( null );
+	}
+	
+	private void
+	setRedownloading(
+		DownloadHistory		dh )
+	{
+		redownload_cache.put( dh.getUID(), SystemTime.getCurrentTime());
 	}
 	
 	private static long
@@ -814,7 +827,7 @@ DownloadHistoryManagerImpl
 		}
 	}
 	
-	private class
+	private static class
 	DownloadHistoryEventImpl
 		implements DownloadHistoryEvent
 	{
@@ -1034,6 +1047,12 @@ DownloadHistoryManagerImpl
 		getRemoveTime()
 		{
 			return( remove_time );
+		}
+		
+		public void 
+		setRedownloading() 
+		{
+			DownloadHistoryManagerImpl.this.setRedownloading( this );
 		}
 	}
 }

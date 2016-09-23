@@ -45,4 +45,7 @@ DownloadHistory
 	
 	public long
 	getRemoveTime();
+	
+	public void
+	setRedownloading();
 }

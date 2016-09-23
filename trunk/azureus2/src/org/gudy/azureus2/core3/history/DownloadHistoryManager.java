@@ -44,8 +44,13 @@ DownloadHistoryManager
 	public void
 	resetHistory();
 	
-	public long
-	getAddedDate(
+		/**
+		 * 
+		 *  @return [ added, completed, removed, redownloaded (transient)]
+		 */
+	
+	public long[]
+	getDates(
 		byte[]		hash );
 	
 	public void

@@ -1301,29 +1301,34 @@ public class UIFunctionsImpl
 					try{
 						DownloadHistoryManager dlm = (DownloadHistoryManager)core.getGlobalManager().getDownloadHistoryManager();
 						
-						final long existing = dlm.getAddedDate( torrentOptions.getTorrent().getHash());
+						final long[] existing = dlm.getDates( torrentOptions.getTorrent().getHash());
 						
-						if ( existing > 0 ){
+						if ( existing != null ){
 							
-							Utils.execSWTThread(new AERunnable() {
-								public void runSupport() {
-									Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
-		
-									if ( mainShell != null && !mainShell.isDisposed()){
-										
-										new MessageSlideShell(
-											mainShell.getDisplay(), SWT.ICON_INFORMATION,
-											"OpenTorrentWindow.mb.inHistory", null, 
-											new String[] {
-													torrentOptions.getTorrentName(),
-													new SimpleDateFormat().format( new Date( existing ))
-											}, 
-											new Object[] {
-													
-											}, -1);
+							long	redownloaded = existing[3];
+							
+							if ( SystemTime.getCurrentTime() - redownloaded > 60*10*1000 ){
+								
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+			
+										if ( mainShell != null && !mainShell.isDisposed()){
+											
+											new MessageSlideShell(
+												mainShell.getDisplay(), SWT.ICON_INFORMATION,
+												"OpenTorrentWindow.mb.inHistory", null, 
+												new String[] {
+														torrentOptions.getTorrentName(),
+														new SimpleDateFormat().format( new Date( existing[0] ))
+												}, 
+												new Object[] {
+														
+												}, -1);
+										}
 									}
-								}
-							});
+								});
+							}
 						}
 					}catch( Throwable e ){
 						

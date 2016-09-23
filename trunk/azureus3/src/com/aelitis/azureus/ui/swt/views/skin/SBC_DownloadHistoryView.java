@@ -380,6 +380,8 @@ public class SBC_DownloadHistoryView
 				
 				for ( DownloadHistory download: dms ){
 					
+					download.setRedownloading();
+					
 					String magnet = UrlUtils.getMagnetURI( download.getTorrentHash(), download.getName(), null );
 					
 					TorrentOpener.openTorrent( magnet );
@@ -552,6 +554,8 @@ public class SBC_DownloadHistoryView
 					{
 						for ( DownloadHistory download: dms ){
 						
+							download.setRedownloading();
+							
 							String magnet = UrlUtils.getMagnetURI( download.getTorrentHash(), download.getName(), null );
 							
 							TorrentOpener.openTorrent( magnet );
