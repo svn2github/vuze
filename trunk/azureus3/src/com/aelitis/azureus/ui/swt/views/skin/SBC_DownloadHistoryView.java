@@ -57,8 +57,6 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -377,8 +375,17 @@ public class SBC_DownloadHistoryView
 			if ( id.equals("remove")) {
 			
 				dh_manager.removeHistory( dms );
+				
+			}else if ( id.equals("startstop")) {
+				
+				for ( DownloadHistory download: dms ){
+					
+					String magnet = UrlUtils.getMagnetURI( download.getTorrentHash(), download.getName(), null );
+					
+					TorrentOpener.openTorrent( magnet );
+				}	
 			}
-			
+
 				
 			return true;
 		}
@@ -397,15 +404,18 @@ public class SBC_DownloadHistoryView
 		}
 
 		boolean canEnable = false;
+		boolean canStart = false;
 		
 		Object[] datasources = tv.getSelectedDataSources().toArray();
 		
 		if ( datasources.length > 0 ){
 			
 			canEnable = true;
+			canStart = true;
 		}
 		
 		list.put( "remove", canEnable ? UIToolBarItem.STATE_ENABLED : 0);
+		list.put( "start", canStart ? UIToolBarItem.STATE_ENABLED : 0);
 	}
 
 	public void 
