@@ -1078,6 +1078,7 @@ TagPropertyConstraintHandler
 		private static final int	KW_DOWNLOADING_FOR 	= 3;
 		private static final int	KW_SEEDING_FOR 		= 4;
 		private static final int	KW_SWARM_MERGE 		= 5;
+		private static final int	KW_LAST_ACTIVE 		= 6;
 		
 		static{
 			keyword_map.put( "shareratio", KW_SHARE_RATIO );
@@ -1090,6 +1091,9 @@ TagPropertyConstraintHandler
 			keyword_map.put( "seeding_for", KW_SEEDING_FOR );
 			keyword_map.put( "swarmmergebytes", KW_SWARM_MERGE );
 			keyword_map.put( "swarm_merge_bytes", KW_SWARM_MERGE );
+			keyword_map.put( "lastactive", KW_LAST_ACTIVE );
+			keyword_map.put( "last_active", KW_LAST_ACTIVE );
+
 		}
 		
 		private class
@@ -1533,10 +1537,30 @@ TagPropertyConstraintHandler
 								return( dm.getStats().getSecondsDownloading());
 							
 							case KW_SEEDING_FOR:
-							
+								
 								result = null;	// don't cache this!
 								
 								return( dm.getStats().getSecondsOnlySeeding());
+							
+							case KW_LAST_ACTIVE:
+								
+								result = null;	// don't cache this!
+								
+								DownloadManagerState dms = dm.getDownloadState();
+								
+								long timestamp = dms.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_LAST_ACTIVE_TIME );
+								
+								if ( timestamp == 0 ){
+									
+									timestamp = dms.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME );
+								}
+								
+								if ( timestamp == 0 ){
+									
+									timestamp = dms.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+								}
+								
+								return(( SystemTime.getCurrentTime() - timestamp )/1000 );
 							
 							case KW_SWARM_MERGE:
 								
