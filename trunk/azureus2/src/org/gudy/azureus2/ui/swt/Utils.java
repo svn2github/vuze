@@ -610,10 +610,23 @@ public class Utils
   		if (Constants.isOSX || repoKey == null) {
   			return;
   		}
-  		ImageLoader imageLoader = ImageLoader.getInstance();
-  		Graphic graphic = new UISWTGraphicImpl( imageLoader.getImage(repoKey));
-  		
-  		item.setGraphic(graphic);
+  		if ( Utils.isSWTThread()){
+	  		ImageLoader imageLoader = ImageLoader.getInstance();
+	  		Graphic graphic = new UISWTGraphicImpl( imageLoader.getImage(repoKey));
+	  		
+	  		item.setGraphic(graphic);
+  		}else{
+  			execSWTThread(
+  				new Runnable() {
+					
+					public void run() {
+						ImageLoader imageLoader = ImageLoader.getInstance();
+				  		Graphic graphic = new UISWTGraphicImpl( imageLoader.getImage(repoKey));
+				  		
+				  		item.setGraphic(graphic);
+					}
+				});
+  		}
   	}
   	
 	public static void setMenuItemImage(CLabel item, final String repoKey) {
