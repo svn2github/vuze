@@ -1547,17 +1547,12 @@ TagPropertyConstraintHandler
 								result = null;	// don't cache this!
 								
 								DownloadManagerState dms = dm.getDownloadState();
+																			
+								long	timestamp = dms.getLongAttribute( DownloadManagerState.AT_LAST_ADDED_TO_ACTIVE_TAG );
 								
-								long timestamp = dms.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_LAST_ACTIVE_TIME );
-								
-								if ( timestamp == 0 ){
+								if ( timestamp <= 0 ){
 									
-									timestamp = dms.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME );
-								}
-								
-								if ( timestamp == 0 ){
-									
-									timestamp = dms.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+									return( Long.MAX_VALUE );
 								}
 								
 								return(( SystemTime.getCurrentTime() - timestamp )/1000 );
