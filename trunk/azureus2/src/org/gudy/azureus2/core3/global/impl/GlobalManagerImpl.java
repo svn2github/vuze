@@ -4173,9 +4173,9 @@ public class GlobalManagerImpl
 								tag_active.addTaggable( dm );
 								
 								tag_inactive.removeTaggable( dm );
-								
-								dm.getDownloadState().setLongAttribute( DownloadManagerState.AT_LAST_ADDED_TO_ACTIVE_TAG, SystemTime.getCurrentTime());
 							}
+							
+							dm.getDownloadState().setLongAttribute( DownloadManagerState.AT_LAST_ADDED_TO_ACTIVE_TAG, SystemTime.getCurrentTime());
 						}
 					}
 				}
