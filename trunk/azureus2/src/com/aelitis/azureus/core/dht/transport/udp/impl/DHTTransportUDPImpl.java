@@ -1622,6 +1622,18 @@ DHTTransportUDPImpl
 							
 							stats.pingOK();
 							
+							long	proc_time = packet.getProcessingTime();
+							
+							if ( proc_time > 0 ){
+
+								elapsed_time -= proc_time;
+								
+								if ( elapsed_time < 0 ){
+									
+									elapsed_time = 0;
+								}
+							}
+							
 							handler.pingReply( contact, (int)elapsed_time );
 						
 						}catch( DHTUDPPacketHandlerException e ){
