@@ -45,8 +45,9 @@ PRUDPPacketRequest
 
 	private static Map	packet_decoders	= new HashMap();
 
-	protected long		connection_id;
-	
+	private long		connection_id;
+	private long		receive_time;
+
 	public static void
 	registerDecoders(
 		Map		_decoders )
@@ -103,6 +104,19 @@ PRUDPPacketRequest
 	getConnectionId()
 	{
 		return( connection_id );
+	}
+	
+	public long
+	getReceiveTime()
+	{
+		return( receive_time );
+	}
+	
+	public void
+	setReceiveTime(
+		long	_rt )
+	{
+		receive_time = _rt;
 	}
 	
 	public void

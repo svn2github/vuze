@@ -53,7 +53,7 @@ DHTUDPPacketRequest
 		1 +			// flags
 		1;			// flags2
 		
-	private DHTTransportUDPImpl	transport;
+	private final DHTTransportUDPImpl	transport;
 	
 	private byte				protocol_version;
 	private byte				vendor_id	= DHTTransportUDP.VENDOR_ID_NONE;
@@ -67,7 +67,7 @@ DHTUDPPacketRequest
 	private byte				flags2;
 	
 	private long				skew;
-	
+		
 	public
 	DHTUDPPacketRequest(
 		DHTTransportUDPImpl				_transport,	
@@ -352,7 +352,7 @@ DHTUDPPacketRequest
 	{
 		return( originator_instance_id );
 	}
-	
+
 	public String
 	getString()
 	{

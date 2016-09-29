@@ -866,10 +866,13 @@ PRUDPPacketHandlerImpl
 				
 				request_packet	= true;
 				
-				packet = PRUDPPacketRequest.deserialiseRequest( 
+				PRUDPPacketRequest request = PRUDPPacketRequest.deserialiseRequest( 
 						this,
 						new DataInputStream(new ByteArrayInputStream( packet_data, 0, packet_len)));
-		
+				
+				request.setReceiveTime( receive_time );
+				
+				packet = request;
 			}
 			
 			packet.setSerialisedSize( packet_len );

@@ -53,13 +53,12 @@ DHTUDPPacketReplyFindValue
 	
 	public
 	DHTUDPPacketReplyFindValue(
-		DHTTransportUDPImpl		transport,
-		int						trans_id,
-		long					conn_id,
-		DHTTransportContact		local_contact,
-		DHTTransportContact		remote_contact )
+		DHTTransportUDPImpl				transport,
+		DHTUDPPacketRequestFindValue	request,
+		DHTTransportContact				local_contact,
+		DHTTransportContact				remote_contact )
 	{
-		super( transport, DHTUDPPacketHelper.ACT_REPLY_FIND_VALUE, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_FIND_VALUE, request, local_contact, remote_contact );
 	}
 	
 	protected

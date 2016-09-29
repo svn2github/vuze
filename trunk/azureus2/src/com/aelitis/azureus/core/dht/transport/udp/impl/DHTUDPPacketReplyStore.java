@@ -42,13 +42,12 @@ DHTUDPPacketReplyStore
 	
 	public
 	DHTUDPPacketReplyStore(
-		DHTTransportUDPImpl		transport,
-		int						trans_id,
-		long					conn_id,
-		DHTTransportContact		local_contact,
-		DHTTransportContact		remote_contact )
+		DHTTransportUDPImpl			transport,
+		DHTUDPPacketRequestStore	request,
+		DHTTransportContact			local_contact,
+		DHTTransportContact			remote_contact )
 	{
-		super( transport, DHTUDPPacketHelper.ACT_REPLY_STORE, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_STORE, request, local_contact, remote_contact );
 	}
 	
 	protected

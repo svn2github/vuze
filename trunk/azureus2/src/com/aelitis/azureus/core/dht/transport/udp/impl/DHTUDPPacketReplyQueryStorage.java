@@ -45,13 +45,12 @@ DHTUDPPacketReplyQueryStorage
 	
 	public
 	DHTUDPPacketReplyQueryStorage(
-		DHTTransportUDPImpl		transport,
-		int						trans_id,
-		long					conn_id,
-		DHTTransportContact		local_contact,
-		DHTTransportContact		remote_contact )
+		DHTTransportUDPImpl					transport,
+		DHTUDPPacketRequestQueryStorage		request,
+		DHTTransportContact					local_contact,
+		DHTTransportContact					remote_contact )
 	{
-		super( transport, DHTUDPPacketHelper.ACT_REPLY_QUERY_STORE, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_QUERY_STORE, request, local_contact, remote_contact );
 	}
 	
 	protected

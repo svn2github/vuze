@@ -103,6 +103,7 @@ DHTTransportUDP
 
 	public static final byte PROTOCOL_VERSION_ALT_CONTACTS			= 52;
 	public static final byte PROTOCOL_VERSION_PACKET_FLAGS2			= 53;	// flags2 field added to request and reply packets
+	public static final byte PROTOCOL_VERSION_PROC_TIME				= 54;	// added local processing time (5713)
 
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
@@ -122,8 +123,8 @@ DHTTransportUDP
 		}
 	}
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= Helper.getVersion( PROTOCOL_VERSION_PACKET_FLAGS2 );
-	public static final byte PROTOCOL_VERSION_CVS					= Helper.getVersion( PROTOCOL_VERSION_PACKET_FLAGS2 );
+	public static final byte PROTOCOL_VERSION_MAIN					= Helper.getVersion( PROTOCOL_VERSION_PROC_TIME );
+	public static final byte PROTOCOL_VERSION_CVS					= Helper.getVersion( PROTOCOL_VERSION_PROC_TIME );
 
 	public static final byte PROTOCOL_VERSION_MIN					= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );
 	public static final byte PROTOCOL_VERSION_MIN_CVS				= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );

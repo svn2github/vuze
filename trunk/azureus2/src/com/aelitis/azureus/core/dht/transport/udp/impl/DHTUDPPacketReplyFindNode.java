@@ -45,13 +45,12 @@ DHTUDPPacketReplyFindNode
 	
 	public
 	DHTUDPPacketReplyFindNode(
-		DHTTransportUDPImpl		transport,
-		int						trans_id,
-		long					conn_id,
-		DHTTransportContact		local_contact,
-		DHTTransportContact		remote_contact )
+		DHTTransportUDPImpl				transport,
+		DHTUDPPacketRequestFindNode		request,
+		DHTTransportContact				local_contact,
+		DHTTransportContact				remote_contact )
 	{
-		super( transport, DHTUDPPacketHelper.ACT_REPLY_FIND_NODE, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_FIND_NODE, request, local_contact, remote_contact );
 	}
 	
 	protected

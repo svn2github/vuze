@@ -2785,8 +2785,7 @@ outer:
 				DHTUDPPacketReplyError	reply = 
 					new DHTUDPPacketReplyError(
 							this,
-							request.getTransactionId(),
-							request.getConnectionId(),
+							request,
 							local_contact,
 							originating_contact );
 				
@@ -2832,8 +2831,7 @@ outer:
 						DHTUDPPacketReplyPing	reply = 
 							new DHTUDPPacketReplyPing(
 									this,
-									request.getTransactionId(),
-									request.getConnectionId(),
+									ping,
 									local_contact,
 									originating_contact );
 													
@@ -2859,8 +2857,7 @@ outer:
 						DHTUDPPacketReplyKeyBlock	reply = 
 							new DHTUDPPacketReplyKeyBlock(
 									this,
-									request.getTransactionId(),
-									request.getConnectionId(),
+									kb_request,
 									local_contact,
 									originating_contact );
 						
@@ -2875,8 +2872,7 @@ outer:
 					DHTUDPPacketReplyStats	reply = 
 						new DHTUDPPacketReplyStats(
 								this,
-								request.getTransactionId(),
-								request.getConnectionId(),
+								stats_request,
 								local_contact,
 								originating_contact );
 					
@@ -2939,8 +2935,7 @@ outer:
 								DHTUDPPacketReplyError	reply = 
 									new DHTUDPPacketReplyError(
 										this,
-										request.getTransactionId(),
-										request.getConnectionId(),
+										request,
 										local_contact,
 										originating_contact );
 								
@@ -2956,8 +2951,7 @@ outer:
 								DHTUDPPacketReplyStore	reply = 
 									new DHTUDPPacketReplyStore(
 											this,
-											request.getTransactionId(),
-											request.getConnectionId(),
+											store_request,
 											local_contact,
 											originating_contact );
 								
@@ -2972,8 +2966,7 @@ outer:
 							DHTUDPPacketReplyStore	reply = 
 								new DHTUDPPacketReplyStore(
 										this,
-										request.getTransactionId(),
-										request.getConnectionId(),
+										store_request,
 										local_contact,
 										originating_contact );
 							
@@ -2997,8 +2990,7 @@ outer:
 					DHTUDPPacketReplyQueryStorage	reply = 
 						new DHTUDPPacketReplyQueryStorage(
 								this,
-								request.getTransactionId(),
-								request.getConnectionId(),
+								query_request,
 								local_contact,
 								originating_contact );
 							
@@ -3049,8 +3041,7 @@ outer:
 						DHTUDPPacketReplyFindNode	reply = 
 							new DHTUDPPacketReplyFindNode(
 									this,
-									request.getTransactionId(),
-									request.getConnectionId(),
+									find_request,
 									local_contact,
 									originating_contact );
 								
@@ -3087,8 +3078,7 @@ outer:
 								DHTUDPPacketReplyError	reply = 
 									new DHTUDPPacketReplyError(
 										this,
-										request.getTransactionId(),
-										request.getConnectionId(),
+										request,
 										local_contact,
 										originating_contact );
 								
@@ -3105,8 +3095,7 @@ outer:
 								DHTUDPPacketReplyFindValue	reply = 
 									new DHTUDPPacketReplyFindValue(
 										this,
-										request.getTransactionId(),
-										request.getConnectionId(),
+										find_request,
 										local_contact,
 										originating_contact );
 								
@@ -3121,8 +3110,7 @@ outer:
 							DHTUDPPacketReplyFindValue	reply = 
 								new DHTUDPPacketReplyFindValue(
 									this,
-									request.getTransactionId(),
-									request.getConnectionId(),
+									find_request,
 									local_contact,
 									originating_contact );
 							

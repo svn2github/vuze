@@ -47,12 +47,11 @@ DHTUDPPacketReplyPing
 	public
 	DHTUDPPacketReplyPing(
 		DHTTransportUDPImpl		transport,
-		int						trans_id,
-		long					conn_id,
+		DHTUDPPacketRequestPing	request,
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( transport, DHTUDPPacketHelper.ACT_REPLY_PING, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_PING, request, local_contact, remote_contact );
 	}
 	
 	protected

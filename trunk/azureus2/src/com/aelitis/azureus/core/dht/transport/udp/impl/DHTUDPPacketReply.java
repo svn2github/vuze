@@ -24,6 +24,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
@@ -48,7 +50,8 @@ DHTUDPPacketReply
 		1 +		// net 
 		4 +		// instance
 		1 + 	// flags
-		1;		// flags2
+		1 +		// flags2
+		2;		// proc time
 	
 	private DHTTransportUDPImpl 	transport;
 	
@@ -59,26 +62,28 @@ DHTUDPPacketReply
 	private int		target_instance_id;
 	private byte	flags;
 	private byte	flags2;
-
 	
 	private long	skew;
 		
 	private DHTNetworkPosition[]	network_positions;
 	
+	private short	processing_time;
+	
+	private long	request_receive_time;
+	
 	public
 	DHTUDPPacketReply(
 		DHTTransportUDPImpl	_transport,
 		int					_type,
-		int					_trans_id,
-		long				_conn_id,
+		DHTUDPPacketRequest	_request,
 		DHTTransportContact	_local_contact,
 		DHTTransportContact	_remote_contact )
 	{
-		super( _type, _trans_id );
+		super( _type, _request.getTransactionId());
 		
 		transport	= _transport;
 		
-		connection_id	= _conn_id;
+		connection_id	= _request.getConnectionId();
 		
 		protocol_version			= _remote_contact.getProtocolVersion();
 		
@@ -99,6 +104,8 @@ DHTUDPPacketReply
 		flags	= transport.getGenericFlags();
 		
 		flags2	= transport.getGenericFlags2();
+		
+		request_receive_time = _request.getReceiveTime();
 	}
 	
 	protected
@@ -150,6 +157,11 @@ DHTUDPPacketReply
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS2 ){
 			
 			flags2	= is.readByte();
+		}
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PROC_TIME ){
+			
+			processing_time	= is.readShort();
 		}
 	}
 	
@@ -261,6 +273,25 @@ DHTUDPPacketReply
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS2 ){
 
 			os.writeByte( flags2 );
+		}
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PROC_TIME ){
+
+			if ( request_receive_time == 0 ){
+				
+				os.writeShort( 0 );
+				
+			}else{
+				
+				short processing_time = (short)( SystemTime.getCurrentTime() - request_receive_time );
+			
+				if ( processing_time <= 0 ){
+					
+					processing_time = 1;	// min value
+				}
+				
+				os.writeShort( processing_time );
+			}
 		}
 	}
 	

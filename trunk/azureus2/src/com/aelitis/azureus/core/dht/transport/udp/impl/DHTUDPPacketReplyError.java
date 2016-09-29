@@ -53,12 +53,11 @@ DHTUDPPacketReplyError
 	public
 	DHTUDPPacketReplyError(
 		DHTTransportUDPImpl		transport,
-		int						trans_id,
-		long					conn_id,
+		DHTUDPPacketRequest		request,
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( transport, DHTUDPPacketHelper.ACT_REPLY_ERROR, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_ERROR, request, local_contact, remote_contact );
 	}
 	
 	protected

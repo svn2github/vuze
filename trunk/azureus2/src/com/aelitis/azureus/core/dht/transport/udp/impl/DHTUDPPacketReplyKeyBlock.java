@@ -39,13 +39,12 @@ DHTUDPPacketReplyKeyBlock
 {
 	public
 	DHTUDPPacketReplyKeyBlock(
-		DHTTransportUDPImpl		transport,
-		int						trans_id,
-		long					conn_id,
-		DHTTransportContact		local_contact,
-		DHTTransportContact		remote_contact )
+		DHTTransportUDPImpl				transport,
+		DHTUDPPacketRequestKeyBlock		request,
+		DHTTransportContact				local_contact,
+		DHTTransportContact				remote_contact )
 	{
-		super( transport, DHTUDPPacketHelper.ACT_REPLY_KEY_BLOCK, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_KEY_BLOCK, request, local_contact, remote_contact );
 	}
 	
 	protected
