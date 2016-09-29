@@ -295,6 +295,12 @@ DHTUDPPacketReply
 		}
 	}
 	
+	public long
+	getProcessingTime()
+	{
+		return( processing_time & 0x0000ffff );
+	}
+	
 	public String
 	getString()
 	{

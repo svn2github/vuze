@@ -3509,13 +3509,27 @@ outer:
 		
 		if ( remote_nps != null ){
 			
-				// save current position of target
+			long	proc_time = reply.getProcessingTime();
 			
-			remote_contact.setNetworkPositions( remote_nps );
-
-				// update local positions
-			
-			DHTNetworkPositionManager.update( local_contact.getNetworkPositions(), remote_contact.getID(), remote_nps, (float)elapsed_time );						
+			if ( proc_time > 0 ){
+				
+				//System.out.println( elapsed_time + "/" + proc_time );
+				
+				long rtt = elapsed_time - proc_time;
+				
+				if ( rtt < 0 ){
+					
+					rtt = 0;
+				}
+				
+					// save current position of target
+				
+				remote_contact.setNetworkPositions( remote_nps );
+	
+					// update local positions
+				
+				DHTNetworkPositionManager.update( local_contact.getNetworkPositions(), remote_contact.getID(), remote_nps, (float)rtt );
+			}
 		}
 		
 		remote_contact.setGenericFlags( reply.getGenericFlags());
