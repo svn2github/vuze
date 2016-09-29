@@ -33,6 +33,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -441,7 +442,18 @@ public class VivaldiPanel {
     if(error > 1) error = 1;
     int errDisplay = (int) (100 * error);
     int x0 = scale.getX(x,y);
-    int y0 = scale.getY(x,y);   
+    int y0 = scale.getY(x,y);  
+    
+    Image img = ImageRepository.getCountryFlag( contact.getTransportContact().getTransportAddress().getAddress(), true );
+    
+    if ( img != null ){
+    	Rectangle bounds = img.getBounds();
+    	int old = gc.getAlpha();
+    	gc.setAlpha( 150 );
+    	gc.drawImage( img, x0-bounds.width/2, y0-bounds.height);
+    	gc.setAlpha( old );
+    }
+    
     gc.fillRectangle(x0-1,y0-1,3,3);   
     //int elevation =(int) ( 200*h/(scale.maxY-scale.minY));
     //gc.drawLine(x0,y0,x0,y0-elevation);
