@@ -596,6 +596,37 @@ public class PeerUtils {
 		return( details );
 	}
 	
+	public static String[]
+	getCountryDetails(
+		InetAddress		address )
+	{
+		if ( address == null ){
+			
+			return( null );
+		}
+		
+		String[] details = null;
+		
+		LocationProvider lp = getCountryProvider();
+		
+		if ( lp != null ){
+			
+			try{
+					
+				String code = lp.getISO3166CodeForIP( address );
+				String name = lp.getCountryNameForIP( address, Locale.getDefault());
+				
+				if ( code != null && name != null ){
+					
+					details = new String[]{ code, name };
+				}				
+			}catch( Throwable e ){	
+			}
+		}
+		
+		return( details );
+	}
+	
 	public static String
 	getNetwork(
 		PEPeer	peer )

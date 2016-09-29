@@ -20,7 +20,10 @@
  */
 package org.gudy.azureus2.ui.swt.views.stats;
 
+import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
@@ -28,8 +31,8 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -63,6 +66,7 @@ public class VivaldiPanel {
   
   private boolean autoAlpha = false;
 
+  private List<Object[]>	currentPositions = new ArrayList<Object[]>();
   
   private class Scale {
     int width;
@@ -141,6 +145,54 @@ public class VivaldiPanel {
       }                  
     });
     
+    canvas.addMouseTrackListener(new MouseTrackAdapter() {
+    	@Override
+    	public void mouseHover(MouseEvent e) {
+    		int x = e.x;
+    		int	y = e.y;
+    		
+    		DHTControlContact closest = null;
+    		
+    		int	closest_distance = Integer.MAX_VALUE;
+    		
+    		for ( Object[] entry: currentPositions ){
+    			
+       			int	e_x = (Integer)entry[0];
+       			int	e_y = (Integer)entry[1];
+       			
+       			int	x_diff = x - e_x;
+       			int y_diff = y - e_y;
+       			
+       			int distance = (int)Math.sqrt( x_diff*x_diff + y_diff*y_diff );
+       			
+       			if ( distance < closest_distance ){
+       				
+       				closest_distance 	= distance;
+       				closest				= (DHTControlContact)entry[2];
+       			}
+    		}
+    		
+    		if ( closest_distance <= 25 ){
+    			
+    			InetAddress address = closest.getTransportContact().getTransportAddress().getAddress();
+    			
+    			String[] details = PeerUtils.getCountryDetails( address );
+    			
+    			String tt = address.getHostAddress();
+    			
+    			if ( details != null ){
+    				
+    				tt += ": " + details[0] + "/" + details[1];
+    			}
+    			
+    			canvas.setToolTipText( tt );
+    			
+    		}else{
+    			
+    			canvas.setToolTipText( null );
+    		}
+    	}
+    });
     canvas.addListener(SWT.KeyDown, new Listener() {
 			public void handleEvent(Event event) {
 			}
@@ -294,6 +346,8 @@ public class VivaldiPanel {
     	return;
     }
     
+    currentPositions.clear();
+    
     VivaldiPosition ownPosition = (VivaldiPosition)_ownPosition;
     float ownErrorEstimate = ownPosition.getErrorEstimate();
     HeightCoordinatesImpl ownCoords =
@@ -395,6 +449,8 @@ public class VivaldiPanel {
     int lineReturn = text.indexOf("\n");
     int xOffset = gc.getFontMetrics().getAverageCharWidth() * (lineReturn != -1 ? lineReturn:text.length()) / 2;
     gc.drawText(text,x0-xOffset,y0,true);
+    
+    currentPositions.add( new Object[]{ x0, y0, contact });
   }
   
   // Mark our own position
