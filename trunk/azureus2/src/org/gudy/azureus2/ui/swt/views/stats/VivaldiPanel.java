@@ -112,7 +112,8 @@ public class VivaldiPanel {
         maxY = 1000;
         rotation = 0;  
         
-        disableAutoScale = false;
+        disableAutoScale 	= false;
+        lastAutoScale		= 0;
      }
   }
   
