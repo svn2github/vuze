@@ -27,13 +27,13 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
@@ -42,7 +42,6 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.*;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl.*;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 public class VivaldiPanel {
   private static final int ALPHA_FOCUS = 255;
@@ -58,6 +57,9 @@ public class VivaldiPanel {
   private boolean mouseRightDown = false;
   private int xDown;
   private int yDown;
+  
+  private boolean  	disableAutoScale 	= false;
+  private long		lastAutoScale		= 0;
   
   private boolean antiAliasingAvailable = true;
 	private List<DHTControlContact> lastContacts;
@@ -75,17 +77,23 @@ public class VivaldiPanel {
     int width;
     int height;
     
-    float minX = -1000;
-    float maxX = 1000;
-    float minY = -1000;
-    float maxY = 1000;
-    double rotation = 0;
+    float minX;
+    float maxX;
+    float minY;
+    float maxY;
+    double rotation;
     
     float saveMinX;
     float saveMaxX;
     float saveMinY;
     float saveMaxY;
     double saveRotation;
+    
+    public
+    Scale()
+    {
+    	reset();
+    }
     
     public int getX(float x,float y) {
       return (int) (((x * Math.cos(rotation) + y * Math.sin(rotation))-minX)/(maxX - minX) * width);
@@ -94,6 +102,18 @@ public class VivaldiPanel {
     public int getY(float x,float y) {
       return (int) (((y * Math.cos(rotation) - x * Math.sin(rotation))-minY)/(maxY-minY) * height);
     }
+    
+    public void
+    reset()
+    {
+    	minX = -1000;
+        maxX = 1000;
+        minY = -1000;
+        maxY = 1000;
+        rotation = 0;  
+        
+        disableAutoScale = false;
+     }
   }
   
   public VivaldiPanel(Composite parent) {
@@ -145,7 +165,12 @@ public class VivaldiPanel {
         if(event.button == 1) mouseLeftDown = false;
         if(event.button == 3) mouseRightDown = false;
         refreshContacts(lastContacts, lastSelf);
-      }                  
+      }  
+      
+      @Override
+    	public void mouseDoubleClick(MouseEvent e) {
+    		scale.reset();
+    	}
     });
     
     canvas.addMouseTrackListener(new MouseTrackAdapter() {
@@ -196,7 +221,7 @@ public class VivaldiPanel {
     			
     		}else{
     			
-    			canvas.setToolTipText( null );
+    			canvas.setToolTipText( "Use mouse wheel to scale, left+drag to move, right+drag to rotate" );
     		}
     	}
     });
@@ -229,6 +254,8 @@ public class VivaldiPanel {
         float centerY = (scale.saveMinY + scale.saveMaxY)/2;
         scale.minY = scale.saveMinY + moveFactor * (centerY - scale.saveMinY);
         scale.maxY = scale.saveMaxY - moveFactor * (scale.saveMaxY - centerY);
+        
+        disableAutoScale = true;
         refreshContacts(lastContacts, lastSelf);
 			}
 		});
@@ -248,6 +275,7 @@ public class VivaldiPanel {
           scale.maxX = scale.saveMaxX - realDeltaX;
           scale.minY = scale.saveMinY - realDeltaY;
           scale.maxY = scale.saveMaxY - realDeltaY;
+          disableAutoScale = true;
           refreshContacts(lastContacts, lastSelf);
         }
         if(mouseRightDown || (mouseLeftDown && (event.stateMask & SWT.MOD4) > 0)) {
@@ -270,6 +298,7 @@ public class VivaldiPanel {
           float centerY = (scale.saveMinY + scale.saveMaxY)/2;
           scale.minY = scale.saveMinY + moveFactor * (centerY - scale.saveMinY);
           scale.maxY = scale.saveMaxY - moveFactor * (scale.saveMaxY - centerY);
+          disableAutoScale = true;
           refreshContacts(lastContacts, lastSelf);
         }
       }
@@ -297,97 +326,176 @@ public class VivaldiPanel {
     canvas.setLayoutData(data);
   }
   
-	public void refreshContacts(List<DHTControlContact> contacts,
-			DHTTransportContact self) {
-  	if (contacts == null || self == null) {
-  		return;
-  	}
-    lastContacts = contacts;
-    lastSelf = self;
-  	
-    if(canvas.isDisposed()) return;
-    Rectangle size = canvas.getBounds();
-    
-    if (size.isEmpty()) {
-    	return;
-    }
-    
-    scale.width = size.width;
-    scale.height = size.height;
-    
-    Color white = ColorCache.getColor(display,255,255,255);
-    Color blue = ColorCache.getColor(display,66,87,104);
-    
-    if (img != null && !img.isDisposed()) {
-    	img.dispose();
-    }
-    
-    img = new Image(display,size);
-    
-    GC gc = new GC(img);    
- 	
-    gc.setForeground(white);
-    gc.setBackground(white);
-    
-    gc.fillRectangle(size);
-    
-    if(SWT.getVersion() >= 3138 && antiAliasingAvailable) {
-    	try {
-    		//gc.setTextAntialias(SWT.ON);
-    		//gc.setAntialias(SWT.ON);
-      } catch(Exception e) {
-        antiAliasingAvailable = false;
-      }
-    }
-    
-    
-    gc.setForeground(blue);
-    gc.setBackground(white);     
-    
-    DHTNetworkPosition _ownPosition = self.getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
-
-    if ( _ownPosition == null ){
-    	
-    	gc.dispose();
-    	
-    	return;
-    }
-    
-    currentPositions.clear();
-    
-    VivaldiPosition ownPosition = (VivaldiPosition)_ownPosition;
-    float ownErrorEstimate = ownPosition.getErrorEstimate();
-    HeightCoordinatesImpl ownCoords =
-    	(HeightCoordinatesImpl) ownPosition.getCoordinates();
-    
-    gc.drawText("Our error: " + ownErrorEstimate,10,10);
-    
-    Color black = ColorCache.getColor(display, 0, 0, 0);
-    gc.setBackground(black); // Color of the squares
-
-    // Draw all known positions of other contacts
-    for (DHTControlContact contact : contacts) {
-      DHTNetworkPosition _position = contact.getTransportContact().getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
-      if ( _position == null ){
-    	  continue;
-      }
-      VivaldiPosition position = (VivaldiPosition)_position;
-      HeightCoordinatesImpl coord = (HeightCoordinatesImpl) position.getCoordinates();
-      if(coord.isValid()) {
-        draw(gc,coord.getX(),coord.getY(),coord.getH(),contact,(int)ownCoords.distance(coord),position.getErrorEstimate());
-      }
-    }
-    
-    // Mark our own position
-    Color red = ColorCache.getColor(display, 255, 0, 0);
-		gc.setForeground(red);
-    drawSelf(gc, ownCoords.getX(), ownCoords.getY(),
-						 ownCoords.getH(), ownErrorEstimate);
-    
-    
-    gc.dispose();
-    
-    canvas.redraw();
+	public void 
+	refreshContacts(
+		List<DHTControlContact> contacts,
+		DHTTransportContact self )
+	{
+	  	if (contacts == null || self == null) {
+	  		return;
+	  	}
+	    lastContacts = contacts;
+	    lastSelf = self;
+	  	
+	    if(canvas.isDisposed()) return;
+	    Rectangle size = canvas.getBounds();
+	    
+	    if (size.isEmpty()) {
+	    	return;
+	    }
+	    
+	    scale.width = size.width;
+	    scale.height = size.height;
+	    
+	    Color white = ColorCache.getColor(display,255,255,255);
+	    Color blue = ColorCache.getColor(display,66,87,104);
+	    
+	    if (img != null && !img.isDisposed()) {
+	    	img.dispose();
+	    }
+	    
+	    img = new Image(display,size);
+	    
+	    GC gc = new GC(img);    
+	 	
+	    gc.setForeground(white);
+	    gc.setBackground(white);
+	    
+	    gc.fillRectangle(size);
+	    
+	    if(SWT.getVersion() >= 3138 && antiAliasingAvailable) {
+	    	try {
+	    		//gc.setTextAntialias(SWT.ON);
+	    		//gc.setAntialias(SWT.ON);
+	      } catch(Exception e) {
+	        antiAliasingAvailable = false;
+	      }
+	    }
+	    
+	    
+	    gc.setForeground(blue);
+	    gc.setBackground(white);     
+	    
+	    DHTNetworkPosition _ownPosition = self.getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
+	
+	    if ( _ownPosition == null ){
+	    	
+	    	gc.dispose();
+	    	
+	    	return;
+	    }
+	    
+	    currentPositions.clear();
+	    
+	    VivaldiPosition ownPosition = (VivaldiPosition)_ownPosition;
+	    float ownErrorEstimate = ownPosition.getErrorEstimate();
+	    HeightCoordinatesImpl ownCoords =
+	    	(HeightCoordinatesImpl) ownPosition.getCoordinates();
+	    
+	    gc.drawText("Our error: " + ownErrorEstimate,10,10);
+	    
+	    Color black = ColorCache.getColor(display, 0, 0, 0);
+	    gc.setBackground(black); // Color of the squares
+	
+	    // Draw all known positions of other contacts
+	    
+	    long	total_distance 	= 0;
+	    
+	    for (DHTControlContact contact : contacts) {
+	      DHTNetworkPosition _position = contact.getTransportContact().getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
+	      if ( _position == null ){
+	    	  continue;
+	      }
+	      VivaldiPosition position = (VivaldiPosition)_position;
+	      HeightCoordinatesImpl coord = (HeightCoordinatesImpl) position.getCoordinates();
+	      if(coord.isValid()) {
+	    	int distance = (int)ownCoords.distance(coord);
+	    	total_distance += distance;
+	    
+	        draw(gc,coord.getX(),coord.getY(),coord.getH(),contact,distance,position.getErrorEstimate());
+	      }
+	    }
+	    
+	    // Mark our own position
+	    Color red = ColorCache.getColor(display, 255, 0, 0);
+			gc.setForeground(red);
+	    drawSelf(gc, ownCoords.getX(), ownCoords.getY(),
+							 ownCoords.getH(), ownErrorEstimate);
+	    
+	    
+	    gc.dispose();
+	    	
+	    boolean	skip_redraw = false;
+	    
+	    if ( !disableAutoScale ){
+	    	
+	    	int num_pos = currentPositions.size();
+	    	
+	    	if ( num_pos > 0 ){
+	    		
+	        	long now = SystemTime.getMonotonousTime();
+	        	
+	        	if ( now - lastAutoScale >= 5*1000 ){
+	
+	        		lastAutoScale = now;
+	        		
+		    		float	min_x = Float.MAX_VALUE;
+		    		float	min_y = Float.MAX_VALUE;
+		    		float	max_x = Float.MIN_VALUE;
+		    		float	max_y = Float.MIN_VALUE;
+		
+		    		int average_distance = (int)( total_distance/num_pos );
+		    				    		
+					for ( Object[] entry: currentPositions ){
+						
+						if ( num_pos > 25 ){
+							
+							int	distance = (Integer)entry[6];
+							
+							if ( distance >= average_distance * 4 ){
+								
+								continue;
+							}
+						}
+						
+			   			float	x = (Float)entry[4];
+			   			float	y = (Float)entry[5];
+			 			
+			 			min_x = Math.min(min_x,x );
+			 			min_y = Math.min(min_y,y );
+			 			max_x = Math.max(max_x,x );
+			 			max_y = Math.max(max_y,y );
+					}
+					
+					float new_min_x = min_x - 50;
+					float new_max_x = max_x + 50;
+					float new_min_y = min_y - 50;
+					float new_max_y = max_y + 50;
+					
+					if ( 	scale.minX != new_min_x ||
+							scale.maxX != new_max_x ||
+							scale.minY != new_min_y ||
+							scale.maxY != new_max_y ){
+						
+						scale.minX = new_min_x;
+						scale.maxX = new_max_x;
+						scale.minY = new_min_y;
+						scale.maxY = new_max_y;	
+					}
+					
+					//System.out.println(scale.minX+","+ scale.maxX+","+scale.minY+","+scale.maxY+" -> " + new_min_x + "," +new_max_x+","+new_min_y+","+new_max_y);
+					
+					refreshContacts( contacts, self );
+					
+					skip_redraw = true;
+	        	}
+	    	}
+	    }
+	    
+	    if ( !skip_redraw ){
+	    	
+	    	canvas.redraw();
+	    }
   }
   
   public void refresh(List<VivaldiPosition> vivaldiPositions) {
@@ -471,7 +579,7 @@ public class VivaldiPanel {
     int xOffset = gc.getFontMetrics().getAverageCharWidth() * (lineReturn != -1 ? lineReturn:text.length()) / 2;
     gc.drawText(text,x0-xOffset,y0,true);
     
-    currentPositions.add( new Object[]{ x0, y0, h, contact });
+    currentPositions.add( new Object[]{ x0, y0, h, contact, x, y, distance });
   }
   
   // Mark our own position
