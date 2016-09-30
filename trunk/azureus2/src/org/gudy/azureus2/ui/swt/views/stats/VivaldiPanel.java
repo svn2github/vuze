@@ -27,6 +27,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -41,6 +42,7 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.*;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl.*;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 public class VivaldiPanel {
   private static final int ALPHA_FOCUS = 255;
@@ -154,22 +156,24 @@ public class VivaldiPanel {
     		
     		DHTControlContact closest = null;
     		
-    		int	closest_distance = Integer.MAX_VALUE;
+    		int		closest_distance = Integer.MAX_VALUE;
+    		float	height			= -1;
     		
     		for ( Object[] entry: currentPositions ){
     			
-       			int	e_x = (Integer)entry[0];
-       			int	e_y = (Integer)entry[1];
+       			int		e_x = (Integer)entry[0];
+     			int		e_y = (Integer)entry[1];
        			
-       			int	x_diff = x - e_x;
-       			int y_diff = y - e_y;
+       			long	x_diff = x - e_x;
+       			long	y_diff = y - e_y;
        			
        			int distance = (int)Math.sqrt( x_diff*x_diff + y_diff*y_diff );
        			
        			if ( distance < closest_distance ){
        				
        				closest_distance 	= distance;
-       				closest				= (DHTControlContact)entry[2];
+       				height				= (Float)entry[2];
+       				closest				= (DHTControlContact)entry[3];
        			}
     		}
     		
@@ -185,6 +189,8 @@ public class VivaldiPanel {
     				
     				tt += ": " + details[0] + "/" + details[1];
     			}
+    			
+    			tt += " (h=" + (((int)(height*10000))/10000.0f) + ")";
     			
     			canvas.setToolTipText( tt );
     			
@@ -319,7 +325,7 @@ public class VivaldiPanel {
     img = new Image(display,size);
     
     GC gc = new GC(img);    
-    
+ 	
     gc.setForeground(white);
     gc.setBackground(white);
     
@@ -457,12 +463,15 @@ public class VivaldiPanel {
     gc.fillRectangle(x0-1,y0-1,3,3);   
     //int elevation =(int) ( 200*h/(scale.maxY-scale.minY));
     //gc.drawLine(x0,y0,x0,y0-elevation);
-    String text = /*contact.getTransportContact().getAddress().getAddress().getHostAddress() + " (" + */distance + " ms \nerr:"+errDisplay+"%";
+    
+    //String text = /*contact.getTransportContact().getAddress().getAddress().getHostAddress() + " (" + */distance + " ms \nerr:"+errDisplay+"%";
+    String text = /*contact.getTransportContact().getAddress().getAddress().getHostAddress() + " (" + */distance + " ms "+errDisplay+"%";
+    
     int lineReturn = text.indexOf("\n");
     int xOffset = gc.getFontMetrics().getAverageCharWidth() * (lineReturn != -1 ? lineReturn:text.length()) / 2;
     gc.drawText(text,x0-xOffset,y0,true);
     
-    currentPositions.add( new Object[]{ x0, y0, contact });
+    currentPositions.add( new Object[]{ x0, y0, h, contact });
   }
   
   // Mark our own position
