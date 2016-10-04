@@ -2330,6 +2330,15 @@ public class TorrentMenuFancy
 					});
 		}
 		
+		if ( dms.length == 1 && ManagerUtils.canFindMoreLikeThis()){
+			createRow(detailArea, "MyTorrentsView.menu.findmorelikethis", null,
+					new ListenerDMTask(dms) {
+						public void run(DownloadManager[] dms) {
+							ManagerUtils.findMoreLikeThis(dms[0],parentShell);
+						}
+					});
+		}
+		
 		createRow(detailArea, "MyTorrentsView.menu.thisColumn.toClipboard", null,
 				new Listener() {
 					public void handleEvent(Event event) {

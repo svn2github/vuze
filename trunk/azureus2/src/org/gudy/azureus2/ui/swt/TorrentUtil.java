@@ -126,8 +126,9 @@ public class TorrentUtil
 				isSeedingView = false;
 		}
 
-		boolean hasSelection = (dms.length > 0);
-
+		boolean hasSelection 		= dms.length > 0;
+		boolean isSingleSelection 	= dms.length == 1;
+		
 		boolean isTrackerOn = TRTrackerUtils.isTrackerEnabled();
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 
@@ -435,7 +436,7 @@ public class TorrentUtil
 					});
 			}});
 		
-		itemBrowseURL.setEnabled( dms.length == 1 );
+		itemBrowseURL.setEnabled( isSingleSelection );
 		
 		new MenuItem(menuBrowse, SWT.SEPARATOR);
 		
@@ -561,6 +562,18 @@ public class TorrentUtil
 				ManagerUtils.locateFiles( dms, menu.getShell());
 			}
 		});
+		
+		if ( ManagerUtils.canFindMoreLikeThis()){
+			final MenuItem itemFindMore = new MenuItem(menuFiles, SWT.PUSH);
+			Messages.setLanguageText(itemFindMore,
+					"MyTorrentsView.menu.findmorelikethis");
+			itemFindMore.addListener(SWT.Selection, new ListenerDMTask(dms) {
+				public void run(DownloadManager[] dms) {
+					ManagerUtils.findMoreLikeThis( dms[0], menu.getShell());
+				}
+			});
+			itemFindMore.setSelection(isSingleSelection);
+		}
 		
 		final MenuItem itemFileRescan = new MenuItem(menuFiles, SWT.CHECK);
 		Messages.setLanguageText(itemFileRescan, "MyTorrentsView.menu.rescanfile");
@@ -745,7 +758,7 @@ public class TorrentUtil
 					}
 				});
 
-		quickViewMenuItem.setEnabled(dms.length == 1);
+		quickViewMenuItem.setEnabled( isSingleSelection);
 
 		// Alerts 
 

@@ -205,6 +205,11 @@ public class FilesViewMenuUtil
 		final MenuItem itemLocateFiles = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemLocateFiles, "MyTorrentsView.menu.locatefiles");
 		
+		// find more
+		
+		final MenuItem itemfindMore = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemfindMore, "MyTorrentsView.menu.findmorelikethis");
+		
 		// clear links
 		MenuItem itemClearLinks = null;
 		
@@ -293,6 +298,7 @@ public class FilesViewMenuUtil
 			itemRename.setEnabled(false);
 			itemRetarget.setEnabled(false);
 			itemLocateFiles.setEnabled(false);
+			itemfindMore.setEnabled(false);
 			if ( itemClearLinks != null ){
 				itemClearLinks.setEnabled(false);
 			}
@@ -462,6 +468,16 @@ public class FilesViewMenuUtil
 		});
 		
 		itemLocateFiles.setEnabled( true );
+		
+		if ( ManagerUtils.canFindMoreLikeThis()){
+			itemfindMore.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					ManagerUtils.findMoreLikeThis( all_files.get(0), menu.getShell());
+				}
+			});
+			
+			itemfindMore.setEnabled( all_files.size() == 1 );
+		}
 		
 		itemRevertFiles.setEnabled( any_relocated );
 		itemRevertFiles.addListener(SWT.Selection, new Listener() {

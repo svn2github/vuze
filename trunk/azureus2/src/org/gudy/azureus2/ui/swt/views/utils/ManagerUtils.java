@@ -72,10 +72,13 @@ import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -3040,5 +3043,101 @@ download_loop:
 		}
 		
 		return( total_files );
+	}
+	
+	public static boolean
+	canFindMoreLikeThis()
+	{
+		try{
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "aercm");
+	
+			if (	pi != null && 
+					pi.getPluginState().isOperational() &&
+					pi.getIPC().canInvoke("lookupByExpression", new Object[]{ "", new String[0], new HashMap() })){
+	
+				return( true );
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( false );
+	}
+	
+	public static void
+	findMoreLikeThis(
+		DownloadManager		dm,
+		Shell				shell )
+	{
+		findMoreLikeThis( dm, null, shell );
+	}
+	
+	public static void
+	findMoreLikeThis(
+		DiskManagerFileInfo		file,
+		Shell					shell )
+	{
+		findMoreLikeThis( file.getDownloadManager(), file, shell );
+	}
+	
+	private static void
+	findMoreLikeThis(
+		final DownloadManager			dm,
+		final DiskManagerFileInfo		file,
+		Shell							shell )
+	{
+		String expression = file==null?dm.getDisplayName():file.getFile( true ).getName();
+		
+		SimpleTextEntryWindow entryWindow = 
+				new SimpleTextEntryWindow(
+						"find.more.like.title", 
+						"find.more.like.msg" );
+
+		entryWindow.setPreenteredText( expression, false );
+
+		entryWindow.selectPreenteredText(true);
+
+		entryWindow.prompt(new UIInputReceiverListener() {
+			public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+				if (!entryWindow.hasSubmittedInput()) {
+					return;
+				}
+
+				String expression = entryWindow.getSubmittedInput();
+
+				if ( expression != null && expression.trim().length() > 0 ){
+
+					expression = expression.trim();
+					
+					try{
+						PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "aercm");
+						
+						if (	pi != null && 
+								pi.getPluginState().isOperational() &&
+								pi.getIPC().canInvoke("lookupByExpression", new Object[]{ "", new String[0], new HashMap() })){
+							
+							Map<String,Object>	options = new HashMap<String, Object>();
+							
+							options.put( "Subscription", true );
+							options.put( "Name", MessageText.getString( "label.more" ) + ": " + expression);
+							
+							pi.getIPC().invoke(
+								"lookupByExpression",
+								new Object[]{ 
+										expression,
+									dm.getDownloadState().getNetworks(),
+									options });
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		});
+
+
+
 	}
 }

@@ -1762,11 +1762,24 @@ SubscriptionManagerImpl
 					
 			subs = addSubscription( subs );
 			
+			Number		freq	= (Number)search_parameters.get( "_frequency_" );
+
+			if ( freq != null ){
+			
+				subs.getHistory().setCheckFrequencyMins( freq.intValue());
+			}
+			
 			if ( subs.isPublic()){
 			
 				updatePublicSubscription( subs );
 			}
 		
+			Boolean		silent	= (Boolean)search_parameters.get( "_silent_" );
+
+			if ( silent == null || !silent ){
+			
+				subs.requestAttention();
+			}
 		}catch( Throwable e ){
 			
 			throw( new org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionException( "Failed to create subscription", e ));
