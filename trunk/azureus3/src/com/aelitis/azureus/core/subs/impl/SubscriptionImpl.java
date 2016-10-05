@@ -177,6 +177,7 @@ SubscriptionImpl
 	private String			creator_ref;
 	private String			category;
 	private long			tag_id = -1;
+	private String			parent;
 	
 	protected static String
 	getSkeletonJSON(
@@ -491,6 +492,11 @@ SubscriptionImpl
 				map.put( "tag", tag_id );
 			}
 			
+			if ( parent != null ){
+				
+				map.put( "par", parent.getBytes( "UTF-8" ));
+			}
+			
 			return( map );
 		}
 	}
@@ -583,6 +589,13 @@ SubscriptionImpl
 		if ( l_tag_id != null ){
 			
 			tag_id = l_tag_id;
+		}
+		
+		byte[] b_parent = (byte[])map.get( "par" );
+		
+		if ( b_parent != null ){
+			
+			parent = new String( b_parent, "UTF-8" );
 		}
 	}
 	
@@ -1983,6 +1996,31 @@ SubscriptionImpl
 	getTagID()
 	{
 		return( tag_id );
+	}
+	
+	public String
+	getParent()
+	{
+		return( parent );
+	}
+	
+	public void
+	setParent(
+		String		_parent )
+	{
+		if ( _parent == null && parent == null ){
+			
+			return;
+		}
+		
+		if ( _parent != null && parent != null && _parent.equals( parent )){
+			
+			return;
+		}
+		
+		parent = _parent;
+
+		fireChanged();
 	}
 	
 	protected void

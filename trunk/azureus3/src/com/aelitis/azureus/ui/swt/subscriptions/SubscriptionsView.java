@@ -274,6 +274,7 @@ public class SubscriptionsView
 				new ColumnSubscriptionAutoDownload(TABLE_ID),
 				new ColumnSubscriptionCategory(TABLE_ID),
 				new ColumnSubscriptionTag(TABLE_ID),
+				new ColumnSubscriptionParent(TABLE_ID),
 				new ColumnSubscriptionError(TABLE_ID),
 				
 		};
@@ -288,7 +289,7 @@ public class SubscriptionsView
 		});
 		
 		view = TableViewFactory.createTableViewSWT(Subscription.class, TABLE_ID, TABLE_ID,
-				columns, "name", SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
+				columns, "name", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		
 		view.addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {
@@ -383,11 +384,21 @@ public class SubscriptionsView
 			}
 			
 			public void selected(TableRowCore[] rows) {
+				rows = view.getSelectedRows();
 				ISelectedContent[] sels = new ISelectedContent[rows.length];
+				
+				java.util.List<Subscription> subs = new ArrayList<Subscription>();
 				
 				for (int i=0;i<rows.length;i++){
 					
-					sels[i] = new SubscriptionSelectedContent((Subscription)rows[i].getDataSource());
+					Subscription sub = (Subscription)rows[i].getDataSource();
+					
+					sels[i] = new SubscriptionSelectedContent( sub );
+					
+					if ( sub != null ){
+						
+						subs.add( sub );
+					}
 				}
 				
 				SelectedContentManager.changeCurrentlySelectedContent(view.getTableID(), sels, view);
@@ -397,14 +408,9 @@ public class SubscriptionsView
 					mi.remove();
 				}
 				
-				if ( rows.length == 1 ){
-					
-					Subscription subs = (Subscription) rows[0].getDataSource();
-
-					if ( subs != null ){
+				if ( subs.size() > 0 ){
 								
-						SubscriptionManagerUI.createMenus( menu_manager, menu_creator, subs );
-					}
+					SubscriptionManagerUI.createMenus( menu_manager, menu_creator, subs.toArray( new Subscription[0] ));
 				}				
 			}
 			

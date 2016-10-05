@@ -180,6 +180,12 @@ Subscription
 	setTagID(
 		long	tag_id );
 	
+	public String
+	getParent();
+	
+	public void
+	setParent(
+		String		parent );
 	
 	public Engine
 	getEngine()

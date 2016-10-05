@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.gudy.azureus2.core3.category.Category;
@@ -54,6 +55,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -77,8 +81,8 @@ import com.aelitis.azureus.ui.swt.utils.TagUIUtilsV3;
 public class 
 SubscriptionManagerUI 
 {
-	private static final String CONFIG_SECTION_ID = "Subscriptions";
-	public static final Object	SUB_ENTRYINFO_KEY 		= new Object();
+	private static final String CONFIG_SECTION_ID 	= "Subscriptions";
+	public static final Object	SUB_ENTRYINFO_KEY 	= new Object();
 	public static final Object	SUB_EDIT_MODE_KEY 	= new Object();
 	
 	private static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
@@ -102,6 +106,9 @@ SubscriptionManagerUI
 	private MdiEntry mdiEntryOverview;
 	
 	private boolean	sidebar_setup_done;
+	
+	private Map<String,MdiEntry>		parent_views = new TreeMap<String,MdiEntry>( new FormattersImpl().getAlphanumericComparator( true ));
+	
 	
 	public
 	SubscriptionManagerUI()
@@ -423,7 +430,6 @@ SubscriptionManagerUI
 				subscriptionChanged(
 					Subscription		sub )
 				{
-					
 					changeSubscription( sub );
 				}
 				
@@ -431,12 +437,7 @@ SubscriptionManagerUI
 				subscriptionSelected(
 					Subscription sub )
 				{	
-					
-					String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
-					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-					if ( mdi != null ){
-						mdi.showEntryByID(key, sub);
-					}
+					showSubscriptionMDI( sub );
 				}
 				
 				public void 
@@ -936,11 +937,8 @@ SubscriptionManagerUI
 									
 									if ( sub.hasAssociation( hash )){
 										
-										String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
-										MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-										if ( mdi != null ){
-											mdi.showEntryByID(key, sub);
-										}
+										showSubscriptionMDI( sub );
+										
 										break;
 									}
 								}
@@ -1199,31 +1197,51 @@ SubscriptionManagerUI
 	{
 		refreshTitles( mdiEntryOverview );
 
-		
 		if ( subs.isSubscribed()){
-			
+						
 			if ( SubscriptionManagerFactory.getSingleton().getActivateSubscriptionOnChange()){
-				
-				String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
-				
+								
 				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 				
 				if ( mdi != null ){
-					
-					mdi.loadEntryByID( key, true, true, subs );
+
+					mdi.loadEntryByID( getKey( subs ), true, true, subs );
 				}
 			}
-		} else {
+			
+			SubscriptionMDIEntry data = (SubscriptionMDIEntry)subs.getUserData( SUB_ENTRYINFO_KEY );
+
+			if ( data != null && !data.isDisposed()){
+				
+				String cp = data.getCurrentParent();
+				
+				String parent = subs.getParent();
+				
+				if ( 	cp == parent ||
+						( cp != null && parent != null && cp.equals( parent ))){
+					
+					// no change
+					
+				}else{
+										
+					reloadSubscriptionMDI( subs );
+				}
+			}
+		}else{
 			
 			removeSubscription( subs);
 		}
 	}
 	
 	
-	private MdiEntry createSubscriptionMdiEntry(Subscription subs) {
-		
-		if (!subs.isSubscribed()) {
-			// user may have deleted subscrtipion, but our register is staill there
+	private MdiEntry 
+	createSubscriptionMdiEntry(
+		Subscription subs) 
+	{	
+		if (!subs.isSubscribed()){
+			
+				// user may have deleted subscrtipion, but our register is staill there
+			
 			return null;
 		}
 		
@@ -1236,7 +1254,14 @@ SubscriptionManagerUI
 			return( null );
 		}	
 	
-		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
+		String parent_name = subs.getParent();
+
+		if ( parent_name != null && parent_name.length() == 0 ){
+			
+			parent_name = null;
+		}
+				
+		final String key = getKey( subs );
 				
 		String subs_name = subs.getName();
 		
@@ -1252,7 +1277,23 @@ SubscriptionManagerUI
 			
 			if ( id.startsWith( "Subscription_" )){
 				
-				name_map.put( e.getTitle(), id );
+				Object ds = e.getDatasource();
+				
+				if ( ds instanceof Subscription ){
+					
+					String sp = ((Subscription)ds).getParent();
+					
+					if ( sp != null && sp.length() == 0 ){
+						
+						sp = null;
+					}
+					
+					if ( 	sp == parent_name ||
+							( sp != null && parent_name != null && sp.equals( parent_name ))){
+				
+						name_map.put( e.getTitle(), id );
+					}
+				}
 			}
 		}
 		
@@ -1276,19 +1317,166 @@ SubscriptionManagerUI
 			
 			prev_id = "~" + it.next();
 		}
+				
+		MdiEntry entry;
 		
-		
-		MdiEntry entry = mdi.createEntryFromEventListener(
-				MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
-				new UISWTViewEventListenerHolder(key, SubscriptionView.class, subs, null),
-				key, true, subs, prev_id);
+		if ( parent_name == null || parent_name.length() == 0 ){
+			
+			entry = mdi.createEntryFromEventListener(
+					MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
+					new UISWTViewEventListenerHolder(key, SubscriptionView.class, subs, null),
+					key, true, subs, prev_id);
+			
+		}else{
+			
+			MdiEntry parent_entry;
+			
+			synchronized( parent_views ){
 
+				parent_entry = parent_views.get( parent_name );
+			
+				if ( parent_entry == null ){
+			
+					SubsParentView parent = new SubsParentView( parent_name );		
+							
+					String parent_key = getParentKey( parent_name );
+				
+					String parent_prev_id = null;
+				
+					parent_views.put( parent_name, parent_entry );
+	
+					String	parent_prev = null;
+					
+					for ( String pn: parent_views.keySet()){
+								
+						if ( pn == parent_name ){
+							
+							break;
+						}
+						
+						parent_prev = pn;
+					}
+						
+					boolean	is_before;
+					
+					if ( parent_prev == null && parent_views.size() > 1 ){
+									
+						Iterator<String>	it = parent_views.keySet().iterator();
+						
+						it.next();
+						
+						parent_prev = it.next();
+						
+						is_before = true;
+						
+					}else{
+						
+						is_before = false;
+					}
+					
+					if ( parent_prev != null ){
+						
+						parent_prev_id = getParentKey( parent_prev );
+						
+						if ( is_before ){
+							
+							parent_prev_id = "~" + parent_prev_id;
+						}
+					}
+							
+					parent_entry = 
+						mdi.createEntryFromSkinRef(
+							MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
+							parent_key, 
+							null,
+							parent_name,
+							parent, null, false, parent_prev_id );
+				}
+			}
+			
+			entry = mdi.createEntryFromEventListener(
+					parent_entry.getId(),
+					new UISWTViewEventListenerHolder(key, SubscriptionView.class, subs, null),
+					key, true, subs, prev_id);
+		}
+		
 			// This sets up the entry (menu, etc)
 		
 		SubscriptionMDIEntry entryInfo = new SubscriptionMDIEntry(subs, entry);
+		
 		subs.setUserData(SUB_ENTRYINFO_KEY, entryInfo);
 
 		return entry;
+	}
+	
+	private String
+	getKey(
+		Subscription		subs )
+	{
+		String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());	
+		
+		return( key );
+	}
+	
+	private void
+	showSubscriptionMDI(
+		Subscription	sub )
+	{		
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		
+		if ( mdi != null ){
+	
+			String key = getKey( sub );
+
+			mdi.showEntryByID( key, sub) ;
+		}	
+	}
+	
+	private void
+	reloadSubscriptionMDI(
+		Subscription	sub )
+	{		
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		
+		if ( mdi != null ){
+	
+			String key = getKey( sub );
+
+			mdi.closeEntry( key );
+			
+			mdi.showEntryByID( key, sub );
+		}	
+	}
+	
+	private void
+	removeSubscriptionMDI(
+		Subscription	sub )
+	{		
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		
+		if ( mdi != null ){
+	
+			String key = getKey( sub );
+
+			mdi.closeEntry( key );
+		}	
+	}
+	
+	private String
+	getParentKey(
+		String		parent_name )
+	{
+		byte[] bytes;
+		
+		try{
+			bytes =  parent_name.getBytes("UTF-8" );
+			
+		}catch( Throwable e ){
+			
+			bytes = parent_name.getBytes();
+		}
+		
+		return(	"SubscriptionParent_" + ByteFormatter.encodeString( bytes ));
 	}
 	
 	protected void
@@ -1320,18 +1508,8 @@ SubscriptionManagerUI
 	protected void
 	removeSubscription(
 		final Subscription	subs )
-	{
-		synchronized( this ){
-
-			String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
-			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-			
-			if  (mdi != null ){
-				
-				mdi.closeEntry(key);
-			}
-
-		}
+	{			
+		removeSubscriptionMDI( subs );
 		
 		refreshColumns();
 	}
@@ -1339,13 +1517,14 @@ SubscriptionManagerUI
 	protected void
 	refreshColumns()
 	{
-		synchronized (columns) {
-  		for ( Iterator<TableColumn> iter = columns.iterator(); iter.hasNext();){
-  			
-  			TableColumn column = iter.next();
-  			
-  			column.invalidateCells();
-  		}
+		synchronized( columns ){
+			
+	  		for ( Iterator<TableColumn> iter = columns.iterator(); iter.hasNext();){
+	  			
+	  			TableColumn column = iter.next();
+	  			
+	  			column.invalidateCells();
+	  		}
 		}
 	}
 	
@@ -1378,8 +1557,49 @@ SubscriptionManagerUI
 	createMenus(
 		final MenuManager		menu_manager,
 		final MenuCreator		menu_creator,
-		final Subscription		subs )
+		final Subscription[]	all_subs )
 	{
+		if ( all_subs.length > 1 ){
+		
+			MenuItem menuItem = menu_creator.createMenu( "menu.set.parent");
+			
+			menuItem.addMultiListener(new SubsMenuItemListener() {
+				public void selected( final Subscription[] subs) {
+					UISWTInputReceiver entry = new SimpleTextEntryWindow();
+					if ( subs.length==1 ){
+						entry.setPreenteredText(subs[0].getParent(), false );
+					}
+					entry.maintainWhitespace(false);
+					entry.allowEmptyInput( true );
+					entry.setLocalisedTitle(MessageText.getString("label.set.parent"));
+							
+					entry.prompt(new UIInputReceiverListener() {
+						public void UIInputReceiverClosed(UIInputReceiver entry) {
+							if (!entry.hasSubmittedInput()){
+								
+								return;
+							}
+							
+							String input = entry.getSubmittedInput().trim();
+							
+							if ( input.length() == 0 ){
+								
+								input = null;
+							}
+							
+							for ( Subscription sub: subs ){
+								
+								sub.setParent( input );
+							}
+						}
+					});
+				}
+			});
+			return;
+		}
+		
+		final Subscription subs = all_subs[0];
+		
 		boolean is_search_template = subs.isSearchTemplate();
 		
 		if ( !is_search_template ){
@@ -1569,6 +1789,41 @@ SubscriptionManagerUI
 						addTagSubMenu( menu_manager, menu, subs );
 					}
 				});
+			
+				// parent
+			
+			menuItem = menu_creator.createMenu( "menu.set.parent");
+						
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( final Subscription subs) {
+					UISWTInputReceiver entry = new SimpleTextEntryWindow();
+					entry.setPreenteredText(subs.getParent(), false );
+					entry.maintainWhitespace(false);
+					entry.allowEmptyInput( true );
+					entry.setLocalisedTitle(MessageText.getString("label.set.parent",
+							new String[] {
+								subs.getName()
+							}));
+					entry.prompt(new UIInputReceiverListener() {
+						public void UIInputReceiverClosed(UIInputReceiver entry) {
+							if (!entry.hasSubmittedInput()){
+								
+								return;
+							}
+							
+							String input = entry.getSubmittedInput().trim();
+							
+							if ( input.length() == 0 ){
+								
+								input = null;
+							}
+							
+							subs.setParent( input );
+							
+						}
+					});
+				}
+			});
 			
 				// chat
 			
@@ -2527,9 +2782,114 @@ SubscriptionManagerUI
 						Debug.out(t);
 					}
 				}
+			}else if ( target instanceof TableRow[] ){
+				TableRow[] rows = (TableRow[] )target;
+				List<Subscription>	subs = new ArrayList<Subscription>();
+				for ( TableRow row: rows ){
+					Object ds = row.getDataSource();
+					
+					if ( ds instanceof Subscription ){
+						subs.add((Subscription)ds);
+					}
+				}
+				selected(subs.toArray( new Subscription[0]));
 			}
 		}
 
-		public abstract void selected(Subscription subs);
+		public void selected(Subscription subs){ Debug.out( "Missing override?");}
+		public void selected(Subscription subs[]){
+			for ( Subscription s: subs ){
+				selected( s );
+			}
+		}
+	}
+	
+	protected class
+	SubsParentView
+		implements 	ViewTitleInfo, UISWTViewEventListener
+	{
+		private UISWTView 	swtView;
+		private String 		title;
+		
+		private Composite	parent_composite;
+		private Composite	composite;
+		
+		private
+		SubsParentView(
+			String		_title )
+		{
+			title = _title;
+		}
+		
+		public String
+		getTitle()
+		{
+			return( title );
+		}
+		
+		public Object 
+		getTitleInfoProperty(
+			int propertyID ) 
+		{		
+			if ( propertyID == TITLE_TEXT ){
+				
+				return( getTitle());
+			}
+			
+			return( null );
+		}
+		
+		public void 
+		initialize(
+			Composite _parent_composite )
+		{  
+			parent_composite	= _parent_composite;
+
+			composite = new Composite( parent_composite, SWT.NULL );
+		}
+		
+		public Composite 
+		getComposite()
+		{
+			return( composite );
+		}
+		
+		private void
+		delete()
+		{	
+		}
+		
+		public boolean eventOccurred(UISWTViewEvent event) {
+		    switch (event.getType()) {
+		      case UISWTViewEvent.TYPE_CREATE:
+		      	swtView = (UISWTView)event.getData();
+		      	swtView.setTitle(getTitle());
+		        break;
+
+		      case UISWTViewEvent.TYPE_DESTROY:
+		        delete();
+		        break;
+
+		      case UISWTViewEvent.TYPE_INITIALIZE:
+		        initialize((Composite)event.getData());
+		        break;
+
+		      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+		      	Messages.updateLanguageForControl(getComposite());
+		      	swtView.setTitle(getTitle());
+		        break;
+
+		      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+		        break;
+		        
+		      case UISWTViewEvent.TYPE_FOCUSGAINED:
+		      	break;
+		        
+		      case UISWTViewEvent.TYPE_REFRESH:
+		        break;
+		    }
+
+		    return true;
+		  }
 	}
 }

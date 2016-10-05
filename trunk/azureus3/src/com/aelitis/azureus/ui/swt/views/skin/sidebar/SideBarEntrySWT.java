@@ -1316,8 +1316,29 @@ public class SideBarEntrySWT
 				} catch (Exception e2) {
 					Debug.out(e2);
 				}
-
-				mdi.removeEntryAutoOpen(id);
+				
+					// See if this entry has been replaced by another in the meantime. This happens when we are
+					// moving an entry in the sidebar by removing it and then re-adding it. We assume that the
+					// auto-open properties of the replacement are the same as those of the initial entry
+				
+				boolean	replaced = false;
+				
+				String my_id = SideBarEntrySWT.this.getId();
+			
+				if ( my_id != null ){
+					
+					MdiEntry entry = mdi.getEntry( my_id );
+					
+					if ( entry != null && entry != SideBarEntrySWT.this ){
+						
+						replaced = true;
+					}
+				}
+				
+				if ( !replaced ){
+				
+					mdi.removeEntryAutoOpen(id);
+				}
 			}
 		});
 	}

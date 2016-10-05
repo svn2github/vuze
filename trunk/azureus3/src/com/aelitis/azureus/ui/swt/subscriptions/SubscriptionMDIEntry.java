@@ -48,11 +48,16 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 	private MdiEntryVitalityImage warningImage;
 	private final Subscription subs;
 	private String key;
-
+	private String current_parent;
+	
 	public SubscriptionMDIEntry(Subscription subs, MdiEntry entry) {
 		this.subs = subs;
 		this.mdiEntry = entry;
 		key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
+		current_parent = subs.getParent();
+		if ( current_parent != null && current_parent.length() == 0 ){
+			current_parent = null;
+		}
 		setupMdiEntry();
 	}
 	
@@ -95,11 +100,23 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 				}
 			};
 			
-		SubscriptionManagerUI.createMenus( menu_manager, menu_creator, subs );
+		SubscriptionManagerUI.createMenus( menu_manager, menu_creator, new Subscription[]{ subs });
 		
 		subs.addListener(this); 
 	}
 
+	protected String
+	getCurrentParent()
+	{
+		return( current_parent );
+	}
+	
+	protected boolean
+	isDisposed()
+	{
+		return( mdiEntry.isDisposed());
+	}
+	
 	public void subscriptionDownloaded(Subscription subs, boolean auto) {
 	}
 	
