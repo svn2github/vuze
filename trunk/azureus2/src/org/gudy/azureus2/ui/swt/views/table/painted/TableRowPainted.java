@@ -47,7 +47,7 @@ import com.aelitis.azureus.ui.swt.utils.FontUtils;
 public class TableRowPainted
 	extends TableRowSWTBase
 {
-	private static final boolean DEBUG_SUBS = true;
+	private static final boolean DEBUG_SUBS = false;
 
 	private Point drawOffset = new Point(0, 0);
 
