@@ -1313,6 +1313,7 @@ public class SubscriptionWizard {
 				Subscription subscription = (Subscription) addButton.getData("subscription");
 				if(subscription != null) {
 					subscription.setSubscribed(true);
+					subscription.requestAttention();
 					shell.close();
 				}
 			}
