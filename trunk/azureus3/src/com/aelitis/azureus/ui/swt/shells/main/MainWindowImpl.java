@@ -87,6 +87,7 @@ import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.mdi.BaseMDI;
 import com.aelitis.azureus.ui.swt.mdi.TabbedMDI;
+import com.aelitis.azureus.ui.swt.search.SearchUtils;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
@@ -2044,60 +2045,7 @@ public class MainWindowImpl
 			
 			new MenuItem(topbarMenu, SWT.SEPARATOR);
 			
-			final MenuItem itemExport = new MenuItem(topbarMenu, SWT.PUSH);
-			Messages.setLanguageText(itemExport,
-					"search.export.all");
-			itemExport.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					final Shell shell = Utils.findAnyShell();
-					
-					shell.getDisplay().asyncExec(
-						new AERunnable() 
-						{
-							public void 
-							runSupport()
-							{
-								FileDialog dialog = 
-									new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
-								
-								dialog.setFilterPath( TorrentOpener.getFilterPathData() );
-														
-								dialog.setText(MessageText.getString("metasearch.export.select.template.file"));
-								
-								dialog.setFilterExtensions(new String[] {
-										"*.vuze",
-										"*.vuz",
-										org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
-									});
-								dialog.setFilterNames(new String[] {
-										"*.vuze",
-										"*.vuz",
-										org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
-									});
-								
-								String path = TorrentOpener.setFilterPathData( dialog.open());
-			
-								if ( path != null ){
-									
-									String lc = path.toLowerCase();
-									
-									if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
-										
-										path += ".vuze";
-									}
-									
-									try{
-										MetaSearchManagerFactory.getSingleton().getMetaSearch().exportEngines(  new File( path ));
-										
-									}catch( Throwable e ){
-										
-										Debug.out( e );
-									}
-								}
-							}
-						});	
-				}
-			});
+			SearchUtils.addMenus( topbarMenu );
 			
 			addMenuAndNonTextChildren((Composite) skinObject.getControl(), topbarMenu);
 
