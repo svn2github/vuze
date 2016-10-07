@@ -167,7 +167,9 @@ public class InitialisationFunctions
 										
 										Engine engine = (Engine)comp.getData( Engine.VUZE_FILE_COMPONENT_ENGINE_KEY );
 										
-										if ( engine != null && engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ){
+										if ( 	engine != null && 
+												(	engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ||
+													engine.getSelectionState() == Engine.SEL_STATE_FORCE_DESELECTED )){
 											
 											engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
 										}

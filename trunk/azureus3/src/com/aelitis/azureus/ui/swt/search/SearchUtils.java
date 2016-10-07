@@ -165,7 +165,7 @@ SearchUtils
 						
 						remove_item.addSelectionListener(new SelectionAdapter(){
 							public void widgetSelected(SelectionEvent e) {
-								engine.setSelectionState( Engine.SEL_STATE_DESELECTED );
+								engine.setSelectionState( Engine.SEL_STATE_FORCE_DESELECTED );
 							}
 						});	
 					}
@@ -361,7 +361,7 @@ SearchUtils
 										org.gudy.azureus2.plugins.ui.menus.MenuItem menu, 
 									Object target) 
 								{
-									engine.setSelectionState( Engine.SEL_STATE_DESELECTED );
+									engine.setSelectionState( Engine.SEL_STATE_FORCE_DESELECTED );
 								}
 							});
 						

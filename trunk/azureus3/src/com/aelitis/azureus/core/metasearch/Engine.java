@@ -93,7 +93,8 @@ Engine
 	public static final int	SEL_STATE_DESELECTED			= 0;
 	public static final int	SEL_STATE_AUTO_SELECTED			= 1;
 	public static final int	SEL_STATE_MANUAL_SELECTED		= 2;
-	
+	public static final int	SEL_STATE_FORCE_DESELECTED		= 3;
+
 	public static final int AUTO_DL_SUPPORTED_UNKNOWN		= 0;
 	public static final int AUTO_DL_SUPPORTED_YES			= 1;
 	public static final int AUTO_DL_SUPPORTED_NO			= 2;
@@ -102,7 +103,7 @@ Engine
 		 * don't change these as they are externalised
 		 */
 	public static final String[] ENGINE_SOURCE_STRS = { "unknown","vuze","local","rss","unused" };
-	public static final String[] SEL_STATE_STRINGS	= { "no", "auto", "manual" };
+	public static final String[] SEL_STATE_STRINGS	= { "no", "auto", "manual", "force_no" };
 	public static final String[] ENGINE_TYPE_STRS 	= { "unknown","regexp","json", "plugin" };
 	
 	public static final String	SC_SOURCE			= "azsrc";

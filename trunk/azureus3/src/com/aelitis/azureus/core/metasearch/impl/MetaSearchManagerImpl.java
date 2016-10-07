@@ -1118,7 +1118,11 @@ MetaSearchManagerImpl
 					
 					if ( existing != null ){
 						
-						if ( existing.getSelectionState() == Engine.SEL_STATE_DESELECTED || !existing.sameLogicAs( engine )){
+						int state = existing.getSelectionState();
+						
+						if ( 	state == Engine.SEL_STATE_DESELECTED || 
+								state == Engine.SEL_STATE_FORCE_DESELECTED || 
+								!existing.sameLogicAs( engine )){
 							
 							return( true );
 						}
@@ -1130,7 +1134,11 @@ MetaSearchManagerImpl
 							
 							for ( Engine e: engines ){
 									
-								if ( e.getSelectionState() != Engine.SEL_STATE_DESELECTED && e.sameLogicAs( engine )){
+								int state = e.getSelectionState();
+								
+								if ( 	state != Engine.SEL_STATE_DESELECTED && 
+										state != Engine.SEL_STATE_FORCE_DESELECTED && 
+										e.sameLogicAs( engine )){
 										
 									is_new = false;
 									

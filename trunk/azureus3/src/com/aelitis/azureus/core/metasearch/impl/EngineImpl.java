@@ -1061,7 +1061,9 @@ EngineImpl
 	public boolean
 	isActive()
 	{
-		return(	getSelectionState() != SEL_STATE_DESELECTED );
+		int state = getSelectionState();
+		
+		return(	state != SEL_STATE_DESELECTED && state != SEL_STATE_FORCE_DESELECTED );
 	}
 	
 	public boolean
@@ -1128,7 +1130,7 @@ EngineImpl
 		if ( !selection_state_recorded ){
 			
 			try{
-				boolean selected = selection_state != SEL_STATE_DESELECTED;
+				boolean selected = selection_state != SEL_STATE_DESELECTED && selection_state != SEL_STATE_FORCE_DESELECTED;
 				
 				log( "Marking template id " + getId() + " as selected=" + selected );
 				
