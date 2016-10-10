@@ -40,7 +40,7 @@ public class ColumnTagDiscoveryTorrent
 
 	/** Default Constructor */
 	public ColumnTagDiscoveryTorrent(TableColumn column) {
-		column.setWidth(200);
+		column.setWidth(400);
 		column.addListeners(this);
 		TableContextMenuItem menuShowTorrent = column.addContextMenuItem(
 				"ConfigView.option.dm.dblclick.details",
