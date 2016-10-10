@@ -57,6 +57,8 @@ public class GenericIntParameter
 	
 	private boolean isZeroHidden = false;
 
+	private boolean	disableTimedSave = false;
+	
 	public GenericIntParameter(GenericParameterAdapter adapter,
 			Composite composite, final String name) {
 		iDefaultValue = adapter.getIntValue(name);
@@ -134,8 +136,10 @@ public class GenericIntParameter
 					if (DEBUG) {
 						debug("create timeSaveEvent (" + spinner.getSelection() + ") ");
 					}
-					timedSaveEvent = SimpleTimer.addEvent("IntParam Saver",
+					if ( !disableTimedSave ){
+						timedSaveEvent = SimpleTimer.addEvent("IntParam Saver",
 							SystemTime.getOffsetTime(750), timerEventSave);
+					}
 				}
 			}
 		});
@@ -312,6 +316,12 @@ public class GenericIntParameter
 		bGenerateIntermediateEvents = generateIntermediateEvents;
 	}
 
+	public void
+	disableTimedSave()
+	{
+		disableTimedSave = true;
+	}
+	
 	public boolean isZeroHidden() {
 		return isZeroHidden;
 	}

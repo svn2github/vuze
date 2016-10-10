@@ -919,6 +919,12 @@ public class TagSettingsView
 									tfl.setMaximumTaggables( value );
 								}
 							}, gLimits, null, 0, Integer.MAX_VALUE );
+					
+						// we really don't want partial values to be set as the consequences may be very
+						// unwanted if a removal policy is already set...
+					
+					params.tfl_max_taggables.disableTimedSave();
+					
 					gd = new GridData();
 					//gd.horizontalSpan = 3;
 					gd.widthHint = 50;
