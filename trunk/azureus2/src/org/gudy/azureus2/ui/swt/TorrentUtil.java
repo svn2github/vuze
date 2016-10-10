@@ -563,18 +563,6 @@ public class TorrentUtil
 			}
 		});
 		
-		if ( ManagerUtils.canFindMoreLikeThis()){
-			final MenuItem itemFindMore = new MenuItem(menuFiles, SWT.PUSH);
-			Messages.setLanguageText(itemFindMore,
-					"MyTorrentsView.menu.findmorelikethis");
-			itemFindMore.addListener(SWT.Selection, new ListenerDMTask(dms) {
-				public void run(DownloadManager[] dms) {
-					ManagerUtils.findMoreLikeThis( dms[0], menu.getShell());
-				}
-			});
-			itemFindMore.setSelection(isSingleSelection);
-		}
-		
 		final MenuItem itemFileRescan = new MenuItem(menuFiles, SWT.CHECK);
 		Messages.setLanguageText(itemFileRescan, "MyTorrentsView.menu.rescanfile");
 		itemFileRescan.addListener(SWT.Selection, new ListenerDMTask(dms) {
@@ -710,6 +698,20 @@ public class TorrentUtil
 			}
 		});
 
+		// Find more like this
+		
+		if ( ManagerUtils.canFindMoreLikeThis()){
+			final MenuItem itemFindMore = new MenuItem(menuAdvanced, SWT.PUSH);
+			Messages.setLanguageText(itemFindMore,
+					"MyTorrentsView.menu.findmorelikethis");
+			itemFindMore.addListener(SWT.Selection, new ListenerDMTask(dms) {
+				public void run(DownloadManager[] dms) {
+					ManagerUtils.findMoreLikeThis( dms[0], menu.getShell());
+				}
+			});
+			itemFindMore.setSelection(isSingleSelection);
+		}
+		
 		// === advanced > quick view
 
 		final Menu quickViewMenu = new Menu(menuAdvanced.getShell(), SWT.DROP_DOWN);
