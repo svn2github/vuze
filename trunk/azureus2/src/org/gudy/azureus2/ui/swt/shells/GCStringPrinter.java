@@ -936,7 +936,7 @@ public class GCStringPrinter
 		if ((swtFlags & SWT.RIGHT) != 0) {
 			x0 = printArea.x + printArea.width - lineInfo.outputLineExtent.x;
 		} else if ((swtFlags & SWT.CENTER) != 0) {
-			x0 = printArea.x + (printArea.width - lineInfo.outputLineExtent.x) / 2;
+			x0 = printArea.x + (printArea.width - lineInfo.outputLineExtent.x + 1) / 2;		// generally putting an extra pixel space to the left rather than right looks better
 		} else {
 			x0 = printArea.x;
 		}
