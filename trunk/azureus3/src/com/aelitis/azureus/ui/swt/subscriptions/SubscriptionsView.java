@@ -218,11 +218,11 @@ public class SubscriptionsView
 		mb.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-					toRemove[startIndex].setSubscribed( false );
+					toRemove[startIndex].remove();
 				} else if (result == 2) {
 					for (int i = startIndex; i < toRemove.length; i++) {
 						if (toRemove[i] != null) {
-							toRemove[i].setSubscribed( false );
+							toRemove[i].remove();
 						}
 					}
 					return;

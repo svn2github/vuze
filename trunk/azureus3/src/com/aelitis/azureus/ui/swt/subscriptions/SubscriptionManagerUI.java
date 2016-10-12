@@ -2591,7 +2591,7 @@ SubscriptionManagerUI
 		mb.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-					subs.setSubscribed( false );
+					subs.remove();
 				}
 			}
 		});
