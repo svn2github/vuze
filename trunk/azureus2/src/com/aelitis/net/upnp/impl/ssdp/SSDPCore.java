@@ -347,8 +347,24 @@ SSDPCore
 						location	= new URL( val );
 					}
 				}catch( MalformedURLException e ){
-										
-					adapter.log( e );
+						
+					if ( !val.contains( "//" )){
+						
+							// seen missing protocol
+						
+						val = "http://" + val;
+						
+						try{
+							location	= new URL( val );
+							
+						}catch( Throwable f ){
+						}
+					}
+					
+					if ( location == null ){
+					
+						adapter.log( e );
+					}
 				}			
 			}else if ( key.equals( "NT" )){
 				
