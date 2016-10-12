@@ -1694,6 +1694,13 @@ SubscriptionImpl
 	addAssociation(
 		byte[]		hash )
 	{
+		if ( hash.length != 20 ){
+			
+			Debug.out( "Invalid hash: " + ByteFormatter.encodeString( hash ));
+			
+			return;
+		}
+		
 		synchronized( this ){
 	
 			for (int i=0;i<associations.size();i++){
