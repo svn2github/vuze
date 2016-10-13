@@ -438,6 +438,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 										Subscription subscription = (Subscription) subscriptionItems[selectedIndex].subscription;
 										if(subscription != null) {
 											subscription.setSubscribed(true);
+											subscription.requestAttention();
 										}
 									}
 								}
