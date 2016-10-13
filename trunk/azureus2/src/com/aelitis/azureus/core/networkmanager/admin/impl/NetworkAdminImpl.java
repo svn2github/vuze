@@ -661,7 +661,7 @@ addressLoop:
 					// allow wildcard address as 1st address, otherwise only interface addresses
 					if((!parsedAddress.isAnyLocalAddress() || addrs.size() > 0) && NetUtils.getByInetAddress(parsedAddress) == null)
 						continue;
-				} catch (SocketException e)
+				} catch ( Throwable e)
 				{
 					Debug.printStackTrace(e);
 					continue;
@@ -677,7 +677,7 @@ addressLoop:
 			try
 			{
 				netInterface = NetUtils.getByName(ifaces[0]);
-			} catch (SocketException e)
+			} catch (Throwable e)
 			{
 				e.printStackTrace(); // should not happen
 			}

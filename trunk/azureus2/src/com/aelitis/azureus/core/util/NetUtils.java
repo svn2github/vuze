@@ -50,6 +50,7 @@ NetUtils
 	
 	private static Map<Object,Object[]>			host_or_address_map 	= new HashMap<Object, Object[]>();
 	
+	private static final Object	RESULT_NULL = new Object();
 	
 	public static List<NetworkInterface>
 	getNetworkInterfaces()
@@ -273,7 +274,11 @@ NetUtils
 							
 								// not expired
 								
-							if ( result_or_error instanceof NetworkInterface ){
+							if ( result_or_error == RESULT_NULL ){
+								
+								return( null );
+								
+							}else if ( result_or_error instanceof NetworkInterface ){
 							
 								return((NetworkInterface)result_or_error );
 								
@@ -302,7 +307,11 @@ NetUtils
 			
 			if ( result_or_error != null ){
 				
-				if ( result_or_error instanceof NetworkInterface ){
+				if ( result_or_error == RESULT_NULL ){
+					
+					return( null );
+					
+				}else if ( result_or_error instanceof NetworkInterface ){
 					
 					return((NetworkInterface)result_or_error );
 					
@@ -314,7 +323,7 @@ NetUtils
 			
 			long	start 	= SystemTime.getHighPrecisionCounter();
 	
-			NetworkInterface 	result 	= null;
+			Object			 	result 	= null;
 			SocketException		error	= null;
 			
 			try{
@@ -326,6 +335,11 @@ NetUtils
 					
 					result = NetworkInterface.getByInetAddress((InetAddress)name_or_address );
 	
+				}
+				
+				if ( result == null ){
+					
+					result = RESULT_NULL;
 				}
 			}catch( SocketException e ){
 				
@@ -345,13 +359,20 @@ NetUtils
 						
 			entry[1] = SystemTime.getMonotonousTime() + delay;
 			
-			if ( result == null ){
+			if ( error != null ){
 				
 				throw( error );
 				
 			}else{
 				
-				return( result );
+				if ( result == RESULT_NULL ){
+					
+					return( null );
+					
+				}else{
+					
+					return((NetworkInterface)result);
+				}
 			}
 		}
 	}
