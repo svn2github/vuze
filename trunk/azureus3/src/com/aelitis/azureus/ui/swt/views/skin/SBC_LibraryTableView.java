@@ -287,21 +287,52 @@ public class SBC_LibraryTableView
 		final int 				stateMask,
 		final boolean 			neverPlay) 
 	{
-		if (rows == null || rows.length != 1) {
+		if ( rows == null || rows.length != 1 ){
 			return;
 		}
 		
 		final Object ds = rows[0].getDataSource(true);
 
+		boolean webInBrowser = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowser" );
+		
+		if ( webInBrowser ){
+			
+			DiskManagerFileInfo fileInfo = DataSourceUtils.getFileInfo(ds);
+			
+			if ( fileInfo != null ){
+				
+				if ( ManagerUtils.browseWebsite( fileInfo )){
+					
+					return;
+				}
+			}else{
+			
+				DownloadManager dm = DataSourceUtils.getDM( ds);
+				
+				if ( dm != null ){
+					
+					if ( ManagerUtils.browseWebsite( dm )){
+						
+						return;
+					}
+				}
+			}
+		}
+		
 		String mode = COConfigurationManager.getStringParameter("list.dm.dblclick");
+		
 		if (mode.equals("1")) {
-			// OMG! Show Details! I <3 you!
+			
+				// show detailed view
+			
 			if ( UIFunctionsManager.getUIFunctions().getMDI().showEntryByID( MultipleDocumentInterface.SIDEBAR_SECTION_TORRENT_DETAILS, ds)){
 			
 				return;
 			}
 		}else if (mode.equals("2")) {
-			// Show in explorer
+			
+				// Show in explorer
+			
 			boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
 			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
 			if (file != null) {
@@ -313,65 +344,36 @@ public class SBC_LibraryTableView
 				ManagerUtils.open(dm, openMode);
 				return;
 			}
-		}else{
-			
-			boolean webInBrowser = COConfigurationManager.getBooleanParameter( "Library.LaunchWebsiteInBrowser" );
-			
-			if ( webInBrowser ){
-				
-				DiskManagerFileInfo fileInfo = DataSourceUtils.getFileInfo(ds);
-				
-				if ( fileInfo != null ){
-					
-					if ( ManagerUtils.browseWebsite( fileInfo )){
-						
-						return;
-					}
-				}else{
-				
-					DownloadManager dm = DataSourceUtils.getDM( ds);
-					
-					if ( dm != null ){
-						
-						if ( ManagerUtils.browseWebsite( dm )){
-							
-							return;
-						}
-					}
-				}
-			}
-			
-			if (mode.equals("3") || mode.equals("4")){
+		}else if (mode.equals("3") || mode.equals("4")){
 		
-				// Launch
-				DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
-				if (file != null) {
-					if (	mode.equals("4") &&
-							file.getDownloaded() == file.getLength() &&
-							Utils.isQuickViewSupported( file )){
-						
-						Utils.setQuickViewActive( file, true );
-					}else{
-						TorrentUtil.runDataSources(new Object[]{ file });
-					}
-					return;
+			// Launch
+			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
+			if (file != null) {
+				if (	mode.equals("4") &&
+						file.getDownloaded() == file.getLength() &&
+						Utils.isQuickViewSupported( file )){
+					
+					Utils.setQuickViewActive( file, true );
+				}else{
+					TorrentUtil.runDataSources(new Object[]{ file });
 				}
-				DownloadManager dm = DataSourceUtils.getDM(ds);
-				if (dm != null) {
-					TorrentUtil.runDataSources(new Object[]{ dm });
-					return;
-				}
-			}else if (mode.equals("5")) {
-				DiskManagerFileInfo fileInfo = DataSourceUtils.getFileInfo(ds);
-				if ( fileInfo != null ){
-					ManagerUtils.browse( fileInfo );
-					return;
-				}
-				DownloadManager dm = DataSourceUtils.getDM(ds);
-				if (dm != null) {
-					ManagerUtils.browse( dm );
-					return;
-				}
+				return;
+			}
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm != null) {
+				TorrentUtil.runDataSources(new Object[]{ dm });
+				return;
+			}
+		}else if (mode.equals("5")) {
+			DiskManagerFileInfo fileInfo = DataSourceUtils.getFileInfo(ds);
+			if ( fileInfo != null ){
+				ManagerUtils.browse( fileInfo );
+				return;
+			}
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm != null) {
+				ManagerUtils.browse( dm );
+				return;
 			}
 		}
 		
