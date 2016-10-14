@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.config;
 
 import java.security.AccessControlException;
+import java.security.Security;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -192,6 +193,15 @@ COConfigurationManager
 					// Update: nope, disabling this is causing too much other trouble, worked around SNI issues
 					// with various hacks...
 				//System.setProperty( "jsse.enableSNIExtension", "false" );
+				
+				try{
+						// From Java 9 onwards this removes the need for unlimited policy files
+						// https://bugs.openjdk.java.net/browse/JDK-7024850
+					
+					Security.setProperty( "crypto.policy", "unlimited");
+					
+				}catch( Throwable e ){
+				}
 				
 				System.setProperty( "sun.net.maxDatagramSockets", "4096" );
 				
