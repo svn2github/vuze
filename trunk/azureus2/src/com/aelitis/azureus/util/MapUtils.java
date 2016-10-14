@@ -94,6 +94,23 @@ public class MapUtils
 		}
 	}
 
+	public static String[]
+	getMapStringArray(
+		Map			map,
+		String		key,
+		String[]	def )
+	{
+		List list = (List)map.get( key );
+		if ( list == null ){
+			return( def );
+		}
+		String[] result = new String[list.size()];
+		for (int i=0;i<result.length;i++){
+			result[i] = getString( list.get(i));
+		}
+		return( result );
+	}
+	
 	public static String
 	getString(
 		Object	obj )

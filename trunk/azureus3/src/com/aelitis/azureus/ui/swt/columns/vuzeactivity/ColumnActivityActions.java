@@ -176,6 +176,15 @@ public class ColumnActivityActions
 			sb.append("<A HREF=\"launch\">Launch</A>");
 		}
 
+		String[] actions = entry.getActions();
+		
+		for ( String action: actions ){
+			if (sb.length() > 0) {
+				sb.append(", ");
+			}
+			sb.append("<A HREF=\"action:" + action + "\">" + action + "</A>");
+		}
+		
 		cell.getTableRow().setData("text", sb.toString());
 	}
 
@@ -236,6 +245,10 @@ public class ColumnActivityActions
 						Object ds = event.cell.getDataSource();
 						TorrentListViewsUtils.playOrStreamDataSource(ds,
 								DLReferals.DL_REFERAL_LAUNCH, false, true);
+						
+					}else if (hitUrl.url.startsWith("action:")) {
+						
+						entry.invokeCallback( hitUrl.url.substring( 7 ));
 						
 					} else if (!UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
 						Utils.launch(hitUrl.url);

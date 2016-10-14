@@ -64,6 +64,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
+import com.aelitis.azureus.activities.LocalActivityManager;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -581,11 +582,21 @@ SubscriptionManagerUI
 							
 							String	chat_key = chat_args.get( "" );
 							
-							int pos = chat_key.indexOf( "Website[pk=" );
+							int pos = chat_key.toLowerCase( Locale.US ).indexOf( "website[pk=" );
 							
 							if ( pos != -1 ){
-							
-								System.out.println( "Found website subscription: " + sub.getName() + ", SID=" + sub.getID());
+
+								Map<String,String>	cb_data = new HashMap<String, String>();
+								
+								cb_data.put( "subid", sub.getID());
+								
+								LocalActivityManager.addLocalActivity(
+									"Website:" + sub.getID(),
+									"rss",
+									"Website subscription found: '" + chat_key.substring( 0, pos+7 ) + "'. Subscribe for updates?",
+									"Subscribe",
+									ActivityCallback.class,
+									cb_data );
 							}
 						}
 					}
@@ -596,6 +607,18 @@ SubscriptionManagerUI
 		}
 	}
 
+	public static class
+	ActivityCallback
+		implements LocalActivityManager.LocalActivityCallback
+	{
+		public void 
+		actionSelected(
+			String action, Map<String, String> data) 
+		{
+			System.out.println( "CB: " + action + "/" + data );
+		}	
+	}
+	
 	private void createConfigModel() {
 		final SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 

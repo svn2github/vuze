@@ -20,7 +20,9 @@
 
 package com.aelitis.azureus.activities;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -85,6 +87,10 @@ public class VuzeActivitiesEntry
 	
 	private long readOn;
 
+	private String[]			actions;
+	private String				callback_class;
+	private Map<String,String>	callback_data;
+	
 	private GlobalManager gm = null;
 	
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
@@ -135,12 +141,17 @@ public class VuzeActivitiesEntry
 			timestamp = SystemTime.getCurrentTime();
 		}
 		setAssetHash(MapUtils.getMapString(map, "assetHash", null));
-		setIconID(MapUtils.getMapString(map, "icon", null));
+		setIconIDRaw(MapUtils.getMapString(map, "icon", null));
 		setTypeID(MapUtils.getMapString(map, "typeID", null), true);
 		setShowThumb(MapUtils.getMapLong(map, "showThumb", 1) == 1);
 		setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
 		setImageBytes(MapUtils.getMapByteArray(map, "imageBytes", null));
 		setReadOn(MapUtils.getMapLong(map, "readOn", SystemTime.getCurrentTime()));
+		setActions(MapUtils.getMapStringArray(map, "actions",null ));
+		
+		callback_class 	= MapUtils.getMapString( map, "cb_class", null );
+		callback_data	= (Map<String,String>)BDecoder.decodeStrings((Map)map.get( "cb_data" ));
+		
 		loadCommonFromMap(map);
 	}
 
@@ -217,6 +228,43 @@ public class VuzeActivitiesEntry
 		return map;
 	}
 
+	public void
+	setActions(
+		String[]		_actions )
+	{
+		actions = _actions;
+	}
+	
+	public String[]
+	getActions()
+	{
+		return( actions==null?new String[0]:actions );
+	}
+	
+	public void
+	setCallback(
+		Class<? extends LocalActivityManager.LocalActivityCallback>		_callback,
+		Map<String,String>												_callback_data )
+	{
+		callback_class	= _callback.getName();
+		callback_data	= _callback_data;
+	}
+	
+	public void
+	invokeCallback(
+		String		action )
+	{
+		try{
+			Class<? extends LocalActivityManager.LocalActivityCallback> cb = (Class<? extends LocalActivityManager.LocalActivityCallback>)getClass().forName( callback_class );
+			
+			cb.newInstance().actionSelected( action, callback_data );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
 	@SuppressWarnings({
 		"unchecked",
 		"rawtypes"
@@ -278,6 +326,17 @@ public class VuzeActivitiesEntry
 		
 		map.put("readOn", new Long(readOn));
 		
+		if ( actions != null && actions.length > 0 ){
+			List<String>	list = Arrays.asList( actions );
+			map.put( "actions", list );
+		}
+		if ( callback_class != null ){
+			map.put( "cb_class", callback_class );
+		}
+		if ( callback_data != null ){
+			map.put( "cb_data", callback_data );
+		}
+		
 		return map;
 	}
 
@@ -323,6 +382,10 @@ public class VuzeActivitiesEntry
 		this.iconID = iconID;
 	}
 
+	public void setIconIDRaw(String iconID) {
+		this.iconID = iconID;
+	}
+	
 	/**
 	 * @return the iconID
 	 */

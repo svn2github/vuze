@@ -30,5 +30,6 @@ public class VuzeActivitiesConstants
 {
 	public static final String TYPEID_HEADER = "Header";
 
-	public static final String TYPEID_VUZENEWS = "VUZE_NEWS_ITEM";
+	public static final String TYPEID_VUZENEWS 		= "VUZE_NEWS_ITEM";
+	public static final String TYPEID_LOCALNEWS 	= "LOCAL_NEWS_ITEM";
 }
