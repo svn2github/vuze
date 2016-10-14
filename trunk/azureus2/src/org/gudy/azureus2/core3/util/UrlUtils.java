@@ -85,6 +85,35 @@ public class UrlUtils
 		new String[] { "'", "&apos;" },
 	};
 
+	public static Map<String,String>
+	decodeArgs(
+		String	args )
+	{
+		Map<String,String>	result = new HashMap<String, String>();
+		
+		String[] bits = (args.startsWith("?")?args.substring(1):args).split( "&" );
+		
+		for ( String bit: bits ){
+			
+			String[] temp = bit.split( "=", 2 );
+						
+			if ( temp.length == 2 ){
+				
+				String	lhs = temp[0].toLowerCase( Locale.US );
+				
+				String	rhs = decode( temp[1] );
+				
+				result.put( lhs, rhs );
+				
+			}else{
+				
+				result.put( "", decode( temp[0] ));
+			}
+		}
+		
+		return( result );
+	}
+	
 	public static String
 	getMagnetURI(
 		byte[]		hash )

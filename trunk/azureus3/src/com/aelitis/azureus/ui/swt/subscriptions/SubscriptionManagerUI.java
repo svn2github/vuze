@@ -21,6 +21,7 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -64,7 +65,9 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
+import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -334,25 +337,25 @@ SubscriptionManagerUI
 						
 						uiQuickInit();
 
-        		Utilities utilities = default_pi.getUtilities();
-        		
-        		final DelayedTask dt = utilities.createDelayedTask(new Runnable()
-        			{
-        				public void 
-        				run() 
-        				{
-        					Utils.execSWTThread(new AERunnable() {
-									
-										public void 
-										runSupport() 
-										{
-       								delayedInit();
-        						}
-        					});
-        				}
-        			});
-        			
-        			dt.queue();		
+						Utilities utilities = default_pi.getUtilities();
+
+						final DelayedTask dt = utilities.createDelayedTask(new Runnable()
+						{
+							public void 
+							run() 
+							{
+								Utils.execSWTThread(new AERunnable() {
+
+									public void 
+									runSupport() 
+									{
+										delayedInit();
+									}
+								});
+							}
+						});
+
+						dt.queue();		
 					}
 
 					public void UIDetached(UIInstance instance) {
@@ -417,6 +420,7 @@ SubscriptionManagerUI
 		});
 
 		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+		
 		subs_man.addListener(
 			new SubscriptionManagerListener()
 			{
@@ -462,12 +466,15 @@ SubscriptionManagerUI
 			});
 	}
 
-	void delayedInit() {
+	void 
+	delayedInit() 
+	{
 		if (swt == null) {
 			return;
 		}
 		
 		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+		
 		subs_man.addListener(
 			new SubscriptionManagerListener()
 			{
@@ -475,6 +482,7 @@ SubscriptionManagerUI
 				subscriptionAdded(
 					Subscription subscription ) 
 				{
+					checkSubscriptionForStuff( subscription );
 				}
 				
 				public void
@@ -519,7 +527,73 @@ SubscriptionManagerUI
 				}
 			});	
 		
+		Subscription[] subs = subs_man.getSubscriptions();
+		
+		for ( Subscription sub: subs ){
+			
+			checkSubscriptionForStuff( sub );
+		}
+		
 		createConfigModel();
+	}
+	
+	private void
+	checkSubscriptionForStuff(
+		Subscription	sub )
+	{
+		if ( sub.isSubscribed() || sub.isSearchTemplate()){
+			
+			return;
+		}
+		
+		try{
+			Engine engine = sub.getEngine();
+			
+			if ( engine instanceof RSSEngine ){
+				
+				RSSEngine re = (RSSEngine)engine;
+					
+				String url_str = re.getSearchUrl( true );
+				
+				URL url = new URL( url_str );
+				
+				String prot = url.getProtocol();
+				
+				if ( prot.equals( "azplug" )){
+					
+					String q = url.getQuery();
+					
+					Map<String,String>	args = UrlUtils.decodeArgs( q );
+					
+					String id = args.get( "id" );
+					
+					if ( id.equals( "azbuddy" )){
+						
+						String arg = args.get( "arg" );
+						
+						String[] bits = arg.split( ":", 2 );
+						
+						String chat_protocol = bits[0];
+						
+						if ( chat_protocol.startsWith( "chat" )){
+							
+							Map<String,String> chat_args = UrlUtils.decodeArgs( bits[1]);
+							
+							String	chat_key = chat_args.get( "" );
+							
+							int pos = chat_key.indexOf( "Website[pk=" );
+							
+							if ( pos != -1 ){
+							
+								System.out.println( "Found website subscription: " + sub.getName() + ", SID=" + sub.getID());
+							}
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			e.printStackTrace();
+		}
 	}
 
 	private void createConfigModel() {
