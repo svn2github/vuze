@@ -72,7 +72,7 @@ public class ColumnActivityText
 	public ColumnActivityText(String tableID) {
 		super(COLUMN_ID, tableID);
 
-		initializeAsGraphic(480);
+		initializeAsGraphic(600);
 		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 		colorLinkNormal = skinProperties.getColor("color.links.normal");
 		colorLinkHover = skinProperties.getColor("color.links.hover");

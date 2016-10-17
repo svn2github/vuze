@@ -588,13 +588,17 @@ SubscriptionManagerUI
 
 								Map<String,String>	cb_data = new HashMap<String, String>();
 								
+								cb_data.put( "subname", sub.getName());
+								
 								cb_data.put( "subid", sub.getID());
 								
 								LocalActivityManager.addLocalActivity(
 									"Website:" + sub.getID(),
 									"rss",
-									"Website subscription found: '" + chat_key.substring( 0, pos+7 ) + "'. Subscribe for updates?",
-									"Subscribe",
+									MessageText.getString(
+										"subs.activity.website.found",
+										new String[]{ sub.getName() }),
+									MessageText.getString( "subscriptions.listwindow.subscribe" ),
 									ActivityCallback.class,
 									cb_data );
 							}
@@ -615,7 +619,118 @@ SubscriptionManagerUI
 		actionSelected(
 			String action, Map<String, String> data) 
 		{
-			System.out.println( "CB: " + action + "/" + data );
+			SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+			
+			String sub_id = (String)data.get( "subid" );
+			
+			final Subscription sub = subs_man.getSubscriptionByID( sub_id );
+			
+			if ( sub != null ){
+				
+				TagManager tag_man = TagManagerFactory.getTagManager();
+				
+				if ( tag_man != null && tag_man.isEnabled()){
+					
+					try{
+						String tag_name = sub.getName() + ": " + MessageText.getString( "label.versions" );
+						
+						TagType tt = tag_man.getTagType( TagType.TT_DOWNLOAD_MANUAL );
+						
+						Tag tag = tt.getTag( tag_name, true );
+						
+						if ( tag == null ){
+							
+							tag = tt.createTag( tag_name, true );
+						}
+						
+						TagFeatureLimits tfl = (TagFeatureLimits)tag;
+						
+						tfl.setMaximumTaggables( 5 );
+					
+						tfl.setRemovalStrategy( TagFeatureLimits.RS_DELETE_FROM_COMPUTER );
+					
+						sub.setTagID( tag.getTagUID());
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+				
+				SubscriptionHistory history = sub.getHistory();
+				
+				history.setCheckFrequencyMins( 10 );
+				
+				history.setMaxNonDeletedResults( 20 );
+				
+				history.setAutoDownload( true );
+				
+				SubscriptionResult[] results = sub.getResults( false );
+				
+				if ( results.length > 0 ){
+					
+					results[results.length-1].setRead( false );
+
+					for ( int i=0;i<results.length-1;i++){
+						
+						results[i].setRead( true );
+					}
+				}else{
+					
+					sub.addListener(
+						new SubscriptionListener() 
+						{
+							public void 
+							subscriptionDownloaded(
+								Subscription subs, boolean auto ) 
+							{
+								SubscriptionResult[] results = subs.getResults( false );
+								
+								if ( results.length > 0 ){
+									
+									sub.removeListener( this );
+	
+									results[results.length-1].setRead( false );
+	
+									for ( int i=0;i<results.length-1;i++){
+										
+										results[i].setRead( true );
+									}
+								}
+							}
+							
+							public void 
+							subscriptionChanged(
+								Subscription subs) 
+							{
+							}
+						});
+				}
+				
+				sub.setSubscribed( true );
+			
+				sub.requestAttention();
+				
+			}else{
+				
+				MessageBoxShell mb = 
+						new MessageBoxShell(
+							MessageText.getString("subs.deleted.title"),
+							MessageText.getString("subs.deleted.msg",
+								new String[]{
+									(String)data.get( "subname" )
+								}),
+							new String[] {
+								MessageText.getString("Button.ok"),
+							},
+							0 );
+					
+					mb.open(new UserPrompterResultListener() {
+						public void prompterClosed(int result) {
+
+						}
+					});
+			}
 		}	
 	}
 	
