@@ -313,13 +313,13 @@ SubscriptionSchedulerImpl
 	public void
 	download(
 		final Subscription			subs,
-		final SubscriptionResult	result )
+		final SubscriptionResult	original_result )
 	{
-		String download_link = result.getDownloadLink();
+		String download_link = original_result.getDownloadLink();
 		
 		if ( download_link == null ){
 			
-			log( subs.getName() + ": can't download " + result.getID() + " as no direct download link available" );
+			log( subs.getName() + ": can't download " + original_result.getID() + " as no direct download link available" );
 			
 			return;
 		}
@@ -336,7 +336,7 @@ SubscriptionSchedulerImpl
 			download_link = cn.appendURLSuffix( download_link, false, true );
 		}
 		
-		final String	key = subs.getID() + ":" + result.getID();
+		final String	key = subs.getID() + ":" + original_result.getID();
 		final String	dl	= download_link;
 		
 		synchronized( active_result_downloaders ){
@@ -346,7 +346,7 @@ SubscriptionSchedulerImpl
 				return;
 			}
 		
-			log( subs.getName() + ": queued result for download - " + result.getID() + "/" + download_link );
+			log( subs.getName() + ": queued result for download - " + original_result.getID() + "/" + download_link );
 			
 			active_result_downloaders.add( key );
 			
@@ -355,169 +355,188 @@ SubscriptionSchedulerImpl
 				{
 					public void 
 					runSupport() 
-					{
+					{	
+							// need to fix up to the latest history due to the lazy nature of things :(
+						
+						SubscriptionResult result = subs.getHistory().getResult( original_result.getID());
+					
 						boolean	success = false;
 
 						try{
-							boolean	retry = true;
-						
-							boolean	use_ref			= subs.getHistory().getDownloadWithReferer();
-							
-							boolean tried_ref_switch = false;
-														
-							while( retry ){
+							if ( result == null ){
 								
-								retry = false;
+								log( subs.getName() + ": result has been deleted - " + original_result.getID());
+
+								success = true;
+								
+							}else if ( result.getRead()){
+								
+								log( subs.getName() + ": result already marked as read, skipping - " + result.getID());
+
+								success = true;
+								
+							}else{
+
+								boolean	retry = true;
 							
-								try{
-									TorrentUtils.setTLSDescription( "Subscription: " + subs.getName());
-
-									URL original_url = new URL(dl);
-													
-									PluginProxy plugin_proxy 	= null;
-									URL			current_url 	= original_url;
-									
-									Torrent torrent = null;
-									
-									try{
-
-										while( true ){
-											
-											try{
-												ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
-												
-												ResourceDownloader url_rd = rdf.create( current_url, plugin_proxy==null?null:plugin_proxy.getProxy());
-												
-												if ( plugin_proxy != null ){
-													
-													url_rd.setProperty( "URL_HOST", original_url.getHost());
-												}
-																										
-												String referer = use_ref?subs.getReferer():null;
-												
-												UrlUtils.setBrowserHeaders( url_rd, referer );
-												
-												Engine engine = subs.getEngine();
-												
-												if ( engine instanceof WebEngine ){
-													
-													WebEngine we = (WebEngine)engine;
-													
-													if ( we.isNeedsAuth()){
-														
-														String cookies = we.getCookies();
-														
-														if ( cookies != null && cookies.length() > 0 ){
+								boolean	use_ref			= subs.getHistory().getDownloadWithReferer();
+								
+								boolean tried_ref_switch = false;
 															
-															url_rd.setProperty( "URL_Cookie", cookies );
+								while( retry ){
+									
+									retry = false;
+								
+									try{
+										TorrentUtils.setTLSDescription( "Subscription: " + subs.getName());
+	
+										URL original_url = new URL(dl);
+														
+										PluginProxy plugin_proxy 	= null;
+										URL			current_url 	= original_url;
+										
+										Torrent torrent = null;
+										
+										try{
+	
+											while( true ){
+												
+												try{
+													ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
+													
+													ResourceDownloader url_rd = rdf.create( current_url, plugin_proxy==null?null:plugin_proxy.getProxy());
+													
+													if ( plugin_proxy != null ){
+														
+														url_rd.setProperty( "URL_HOST", original_url.getHost());
+													}
+																											
+													String referer = use_ref?subs.getReferer():null;
+													
+													UrlUtils.setBrowserHeaders( url_rd, referer );
+													
+													Engine engine = subs.getEngine();
+													
+													if ( engine instanceof WebEngine ){
+														
+														WebEngine we = (WebEngine)engine;
+														
+														if ( we.isNeedsAuth()){
+															
+															String cookies = we.getCookies();
+															
+															if ( cookies != null && cookies.length() > 0 ){
+																
+																url_rd.setProperty( "URL_Cookie", cookies );
+															}
 														}
 													}
-												}
-												
-												ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
-					
-												InputStream is = mr_rd.download();
-					
-												torrent = new TorrentImpl( TOTorrentFactory.deserialiseFromBEncodedInputStream( is ));
-												
-												break;
-												
-											}catch( Throwable e ){
-												
-												if ( plugin_proxy == null ){
 													
-													plugin_proxy = AEProxyFactory.getPluginProxy( "Subscription result download", original_url );
-												
-													if ( plugin_proxy != null ){
+													ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
+						
+													InputStream is = mr_rd.download();
+						
+													torrent = new TorrentImpl( TOTorrentFactory.deserialiseFromBEncodedInputStream( is ));
 													
-														current_url = plugin_proxy.getURL();
+													break;
+													
+												}catch( Throwable e ){
+													
+													if ( plugin_proxy == null ){
 														
-														continue;
+														plugin_proxy = AEProxyFactory.getPluginProxy( "Subscription result download", original_url );
+													
+														if ( plugin_proxy != null ){
+														
+															current_url = plugin_proxy.getURL();
+															
+															continue;
+														}
 													}
+													
+													throw( e );
 												}
-												
-												throw( e );
 											}
+										}finally{
+											
+											if ( plugin_proxy != null ){
+												
+												plugin_proxy.setOK( torrent != null);
+											}					
+											
+										}
+										
+										byte[] hash = torrent.getHash();
+										
+										// PlatformTorrentUtils.setContentTitle(torrent, torr );
+								
+										DownloadManager dm = PluginInitializer.getDefaultInterface().getDownloadManager();
+										
+										Download	download;
+										
+											// if we're assigning a tag/networks then we need to add it stopped in case the tag has any pre-start actions (e.g. set initial save location)
+											// this is because the assignments are done in SubscriptionManagerImpl on the download(willbe)added event
+										
+										boolean	stop_override = subs.getTagID() >= 0 || subs.getHistory().getDownloadNetworks() != null;
+										
+										
+										boolean auto_start = manager.shouldAutoStart( torrent );
+										
+										manager.addPrepareTrigger( hash, new Subscription[]{ subs }, new SubscriptionResult[]{ result } );
+										
+										try{
+											if ( auto_start && !stop_override ){
+											
+												download = dm.addDownload( torrent );
+												
+											}else{
+											
+												download = dm.addDownloadStopped( torrent, null, null );
+											}
+										}finally{
+											
+											manager.removePrepareTrigger( hash );
+										}
+										
+										log( subs.getName() + ": added download " + download.getName()+ ": auto-start=" + auto_start );
+	
+											// maybe remove this as should be actioned in the trigger?
+										
+										manager.prepareDownload(download, new Subscription[]{ subs }, new SubscriptionResult[]{ result });
+										
+										subs.addAssociation( hash );
+										
+										if ( auto_start && stop_override ){
+											
+											download.restart();
+										}
+										
+										result.setRead( true );
+											
+										success = true;
+										
+										if ( tried_ref_switch ){
+											
+											subs.getHistory().setDownloadWithReferer( use_ref );
+										}
+									}catch( Throwable e ){
+										
+										log( subs.getName() + ": Failed to download result " + dl, e );
+										
+										if ( e instanceof TOTorrentException && !tried_ref_switch ){
+											
+											use_ref 			= !use_ref;
+											
+											tried_ref_switch	= true;
+											
+											retry				= true;
+											
+											log( subs.getName() + ": Retrying " + (use_ref?"with referer":"without referer" ));
 										}
 									}finally{
 										
-										if ( plugin_proxy != null ){
-											
-											plugin_proxy.setOK( torrent != null);
-										}					
-										
+										TorrentUtils.setTLSDescription( null );
 									}
-									
-									byte[] hash = torrent.getHash();
-									
-									// PlatformTorrentUtils.setContentTitle(torrent, torr );
-							
-									DownloadManager dm = PluginInitializer.getDefaultInterface().getDownloadManager();
-									
-									Download	download;
-									
-										// if we're assigning a tag/networks then we need to add it stopped in case the tag has any pre-start actions (e.g. set initial save location)
-										// this is because the assignments are done in SubscriptionManagerImpl on the download(willbe)added event
-									
-									boolean	stop_override = subs.getTagID() >= 0 || subs.getHistory().getDownloadNetworks() != null;
-									
-									
-									boolean auto_start = manager.shouldAutoStart( torrent );
-									
-									manager.addPrepareTrigger( hash, new Subscription[]{ subs }, new SubscriptionResult[]{ result } );
-									
-									try{
-										if ( auto_start && !stop_override ){
-										
-											download = dm.addDownload( torrent );
-											
-										}else{
-										
-											download = dm.addDownloadStopped( torrent, null, null );
-										}
-									}finally{
-										
-										manager.removePrepareTrigger( hash );
-									}
-									
-									log( subs.getName() + ": added download " + download.getName()+ ": auto-start=" + auto_start );
-
-										// maybe remove this as should be actioned in the trigger?
-									
-									manager.prepareDownload(download, new Subscription[]{ subs }, new SubscriptionResult[]{ result });
-									
-									subs.addAssociation( hash );
-									
-									if ( auto_start && stop_override ){
-										
-										download.restart();
-									}
-									
-									result.setRead( true );
-										
-									success = true;
-									
-									if ( tried_ref_switch ){
-										
-										subs.getHistory().setDownloadWithReferer( use_ref );
-									}
-								}catch( Throwable e ){
-									
-									log( subs.getName() + ": Failed to download result " + dl, e );
-									
-									if ( e instanceof TOTorrentException && !tried_ref_switch ){
-										
-										use_ref 			= !use_ref;
-										
-										tried_ref_switch	= true;
-										
-										retry				= true;
-										
-										log( subs.getName() + ": Retrying " + (use_ref?"with referer":"without referer" ));
-									}
-								}finally{
-									
-									TorrentUtils.setTLSDescription( null );
 								}
 							}
 						}finally{

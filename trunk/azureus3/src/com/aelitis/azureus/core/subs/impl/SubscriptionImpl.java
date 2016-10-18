@@ -71,9 +71,6 @@ public class
 SubscriptionImpl 
 	implements Subscription 
 {
-	public static final int	ADD_TYPE_CREATE		= 1;
-	public static final int	ADD_TYPE_IMPORT		= 2;
-	public static final int	ADD_TYPE_LOOKUP		= 3;
 		
 	private static final int MAX_ASSOCIATIONS;
 	
@@ -871,6 +868,12 @@ SubscriptionImpl
 	getAddTime()
 	{
 		return( add_time );
+	}
+	
+	public int
+	getAddType()
+	{
+		return( add_type );
 	}
 	
 	public boolean

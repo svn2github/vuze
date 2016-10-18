@@ -33,6 +33,10 @@ Subscription
 	
 	public static final Object	VUZE_FILE_COMPONENT_SUBSCRIPTION_KEY = new Object();
 
+	public static final int	ADD_TYPE_CREATE		= 1;
+	public static final int	ADD_TYPE_IMPORT		= 2;
+	public static final int	ADD_TYPE_LOOKUP		= 3;
+
 		/**
 		 * Returns local name if set
 		 * @return
@@ -72,6 +76,9 @@ Subscription
 
 	public long
 	getAddTime();
+	
+	public int
+	getAddType();
 	
 	public int
 	getHighestVersion();

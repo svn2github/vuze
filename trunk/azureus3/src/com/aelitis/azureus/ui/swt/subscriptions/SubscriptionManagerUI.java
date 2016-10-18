@@ -542,7 +542,12 @@ SubscriptionManagerUI
 	checkSubscriptionForStuff(
 		Subscription	sub )
 	{
-		if ( sub.isSubscribed() || sub.isSearchTemplate()){
+		if ( sub.isSearchTemplate()){
+			
+			return;
+		}
+		
+		if ( sub.isSubscribed() && sub.getAddType() != Subscription.ADD_TYPE_IMPORT ){
 			
 			return;
 		}
