@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
@@ -1079,6 +1080,9 @@ TagPropertyConstraintHandler
 		private static final int	KW_SEEDING_FOR 		= 4;
 		private static final int	KW_SWARM_MERGE 		= 5;
 		private static final int	KW_LAST_ACTIVE 		= 6;
+		private static final int	KW_SEED_COUNT 		= 7;
+		private static final int	KW_PEER_COUNT 		= 8;
+		private static final int	KW_SEED_PEER_RATIO 	= 9;
 		
 		static{
 			keyword_map.put( "shareratio", KW_SHARE_RATIO );
@@ -1093,7 +1097,12 @@ TagPropertyConstraintHandler
 			keyword_map.put( "swarm_merge_bytes", KW_SWARM_MERGE );
 			keyword_map.put( "lastactive", KW_LAST_ACTIVE );
 			keyword_map.put( "last_active", KW_LAST_ACTIVE );
-
+			keyword_map.put( "seedcount", KW_SEED_COUNT );
+			keyword_map.put( "seed_count", KW_SEED_COUNT );
+			keyword_map.put( "peercount", KW_PEER_COUNT );
+			keyword_map.put( "peer_count", KW_PEER_COUNT );
+			keyword_map.put( "seedpeerratio", KW_SEED_PEER_RATIO );
+			keyword_map.put( "seed_peer_ratio", KW_SEED_PEER_RATIO );
 		}
 		
 		private class
@@ -1494,7 +1503,7 @@ TagPropertyConstraintHandler
 						}
 						
 						switch( kw ){
-							case KW_SHARE_RATIO:
+							case KW_SHARE_RATIO:{
 								result = null;	// don't cache this!
 								
 								int sr = dm.getStats().getShareRatio();
@@ -1507,7 +1516,8 @@ TagPropertyConstraintHandler
 									
 									return( new Float( sr/1000.0f ));
 								}
-							case KW_PERCENT:
+							}
+							case KW_PERCENT:{
 							
 								result = null;	// don't cache this!
 								
@@ -1516,8 +1526,8 @@ TagPropertyConstraintHandler
 								int percent = dm.getStats().getPercentDoneExcludingDND();
 			
 								return( new Float( percent/10.0f ));
-							
-							case KW_AGE:
+							}
+							case KW_AGE:{
 							
 								result = null;	// don't cache this!
 									
@@ -1529,20 +1539,20 @@ TagPropertyConstraintHandler
 								}
 								
 								return(( SystemTime.getCurrentTime() - added )/1000 );		// secs
-							
-							case KW_DOWNLOADING_FOR:
+							}
+							case KW_DOWNLOADING_FOR:{
 							
 								result = null;	// don't cache this!
 								
 								return( dm.getStats().getSecondsDownloading());
-							
-							case KW_SEEDING_FOR:
+							}
+							case KW_SEEDING_FOR:{
 								
 								result = null;	// don't cache this!
 								
 								return( dm.getStats().getSecondsOnlySeeding());
-							
-							case KW_LAST_ACTIVE:
+							}
+							case KW_LAST_ACTIVE:{
 								
 								result = null;	// don't cache this!
 								
@@ -1556,18 +1566,90 @@ TagPropertyConstraintHandler
 								}
 								
 								return(( SystemTime.getCurrentTime() - timestamp )/1000 );
-							
-							case KW_SWARM_MERGE:
+							}
+							case KW_SWARM_MERGE:{
 								
 								result = null;	// don't cache this!
 								
 								return( dm.getDownloadState().getLongAttribute( DownloadManagerState.AT_MERGED_DATA ));
+							}
+							case KW_SEED_COUNT:{
 								
-							default:
+								result = null;	// don't cache this!
+
+								TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+								
+								int	seeds = dm.getNbSeeds();
+								
+								if ( response != null && response.isValid()){
+									
+									seeds = Math.max( seeds, response.getSeeds());
+								}
+								
+								return( Math.max( 0, seeds ));
+							}
+							case KW_PEER_COUNT:{
+								
+								result = null;	// don't cache this!
+
+								TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+								
+								int	peers = dm.getNbSeeds();
+								
+								if ( response != null && response.isValid()){
+									
+									peers = Math.max( peers, response.getPeers());
+								}
+								
+								return( Math.max( 0, peers ));
+							}
+							case KW_SEED_PEER_RATIO:{
+								
+								result = null;	// don't cache this!
+
+								TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+								
+								int	seeds = dm.getNbSeeds();
+								int	peers = dm.getNbSeeds();
+
+								if ( response != null && response.isValid()){
+									
+									seeds = Math.max( seeds, response.getSeeds());
+									peers = Math.max( peers, response.getPeers());
+								}
+								
+								float ratio;
+								
+								if ( peers < 0 || seeds < 0 ){
+									
+									ratio = 0;
+									
+								}else{
+									
+									if ( peers == 0 ){
+										
+										if ( seeds == 0 ){
+											
+											ratio = 0;
+											
+										}else{
+											
+											ratio = Float.MAX_VALUE;
+										}
+									}else{
+										
+										ratio = (float)seeds/peers;
+									}
+								}
+								
+								return( ratio );
+							}
+							default:{
 							
 								Debug.out( "Invalid constraint keyword: " + str );
 							
 								return( result );
+							}
 						}
 					}
 				}catch( Throwable e){
