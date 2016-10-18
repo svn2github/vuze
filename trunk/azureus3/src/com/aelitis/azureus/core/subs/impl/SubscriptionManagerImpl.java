@@ -5047,6 +5047,7 @@ SubscriptionManagerImpl
 
 		boolean	download_found	= false;
 		boolean	changed 		= false;
+		boolean	assoc_added		= false;
 		
 		try{
 			Download download = pi.getDownloadManager().getDownload( association_hash );
@@ -5055,26 +5056,28 @@ SubscriptionManagerImpl
 				
 				download_found = true;
 				
-				Map	map = download.getMapAttribute( ta_subscription_info );
+				Map<String,Object>	map = (Map<String,Object>)download.getMapAttribute( ta_subscription_info );
 				
 				if ( map == null ){
 					
-					map = new LightHashMap();
+					map = new LightHashMap<String,Object>();
 					
 				}else{
 					
-					map = new LightHashMap( map );
+					map = new LightHashMap<String,Object>( map );
 				}
 				
-				List	s = (List)map.get( "s" );
+				List<byte[]>	s = (List<byte[]>)map.get( "s" );
 				
 				for (int i=0;i<subscriptions.length;i++){
 				
-					byte[]	sid = subscriptions[i].getShortID();
+					SubscriptionImpl subscription = subscriptions[i];
+					
+					byte[]	sid = subscription.getShortID();
 					
 					if ( s == null ){
 						
-						s = new ArrayList();
+						s = new ArrayList<byte[]>();
 						
 						s.add( sid );
 						
@@ -5088,7 +5091,7 @@ SubscriptionManagerImpl
 						
 						for (int j=0;j<s.size();j++){
 							
-							byte[]	existing = (byte[])s.get(j);
+							byte[]	existing = s.get(j);
 							
 							if ( Arrays.equals( sid, existing )){
 								
@@ -5102,6 +5105,18 @@ SubscriptionManagerImpl
 						
 							s.add( sid );
 								
+							if ( 	subscription.isSubscribed() && 
+									subscription.isPublic() && 
+									!subscription.isSearchTemplate()){
+								
+									// pick up alternative subscriptions for same download
+								
+								if ( subscription.addAssociationSupport( association_hash, true )){
+									
+									assoc_added = true;
+								}
+							}
+							
 							changed	= true;
 						}
 					}
@@ -5138,6 +5153,11 @@ SubscriptionManagerImpl
 					Debug.printStackTrace(e);
 				}
 			}
+		}
+		
+		if ( assoc_added ){
+			
+			publishAssociations();
 		}
 		
 		return( download_found );

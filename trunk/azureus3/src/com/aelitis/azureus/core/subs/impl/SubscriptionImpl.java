@@ -1704,6 +1704,14 @@ SubscriptionImpl
 			return;
 		}
 		
+		addAssociationSupport( hash, false );
+	}
+	
+	protected boolean
+	addAssociationSupport(
+		byte[]		hash,
+		boolean		internal )
+	{
 		synchronized( this ){
 	
 			for (int i=0;i<associations.size();i++){
@@ -1712,7 +1720,7 @@ SubscriptionImpl
 				
 				if ( Arrays.equals( assoc.getHash(), hash )){
 					
-					return;
+					return( false );
 				}
 			}
 			
@@ -1724,9 +1732,14 @@ SubscriptionImpl
 			}
 		}
 		
-		fireChanged();
+		if ( !internal ){
+			
+			fireChanged();
+			
+			manager.associationAdded( this, hash);
+		}
 		
-		manager.associationAdded( this, hash);
+		return( true );
 	}
 	
 	public boolean
