@@ -595,11 +595,25 @@ public class UrlUtils
 		}
 		
 		// accept raw hash of 40 hex chars
-		if (accept_magnets && text_prefix.matches("^[a-fA-F0-9]{40}$")) {
-			// convert from HEX to raw bytes
-			byte[] infohash = ByteFormatter.decodeString(text_prefix.toUpperCase());
-			// convert to BASE32
-			return "magnet:?xt=urn:btih:" + Base32.encode(infohash) + text_suffix;
+		if (accept_magnets ){
+			
+			if ( text_prefix.matches("^[a-fA-F0-9]{40}$")) {
+		
+				// convert from HEX to raw bytes
+				byte[] infohash = ByteFormatter.decodeString(text_prefix.toUpperCase());
+				// convert to BASE32
+				return "magnet:?xt=urn:btih:" + Base32.encode(infohash) + text_suffix;
+			}
+			
+			String temp_text = text_prefix.replaceAll( "\\s+", "" );
+			
+			if ( temp_text.matches("^[a-fA-F0-9]{40}$")) {
+				
+				// convert from HEX to raw bytes
+				byte[] infohash = ByteFormatter.decodeString(temp_text.toUpperCase());
+				// convert to BASE32
+				return "magnet:?xt=urn:btih:" + Base32.encode(infohash) + text_suffix;
+			}
 		}
 
 		// accept raw hash of 32 base-32 chars
@@ -647,7 +661,15 @@ public class UrlUtils
 			// convert to BASE32
 			return "magnet:?xt=urn:btih:" + Base32.encode(infohash);
 		}
-
+		
+		String temp_text = text.replaceAll( "\\s+", "" );
+		if (temp_text.matches("^[a-fA-F0-9]{40}$")) {
+			// convert from HEX to raw bytes
+			byte[] infohash = ByteFormatter.decodeString(temp_text.toUpperCase());
+			// convert to BASE32
+			return "magnet:?xt=urn:btih:" + Base32.encode(infohash);
+		}
+		
 		// accept raw hash of 32 base-32 chars
 		if (text.matches("^[a-zA-Z2-7]{32}$")) {
 			return "magnet:?xt=urn:btih:" + text;
