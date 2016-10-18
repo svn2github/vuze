@@ -1152,6 +1152,13 @@ TagManagerImpl
 				
 				provider_found = true;
 				
+				Download plugin_dm = PluginCoreUtils.wrap( dm );
+				
+				if ( plugin_dm == null ){
+					
+					return( null );	// deleted in the meantime
+				}
+				
 				Map<String,Object>	bindings = new HashMap<String, Object>();
 				
 				
@@ -1166,7 +1173,7 @@ TagManagerImpl
 
 				bindings.put( "intent", intent );
 
-				bindings.put( "download", PluginCoreUtils.wrap( dm ));
+				bindings.put( "download", plugin_dm );
 				
 				bindings.put( "tag", tag );
 										
