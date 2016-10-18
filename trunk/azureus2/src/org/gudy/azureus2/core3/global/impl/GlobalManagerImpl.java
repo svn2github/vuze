@@ -2533,6 +2533,8 @@ public class GlobalManagerImpl
 		  
 		  triggerAddListener( dms );
 		  
+		  taggable_life_manager.taggableCreated( dm );
+
           if ( host_support != null ){
           	
           	host_support.torrentAdded( dm.getTorrentFileName(), dm.getTorrent());
