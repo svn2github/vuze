@@ -612,7 +612,7 @@ SubscriptionManagerUI
 				}
 			}
 		}catch( Throwable e ){
-			e.printStackTrace();
+			// ignore, nothing to see!
 		}
 	}
 
