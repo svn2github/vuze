@@ -22,9 +22,12 @@
 
 package com.aelitis.azureus.plugins;
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -70,14 +73,35 @@ I2PHelpers
 		return installI2PHelper(null, remember_id, install_outcome, callback);
 	}
 
+	private static Map<String,Long>	declines = new HashMap<String, Long>();
+	
 	public static boolean
 	installI2PHelper(
-		String extra_text,
+		String				extra_text,
 		String				remember_id,
 		final boolean[]		install_outcome,
 		final Runnable		callback )
 	{
+		String decline_key = remember_id;
+		
+		if ( decline_key == null ){
+			
+			decline_key = extra_text;
+		}
+		
+		if ( decline_key == null ){
+			
+			decline_key = "generic";
+		}
+		
 		synchronized( i2p_install_lock ){
+			
+			Long decline = declines.get( decline_key );
+			
+			if ( decline != null && SystemTime.getMonotonousTime() - decline < 60*1000 ){
+				
+				return( false );
+			}
 			
 			if ( i2p_installing ){
 				
@@ -89,7 +113,9 @@ I2PHelpers
 			i2p_installing = true;
 		}
 		
-		boolean	installing = false;
+		boolean	installing 	= false;
+		
+		boolean	declined	= false;
 		
 		try{
 			UIFunctions uif = UIFunctionsManager.getUIFunctions();
@@ -104,9 +130,12 @@ I2PHelpers
 			String title = MessageText.getString("azneti2phelper.install");
 			
 			String text = "";
-			if (extra_text != null) {
+			
+			if ( extra_text != null ){
+				
 				text = extra_text + "\n\n";
 			}
+			
 			text += MessageText.getString("azneti2phelper.install.text" );
 			
 			UIFunctionsUserPrompter prompter = uif.getUserPrompter(title, text, new String[] {
@@ -163,6 +192,8 @@ I2PHelpers
 			
 			}else{
 				
+				declined = true;
+				
 				Debug.out( "I2P Helper install declined (either user reply or auto-remembered)" );
 			}
 			
@@ -170,11 +201,17 @@ I2PHelpers
 			
 		}finally{
 			
-			if ( !installing ){
 			
-				synchronized( i2p_install_lock ){
-					
+			synchronized( i2p_install_lock ){
+				
+				if ( !installing ){
+
 					i2p_installing = false;
+				}
+				
+				if ( declined ){
+					
+					declines.put( decline_key, SystemTime.getMonotonousTime());
 				}
 			}
 		}
