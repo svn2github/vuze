@@ -90,6 +90,7 @@ public class VuzeActivitiesEntry
 	private String[]			actions;
 	private String				callback_class;
 	private Map<String,String>	callback_data;
+	private boolean				viewed;
 	
 	private GlobalManager gm = null;
 	
@@ -152,6 +153,8 @@ public class VuzeActivitiesEntry
 		callback_class 	= MapUtils.getMapString( map, "cb_class", null );
 		callback_data	= (Map<String,String>)BDecoder.decodeStrings((Map)map.get( "cb_data" ));
 		
+		viewed = MapUtils.getMapBoolean(map, "viewed", false);
+
 		loadCommonFromMap(map);
 	}
 
@@ -336,6 +339,8 @@ public class VuzeActivitiesEntry
 		if ( callback_data != null ){
 			map.put( "cb_data", callback_data );
 		}
+		
+		map.put( "viewed", viewed?1:0 );
 		
 		return map;
 	}
@@ -636,6 +641,21 @@ public class VuzeActivitiesEntry
 	
 	public boolean isRead() {
 		return readOn > 0;
+	}
+	
+	public void
+	setViewed()
+	{
+		if ( !viewed ){
+			viewed = true;
+			VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);
+		}
+	}
+	
+	public boolean
+	getViewed()
+	{
+		return( viewed );
 	}
 	
 	public boolean canFlipRead() {

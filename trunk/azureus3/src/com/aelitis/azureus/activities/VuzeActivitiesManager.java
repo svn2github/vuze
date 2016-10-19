@@ -28,6 +28,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -51,7 +52,7 @@ public class VuzeActivitiesManager
 	private static ArrayList<VuzeActivitiesLoadedListener> listenersLoaded = new ArrayList<VuzeActivitiesLoadedListener>();
 	private static final Object listenersLoadedLock = new Object();
 			
-	private static ArrayList<VuzeActivitiesEntry> allEntries = new ArrayList<VuzeActivitiesEntry>();
+	private static CopyOnWriteList<VuzeActivitiesEntry> allEntries = new CopyOnWriteList<VuzeActivitiesEntry>();
 
 	private static AEMonitor allEntries_mon = new AEMonitor("VuzeActivityMan");
 
@@ -391,9 +392,8 @@ public class VuzeActivitiesManager
 
 			List<Object> entriesList = new ArrayList<Object>();
 
-			VuzeActivitiesEntry[] allEntriesArray = getAllEntries();
-			for (int i = 0; i < allEntriesArray.length; i++) {
-				VuzeActivitiesEntry entry = allEntriesArray[i];
+			List<VuzeActivitiesEntry> allEntries = getAllEntries();
+			for ( VuzeActivitiesEntry entry: allEntries ){
 				if (entry == null) {
 					continue;
 				}
@@ -577,8 +577,8 @@ public class VuzeActivitiesManager
 		return false;
 	}
 
-	public static VuzeActivitiesEntry[] getAllEntries() {
-		return allEntries.toArray(new VuzeActivitiesEntry[allEntries.size()]);
+	public static List<VuzeActivitiesEntry> getAllEntries() {
+		return allEntries.getList();
 	}
 	
 	public static int getNumEntries() {

@@ -29,7 +29,6 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -185,7 +184,7 @@ public class SBC_ActivityTableView
 
 		view.addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {
-				view.addDataSources(VuzeActivitiesManager.getAllEntries());
+				view.addDataSources(VuzeActivitiesManager.getAllEntries().toArray( new VuzeActivitiesEntry[0]));
 			}
 
 			public void tableViewDestroyed() {
@@ -385,24 +384,89 @@ public class SBC_ActivityTableView
 	public static void setupSidebarEntry(final MultipleDocumentInterface mdi) {
 		// Put TitleInfo in another class
 		final ViewTitleInfo titleInfoActivityView = new ViewTitleInfo() {
+			boolean	had_unviewed = false;
 			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_INDICATOR_TEXT) {
-					int count = 0;
-					VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
-					for (int i = 0; i < allEntries.length; i++) {
-						VuzeActivitiesEntry entry = allEntries[i];
-						if (!entry.isRead()) {
-							count++;
+					int num_unread		= 0;
+					int num_unviewed	= 0;
+					List<VuzeActivitiesEntry> allEntries = VuzeActivitiesManager.getAllEntries();
+					
+					for (VuzeActivitiesEntry entry: allEntries ){
+						
+						if ( !entry.isRead()){
+							
+							num_unread++;
+						}
+						
+						if ( !entry.getViewed()){
+							
+							num_unviewed++;	
 						}
 					}
-					if (count > 0) {
-						return "" + count;
+					
+					if ( num_unread == 0 ){
+						
+						num_unviewed = 0;
+					}
+					
+					boolean has_unviewed = num_unviewed > 0;
+					
+					if ( has_unviewed != had_unviewed ){
+						
+						if ( has_unviewed ){
+							
+							MdiEntry parent = mdi.getEntry( MultipleDocumentInterface.SIDEBAR_HEADER_VUZE );
+							
+							if ( parent != null && !parent.isExpanded()){
+								
+								parent.setExpanded( true );
+							}
+						}
+						
+						had_unviewed = has_unviewed;
+					}
+					
+					if ( num_unviewed > 0 ){
+						
+						return( String.valueOf( num_unviewed ) + ( num_unread==0?"":(":"+num_unread)));
+						
+					}else if ( num_unread > 0 ){
+						
+						return( String.valueOf( num_unread ));
 					}
 
 					return null;
-				} else if (propertyID == TITLE_IMAGEID) {
+					
+				}else if ( propertyID == TITLE_IMAGEID ){
+					
 					return "image.sidebar.activity";
+					
+				}else if ( propertyID ==  ViewTitleInfo.TITLE_INDICATOR_COLOR ){
+					
+					boolean has_unread		= false;
+					boolean has_unviewed 	= false;
+					
+					List<VuzeActivitiesEntry> allEntries = VuzeActivitiesManager.getAllEntries();
+					
+					for ( VuzeActivitiesEntry entry: allEntries ){
+						
+						if ( !entry.isRead()){
+							
+							has_unread = true;
+						}
+						
+						if ( !entry.getViewed()){
+							
+							has_unviewed = true;
+						}
+					}
+					
+					if ( has_unread && has_unviewed ){
+						
+						return( new int[]{ 160, 96, 96 });
+					}
 				}
+				
 				return null;
 			}
 		};
@@ -440,9 +504,8 @@ public class SBC_ActivityTableView
 				"v3.activity.button.readall");
 		menuItem.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
-				VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
-				for (int i = 0; i < allEntries.length; i++) {
-					VuzeActivitiesEntry entry = allEntries[i];
+				List<VuzeActivitiesEntry> allEntries = VuzeActivitiesManager.getAllEntries();
+				for (VuzeActivitiesEntry entry: allEntries ){
 					entry.setRead(true);
 				}
 			}

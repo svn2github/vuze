@@ -113,6 +113,8 @@ public class ColumnActivityText
 		String text = entry.getText();
 		Rectangle drawBounds = getDrawBounds(cell);
 		
+		entry.setViewed();
+		
 		if (!entry.isRead()) {
 			if (font == null) {
 				FontData[] fontData = gc.getFont().getFontData();

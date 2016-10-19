@@ -20,6 +20,8 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -104,9 +106,8 @@ public class SBC_ActivityView
 			btnReadAll.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility,
 						SWTSkinObject skinObject, int stateMask) {
-					VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
-					for (int i = 0; i < allEntries.length; i++) {
-						VuzeActivitiesEntry entry = allEntries[i];
+					List<VuzeActivitiesEntry> allEntries = VuzeActivitiesManager.getAllEntries();
+					for (VuzeActivitiesEntry entry: allEntries ){
 						entry.setRead(true);
 					}
 				}

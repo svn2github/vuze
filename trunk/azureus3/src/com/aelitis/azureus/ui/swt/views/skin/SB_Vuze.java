@@ -141,6 +141,24 @@ public class SB_Vuze
 				if (sb.length() > 0) {
 					return sb.toString();
 				}
+			}else if (propertyID == ViewTitleInfo.TITLE_INDICATOR_COLOR) {
+				if (entry.isExpanded()) {
+					return null;
+				}
+				MdiEntry[] entries = entry.getMDI().getEntries();
+				for (MdiEntry subEntry : entries) {
+					if (entry.getId().equals(subEntry.getParentID())) {
+						ViewTitleInfo titleInfo = subEntry.getViewTitleInfo();
+						if (titleInfo != null) {
+							Object color = titleInfo.getTitleInfoProperty(
+									TITLE_INDICATOR_COLOR);
+							if ( color instanceof int[]) {
+								return( color );
+							}
+						}
+					}
+				}
+				return( null );
 			}
 			return null;
 		}
