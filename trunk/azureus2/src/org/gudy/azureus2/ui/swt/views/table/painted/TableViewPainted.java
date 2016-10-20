@@ -20,6 +20,7 @@ package org.gudy.azureus2.ui.swt.views.table.painted;
 
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -170,20 +171,30 @@ public class TableViewPainted
 	
 	private Canvas sCanvasImage;
 
-	class RefreshTableRunnable extends AERunnable {
-		private boolean forceSort;
+	private class 
+	RefreshTableRunnable 
+		extends AERunnable 
+	{
+		private AtomicBoolean	forceSortPending = new AtomicBoolean();
+		
 		public void runSupport() {
-			__refreshTable(isForceSort());
+			__refreshTable(forceSortPending.getAndSet( false ));
 		}
-		public boolean isForceSort() {
-			return forceSort;
-		}
-		public void setForceSort(boolean forceSort) {
-			this.forceSort = forceSort;
+		public void setForceSort(boolean fs){
+			if ( fs ){
+				forceSortPending.set( true);
+			}
 		}
 	}
 	
 	private RefreshTableRunnable refreshTableRunnable = new RefreshTableRunnable();
+
+	private FrequencyLimitedDispatcher	dispatcher = 
+			new FrequencyLimitedDispatcher( refreshTableRunnable, 250 );
+
+	{
+		dispatcher.setSingleThreaded();
+	}
 
 	protected boolean isFocused;
 
@@ -629,16 +640,13 @@ public class TableViewPainted
 		return cTable == null || cTable.isDisposed();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.table.TableView#refreshTable(boolean)
-	 */
+
 	public void refreshTable(final boolean bForceSort) {
-		//__refreshTable(bForceSort);
 		refreshTableRunnable.setForceSort(bForceSort);
-		Utils.getOffOfSWTThread(refreshTableRunnable);
+		dispatcher.dispatch();
 	}
 
-	public void __refreshTable(boolean bForceSort) {
+	private void __refreshTable(boolean bForceSort) {
 		long lStart = SystemTime.getCurrentTime();
 		super.refreshTable(bForceSort);
 
