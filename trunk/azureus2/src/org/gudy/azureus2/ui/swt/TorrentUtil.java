@@ -2170,7 +2170,7 @@ public class TorrentUtil
 
 			DirectoryDialog dd = new DirectoryDialog(shell);
 
-			String filter_path = TorrentOpener.getFilterPathTorrent();
+			String filter_path = TorrentOpener.getFilterPathData();
 
 			// If we don't have a decent path, default to the path of the first
 			// torrent.
