@@ -64,6 +64,7 @@ public class BTPeerIDByteDecoderDefinitions {
 	static String VER_TWO_BYTE_THREE_PART = "ab -> a . b/10 . b%10";
 	static String NO_VERSION = "NO_VERSION";
 	static String VER_BYTE_UM_STYLE = "abcd -> a.b.cd"; 
+	static String VER_BITLORD = "abcdef -> a.b.c-edf";
 	
 	// Used to register client information.
 	private static void addAzStyle(String id, String client) {
@@ -457,6 +458,9 @@ public class BTPeerIDByteDecoderDefinitions {
 
 		client = addSimpleClient("BitTorrent", "-BT");		// BitTorrent 7.9.1 appeared with this: -BTnnn-
 		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 3);
+		
+		client = addSimpleClient("BitLord", "-BL");
+		addVersionedClient(client, VER_BITLORD, 6, 3);
 	}
 	
 	static class ClientData {

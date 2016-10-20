@@ -354,6 +354,11 @@ class BTPeerIDByteDecoderUtils {
 			char[] chars = version_data.toCharArray();
 			
 			return( chars[0] + "." + chars[1] + "." + chars[2] + chars[3] );
+		}else if ( version_scheme == BTPeerIDByteDecoderDefinitions.VER_BITLORD ){
+			
+			char[] chars = version_data.toCharArray();
+			
+			return( chars[0] + "." + chars[1] + "." + chars[2] + "-" + chars[3] + chars[4] + chars[5] );
 		}
 		else {
 			throw new RuntimeException("unknown custom version number scheme - " + version_scheme);

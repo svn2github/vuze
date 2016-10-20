@@ -617,6 +617,8 @@ public class BTPeerIDByteDecoder {
 		
 		assertDecode( "WebTorrent 0.0.6.8", "-WW0068-b9539e1e4f95" );
 		
+		assertDecode( "BitLord 2.4.4-311",  "-BL244311-b9539e1e95" );
+
 		System.out.println("Done.");
 	}
 }
