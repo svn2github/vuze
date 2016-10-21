@@ -47,7 +47,6 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
 import com.aelitis.azureus.activities.*;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
@@ -74,8 +73,8 @@ public class SBC_ActivityTableView
 	extends SkinView
 	implements UIUpdatable, UIPluginViewToolBarListener, VuzeActivitiesListener
 {
-	private static final String TABLE_ID_PREFIX = "activity-";
-
+	private static int[] COLOR_UNVIEWED_ENTRIES = { 132, 16, 58 };
+	
 	private TableViewSWT<VuzeActivitiesEntry> view;
 
 	private String tableID;
@@ -463,7 +462,7 @@ public class SBC_ActivityTableView
 					
 					if ( has_unread && has_unviewed ){
 						
-						return( new int[]{ 160, 96, 96 });
+						return( COLOR_UNVIEWED_ENTRIES );
 					}
 				}
 				

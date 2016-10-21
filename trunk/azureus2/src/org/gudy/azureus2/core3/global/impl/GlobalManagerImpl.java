@@ -3985,7 +3985,7 @@ public class GlobalManagerImpl
 			}
 			
 			if ( tag_error.isColorDefault()){
-				tag_error.setColor( new int[]{ 160, 96, 96 });
+				tag_error.setColor( new int[]{ 132, 16, 58 });
 			}
 			
 			_gm.addListener( 
