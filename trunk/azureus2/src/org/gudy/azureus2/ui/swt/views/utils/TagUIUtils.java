@@ -2378,6 +2378,9 @@ public class TagUIUtils
 		
 		Iterator<Tag> it = tags.iterator();
 		
+		boolean	can_show 	= false;
+		boolean	can_hide	= false;
+		
 		while( it.hasNext()){
 			
 			Tag tag = it.next();
@@ -2385,6 +2388,16 @@ public class TagUIUtils
 			if ( tag.getTagType().getTagType() != TagType.TT_DOWNLOAD_MANUAL ){
 				
 				it.remove();
+			}else{
+				
+				if ( tag.isVisible()){
+					
+					can_hide = true;
+					
+				}else{
+					
+					can_show = true;
+				}
 			}
 		}
 		
@@ -2392,6 +2405,32 @@ public class TagUIUtils
 			
 			return;
 		}
+		
+		MenuItem itemShow = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(itemShow, "Button.bar.show");
+		itemShow.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				for ( Tag tag: tags ){
+					tag.setVisible( true );
+				}
+			}
+		});
+		
+		itemShow.setEnabled( can_show );
+		
+		MenuItem itemHide = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(itemHide, "Button.bar.hide");
+		itemHide.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				for ( Tag tag: tags ){
+					tag.setVisible( false );
+				}
+			}
+		});
+		
+		itemHide.setEnabled( can_hide );
 		
 		MenuItem itemGroup = new MenuItem(menu, SWT.PUSH);
 		
