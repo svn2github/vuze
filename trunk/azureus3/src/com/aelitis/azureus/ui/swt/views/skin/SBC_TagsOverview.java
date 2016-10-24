@@ -23,11 +23,11 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.tag.*;
+import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
@@ -66,6 +67,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectButton;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 import com.aelitis.azureus.ui.swt.utils.TagUIUtilsV3;
 
 /**
@@ -482,23 +484,36 @@ public class SBC_TagsOverview
 		return super.skinObjectHidden(skinObject, params);
 	}
 
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+	public Object 
+	skinObjectShown(SWTSkinObject skinObject, Object params) 
+	{
 		super.skinObjectShown(skinObject, params);
+			
+		SWTSkinObjectTextbox soFilter = (SWTSkinObjectTextbox)getSkinObject( "filterbox" );
+		
+		if ( soFilter != null ){
+		
+			txtFilter = soFilter.getTextControl();
+		}
+		
 		SWTSkinObject so_list = getSkinObject("tags-list");
 
 		if (so_list != null) {
+			
 			initTable((Composite) so_list.getControl());
-		} else {
-			System.out.println("NO tags-list");
+			
+		}else{
+			
 			return null;
 		}
 		
-		if (tv == null) {
+		if ( tv == null ){
+			
 			return null;
 		}
 
 		TagManager tagManager = TagManagerFactory.getTagManager();
+		
 		if (tagManager != null) {
 			
 			if ( !tm_listener_added ){
@@ -555,7 +570,8 @@ public class SBC_TagsOverview
 			tv = TableViewFactory.createTableViewSWT(Tag.class, TABLE_TAGS, TABLE_TAGS,
 					new TableColumnCore[0], ColumnTagName.COLUMN_ID, SWT.MULTI
 							| SWT.FULL_SELECTION | SWT.VIRTUAL);
-			if (txtFilter != null) {
+			
+			if ( txtFilter != null ){
 				tv.enableFilterCheck(txtFilter, this);
 			}
 			tv.setRowDefaultHeightEM(1);
@@ -802,9 +818,23 @@ public class SBC_TagsOverview
 	{	
 	}
 	
-	// @see com.aelitis.azureus.ui.common.table.TableViewFilterCheck#filterCheck(java.lang.Object, java.lang.String, boolean)
 	public boolean filterCheck(Tag ds, String filter, boolean regex) {
-		return false;
+		String name = ds.getTagName( true );
+		
+		String s = regex ? filter : "\\Q" + filter.replaceAll("\\s*[|;]\\s*", "\\\\E|\\\\Q") + "\\E";
+		
+		boolean	match_result = true;
+		
+		if ( regex && s.startsWith( "!" )){
+			
+			s = s.substring(1);
+			
+			match_result = false;
+		}
+		
+		Pattern pattern = RegExUtil.getCachedPattern( "tagsoverview:search", s, Pattern.CASE_INSENSITIVE);
+
+		return( pattern.matcher(name).find() == match_result );
 	}
 
 	// @see com.aelitis.azureus.core.tag.TagManagerListener#tagTypeAdded(com.aelitis.azureus.core.tag.TagManager, com.aelitis.azureus.core.tag.TagType)
