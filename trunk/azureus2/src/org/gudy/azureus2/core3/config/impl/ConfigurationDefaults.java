@@ -176,10 +176,12 @@ public class ConfigurationDefaults {
     def.put( "enable.seedingonly.maxuploads", FALSE );
     def.put( "max.uploads.when.busy.inc.min.secs", new Long( 30 ));
     def.put( "Max Download Speed KBs", ZERO );
+    def.put( "Down Rate Limits Include Protocol", TRUE );
     def.put( "Use Request Limiting", TRUE );
     def.put( "Use Request Limiting Priorities", TRUE );
     def.put( "Max Upload Speed KBs", ZERO);
     def.put( "Max Upload Speed Seeding KBs", ZERO );
+    def.put( "Up Rate Limits Include Protocol", FALSE );
     def.put( "enable.seedingonly.upload.rate", FALSE );
     def.put( "Max Seeds Per Torrent", ZERO);
     

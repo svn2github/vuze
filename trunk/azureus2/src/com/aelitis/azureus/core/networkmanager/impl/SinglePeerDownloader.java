@@ -77,8 +77,16 @@ public class SinglePeerDownloader implements RateControlledEntity {
 
     int bytes_read = 0;
     
+    int data_bytes_read		= 0;
+    int protocol_bytes_read	= 0;
+    
     try {
-      bytes_read = connection.getIncomingMessageQueue().receiveFromTransport( num_bytes_allowed );
+      int[] read = connection.getIncomingMessageQueue().receiveFromTransport( num_bytes_allowed );
+      
+      data_bytes_read 		= read[0];
+      protocol_bytes_read	= read[1];
+      
+      bytes_read = data_bytes_read + protocol_bytes_read;
     }
     catch( Throwable e ) {
       
@@ -110,7 +118,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
       return 0;
     }
     
-    rate_handler.bytesProcessed( bytes_read );
+    rate_handler.bytesProcessed( data_bytes_read, protocol_bytes_read );
     
     return bytes_read;
   }

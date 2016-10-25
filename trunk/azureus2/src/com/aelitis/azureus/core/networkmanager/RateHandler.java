@@ -33,5 +33,5 @@ public interface RateHandler {
    * Notification of any bytes processed by the entity.
    * @param num_bytes_processed 
    */
-  public void bytesProcessed( int num_bytes_processed );
+  public void bytesProcessed( int data_bytes, int protocol_bytes );
 }

@@ -197,11 +197,11 @@ PeerForeignNetworkConnection
 			return( 0 );
 		}
 		  
-		public int 
+		public int []
 		receiveFromTransport( 
 			int max_bytes ) throws IOException
 		{
-			return( peer.readBytes( delegate.isDownloadDisabled()?0:max_bytes ));
+			return( new int[]{ peer.readBytes( delegate.isDownloadDisabled()?0:max_bytes ), 0 });
 		}
 		 
 		public void 
@@ -349,7 +349,7 @@ PeerForeignNetworkConnection
 			throw( new RuntimeException( "Not imp" ));
 		}
 		 
-		public int 
+		public int[] 
 		deliverToTransport( 
 			int 		max_bytes, 
 			boolean 	manual_listener_notify ) 

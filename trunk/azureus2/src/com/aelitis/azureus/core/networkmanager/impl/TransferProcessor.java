@@ -21,6 +21,8 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -35,19 +37,38 @@ import com.aelitis.azureus.core.networkmanager.RateHandler;
 /**
  *
  */
-public class TransferProcessor {
+public class 
+TransferProcessor 
+{
   private static final boolean RATE_LIMIT_LAN_TOO	= false;
+  
+  private static boolean	RATE_LIMIT_UP_INCLUDES_PROTOCOL 	= false;
+  private static boolean	RATE_LIMIT_DOWN_INCLUDES_PROTOCOL 	= false;
   
   static{
 	  if ( RATE_LIMIT_LAN_TOO ){
 		  
 		  System.err.println( "**** TransferProcessor: RATE_LIMIT_LAN_TOO enabled ****" );
 	  }
+	  
+	  COConfigurationManager.addAndFireParameterListeners(
+			  new String[]{
+				  "Up Rate Limits Include Protocol",
+				  "Down Rate Limits Include Protocol"
+			  },
+			  new ParameterListener() {
+				
+				public void parameterChanged(String parameterName) {
+					RATE_LIMIT_UP_INCLUDES_PROTOCOL = COConfigurationManager.getBooleanParameter( "Up Rate Limits Include Protocol" );
+					RATE_LIMIT_DOWN_INCLUDES_PROTOCOL = COConfigurationManager.getBooleanParameter( "Down Rate Limits Include Protocol" );
+				}
+			});
   }
   
   public static final int TYPE_UPLOAD   = 0;
   public static final int TYPE_DOWNLOAD = 1;
   
+  private final int processor_type;
   private final LimitedRateGroup max_rate;
   
   private final RateHandler	main_rate_handler;
@@ -66,7 +87,8 @@ public class TransferProcessor {
    * @param processor_type read or write processor
    * @param max_rate_limit to use
    */
-  public TransferProcessor( int processor_type, LimitedRateGroup max_rate_limit, boolean multi_threaded ) {
+  public TransferProcessor( int _processor_type, LimitedRateGroup max_rate_limit, boolean multi_threaded ) {
+	this.processor_type = _processor_type;
     this.max_rate 		= max_rate_limit;
     this.multi_threaded	= multi_threaded;
     
@@ -75,19 +97,40 @@ public class TransferProcessor {
     main_bucket = createBucket( max_rate.getRateLimitBytesPerSecond() ); 
 
     main_rate_handler = 
-    	new RateHandler() {
-        public int getCurrentNumBytesAllowed() {
-          if( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) { //sync rate
-            main_bucket.setRate( max_rate.getRateLimitBytesPerSecond() );
-          }
-          return main_bucket.getAvailableByteCount();
-        }
-        
-        public void bytesProcessed( int num_bytes_written ) {
-          main_bucket.setBytesUsed( num_bytes_written );
-          max_rate.updateBytesUsed( num_bytes_written );
-        }
-      };
+    	new RateHandler() 
+    	{
+    		final int pt = processor_type;
+    		
+    		public int 
+    		getCurrentNumBytesAllowed() 
+    		{
+    			if ( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) { //sync rate
+    				main_bucket.setRate( max_rate.getRateLimitBytesPerSecond() );
+    			}
+    			
+    			return main_bucket.getAvailableByteCount();
+    		}
+
+    		public void 
+    		bytesProcessed( int data_bytes, int protocol_bytes ) 
+    		{
+    			//System.out.println( (pt == TYPE_UPLOAD?"Up":"Down") + ": " + data_bytes + "/" + protocol_bytes );
+    			
+    			int num_bytes_written;
+    			
+    			if ( pt == TYPE_UPLOAD ){
+    				
+    				num_bytes_written = RATE_LIMIT_UP_INCLUDES_PROTOCOL?data_bytes + protocol_bytes:data_bytes;
+    				
+    			}else{
+    				
+       				num_bytes_written = RATE_LIMIT_DOWN_INCLUDES_PROTOCOL?data_bytes + protocol_bytes:data_bytes;
+    			}
+
+    			main_bucket.setBytesUsed( num_bytes_written );
+    			max_rate.updateBytesUsed( num_bytes_written );
+    		}
+    	};
       
     main_controller = new EntityHandler( processor_type, main_rate_handler );
   }
@@ -381,12 +424,14 @@ public class TransferProcessor {
     		connection, 
     		new RateHandler() 
     		{
+    	   		final int pt = processor_type;
+
     			public int 
     			getCurrentNumBytesAllowed() 
     			{          
     					// sync global rate
 
-    				if( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) {
+    				if ( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) {
 
     					main_bucket.setRate( max_rate.getRateLimitBytesPerSecond() );
     				}
@@ -475,8 +520,22 @@ public class TransferProcessor {
 
     			public void 
     			bytesProcessed( 
-    					int num_bytes_written ) 
+    				int data_bytes,
+    				int protocol_bytes ) 
     			{
+        			//System.out.println( (pt == TYPE_UPLOAD?"Up":"Down") + ": " + data_bytes + "/" + protocol_bytes );
+
+    				int num_bytes_written;
+    				
+        			if ( pt == TYPE_UPLOAD ){
+        				
+        				num_bytes_written = RATE_LIMIT_UP_INCLUDES_PROTOCOL?data_bytes + protocol_bytes:data_bytes;
+        				
+        			}else{
+        				
+           				num_bytes_written = RATE_LIMIT_DOWN_INCLUDES_PROTOCOL?data_bytes + protocol_bytes:data_bytes;
+        			}
+        			
     				if ( RATE_LIMIT_LAN_TOO || !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
 
       					LimitedRateGroup[]	groups 		= conn_data.groups;

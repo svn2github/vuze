@@ -51,10 +51,10 @@ public interface IncomingMessageQueue {
   /**
    * Receive (read) message(s) data from the underlying transport.
    * @param max_bytes to read
-   * @return number of bytes received
+   * @return number of bytes received as [data, protocol]
    * @throws IOException on receive error
    */
-  public int receiveFromTransport( int max_bytes ) throws IOException;
+  public int[] receiveFromTransport( int max_bytes ) throws IOException;
  
   
   /**

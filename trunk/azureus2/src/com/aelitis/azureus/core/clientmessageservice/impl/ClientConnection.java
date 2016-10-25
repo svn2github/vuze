@@ -152,7 +152,8 @@ public class ClientConnection {
 	 * @throws IOException on error
 	 */
 	public boolean writeMessages() throws IOException {
-		int bytes_written = out_queue.deliverToTransport( 1024*1024, false );
+		int[] written = out_queue.deliverToTransport( 1024*1024, false );
+		int bytes_written = written[0] + written[1];
 		if( bytes_written > 0 )  last_activity_time = System.currentTimeMillis();
 		
 		last_write_made_progress = bytes_written > 0;

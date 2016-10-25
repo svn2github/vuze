@@ -584,7 +584,23 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			useReqLimiting.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 					useReqLimitingPrios.getControl()));
 			
+				// up limits include protocol
 			
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter upIncludesProt = new BooleanParameter(cSection,
+					"Up Rate Limits Include Protocol", "ConfigView.label.up.includes.prot");
+			upIncludesProt.setLayoutData(gridData);
+			
+				// down limits include protocol
+			
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter downIncludesProt = new BooleanParameter(cSection,
+					"Down Rate Limits Include Protocol", "ConfigView.label.down.includes.prot");
+			downIncludesProt.setLayoutData(gridData);
+		
+				// same IP
 
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;

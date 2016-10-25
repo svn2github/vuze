@@ -147,10 +147,10 @@ OutgoingMessageQueue
    * deadlock.
    * @param max_bytes maximum number of bytes to deliver
    * @param manual_listener_notify true for manual notification, false for automatic
-   * @return number of bytes delivered
+   * @return number of bytes delivered as [data, protocol]
    * @throws IOException on delivery error
    */
-  public int deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException;  
+  public int[] deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException;  
  
   
   /**

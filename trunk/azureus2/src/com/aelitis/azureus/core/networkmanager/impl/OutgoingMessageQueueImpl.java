@@ -463,10 +463,10 @@ OutgoingMessageQueueImpl
    * @return number of bytes delivered
    * @throws IOException on delivery error
    */  
-   public int deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException {    
+   public int[] deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException {    
 	  if( max_bytes < 1 ) {
 		  Debug.out( "max_bytes < 1: " +max_bytes );
-		  return 0;
+		  return( new int[2] );
 	  }
 
 	  if ( transport == null ){
@@ -720,7 +720,7 @@ outer:
 		  }
 	  }
 
-	  return data_written + protocol_written;
+	  return( new int[]{ data_written, protocol_written });
   }
   
   public void

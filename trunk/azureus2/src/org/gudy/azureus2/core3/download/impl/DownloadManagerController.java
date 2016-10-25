@@ -2061,7 +2061,7 @@ DownloadManagerController
 	permittedReceiveBytesUsed( 
 		int bytes )
 	{
-		NetworkManager.getSingleton().getRateHandler( false, false ).bytesProcessed( bytes );
+		NetworkManager.getSingleton().getRateHandler( false, false ).bytesProcessed( bytes, 0 );
 	}
 	
 	public int 
@@ -2074,7 +2074,7 @@ DownloadManagerController
 	permittedSendBytesUsed(	
 		int bytes )
 	{
-		NetworkManager.getSingleton().getRateHandler( true, false ).bytesProcessed( bytes );
+		NetworkManager.getSingleton().getRateHandler( true, false ).bytesProcessed( bytes, 0 );
 	}
 	
 	public int

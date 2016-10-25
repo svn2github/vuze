@@ -91,42 +91,53 @@ public class SinglePeerUploader implements RateControlledEntity {
     //int mss = NetworkManager.getTcpMssSize();
     //if( num_bytes_to_write > mss )  num_bytes_to_write = mss;
     
-    int written = 0;
+    int[] written;
+    
     try {
+    	
       written = connection.getOutgoingMessageQueue().deliverToTransport( num_bytes_to_write, false );
-    }
-    catch( Throwable e ) {
       
-      if( AEDiagnostics.TRACE_CONNECTION_DROPS ) {
-        if( e.getMessage() == null ) {
-          Debug.out( "null write exception message: ", e );
-        }
-        else {
-          if( e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-              e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
-              e.getMessage().indexOf( "Broken pipe" ) == -1 &&
-              e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
-            
-            System.out.println( "SP: write exception [" +connection.getTransportBase().getDescription()+ "]: " +e.getMessage() );
-          }
-        }
-      }
+    }catch( Throwable e ) {
+      
+    	written = new int[2];
+    	
+    	if( AEDiagnostics.TRACE_CONNECTION_DROPS ) {
+    		if( e.getMessage() == null ) {
+    			Debug.out( "null write exception message: ", e );
+    		}
+    		else {
+    			if( e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+    					e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
+    					e.getMessage().indexOf( "Broken pipe" ) == -1 &&
+    					e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
 
-      if (! (e instanceof IOException )){
-      	
-    	  Debug.printStackTrace(e);
-      }
-      
-      connection.notifyOfException( e );
-      return 0;
+    				System.out.println( "SP: write exception [" +connection.getTransportBase().getDescription()+ "]: " +e.getMessage() );
+    			}
+    		}
+    	}
+
+    	if (! (e instanceof IOException )){
+
+    		Debug.printStackTrace(e);
+    	}
+
+    	connection.notifyOfException( e );
+    	return 0;
     }
     
-    if( written < 1 )  {
-      return 0;
+    int data_bytes_written		= written[0];
+    int protocol_bytes_written	= written[1];
+
+    int total_written =data_bytes_written + protocol_bytes_written;
+    
+    if ( total_written < 1 ){
+    	
+    	return 0;
     }
     
-    rate_handler.bytesProcessed( written );
-    return written;
+    rate_handler.bytesProcessed( data_bytes_written, protocol_bytes_written );
+    
+    return( total_written );
   }
   
   public int getPriority() {

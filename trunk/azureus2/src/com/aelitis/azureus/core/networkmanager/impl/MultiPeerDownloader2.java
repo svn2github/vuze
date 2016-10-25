@@ -270,6 +270,9 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 
 		int num_bytes_remaining = num_bytes_allowed;
 
+		int	data_bytes_read		= 0;
+		int protocol_bytes_read = 0;
+		
 		connectionEntry	entry = active_connections.head();
 		
 		int	num_entries = active_connections.size();
@@ -293,7 +296,12 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 				int bytes_read = 0;
 
 				try{
-					bytes_read = connection.getIncomingMessageQueue().receiveFromTransport( allowed );
+					int[] read = connection.getIncomingMessageQueue().receiveFromTransport( allowed );
+					
+					data_bytes_read 	+= read[0];
+					protocol_bytes_read	+= read[1];
+					
+					bytes_read = read[0] + read[1];
 					
 				}catch( Throwable e ) {
 
@@ -345,9 +353,9 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 
 		int total_bytes_read = num_bytes_allowed - num_bytes_remaining;
 		
-		if( total_bytes_read > 0 ){
+		if ( total_bytes_read > 0 ){
 			
-			main_handler.bytesProcessed( total_bytes_read );
+			main_handler.bytesProcessed( data_bytes_read, protocol_bytes_read );
 			
 			return total_bytes_read;
 		}

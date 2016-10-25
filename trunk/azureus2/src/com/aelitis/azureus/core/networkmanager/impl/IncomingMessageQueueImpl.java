@@ -90,10 +90,10 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue{
    * @return number of bytes received
    * @throws IOException on receive error
    */
-  public int receiveFromTransport( int max_bytes ) throws IOException {
+  public int[] receiveFromTransport( int max_bytes ) throws IOException {
     if( max_bytes < 1 ) {
       Debug.out( "max_bytes < 1: " +max_bytes );
-      return 0;
+      return new int[2];
     }
     
     if( listeners.isEmpty() ) {
@@ -167,7 +167,19 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue{
       }
     }
     
-    return bytes_read;   
+    	// ideally bytes_read = data_read + protocol_read. in case it isn't then we want to
+    	// return bytes_read = d + p with bias to p
+    
+    data_read = bytes_read - protocol_read;
+    
+    if ( data_read < 0 ){
+    	
+    	protocol_read 	= bytes_read;
+    	
+    	data_read		= 0;
+    }
+    
+    return( new int[]{ data_read, protocol_read });   
   }
   
 

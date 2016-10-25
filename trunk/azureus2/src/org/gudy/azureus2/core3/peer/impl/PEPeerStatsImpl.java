@@ -227,7 +227,7 @@ PEPeerStatsImpl
     {
     	NetworkManager.getSingleton().getRateHandler(
         	((ConnectionImpl)owner.getPluginConnection()).getCoreConnection(),
-        	true ).bytesProcessed( num );
+        	true ).bytesProcessed( num, 0 );
     }
     
     public int 
@@ -244,6 +244,6 @@ PEPeerStatsImpl
     {
        	NetworkManager.getSingleton().getRateHandler(
         	((ConnectionImpl)owner.getPluginConnection()).getCoreConnection(),
-        	false ).bytesProcessed( num );
+        	false ).bytesProcessed( num, 0 );
     }
 }

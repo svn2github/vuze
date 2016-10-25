@@ -301,6 +301,9 @@ public class MultiPeerUploader implements RateControlledEntity {
     
     int num_bytes_remaining = num_bytes_to_write;    
     
+    int data_bytes_written 		= 0;
+    int protocol_bytes_written	= 0;
+    
     try {
       lists_lock.enter();
       
@@ -329,7 +332,12 @@ public class MultiPeerUploader implements RateControlledEntity {
         if( num_bytes_allowed >= num_bytes_available ) { //we're allowed enough (for either a full packet or to drain any remaining data)
           int written = 0;
           try {
-            written = conn.getOutgoingMessageQueue().deliverToTransport( num_bytes_available, true );
+            int[] _written = conn.getOutgoingMessageQueue().deliverToTransport( num_bytes_available, true );
+            
+            data_bytes_written 		+= _written[0];
+            protocol_bytes_written	+= _written[1];
+            
+            written = _written[0] + _written[1];
                    
             if( written > 0 ) {  
               manual_notifications.add( conn );  //register it for manual listener notification
@@ -403,7 +411,7 @@ public class MultiPeerUploader implements RateControlledEntity {
     
     int num_bytes_written = num_bytes_to_write - num_bytes_remaining;
     if( num_bytes_written > 0 ) {
-      rate_handler.bytesProcessed( num_bytes_written );
+      rate_handler.bytesProcessed( data_bytes_written, protocol_bytes_written );
     }
     
     return num_bytes_written;
