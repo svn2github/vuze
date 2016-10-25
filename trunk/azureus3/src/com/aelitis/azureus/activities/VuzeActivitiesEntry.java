@@ -178,7 +178,6 @@ public class VuzeActivitiesEntry
 		}
 	}
 
-	// @see java.lang.Object#equals(java.lang.Object)
 	public boolean equals(Object obj) {
 		if ((obj instanceof VuzeActivitiesEntry) && id != null) {
 			return id.equals(((VuzeActivitiesEntry) obj).id);
@@ -186,7 +185,15 @@ public class VuzeActivitiesEntry
 		return super.equals(obj);
 	}
 
-	// @see java.lang.Comparable#compareTo(java.lang.Object)
+	public int
+	hashCode()
+	{
+		if ( id == null ){
+			return( 0 );
+		}
+		return( id.hashCode());
+	}
+	
 	public int compareTo(Object obj) {
 		if (obj instanceof VuzeActivitiesEntry) {
 			VuzeActivitiesEntry otherEntry = (VuzeActivitiesEntry) obj;

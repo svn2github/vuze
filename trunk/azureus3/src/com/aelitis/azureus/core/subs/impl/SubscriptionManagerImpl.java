@@ -85,7 +85,6 @@ import com.aelitis.azureus.core.vuzefile.*;
 import com.aelitis.azureus.plugins.dht.*;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.util.ImportExportUtils;
 import com.aelitis.azureus.util.UrlFilter;
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -2353,7 +2352,7 @@ SubscriptionManagerImpl
 															
 					sub.setUserData( SUBS_CHAT_KEY, -1L );
 					
-					BuddyPluginUtils.peekChatAsync(
+					SubscriptionUtils.peekChatAsync(
 						sub.isAnonymous()?AENetworkClassifier.AT_I2P:AENetworkClassifier.AT_PUBLIC,
 						chat_key,
 						new Runnable()

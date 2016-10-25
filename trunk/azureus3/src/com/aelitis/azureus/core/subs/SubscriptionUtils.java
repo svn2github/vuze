@@ -117,6 +117,26 @@ SubscriptionUtils
 		}
 	}
 	
+	public static void
+	peekChatAsync(
+		final String		net,
+		final String		key,
+		final Runnable		done )
+	{
+			// this is here to decouple subscriptions from chat
+		
+		try{
+			Class<?> utils = SubscriptionUtils.class.getClassLoader().loadClass( "com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils" );
+			
+			if ( utils != null ){
+				
+				utils.getMethod( "peekChatAsync", String.class, String.class, Runnable.class ).invoke( null, net, key, done );
+			}
+		}catch( Throwable e ){
+			
+		}
+	}
+	
 	public static class
 	SubscriptionDownloadDetails
 	{
