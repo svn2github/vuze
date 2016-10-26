@@ -1259,8 +1259,11 @@ implements PiecePicker
 						int priority =0;
 						// user option "prioritize first and last piece"
 						// TODO: should prioritize ~10% from edges of file
-						if (firstPiecePriorityL &&fileInfo.getNbPieces() >FIRST_PIECE_MIN_NB)
-						{
+						
+						boolean hasFirstLastPriority = false;
+						
+						if (firstPiecePriorityL &&fileInfo.getNbPieces() >FIRST_PIECE_MIN_NB){
+						
 							/* backed out for the moment - reverting to old first/last piece only
                         	int lastFirstPiece = fileInfo.getFirstPieceNumber() + FIRST_PIECE_RANGE_PERCENT * (fileInfo.getLastPieceNumber() - fileInfo.getFirstPieceNumber()) / 100;
 
@@ -1272,9 +1275,12 @@ implements PiecePicker
                             	priority +=PRIORITY_W_FIRSTLAST;
                             }
 							 */
-							if (i == fileInfo.getFirstPieceNumber() ||i == fileInfo.getLastPieceNumber())
-								priority +=PRIORITY_W_FIRSTLAST;
+							
+							if (i == fileInfo.getFirstPieceNumber() ||i == fileInfo.getLastPieceNumber()){
+								hasFirstLastPriority = true;
+							}
 						}
+						
 						// if the file is high-priority
 						// startPriority +=(1000 *fileInfo.getPriority()) /255;
 						
@@ -1291,9 +1297,27 @@ implements PiecePicker
 							
 							priority += PRIORITY_W_FILE_BASE;
 							
-							int adjustment = ( PRIORITY_W_FILE_RANGE*relative_file_priority ) / range;
+							int adjustment;
+							
+							if ( hasFirstLastPriority ){
+							
+									// one less than the next higher priority file
+								
+								adjustment = (( PRIORITY_W_FILE_RANGE * ( relative_file_priority+1 )) / range ) - 1;
+
+							}else{
+								
+								adjustment = ( PRIORITY_W_FILE_RANGE*relative_file_priority ) / range;
+							}
 																
 							priority += adjustment;
+							
+						}else{
+							
+							if ( hasFirstLastPriority ){
+								
+								priority += PRIORITY_W_FIRSTLAST;
+							}
 						}
 						
 						if ( completionPriorityL ){
