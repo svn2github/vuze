@@ -90,9 +90,16 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue{
    * @return number of bytes received
    * @throws IOException on receive error
    */
-  public int[] receiveFromTransport( int max_bytes ) throws IOException {
+  public int[] receiveFromTransport( int max_bytes, boolean protocol_is_free ) throws IOException {
     if( max_bytes < 1 ) {
-      Debug.out( "max_bytes < 1: " +max_bytes );
+    	
+    	// Not yet fully supporting free-protocol for downloading
+    	
+      if ( !protocol_is_free ){
+    	  
+    	  Debug.out( "max_bytes < 1: " +max_bytes );
+      }
+      
       return new int[2];
     }
     

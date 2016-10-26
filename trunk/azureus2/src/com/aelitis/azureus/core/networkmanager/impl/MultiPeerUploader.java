@@ -290,10 +290,17 @@ public class MultiPeerUploader implements RateControlledEntity {
   
   
   
-  private int write( EventWaiter waiter, int num_bytes_to_write ) {  //TODO: model this class after the simplicity of MultiPeerDownloader
-    if( num_bytes_to_write < 1 ) {
-      Debug.out( "num_bytes_to_write < 1" );
-      return 0;  //not allowed to write
+  private int write( EventWaiter waiter, int num_bytes_to_write, boolean protocol_is_free ) {  //TODO: model this class after the simplicity of MultiPeerDownloader
+    if ( num_bytes_to_write < 1 ){
+    	
+    	if ( !protocol_is_free ){
+    		
+    		Debug.out( "num_bytes_to_write < 1" );
+    	}
+      
+    		// don't yet fully support protocol_is_free for multi-peer uploader, these peers aren't transfering anyway
+    	
+    	return 0;  //not allowed to write
     }
         
     HashMap connections_to_notify_of_exception = new HashMap();
@@ -332,7 +339,7 @@ public class MultiPeerUploader implements RateControlledEntity {
         if( num_bytes_allowed >= num_bytes_available ) { //we're allowed enough (for either a full packet or to drain any remaining data)
           int written = 0;
           try {
-            int[] _written = conn.getOutgoingMessageQueue().deliverToTransport( num_bytes_available, true );
+            int[] _written = conn.getOutgoingMessageQueue().deliverToTransport( num_bytes_available, protocol_is_free, true );
             
             data_bytes_written 		+= _written[0];
             protocol_bytes_written	+= _written[1];
@@ -522,19 +529,27 @@ public class MultiPeerUploader implements RateControlledEntity {
     flushCheck();  //since this method is called repeatedly from a loop, we can use it to check flushes
 
     if( ready_connections.isEmpty() )  return false;  //no data to send
-    if( rate_handler.getCurrentNumBytesAllowed() < 1/*NetworkManager.getTcpMssSize()*/ )  return false;
+    
+    int[] allowed = rate_handler.getCurrentNumBytesAllowed();
+    
+    if( allowed[0] < 1 && allowed[1] == 0 )  return false;
     return true;
   }
   
   public int doProcessing( EventWaiter waiter, int max_bytes ) {
-    int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
+	  
+	int[] allowed = rate_handler.getCurrentNumBytesAllowed();
+	
+    int 	num_bytes_allowed 	= allowed[0];
+    boolean	protocol_is_free 	= allowed[1] > 0;
+    
     if( num_bytes_allowed < 1 )  return 0;
     
 	if ( max_bytes > 0 && max_bytes < num_bytes_allowed ){
 		num_bytes_allowed = max_bytes;
 	}
 	
-    return write( waiter, num_bytes_allowed );
+    return write( waiter, num_bytes_allowed, protocol_is_free );
   }
 
   public int getPriority() {

@@ -2054,7 +2054,7 @@ DownloadManagerController
 	public int 
 	getPermittedBytesToReceive()
 	{
-		return( NetworkManager.getSingleton().getRateHandler( false, false ).getCurrentNumBytesAllowed());
+		return( NetworkManager.getSingleton().getRateHandler( false, false ).getCurrentNumBytesAllowed()[0]);
 	}
 	
 	public void 
@@ -2067,7 +2067,7 @@ DownloadManagerController
 	public int 
 	getPermittedBytesToSend()
 	{
-		return( NetworkManager.getSingleton().getRateHandler( true, false ).getCurrentNumBytesAllowed());
+		return( NetworkManager.getSingleton().getRateHandler( true, false ).getCurrentNumBytesAllowed()[0]);
 	}
 	
 	public void	

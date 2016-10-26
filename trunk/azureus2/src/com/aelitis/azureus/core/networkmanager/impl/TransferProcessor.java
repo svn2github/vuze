@@ -101,14 +101,38 @@ TransferProcessor
     	{
     		final int pt = processor_type;
     		
-    		public int 
+    		public int[] 
     		getCurrentNumBytesAllowed() 
     		{
     			if ( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) { //sync rate
     				main_bucket.setRate( max_rate.getRateLimitBytesPerSecond() );
     			}
     			
-    			return main_bucket.getAvailableByteCount();
+    			int special;
+    			
+    			if ( pt == TYPE_UPLOAD ){
+    				
+    				if ( RATE_LIMIT_UP_INCLUDES_PROTOCOL ){
+    				
+    					special = 0; 
+    					
+    				}else{
+    					
+    					special = Integer.MAX_VALUE;
+    				}
+    			}else{
+    				
+     				if ( RATE_LIMIT_DOWN_INCLUDES_PROTOCOL ){
+        				
+    					special = 0; 
+    					
+    				}else{
+    					
+    					special = Integer.MAX_VALUE;
+    				}	
+    			}
+    			
+    			return( new int[]{ main_bucket.getAvailableByteCount(), special });
     		}
 
     		public void 
@@ -426,9 +450,33 @@ TransferProcessor
     		{
     	   		final int pt = processor_type;
 
-    			public int 
+    			public int[] 
     			getCurrentNumBytesAllowed() 
-    			{          
+    			{     
+    	   			int special;
+        			
+        			if ( pt == TYPE_UPLOAD ){
+        				
+        				if ( RATE_LIMIT_UP_INCLUDES_PROTOCOL ){
+        				
+        					special = 0; 
+        					
+        				}else{
+        					
+        					special = Integer.MAX_VALUE;
+        				}
+        			}else{
+        				
+         				if ( RATE_LIMIT_DOWN_INCLUDES_PROTOCOL ){
+            				
+        					special = 0; 
+        					
+        				}else{
+        					
+        					special = Integer.MAX_VALUE;
+        				}	
+        			}
+        			
     					// sync global rate
 
     				if ( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) {
@@ -515,7 +563,7 @@ TransferProcessor
     					}
     				}
 
-    				return allowed;
+    				return( new int[]{ allowed, special });
     			}
 
     			public void 

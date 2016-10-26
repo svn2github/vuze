@@ -199,7 +199,7 @@ PeerForeignNetworkConnection
 		  
 		public int []
 		receiveFromTransport( 
-			int max_bytes ) throws IOException
+			int max_bytes, boolean protocol_is_free ) throws IOException
 		{
 			return( new int[]{ peer.readBytes( delegate.isDownloadDisabled()?0:max_bytes ), 0 });
 		}
@@ -352,6 +352,7 @@ PeerForeignNetworkConnection
 		public int[] 
 		deliverToTransport( 
 			int 		max_bytes, 
+			boolean		protocol_is_free,
 			boolean 	manual_listener_notify ) 
 		
 			throws IOException

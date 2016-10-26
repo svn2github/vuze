@@ -218,7 +218,7 @@ PEPeerStatsImpl
     {
     	return(NetworkManager.getSingleton().getRateHandler(
     		((ConnectionImpl)owner.getPluginConnection()).getCoreConnection(),
-    		true ).getCurrentNumBytesAllowed());
+    		true ).getCurrentNumBytesAllowed()[0]);
     }
     
     public void 
@@ -235,7 +235,7 @@ PEPeerStatsImpl
     {
     	return(NetworkManager.getSingleton().getRateHandler(
         	((ConnectionImpl)owner.getPluginConnection()).getCoreConnection(),
-        	false ).getCurrentNumBytesAllowed());
+        	false ).getCurrentNumBytesAllowed()[0]);
     }
     
     public void 

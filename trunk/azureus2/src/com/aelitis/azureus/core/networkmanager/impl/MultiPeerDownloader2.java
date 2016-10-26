@@ -142,7 +142,12 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 	canProcess( 
 		EventWaiter waiter ) 
 	{
-		if( main_handler.getCurrentNumBytesAllowed() < 1/*NetworkManager.getTcpMssSize()*/ )  return false;
+		int[] allowed = main_handler.getCurrentNumBytesAllowed();
+		
+		if ( allowed[0] < 1 ){ // Not yet fully supporting free-protocol for downloading && allowed[1] == 0 ){
+			
+			return false;
+		}
 
 		return true;
 	}
@@ -194,9 +199,13 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 		
 		// System.out.println( "MPD: do process - " + connections_cow.size() + "/" + active_connections.size() + "/" + idle_connections.size());
 		
-		int num_bytes_allowed = main_handler.getCurrentNumBytesAllowed();
+		int[] bytes_allowed = main_handler.getCurrentNumBytesAllowed();
 		
-		if ( num_bytes_allowed < 1 ){
+		int num_bytes_allowed = bytes_allowed[0];
+		
+		boolean protocol_is_free = bytes_allowed[1] > 0;
+		
+		if ( num_bytes_allowed < 1 ){ // Not yet fully supporting free-protocol for downloading && !protocol_is_free ){
 			
 			return 0;
 		}
@@ -296,7 +305,7 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 				int bytes_read = 0;
 
 				try{
-					int[] read = connection.getIncomingMessageQueue().receiveFromTransport( allowed );
+					int[] read = connection.getIncomingMessageQueue().receiveFromTransport( allowed, protocol_is_free );
 					
 					data_bytes_read 	+= read[0];
 					protocol_bytes_read	+= read[1];

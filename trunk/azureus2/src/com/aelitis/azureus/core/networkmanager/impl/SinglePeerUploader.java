@@ -57,7 +57,9 @@ public class SinglePeerUploader implements RateControlledEntity {
     if( connection.getOutgoingMessageQueue().getTotalSize() < 1 ) {
       return false;  //no data to send
     }
-    if( rate_handler.getCurrentNumBytesAllowed() < 1 ) {
+    int[] allowed = rate_handler.getCurrentNumBytesAllowed();
+    
+    if( allowed[0] < 1 && allowed[1] == 0 ) {
       return false;  //not allowed to send any bytes
     }
     return true;
@@ -69,21 +71,39 @@ public class SinglePeerUploader implements RateControlledEntity {
       return 0;
     }
     
-    int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
-    if( num_bytes_allowed < 1 )  {
-      return 0;
+    int[] allowed = rate_handler.getCurrentNumBytesAllowed();
+    
+    int num_bytes_allowed = allowed[0];
+    
+    boolean	protocol_is_free = allowed[1] > 0;
+    
+    if ( num_bytes_allowed < 1 ){
+    	
+    	if ( protocol_is_free ){
+    		
+    		num_bytes_allowed = 0;	// in case negative
+    		
+    	}else{
+    	
+    		return( 0 );
+    	}
     }
     
 	if ( max_bytes > 0 && max_bytes < num_bytes_allowed ){
+		
 		num_bytes_allowed = max_bytes;
 	}
 	
     int num_bytes_available = connection.getOutgoingMessageQueue().getTotalSize();
-    if( num_bytes_available < 1 ) {
-      if ( !connection.getOutgoingMessageQueue().isDestroyed()){
-    	  //Debug.out("dW:not avail"); happens sometimes, just live with it as non-fatal
-      }
-      return 0;
+    
+    if ( num_bytes_available < 1 ){
+    	
+    	if ( !connection.getOutgoingMessageQueue().isDestroyed()){
+    		
+    		//Debug.out("dW:not avail"); happens sometimes, just live with it as non-fatal
+    	}
+    	
+    	return 0;
     }
     
     int num_bytes_to_write = num_bytes_allowed > num_bytes_available ? num_bytes_available : num_bytes_allowed;
@@ -95,7 +115,7 @@ public class SinglePeerUploader implements RateControlledEntity {
     
     try {
     	
-      written = connection.getOutgoingMessageQueue().deliverToTransport( num_bytes_to_write, false );
+      written = connection.getOutgoingMessageQueue().deliverToTransport( num_bytes_to_write, protocol_is_free, false );
       
     }catch( Throwable e ) {
       

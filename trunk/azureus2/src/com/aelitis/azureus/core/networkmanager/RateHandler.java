@@ -24,10 +24,10 @@ package com.aelitis.azureus.core.networkmanager;
  */
 public interface RateHandler {
   /**
-   * Get the current number of bytes allowed to be processed by the entity.
+   * Get the current number of bytes allowed to be processed by the entity and protocol_is_free if [1] > 0
    * @return number of bytes allowed
    */
-  public int getCurrentNumBytesAllowed();
+  public int[] getCurrentNumBytesAllowed();
     
   /**
    * Notification of any bytes processed by the entity.

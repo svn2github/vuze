@@ -52,9 +52,14 @@ public class SinglePeerDownloader implements RateControlledEntity {
     if( connection.getTransportBase().isReadyForRead( waiter ) != 0 )  {
       return false;  //underlying transport not ready
     }
-    if( rate_handler.getCurrentNumBytesAllowed() < 1 ) {
+    
+    int[] allowed = rate_handler.getCurrentNumBytesAllowed();
+    
+    if ( allowed[0] < 1 ){ // Not yet fully supporting free-protocol for downloading  && allowed[1] == 0 ) {
+    	
       return false;  //not allowed to receive any bytes
     }
+    
     return true;
   }
     
@@ -63,8 +68,16 @@ public class SinglePeerDownloader implements RateControlledEntity {
       return 0;
     }
     
-    int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
-    if( num_bytes_allowed < 1 )  {
+    int[] allowed = rate_handler.getCurrentNumBytesAllowed();
+    
+    int num_bytes_allowed = allowed[0];
+    
+    boolean protocol_is_free = allowed[1] > 0;
+    
+    if ( num_bytes_allowed < 1 ){
+    	
+    	// Not yet fully supporting free-protocol for downloading
+    	
       return 0;
     }
     
@@ -81,7 +94,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
     int protocol_bytes_read	= 0;
     
     try {
-      int[] read = connection.getIncomingMessageQueue().receiveFromTransport( num_bytes_allowed );
+      int[] read = connection.getIncomingMessageQueue().receiveFromTransport( num_bytes_allowed, protocol_is_free );
       
       data_bytes_read 		= read[0];
       protocol_bytes_read	= read[1];

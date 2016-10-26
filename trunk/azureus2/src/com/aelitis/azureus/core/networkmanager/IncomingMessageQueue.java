@@ -54,7 +54,7 @@ public interface IncomingMessageQueue {
    * @return number of bytes received as [data, protocol]
    * @throws IOException on receive error
    */
-  public int[] receiveFromTransport( int max_bytes ) throws IOException;
+  public int[] receiveFromTransport( int max_bytes, boolean protocol_is_free ) throws IOException;
  
   
   /**

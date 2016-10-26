@@ -42,7 +42,7 @@ public class
 OutgoingMessageQueueImpl
 	implements OutgoingMessageQueue
 {
-  private final LinkedList 		queue		= new LinkedList();
+  private final LinkedList<RawMessage> 		queue		= new LinkedList<RawMessage>();
   private final AEMonitor	queue_mon	= new AEMonitor( "OutgoingMessageQueue:queue" );
 
   private final ArrayList delayed_notifications = new ArrayList();
@@ -64,7 +64,7 @@ OutgoingMessageQueueImpl
     
   private static final boolean TRACE_HISTORY = false;  //TODO
   private static final int MAX_HISTORY_TRACES = 30;
-  private final LinkedList prev_sent = new LinkedList();
+  private final LinkedList<RawMessage> prev_sent = new LinkedList<RawMessage>();
   
   private boolean	trace;
   
@@ -121,7 +121,7 @@ OutgoingMessageQueueImpl
       queue_mon.enter();
     
       while( !queue.isEmpty() ) {
-      	((RawMessage)queue.remove( 0 )).destroy();
+      	queue.remove( 0 ).destroy();
       }
     }finally{
       queue_mon.exit();
@@ -228,8 +228,8 @@ OutgoingMessageQueueImpl
 	      queue_mon.enter();
 	    
 	      int pos = 0;
-	      for( Iterator it = queue.iterator(); it.hasNext(); ) {
-	        RawMessage msg = (RawMessage)it.next();
+	      for( Iterator<RawMessage> it = queue.iterator(); it.hasNext(); ) {
+	        RawMessage msg = it.next();
 	        if( rmesg.getPriority() > msg.getPriority() 
 	          && msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //but don't insert in front of a half-sent message
 	          break;
@@ -292,13 +292,13 @@ OutgoingMessageQueueImpl
   public void removeMessagesOfType( Message[] message_types, boolean manual_listener_notify ) {
     if( message_types == null ) return;
     
-    ArrayList messages_removed = null;
+    ArrayList<RawMessage> messages_removed = null;
     
     try{
       queue_mon.enter();
     
-      for( Iterator i = queue.iterator(); i.hasNext(); ) {
-        RawMessage msg = (RawMessage)i.next();
+      for( Iterator<RawMessage> i = queue.iterator(); i.hasNext(); ) {
+        RawMessage msg = i.next();
         
         for( int t=0; t < message_types.length; t++ ) {
           boolean same_type = message_types[t].getID().equals( msg.getID() );
@@ -329,7 +329,7 @@ OutgoingMessageQueueImpl
             }
             else {
               if ( messages_removed == null ){
-              	messages_removed = new ArrayList();
+              	messages_removed = new ArrayList<RawMessage>();
               }
               messages_removed.add( msg );
             }
@@ -351,7 +351,7 @@ OutgoingMessageQueueImpl
       ArrayList listeners_ref = listeners;
         
       for( int x=0; x < messages_removed.size(); x++ ) {
-        RawMessage msg = (RawMessage)messages_removed.get( x );
+        RawMessage msg = messages_removed.get( x );
         
         for( int i=0; i < listeners_ref.size(); i++ ) {
           MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
@@ -386,8 +386,8 @@ OutgoingMessageQueueImpl
     try{
       queue_mon.enter();
 
-      for( Iterator it = queue.iterator(); it.hasNext(); ) {
-        RawMessage raw = (RawMessage)it.next();
+      for( Iterator<RawMessage> it = queue.iterator(); it.hasNext(); ) {
+        RawMessage raw = it.next();
         
         if( message.equals( raw.getBaseMessage() ) ) {
           if( raw.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
@@ -463,10 +463,15 @@ OutgoingMessageQueueImpl
    * @return number of bytes delivered
    * @throws IOException on delivery error
    */  
-   public int[] deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException {    
+   public int[] deliverToTransport( int max_bytes, boolean protocol_is_free, boolean manual_listener_notify ) throws IOException {    
 	  if( max_bytes < 1 ) {
-		  Debug.out( "max_bytes < 1: " +max_bytes );
-		  return( new int[2] );
+		  if ( !protocol_is_free ){
+			  Debug.out( "max_bytes < 1: " +max_bytes );
+		 
+			  return( new int[2] );
+		  }
+		  
+		  max_bytes = 0;	// in case it was negative
 	  }
 
 	  if ( transport == null ){
@@ -475,7 +480,7 @@ OutgoingMessageQueueImpl
 	  int data_written = 0;
 	  int protocol_written = 0;
 
-	  ArrayList messages_sent = null;
+	  ArrayList<RawMessage> messages_sent = null;
 
 	  //System.out.println( "deliver: %=" + percent_complete + ", queue=" + queue.size());
 	  try{
@@ -508,14 +513,18 @@ OutgoingMessageQueueImpl
 				  
 			  
 			  
-			  int			buffer_count	= 0;
+			  int buffer_count	= 0;
 			  
-			  int total_sofar = 0;
+			  int total_sofar_excluding_free = 0;
 
 outer:
-			  for( Iterator i = queue.iterator(); i.hasNext(); ){
+			  for( Iterator<RawMessage> i = queue.iterator(); i.hasNext(); ){
 				  
-				  DirectByteBuffer[] payloads = ((RawMessage)i.next()).getRawData();
+				  RawMessage	message = i.next();
+				  
+				  boolean msg_is_free = message.getType() == Message.TYPE_PROTOCOL_PAYLOAD && protocol_is_free;
+				  
+				  DirectByteBuffer[] payloads = message.getRawData();
 
 				  for( int x=0; x < payloads.length; x++ ){
 					  
@@ -525,12 +534,19 @@ outer:
 					  
 					  orig_positions[buffer_count] = buff.position();
 					  
-					  total_sofar += buff.remaining();
+					  if ( !msg_is_free ){
+						  
+						  total_sofar_excluding_free += buff.remaining();
+						  
+					  }else{
+						  
+						  // System.out.println( "free: " + buff.remaining());
+					  }
 
 					  buffer_count++;
 					  
-					  if ( total_sofar >= max_bytes ){
-						
+					  if ( total_sofar_excluding_free >= max_bytes ){
+							  
 						  break outer;
 					  }
 					  
@@ -556,9 +572,9 @@ outer:
 			  
 			  int orig_last_limit = last_buff.limit();
 			  
-			  if ( total_sofar > max_bytes ){
+			  if ( total_sofar_excluding_free > max_bytes ){
 				  
-				  last_buff.limit( orig_last_limit - (total_sofar - max_bytes) );
+				  last_buff.limit( orig_last_limit - (total_sofar_excluding_free - max_bytes) );
 			  }
 
 			  transport.write( raw_buffers, 0, buffer_count );
@@ -569,7 +585,7 @@ outer:
 			  boolean stop = false;
 
 			  while( !queue.isEmpty() && !stop ) {
-				  RawMessage msg = (RawMessage)queue.get( 0 );
+				  RawMessage msg = queue.get( 0 );
 				  DirectByteBuffer[] payloads = msg.getRawData();
 
 				  for( int x=0; x < payloads.length; x++ ) {
@@ -635,7 +651,7 @@ outer:
 						  }
 						  else {
 							  if( messages_sent == null ) {
-								  messages_sent = new ArrayList();
+								  messages_sent = new ArrayList<RawMessage>();
 							  }
 							  messages_sent.add( msg );
 						  }
@@ -703,7 +719,7 @@ outer:
 				  if ( messages_sent != null ){
 
 					  for( int x=0; x < messages_sent.size(); x++ ) {
-						  RawMessage msg = (RawMessage)messages_sent.get( x );
+						  RawMessage msg = messages_sent.get( x );
 
 						  listener.messageSent( msg.getBaseMessage() );
 
@@ -736,7 +752,7 @@ outer:
 		  
 		  for (int i=0;i<queue.size();i++){
 			  
-			  RawMessage	msg = (RawMessage)queue.get(i);
+			  RawMessage	msg = queue.get(i);
 			  
 			  msg.setNoDelay();
 			  
@@ -849,8 +865,8 @@ outer:
       
       int i=0;
     	
-    	for( Iterator it = prev_sent.iterator(); it.hasNext(); ) {
-    		RawMessage raw = (RawMessage)it.next();
+    	for( Iterator<RawMessage> it = prev_sent.iterator(); it.hasNext(); ) {
+    		RawMessage raw = it.next();
         trace.append( "[#h" +i+ "]: ")
              .append(raw.getID())
              .append(" [")
@@ -864,8 +880,8 @@ outer:
 
       int position = queue.size() - 1;
 
-      for( Iterator it = queue.iterator(); it.hasNext(); ) {
-        RawMessage raw = (RawMessage)it.next();
+      for( Iterator<RawMessage> it = queue.iterator(); it.hasNext(); ) {
+        RawMessage raw = it.next();
         
         int pos = raw.getRawData()[0].position(DirectByteBuffer.SS_NET);
         int length = raw.getRawData()[0].limit( DirectByteBuffer.SS_NET );
