@@ -114,6 +114,18 @@ NetStatusPluginTester
 			checked_public = true;
 		}
 		
+		InetAddress[] bindable = admin.getBindableAddresses();
+		
+		String bindable_str = "";
+		
+		for ( InetAddress b: bindable ){
+			
+			bindable_str += ( bindable_str.length()==0?"":", " ) + b.getHostAddress();
+		}
+		
+		log( "Bindable addresses: " + bindable_str );
+
+		
 		/* this ain't working well and some users reporting crashes so boo
 		 *
 		if ( doTest( TEST_PING_ROUTE )){
