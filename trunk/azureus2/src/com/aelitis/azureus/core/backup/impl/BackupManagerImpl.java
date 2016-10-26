@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -57,6 +58,7 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.update.UpdateInstaller;
+
 
 
 
@@ -634,12 +636,17 @@ BackupManagerImpl
 					
 						// a few exceptions here (e.g. dasu plugin has a 'lock' file that breaks things)
 					
-					String name = from_file.getName().toLowerCase();
+					String name = from_file.getName().toLowerCase( Locale.US );
+					
+					String full_name = from_file.getAbsolutePath().toLowerCase( Locale.US );
 					
 					if ( 	name.equals( ".lock" ) 		|| 
 							name.equals( "lock" ) 		|| 	// dasu
 							name.equals( "stats.lck" ) 	||	// advanced stats plugin
-							name.endsWith( ".saving" )){	
+							name.endsWith( ".saving" )	||
+							name.endsWith( ".dll" )		||	// might be in use, no big deal
+							full_name.contains( File.separator + "cache" + File.separator )	// caches can be in use, no big deal
+							){	
 						
 						return( new long[]{ total_files, total_copied });
 					}
