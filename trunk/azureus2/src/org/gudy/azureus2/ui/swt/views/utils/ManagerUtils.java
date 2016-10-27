@@ -1162,6 +1162,12 @@ public class ManagerUtils {
 										try{
 											os = response.getRawOutputStream();
 											
+											os.write((
+												"HTTP/1.1 200 OK" + NL +
+												"Content-Type:" + HTTPUtils.guessContentTypeFromFileType( file_type ) + NL +
+												"Content-Length: " + file_size + NL +
+												"Connection: close" + NL + NL ).getBytes( "UTF-8" ));
+
 											byte[] buffer = new byte[128*1024];
 											
 											is = new FileInputStream( target_file );
