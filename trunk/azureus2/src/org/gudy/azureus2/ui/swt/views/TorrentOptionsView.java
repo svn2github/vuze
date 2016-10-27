@@ -983,10 +983,13 @@ TorrentOptionsView
 				}
 			}
 		}
-		if (parent != null) {
+		if (parent != null && !parent.isDisposed()) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					initialize(parent);
+					if ( !parent.isDisposed()){
+						
+						initialize(parent);
+					}
 				}
 			});
 		}
