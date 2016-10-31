@@ -640,11 +640,15 @@ BackupManagerImpl
 					
 					String full_name = from_file.getAbsolutePath().toLowerCase( Locale.US );
 					
-					if ( 	name.equals( ".lock" ) 		|| 
-							name.equals( "lock" ) 		|| 	// dasu
-							name.equals( "stats.lck" ) 	||	// advanced stats plugin
-							name.endsWith( ".saving" )	||
-							name.endsWith( ".dll" )		||	// might be in use, no big deal
+					if ( 	name.startsWith( ".lock" ) 		|| 
+							name.startsWith( "lock" ) 		|| 	// dasu
+							name.equals( "stats.lck" ) 		||	// advanced stats plugin
+							name.endsWith( ".saving" )		||	// intermediate file
+							name.endsWith( ".gz" )			||	// most likely not interesting
+							name.endsWith( ".jar" )			||	// easy to recover later
+							name.endsWith( ".zip" )			||	// most likely not interesting
+							name.endsWith( ".dll" )			||	// might be in use, no big deal
+							name.endsWith( ".so" )			||	// might be in use, no big deal
 							full_name.contains( File.separator + "cache" + File.separator )	// caches can be in use, no big deal
 							){	
 						
