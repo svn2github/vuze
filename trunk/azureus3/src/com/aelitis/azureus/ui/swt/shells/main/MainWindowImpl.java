@@ -910,19 +910,22 @@ public class MainWindowImpl
 																				return;
 																			}
 																			
-																			String txt = shell.getText();
+																			String current_txt = shell.getText();
 																			
-																			if ( txt != null && !txt.equals( my_last_text )){
+																			if ( current_txt != null && !current_txt.equals( my_last_text )){
 																				
-																				old_text = txt;
+																				old_text = current_txt;
 																			}
 																			
-																			txt = getCurrentTitleText();
+																			String txt = getCurrentTitleText();
 													
 																			if ( txt != null ){
 																			
-																				shell.setText( txt );
-																			
+																				if ( !txt.equals( current_txt )){
+																				
+																					shell.setText( txt );
+																				}
+																				
 																				my_last_text = txt;
 																			}
 																		}
