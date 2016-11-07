@@ -87,7 +87,7 @@ TransferProcessor
    * @param processor_type read or write processor
    * @param max_rate_limit to use
    */
-  public TransferProcessor( int _processor_type, LimitedRateGroup max_rate_limit, boolean multi_threaded ) {
+  public TransferProcessor( final int _processor_type, LimitedRateGroup max_rate_limit, boolean multi_threaded ) {
 	this.processor_type = _processor_type;
     this.max_rate 		= max_rate_limit;
     this.multi_threaded	= multi_threaded;
@@ -99,7 +99,7 @@ TransferProcessor
     main_rate_handler = 
     	new RateHandler() 
     	{
-    		final int pt = processor_type;
+    		final int pt = _processor_type;
     		
     		public int[] 
     		getCurrentNumBytesAllowed() 
