@@ -1458,6 +1458,48 @@ public class UrlUtils
 		return( res );
 	}
 	
+	public static boolean
+	SSLSocketSNIHack(
+		String		host_name,
+		SSLSocket	socket )
+	{
+			// http://stackoverflow.com/questions/30817934/extended-server-name-sni-extension-not-sent-with-jdk1-8-0-but-send-with-jdk1-7
+			// also https://bugs.openjdk.java.net/browse/JDK-8144566 kinda
+		
+		
+		try{
+			Object sni_host_name = Class.forName( "javax.net.ssl.SNIHostName").getConstructor( String.class ).newInstance( host_name );
+			
+			List<Object> sni_host_names = new ArrayList<Object>(1);
+			
+			sni_host_names.add( sni_host_name );
+			
+			Object ssl_parameters = SSLSocket.class.getMethod( "getSSLParameters" ).invoke( socket );
+			
+			Class ssl_parameters_class = Class.forName( "javax.net.ssl.SSLParameters" );
+			
+			ssl_parameters_class.getMethod( "setServerNames", List.class ).invoke( ssl_parameters, sni_host_names );
+			
+			socket.getClass().getMethod( "setSSLParameters" , ssl_parameters_class ).invoke( socket, ssl_parameters );
+			
+			/*
+			SNIHostName serverName = new SNIHostName("whatever.com");
+			List<SNIServerName> serverNames = new ArrayList<>(1);
+			serverNames.add(serverName);
+	
+			SSLParameters params = socket.getSSLParameters();
+			params.setServerNames(serverNames);
+			socket.setSSLParameters(params);
+			*/
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
+	}
+	
 	public static SSLSocketFactory
 	DHHackIt(
 		final SSLSocketFactory	factory )
@@ -1465,6 +1507,14 @@ public class UrlUtils
 		SSLSocketFactory hack = new
 			SSLSocketFactory()
 			{
+				@Override
+				public Socket createSocket() throws IOException {
+					Socket result = factory.createSocket();
+					
+					hack( result );
+					
+					return( result );
+				}
 				@Override
 					public Socket createSocket(
 						InetAddress address,
@@ -1635,7 +1685,7 @@ public class UrlUtils
 	{
 		boolean	cert_hack			= false;
 		boolean	dh_hack 			= false;
-		//boolean	internal_error_hack	= false;
+		boolean	internal_error_hack	= false;
 		
 		boolean		hacks_to_do = true;
 		Exception	last_error 	= null;
@@ -1667,6 +1717,10 @@ public class UrlUtils
 					if ( dh_hack ){
 						
 						factory = DHHackIt( factory );
+					}else{
+						
+						factory = DHHackIt( factory );
+						
 					}
 					
 					if ( unconnected_socket_hack ){
@@ -1701,6 +1755,11 @@ public class UrlUtils
 					}
 				}
 			
+				if ( internal_error_hack ){
+					
+					SSLSocketSNIHack( target_host, (SSLSocket)target );
+				}
+				
 				target.setSoTimeout( read_timeout );
 
 				if ( !unconnected_socket_hack ){
@@ -1735,18 +1794,15 @@ public class UrlUtils
 							
 							hacks_to_do = true;
 						}
-					}
-					/*
-						}else if ( msg.contains( "internal_error" )){
+					}else if ( msg.contains( "internal_error" )){
 							
-							if ( !internal_error_hack ){
+						if ( !internal_error_hack ){
 							
-								internal_error_hack = true;
+							internal_error_hack = true;
 								
-								hacks_to_do = true;
-							}
-					*/
-						
+							hacks_to_do = true;
+						}
+					}	
 						
 					if ( !cert_hack ){
 						
