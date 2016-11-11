@@ -487,17 +487,21 @@ public class TaggingView
 		boolean auto_rem	= auto[1];
 
 		if (hasTag && hasNoTag) {
-				// has both set and unset - any kind of auto means they can't change it
 			
-			button.setEnabled( !( auto_add || auto_rem ));
+			button.setEnabled( !auto_add );
 			
 			button.setGrayed(true);
 			button.setSelection(true);
 		} else {
 			
-			button.setEnabled(
-				( hasTag && !auto_rem ) ||
-				( !hasTag && !auto_add ));
+			if ( auto_add && auto_rem ){
+				
+				button.setEnabled( false );
+			}else{
+				button.setEnabled(
+					( hasTag ) ||
+					( !hasTag && !auto_add ));
+			}
 			
 			button.setGrayed(false);
 			button.setSelection(hasTag);
