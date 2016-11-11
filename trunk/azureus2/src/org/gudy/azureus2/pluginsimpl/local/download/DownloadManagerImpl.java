@@ -1261,7 +1261,7 @@ DownloadManagerImpl
 					
 					Tag t = it.next();
 					
-					if ( t.isTagAuto()){
+					if ( t.isTagAuto()[0]){	// ignore auto_add tags 
 						
 						it.remove();
 						

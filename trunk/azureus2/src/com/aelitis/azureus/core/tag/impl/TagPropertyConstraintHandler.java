@@ -254,9 +254,21 @@ TagPropertyConstraintHandler
 				
 		synchronized( constrained_tags ){
 		
-			String[] temp = property.getStringList();
+			String[] value = property.getStringList();
 			
-			String constraint = temp == null || temp.length < 1?"":temp[0].trim();
+			String 	constraint;
+			String	options;
+			
+			if ( value == null ){
+				
+				constraint 	= "";
+				options		= "";
+				
+			}else{
+		
+				constraint 	= value.length>0&&value[0]!=null?value[0].trim():"";
+				options		= value.length>1&&value[1]!=null?value[1].trim():"";				
+			}
 						
 			if ( constraint.length() == 0 ){
 				
@@ -280,7 +292,7 @@ TagPropertyConstraintHandler
 					tag.removeTaggable( e );
 				}
 			
-				con = new TagConstraint( this, tag, constraint );
+				con = new TagConstraint( this, tag, constraint, options );
 				
 				constrained_tags.put( tag, con );
 								
@@ -453,34 +465,56 @@ TagPropertyConstraintHandler
 	compileConstraint(
 		String		expr )
 	{
-		return( new TagConstraint( this, null, expr ).expr );
+		return( new TagConstraint( this, null, expr, null ).expr );
 	}
 	
 	private static class
 	TagConstraint
 	{
-		private TagPropertyConstraintHandler	handler;
-		private Tag								tag;
-		private String							constraint;
+		private final TagPropertyConstraintHandler	handler;
+		private final Tag							tag;
+		private final String						constraint;
 		
-		private ConstraintExpr	expr;
+		private final boolean		auto_add;
+		private final boolean		auto_remove;
+		
+		private final ConstraintExpr	expr;
 		
 		private
 		TagConstraint(
 			TagPropertyConstraintHandler	_handler,
 			Tag								_tag,
-			String							_constraint )
+			String							_constraint,
+			String							options )
 		{
 			handler		= _handler;
 			tag			= _tag;
 			constraint	= _constraint;
 		
+			if ( options == null ){
+				
+				auto_add	= true;
+				auto_remove	= true;
+				
+			}else{
+					// 0 = add+remove; 1 = add only; 2 = remove only
+				
+				auto_add 	= !options.contains( "am=2;" );
+				auto_remove = !options.contains( "am=1;" );
+			}
+			
+			ConstraintExpr compiled_expr = null;
+			
 			try{
-				expr = compileStart( constraint, new HashMap<String,ConstraintExpr>());
+				compiled_expr = compileStart( constraint, new HashMap<String,ConstraintExpr>());
 				
 			}catch( Throwable e ){
 				
 				Debug.out( "Invalid constraint: " + constraint + " - " + Debug.getNestedExceptionMessage( e ));
+				
+			}finally{
+				
+				expr = compiled_expr;
 			}
 		}
 		
@@ -680,18 +714,24 @@ TagPropertyConstraintHandler
 						
 			if ( testConstraint( dm )){
 				
-				if ( !existing.contains( dm )){
+				if ( auto_add ){
 					
-					if( canAddTaggable( dm )){
-					
-						tag.addTaggable( dm );
+					if ( !existing.contains( dm )){
+						
+						if( canAddTaggable( dm )){
+						
+							tag.addTaggable( dm );
+						}
 					}
 				}
 			}else{
 				
-				if ( existing.contains( dm )){
+				if ( auto_remove ){
+				
+					if ( existing.contains( dm )){
 					
-					tag.removeTaggable( dm );
+						tag.removeTaggable( dm );
+					}
 				}
 			}
 		}
@@ -716,18 +756,24 @@ TagPropertyConstraintHandler
 				
 				if ( testConstraint( dm )){
 					
-					if ( !existing.contains( dm )){
+					if ( auto_add ){
 						
-						if ( canAddTaggable( dm )){
-						
-							tag.addTaggable( dm );
+						if ( !existing.contains( dm )){
+							
+							if ( canAddTaggable( dm )){
+							
+								tag.addTaggable( dm );
+							}
 						}
 					}
 				}else{
 					
-					if ( existing.contains( dm )){
+					if ( auto_remove ){
 						
-						tag.removeTaggable( dm );
+						if ( existing.contains( dm )){
+							
+							tag.removeTaggable( dm );
+						}
 					}
 				}
 			}

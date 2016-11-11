@@ -2629,7 +2629,7 @@ SubscriptionManagerUI
 
 		for ( Tag t: tags ){
 			
-			if ( !t.isTagAuto()){
+			if ( !t.isTagAuto()[0]){
 				
 				String name = t.getTagName( true );
 				

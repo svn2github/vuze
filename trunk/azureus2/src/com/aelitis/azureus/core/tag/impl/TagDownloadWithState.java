@@ -1568,8 +1568,11 @@ TagDownloadWithState
 		return( getTagType().isTagTypeAuto()?new TagProperty[0]:tag_properties );
 	}
 	
+	private static final boolean[] AUTO_BOTH = {true,true};
+	private static final boolean[] AUTO_NONE = {false,false};
+	
 	@Override
-	public boolean 
+	public boolean[]
 	isTagAuto() 
 	{
 		TagProperty[]	props = getSupportedProperties();
@@ -1591,7 +1594,7 @@ TagDownloadWithState
 				
 				if ( b != null && b ){
 					
-					return( true );
+					return( AUTO_BOTH );
 				}
 			}else if ( type == TagFeatureProperties.PT_LONG ){
 					
@@ -1599,20 +1602,37 @@ TagDownloadWithState
 					
 				if ( l != null && l != Long.MIN_VALUE ){
 						
-					return( true );
+					return( AUTO_BOTH );
 				}
 			}else if ( type == TagFeatureProperties.PT_STRING_LIST ){
 				
-				String[] val = prop.getStringList();
+				String[] vals = prop.getStringList();
 				
-				if ( val != null && val.length > 0 ){
+				if ( vals != null && vals.length > 0 ){
 					
-					return( true );
+					if ( name.equals( TagFeatureProperties.PR_CONSTRAINT ) && vals.length > 1 ){
+						
+						String options = vals[1];
+						
+						if ( options != null ){
+							
+							if ( options.contains( "am=1;" )){
+									
+								return( new boolean[]{ true, false });
+								
+							}else if ( options.contains( "am=2;" )){
+								
+								return( new boolean[]{ false, true });
+							}
+						}
+					}
+					
+					return( AUTO_BOTH );
 				}
 			}
 		}
 		
-		return( false );
+		return( AUTO_NONE );
 	}
 	
 	@Override

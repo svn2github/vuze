@@ -1169,15 +1169,17 @@ public class SB_Transfers
 		
 		if ( tag_data != null ){
 			
-			boolean	auto_tag = tag.isTagAuto();
+			boolean[]	auto_tag 		= tag.isTagAuto();
+			boolean[]	old_auto_tag 	= (boolean[])tag_data[1];
 			
-			if ( auto_tag != (Boolean)tag_data[1] ){
+			if ( !Arrays.equals( auto_tag, old_auto_tag )){
 				
 				tag_data[1] = auto_tag;
 				
-				if ( auto_tag ){
+				if ( auto_tag[0] && auto_tag[1] ){
 					
 					entry.removeListener((MdiEntryDropListener)tag_data[0]);
+					
 				}else{
 					
 					entry.addListener((MdiEntryDropListener)tag_data[0]);
@@ -1364,7 +1366,9 @@ public class SB_Transfers
 							return false;
 						}
 						
-						if ( tag.isTagAuto()){
+						boolean[] auto = tag.isTagAuto();
+						
+						if ( auto[0] && auto[1] ){
 							
 							return( false );
 						}
@@ -1420,25 +1424,32 @@ public class SB_Transfers
 								
 							}
 							
+							boolean	auto[] = tag.isTagAuto();
+							
 							for (DownloadManager dm : listDMs) {
 								if ( doAdd ){
 									
-									tag.addTaggable( dm );
+									if ( !auto[0] ){
 									
+										tag.addTaggable( dm );
+									}
 								}else{
 									
-									tag.removeTaggable( dm );
+									if ( !auto[1] ){
+									
+										tag.removeTaggable( dm );
+									}
 								}
 							}
 						}
 					}
 				};
 				
-				boolean tag_auto = tag.isTagAuto();
+				boolean[] tag_auto = tag.isTagAuto();
 				
 				entry.setUserData( TAG_DATA_KEY, new Object[]{ dl, tag_auto });
 				
-				if ( !tag_auto ){
+				if ( !( tag_auto[0] && tag_auto[1] )){
 					
 					entry.addListener( dl );
 				}

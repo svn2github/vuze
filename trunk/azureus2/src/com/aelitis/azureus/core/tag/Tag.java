@@ -78,7 +78,11 @@ Tag
 	setPublic(
 		boolean	pub );
 	
-	public boolean
+	/**
+	 * @return [auto_add,auto_remove]
+	 */
+	
+	public boolean[]
 	isTagAuto();
 	
 	public boolean

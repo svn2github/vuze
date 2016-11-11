@@ -69,7 +69,10 @@ import com.aelitis.azureus.ui.swt.utils.FontUtils;
 public class TagSettingsView
 	implements UISWTViewCoreEventListener, TagTypeListener
 {
-
+	private static final String CM_ADD_REMOVE 	= "am=0;";
+	private static final String CM_ADD_ONLY	 	= "am=1;";
+	private static final String CM_REMOVE_ONLY	= "am=2;";
+	
 	private UISWTView swtView;
 
 	private Composite cMainComposite;
@@ -114,11 +117,13 @@ public class TagSettingsView
 
 		public Text constraints;
 		
+		private GenericStringListParameter constraintMode;
+
 		public GenericIntParameter tfl_max_taggables;
 	}
 
 	private Params params = null;
-
+	
 	private Button btnSaveConstraint;
 
 	private Button btnResetConstraint;
@@ -805,7 +810,7 @@ public class TagSettingsView
 				if (propConstraint != null) {
 					Group gConstraint = new Group(cMainComposite, SWT.NONE);
 					Messages.setLanguageText(gConstraint, "tag.property.constraint");
-					gridLayout = new GridLayout(3, false);
+					gridLayout = new GridLayout(5, false);
 					gConstraint.setLayout(gridLayout);
 
 					gd = new GridData(SWT.FILL, SWT.NONE, true, false, 4, 1);
@@ -813,7 +818,7 @@ public class TagSettingsView
 
 					params.constraints = new Text(gConstraint,
 							SWT.WRAP | SWT.BORDER | SWT.MULTI);
-					gd = new GridData(SWT.FILL, SWT.NONE, true, false, 3, 1);
+					gd = new GridData(SWT.FILL, SWT.NONE, true, false, 5, 1);
 					gd.heightHint = 40;
 					Utils.setLayoutData(params.constraints, gd);
 					params.constraints.addKeyListener(new KeyListener() {
@@ -828,18 +833,26 @@ public class TagSettingsView
 							}
 						}
 					});
-
+										
 					btnSaveConstraint = new Button(gConstraint, SWT.PUSH);
 					btnSaveConstraint.setEnabled(false);
 					btnSaveConstraint.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
 							String constraint = params.constraints.getText().trim();
 							
+							String[] old_value = propConstraint.getStringList();
+							
 							if ( constraint.length() == 0 ){
 								propConstraint.setStringList( null );
 							}else{
+								String old_options = old_value.length>1&&old_value[1]!=null?old_value[1]:"";
+								
+								if ( old_options.length() == 0 ){
+									old_options = CM_ADD_REMOVE;
+								}
+								
 								propConstraint.setStringList(new String[] {
-										constraint
+										constraint, old_options
 								});
 							}
 							if (btnSaveConstraint != null && !btnSaveConstraint.isDisposed()) {
@@ -864,6 +877,59 @@ public class TagSettingsView
 					});
 					Messages.setLanguageText(btnResetConstraint, "Button.reset");
 
+					Label constraintMode = new Label(gConstraint, SWT.NULL );
+					Messages.setLanguageText(constraintMode, "label.scope");
+
+					String[] CM_VALUES = {
+							CM_ADD_REMOVE,
+							CM_ADD_ONLY,
+							CM_REMOVE_ONLY
+					};
+					
+					String[] CM_LABELS = {
+							MessageText.getString( "label.addition.and.removal" ),	
+							MessageText.getString( "label.addition.only" ),	
+							MessageText.getString( "label.removal.only" ),	
+					};
+					
+					params.constraintMode = new GenericStringListParameter(
+							new GenericParameterAdapter() {
+								@Override
+								public String getStringListValue(String key, String def ) {
+									return( getStringListValue( key ));
+								}
+								public String
+								getStringListValue(
+									String		key )
+								{
+									String[] list = propConstraint.getStringList();
+									
+									if ( list.length > 1 && list[1] != null ){
+										
+										return( list[1]);
+										
+									}else{
+										
+										return( CM_ADD_REMOVE );
+									}
+								}
+								
+								@Override
+								public void setStringListValue(String key, String value) {
+								
+									if ( value == null || value.length() == 0 ){
+										
+										value = CM_ADD_REMOVE;
+									}
+									
+									String[] list = propConstraint.getStringList();
+								
+									propConstraint.setStringList(new String[]{ list!=null&&list.length>0?list[0]:"", value });
+								}
+							}, 
+							gConstraint, "tag_constraint_action_mode", CM_ADD_REMOVE, 
+							CM_LABELS, CM_VALUES );
+					
 					Link lblAboutConstraint = new Link(gConstraint, SWT.WRAP);
 					Utils.setLayoutData(lblAboutConstraint, 
 							Utils.getWrappableLabelGridData(1, GridData.GRAB_HORIZONTAL));
@@ -1150,6 +1216,8 @@ public class TagSettingsView
 		if (params.constraints != null
 				&& params.constraints.getData("skipset") == null) {
 			String text = "";
+			String mode = CM_ADD_REMOVE;
+			
 			Tag tag = tags[0];
 			if (tag.getTagType().hasTagTypeFeature(TagFeature.TF_PROPERTIES)
 					&& (tag instanceof TagFeatureProperties)) {
@@ -1160,12 +1228,16 @@ public class TagSettingsView
 				if (propConstraint != null) {
 					String[] stringList = propConstraint.getStringList();
 					// constraint only has one entry
-					if (stringList.length == 1 && stringList.length > 0) {
+					if ( stringList.length > 0) {
 						text = stringList[0];
+					}
+					if ( stringList.length > 1 && stringList[1] != null ){
+						mode = stringList[1];
 					}
 				}
 			}
 			params.constraints.setText(text);
+			params.constraintMode.setValue( mode );
 		}
 		
 		if (params.tfl_max_taggables != null) {

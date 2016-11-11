@@ -4344,7 +4344,7 @@ public class OpenTorrentOptionsWindow
 				
 				for ( final Tag tag: TagUIUtils.sortTags( tt.getTags())){
 					
-					if ( tag.canBePublic() && !tag.isTagAuto()){
+					if ( tag.canBePublic() && !tag.isTagAuto()[0]){
 						
 						final Button but = new Button( parent, SWT.TOGGLE );
 					

@@ -1095,7 +1095,7 @@ public class SBC_DevicesView
 
 			for ( Tag t: all_tags ){
 				
-				if ( !t.isTagAuto()){
+				if ( !t.isTagAuto()[0]){
 					
 					String name = t.getTagName( true );
 					

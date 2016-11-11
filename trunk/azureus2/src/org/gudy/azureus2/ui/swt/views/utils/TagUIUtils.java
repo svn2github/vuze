@@ -1408,13 +1408,13 @@ public class TagUIUtils
 							public void 
 							handleEvent(Event event)
 							{
-								String[] val = tp.getStringList();
+								final String[] old_value = tp.getStringList();
 								
 								String def_val;
 								
-								if ( val != null && val.length > 0 ){
+								if ( old_value != null && old_value.length > 0 ){
 									
-									def_val = val[0];
+									def_val = old_value[0];
 									
 								}else{
 									
@@ -1441,7 +1441,9 @@ public class TagUIUtils
 											
 										}else{
 											
-											tp.setStringList( new String[]{ text });
+											String old_options = old_value.length>1?old_value[1]:"";
+											
+											tp.setStringList( new String[]{ text, old_options });
 										}
 									}catch( Throwable e ){
 										
@@ -2559,7 +2561,7 @@ public class TagUIUtils
 				
 				TagType tt = t.getTagType();
 				
-				if ( tt.isTagTypeAuto() || t.isTagAuto()){
+				if ( tt.isTagTypeAuto() || t.isTagAuto()[0] || t.isTagAuto()[1]){
 					
 					List<Tag> x = auto_map.get( tt );
 					
@@ -2650,7 +2652,7 @@ public class TagUIUtils
 				
 					// don't allow manual adding of taggables to auto-tags
 				
-				if ( !t.isTagAuto()){
+				if ( !t.isTagAuto()[0]){
 					
 					String name = t.getTagName( true );
 					

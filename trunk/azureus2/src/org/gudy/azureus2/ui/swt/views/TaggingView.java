@@ -240,6 +240,9 @@ public class TaggingView
 						tag.removeTaggable(taggable);
 					}
 				}
+				
+				updateButtonState(tag, button);
+				
 				button.getParent().redraw();
 				button.getParent().update();
 			}
@@ -361,7 +364,9 @@ public class TaggingView
 				
 				Button button = new Button(p, SWT.CHECK);
 				buttons.add(button);
-				if ( tag.isTagAuto()){
+				boolean[] auto = tag.isTagAuto();
+				
+				if ( auto[0] && auto[1] ){
 					button.setEnabled( false );
 				}else{
 					button.addSelectionListener(selectionListener);
@@ -424,8 +429,6 @@ public class TaggingView
 
 		List<Control> layoutChanges = new ArrayList<Control>();
 		for (Button button : buttons) {
-			boolean hasTag = false;
-			boolean hasNoTag = false;
 
 			Tag tag = (Tag) button.getData("Tag");
 			if (tag == null) {
@@ -437,37 +440,8 @@ public class TaggingView
 				layoutChanges.add(button);
 			}
 
-			if (taggables == null) {
-				button.setSelection(false);
-				button.setEnabled(false);
-				button.getParent().redraw();
-				continue;
-			}
-			if ( !tag.isTagAuto()){
-				button.setEnabled(true);
-			}
+			updateButtonState(tag, button);
 			
-			for (Taggable taggable : taggables) {
-				boolean curHasTag = tag.hasTaggable(taggable);
-				if (!hasTag && curHasTag) {
-					hasTag = true;
-					if (hasNoTag) {
-						break;
-					}
-				} else if (!hasNoTag && !curHasTag) {
-					hasNoTag = true;
-					if (hasTag) {
-						break;
-					}
-				}
-			}
-			if (hasTag && hasNoTag) {
-				button.setGrayed(true);
-				button.setSelection(true);
-			} else {
-				button.setGrayed(false);
-				button.setSelection(hasTag);
-			}
 			button.getParent().redraw();
 		}
 
@@ -477,6 +451,59 @@ public class TaggingView
 		}
 	}
 
+	private void
+	updateButtonState(
+		Tag			tag,
+		Button		button )
+	{
+		if (taggables == null) {
+			button.setSelection(false);
+			button.setEnabled(false);
+			button.getParent().redraw();
+			return;
+		}
+
+		boolean hasTag = false;
+		boolean hasNoTag = false;
+
+		for (Taggable taggable : taggables) {
+			boolean curHasTag = tag.hasTaggable(taggable);
+			if (!hasTag && curHasTag) {
+				hasTag = true;
+				if (hasNoTag) {
+					break;
+				}
+			} else if (!hasNoTag && !curHasTag) {
+				hasNoTag = true;
+				if (hasTag) {
+					break;
+				}
+			}
+		}
+		
+		boolean[] auto = tag.isTagAuto();
+		
+		boolean	auto_add 	= auto[0];
+		boolean auto_rem	= auto[1];
+
+		if (hasTag && hasNoTag) {
+				// has both set and unset - any kind of auto means they can't change it
+			
+			button.setEnabled( !( auto_add || auto_rem ));
+			
+			button.setGrayed(true);
+			button.setSelection(true);
+		} else {
+			
+			button.setEnabled(
+				( hasTag && !auto_rem ) ||
+				( !hasTag && !auto_add ));
+			
+			button.setGrayed(false);
+			button.setSelection(hasTag);
+		}
+	}
+		
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagTypeChanged(com.aelitis.azureus.core.tag.TagType)
 	public void tagTypeChanged(TagType tag_type) {
 		// TODO Auto-generated method stub

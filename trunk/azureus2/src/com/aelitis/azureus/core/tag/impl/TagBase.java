@@ -309,7 +309,9 @@ TagBase
 		
 		if ( pub ){
 			
-			if ( isTagAuto()){
+			boolean[] autos = isTagAuto();
+			
+			if ( autos[0] || autos[1] ){
 				
 				pub = false;
 			}
@@ -377,10 +379,10 @@ TagBase
 		return( true );
 	}
 	
-	public boolean 
+	public boolean[]
 	isTagAuto() 
 	{
-		return( false );
+		return( new boolean[]{ false, false });
 	}
 	
 		// visible

@@ -2220,7 +2220,9 @@ TagManagerImpl
 						
 						for ( int i=0;i<value.length;i++){
 							
-							if ( !old.get(i).equals(value[i])){
+							String old_value = old.get(i);
+							
+							if ( old_value == null || !old.get(i).equals(value[i])){
 								
 								diff = true;
 								
