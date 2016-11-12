@@ -1435,7 +1435,7 @@ public class SB_Transfers
 									}
 								}else{
 									
-									if ( !auto[1] ){
+									if ( !( auto[0] && auto[1] )){
 									
 										tag.removeTaggable( dm );
 									}
