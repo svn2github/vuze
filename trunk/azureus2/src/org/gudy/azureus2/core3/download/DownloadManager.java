@@ -184,11 +184,18 @@ DownloadManager
     pause();
 
     public boolean
+    pause(
+    	long	auto_resume_time );
+  
+    public boolean
     isPaused();
 
     public void
     resume();
 
+    public long
+    getAutoResumeTime();
+    
     public GlobalManager
     getGlobalManager();
 

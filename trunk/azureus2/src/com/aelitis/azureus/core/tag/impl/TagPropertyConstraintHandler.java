@@ -32,12 +32,14 @@ import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -52,10 +54,11 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableLifecycleAdapter;
+import com.aelitis.azureus.core.util.IdentityHashSet;
 
 public class 
 TagPropertyConstraintHandler 
-	implements TagTypeListener
+	implements TagTypeListener, DownloadListener
 {
 	private final AzureusCore		azureus_core;
 	private final TagManagerImpl	tag_manager;
@@ -68,6 +71,21 @@ TagPropertyConstraintHandler
 	private Map<Tag,Map<DownloadManager,Long>>			apply_history 		= new HashMap<Tag, Map<DownloadManager,Long>>();
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "tag:constraints" );
+	
+	private FrequencyLimitedDispatcher	freq_lim_dispatcher = 
+		new FrequencyLimitedDispatcher(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					checkFreqLimUpdates();
+				}
+			},
+			5000 );
+	
+	private IdentityHashMap<DownloadManager,List<TagConstraint>>	freq_lim_pending = new IdentityHashMap<DownloadManager,List<TagConstraint>>();
+	
 	
 	private TimerEventPeriodic		timer;
 		
@@ -219,6 +237,8 @@ TagPropertyConstraintHandler
 								apply();
 							}
 						});
+				
+				azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getGlobalDownloadEventNotifier().addListener( this );
 			}
 			
 		}else if ( timer != null ){
@@ -227,8 +247,75 @@ TagPropertyConstraintHandler
 			
 			timer = null;
 			
+			azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getGlobalDownloadEventNotifier().removeListener( this );
+			
 			apply_history.clear();
 		}
+	}
+	
+	private void
+	checkFreqLimUpdates()
+	{
+		dispatcher.dispatch(
+			new AERunnable() 
+			{
+				public void 
+				runSupport() 
+				{
+					synchronized( freq_lim_pending ){
+						
+						for ( Map.Entry<DownloadManager,List<TagConstraint>> entry: freq_lim_pending.entrySet()){
+					
+							for ( TagConstraint con: entry.getValue()){
+							
+								con.apply( entry.getKey());
+							}
+						}
+						
+						freq_lim_pending.clear();
+					}
+				}
+			});
+	}
+	
+	public void
+	stateChanged(
+		Download		download,
+		int				old_state,
+		int				new_state )
+	{
+		List<TagConstraint>	interesting = new ArrayList<TagConstraint>();
+		
+		synchronized( constrained_tags ){
+
+			for ( TagConstraint tc: constrained_tags.values()){
+				
+				if ( tc.dependOnDownloadState()){
+					
+					interesting.add( tc );
+				}
+			}
+		}
+		
+		if ( interesting.size() > 0 ){
+			
+			DownloadManager dm = PluginCoreUtils.unwrap( download );
+			
+			synchronized( freq_lim_pending ){
+				
+				freq_lim_pending.put( dm, interesting );
+			}
+		
+			freq_lim_dispatcher.dispatch();
+		}
+	}
+ 
+	public void
+	positionChanged(
+		Download	download, 
+		int 		oldPosition,
+		int 		newPosition )
+	{
 	}
 	
 	public void
@@ -480,6 +567,8 @@ TagPropertyConstraintHandler
 		
 		private final ConstraintExpr	expr;
 		
+		private boolean	depends_on_download_state;
+		
 		private
 		TagConstraint(
 			TagPropertyConstraintHandler	_handler,
@@ -518,6 +607,12 @@ TagPropertyConstraintHandler
 			}
 		}
 		
+		private boolean
+		dependOnDownloadState()
+		{
+			return( depends_on_download_state );
+		}
+
 		private ConstraintExpr
 		compileStart(
 			String						str,
@@ -1115,7 +1210,9 @@ TagPropertyConstraintHandler
 		private static final int FT_IS_FORCE_START	= 14;
 		private static final int FT_JAVASCRIPT		= 15;
 		private static final int FT_IS_CHECKING		= 16;
-	
+		private static final int FT_IS_STOPPED		= 17;
+		private static final int FT_IS_PAUSED		= 18;
+
 		
 		private static Map<String,Integer>	keyword_map = new HashMap<String, Integer>();
 		
@@ -1129,6 +1226,7 @@ TagPropertyConstraintHandler
 		private static final int	KW_SEED_COUNT 		= 7;
 		private static final int	KW_PEER_COUNT 		= 8;
 		private static final int	KW_SEED_PEER_RATIO 	= 9;
+		private static final int	KW_RESUME_IN 		= 10;
 		
 		static{
 			keyword_map.put( "shareratio", KW_SHARE_RATIO );
@@ -1149,6 +1247,8 @@ TagPropertyConstraintHandler
 			keyword_map.put( "peer_count", KW_PEER_COUNT );
 			keyword_map.put( "seedpeerratio", KW_SEED_PEER_RATIO );
 			keyword_map.put( "seed_peer_ratio", KW_SEED_PEER_RATIO );
+			keyword_map.put( "resumein", KW_RESUME_IN );
+			keyword_map.put( "resume_in", KW_RESUME_IN );
 		}
 		
 		private class
@@ -1202,18 +1302,40 @@ TagPropertyConstraintHandler
 					
 					fn_type = FT_IS_FORCE_START;
 	
+					depends_on_download_state = true;
+					
 					params_ok = params.length == 0;
 					
 				}else if ( func_name.equals( "isChecking" )){
 					
 					fn_type = FT_IS_CHECKING;
 	
+					depends_on_download_state = true;
+					
 					params_ok = params.length == 0;
 					
 				}else if ( func_name.equals( "isComplete" )){
-	
+					
 					fn_type = FT_IS_COMPLETE;
 	
+					depends_on_download_state = true;
+					
+					params_ok = params.length == 0;
+					
+				}else if ( func_name.equals( "isStopped" )){
+					
+					fn_type = FT_IS_STOPPED;
+	
+					depends_on_download_state = true;
+					
+					params_ok = params.length == 0;
+					
+				}else if ( func_name.equals( "isPaused" )){
+					
+					fn_type = FT_IS_PAUSED;
+	
+					depends_on_download_state = true;
+					
 					params_ok = params.length == 0;
 					
 				}else if ( func_name.equals( "canArchive" )){
@@ -1276,6 +1398,8 @@ TagPropertyConstraintHandler
 					
 					params_ok = params.length == 1 && getStringLiteral( params, 0 );
 	
+					depends_on_download_state = true;	// dunno so let's assume so
+					
 				}else{
 					
 					throw( new RuntimeException( "Unsupported function '" + func_name + "'" ));
@@ -1287,7 +1411,7 @@ TagPropertyConstraintHandler
 	
 				}
 			}
-		
+					
 			public boolean
 			eval(
 				DownloadManager		dm,
@@ -1363,6 +1487,16 @@ TagPropertyConstraintHandler
 					case FT_IS_COMPLETE:{
 						
 						return( dm.isDownloadComplete( false ));
+					}
+					case FT_IS_STOPPED:{
+						
+						int state = dm.getState();
+						
+						return( state == DownloadManager.STATE_STOPPED && !dm.isPaused());
+					}
+					case FT_IS_PAUSED:{
+						
+						return( dm.isPaused());
 					}
 					case FT_CAN_ARCHIVE:{
 						
@@ -1613,6 +1747,22 @@ TagPropertyConstraintHandler
 								
 								return(( SystemTime.getCurrentTime() - timestamp )/1000 );
 							}
+							case KW_RESUME_IN:{
+								
+								result = null;	// don't cache this!
+								
+								long resume_millis = dm.getAutoResumeTime();
+								
+								long	now = SystemTime.getCurrentTime();
+								
+								if ( resume_millis <= 0 || resume_millis <= now ){
+									
+									return( 0 );
+								}
+								
+								return(( resume_millis - now )/1000 );
+							}
+
 							case KW_SWARM_MERGE:{
 								
 								result = null;	// don't cache this!

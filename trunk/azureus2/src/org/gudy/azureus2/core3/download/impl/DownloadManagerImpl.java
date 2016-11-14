@@ -504,7 +504,9 @@ DownloadManagerImpl
 	
 	private int			last_informed_state	= STATE_START_OF_DAY;
 	private boolean		latest_informed_force_start;
-
+	
+	private long		resume_time;
+	
 	private GlobalManager globalManager;
 	private String torrentFileName;
 	
@@ -2113,6 +2115,24 @@ DownloadManagerImpl
 	}
 	
 	public boolean
+	pause(
+		long	_resume_time )
+	{
+			// obviously we should manage the timer+resumption but it works as it is at the moment...
+
+			// we're not yet in a stopped state so indicate this with a negative value - it'll be corrected when the download stops
+		
+		resume_time	= -_resume_time;	
+				
+		return( globalManager.pauseDownload( this ));
+	}
+	
+	public long 
+	getAutoResumeTime() 
+	{
+		return( resume_time );
+	}
+	public boolean
 	isPaused()
 	{
 		return( globalManager.isPaused( this ));
@@ -2954,6 +2974,18 @@ DownloadManagerImpl
 				
 				latest_informed_force_start	= new_force_start;
 				
+				if ( resume_time < 0 ){
+					
+					if ( new_state == DownloadManager.STATE_STOPPED ){
+					
+						resume_time = -resume_time;
+					}
+				}else{
+					
+					resume_time = 0;
+				}
+				
+				
 				listeners.dispatch( LDT_STATECHANGED, new Object[]{ this, new Integer( new_state )});
 			}
 			
@@ -3356,8 +3388,13 @@ DownloadManagerImpl
 
 	public void 
 	setForceStart(
-			boolean forceStart) 
+		boolean forceStart) 
 	{
+		if ( forceStart ){
+			
+			checkResuming();
+		}
+		
 		controller.setForceStart( forceStart );
 	}
 

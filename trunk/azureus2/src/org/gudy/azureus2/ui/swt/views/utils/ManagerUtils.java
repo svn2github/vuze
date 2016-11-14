@@ -2144,6 +2144,8 @@ public class ManagerUtils {
 								}
 							};
 						
+						long target_time = SystemTime.getOffsetTime( seconds*1000);
+							
 						for ( DownloadManager dm: dms ){
 							
 							if ( !isPauseable( dm )){
@@ -2151,7 +2153,7 @@ public class ManagerUtils {
 								continue;
 							}
 							
-							if ( dm.pause()){
+							if ( dm.pause( target_time )){
 							
 								synchronized( paused ){
 									
@@ -2166,7 +2168,7 @@ public class ManagerUtils {
 							
 							SimpleTimer.addEvent(
 								"ManagerUtils.resumer",
-								SystemTime.getOffsetTime( seconds*1000),
+								target_time,
 								new TimerEventPerformer()
 								{	
 									public void 
