@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.toolbar;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarItemImpl;
@@ -100,6 +101,23 @@ public class ToolBarItemSO
 	public void updateUI() {
 		if (skinButton != null) {
 			skinButton.setImage(base.getImageID());
+			String tt = base.getTooltipID();
+			if ( tt == null ){
+				String temp = base.getTextID();
+				
+				if ( temp != null ){
+					
+					String test = temp + ".tooltip";
+					
+					if ( MessageText.keyExists( test )){
+						
+						temp = test;
+					}
+				}
+				
+				tt = temp;
+			}
+			skinButton.setTooltipID( tt );
 		}
 		if (skinTitle != null) {
 			skinTitle.setTextID(base.getTextID());

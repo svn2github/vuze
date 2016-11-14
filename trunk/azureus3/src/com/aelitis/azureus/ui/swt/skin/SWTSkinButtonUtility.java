@@ -258,15 +258,28 @@ public class SWTSkinButtonUtility
 			// TODO implement
 			return;
 		}
-		if (skinObject instanceof SWTSkinObjectImage) {
-			SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) skinObject;
-			skinImageObject.setTooltipID(id);
-		} else if (skinObject instanceof SWTSkinObjectContainer) {
-			SWTSkinObject[] children = ((SWTSkinObjectContainer) skinObject).getChildren();
-			if (children.length > 0 && children[0] instanceof SWTSkinObjectImage) {
-				SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) children[0];
-				skinImageObject.setTooltipID(id);
+		
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (imageViewID != null) {
+					SWTSkinObject skinImageObject = skinObject.getSkin().getSkinObject(
+							imageViewID, skinObject);
+					if (skinImageObject instanceof SWTSkinObjectImage) {
+						((SWTSkinObjectImage) skinImageObject).setTooltipID(id);
+						return;
+					}
+				}
+				if (skinObject instanceof SWTSkinObjectImage) {
+					SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) skinObject;
+					skinImageObject.setTooltipID(id);
+				} else if (skinObject instanceof SWTSkinObjectContainer) {
+					SWTSkinObject[] children = ((SWTSkinObjectContainer) skinObject).getChildren();
+					if (children.length > 0 && children[0] instanceof SWTSkinObjectImage) {
+						SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) children[0];
+						skinImageObject.setTooltipID(id);
+					}
+				}
 			}
-		}
+		});
 	}
 }
