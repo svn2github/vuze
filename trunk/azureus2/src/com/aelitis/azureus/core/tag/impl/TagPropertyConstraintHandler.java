@@ -307,8 +307,6 @@ TagPropertyConstraintHandler
 		int				old_state,
 		int				new_state )
 	{
-		System.out.println( "state changed: " + download.getName());
-		
 		List<TagConstraint>	interesting = new ArrayList<TagConstraint>();
 		
 		synchronized( constrained_tags ){
