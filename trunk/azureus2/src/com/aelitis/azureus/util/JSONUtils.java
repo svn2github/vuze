@@ -124,6 +124,27 @@ public class JSONUtils
 				value = new String((byte[]) value, "utf-8");
 			} catch (UnsupportedEncodingException e) {
 			}
+		} else if (value instanceof boolean[]) {
+			boolean[] array = (boolean[]) value;
+			ArrayList<Object> list = new ArrayList<Object>();
+			for (boolean b : array) {
+				list.add(b);
+			}
+			value = encodeToJSONArray(list);
+		} else if (value instanceof long[]) {
+			long[] array = (long[]) value;
+			ArrayList<Object> list = new ArrayList<Object>();
+			for (long b : array) {
+				list.add(b);
+			}
+			value = encodeToJSONArray(list);
+		} else if (value instanceof int[]) {
+			int[] array = (int[]) value;
+			ArrayList<Object> list = new ArrayList<Object>();
+			for (int b : array) {
+				list.add(b);
+			}
+			value = encodeToJSONArray(list);
 		}
 		return value;
 	}
