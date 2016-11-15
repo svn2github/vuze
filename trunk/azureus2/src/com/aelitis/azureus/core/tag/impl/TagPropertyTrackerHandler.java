@@ -39,7 +39,6 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeAdapter;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableLifecycleAdapter;
-import com.aelitis.azureus.core.tag.TaggableLifecycleListener;
 
 public class 
 TagPropertyTrackerHandler 
@@ -285,7 +284,7 @@ TagPropertyTrackerHandler
 				
 				if ( tracker_host_map.size() > 0 ){
 					
-					Set<String> hosts = TorrentUtils.getUniqueTrackerHosts( dm.getTorrent());
+					Set<String> hosts = getAugmentedHosts( dm );
 		
 					for ( String host: hosts ){
 						

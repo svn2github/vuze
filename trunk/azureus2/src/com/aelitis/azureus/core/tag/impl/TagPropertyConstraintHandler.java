@@ -54,7 +54,6 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableLifecycleAdapter;
-import com.aelitis.azureus.core.util.IdentityHashSet;
 
 public class 
 TagPropertyConstraintHandler 
