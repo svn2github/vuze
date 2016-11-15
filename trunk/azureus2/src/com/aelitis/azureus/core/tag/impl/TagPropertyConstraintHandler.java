@@ -67,6 +67,8 @@ TagPropertyConstraintHandler
 	
 	private Map<Tag,TagConstraint>	constrained_tags 	= new HashMap<Tag,TagConstraint>();
 	
+	private boolean	dm_listener_added;
+	
 	private Map<Tag,Map<DownloadManager,Long>>			apply_history 		= new HashMap<Tag, Map<DownloadManager,Long>>();
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "tag:constraints" );
@@ -217,6 +219,8 @@ TagPropertyConstraintHandler
 	private void
 	checkTimer()
 	{
+			// already synchronized on constrainted_tags by callers
+		
 		if ( constrained_tags.size() > 0 ){
 			
 			if ( timer == null ){
@@ -237,7 +241,24 @@ TagPropertyConstraintHandler
 							}
 						});
 				
-				azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getGlobalDownloadEventNotifier().addListener( this );
+				AzureusCoreFactory.addCoreRunningListener(
+					new AzureusCoreRunningListener()
+					{
+						public void 
+						azureusCoreRunning(
+							AzureusCore core )
+						{
+							synchronized( constrained_tags ){
+								
+								if ( timer != null ){
+							
+									azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getGlobalDownloadEventNotifier().addListener( TagPropertyConstraintHandler.this );
+									
+									dm_listener_added = true;
+								}
+							}
+						}
+					});
 			}
 			
 		}else if ( timer != null ){
@@ -246,7 +267,10 @@ TagPropertyConstraintHandler
 			
 			timer = null;
 			
-			azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getGlobalDownloadEventNotifier().removeListener( this );
+			if ( dm_listener_added ){
+				
+				azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getGlobalDownloadEventNotifier().removeListener( this );
+			}
 			
 			apply_history.clear();
 		}
@@ -283,10 +307,17 @@ TagPropertyConstraintHandler
 		int				old_state,
 		int				new_state )
 	{
+		System.out.println( "state changed: " + download.getName());
+		
 		List<TagConstraint>	interesting = new ArrayList<TagConstraint>();
 		
 		synchronized( constrained_tags ){
 
+			if ( !initialised ){
+				
+				return;
+			}
+			
 			for ( TagConstraint tc: constrained_tags.values()){
 				
 				if ( tc.dependOnDownloadState()){

@@ -325,7 +325,13 @@ TagTypeBase
 			
 			for ( Tag t: getTags()){
 				
-				listener.tagAdded( t );
+				try{
+					listener.tagAdded( t );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
 			}
 		}
 	}
