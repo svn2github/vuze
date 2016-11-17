@@ -87,7 +87,7 @@ extract messagebundles
 		</copy>
 		
 		<!-- Compile source code -->
-		<javac encoding="8859_1" includeAntRuntime="no" debug="true" debuglevel="source,lines,vars" destdir="${build.dir}" source="1.5" target="1.5" fork="yes" memoryMaximumSize="1024m" >
+		<javac encoding="8859_1" includeAntRuntime="no" debug="true" debuglevel="source,lines,vars" destdir="${build.dir}" source="1.6" target="1.6" fork="yes" memoryMaximumSize="1536m" >
 			<src path="${azureus2.dir}/src"/>
 			<src path="${azureus3.dir}/src"/>
 			<src path="${uis.dir}/src"/>
@@ -136,7 +136,7 @@ extract messagebundles
 			 <fileset dir="${azureus3.dir}/src" />
 			 <fileset dir="${uis.dir}/src" />
 			 <classpath refid="build.classpath"/>
-			 <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+			 <link href="http://docs.oracle.com/javase/6/docs/api/"/>
 		</javadoc>
 		
 		<!-- Make plugin api javadoc -->
@@ -146,7 +146,7 @@ extract messagebundles
 			 </fileset>
 			
 			 <classpath refid="build.classpath"/>
-			 <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+			 <link href="http://docs.oracle.com/javase/6/docs/api/"/>
 		</javadoc>
    </target>
 	
