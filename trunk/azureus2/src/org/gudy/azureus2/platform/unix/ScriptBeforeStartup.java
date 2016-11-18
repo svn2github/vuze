@@ -104,7 +104,7 @@ public class ScriptBeforeStartup
 			log("setting LD_LIBRARY_PATH to: $LD_LIBRARY_PATH");
 			log("setting MOZILLA_FIVE_HOME to: $MOZILLA_FIVE_HOME");
 		} else {
-			log("GRE/XULRunner automatically found");
+			log("Usable browser found");
 		}
 	}
 
