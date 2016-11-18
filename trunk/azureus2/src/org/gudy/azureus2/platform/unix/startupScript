@@ -12,14 +12,14 @@ JAVA_ARGS="-Xmx256m"
 
 ######## YOU PROBABLY DO NOT WANT TO TOUCH ANYTHING BELOW! ########
 
-SCRIPT_VERSION=5
+SCRIPT_VERSION=6
 START_CLASS="org.gudy.azureus2.ui.swt.Main"
 
 MSG_LOADING="Loading Azureus:"
 MSG_STARTING="Starting Azureus..."
 MSG2="Java exec found in "
-MSG3="OOPS, your java version is too old "
-MSG4="You need to upgrade to Java 1.5 or newer"
+MSG_JAVA_TOO_OLD="OOPS, your java version is too old "
+MSG_JAVA_BELOW_MIN="You need to upgrade to JRE 1.6 or newer"
 MSG5="Suitable java version found "
 MSG6="Configuring environment..."
 MSG7="OOPS, you don't seem to have a valid JRE "
@@ -73,7 +73,7 @@ look_for_java()
 			return 1
 		fi
 	else
-		echo $MSG8 "${JAVADIR}/" $MSG9 ; echo $MSG4
+		echo $MSG8 "${JAVADIR}/" $MSG9 ; echo $MSG_JAVA_BELOW_MIN
 	fi
 	return 1
 }
@@ -96,8 +96,8 @@ check_version()
     exit 1
 	else
 		VERSION=`echo ${JAVA_HEADER} | sed "s/^.* version \"\(.*\)\"/\1/"`
-		if echo $VERSION | grep "^1.[0-4]" ; then
-			echo $MSG3 "[${JAVA_PROGRAM_DIR}java = ${VERSION}]" ; echo $MSG4
+		if echo $VERSION | grep "^1.[0-5]" ; then
+			echo $MSG_JAVA_TOO_OLD "[${JAVA_PROGRAM_DIR}java = ${VERSION}]" ; echo $MSG_JAVA_BELOW_MIN
 			return 1
 		else
 			echo $MSG5 "[${JAVA_PROGRAM_DIR}java = ${JAVA_IMPL} ${VERSION}]" ; echo $MSG6
@@ -126,14 +126,35 @@ runJavaOutput()
 
 moveInSWT()
 {
-	if [ ! -f "${PROGRAM_DIR}/swt.jar" ]; then
-		if [ ! "$(echo ${PROGRAM_DIR}/swt/*.jar)" = "${PROGRAM_DIR}/swt/*.jar" ]; then
-			if [ "`${JAVA_PROGRAM_DIR}java -cp \"${CLASSPATH}\" org.gudy.azureus2.platform.JavaBitMode`" = "64" ]; then 
-				cp ${PROGRAM_DIR}/swt/swt64.jar ${PROGRAM_DIR}/swt.jar
-			else
-				cp ${PROGRAM_DIR}/swt/swt32.jar ${PROGRAM_DIR}/swt.jar
-			fi
+	if [ "$(echo ${PROGRAM_DIR}/swt/*.jar)" = "${PROGRAM_DIR}/swt/*.jar" ]; then
+		# No swt dir
+		return;
+	fi
+	if [ "`${JAVA_PROGRAM_DIR}java -cp \"${CLASSPATH}\" org.gudy.azureus2.platform.JavaBitMode`" = "64" ]; then
+		SWTFILE="swt64"
+	else
+		SWTFILE="swt32"
+	fi
+	if [[ "${VERSION}" > "1.8" ]]; then
+		if [ -f "${PROGRAM_DIR}/swt/${SWTFILE}-J8.jar" ]; then
+			SWTFILE="${SWTFILE}-J8";
 		fi
+	fi
+
+	if [ -f "${PROGRAM_DIR}/swt.jar" ]; then
+		SWTVER=`unzip -cq "${PROGRAM_DIR}/swt.jar" version.txt | sed "s/^version \(.*\)/\1/"`
+	fi
+	SWTVERNEW=`unzip -cq "${PROGRAM_DIR}/swt/${SWTFILE}.jar" version.txt | sed "s/^version \(.*\)/\1/"`
+	if [[ ( "${SWTVER}" != "" ) && ( "${SWTVERNEW}" > "${SWTVER}" ) ]]; then
+		echo "Upgrading SWT from ${SWTVER} to ${SWTVERNEW}"
+		rm "${PROGRAM_DIR}/swt.jar"
+	fi
+
+	if [ ! -f "${PROGRAM_DIR}/swt.jar" ]; then
+		cp "${PROGRAM_DIR}/swt/${SWTFILE}.jar" "${PROGRAM_DIR}/swt.jar"
+		echo "Using ${SWTFILE} ${SWTVERNEW}"
+	else
+		echo "SWT ${SWTVER}"
 	fi
 }
 
