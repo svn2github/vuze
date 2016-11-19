@@ -2461,8 +2461,10 @@ BuddyPluginBeta
 		addReference()
 		{
 			synchronized( chat_lock ){
-				
+								
 				reference_count++;
+				
+				// Debug.out( getName() + ": added ref -> " + reference_count );
 			}
 		}
 		
@@ -5075,6 +5077,8 @@ BuddyPluginBeta
 					
 					reference_count--;
 					
+					// Debug.out( getName() + ": removed ref -> " + reference_count );
+
 					if ( reference_count > 0 ){
 						
 						return;

@@ -49,13 +49,13 @@ ChatView
 	{  
 		try{
 			if ( current_chat != null ){
-				
-				initialized_chat = current_chat;
-				
+								
 				Map<String,Object>	chat_properties = new HashMap<String, Object>();
 		
 				chat_properties.put( BuddyPluginViewInterface.VP_SWT_COMPOSITE, _parent_composite );
-				chat_properties.put( BuddyPluginViewInterface.VP_CHAT, current_chat );
+				
+					// 
+				chat_properties.put( BuddyPluginViewInterface.VP_CHAT, current_chat.getClone());
 		
 				chat_view = 
 					BuddyPluginUtils.buildChatView( 
@@ -117,24 +117,7 @@ ChatView
 		
 				ChatInstance chat = (ChatInstance)data;
 				
-				try{
-					if ( current_chat == null ){
-						
-						current_chat = chat.getClone();
-						
-					}else{
-						
-						if ( !current_chat.getNetAndKey().equals( chat.getNetAndKey())){
-							
-							current_chat.destroy();
-							
-							current_chat = chat.getClone();
-						}
-					}
-				}catch( Throwable e ){
-					
-					Debug.out( e );
-				}
+				current_chat = chat;
 			}
 		}
 	}
@@ -152,7 +135,7 @@ ChatView
 
 			synchronized( this ){
 				
-				if ( current_chat != null && current_chat != initialized_chat ){
+				if ( current_chat != null ){
 					
 					current_chat.destroy();
 					
@@ -162,11 +145,25 @@ ChatView
 
 			break;
 
-		case UISWTViewEvent.TYPE_INITIALIZE:
+		case UISWTViewEvent.TYPE_INITIALIZE:{
+			
+			synchronized( this ){
+				
+				if ( current_chat != null ){
+				
+					try{
+						current_chat.getClone();
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
 			initialize((Composite)event.getData());
 			
 			break;
-
+		}
 		case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
 
 			break;

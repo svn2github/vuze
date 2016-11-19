@@ -162,6 +162,8 @@ BuddyPluginViewBetaChat
 					existing.setActive();
 				}
 				
+				chat.destroy();
+				
 				return;
 			}
 		}

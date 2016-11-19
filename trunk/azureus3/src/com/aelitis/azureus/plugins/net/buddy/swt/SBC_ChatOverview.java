@@ -223,6 +223,15 @@ public class SBC_ChatOverview
 		try{
 			String key = "Chat_" + chat.getNetwork() + ":" + Base32.encode( chat.getKey().getBytes( "UTF-8" ));
 			
+			MdiEntry existing = mdi.getEntry( key );
+			 
+			if ( existing != null ){
+					
+				chat.destroy();
+				
+				return( existing );
+			}
+			
 			BuddyPluginBeta bp = BuddyPluginUtils.getBetaPlugin();
 			
 			TreeMap<ChatInstance,String>	name_map = 
