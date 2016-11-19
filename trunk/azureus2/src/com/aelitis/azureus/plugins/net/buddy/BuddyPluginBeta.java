@@ -3297,6 +3297,10 @@ BuddyPluginBeta
 						str += ", M-";
 					}
 						
+					if ( Constants.isCVSVersion()){
+					
+						str += ", Refs=" + reference_count;
+					}
 					
 					return( str );
 					
