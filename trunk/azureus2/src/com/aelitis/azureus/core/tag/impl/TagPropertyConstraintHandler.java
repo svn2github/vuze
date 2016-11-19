@@ -395,7 +395,7 @@ TagPropertyConstraintHandler
 				
 				TagConstraint con = constrained_tags.get( tag );
 				
-				if ( con != null && con.getConstraint().equals( constraint )){
+				if ( con != null && con.getConstraint().equals( constraint ) && con.getOptions().equals( options )){
 					
 					return;
 				}
@@ -817,6 +817,18 @@ TagPropertyConstraintHandler
 		getConstraint()
 		{
 			return( constraint );
+		}
+		
+		private String
+		getOptions()
+		{
+			if ( auto_add ){
+				return( "am=1;" );
+			}else if ( auto_remove ){
+				return( "am=2;" );
+			}else{
+				return( "am=0;" );
+			}
 		}
 		
 		private void
