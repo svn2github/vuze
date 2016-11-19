@@ -1780,7 +1780,9 @@ TagBase
 					if ( vals != null && vals.length > 0 ){
 						value = "";
 						
-						if ( getName( false ).equals( TagFeatureProperties.PR_TRACKER_TEMPLATES )){
+						String name = getName( false );
+						
+						if ( name.equals( TagFeatureProperties.PR_TRACKER_TEMPLATES )){
 							
 							String str_merge 	= MessageText.getString("label.merge" );
 							String str_replace 	= MessageText.getString("label.replace" );
@@ -1799,6 +1801,33 @@ TagBase
 									str += ": " + str_remove;
 								}
 								value += (value.length()==0?"":"," ) + str;
+							}
+						}else if ( name.equals( TagFeatureProperties.PR_CONSTRAINT )){
+							
+							value += vals[0];
+							
+							if ( vals.length > 1 ){
+								
+								String options = vals[1];
+								
+								boolean auto_add 	= !options.contains( "am=2;" );
+								boolean auto_remove = !options.contains( "am=1;" );
+								
+								if ( auto_add || auto_remove ){
+									
+									value += "," + MessageText.getString( "label.scope" );
+									
+									value += "=";
+									
+									if ( auto_add ){
+										
+										value += MessageText.getString( "label.addition.only" );
+										
+									}else{
+										
+										value += MessageText.getString( "label.removal.only" );
+									}
+								}	
 							}
 						}else{
 							for ( String val: vals ){
