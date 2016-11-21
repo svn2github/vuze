@@ -1,7 +1,67 @@
 VUZE CHANGELOG
 -----------------
 
-2016.xx.yy | Vuze 5.7.3.1
+2017.xx.yy | Vuze 5.7.4.1
+
+2016.11.21 | Vuze 5.7.4.0
+
+FEATURE: UI   | Option to filter by hash in torrent views via 't:' prefix [Parg]
+FEATURE: UI   | Subscriptions can now be looked up from torrent options dialog [Parg]
+FEATURE: UI   | Option to manually enable/disable subscriptions [Parg]
+FEATURE: UI   | Search box now supports history [Parg]
+FEATURE: UI   | Download history view [Parg]
+FEATURE: UI   | Inform when previously downloaded torrent re-added [Parg]
+FEATURE: UI   | Country flags now shown in Vivaldi view [Parg]
+FEATURE: UI   | Subscriptions can now be grouped in the sidebar [Parg]
+FEATURE: UI   | Added search template menus to search area [Parg]
+FEATURE: UI   | Added a 'force deselect' option to templates [Parg]
+FEATURE: UI   | Unviewed notifications are now highlighted [Parg]
+FEATURE: UI   | Added filter to Tags Overview [Parg]
+
+FEATURE: Core | Plugin Bar/Quick Config now has option to enforce time limited rate limits [Parg]
+FEATURE: Core | Added last-active tag constraint [Parg]
+FEATURE: Core | Added 'find more like...' feature [Parg]
+FEATURE: Core | Added seed_count, peer_count and seed_peer_ratio to tag constraints [Parg]
+FEATURE: Core | Option to exclude protocol overhead from rate limits [Parg]
+FEATURE: Core | Added scope to Tag constraints to control when they are applied [Parg]
+FEATURE: Core | Added resume_in Tag constraint [Parg]
+
+CHANGE: UI    | Subscription lookup dialog improvements [Parg]
+CHANGE: UI    | Active tag now visible for all modes [Parg]
+CHANGE: UI    | Explicit chat dialog pop-outs now always pop-out [Parg]
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Basque translation update [Azpidatziak]
+CHANGE: UI    | Updated share-ratio-progress column to show eta for next ratio to be met [Parg]
+CHANGE: UI    | Added Java install location to About window [Parg]
+CHANGE: UI    | Fixed naming of tracker-based Tags [Parg]
+
+CHANGE: Core  | Ignore 'force start' downloads when applying share-ratio based stop actions [Parg]
+CHANGE: Core  | Ignore the 'move only in default dir' setting for tag based move-on-complete when overall 'move on complete' isn't enabled as this is confusing [Parg]
+CHANGE: Core  | Processing time now excluded from RTT calculations [Parg]
+CHANGE: Core  | Pick up download state related tag constraint updates quicker [Parg]
+CHANGE: Core  | Switch to Java 1.6 bytecode [Parg]
+CHANGE: Core  | Newer SWT requires J8. Pick swt jar based on Java version and 64/32 bit.  Upgrade swt.jar being used if older than one in "swt/". Min Java in 1.6 [TuxPaper]
+
+BUGFIX: UI    | General view wasn't picking up data source changes [Parg]
+BUGFIX: UI    | Fixed some subscription table sorting errors [Parg]
+BUGFIX: UI    | Prefix not being layed out correctly in date based columns [Parg]
+BUGFIX: UI    | Fixed logic to launch websites in browser by default [Parg]
+BUGFIX: UI    | Wrong default path was being used for move to location [Parg]
+BUGFIX: UI    | Brought back toolbar item tooltips [Parg]
+BUGFIX: UI    | QR code area in Remote Pairing window not big enough to show full QR code on clean Windows 2008 machine [TuxPaper]
+
+BUGFIX: Core  | Fixed occasional subscription download failures [Parg]
+BUGFIX: Core  | Reduce CPU usage caused by misbehaving network interfaces [Parg]
+BUGFIX: Core  | Delete subscription wasn't actually deleting them [Parg]
+BUGFIX: Core  | Handle null network interfaces [Parg]
+BUGFIX: Core  | Don't auto-download results that have already been marked as read [Parg]
+BUGFIX: Core  | Fix tags not being applied on restore-from-archive [Parg]
+BUGFIX: Core  | Rate limit table refreshes to reduce CPU [Parg]
+BUGFIX: Core  | Backup updated to ignore a few troublesome locked files [Parg]
+BUGFIX: Core  | Fix interaction between file priority and first/last piece priority [Parg]
+BUGFIX: Core  | Fixed of downloads leaving paused ones in semi-paused state [Parg]
+BUGFIX: Core  | Tag tracker properties were not consistently matching [Parg]
+BUGFIX: Core  | Fixed incorrect chat dialog reference counting [Parg]
 
 2016.08.09 | Vuze 5.7.3.0
 
