@@ -453,9 +453,13 @@ TextWithHistory
 	match(
 		String	str )
 	{
+		str = str.trim();
+		
 		List<String>	matches = new ArrayList<String>();
 		
 		for ( String h: history ){
+			
+			h = h.trim();
 			
 			if ( h.startsWith( str )){
 				
@@ -512,6 +516,8 @@ TextWithHistory
 			return;
 		}
 
+		str = str.trim();
+		
 		String key = config_prefix + ".data";
 		
 		StringList sl = COConfigurationManager.getStringListParameter( key );
