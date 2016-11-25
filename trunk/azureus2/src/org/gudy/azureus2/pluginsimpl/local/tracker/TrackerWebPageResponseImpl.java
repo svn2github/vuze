@@ -26,13 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  * @author parg
  *
  */
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,13 +42,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
-import org.gudy.azureus2.core3.util.AsyncController;
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 
@@ -352,10 +340,11 @@ TrackerWebPageResponseImpl
 				}
 			}
 		}
-		
+
 		if ( do_gzip ){
 
-				// try and set the content-length to that of the compressed data
+			// some http readers need valid content-length.
+			// For large replies, write to temp file to same memory
 			
 			if ( reply_bytes.length < 512*1024 ){
 				
@@ -369,7 +358,43 @@ TrackerWebPageResponseImpl
 				
 				reply_bytes = temp.toByteArray();
 				
-				do_gzip = false;
+			} else {
+				File post_file = AETemporaryFileHandler.createTempFile();
+				
+				post_file.deleteOnExit();
+				
+				FileOutputStream fos = new FileOutputStream( post_file );
+				GZIPOutputStream gzos = new GZIPOutputStream(fos);
+				
+				gzos.write( reply_bytes );
+				
+				gzos.close();
+				
+				FileInputStream fis = new FileInputStream(post_file);
+				
+				reply_header +=
+						"Content-Length: " + post_file.length() + NL +
+						NL;
+
+				OutputStream os = request.getOutputStream();
+				
+				os.write( reply_header.getBytes());
+				
+				byte[] buffer = new byte[16384];
+				while (true) {
+					int read = fis.read(buffer);
+					if (read == -1) {
+						break;
+					}
+					os.write(buffer, 0, read);
+				}
+				
+				os.flush();
+				fis.close();
+				post_file.delete();
+				
+				return;
+
 			}
 		}
 		
@@ -383,18 +408,7 @@ TrackerWebPageResponseImpl
 		
 		os.write( reply_header.getBytes());
 
-		if ( do_gzip ){
-			
-			GZIPOutputStream gzos = new GZIPOutputStream(os);
-			
-			gzos.write( reply_bytes );
-			
-			gzos.finish();
-			
-		}else{
-		
-			os.write( reply_bytes );
-		}
+		os.write( reply_bytes );
 		
 		os.flush();
 	}
