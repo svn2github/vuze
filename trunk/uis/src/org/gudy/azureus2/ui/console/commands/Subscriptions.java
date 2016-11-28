@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
 import com.aelitis.azureus.core.subs.*;

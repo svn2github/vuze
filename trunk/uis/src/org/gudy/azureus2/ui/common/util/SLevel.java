@@ -10,6 +10,7 @@
 
 package org.gudy.azureus2.ui.common.util;
 
+import org.apache.log4j.Level;
 /**
  *
  * @author  Tobias Minich

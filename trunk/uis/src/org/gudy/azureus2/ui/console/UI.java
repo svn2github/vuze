@@ -16,6 +16,7 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.util.Locale;
 
+import org.apache.log4j.Logger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.TorrentUtils;
