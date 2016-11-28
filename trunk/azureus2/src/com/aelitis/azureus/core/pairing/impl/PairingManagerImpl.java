@@ -2382,7 +2382,7 @@ PairingManagerImpl
 		}
 	}
 	
-	private class
+	private static class
 	PairingConnectionData2
 		implements PairingConnectionData
 	{

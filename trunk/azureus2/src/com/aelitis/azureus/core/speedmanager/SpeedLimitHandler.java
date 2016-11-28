@@ -4552,7 +4552,7 @@ SpeedLimitHandler
 	    }
 	}
 	
-	private class
+	private static class
 	ScheduleRule
 	{
 		private static final byte	FR_MON		= 0x01;
@@ -5118,7 +5118,7 @@ SpeedLimitHandler
 		}
 	}
 	
-	private class
+	private static class
 	IPSetTagType
 		extends TagTypeWithState
 	{	

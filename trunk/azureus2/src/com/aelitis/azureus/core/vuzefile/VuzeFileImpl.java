@@ -166,7 +166,7 @@ VuzeFileImpl
 		}
 	}
 	
-	protected class
+	protected static class
 	comp
 		implements VuzeFileComponent
 	{

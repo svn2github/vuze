@@ -2732,7 +2732,7 @@ BuddyPluginViewInstance
 
 	}
 	
-	protected class 
+	protected static class
 	FilterComparator 
 		implements Comparator 
 	{

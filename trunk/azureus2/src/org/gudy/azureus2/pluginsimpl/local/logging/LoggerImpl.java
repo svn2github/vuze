@@ -197,7 +197,7 @@ LoggerImpl
 		}
 	}
 	
-	private class PluginFileLoggerAdapater extends FileLoggingAdapter {
+	private static class PluginFileLoggerAdapater extends FileLoggingAdapter {
 		public FileLoggerAdapter listener;
 
 		public PluginFileLoggerAdapater(FileLogging fileLogging, FileLoggerAdapter listener) {

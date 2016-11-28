@@ -542,7 +542,7 @@ DownloadActivityView
 		list.putAll(states);
 	}
 	
-	private abstract class
+	private abstract static class
 	ValueSourceImpl
 		implements ValueSource
 	{	

@@ -488,7 +488,7 @@ SpeedManagerAlgorithmProviderV3
 		adapter.log( str );
 	}
 	
-	protected class
+	protected static class
 	pingSource
 	{
 		private SpeedManagerPingSource	source;

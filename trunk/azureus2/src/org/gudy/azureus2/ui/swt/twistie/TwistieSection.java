@@ -196,7 +196,7 @@ public class TwistieSection
 	 * @author knguyen
 	 *
 	 */
-	private class TwistieContentPanel
+	private static class TwistieContentPanel
 		extends Composite
 	{
 

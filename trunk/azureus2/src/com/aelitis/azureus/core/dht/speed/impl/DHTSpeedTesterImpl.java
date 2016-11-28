@@ -137,8 +137,8 @@ DHTSpeedTesterImpl
 				
 				synchronized( pending_contacts ){
 					
-					potentialPing	ping = 
-						new potentialPing( 
+					potentialPing	ping =
+						new potentialPing(
 								contact,
 								DHTNetworkPositionManager.estimateRTT( contact.getNetworkPositions(), dht.getTransport().getLocalContact().getNetworkPositions()));
 									
@@ -362,7 +362,7 @@ DHTSpeedTesterImpl
 		listeners.remove( listener );
 	}
 	
-	protected class
+	protected static class
 	potentialPing
 	{
 		private DHTTransportContact		contact;
@@ -701,7 +701,7 @@ DHTSpeedTesterImpl
 		}
 	}
 	
-	protected class
+	protected static class
 	pingInstance
 	{
 		private activePing			contact;

@@ -1187,7 +1187,7 @@ public class ToolBarView
 		});
 	}
 
-	public abstract class UIToolBarActivationListener_OffSWT
+	public abstract static class UIToolBarActivationListener_OffSWT
 		implements UIToolBarActivationListener
 	{
 		private long onlyOnActivationType;

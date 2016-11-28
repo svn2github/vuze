@@ -160,7 +160,7 @@ CryptoWindow
 	{		
 	}
 	
-	protected class
+	protected static class
 	cryptoDialog
 	{
 		private AESemaphore	sem;

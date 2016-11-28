@@ -541,7 +541,7 @@ TranscodePipe
 		}
 	}
 	
-	private class
+	private static class
 	bufferCache
 	{
 		private long	offset;

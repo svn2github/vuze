@@ -593,7 +593,7 @@ AEProxySelectorImpl
 		return( active.getInfo());
 	}
 	
-	private class
+	private static class
 	ActiveProxy
 	{
 		private static final int	DNS_RETRY_MILLIS = 15*60*1000;

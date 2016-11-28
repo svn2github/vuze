@@ -180,7 +180,7 @@ NonDaemonTaskRunner
 		return( wrapper.waitForResult());
 	}
 	
-	protected class
+	protected static class
 	taskWrapper
 	{
 		protected NonDaemonTask		task;

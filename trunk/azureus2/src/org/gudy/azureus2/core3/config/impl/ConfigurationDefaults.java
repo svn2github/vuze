@@ -895,7 +895,7 @@ public class ConfigurationDefaults {
 	  }
   }
   
-  protected class
+  protected static class
   IPVerifier
   	implements COConfigurationManager.ParameterVerifier
   {

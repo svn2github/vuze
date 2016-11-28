@@ -935,7 +935,7 @@ BuddyPluginAZ2
 		}
 	}
 	
-	public class
+	public static class
 	chatParticipant
 	{
 		private BuddyPluginBuddy	buddy;
@@ -990,7 +990,7 @@ BuddyPluginAZ2
 		}
 	}
 	
-	public class
+	public static class
 	chatMessage
 	{
 		private String		nick;

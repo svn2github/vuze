@@ -640,7 +640,7 @@ NetStatusProtocolTester
 	}
 	
 	
-	protected class
+	protected static class
 	testXferType
 		implements DistributedDatabaseTransferType
 	{	

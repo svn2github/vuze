@@ -77,7 +77,7 @@ CertificateCreatorWindow
 		}
 	}
 	
-	protected class
+	protected static class
 	createDialog
 	{
 		protected Shell			shell;

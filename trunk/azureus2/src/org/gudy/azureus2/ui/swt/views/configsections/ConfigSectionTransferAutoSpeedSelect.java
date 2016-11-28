@@ -590,7 +590,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         return cSection;
     }//configSectionCreate
 
-    class ConvertToLongChangeListener implements ParameterChangeListener{
+    static class ConvertToLongChangeListener implements ParameterChangeListener{
 
         public void parameterChanged(Parameter p, boolean caused_internally) {
 

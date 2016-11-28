@@ -674,7 +674,7 @@ CryptoManagerImpl
 		return( null );
 	}
 	
-	protected class
+	protected static class
 	passwordDetails
 	{
 		private char[]		password;
@@ -702,7 +702,7 @@ CryptoManagerImpl
 		}
 	}
 	
-	private class
+	private static class
 	SRPParametersImpl
 		implements SRPParameters
 	{

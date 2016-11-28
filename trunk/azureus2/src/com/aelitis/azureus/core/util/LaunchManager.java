@@ -93,7 +93,7 @@ LaunchManager
 		controllers.remove( controller );
 	}
 	
-	public class
+	public static class
 	LaunchTarget
 	{
 		private DownloadManager			dm;

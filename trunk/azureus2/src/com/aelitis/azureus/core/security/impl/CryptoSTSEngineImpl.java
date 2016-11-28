@@ -400,7 +400,7 @@ CryptoSTSEngineImpl
 		}
 	}
 	
-	class 
+	static class
 	InternalDH 
 		extends JCEECDHKeyAgreement.DH
 	{

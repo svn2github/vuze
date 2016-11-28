@@ -4075,7 +4075,7 @@ addressLoop:
 		}
 	}
 	
-	protected class
+	protected static class
 	networkNode
 		implements NetworkAdminNode
 	{

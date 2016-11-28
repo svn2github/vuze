@@ -495,7 +495,7 @@ SpeedManagerImpl
 							synchronized( contacts ){
 								
 								pingContact	source = new pingContact( contact );
-								
+
 								contacts.put( contact, source );
 								
 								contacts_array = new pingContact[ contacts.size() ];
@@ -1073,7 +1073,7 @@ SpeedManagerImpl
 		}
 	}
 	
-	protected class
+	protected static class
 	pingContact
 		implements SpeedManagerPingSource
 	{
@@ -1224,7 +1224,7 @@ SpeedManagerImpl
 		}
 	}
 	
-	protected class
+	protected static class
 	nullProvider
 		implements SpeedManagerAlgorithmProvider
 	{		

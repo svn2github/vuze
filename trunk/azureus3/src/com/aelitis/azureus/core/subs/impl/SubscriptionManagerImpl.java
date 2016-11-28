@@ -7034,7 +7034,7 @@ SubscriptionManagerImpl
 		}
 	}
 	
-	private class
+	private static class
 	searchMatcher
 	{
 		private String[]	bits;

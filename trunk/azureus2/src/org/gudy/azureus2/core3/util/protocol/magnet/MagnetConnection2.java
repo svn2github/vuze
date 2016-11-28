@@ -545,7 +545,7 @@ MagnetConnection2
 		}
 	}
 	
-	private class
+	private static class
 	MagnetInputStream
 		extends InputStream
 	{

@@ -77,7 +77,7 @@ public class Timer
 				timers_mon.enter();
 				if (timers == null) {
 					timers = new ArrayList<WeakReference<Timer>>();
-					AEDiagnostics.addEvidenceGenerator(new evidenceGenerator()); 
+					AEDiagnostics.addEvidenceGenerator(new evidenceGenerator());
 				}
 				timers.add(new WeakReference<Timer>(this));
 			} finally {
@@ -622,7 +622,7 @@ public class Timer
 		}
 	}
 
-	private class 
+	private static class
 	evidenceGenerator implements AEDiagnosticsEvidenceGenerator
 	{
 		public void generate(IndentWriter writer) {

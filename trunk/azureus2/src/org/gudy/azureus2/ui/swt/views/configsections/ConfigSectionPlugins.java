@@ -98,7 +98,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 	
 	private Image imgGreenLed;
 	
-	class FilterComparator implements Comparator {
+	static class FilterComparator implements Comparator {
 		boolean ascending = true;
 
 		static final int FIELD_LOAD = 0;

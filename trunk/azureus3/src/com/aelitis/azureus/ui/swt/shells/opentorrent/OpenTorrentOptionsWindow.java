@@ -6188,7 +6188,7 @@ public class OpenTorrentOptionsWindow
 			OpenTorrentInstance		instance );
 	}
 	
-	private class
+	private static class
 	IntAdapter
 		extends GenericParameterAdapter
 	{

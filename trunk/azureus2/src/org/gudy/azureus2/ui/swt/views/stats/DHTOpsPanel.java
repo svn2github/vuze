@@ -86,7 +86,7 @@ DHTOpsPanel
 
 	private TimerEventPeriodic timeout_timer;
 	
-	private class Scale {
+	private static class Scale {
 		int width;
 		int height;
 

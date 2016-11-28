@@ -379,7 +379,7 @@ AuthenticatorWindow
 		return( new String[]{ user, pw == null?"":pw, persist });
 	}
 	
-	protected class
+	protected static class
 	authDialog
 	{
 		private Shell			shell;

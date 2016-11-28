@@ -605,7 +605,7 @@ TorrentManagerImpl
 		}
 	}
 	
-	private class
+	private static class
 	TorrentOptionsImpl
 		implements TorrentOptions
 	{

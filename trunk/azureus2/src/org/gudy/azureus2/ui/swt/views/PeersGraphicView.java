@@ -145,7 +145,7 @@ public class PeersGraphicView
   private Composite 	panel;
 
   
-  private class
+  private static class
   ManagerData
   	implements DownloadManagerPeerListener
   {

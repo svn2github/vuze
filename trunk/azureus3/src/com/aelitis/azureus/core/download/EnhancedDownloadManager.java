@@ -1019,7 +1019,7 @@ EnhancedDownloadManager
 		}
 	}
 	
-	protected abstract class
+	protected abstract static class
 	progressiveStats
 		implements Cloneable
 	{

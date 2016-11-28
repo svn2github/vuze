@@ -1461,7 +1461,7 @@ DeviceOfflineDownloaderImpl
 		super.log( "OfflineDownloader: " + str, e );
 	}
 	
-	protected class
+	protected static class
 	OfflineDownload
 		implements DeviceOfflineDownload
 	{

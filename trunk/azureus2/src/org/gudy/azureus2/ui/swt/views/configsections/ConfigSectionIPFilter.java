@@ -61,7 +61,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   
   private boolean bIsCachingDescriptions = false;
   
-  class FilterComparator implements Comparator {
+  static class FilterComparator implements Comparator {
     
     boolean ascending = true;
     

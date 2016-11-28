@@ -511,7 +511,7 @@ TOTorrentXMLDeserialiser
 		return( res );
 	}
 	
-	protected class
+	protected static class
 	mapEntry
 	{
 		String		name;

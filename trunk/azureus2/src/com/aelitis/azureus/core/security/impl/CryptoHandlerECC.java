@@ -867,7 +867,7 @@ CryptoHandlerECC
 		return((int)COConfigurationManager.getIntParameter( CONFIG_PREFIX + "pwtype", CryptoManagerPasswordHandler.HANDLER_TYPE_USER ));
 	}
 	
-	class InternalECIES 
+	static class InternalECIES
 		extends JCEIESCipher.ECIES
 	{
 			// we use this class to obtain compatability with BC

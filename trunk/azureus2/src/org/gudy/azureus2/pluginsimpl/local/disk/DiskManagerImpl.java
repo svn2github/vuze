@@ -164,7 +164,7 @@ DiskManagerImpl
 		return( request );
 	}
 	
-	private class
+	private static class
 	DMRR
 		implements org.gudy.azureus2.plugins.disk.DiskManagerReadRequest
 	{
@@ -202,7 +202,7 @@ DiskManagerImpl
 		}
 	}
 	
-	private class
+	private static class
 	DMWR
 		implements org.gudy.azureus2.plugins.disk.DiskManagerWriteRequest
 	{

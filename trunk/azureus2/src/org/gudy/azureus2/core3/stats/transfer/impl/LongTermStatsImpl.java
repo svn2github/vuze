@@ -1246,7 +1246,7 @@ outer:
 		}
 	}
 	
-	private class
+	private static class
 	DayCache
 	{
 		private String			year;

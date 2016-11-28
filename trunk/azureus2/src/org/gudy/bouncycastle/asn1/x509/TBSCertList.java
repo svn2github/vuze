@@ -38,7 +38,7 @@ import org.gudy.bouncycastle.asn1.DERUTCTime;
 public class TBSCertList
     extends ASN1Encodable
 {
-    public class CRLEntry
+    public static class CRLEntry
         extends ASN1Encodable
     {
         ASN1Sequence  seq;

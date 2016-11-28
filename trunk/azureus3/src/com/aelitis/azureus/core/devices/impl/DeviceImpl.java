@@ -2561,7 +2561,7 @@ DeviceImpl
 		writer.println( "files=" + files.length + ", comp=" + complete + ", copied=" + copied + ", deleted=" + deleted + ", template=" + template );
 	}
 	
-	protected class
+	protected static class
 	browseLocationImpl
 		implements browseLocation
 	{

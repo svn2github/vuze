@@ -77,7 +77,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	Table subscriptionsList;
 	StackLayout mainLayout;
 	
-	private class SubscriptionItemModel {
+	private static class SubscriptionItemModel {
 		String name;
 		long popularity;
 		String popularityDisplay;

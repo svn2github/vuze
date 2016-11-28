@@ -370,7 +370,7 @@ public class ConfigSectionTransferAutoSpeedBeta
      * Listen for changes in the drop down, then enable/disable the appropriate
      * group mode.
      */
-    class GroupModeChangeListener implements ParameterChangeListener
+    static class GroupModeChangeListener implements ParameterChangeListener
     {
         /**
          * Enable/Disable approriate group.
@@ -403,7 +403,7 @@ public class ConfigSectionTransferAutoSpeedBeta
     }//class GroupModeChangeListener
 
 
-    class RestoreDefaultsListener implements Listener {
+    static class RestoreDefaultsListener implements Listener {
 
         public void handleEvent(Event event) {
 

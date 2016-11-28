@@ -2058,7 +2058,7 @@ MagnetPlugin
 		listeners.remove( listener );
 	}
 	
-	private class
+	private static class
 	DownloadResult
 	{
 		private byte[]		data;

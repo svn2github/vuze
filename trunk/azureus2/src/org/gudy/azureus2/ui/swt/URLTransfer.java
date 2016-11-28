@@ -309,7 +309,7 @@ public class URLTransfer extends ByteArrayTransfer {
 		return def;
 	}
 
-	public class URLType {
+	public static class URLType {
 		public String linkURL;
 
 		public String linkText;

@@ -428,7 +428,7 @@ NetworkAdminHTTPProxyImpl
 		throw( error[0] );
 	}
 	
-	protected class
+	protected static class
 	ProxyDetails
 		implements Details
 	{

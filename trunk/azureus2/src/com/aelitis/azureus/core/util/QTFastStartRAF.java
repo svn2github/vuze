@@ -423,7 +423,7 @@ QTFastStartRAF
 		input.close();
 	}
 	
-	private class 
+	private static class
 	Atom
 	{
 		

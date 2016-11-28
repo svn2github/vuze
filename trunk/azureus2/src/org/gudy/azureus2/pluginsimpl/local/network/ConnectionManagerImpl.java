@@ -169,7 +169,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 	
   }
   
-  public class
+  public static class
   PluginRateLimiter
 	implements RateLimiter
   {

@@ -233,7 +233,7 @@ CLCacheDiscovery
 		return( null );
 	}
 	
-	class
+	static class
 	CDPQuery
 	{
 		private String Client;
@@ -267,7 +267,7 @@ CLCacheDiscovery
 	 * @author Matthias Scheler <mscheler@cachelogic.com>
 	 *
 	 */
-	class
+	static class
 	CDPResponse
 	{
 		public static final int	MinSize = 7;

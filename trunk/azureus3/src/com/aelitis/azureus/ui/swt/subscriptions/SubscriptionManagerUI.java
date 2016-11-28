@@ -1554,7 +1554,7 @@ SubscriptionManagerUI
 			
 				if ( parent_entry == null ){
 			
-					SubsParentView parent = new SubsParentView( parent_name );		
+					SubsParentView parent = new SubsParentView( parent_name );
 							
 					String parent_key = getParentKey( parent_name );
 				
@@ -3021,7 +3021,7 @@ SubscriptionManagerUI
 		}
 	}
 	
-	protected class
+	protected static class
 	SubsParentView
 		implements 	ViewTitleInfo, UISWTViewEventListener
 	{

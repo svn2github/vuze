@@ -96,7 +96,7 @@ SWTNetworkSelection
 		return( dialog[0].getSelection());
 	}
 	
-	protected class
+	protected static class
 	classifierDialog
 	{
 		protected Shell			shell;

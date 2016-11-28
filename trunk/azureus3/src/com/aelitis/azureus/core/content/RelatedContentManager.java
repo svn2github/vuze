@@ -5129,7 +5129,7 @@ RelatedContentManager
 	// can't move this class out of here as the key for the transfer type is based on its
 	// class name...
 	
-	protected class
+	protected static class
 	RCMSearchXFer
 		implements DistributedDatabaseTransferType
 	{	

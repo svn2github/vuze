@@ -555,7 +555,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
     /**
      * Convert the bytes into bit.
      */
-    class ByteConversionListener implements Listener
+    static class ByteConversionListener implements Listener
     {
         final Label echoLbl;
         final Text setting;
@@ -581,7 +581,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
     /**
      * Only numbers are allowed.
      */
-    class NumberListener implements Listener
+    static class NumberListener implements Listener
     {
         final Text setting;
         public NumberListener(final Text _setting){

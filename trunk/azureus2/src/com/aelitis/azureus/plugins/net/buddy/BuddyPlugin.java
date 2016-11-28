@@ -4274,7 +4274,7 @@ BuddyPlugin
 		logger.log( str + ": " + Debug.getNestedExceptionMessageAndStack( e ));
 	}
 
-	private class
+	private static class
 	publishDetails
 		implements Cloneable
 	{
@@ -4447,7 +4447,7 @@ BuddyPlugin
 		getPayload();
 	}
 	
-	protected class
+	protected static class
 	feedDetails
 	{
 		private byte[]		contents;

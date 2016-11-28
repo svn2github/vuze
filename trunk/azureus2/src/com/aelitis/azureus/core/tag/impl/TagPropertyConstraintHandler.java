@@ -969,7 +969,7 @@ TagPropertyConstraintHandler
 			getString();
 		}
 		
-		private class
+		private static class
 		ConstraintExprTrue
 			implements ConstraintExpr
 		{
@@ -988,7 +988,7 @@ TagPropertyConstraintHandler
 			}
 		}
 		
-		private class
+		private static class
 		ConstraintExprParams
 			implements  ConstraintExpr
 		{
@@ -1070,7 +1070,7 @@ TagPropertyConstraintHandler
 			}
 		}
 		
-		private class
+		private static class
 		ConstraintExprNot
 			implements  ConstraintExpr
 		{
@@ -1098,7 +1098,7 @@ TagPropertyConstraintHandler
 			}
 		}
 		
-		private class
+		private static class
 		ConstraintExprOr
 			implements  ConstraintExpr
 		{
@@ -1141,7 +1141,7 @@ TagPropertyConstraintHandler
 			}
 		}
 		
-		private class
+		private static class
 		ConstraintExprAnd
 			implements  ConstraintExpr
 		{
@@ -1184,7 +1184,7 @@ TagPropertyConstraintHandler
 			}
 		}
 		
-		private class
+		private static class
 		ConstraintExprXor
 			implements  ConstraintExpr
 		{

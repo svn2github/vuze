@@ -102,7 +102,7 @@ CertificateTrustWindow
 		return(dialog[0].getTrusted());
 	}
 	
-	protected class
+	protected static class
 	trustDialog
 	{
 		protected Shell			shell;
