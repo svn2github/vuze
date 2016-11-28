@@ -101,6 +101,7 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionListWindow;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.TagUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
@@ -4404,6 +4405,42 @@ public class OpenTorrentOptionsWindow
 									torrentOptions.setInitialTags( tags );
 									
 									updateStartOptionsHeader();
+								}
+							});
+						
+						but.addPaintListener(
+							new PaintListener() {
+								public void paintControl(PaintEvent e) {
+
+				    				int[] colour = tag.getColor();
+
+				    				if ( colour != null ){
+				    					
+										boolean checked = but.getSelection();
+										
+										e.gc.setAntialias( SWT.ON );
+
+					    				Rectangle rect = but.getBounds();
+				    				
+						  				if ( checked ){
+						  					
+						    				e.gc.setAlpha( 0x50 );
+						    				
+						    				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
+						    				
+						    				e.gc.fillRectangle( 2, 2, rect.width-4, rect.height-4 );
+						    				
+						  				}else{
+						  				
+						  					e.gc.setAlpha( 0xff );
+						  					
+							  				e.gc.setLineWidth( 2 );
+	
+						  					e.gc.setForeground(ColorCache.getColor(e.display, tag.getColor()));
+						    				
+						    				e.gc.drawRectangle( 3, 3, rect.width-5, rect.height-5 );
+						  				}
+				    				}
 								}
 							});
 						
