@@ -660,7 +660,7 @@ TagPropertyConstraintHandler
 			int	level 			= 0;
 			int	bracket_start 	= 0;
 			
-			StringBuffer result = new StringBuffer( str.length());
+			StringBuilder result = new StringBuilder( str.length());
 			
 			for ( int i=0;i<chars.length;i++){
 					
@@ -1028,7 +1028,7 @@ TagPropertyConstraintHandler
 					
 					List<String>	params = new ArrayList<String>(16);
 					
-					StringBuffer current_param = new StringBuffer( value.length());
+					StringBuilder current_param = new StringBuilder( value.length());
 					
 					for (int i=0;i<chars.length;i++){
 					

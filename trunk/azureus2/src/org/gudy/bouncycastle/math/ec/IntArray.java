@@ -501,7 +501,7 @@ class IntArray
             return "0";
         }
 
-        StringBuffer sb = new StringBuffer(Integer
+        StringBuilder sb = new StringBuilder(Integer
             .toBinaryString(m_ints[usedLen - 1]));
         for (int iarrJ = usedLen - 2; iarrJ >= 0; iarrJ--)
         {

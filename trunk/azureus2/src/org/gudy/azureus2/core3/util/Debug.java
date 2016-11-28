@@ -239,7 +239,7 @@ public class Debug {
 		int iMaxLines,
 		boolean showErrString) 
 	{
-		StringBuffer sbStackTrace = new StringBuffer(showErrString ? (t.toString() + "; ") : "");
+		StringBuilder sbStackTrace = new StringBuilder(showErrString ? (t.toString() + "; ") : "");
 		StackTraceElement[]	st = t.getStackTrace();
 
 		if (iMaxLines < 0) {

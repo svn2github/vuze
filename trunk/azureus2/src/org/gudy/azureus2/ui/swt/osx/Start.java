@@ -40,7 +40,7 @@ public class Start {
         
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream(),"UTF8"));
         
-        StringBuffer buffer = new StringBuffer("Azureus Start Server Access;args;");
+        StringBuilder buffer = new StringBuilder("Azureus Start Server Access;args;");
         
         for(int i = 0 ; i < args.length ; i++) {
           String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");

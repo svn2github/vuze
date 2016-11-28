@@ -1683,7 +1683,7 @@ public class MyTorrentsView
 						// Build eventData here because on OSX, selection gets cleared
 						// by the time dragSetData occurs
 						boolean onlyDMs = true;
-						StringBuffer sb = new StringBuffer();
+						StringBuilder sb = new StringBuilder();
 						Object[] selectedDataSources = tv.getSelectedDataSources(true);
 						for (Object ds : selectedDataSources) {
 							if (ds instanceof DownloadManager) {

@@ -868,7 +868,7 @@ public class BrowserContext
 	}
 
 	public boolean sendBrowserMessage(String key, String op, Map params) {
-		StringBuffer msg = new StringBuffer();
+		StringBuilder msg = new StringBuilder();
 		msg.append("az.msg.dispatch('").append(key).append("', '").append(op).append(
 				"'");
 		if (params != null) {
@@ -880,7 +880,7 @@ public class BrowserContext
 	}
 
 	public boolean sendBrowserMessage(String key, String op, Collection params) {
-		StringBuffer msg = new StringBuffer();
+		StringBuilder msg = new StringBuilder();
 		msg.append("az.msg.dispatch('").append(key).append("', '").append(op).append(
 				"'");
 		if (params != null) {
@@ -945,7 +945,7 @@ public class BrowserContext
 		if (javascript.length() < (256 + 3 + 256)) {
 			return javascript;
 		}
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		result.append(javascript.substring(0, 256));
 		result.append("...");
 		result.append(javascript.substring(javascript.length() - 256));

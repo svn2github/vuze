@@ -128,7 +128,7 @@ public abstract class IConsoleCommand {
 	 * @return
 	 */
 	protected String getTorrentSummary(DownloadManager dm) {
-		StringBuffer tstate = new StringBuffer();
+		StringBuilder tstate = new StringBuilder();
 		String summaryFormat = getDefaultSummaryFormat();
 		char lastch = '0';
 		char []summaryChars = summaryFormat.toCharArray();

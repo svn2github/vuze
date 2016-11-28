@@ -166,7 +166,7 @@ public class NeuralNetworkLayer {
 	}
 	
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		if(childLayer != null) {
 			for(int j = 0 ; j < childLayer.getNumberOfNodes() ; j++) {
 				sb.append(j);

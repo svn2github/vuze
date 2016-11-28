@@ -73,7 +73,7 @@ public class CommandReader extends Reader {
   public String readLine() throws java.io.IOException {
   	synchronized(lock) {
   		ensureOpen();
-  		StringBuffer line = new StringBuffer();
+  		StringBuilder line = new StringBuilder();
   		int ch;
   		while( (char)(ch = in.read()) != '\n' )
   		{

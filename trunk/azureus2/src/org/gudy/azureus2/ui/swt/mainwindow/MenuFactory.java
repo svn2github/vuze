@@ -998,7 +998,7 @@ public class MenuFactory
 												{
 													java.util.List<String> lines = slh.getSchedule();
 													
-													StringBuffer	text = new StringBuffer( 80*lines.size());
+													StringBuilder text = new StringBuilder( 80*lines.size());
 													
 													for ( String s: lines ){
 														
@@ -1422,7 +1422,7 @@ public class MenuFactory
 
 				File file = new File( str );
 				
-				StringBuffer content = new StringBuffer();
+				StringBuilder content = new StringBuilder();
 				
 				String NL = "\r\n";
 				
@@ -1822,7 +1822,7 @@ public class MenuFactory
 				public void
 				run()
 				{
-					StringBuffer	text = new StringBuffer( lines.size() * 80 );
+					StringBuilder text = new StringBuilder( lines.size() * 80 );
 					
 					for ( String s: lines ){
 						

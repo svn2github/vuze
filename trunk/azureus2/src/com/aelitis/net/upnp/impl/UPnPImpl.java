@@ -458,7 +458,7 @@ UPnPImpl
 			// XML parser. Hence this code to try and strip them
 		
 		try{
-			StringBuffer	data = new StringBuffer(1024);
+			StringBuilder data = new StringBuilder(1024);
 			
 			LineNumberReader	lnr = new LineNumberReader( new InputStreamReader( is, "UTF-8" ));
 			

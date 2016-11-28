@@ -2975,7 +2975,7 @@ TRTrackerBTAnnouncerImpl
 						    		ip 	= ip1 + "." + ip2 + "." + ip3 + "." + ip4;
 								}else{
 								
-									StringBuffer sb = new StringBuffer(39);
+									StringBuilder sb = new StringBuilder(39);
 									
 									for ( int j=0; j<16; j+=2 ){
 										

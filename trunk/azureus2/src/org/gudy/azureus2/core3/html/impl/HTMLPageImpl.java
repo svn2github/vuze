@@ -47,7 +47,7 @@ HTMLPageImpl
 	{
 		BufferedReader	br = null;
 		
-		StringBuffer	res = new StringBuffer(1024);
+		StringBuilder res = new StringBuilder(1024);
 		
 		try{
 			

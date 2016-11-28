@@ -723,7 +723,7 @@ TRTrackerServerProcessorTCP
 			
 			if ( xml_output ){
 				
-				StringBuffer	xml = new StringBuffer( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+				StringBuilder xml = new StringBuilder( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 
 				xml.append( "<RESULT>" );
 				

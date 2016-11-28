@@ -1218,7 +1218,7 @@ public class UrlUtils
 		if ( port == -1 ){
 			port = u.getDefaultPort();
 		}
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		result.append(u.getProtocol());
 		result.append(":");
 		String authority=u.getAuthority();
@@ -1268,7 +1268,7 @@ public class UrlUtils
 		URL			u,
 		String		host )
 	{
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		result.append(u.getProtocol());
 		result.append(":");
 		String authority=u.getAuthority();
@@ -1329,7 +1329,7 @@ public class UrlUtils
 	getBaseURL(
 		URL		u )
 	{
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		result.append(u.getProtocol());
 		result.append(":");
 		String authority=u.getAuthority();

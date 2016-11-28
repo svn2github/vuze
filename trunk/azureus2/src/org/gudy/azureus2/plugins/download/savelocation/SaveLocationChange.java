@@ -51,7 +51,7 @@ public class SaveLocationChange {
 	 * String representation of this object.
 	 */
 	public final String toString() {
-		StringBuffer res = new StringBuffer("SaveLocationChange: ");
+		StringBuilder res = new StringBuilder("SaveLocationChange: ");
 		res.append("DL-LOC=");
 		res.append(download_location);
 		res.append(", DL-NAME=");

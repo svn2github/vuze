@@ -84,7 +84,7 @@ AZHave
 	public String 
 	getDescription() 
 	{   
-		StringBuffer	str = new StringBuffer(piece_numbers.length*10);
+		StringBuilder str = new StringBuilder(piece_numbers.length*10);
 		
 		for (int i=0;i<piece_numbers.length;i++){
 		

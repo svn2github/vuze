@@ -770,7 +770,7 @@ public abstract class TranscodeChooser
 	private Button createDeviceButton(Composite parent, Object deviceObj,
 			String name, String shortDescription, String imageID, Button lastButton) {
 		Button button = new Button(parent, SWT.LEFT | SWT.RADIO);
-		StringBuffer sb = new StringBuffer(name);
+		StringBuilder sb = new StringBuilder(name);
 		button.setFont(fontDevice);
 		button.setData("Device", deviceObj);
 		button.addSelectionListener(new SelectionListener() {

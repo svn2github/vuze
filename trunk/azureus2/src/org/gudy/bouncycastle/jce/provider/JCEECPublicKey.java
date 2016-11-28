@@ -205,7 +205,7 @@ public class JCEECPublicKey
 
     public String toString()
     {
-        StringBuffer    buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         String          nl = System.getProperty("line.separator");
 
         buf.append("EC Public Key" + nl);

@@ -65,7 +65,7 @@ RandomUtils
 	public static String generateRandomAlphanumerics( int num_to_generate ) {
 		String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		
-		StringBuffer buff = new StringBuffer( num_to_generate );
+		StringBuilder buff = new StringBuilder( num_to_generate );
 		
     for( int i=0; i < num_to_generate; i++ ) {
     	int pos = (int)( RANDOM.nextDouble() * alphabet.length() );

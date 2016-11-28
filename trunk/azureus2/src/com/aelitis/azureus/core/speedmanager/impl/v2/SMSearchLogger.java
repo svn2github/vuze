@@ -50,7 +50,7 @@ public class SMSearchLogger
         SpeedManagerLimitEstimate downloadSetting = conf.getDownloadLimit();
 
 
-        StringBuffer sb = new StringBuffer(str);
+        StringBuilder sb = new StringBuilder(str);
         sb.append(", Download current =").append(adptCurrDownLimit);
         sb.append(", max limit =").append(downloadSetting.getString());
 

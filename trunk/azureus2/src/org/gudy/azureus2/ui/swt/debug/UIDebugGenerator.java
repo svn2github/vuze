@@ -85,7 +85,7 @@ public class UIDebugGenerator
 							"/debugSender.start",
 							true
 						});
-				StringBuffer postData = new StringBuffer();
+				StringBuilder postData = new StringBuilder();
 
 				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
 				FeatureManager featman = pi.getUtilities().getFeatureManager();

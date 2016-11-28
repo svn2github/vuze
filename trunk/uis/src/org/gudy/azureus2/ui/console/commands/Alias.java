@@ -116,7 +116,7 @@ public class Alias extends OptionsConsoleCommand {
 	 */
 	private void addAlias(ConsoleInput ci, String aliasName, List argList) {
 //		ci.out.println("adding alias: " + aliasName);
-		StringBuffer aliasText = new StringBuffer();
+		StringBuilder aliasText = new StringBuilder();
 		for (Iterator iter = argList.iterator(); iter.hasNext();) {
 			String arg = (String) iter.next();
 			if(arg.contains(" "))

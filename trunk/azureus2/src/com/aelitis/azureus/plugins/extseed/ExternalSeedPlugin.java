@@ -575,7 +575,7 @@ ExternalSeedPlugin
 						return( "" );
 					}
 					
-					StringBuffer sb = new StringBuffer();
+					StringBuilder sb = new StringBuilder();
 					
 					for ( ExternalSeedManualPeer peer: peers ){
 						
@@ -662,7 +662,7 @@ ExternalSeedPlugin
 						return( "" );
 					}
 					
-					StringBuffer sb = new StringBuffer();
+					StringBuilder sb = new StringBuilder();
 					
 					for ( ExternalSeedReader peer: peers ){
 						

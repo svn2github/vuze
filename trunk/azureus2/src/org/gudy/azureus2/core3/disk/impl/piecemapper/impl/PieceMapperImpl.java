@@ -144,7 +144,7 @@ PieceMapperImpl
 		StringBuffer pathBuffer = new StringBuffer(256);
 		pathBuffer.setLength(0);
 		*/
-		StringBuffer pathBuffer = new StringBuffer(0);
+		StringBuilder pathBuffer = new StringBuilder(0);
 
 		int lastIndex = path_components.length - 1;
 		for (int j = 0; j < lastIndex; j++) {

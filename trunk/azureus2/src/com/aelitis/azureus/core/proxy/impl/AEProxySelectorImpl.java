@@ -634,7 +634,7 @@ AEProxySelectorImpl
 		public String
 		getInfo()
 		{			
-			StringBuffer sb = new StringBuffer(2048);
+			StringBuilder sb = new StringBuilder(2048);
 			
 			long now		= SystemTime.getCurrentTime();
 			long mono_now 	= SystemTime.getMonotonousTime();

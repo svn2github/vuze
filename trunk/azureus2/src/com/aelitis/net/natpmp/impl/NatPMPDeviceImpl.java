@@ -479,7 +479,7 @@ public class NatPMPDeviceImpl implements NatPMPDevice
     }
     
     public String intArrayString(int[] buf) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for(int i = 0; i < buf.length; i++) {
             sb.append(buf[i]).append(" ");
         }
@@ -487,7 +487,7 @@ public class NatPMPDeviceImpl implements NatPMPDevice
     }
     
     public String byteArrayString(byte[] buf) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for(int i = 0; i < buf.length; i++) {
             sb.append(buf[i]).append(" ");
         }

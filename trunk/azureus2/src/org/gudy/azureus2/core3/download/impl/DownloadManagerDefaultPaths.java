@@ -336,7 +336,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
     		parent = parent.getParentFile();
     	}
     	
-    	StringBuffer sb = new StringBuffer((String)parts.get(0));
+    	StringBuilder sb = new StringBuilder((String)parts.get(0));
     	for (int i=1; i<parts.size(); i++) {
     		sb.append(File.separatorChar);
     		sb.append(parts.get(i));

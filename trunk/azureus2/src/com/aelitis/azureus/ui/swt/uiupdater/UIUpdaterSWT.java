@@ -336,7 +336,7 @@ public class UIUpdaterSWT
 		UIFunctionsSWT uiFunctionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		IMainStatusBar mainStatusBar = uiFunctionsSWT == null ? null : uiFunctionsSWT.getMainStatusBar();
 		if (mainStatusBar != null && mainStatusBar.isMouseOver()) {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			for (Iterator iter = averageTimes.keySet().iterator(); iter.hasNext();) {
 				Object key = iter.next();
 				Object[] average = (Object[]) averageTimes.get(key);

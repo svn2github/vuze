@@ -87,7 +87,7 @@ public class WritersItem
 	i=end;
     }
 	
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0 ; i < writer_count ; i++) {
 	String writer = my_writers[i];
 	StringBuffer pieces = (StringBuffer) map.get(writer);

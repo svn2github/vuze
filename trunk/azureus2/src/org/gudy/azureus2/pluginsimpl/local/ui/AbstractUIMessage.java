@@ -43,7 +43,7 @@ public abstract class AbstractUIMessage implements UIMessage {
 		if (messages.length == 0) {
 			return "";
 		}
-		StringBuffer sb = new StringBuffer(messages[0]);
+		StringBuilder sb = new StringBuilder(messages[0]);
 		for (int i=1; i<messages.length; i++) {
 			sb.append("\n");
 			sb.append(messages[i]);

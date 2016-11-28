@@ -674,7 +674,7 @@ TRTrackerAnnouncerMuxer
 	getString(
 		TOTorrentAnnounceURLSet[]	sets )
 	{
-		StringBuffer str = new StringBuffer();
+		StringBuilder str = new StringBuilder();
 		
 		str.append( "[" );
 		

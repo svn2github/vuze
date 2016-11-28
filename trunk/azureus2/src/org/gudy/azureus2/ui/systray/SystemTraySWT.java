@@ -476,7 +476,7 @@ public class SystemTraySWT
 		if (enableTooltip) {
 	  		GlobalManagerStats stats = gm.getStats();
 	
-	  		StringBuffer toolTip = new StringBuffer();
+	  		StringBuilder toolTip = new StringBuilder();
 	  		
 	  		int seeding 	= 0;
 	  		int downloading = 0;

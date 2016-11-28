@@ -114,7 +114,7 @@ public class SMConfigurationAdapterImpl implements SMConfigurationAdapter
          * @return
          */
         public String getString() {
-            StringBuffer sb = new StringBuffer("estiamte: ");
+            StringBuilder sb = new StringBuilder("estiamte: ");
             sb.append(bytesPerSec);
             sb.append(" (").append(limitEstimateType).append(") ");
 

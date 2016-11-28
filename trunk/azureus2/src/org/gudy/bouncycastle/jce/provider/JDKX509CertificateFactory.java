@@ -48,7 +48,7 @@ public class JDKX509CertificateFactory
         throws IOException
     {
         int             c;
-        StringBuffer    l = new StringBuffer();
+        StringBuilder l = new StringBuilder();
 
         while (((c = in.read()) != '\n') && (c >= 0))
         {
@@ -126,7 +126,7 @@ public class JDKX509CertificateFactory
         throws IOException
     {
         String          line;
-        StringBuffer    pemBuf = new StringBuffer();
+        StringBuilder pemBuf = new StringBuilder();
 
         while ((line = readLine(in)) != null)
         {
@@ -171,7 +171,7 @@ public class JDKX509CertificateFactory
         throws IOException
     {
         String          line;
-        StringBuffer    pemBuf = new StringBuffer();
+        StringBuilder pemBuf = new StringBuilder();
 
         while ((line = readLine(in)) != null)
         {

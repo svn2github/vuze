@@ -539,7 +539,7 @@ SpeedTestPanel
         //ToDo: If an upload test then do only an upload. If a download test, then do only a download.
         //ToDo: need something that informs what the test type is.
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(MessageText.getString("GeneralView.label.uploadspeed"));
         sb.append( DisplayFormatters.formatByteCountToKiBEtcPerSec( upAve ) ).append(" , ");
         sb.append(MessageText.getString("GeneralView.label.downloadspeed"));

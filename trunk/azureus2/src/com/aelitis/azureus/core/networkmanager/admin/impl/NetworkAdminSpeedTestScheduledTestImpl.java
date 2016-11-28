@@ -569,7 +569,7 @@ NetworkAdminSpeedTestScheduledTestImpl
             if(res==null)
                 throw new IllegalStateException("No result parameter in the response!! reply="+reply);
             if(res.intValue()==0){
-                StringBuffer msg = new StringBuffer("Server failed. ");
+                StringBuilder msg = new StringBuilder("Server failed. ");
                 String error = new String( (byte[]) reply.get("error") );
                 String errDetail = new String( (byte[]) reply.get("error_detail") );
                 msg.append("Error: ").append(error);

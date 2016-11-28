@@ -1752,7 +1752,7 @@ BuddyPluginViewInstance
 				{
 					TableItem[] selection = buddy_table.getSelection();
 					
-					StringBuffer sb = new StringBuffer();
+					StringBuilder sb = new StringBuilder();
 					
 					for (int i=0;i<selection.length;i++){
 						
@@ -1945,7 +1945,7 @@ BuddyPluginViewInstance
 					
 					if( str != null ){
 						
-						StringBuffer sb = new StringBuffer();
+						StringBuilder sb = new StringBuilder();
 						
 						for (int i=0;i<selection.length;i++){
 							
@@ -1998,7 +1998,7 @@ BuddyPluginViewInstance
 						
 						String[] 	bits = str.split( "\n" );
 						
-						StringBuffer sb = new StringBuffer();
+						StringBuilder sb = new StringBuilder();
 	
 						BuddyPluginBuddy	buddy 	= null;
 						byte[]				hash	= null;
@@ -2083,7 +2083,7 @@ BuddyPluginViewInstance
 					
 					if ( str != null ){
 						
-						StringBuffer sb = new StringBuffer();
+						StringBuilder sb = new StringBuilder();
 						
 						try{
 							sb.append( "key: " );
@@ -2134,7 +2134,7 @@ BuddyPluginViewInstance
 						
 						String[] 	bits = str.split( "\n" );
 						
-						StringBuffer sb = new StringBuffer();
+						StringBuilder sb = new StringBuilder();
 	
 						String				pk 		= null;
 						byte[]				data	= null;

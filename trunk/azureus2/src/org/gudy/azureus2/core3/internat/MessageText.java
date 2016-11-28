@@ -402,7 +402,7 @@ public class MessageText {
    */
   public static String getStringForSentence(String sentence) {
     StringTokenizer st = new StringTokenizer(sentence , " ");
-    StringBuffer result = new StringBuffer(sentence.length());
+    StringBuilder result = new StringBuilder(sentence.length());
     String separator = "";
     while(st.hasMoreTokens())
     {

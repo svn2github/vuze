@@ -105,7 +105,7 @@ public class NeuralNetwork {
 	}
 	
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		
 		sb.append("Input Layer :\n");
 		sb.append(inputLayer.toString());

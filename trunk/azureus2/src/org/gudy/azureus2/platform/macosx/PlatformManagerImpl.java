@@ -919,7 +919,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   		line 	= line.trim().toLowerCase( Locale.US );
   		tag		= tag.toLowerCase( Locale.US );
   		
-  		StringBuffer line2 = new StringBuffer( line.length());
+  		StringBuilder line2 = new StringBuilder( line.length());
   		
   		for (char c:line.toCharArray()){
   			

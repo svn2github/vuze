@@ -63,8 +63,8 @@ PListEditor
 	
 		throws IOException
 	{
-		StringBuffer value = new StringBuffer();
-		StringBuffer find = new StringBuffer();
+		StringBuilder value = new StringBuilder();
+		StringBuilder find = new StringBuilder();
 		find.append("(?s).*?<key>CFBundleDocumentTypes</key>\\s*<array>.*?<key>CFBundleTypeExtensions</key>\\s*<array>");
 		for(int i = 0 ; i < extensions.length ; i++) {
 			value.append("\n\t\t\t\t<string>");
@@ -102,8 +102,8 @@ PListEditor
 	
 		throws IOException
 	{
-		StringBuffer value = new StringBuffer();
-		StringBuffer find = new StringBuffer();
+		StringBuilder value = new StringBuilder();
+		StringBuilder find = new StringBuilder();
 		find.append("(?s).*?<key>" + key + "</key>\\s*" + "<array>");
 		for(int i = 0 ; i < values.length ; i++) {
 			find.append("\\s*<" + valueType + ">" + values[i] + "</" + valueType + ">");

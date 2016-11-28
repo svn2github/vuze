@@ -984,7 +984,7 @@ DisplayFormatters
   }
 
   public static String formatTimeStamp(long time) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     Calendar calendar = Calendar.getInstance();
     calendar.setTimeInMillis(time);
     sb.append('[');

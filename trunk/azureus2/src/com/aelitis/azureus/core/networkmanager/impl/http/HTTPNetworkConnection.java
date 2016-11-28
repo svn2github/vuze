@@ -402,7 +402,7 @@ HTTPNetworkConnection
 	{
 		String	current_date = TimeFormatter.getHTTPDate( SystemTime.getCurrentTime());
 		
-		StringBuffer	res = new StringBuffer(256);
+		StringBuilder res = new StringBuilder(256);
 		
 		boolean	partial = request.isPartialContent();
 		

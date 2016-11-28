@@ -604,7 +604,7 @@ public class NetworkAdminSpeedTesterBTImpl
                 reportedProgress=percentDownload;
 
             int progressBarVal = Math.round( reportedProgress*100.0f );
-            StringBuffer msg = new StringBuffer("progress: ");
+            StringBuilder msg = new StringBuilder("progress: ");
             msg.append(  progressBarVal );
             //include the upload and download values.
             msg.append(" : download ave ");
@@ -838,7 +838,7 @@ public class NetworkAdminSpeedTesterBTImpl
         }
 
         public String getResultString(){
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
             //Time
             SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmss z");
@@ -872,7 +872,7 @@ public class NetworkAdminSpeedTesterBTImpl
 
 
         public String toString(){
-            StringBuffer sb = new StringBuffer("[com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTesterBTImpl");
+            StringBuilder sb = new StringBuilder("[com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTesterBTImpl");
 
             sb.append(" ").append( getResultString() ).append(" ");
             sb.append("]");

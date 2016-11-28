@@ -467,7 +467,7 @@ public class ConsoleInput extends Thread {
 		ArrayList cmd_lines = new ArrayList();
 		Iterator itr = helpItems.iterator();
 		while (itr.hasNext()) {
-			StringBuffer line_so_far = new StringBuffer("[");
+			StringBuilder line_so_far = new StringBuilder("[");
 			IConsoleCommand cmd = (IConsoleCommand)itr.next();
 			String short_name = cmd.getShortCommandName();
 			if (short_name != null) {

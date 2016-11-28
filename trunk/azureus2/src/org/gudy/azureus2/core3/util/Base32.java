@@ -52,7 +52,7 @@ Base32
 	{
 	    int i =0, index = 0, digit = 0;
 	    int currByte, nextByte;
-	    StringBuffer base32 = new StringBuffer((bytes.length+7)*8/5); 
+	    StringBuilder base32 = new StringBuilder((bytes.length+7)*8/5);
 	
 	    while(i < bytes.length)
 	    {

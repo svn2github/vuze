@@ -684,7 +684,7 @@ TorrentUtils
 			
 		}else{
 			
-			StringBuffer	sb = new StringBuffer(1024);
+			StringBuilder sb = new StringBuilder(1024);
 			
 			boolean	announce_found = false;
 			
@@ -738,7 +738,7 @@ TorrentUtils
 	announceGroupsToText(
 		List<List<String>>	group )
 	{
-		StringBuffer	sb = new StringBuffer(1024);
+		StringBuilder sb = new StringBuilder(1024);
 			
 		for ( List<String> urls: group ){
 			

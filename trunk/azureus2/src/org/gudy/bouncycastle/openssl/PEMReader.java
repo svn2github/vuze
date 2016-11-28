@@ -182,7 +182,7 @@ public class PEMReader extends BufferedReader
         throws IOException
     {
         String          line;
-        StringBuffer    buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
   
         while ((line = readLine()) != null)
         {
@@ -356,7 +356,7 @@ public class PEMReader extends BufferedReader
         throws IOException
     {
         String                                  line;
-        StringBuffer                        buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         ByteArrayOutputStream    bOut = new ByteArrayOutputStream();
   
         while ((line = readLine()) != null)
@@ -410,7 +410,7 @@ public class PEMReader extends BufferedReader
         boolean         isEncrypted = false;
         String          line = null;
         String          dekInfo = null;
-        StringBuffer    buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         while ((line = readLine()) != null)
         {

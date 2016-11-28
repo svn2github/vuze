@@ -111,7 +111,7 @@ public class TorrentFilter {
 		if (wild == null)
 			return null;
 
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 
 		char[] chars = wild.toCharArray();
 
@@ -154,7 +154,7 @@ public class TorrentFilter {
 	public List getTorrents(List torrentsToMatch, List args)
 	{
 		// first, try to match the whole list concatenated as a string
-		StringBuffer allArgs = new StringBuffer();
+		StringBuilder allArgs = new StringBuilder();
 		boolean first = true;
 		for (Iterator iter = args.iterator(); iter.hasNext();) {
 			if( ! first ) 

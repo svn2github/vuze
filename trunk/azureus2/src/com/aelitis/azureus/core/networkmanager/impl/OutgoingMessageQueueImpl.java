@@ -855,7 +855,7 @@ outer:
   }
   
   public String getQueueTrace() {
-  	StringBuffer trace = new StringBuffer();
+  	StringBuilder trace = new StringBuilder();
   	
   	trace.append( "**** OUTGOING QUEUE TRACE ****\n" );
   	

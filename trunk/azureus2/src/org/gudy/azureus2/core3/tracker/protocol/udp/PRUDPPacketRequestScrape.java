@@ -100,7 +100,7 @@ PRUDPPacketRequestScrape
 	public String
 	getString()
 	{
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(super.getString());
 		buf.append("[");
 		for(Iterator it = hashes.iterator();it.hasNext();)

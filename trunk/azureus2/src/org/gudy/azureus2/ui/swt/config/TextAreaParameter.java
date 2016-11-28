@@ -166,7 +166,7 @@ TextAreaParameter
 							return;
 						}
 
-						StringBuffer builder = new StringBuffer(toAppend.length());
+						StringBuilder builder = new StringBuilder(toAppend.length());
 
 						String[] lines = toAppend.split("\n");
 
@@ -183,7 +183,7 @@ TextAreaParameter
 
 					}else{
 
-						StringBuffer builder = new StringBuffer(new_value.length());
+						StringBuilder builder = new StringBuilder(new_value.length());
 
 						String[] lines = new_value.split("\n");
 

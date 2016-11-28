@@ -184,7 +184,7 @@ StartServer
 	  // I'm sure there's a lovely regex which could do this, but I can't be bothered to figure
 	  // it out.
 	  ArrayList parts = new ArrayList();
-	  StringBuffer buf = new StringBuffer();
+	  StringBuilder buf = new StringBuilder();
 	  boolean escape_mode = false;
 	  char c;
 	  for (int i=AzureusCoreSingleInstanceClient.ACCESS_STRING.length() + 1; i<line.length(); i++) {

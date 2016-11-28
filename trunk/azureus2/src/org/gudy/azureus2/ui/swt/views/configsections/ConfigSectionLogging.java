@@ -475,7 +475,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 					
 					Iterator	it = reply.entrySet().iterator();
 					
-					StringBuffer buffer = new StringBuffer(16000);
+					StringBuilder buffer = new StringBuilder(16000);
 					
 					while( it.hasNext()){
 						

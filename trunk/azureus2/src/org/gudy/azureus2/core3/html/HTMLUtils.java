@@ -105,7 +105,7 @@ HTMLUtils
 	
 	public static String convertListToString(List list) {
 	  
-	  StringBuffer result = new StringBuffer();
+	  StringBuilder result = new StringBuilder();
 	  String separator = "";
 	  Iterator iter = list.iterator();
 	  while(iter.hasNext()) {

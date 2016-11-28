@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 /**
- * ¹ÜÀíÓÃ·Ö¸ô·û·Ö¿ªµÄÒ»×éitem.·Ö¸ô·ûÁ½±ßÒ»¶¨ÊÇÒ»¸öitem.Ã¿¸öitemÁ½±ß²»ÄÜÊÇ¿Õ°×·û.
- * ÀýÈç£º
+ * ï¿½ï¿½ï¿½ï¿½ï¿½Ã·Ö¸ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ï¿½ï¿½Ò»ï¿½ï¿½item.ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½item.Ã¿ï¿½ï¿½itemï¿½ï¿½ï¿½ß²ï¿½ï¿½ï¿½ï¿½Ç¿Õ°×·ï¿½.
+ * ï¿½ï¿½ï¿½ç£º
  * |a:b:c| => |a|,|b|,|c|
  * |:| => ||,||
  * |a:| => |a|,||
@@ -25,15 +25,15 @@ public class ItemList {
 	
 	/**
 	 * 
-	 * @param s ·Ö¸ô·û¸ô¿ªµÄÒ»¸ö×Ö·û´®ÐòÁÐ
+	 * @param s ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 */
 	public ItemList(String s){
 		this.split(s,sp,items);
 	}
 	/**
 	 * 
-	 * @param s ·Ö¸ô·û¸ô¿ªµÄÒ»¸ö×Ö·û´®ÐòÁÐ
-	 * @param sp ·Ö¸ô·û
+	 * @param s ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	 * @param sp ï¿½Ö¸ï¿½ï¿½ï¿½
 	 */
 	//public ItemList(String s,String sp){
 	//	this.sp=s;
@@ -44,7 +44,7 @@ public class ItemList {
 	 * 
 	 * @param s
 	 * @param sp
-	 * @param isMultiToken spÊÇ·ñÎª¶à·Ö¸ô·û
+	 * @param isMultiToken spï¿½Ç·ï¿½Îªï¿½ï¿½Ö¸ï¿½ï¿½ï¿½
 	 */
 	public ItemList(String s,String sp,boolean isMultiToken){
 		split(s,sp,items,isMultiToken);
@@ -89,16 +89,16 @@ public class ItemList {
 	}
 	
 	/**
-	 * ÉèÖÃ·Ö¸ô·û.
-	 * @param sp ·Ö¸ô·û
+	 * ï¿½ï¿½ï¿½Ã·Ö¸ï¿½ï¿½ï¿½.
+	 * @param sp ï¿½Ö¸ï¿½ï¿½ï¿½
 	 */
 	//public void setSP(String sp){
 	//	this.sp=sp;
 	//}
 	
 	/**
-	 * ¼ÓÈëµ¥¸öitem.
-	 * @param i ¼ÓÈëµÄÎ»ÖÃ(Ö®Ç°)
+	 * ï¿½ï¿½ï¿½ëµ¥ï¿½ï¿½item.
+	 * @param i ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½(Ö®Ç°)
 	 * @param item
 	 */
 	public void add(int i,String item){
@@ -107,7 +107,7 @@ public class ItemList {
 		items.add(i,item.trim());
 	}
 	/**
-	 * ¼ÓÈëµ¥¸öitem.
+	 * ï¿½ï¿½ï¿½ëµ¥ï¿½ï¿½item.
 	 * @param item
 	 */
 	public void add(String item){
@@ -117,25 +117,25 @@ public class ItemList {
 	}
 	
 	/**
-	 * ¼ÓÒ»×éitem.
-	 * @param list ÁíÍâµÄlist
+	 * ï¿½ï¿½Ò»ï¿½ï¿½item.
+	 * @param list ï¿½ï¿½ï¿½ï¿½ï¿½list
 	 */
 	public void addAll(ItemList list){
 		items.addAll(list.items);
 	}
 	
 	/**
-	 * ¼ÓÒ»×éitem.
-	 * @param s ·Ö¸ô·û¸ô¿ªµÄÒ»¸ö×Ö·û´®ÐòÁÐ
+	 * ï¿½ï¿½Ò»ï¿½ï¿½item.
+	 * @param s ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 */
 	public void addAll(String s){
 		this.split(s,sp,items);
 	}
 	
 	/**
-	 * ¼ÓÒ»×éitem.
-	 * @param s ·Ö¸ô·û¸ô¿ªµÄÒ»¸ö×Ö·û´®ÐòÁÐ
-	 * @param sp ·Ö¸ô·û
+	 * ï¿½ï¿½Ò»ï¿½ï¿½item.
+	 * @param s ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	 * @param sp ï¿½Ö¸ï¿½ï¿½ï¿½
 	 */
 	public void addAll(String s,String sp){
 		this.split(s,sp,items);
@@ -146,7 +146,7 @@ public class ItemList {
 	}
 	
 	/**
-	 * »ñµÃµÚi¸öitem. 0-based.
+	 * ï¿½ï¿½Ãµï¿½iï¿½ï¿½item. 0-based.
 	 * @param i
 	 * @return
 	 */
@@ -155,26 +155,26 @@ public class ItemList {
 	}
 	
 	/**
-	 * »ñµÃitemÊý.
+	 * ï¿½ï¿½ï¿½itemï¿½ï¿½.
 	 * @return
 	 */
 	public int size(){
 		return items.size();
 	}
 	/**
-	 * ÓÃ·Ö¸ô·û·Ö¸ôµÄ±íÊ¾.
+	 * ï¿½Ã·Ö¸ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½Ä±ï¿½Ê¾.
 	 */
 	public String toString(){
 		return toString(sp);
 	}
 	
 	/**
-	 * ÓÃ·Ö¸ô·û·Ö¸ôµÄ±íÊ¾.
-	 * @param sp ½á¹ûÓÃ¸Ã·Ö¸ô·û·Ö¸ô.
+	 * ï¿½Ã·Ö¸ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½Ä±ï¿½Ê¾.
+	 * @param sp ï¿½ï¿½ï¿½ï¿½Ã¸Ã·Ö¸ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½.
 	 * @return
 	 */
 	public String toString(String sp){
-		StringBuffer sb=new StringBuffer();
+		StringBuilder sb=new StringBuilder();
 		
 		for(int i=0;i<items.size();i++){
 			if(i==0)
@@ -189,14 +189,14 @@ public class ItemList {
 	}
 	
 	/**
-	 * Çå¿ÕËùÓÐitem.
+	 * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½item.
 	 */
 	public void clear(){
 		items.clear();
 	}
 	
 	/**
-	 * ¸´Î».Çå¿ÕÊý¾Ý£¬²¢»Ö¸´ËùÓÐÄ¬ÈÏÖµ.
+	 * ï¿½ï¿½Î».ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½Öµ.
 	 */
 	public void reset(){
 		//sp=",";

@@ -76,7 +76,7 @@ AzureusCoreSingleInstanceClient
 				
 		   		PrintWriter pw = new PrintWriter(new OutputStreamWriter(sock.getOutputStream(),"UTF-8"));
 		   	 
-		  		StringBuffer buffer = new StringBuffer( ACCESS_STRING + ";args;");
+		  		StringBuilder buffer = new StringBuilder( ACCESS_STRING + ";args;");
 		         
 	    		for ( int i = 0 ; i < args.length ; i++ ){
 	    			

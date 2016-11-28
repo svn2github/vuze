@@ -2508,8 +2508,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			boolean bAlwaysPrintNoChangeLine, DefaultRankCalculator dlData) {
 		boolean bAnyChanged = false;
 		String sDebugLineNoChange = sPrefixFirstLine;
-		StringBuffer sDebugLineOld = new StringBuffer(120);
-		StringBuffer sDebugLineNew = new StringBuffer(120);
+		StringBuilder sDebugLineOld = new StringBuilder(120);
+		StringBuilder sDebugLineNew = new StringBuilder(120);
 		for (int j = 0; j < oldEntries.length; j++) {
 			if (oldEntries[j].equals(newEntries[j]))
 				sDebugLineNoChange += oldEntries[j] + ";";

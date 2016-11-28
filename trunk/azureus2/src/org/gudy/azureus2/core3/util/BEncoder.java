@@ -525,7 +525,7 @@ BEncoder
        			
        			if ( !Arrays.equals( b, temp )){
        				
-       				StringBuffer sb = new StringBuffer( b.length * 2 + 4 );
+       				StringBuilder sb = new StringBuilder( b.length * 2 + 4 );
        				
 					sb.append("\\x");
 

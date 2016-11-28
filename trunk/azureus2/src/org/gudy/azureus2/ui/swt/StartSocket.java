@@ -59,7 +59,7 @@ public class StartSocket {
     		
     		pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream(),Constants.DEFAULT_ENCODING));
          
-    		StringBuffer buffer = new StringBuffer(AzureusCoreSingleInstanceClient.ACCESS_STRING + ";args;");
+    		StringBuilder buffer = new StringBuilder(AzureusCoreSingleInstanceClient.ACCESS_STRING + ";args;");
          
     		for(int i = 0 ; i < args.length ; i++) {
     			String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");

@@ -437,7 +437,7 @@ AEMonSem
 				
 			if ( stack.size() > 64 ){
 				
-				StringBuffer	sb = new StringBuffer(1024);
+				StringBuilder sb = new StringBuilder(1024);
 				
 				for (int i=0;i<stack.size();i++){
 					
@@ -467,7 +467,7 @@ AEMonSem
 				}
 				*/
 				
-				StringBuffer	sb = new StringBuffer();
+				StringBuilder sb = new StringBuilder();
 		
 					// not very interesting for semaphores as these tend to get left on stack traces when
 					// asymetric usage (which is often)

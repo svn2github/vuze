@@ -174,7 +174,7 @@ public class PingSpaceMonitor
     public void reset(TransferMode mode){
 
         //log results.
-        StringBuffer sb = new StringBuffer("ping-monitor:");
+        StringBuilder sb = new StringBuilder("ping-monitor:");
         sb.append("good=").append(nGoodPings).append(":");
         sb.append("bad=").append(nBadPings).append(":");
         sb.append("neutral=").append(nNeutralPings);

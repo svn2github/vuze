@@ -1083,7 +1083,7 @@ HTTPAuthHelper
 						sb.append(new String( buffer, 0, len, "ISO-8859-1" ));
 					}
 					
-					StringBuffer	sb_dechunked = new StringBuffer( sb.length());
+					StringBuilder sb_dechunked = new StringBuilder( sb.length());
 					
 					String chunk = "";
 	

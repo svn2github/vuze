@@ -209,7 +209,7 @@ public final class KeyBindings
         final boolean[] specVisited = new boolean[SPECIAL_KEYS.length]; // flag for speed optimization
         boolean funcVisited = false;
 
-        final StringBuffer displayValue = new StringBuffer(keyBindingValue.length() + 2); // allocate display string
+        final StringBuilder displayValue = new StringBuilder(keyBindingValue.length() + 2); // allocate display string
         displayValue.append('\t');
 
         for (int i = 0; i < tmpValues.length; i++)

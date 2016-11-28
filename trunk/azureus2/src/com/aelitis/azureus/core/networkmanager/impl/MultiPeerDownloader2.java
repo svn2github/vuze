@@ -382,7 +382,7 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 	public String
 	getString()
 	{
-		StringBuffer	str = new StringBuffer();
+		StringBuilder str = new StringBuilder();
 
 		str.append( "MPD (" + connections_cow.size() + "/" + active_connections.size() + "/" + idle_connections.size() + ": " );
 

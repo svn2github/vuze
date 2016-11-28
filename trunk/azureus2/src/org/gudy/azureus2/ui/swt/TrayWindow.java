@@ -242,7 +242,7 @@ public class TrayWindow
     if (minimized.isDisposed() || !minimized.isVisible())
       return;
 
-    StringBuffer toolTip = new StringBuffer();
+    StringBuilder toolTip = new StringBuilder();
     String separator = ""; //$NON-NLS-1$
     try{
       managers_mon.enter();

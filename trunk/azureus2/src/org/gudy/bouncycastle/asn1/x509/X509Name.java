@@ -983,7 +983,7 @@ public class X509Name
     private String stripInternalSpaces(
         String str)
     {
-        StringBuffer res = new StringBuffer();
+        StringBuilder res = new StringBuilder();
 
         if (str.length() != 0)
         {
@@ -1079,7 +1079,7 @@ public class X509Name
         boolean     reverse,
         Hashtable   oidSymbols)
     {
-        StringBuffer            buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         Vector                  components = new Vector();
         boolean                 first = true;
 

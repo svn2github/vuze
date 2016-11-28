@@ -191,7 +191,7 @@ UITextAreaImpl
 				
 			}else{
 				
-				StringBuffer sb = new StringBuffer( delay_size );
+				StringBuilder sb = new StringBuilder( delay_size );
 				
 				Iterator<String>	it = delay_text.iterator();
 				

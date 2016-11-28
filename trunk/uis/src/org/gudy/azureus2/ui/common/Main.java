@@ -363,7 +363,7 @@ public class Main {
         
         sck = new Socket("127.0.0.1", Constants.INSTANCE_PORT );
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
-        StringBuffer buffer = new StringBuffer(AzureusCoreSingleInstanceClient.ACCESS_STRING+";args;");
+        StringBuilder buffer = new StringBuilder(AzureusCoreSingleInstanceClient.ACCESS_STRING+";args;");
         for(int i = 0 ; i < args.length ; i++) {
           String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");
           buffer.append(arg);

@@ -235,8 +235,8 @@ BlockedIpsWindow
   		AzureusCore	azureus_core,
   		Shell 		mainWindow) 
   {
-    StringBuffer sbBlocked = new StringBuffer();
-    StringBuffer sbBanned = new StringBuffer();
+    StringBuilder sbBlocked = new StringBuilder();
+    StringBuilder sbBanned = new StringBuilder();
     BlockedIp[] blocked = azureus_core.getIpFilterManager().getIPFilter().getBlockedIps();
     String inRange = MessageText.getString("ConfigView.section.ipfilter.list.inrange");
     String notInRange = MessageText.getString("ConfigView.section.ipfilter.list.notinrange");   

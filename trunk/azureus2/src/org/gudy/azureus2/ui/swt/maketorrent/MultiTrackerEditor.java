@@ -459,7 +459,7 @@ public class MultiTrackerEditor {
 					    		  
 					    		  String[] lines = new_text.split( "\n" );
 					    		  
-					    		  StringBuffer valid_text = new StringBuffer( new_text.length()+1 );
+					    		  StringBuilder valid_text = new StringBuilder( new_text.length()+1 );
 					    		  
 					    		  for ( String line: lines ){
 					    			  

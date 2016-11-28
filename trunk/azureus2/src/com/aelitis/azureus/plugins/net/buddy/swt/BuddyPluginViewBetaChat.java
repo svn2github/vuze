@@ -3754,7 +3754,7 @@ BuddyPluginViewBetaChat
 		
 		final int	initial_log_length = log.getText().length();
 		
-		StringBuffer	appended = new StringBuffer( 2048 );
+		StringBuilder appended = new StringBuilder( 2048 );
 		
 		List<StyleRange>	new_ranges = new ArrayList<StyleRange>();
 		
@@ -4177,7 +4177,7 @@ BuddyPluginViewBetaChat
 							}
 						}
 							
-						StringBuffer sb = new StringBuffer( 1024 );
+						StringBuilder sb = new StringBuilder( 1024 );
 						
 						for ( Object obj: segments ){
 							
@@ -4196,7 +4196,7 @@ BuddyPluginViewBetaChat
 											segment_str.contains( my_nick ) &&
 											message_type ==  ChatMessage.MT_NORMAL ){
 										
-										StringBuffer temp = new StringBuffer( segment_str.length() + 1024 );
+										StringBuilder temp = new StringBuilder( segment_str.length() + 1024 );
 										
 										int	nick_len = my_nick.length();
 																			

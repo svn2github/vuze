@@ -443,7 +443,7 @@ IntegratedResourceBundle
 		int	pos = 0;
 		int	len = str.length();
 		
-		StringBuffer result = new StringBuffer( len );
+		StringBuilder result = new StringBuilder( len );
 		
 		while( pos < len ){
 			

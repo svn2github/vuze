@@ -253,7 +253,7 @@ public class PlatformMessenger
 
 		// Create urlStem (or post data)
 		boolean isMulti = false;
-		StringBuffer urlStem = new StringBuffer();
+		StringBuilder urlStem = new StringBuilder();
 		long sequenceNo = 0;
 
 		Map<String, Object> mapPayload = new HashMap<String, Object>();

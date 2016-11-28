@@ -159,7 +159,7 @@ public class LanguagePanel extends AbstractWizardPanel {
 	}
 
 	private String buildName(Locale locale) {
-		StringBuffer sName = new StringBuffer();
+		StringBuilder sName = new StringBuilder();
 
 		String sName1 = locale.getDisplayLanguage(locale);
 		String sName2 = locale.getDisplayLanguage();

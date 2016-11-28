@@ -332,7 +332,7 @@ ViewUtils
 			final MenuItem itemCurrentUpSpeed = new MenuItem(menuSpeed, SWT.PUSH);
 			itemCurrentUpSpeed.setEnabled(false);
 			String separator = "";
-			StringBuffer speedText = new StringBuffer();
+			StringBuilder speedText = new StringBuilder();
 			//itemUpSpeed.                   
 			if (upSpeedDisabled) {
 				speedText.append(MessageText
@@ -468,7 +468,7 @@ ViewUtils
 		if ( menuSpeed != null ){
 			final MenuItem itemCurrentDownSpeed = new MenuItem(menuSpeed, SWT.PUSH);
 			itemCurrentDownSpeed.setEnabled(false);
-			StringBuffer speedText = new StringBuffer();
+			StringBuilder speedText = new StringBuilder();
 			String separator = "";
 			//itemDownSpeed.                   
 			if (downSpeedDisabled) {

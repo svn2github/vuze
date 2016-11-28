@@ -197,7 +197,7 @@ LoggerChannelImpl
 
 		String listenerData;
 		if (relatedTo != null) {
-			StringBuffer text = new StringBuffer();
+			StringBuilder text = new StringBuilder();
 			for (int i = 0; i < relatedTo.length; i++) {
 				Object obj = relatedTo[i];
 

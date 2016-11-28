@@ -563,7 +563,7 @@ public class MultiPeerUploader implements RateControlledEntity {
   public String
   getString()
   {
-	  StringBuffer	str = new StringBuffer(); 
+	  StringBuilder str = new StringBuilder();
 		  
 	  str.append( "MPU (" + waiting_connections.size() + "/" + ready_connections.size() + "): " );
 	  

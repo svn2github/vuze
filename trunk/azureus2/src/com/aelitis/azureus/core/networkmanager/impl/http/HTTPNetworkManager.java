@@ -296,7 +296,7 @@ HTTPNetworkManager
 				    					
 				    					if ( file != null ){
 				    						
-					    					StringBuffer	target_url = new StringBuffer( 512 );
+					    					StringBuilder target_url = new StringBuilder( 512 );
 					    					
 					    					target_url.append( "/files/" );
 					    					

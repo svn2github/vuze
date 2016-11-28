@@ -372,7 +372,7 @@ PMSWTImpl
 			}
 		}
 			
-		StringBuffer	tooltip_text = new StringBuffer( 256 );
+		StringBuilder tooltip_text = new StringBuilder( 256 );
 		
 		tooltip_text.append( MessageText.getString( "pairing.ui.icon.tip" ));
 			
@@ -400,7 +400,7 @@ PMSWTImpl
 			
 			Iterator<Map.Entry<String,RemoteHistoryEntry>>	record_it = records.entrySet().iterator();
 			
-			StringBuffer	tt_ip_details = new StringBuffer( 256 );
+			StringBuilder tt_ip_details = new StringBuilder( 256 );
 			
 			while( record_it.hasNext()){
 				

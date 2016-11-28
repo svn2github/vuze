@@ -502,7 +502,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
      * Log debug info needed during beta period.
      */
     private void logPinningInfo() {
-        StringBuffer sb = new StringBuffer("pin: ");
+        StringBuilder sb = new StringBuilder("pin: ");
         if(isUploadMaxPinned){
             sb.append("ul-pinned:");
         }else{
@@ -1002,7 +1002,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
             newMinLimitSetting = SMConst.calculateMinUpload( newMaxLimitSetting );
         }
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if( transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH ){
             sb.append("new upload limits: ");
             uploadLimitMax =newMaxLimitSetting;
@@ -1161,7 +1161,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         int newDownloadLimit = currDownloadLimit;
         boolean downloadChanged = false;
 
-        StringBuffer reason = new StringBuffer();
+        StringBuilder reason = new StringBuilder();
 
         //check for the case when the line-speed capacity is below the current limit.
         if( currUploadLimit> uploadLimitMax && uploadLimitMax!=0){
@@ -1248,7 +1248,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
                                            PingSpaceMapper downMode,
                                            PingSpaceMapper seedMode)
     {
-        StringBuffer sb = new StringBuffer("beta-ping-maps-").append(name).append(": ");
+        StringBuilder sb = new StringBuilder("beta-ping-maps-").append(name).append(": ");
 
         if(transEst!=null){
             int rate = transEst.getBytesPerSec();
@@ -1401,7 +1401,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
             int upLimGuess = pingMapOfDownloadMode.guessUploadLimit();
             int seedingUpLimGuess = pingMapOfSeedingMode.guessUploadLimit();
 
-            StringBuffer sb = new StringBuffer("ping-map: ");
+            StringBuilder sb = new StringBuilder("ping-map: ");
             sb.append(":down=").append(downLimGuess);
             sb.append(":up=").append(upLimGuess);
             sb.append(":(seed)up=").append(seedingUpLimGuess);
@@ -1422,7 +1422,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
             String name = persistentMap.getName();
 
-            StringBuffer sb = new StringBuffer("new-ping-map: ");
+            StringBuilder sb = new StringBuilder("new-ping-map: ");
             sb.append(" name=").append(name);
             sb.append(", down=").append(downLimGuess);
             sb.append(", down-conf=").append(downConf);
@@ -1539,7 +1539,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
             return;
         }
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         float metric = est.getMetricRating();
         float type = est.getEstimateType();
         int rate = est.getBytesPerSec();

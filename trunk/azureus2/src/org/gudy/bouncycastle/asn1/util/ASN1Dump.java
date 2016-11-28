@@ -20,7 +20,7 @@ public class ASN1Dump
     {
         if (obj instanceof ASN1Sequence)
         {
-            StringBuffer    buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             Enumeration     e = ((ASN1Sequence)obj).getObjects();
             String          tab = indent + TAB;
 
@@ -71,7 +71,7 @@ public class ASN1Dump
         }
         else if (obj instanceof DERTaggedObject)
         {
-            StringBuffer    buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             String          tab = indent + TAB;
 
             buf.append(indent);
@@ -111,7 +111,7 @@ public class ASN1Dump
         }
         else if (obj instanceof DERConstructedSet)
         {
-            StringBuffer    buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             Enumeration     e = ((ASN1Set)obj).getObjects();
             String          tab = indent + TAB;
 
@@ -142,7 +142,7 @@ public class ASN1Dump
         }
         else if (obj instanceof BERSet)
         {
-            StringBuffer    buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             Enumeration     e = ((ASN1Set)obj).getObjects();
             String          tab = indent + TAB;
 
@@ -173,7 +173,7 @@ public class ASN1Dump
         }
         else if (obj instanceof DERSet)
         {
-            StringBuffer    buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             Enumeration     e = ((ASN1Set)obj).getObjects();
             String          tab = indent + TAB;
 

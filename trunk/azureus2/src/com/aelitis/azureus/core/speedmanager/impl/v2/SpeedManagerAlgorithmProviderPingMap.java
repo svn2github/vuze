@@ -179,7 +179,7 @@ public class SpeedManagerAlgorithmProviderPingMap
      * @param currUploadLimit -
      */
     private void logCurrentData(int downRate, int currDownLimit, int upRate, int currUploadLimit) {
-        StringBuffer sb = new StringBuffer("curr-data-m:"+downRate+":"+currDownLimit+":");
+        StringBuilder sb = new StringBuilder("curr-data-m:"+downRate+":"+currDownLimit+":");
         sb.append( limitMonitor.getDownloadMaxLimit() ).append(":");
         sb.append(limitMonitor.getDownloadBandwidthMode()).append(":");
         sb.append(limitMonitor.getDownloadLimitSettingMode()).append(":");
@@ -342,7 +342,7 @@ public class SpeedManagerAlgorithmProviderPingMap
      */
     private void logLimitStatus(){
 
-        StringBuffer msg = new StringBuffer();
+        StringBuilder msg = new StringBuilder();
         msg.append("limits:");
         msg.append(limitMonitor.getUploadMaxLimit()).append(":");
         msg.append(limitMonitor.getUploadMinLimit()).append(":");

@@ -2853,7 +2853,7 @@ public class Utils
 				return result.text;
 			}
 		}
-		StringBuffer sb = new StringBuffer(text);
+		StringBuilder sb = new StringBuilder(text);
 		String append = "...";
 		int appendWidth = gc.textExtent(append).x;
 		boolean needsAppend = false;
@@ -3501,7 +3501,7 @@ public class Utils
 											{												
 												lines.add( line );
 												
-												StringBuffer	content = new StringBuffer();
+												StringBuilder content = new StringBuilder();
 												
 												for ( String l: lines ){
 													

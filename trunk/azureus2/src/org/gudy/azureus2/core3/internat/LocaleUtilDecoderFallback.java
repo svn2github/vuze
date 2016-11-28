@@ -188,7 +188,7 @@ LocaleUtilDecoderFallback
 	fileLengthOK(
 		int		len )
 	{
-		StringBuffer n = new StringBuffer( len );
+		StringBuilder n = new StringBuilder( len );
 		
 		for (int i=0;i<len;i++){
 			

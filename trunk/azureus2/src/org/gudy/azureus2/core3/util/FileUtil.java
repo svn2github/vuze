@@ -2037,7 +2037,7 @@ public class FileUtil {
 	
 		throws IOException
 	{
-		StringBuffer result = new StringBuffer(1024);
+		StringBuilder result = new StringBuilder(1024);
 
 		byte[] buffer = new byte[64*1024];
 
@@ -2070,7 +2070,7 @@ public class FileUtil {
 	
 		throws IOException
 	{
-		StringBuffer result = new StringBuffer(1024);
+		StringBuilder result = new StringBuilder(1024);
 
 		byte[] buffer = new byte[64*1024];
 
@@ -2127,7 +2127,7 @@ public class FileUtil {
 				fis.skip(file.length() - size_limit);
 			}
 			
-			StringBuffer	result = new StringBuffer(1024);
+			StringBuilder result = new StringBuilder(1024);
 			
 			byte[]	buffer = new byte[64*1024];
 			
@@ -2487,7 +2487,7 @@ public class FileUtil {
 				
 			}else{
 				
-				StringBuffer b = new StringBuffer(256);
+				StringBuilder b = new StringBuilder(256);
 			
 				for (int i=comps.length-1;i>=0;i--){
 
