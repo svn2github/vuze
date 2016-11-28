@@ -22,6 +22,9 @@
  
 package org.gudy.azureus2.ui.swt.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
@@ -91,12 +94,62 @@ public class ColorParameter extends Parameter implements ParameterListener {
     colorChooser.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         ColorDialog cd = new ColorDialog(composite.getShell());
-        if ( r >= 0 && g >= 0 && b >= 0 ){
-        	cd.setRGB(new RGB(r,g,b));
+        
+        String custom_colours_str = COConfigurationManager.getStringParameter( "color.parameter.custom.colors", "" );
+        
+        String[] bits = custom_colours_str.split( ";");
+        
+        List<RGB> custom_colours = new ArrayList<RGB>();
+        
+        for ( String bit: bits ){
+        	
+        	String[] x = bit.split(",");
+        	
+        	if ( x.length == 3 ){
+        		
+        		try{
+        			custom_colours.add( new RGB( Integer.parseInt( x[0]),Integer.parseInt( x[1]),Integer.parseInt( x[2])));
+        			
+        		}catch( Throwable f ){
+        			
+        		}
+        	}
         }
+        
+        if ( r >= 0 && g >= 0 && b >= 0 ){
+        	
+        	RGB colour = new RGB(r,g,b);
+        	
+        	custom_colours.remove( colour );
+        		
+        	custom_colours.add( 0, colour );
+        	        	
+        	cd.setRGB( colour );
+        }
+        	
+        cd.setRGBs( custom_colours.toArray( new RGB[0]));
+	
         RGB newColor = cd.open();
-        if (newColor == null)
+        
+        if (newColor == null){
+        	
           return;
+        }
+        
+        RGB[] new_cc = cd.getRGBs();
+        
+        if ( new_cc != null ){
+        
+            custom_colours_str = "";
+            	
+            for ( RGB colour: new_cc ){
+            	
+            	custom_colours_str += (custom_colours_str.isEmpty()?"":";") + colour.red + "," + colour.green + "," + colour.blue;
+            }
+            
+            COConfigurationManager.setParameter( "color.parameter.custom.colors", custom_colours_str );
+        }
+        
         newColorChosen(newColor);
         if (name != null) {
         	COConfigurationManager.setRGBParameter(name, newColor.red, newColor.green, newColor.blue);
