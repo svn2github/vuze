@@ -21,7 +21,6 @@
 
 package org.gudy.azureus2.core3.util.spi;
 
-import java.io.IOException;
 import java.lang.reflect.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;

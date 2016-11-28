@@ -33,7 +33,6 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerImpl;
-import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AEThread2;

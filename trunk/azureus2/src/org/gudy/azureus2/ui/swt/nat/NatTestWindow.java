@@ -20,8 +20,6 @@
  */
 package org.gudy.azureus2.ui.swt.nat;
 
-import java.net.InetAddress;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;

@@ -2,16 +2,6 @@ package org.gudy.bouncycastle.jce.provider;
 
 import java.security.MessageDigest;
 
-import org.gudy.bouncycastle.crypto.digests.MD2Digest;
-import org.gudy.bouncycastle.crypto.digests.MD4Digest;
-import org.gudy.bouncycastle.crypto.digests.MD5Digest;
-import org.gudy.bouncycastle.crypto.digests.RIPEMD128Digest;
-import org.gudy.bouncycastle.crypto.digests.RIPEMD160Digest;
-import org.gudy.bouncycastle.crypto.digests.SHA1Digest;
-import org.gudy.bouncycastle.crypto.digests.SHA256Digest;
-import org.gudy.bouncycastle.crypto.digests.SHA384Digest;
-import org.gudy.bouncycastle.crypto.digests.SHA512Digest;
-import org.gudy.bouncycastle.crypto.digests.TigerDigest;
 import org.gudy.bouncycastle.jce.provider.JDKMessageDigest;
 import org.gudy.bouncycastle.crypto.Digest;
 import org.gudy.bouncycastle.crypto.digests.*;

@@ -50,7 +50,6 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.mdi.TabbedMDI;
 import com.aelitis.azureus.ui.swt.mdi.TabbedMdiInterface;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 

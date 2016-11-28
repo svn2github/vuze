@@ -19,8 +19,6 @@ package org.gudy.azureus2.core3.torrent.impl;
 
 import java.io.File;
 
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
-
 /**
  * Class to store the file list of a Torrent.  Used to populate table and
  * store user's choices

@@ -17,8 +17,6 @@
 
 package org.gudy.azureus2.ui.swt.updater2;
 
-import org.gudy.azureus2.update.UpdaterUtils;
-
 import com.aelitis.azureus.core.AzureusCore;
 
 /**

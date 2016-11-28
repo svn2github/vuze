@@ -24,7 +24,6 @@ package com.aelitis.azureus.plugins.removerules;
  *
  */
 
-import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.torrent.*;

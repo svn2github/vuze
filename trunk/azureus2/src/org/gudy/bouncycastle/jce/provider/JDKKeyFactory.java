@@ -49,9 +49,6 @@ import java.security.spec.X509EncodedKeySpec;
 import javax.crypto.interfaces.DHPrivateKey;
 import javax.crypto.interfaces.DHPublicKey;
 
-import org.gudy.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.gudy.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.gudy.bouncycastle.asn1.x509.X509ObjectIdentifiers;
 import org.gudy.bouncycastle.jce.provider.JCEECPrivateKey;
 import org.gudy.bouncycastle.jce.provider.JCEECPublicKey;
 import org.gudy.bouncycastle.jce.provider.JCERSAPublicKey;

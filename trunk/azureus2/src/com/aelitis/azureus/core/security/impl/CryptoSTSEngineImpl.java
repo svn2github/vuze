@@ -29,7 +29,6 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 
-import org.gudy.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.gudy.bouncycastle.jce.provider.JCEECDHKeyAgreement;
 
 import com.aelitis.azureus.core.security.CryptoECCUtils;

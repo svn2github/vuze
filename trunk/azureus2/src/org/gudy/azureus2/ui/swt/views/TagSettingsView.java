@@ -19,7 +19,6 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,7 +43,6 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ColorParameter;
-import org.gudy.azureus2.ui.swt.config.StringListParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericFloatParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;

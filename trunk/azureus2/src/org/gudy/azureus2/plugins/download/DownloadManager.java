@@ -24,7 +24,6 @@ package org.gudy.azureus2.plugins.download;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;

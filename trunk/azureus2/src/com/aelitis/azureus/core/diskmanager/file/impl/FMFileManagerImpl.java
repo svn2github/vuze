@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.diskmanager.file.*;
-import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.LinkFileMap;
 
 public class 

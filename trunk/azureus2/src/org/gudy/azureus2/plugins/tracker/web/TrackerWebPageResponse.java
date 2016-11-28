@@ -30,7 +30,6 @@ package org.gudy.azureus2.plugins.tracker.web;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
-import java.net.Socket;
 
 import org.gudy.azureus2.plugins.tracker.*;
 

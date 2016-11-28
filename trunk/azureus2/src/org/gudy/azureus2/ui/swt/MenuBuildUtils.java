@@ -32,7 +32,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.Menu;
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.GraphicURI;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;

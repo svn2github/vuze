@@ -27,7 +27,6 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentN
  */
 
 import java.net.InetAddress;
-import java.net.URL;
 import java.util.*;
 
 

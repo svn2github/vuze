@@ -17,9 +17,6 @@
  */
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;

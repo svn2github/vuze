@@ -19,7 +19,6 @@ package com.aelitis.azureus.ui.swt.columns.tagdiscovery;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDiscovery;
 
 public class ColumnTagDiscoveryName

@@ -20,7 +20,6 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
-import java.security.SecureRandom;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;

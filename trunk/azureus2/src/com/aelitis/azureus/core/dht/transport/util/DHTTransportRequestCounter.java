@@ -20,7 +20,6 @@
 package com.aelitis.azureus.core.dht.transport.util;
 
 import java.util.List;
-import java.util.Map;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFindValueReply;

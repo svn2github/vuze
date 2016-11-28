@@ -49,7 +49,6 @@ import org.gudy.azureus2.pluginsimpl.local.ui.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
-import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.ui.config.Parameter;

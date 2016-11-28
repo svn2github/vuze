@@ -21,10 +21,7 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.*;
-import java.util.*;
 
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;

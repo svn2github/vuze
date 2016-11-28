@@ -39,11 +39,6 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.apache.log4j.Appender;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.varia.DenyAllFilter;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;

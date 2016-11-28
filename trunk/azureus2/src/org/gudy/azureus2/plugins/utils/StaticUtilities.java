@@ -33,7 +33,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader.ResourceUploaderFactoryImpl;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * Plugin utility class for easy access to static helper methods,

@@ -18,8 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.feature;
 
-import java.util.*;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
 

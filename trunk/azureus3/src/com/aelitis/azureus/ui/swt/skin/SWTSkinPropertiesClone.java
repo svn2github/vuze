@@ -19,13 +19,9 @@ package com.aelitis.azureus.ui.swt.skin;
 import java.util.ResourceBundle;
 
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
-
-import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
  * Simple extension of SWTSkinProperties that first checks the original

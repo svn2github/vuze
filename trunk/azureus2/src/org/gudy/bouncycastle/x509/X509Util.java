@@ -6,7 +6,6 @@ package org.gudy.bouncycastle.x509;
 //import org.gudy.bouncycastle.asn1.pkcs.RSASSAPSSparams;
 import org.gudy.bouncycastle.asn1.ASN1Encodable;
 import org.gudy.bouncycastle.asn1.DEREncodable;
-import org.gudy.bouncycastle.asn1.DERInteger;
 import org.gudy.bouncycastle.asn1.DERNull;
 import org.gudy.bouncycastle.asn1.DERObjectIdentifier;
 import org.gudy.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;

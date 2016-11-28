@@ -19,7 +19,6 @@
 
 package org.gudy.azureus2.pluginsimpl.local.utils.xml.rss;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 

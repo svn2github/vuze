@@ -25,7 +25,6 @@ package org.gudy.azureus2.core3.tracker.client.impl;
 
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.StringInterner;
-import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 
 public class 
 TRTrackerAnnouncerResponsePeerImpl

@@ -22,7 +22,6 @@ package org.gudy.azureus2.platform.macosx;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
-import java.text.MessageFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;

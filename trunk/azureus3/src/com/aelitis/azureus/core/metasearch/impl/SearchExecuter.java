@@ -19,7 +19,6 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEThread2;

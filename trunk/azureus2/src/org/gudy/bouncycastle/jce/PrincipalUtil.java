@@ -3,8 +3,6 @@ package org.gudy.bouncycastle.jce;
 import java.io.*;
 import java.security.cert.*;
 
-import org.gudy.bouncycastle.asn1.x509.TBSCertList;
-import org.gudy.bouncycastle.asn1.x509.TBSCertificateStructure;
 import org.gudy.bouncycastle.jce.X509Principal;
 import org.gudy.bouncycastle.asn1.*;
 import org.gudy.bouncycastle.asn1.x509.*;

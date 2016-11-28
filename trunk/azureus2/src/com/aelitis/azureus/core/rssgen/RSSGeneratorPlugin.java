@@ -42,8 +42,6 @@ import org.gudy.azureus2.plugins.ui.config.HyperlinkParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.ui.webplugin.WebPlugin;
 
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-
 
 public class 
 RSSGeneratorPlugin

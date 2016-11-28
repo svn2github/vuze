@@ -28,7 +28,6 @@ package org.gudy.azureus2.core3.peer;
 
 
 import java.net.InetAddress;
-import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;

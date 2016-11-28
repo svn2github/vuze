@@ -26,18 +26,12 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  */
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.tracker.host.TRHostAuthenticationListener;
-import org.gudy.azureus2.core3.tracker.server.TRTrackerServerAuthenticationListener;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerListener2;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;

@@ -20,7 +20,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -32,7 +31,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;

@@ -29,9 +29,6 @@ package org.gudy.azureus2.core3.security.impl;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.net.Authenticator;
 import java.net.Inet6Address;
 import java.net.InetAddress;

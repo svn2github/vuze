@@ -104,7 +104,6 @@ import com.aelitis.azureus.core.tag.impl.TagBase;
 import com.aelitis.azureus.core.tag.impl.TagTypeWithState;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
-import com.aelitis.azureus.core.util.average.MovingAverage;
 import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
 
 public class 

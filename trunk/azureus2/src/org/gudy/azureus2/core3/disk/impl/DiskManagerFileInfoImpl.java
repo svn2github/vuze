@@ -27,7 +27,6 @@ package org.gudy.azureus2.core3.disk.impl;
  */
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -43,7 +42,7 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.core.util.average.AverageFactory.LazyMovingImmediateAverageAdapter;
 import com.aelitis.azureus.core.util.average.AverageFactory.LazyMovingImmediateAverageState;
-import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
+
 
 /**
  * @author Olivier

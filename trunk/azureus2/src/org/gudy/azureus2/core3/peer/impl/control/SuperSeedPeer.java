@@ -1,6 +1,6 @@
 /*
  * File    : SuperSeedPeer.java
- * Created : 14 déc. 2003}
+ * Created : 14 dï¿½c. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -21,7 +21,6 @@
  */
 package org.gudy.azureus2.core3.peer.impl.control;
 
-import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
 /**

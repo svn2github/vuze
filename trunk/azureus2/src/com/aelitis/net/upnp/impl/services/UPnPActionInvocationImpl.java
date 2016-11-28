@@ -27,7 +27,6 @@ package com.aelitis.net.upnp.impl.services;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
-import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
 import com.aelitis.net.upnp.*;

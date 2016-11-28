@@ -20,7 +20,6 @@ package com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 
 /**
  * @author Allan Crooks

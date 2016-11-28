@@ -21,11 +21,7 @@
 package com.aelitis.azureus.ui.swt.devices.columns;
 
 import com.aelitis.azureus.core.devices.TranscodeFile;
-import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.tag.TagManager;
-import com.aelitis.azureus.core.tag.TagManagerFactory;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**

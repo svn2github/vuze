@@ -20,7 +20,6 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;

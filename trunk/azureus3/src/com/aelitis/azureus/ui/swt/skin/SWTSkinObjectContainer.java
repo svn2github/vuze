@@ -24,7 +24,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
@@ -34,8 +33,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.CompositeMinSize;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
-
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 
 /**

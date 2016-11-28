@@ -7,10 +7,6 @@ import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Hashtable;
 
-import org.gudy.bouncycastle.crypto.params.ECDomainParameters;
-import org.gudy.bouncycastle.crypto.params.ECKeyGenerationParameters;
-import org.gudy.bouncycastle.crypto.params.ECPrivateKeyParameters;
-import org.gudy.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.gudy.bouncycastle.jce.provider.JCEECPrivateKey;
 import org.gudy.bouncycastle.jce.provider.JCEECPublicKey;
 import org.gudy.bouncycastle.jce.provider.JDKKeyPairGenerator;

@@ -27,8 +27,6 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
 import java.util.List;
 
 import org.gudy.azureus2.core3.html.HTMLUtils;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;

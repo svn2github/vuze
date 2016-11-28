@@ -19,8 +19,6 @@ package org.gudy.azureus2.platform.macosx;
  *
  */
 
-import org.gudy.azureus2.core3.util.Debug;
-
 import java.io.File;
 
 /**

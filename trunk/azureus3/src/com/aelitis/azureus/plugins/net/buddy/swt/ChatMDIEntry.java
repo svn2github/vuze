@@ -19,8 +19,6 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 
-import org.gudy.azureus2.core3.util.Debug;
-
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatAdapter;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.ui.UIFunctionsManager;

@@ -23,7 +23,6 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 
-import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.LinkFileMap;
 
 

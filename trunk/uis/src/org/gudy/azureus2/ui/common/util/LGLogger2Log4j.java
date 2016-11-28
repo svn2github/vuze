@@ -17,10 +17,7 @@
 
 package org.gudy.azureus2.ui.common.util;
 
-import org.apache.log4j.Logger;
-import org.gudy.azureus2.core3.logging.ILogAlertListener;
 import org.gudy.azureus2.core3.logging.ILogEventListener;
-import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 
 /**

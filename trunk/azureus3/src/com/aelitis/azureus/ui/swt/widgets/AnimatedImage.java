@@ -23,7 +23,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 

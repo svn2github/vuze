@@ -20,7 +20,6 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestSelector;
@@ -30,7 +29,6 @@ import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessa
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
-import com.aelitis.azureus.ui.swt.views.skin.WelcomeView;
 import com.aelitis.azureus.util.FeatureUtils;
 import com.aelitis.azureus.util.MapUtils;
 

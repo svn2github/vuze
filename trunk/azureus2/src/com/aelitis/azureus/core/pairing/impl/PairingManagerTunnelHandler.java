@@ -21,8 +21,6 @@
 package com.aelitis.azureus.core.pairing.impl;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
