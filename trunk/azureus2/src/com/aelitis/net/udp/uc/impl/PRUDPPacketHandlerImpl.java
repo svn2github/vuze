@@ -680,7 +680,8 @@ PRUDPPacketHandlerImpl
 						String	message = e.getMessage();
 						
 						if ( 	socket.isClosed() || 
-								( message != null && message.toLowerCase().indexOf( "socket closed" ) != -1 )){
+								( message != null &&
+									message.toLowerCase().contains("socket closed"))){
 							
 							long	now = SystemTime.getCurrentTime();
 							
@@ -1470,7 +1471,7 @@ PRUDPPacketHandlerImpl
 			Logger.log(new LogEvent(LOGID,LogEvent.LT_ERROR,
 					"PRUDPPacketHandler: sendAndReceive to " + destination_address + " failed: " + msg )); 
 			
-			if ( msg.indexOf( "Invalid data length" ) != -1 ){
+			if (msg.contains("Invalid data length")){
 				
 				Debug.out( "packet=" + request_packet.getString() + ",auth=" + auth );
 				

@@ -273,7 +273,7 @@ PlatformManagerImpl
 			
 				// only patch if Azureus.exe in there
 			
-			if ( current.indexOf( app_exe_name ) != -1 && !current.equals(target)){
+			if (current.contains(app_exe_name) && !current.equals(target)){
 				
 				writeStringToHKCRandHKCU( 	
 						NEW_MAIN_ASSOC + "\\DefaultIcon",
@@ -1556,8 +1556,8 @@ PlatformManagerImpl
 			
 		}catch( Throwable e ){
 			
-			if ( 	e.getMessage() == null || 
-					e.getMessage().indexOf("RegOpenKey failed") == -1 ){
+			if ( 	e.getMessage() == null ||
+				!e.getMessage().contains("RegOpenKey failed")){
 				
 				Debug.printStackTrace( e );
 			}
@@ -1595,7 +1595,7 @@ PlatformManagerImpl
 			try{
 				String existing = access.readStringValue( AEWin32Access.HKEY_CLASSES_ROOT, "magnet\\shell\\open\\command", "" );
 
-				magnet_exe_managing = existing.toLowerCase().indexOf( "\\magnet.exe" ) != -1;
+				magnet_exe_managing = existing.toLowerCase().contains("\\magnet.exe");
 				
 			}catch( Throwable e ){
 			}

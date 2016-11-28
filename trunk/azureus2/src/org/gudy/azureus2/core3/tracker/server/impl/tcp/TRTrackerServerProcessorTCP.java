@@ -592,7 +592,7 @@ TRTrackerServerProcessorTCP
 					
 						// add in tracker type for az clients so they know this is an AZ tracker
 					
-					if ( lowercase_input_header.indexOf( lc_azureus_name ) != -1 ){
+					if (lowercase_input_header.contains(lc_azureus_name)){
 				
 						root.put( "aztracker", new Long(1));
 					}

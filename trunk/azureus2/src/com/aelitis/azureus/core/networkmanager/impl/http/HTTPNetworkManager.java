@@ -189,13 +189,13 @@ HTTPNetworkManager
 				    		
 				    		url = url.substring( space + 1 ).trim();
 				    				
-				    		if ( url.indexOf( "/index.html") != -1 ){
+				    		if (url.contains("/index.html")){
 				    			
 				    			ok	= true;
 				    			
 					    		return( new Object[]{ transport, getIndexPage() });
 					    		
-				    		}else if ( url.indexOf( "/ping.html") != -1 ){
+				    		}else if (url.contains("/ping.html")){
 					    			
 				    				// ping is used for inbound HTTP port checking
 				    			
@@ -203,7 +203,7 @@ HTTPNetworkManager
 				    			
 						    	return( new Object[]{ transport, getPingPage( url ) });
 
-				    		}else if ( url.indexOf( "/test503.html" ) != -1 ){
+				    		}else if (url.contains("/test503.html")){
 				    			
 				    			ok	= true;
 				    			
@@ -446,7 +446,7 @@ HTTPNetworkManager
 	        					routed(
 	        						PEPeerTransport		peer )
 	        					{
-	        						if ( url.indexOf( "/webseed" ) != -1 ){
+	        						if (url.contains("/webseed")){
 	        							
 	        							total_webseed_requests++;
 	        							
@@ -454,7 +454,7 @@ HTTPNetworkManager
 	        							
 	        							return( true );
 	        							
-	        						}else if ( url.indexOf( "/files/" ) != -1 ){
+	        						}else if (url.contains("/files/")){
 
 	        							total_getright_requests++;
 	        							
@@ -523,11 +523,11 @@ HTTPNetworkManager
 					{
 						HTTPNetworkConnection new_http_connection;
 						
-						if ( header.indexOf( "/webseed" ) != -1 ){
+						if (header.contains("/webseed")){
 							
 							new_http_connection = new HTTPNetworkConnectionWebSeed( HTTPNetworkManager.this, new_connection, peer );
 							
-						}else if ( header.indexOf( "/files/" ) != -1 ){
+						}else if (header.contains("/files/")){
 
 							new_http_connection = new HTTPNetworkConnectionFile( HTTPNetworkManager.this, new_connection, peer );
 						

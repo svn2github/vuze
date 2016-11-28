@@ -496,7 +496,7 @@ IpFilterImpl
 	  
 	  	// don't currently support IPv6
 	  
-	  if ( ipAddress.indexOf( ":" ) != -1 ){
+	  if (ipAddress.contains(":")){
 		  
 		  return( false );
 	  }

@@ -1025,8 +1025,8 @@ TRTrackerBTAnnouncerImpl
 			 		// second "completed" event...
 			 	
 			 	if ( reason != null && 
-			 			( 	reason.indexOf( "too many seeds" ) != -1 ||
-			 				reason.indexOf( "too many peers" ) != -1 )){
+			 			(reason.contains("too many seeds") ||
+							reason.contains("too many peers"))){
 			 				
 			 		skip_host	= original_url.getHost();
 			 	}
@@ -1312,7 +1312,7 @@ TRTrackerBTAnnouncerImpl
 			  		failure_reason = exceptionToString( e );
 				}
 					
-				if ( failure_reason != null && failure_reason.indexOf("401" ) != -1 ){
+				if ( failure_reason != null && failure_reason.contains("401")){
 						
 					failure_reason = "Tracker authentication failed";
 					errorLevel = false;
@@ -1946,7 +1946,8 @@ TRTrackerBTAnnouncerImpl
 			 			}
 			 		}catch( PRUDPPacketHandlerException e ){
 			 			
-			 			if ( e.getMessage() == null || e.getMessage().indexOf("timed out") == -1 ){
+			 			if ( e.getMessage() == null ||
+							!e.getMessage().contains("timed out")){
 			 				
 			 				throw( e );
 			 			}
@@ -2038,7 +2039,7 @@ TRTrackerBTAnnouncerImpl
  			str = class_name + ": " + Debug.getNestedExceptionMessage(e);
  		}
  		
- 		if ( str.indexOf( "timed out") != -1 ){
+ 		if (str.contains("timed out")){
 
  			str  = "timeout";
  		}

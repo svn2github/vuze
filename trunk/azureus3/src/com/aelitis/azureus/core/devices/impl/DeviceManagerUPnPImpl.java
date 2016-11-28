@@ -254,7 +254,7 @@ DeviceManagerUPnPImpl
 						String				NT,
 						String				NTS )
 					{
-						alive( originator, NTS.indexOf( "byebye") == -1 );
+						alive( originator, !NTS.contains("byebye"));
 					}
 
 					public String[]

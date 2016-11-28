@@ -574,7 +574,7 @@ AEDiagnostics
 					
 					line = line.toUpperCase();
 					
-					if (line.indexOf( "EXCEPTION_FLT") != -1 ){
+					if (line.contains("EXCEPTION_FLT")){
 						
 						float_excep	= true;
 						
@@ -609,7 +609,7 @@ AEDiagnostics
 							
 							String b_uc = bad_dlls_uc[i];
 							
-							if ( line.indexOf( b_uc ) != -1 ){
+							if (line.contains(b_uc)){
 								
 								String	dll = bad_dlls[i][0];
 								

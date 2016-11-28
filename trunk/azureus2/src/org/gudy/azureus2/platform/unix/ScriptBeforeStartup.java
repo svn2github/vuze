@@ -81,7 +81,7 @@ public class ScriptBeforeStartup
 
 			sysout.println(scriptAfterShutdown);
 
-			if (scriptAfterShutdown.indexOf("$0") < 0) {
+			if (!scriptAfterShutdown.contains("$0")) {
 				// doesn't have a restart.. add one
 				sysout.println("echo \"Restarting Azureus..\"");
 				sysout.println("$0\n");

@@ -1331,7 +1331,7 @@ redirect_label:
 											
 											msg = msg.toLowerCase( MessageText.LOCALE_ENGLISH );
 											
-											if ( msg.indexOf( "gzip" ) != -1 ){
+											if (msg.contains("gzip")){
 									
 												use_compression = false;
 												

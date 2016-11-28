@@ -701,7 +701,7 @@ public class ConfigView implements UISWTViewEventListener {
 			ScrolledComposite composite = (ScrolledComposite) items[i].getData("Panel");
 
 			if (text.length() > 0
-					&& (items[i].getText().toLowerCase().indexOf(text) >= 0 || compositeHasText(
+					&& (items[i].getText().toLowerCase().contains(text) || compositeHasText(
 							composite, text))) {
 				foundItems.add(items[i]);
 
@@ -733,28 +733,28 @@ public class ConfigView implements UISWTViewEventListener {
 		for (int i = 0; i < children.length; i++) {
 			Control child = children[i];
 			if (child instanceof Label) {
-				if (((Label)child).getText().toLowerCase().indexOf(text) >= 0) {
+				if (((Label) child).getText().toLowerCase().contains(text)) {
 					return true;
 				}
 			} else if (child instanceof Group) {
-				if (((Group)child).getText().toLowerCase().indexOf(text) >= 0) {
+				if (((Group) child).getText().toLowerCase().contains(text)) {
 					return true;
 				}
 			} else if (child instanceof Button) {
-				if (((Button)child).getText().toLowerCase().indexOf(text) >= 0) {
+				if (((Button) child).getText().toLowerCase().contains(text)) {
 					return true;
 				}
 			} else if (child instanceof List) {
 				String[] items = ((List)child).getItems();
 				for (String item : items) {
-					if (item.toLowerCase().indexOf(text) >= 0) {
+					if (item.toLowerCase().contains(text)) {
 						return true;
 					}
 				}
 			} else if (child instanceof Combo) {
 				String[] items = ((Combo)child).getItems();
 				for (String item : items) {
-					if (item.toLowerCase().indexOf(text) >= 0) {
+					if (item.toLowerCase().contains(text)) {
 						return true;
 					}
 				}
@@ -875,21 +875,21 @@ public class ConfigView implements UISWTViewEventListener {
 			}
 
 			if (child instanceof Label) {
-				if (((Label)child).getText().toLowerCase().indexOf(text) >= 0) {
+				if (((Label) child).getText().toLowerCase().contains(text)) {
 					hilightControl(child);
 				}
 			} else if (child instanceof Group) {
-				if (((Group)child).getText().toLowerCase().indexOf(text) >= 0) {
+				if (((Group) child).getText().toLowerCase().contains(text)) {
 					hilightControl(child);
 				}
 			} else if (child instanceof Button) {
-				if (((Button)child).getText().toLowerCase().indexOf(text) >= 0) {
+				if (((Button) child).getText().toLowerCase().contains(text)) {
 					hilightControl(child);
 				}
 			} else if (child instanceof List) {
 				String[] items = ((List)child).getItems();
 				for (String item : items) {
-					if (item.toLowerCase().indexOf(text) >= 0) {
+					if (item.toLowerCase().contains(text)) {
 						hilightControl(child);
 						break;
 					}
@@ -897,7 +897,7 @@ public class ConfigView implements UISWTViewEventListener {
 			} else if (child instanceof Combo) {
 				String[] items = ((Combo)child).getItems();
 				for (String item : items) {
-					if (item.toLowerCase().indexOf(text) >= 0) {
+					if (item.toLowerCase().contains(text)) {
 						hilightControl(child);
 						break;
 					}

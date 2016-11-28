@@ -105,43 +105,43 @@ public class PEMReader extends BufferedReader
 
         while ((line = readLine()) != null)
         {
-            if (line.indexOf("-----BEGIN PUBLIC KEY") != -1)
+            if (line.contains("-----BEGIN PUBLIC KEY"))
             {
                 return readPublicKey("-----END PUBLIC KEY");
             }
-            if (line.indexOf("-----BEGIN RSA PUBLIC KEY") != -1)
+            if (line.contains("-----BEGIN RSA PUBLIC KEY"))
             {
                 return readRSAPublicKey("-----END RSA PUBLIC KEY");
             }
-            if (line.indexOf("-----BEGIN CERTIFICATE REQUEST") != -1)
+            if (line.contains("-----BEGIN CERTIFICATE REQUEST"))
             {
                 return readCertificateRequest("-----END CERTIFICATE REQUEST");
             }
-            if (line.indexOf("-----BEGIN NEW CERTIFICATE REQUEST") != -1)
+            if (line.contains("-----BEGIN NEW CERTIFICATE REQUEST"))
             {
                 return readCertificateRequest("-----END NEW CERTIFICATE REQUEST");
             }
-            if (line.indexOf("-----BEGIN CERTIFICATE") != -1)
+            if (line.contains("-----BEGIN CERTIFICATE"))
             {
                 return readCertificate("-----END CERTIFICATE");
             }
-            if (line.indexOf("-----BEGIN PKCS7") != -1)
+            if (line.contains("-----BEGIN PKCS7"))
             {
                return readPKCS7("-----END PKCS7");
             } 
-            if (line.indexOf("-----BEGIN X509 CERTIFICATE") != -1)
+            if (line.contains("-----BEGIN X509 CERTIFICATE"))
             {
                 return readCertificate("-----END X509 CERTIFICATE");
             }
-            if (line.indexOf("-----BEGIN X509 CRL") != -1)
+            if (line.contains("-----BEGIN X509 CRL"))
             {
                 return readCRL("-----END X509 CRL");
             }
-            if (line.indexOf("-----BEGIN ATTRIBUTE CERTIFICATE") != -1)
+            if (line.contains("-----BEGIN ATTRIBUTE CERTIFICATE"))
             {
                 return readAttributeCertificate("-----END ATTRIBUTE CERTIFICATE");
             }
-            if (line.indexOf("-----BEGIN RSA PRIVATE KEY") != -1)
+            if (line.contains("-----BEGIN RSA PRIVATE KEY"))
             {
                 try
                 {
@@ -153,7 +153,7 @@ public class PEMReader extends BufferedReader
                         "problem creating RSA private key: " + e.toString());
                 }
             }
-            if (line.indexOf("-----BEGIN DSA PRIVATE KEY") != -1)
+            if (line.contains("-----BEGIN DSA PRIVATE KEY"))
             {
                 try
                 {
@@ -165,11 +165,11 @@ public class PEMReader extends BufferedReader
                         "problem creating DSA private key: " + e.toString());
                 }
             }
-            if (line.indexOf("-----BEGIN EC PARAMETERS-----") != -1)
+            if (line.contains("-----BEGIN EC PARAMETERS-----"))
             {
                 return readECParameters("-----END EC PARAMETERS-----");
             }
-            if (line.indexOf("-----BEGIN EC PRIVATE KEY-----") != -1)
+            if (line.contains("-----BEGIN EC PRIVATE KEY-----"))
             {
                 return readECPrivateKey("-----END EC PRIVATE KEY-----");
             }
@@ -186,7 +186,7 @@ public class PEMReader extends BufferedReader
   
         while ((line = readLine()) != null)
         {
-            if (line.indexOf(endMarker) != -1)
+            if (line.contains(endMarker))
             {
                 break;
             }
@@ -361,7 +361,7 @@ public class PEMReader extends BufferedReader
   
         while ((line = readLine()) != null)
         {
-            if (line.indexOf(endMarker) != -1)
+            if (line.contains(endMarker))
             {
                 break;
             }
@@ -422,7 +422,7 @@ public class PEMReader extends BufferedReader
             {
                 dekInfo = line.substring(10);
             }
-            else if (line.indexOf(endMarker) != -1)
+            else if (line.contains(endMarker))
             {
                 break;
             }

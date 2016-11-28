@@ -2643,7 +2643,7 @@ implements PEPeerTransport
 			 * We log when a non-Azureus client claims to support extended messaging...
 			 * Obviously other Azureus clients do, so there's no point logging about them!
 			 */ 
-			if (Logger.isEnabled() && client.indexOf("Azureus") == -1) {
+			if (Logger.isEnabled() && !client.contains("Azureus")) {
 				Logger.log(new LogEvent(this, LOGID, "Handshake claims extended AZ "
 						+ "messaging support... enabling AZ mode."));
 			}
@@ -2743,7 +2743,7 @@ implements PEPeerTransport
 							
 				// 	Check if the client is misbehaving...
 				
-			if ( client.indexOf( "Plus!" ) != -1 ){
+			if (client.contains("Plus!")){
 				
 				
 				if (Logger.isEnabled())

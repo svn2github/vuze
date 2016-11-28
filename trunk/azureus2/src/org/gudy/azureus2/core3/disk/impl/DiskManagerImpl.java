@@ -1370,7 +1370,7 @@ DiskManagerImpl
     {
     	errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles " + (is_new?"new":"existing") + ":" + file.toString() + ")";
     	
-    	if ( errorMessage.indexOf( "not enough space" ) != -1 ){
+    	if (errorMessage.contains("not enough space")){
     		
     		errorType	= ET_INSUFFICIENT_SPACE;
     		

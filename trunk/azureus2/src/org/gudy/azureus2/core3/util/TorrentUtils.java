@@ -615,7 +615,7 @@ TorrentUtils
 					
 		String	msg = Debug.getNestedExceptionMessage(e);
 				
-		if ( errorDetail.indexOf( msg ) == -1){
+		if (!errorDetail.contains(msg)){
 				
 			errorDetail += " (" + msg + ")";
 		}

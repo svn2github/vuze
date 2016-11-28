@@ -1075,7 +1075,8 @@ public class UIFunctionsImpl
 		
 		Program program = Program.findProgram( extension );
 		
-		return( program == null ? false:(program.getName().toLowerCase(Locale.US).indexOf( name.toLowerCase(Locale.US)) != -1));
+		return( program == null ? false:(program.getName().toLowerCase(Locale.US)
+			.contains(name.toLowerCase(Locale.US))));
 	}
 	
 	public void 

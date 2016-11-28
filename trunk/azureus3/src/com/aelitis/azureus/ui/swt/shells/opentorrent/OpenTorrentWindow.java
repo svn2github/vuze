@@ -224,7 +224,7 @@ public class OpenTorrentWindow
 		String lines[] = null;
 
 		for (int i = 0; i < splitters.length; i++) {
-			if (text.indexOf(splitters[i]) >= 0) {
+			if (text.contains(splitters[i])) {
 				lines = text.split(splitters[i]);
 				break;
 			}
@@ -410,7 +410,7 @@ public class OpenTorrentWindow
 		};
 
 		for (int i = 0; i < splitters.length; i++)
-			if (sClipText.indexOf(splitters[i]) >= 0) {
+			if (sClipText.contains(splitters[i])) {
 				lines = sClipText.split(splitters[i]);
 				break;
 			}

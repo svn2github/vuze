@@ -57,7 +57,7 @@ RSSUtils
 				
 			SimpleDateFormat	format;
 			
-			if ( date_str.indexOf( "," ) == -1 ){
+			if (!date_str.contains(",")){
 				
 				format = new SimpleDateFormat("dd MMM yyyy HH:mm:ss z", Locale.US );
 				

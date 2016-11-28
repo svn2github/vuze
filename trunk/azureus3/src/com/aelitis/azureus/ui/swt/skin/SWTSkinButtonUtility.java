@@ -140,8 +140,8 @@ public class SWTSkinButtonUtility
 	}
 
 	public boolean isDisabled() {
-		return skinObject == null ? true : skinObject.getSuffix().indexOf(
-				"-disabled") >= 0;
+		return skinObject == null ? true : skinObject.getSuffix()
+			.contains("-disabled");
 	}
 
 	private boolean inSetDisabled = false;

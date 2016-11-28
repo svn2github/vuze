@@ -758,7 +758,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	        						
 	        						if ( !lc_s.startsWith("error:")){
 	        							
-	        							if ( s.toLowerCase().indexOf( "alive" ) != -1 ){
+	        							if (s.toLowerCase().contains("alive")){
 	        								
 	        								if ( percentDone < 10 ){
 	        									

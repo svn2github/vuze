@@ -495,7 +495,7 @@ RSSEngine
 									
 									if ( !is_dl_link ){
 									
-										is_dl_link = src.toLowerCase().indexOf( ".torrent" ) != -1;
+										is_dl_link = src.toLowerCase().contains(".torrent");
 									}
 										
 									if ( is_dl_link ){

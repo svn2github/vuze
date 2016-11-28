@@ -196,7 +196,7 @@ UpdateInstallerImpl
 	{		
 		// System.out.println( "move action:" + from_file_or_resource + " -> " + to_file );
 		
-		if ( from_file_or_resource.indexOf(File.separator) == -1 ){
+		if (!from_file_or_resource.contains(File.separator)){
 			
 			from_file_or_resource = install_dir.toString() + File.separator + from_file_or_resource;
 		}

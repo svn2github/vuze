@@ -296,7 +296,7 @@ HTTPNetworkConnectionFile
 								return;
 							}
 						}
-					}else if ( line.indexOf( "keep-alive" ) != -1 ){
+					}else if (line.contains("keep-alive")){
 						
 						keep_alive	= true;						
 					}

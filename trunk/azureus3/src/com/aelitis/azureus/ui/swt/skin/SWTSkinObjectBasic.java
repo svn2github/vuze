@@ -751,7 +751,7 @@ public class SWTSkinObjectBasic
 				suffix += suffixes[i];
 			}
 		}
-		if (suffix.indexOf("-down-over") >= 0) {
+		if (suffix.contains("-down-over")) {
 			return suffix.replaceAll("-down-over", "-down");
 		}
 		return suffix;

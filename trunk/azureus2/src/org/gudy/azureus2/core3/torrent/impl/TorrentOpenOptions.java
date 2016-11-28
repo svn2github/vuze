@@ -357,7 +357,7 @@ public class TorrentOpenOptions
 
 						String segment = segmentArray[i];
 
-						if (dmName.indexOf(segment) >= 0) {
+						if (dmName.contains(segment)) {
 							numMatches += l;
 						}
 					}

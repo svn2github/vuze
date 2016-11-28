@@ -785,7 +785,7 @@ HTTPAuthHelper
 			
 				content_type = content_type.toLowerCase();
 				
-				if ( content_type.indexOf( "text/" ) != -1 ){
+				if (content_type.contains("text/")){
 					
 					rewrite = true;
 				}
@@ -809,7 +809,7 @@ HTTPAuthHelper
 						
 						String[] cookies;
 						
-						if ( cookies_in.toLowerCase().indexOf( "expires" ) == -1 ){
+						if (!cookies_in.toLowerCase().contains("expires")){
 							
 							cookies = cookies_in.split( "," );
 							
@@ -1020,7 +1020,7 @@ HTTPAuthHelper
 						}
 					}else if ( lhs.equals( "transfer-encoding" )){
 
-						if ( bits[1].indexOf( "chunked" ) != -1 ){
+						if (bits[1].contains("chunked")){
 							
 							chunked = true;
 							
@@ -1254,12 +1254,12 @@ HTTPAuthHelper
 											
 											String prefix = lc_str.substring(i, url_start);
 											
-											if ( prefix.indexOf( "form" ) != -1 ){
+											if (prefix.contains("form")){
 												
 												existing_only = false;
 												
-											}else if ( 	prefix.indexOf( "meta" ) != -1 &&
-														prefix.indexOf( "http-equiv" ) != -1 ){
+											}else if (prefix.contains("meta") &&
+												prefix.contains("http-equiv")){
 												
 												existing_only = false;
 											}

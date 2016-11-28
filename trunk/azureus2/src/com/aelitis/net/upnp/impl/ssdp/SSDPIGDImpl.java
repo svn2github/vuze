@@ -186,9 +186,9 @@ SSDPIGDImpl
 		try{
 			this_mon.enter();
 
-			if ( nt.indexOf( "upnp:rootdevice" ) != -1 ){
+			if (nt.contains("upnp:rootdevice")){
 				
-				if ( nts.indexOf("alive") != -1 ){
+				if (nts.contains("alive")){
 					
 						// alive can be reported on any interface
 					
@@ -259,7 +259,7 @@ SSDPIGDImpl
 						
 						gotAlive( usn, location );
 					}
-				}else if ( nts.indexOf( "byebye") != -1 ){
+				}else if (nts.contains("byebye")){
 						
 					lostRoot( local_address, usn );
 				}

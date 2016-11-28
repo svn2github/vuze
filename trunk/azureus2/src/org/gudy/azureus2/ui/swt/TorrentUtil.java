@@ -2744,7 +2744,7 @@ public class TorrentUtil
 
 		if (!sFirstChunk.startsWith("d")) {
 			
-			boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
+			boolean isHTML = sFirstChunk.contains("<html");
 
 			String retry_url = UrlUtils.parseTextForMagnets(torrentName);
 			if (retry_url == null) {

@@ -415,7 +415,7 @@ public class ColumnProgressETA
 
 			int cursor_id;
 
-			if (sStatusLine != null && sStatusLine.indexOf("http://") == -1) {
+			if (sStatusLine != null && !sStatusLine.contains("http://")) {
 
 				dm.setUserData(CLICK_KEY, null);
 

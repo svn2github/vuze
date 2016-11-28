@@ -55,14 +55,14 @@ DownloadUtils
 
 				// if already exists then bail
 			
-			if ( value.indexOf( extension ) != -1 ){
+			if (value.contains(extension)){
 
 				return;
 			}
 
 				// if prefix exists then remove existing value
 			
-			if ( value.indexOf( extension_prefix ) != -1 ){
+			if (value.contains(extension_prefix)){
 
 				String[] bits = value.split("&");
 

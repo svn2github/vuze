@@ -205,7 +205,7 @@ TOTorrentDeserialiseImpl
 					
 					String	char_data = new String( metaInfo.toByteArray());
 					
-					if ( char_data.toLowerCase().indexOf( "html") != -1 ){
+					if (char_data.toLowerCase().contains("html")){
 						
 						char_data = HTMLUtils.convertHTMLToText2( char_data );
 						
@@ -321,7 +321,7 @@ TOTorrentDeserialiseImpl
 							
 						}catch( MalformedURLException e ){
 							
-							if ( announce_url.indexOf( "://" ) == -1 ){
+							if (!announce_url.contains("://")){
 								
 								announce_url = "http:/" + (announce_url.startsWith("/")?"":"/") + announce_url;
 								
@@ -423,7 +423,7 @@ TOTorrentDeserialiseImpl
 								
 							            }catch( MalformedURLException e ){
 											
-							            	if ( url_str.indexOf( "://" ) == -1 ){
+							            	if (!url_str.contains("://")){
 													
 							            		url_str = "http:/" + (url_str.startsWith("/")?"":"/") + url_str;
 							            		

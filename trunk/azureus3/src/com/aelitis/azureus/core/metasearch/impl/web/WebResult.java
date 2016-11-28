@@ -193,7 +193,7 @@ public class WebResult extends Result {
 				
 				float f = Float.parseFloat( rank_str.trim() );
 				
-				if ( rank_str.indexOf( "." ) == -1 ){
+				if (!rank_str.contains(".")){
 					
 					if ( f >= 0 &&  f <= 100 ){
 						

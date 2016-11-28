@@ -1193,7 +1193,7 @@ public class UrlUtils
 			query_string = '&' + query_string;
 		}
 		
-		return query_string.indexOf("&" + param_name + "=") != -1;
+		return query_string.contains("&" + param_name + "=");
 	}
 	
 	public static boolean 

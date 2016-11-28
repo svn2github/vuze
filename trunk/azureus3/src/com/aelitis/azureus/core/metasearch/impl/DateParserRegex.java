@@ -211,7 +211,7 @@ public class DateParserRegex extends DateParser {
 					String monthStr = " " + matcher.group(2).toLowerCase();
 					int month = -1;
 					for(int i = 0 ; i < MONTHS_LIST.length ; i++) {
-						if(MONTHS_LIST[i].indexOf(monthStr) != -1) {
+						if(MONTHS_LIST[i].contains(monthStr)) {
 							month = i;
 						}
 					}
@@ -244,7 +244,7 @@ public class DateParserRegex extends DateParser {
 						String monthStr = " " + matcher.group(1).toLowerCase();
 						int month = -1;
 						for(int i = 0 ; i < MONTHS_LIST.length ; i++) {
-							if(MONTHS_LIST[i].indexOf(monthStr) != -1) {
+							if(MONTHS_LIST[i].contains(monthStr)) {
 								month = i;
 							}
 						}

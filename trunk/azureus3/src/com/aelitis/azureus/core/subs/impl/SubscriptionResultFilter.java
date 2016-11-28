@@ -178,7 +178,7 @@ SubscriptionResultFilter
 				
 				//If one of the text filters do not match, let's not keep testing the others
 				// and mark the result as not valid
-				if(name.indexOf(textFilters[j]) == -1) {
+				if(!name.contains(textFilters[j])) {
 					
 						// double check against reg-expr if exists
 					
@@ -202,7 +202,7 @@ SubscriptionResultFilter
 				
 				//If one of the text filters do not match, let's not keep testing the others
 				// and mark the result as not valid
-				if(name.indexOf(excludeTextFilters[j]) != -1) {
+				if(name.contains(excludeTextFilters[j])) {
 					valid = false;
 					break;
 				}else{

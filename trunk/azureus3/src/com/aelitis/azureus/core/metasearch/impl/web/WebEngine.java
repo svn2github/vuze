@@ -470,7 +470,7 @@ WebEngine
 		
 		String name = getName();
 		
-		if ( name.indexOf( url ) == -1 ){
+		if (!name.contains(url)){
 			
 			return( name + " (" + url + ")");
 			

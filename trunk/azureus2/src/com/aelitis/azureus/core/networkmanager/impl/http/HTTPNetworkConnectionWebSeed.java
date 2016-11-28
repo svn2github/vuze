@@ -183,7 +183,8 @@ HTTPNetworkConnectionWebSeed
 				throw( new IOException( "Piece number not specified" ));
 			}
 			
-			boolean	keep_alive = header.toLowerCase( MessageText.LOCALE_ENGLISH ).indexOf( "keep-alive" ) != -1;
+			boolean	keep_alive = header.toLowerCase(MessageText.LOCALE_ENGLISH)
+				.contains("keep-alive");
 			
 			int	this_piece_size = control.getPieceLength( piece );
 			

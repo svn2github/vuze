@@ -205,7 +205,7 @@ public class HTTPUtils {
 
 		String first_line = reply_header.substring(0, p1).trim();
 		
-		if ( !ignoreStatusCode && first_line.indexOf( "200" ) == -1 ){
+		if ( !ignoreStatusCode && !first_line.contains("200")){
 
 			String	info = null;
 			

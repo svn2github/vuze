@@ -116,7 +116,7 @@ FMFileImpl
 				
 				String msg = ioe.getMessage();
 				
-		        if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
+		        if( msg != null && msg.contains("There are no more files")) {
 					
 		          String abs_path = linked_file.getAbsolutePath();
 				  
@@ -305,7 +305,7 @@ FMFileImpl
 					
 		          String msg = ioe.getMessage();
 				  
-		          if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
+		          if( msg != null && msg.contains("There are no more files")) {
 		            String abs_path = new_linked_file.getAbsolutePath();
 		            String error = "Caught 'There are no more files' exception during new_file.getCanonicalPath(). " +
 		                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_linked_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";
@@ -396,7 +396,7 @@ FMFileImpl
 					
 		          String msg = ioe.getMessage();
 				  
-		          if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
+		          if( msg != null && msg.contains("There are no more files")) {
 		            String abs_path = new_linked_file.getAbsolutePath();
 		            String error = "Caught 'There are no more files' exception during new_file.getCanonicalPath(). " +
 		                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_linked_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";

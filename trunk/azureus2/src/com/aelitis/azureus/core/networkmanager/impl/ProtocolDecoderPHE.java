@@ -1126,7 +1126,7 @@ ProtocolDecoderPHE
 								// and it'll take the delayed data with it. To be more generic we'd need to add a callback to the pattern
 								// matcher to allow it to decide whether delaying was sensible / or stick a timer on the delayed data
 							
-							delay_outbound_4 = new String( data ).indexOf( "BitTorrent" ) != -1;
+							delay_outbound_4 = new String(data).contains("BitTorrent");
 							
 							// System.out.println( "Initial Data In: " + new String( data ) + "->delay=" +delay_outbound_4 );
 							

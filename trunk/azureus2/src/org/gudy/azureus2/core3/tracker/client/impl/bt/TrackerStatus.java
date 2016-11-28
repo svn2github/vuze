@@ -966,18 +966,18 @@ public class TrackerStatus {
 				String error_message = e.getMessage();
 				
 				if (error_message != null) {
-					if (error_message.indexOf(" 500 ") >= 0 
-							|| error_message.indexOf(" 400 ") >= 0 
-							|| error_message.indexOf(" 403 ") >= 0
-							|| error_message.indexOf(" 404 ") >= 0
-							|| error_message.indexOf(" 501 ") >= 0) {
+					if (error_message.contains(" 500 ")
+							|| error_message.contains(" 400 ")
+							|| error_message.contains(" 403 ")
+							|| error_message.contains(" 404 ")
+							|| error_message.contains(" 501 ")) {
 						// various errors that have a 99% chance of happening on
 						// any other scrape request
 						setAllError(activeResponses,e);
 						return;
 					}
 
-  				if (error_message.indexOf("414") != -1
+  				if (error_message.contains("414")
   						&& !bSingleHashScrapes) {
   					bSingleHashScrapes = true;
   					// Skip the setuing up the response.  We want to scrape again
@@ -1040,7 +1040,7 @@ public class TrackerStatus {
 			
 			msg = e.getLocalizedMessage();
 
-			if ( msg.indexOf("html") != -1 ){
+			if (msg.contains("html")){
 				
 				msg = "Could not decode response, appears to be a website instead of tracker scrape: " + msg.replace('\n', ' ');
 				
@@ -1664,7 +1664,7 @@ public class TrackerStatus {
 		
 				}catch( PRUDPPacketHandlerException e ){
 					
-					if ( e.getMessage() == null || e.getMessage().indexOf("timed out") == -1 ){
+					if ( e.getMessage() == null || !e.getMessage().contains("timed out")){
 						
 						throw( e );
 					}

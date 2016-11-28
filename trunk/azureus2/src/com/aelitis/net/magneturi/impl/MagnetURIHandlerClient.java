@@ -95,7 +95,7 @@ outer:
 					
 					String	first_line = header.substring( 0, pos );
 					
-					if ( first_line.indexOf( "200" ) == -1 ){
+					if (!first_line.contains("200")){
 						
 						continue;
 					}

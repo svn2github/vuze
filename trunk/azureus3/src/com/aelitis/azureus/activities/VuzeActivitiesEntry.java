@@ -387,7 +387,7 @@ public class VuzeActivitiesEntry
 	 * @param iconID the iconID to set
 	 */
 	public void setIconID(String iconID) {
-		if (iconID != null && iconID.indexOf("image.") < 0
+		if (iconID != null && !iconID.contains("image.")
 				&& !iconID.startsWith("http")) {
 			iconID = "image.vuze-entry." + iconID;
 		}

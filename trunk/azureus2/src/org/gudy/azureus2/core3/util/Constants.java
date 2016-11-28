@@ -482,7 +482,7 @@ Constants
   isCVSVersion(
   	String	version )
   {
-  	return( version.indexOf("_") != -1 );  
+  	return(version.contains("_"));
   }
   
   	/**
@@ -624,7 +624,8 @@ Constants
 			}
 		}
 	
-		if ( version.startsWith( "." ) || version.endsWith( "." ) || version.indexOf( ".." ) != -1 ){
+		if ( version.startsWith( "." ) || version.endsWith( "." ) ||
+			version.contains("..")){
 				
 			return( false );
 		}

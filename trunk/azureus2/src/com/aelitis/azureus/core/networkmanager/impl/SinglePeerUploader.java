@@ -126,10 +126,12 @@ public class SinglePeerUploader implements RateControlledEntity {
     			Debug.out( "null write exception message: ", e );
     		}
     		else {
-    			if( e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-    					e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
-    					e.getMessage().indexOf( "Broken pipe" ) == -1 &&
-    					e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
+    			if(!e.getMessage().contains(
+						"An existing connection was forcibly closed by the remote host") &&
+						!e.getMessage().contains("Connection reset by peer") &&
+						!e.getMessage().contains("Broken pipe") &&
+						!e.getMessage().contains(
+							"An established connection was aborted by the software in your host machine")) {
 
     				System.out.println( "SP: write exception [" +connection.getTransportBase().getDescription()+ "]: " +e.getMessage() );
     			}

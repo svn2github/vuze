@@ -703,7 +703,7 @@ public class PlayUtils
 			
 			ext = ext.toLowerCase();
 			
-			if ( getPlayableFileExtensions().indexOf(ext) > -1 ){
+			if (getPlayableFileExtensions().contains(ext)){
 				
 				return true;
 			}

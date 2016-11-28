@@ -146,7 +146,7 @@ public class WelcomeWindow {
 
   public void _setWhatsNew() {
 
-		if (sWhatsNew.indexOf("<html") >= 0 || sWhatsNew.indexOf("<HTML") >= 0) {
+		if (sWhatsNew.contains("<html") || sWhatsNew.contains("<HTML")) {
 			BrowserWrapper browser = Utils.createSafeBrowser(cWhatsNew, SWT.NONE);
 			if (browser != null) {	
 				browser.setText(sWhatsNew);

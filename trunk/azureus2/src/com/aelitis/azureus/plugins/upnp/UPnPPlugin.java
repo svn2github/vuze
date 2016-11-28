@@ -1172,7 +1172,8 @@ UPnPPlugin
 			
 		mapping_manager.serviceFound( wan_service );
 
-		log.log( "    Found " + ( wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection" ));
+		log.log( "    Found " + (!wan_service.getGenericService().getServiceType()
+			.contains("PPP") ? "WANIPConnection":"WANPPPConnection" ));
 		
 		UPnPWANConnectionPortMapping[] ports;
 		
@@ -1255,7 +1256,8 @@ UPnPPlugin
 		try{
 			this_mon.enter();
 			
-			String	name = wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection";
+			String	name = !wan_service.getGenericService().getServiceType()
+				.contains("PPP") ? "WANIPConnection":"WANPPPConnection";
 			
 			String	text = 
 				MessageText.getString( 

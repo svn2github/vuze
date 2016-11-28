@@ -1378,7 +1378,7 @@ PluginUpdatePlugin
 										
 										if ( selected_platform != null ){
 											
-											if ( file_name.indexOf( "platform/" ) != -1 ){
+											if (file_name.contains("platform/")){
 												
 												String	bit_to_remove = "platform/" + selected_platform;
 											

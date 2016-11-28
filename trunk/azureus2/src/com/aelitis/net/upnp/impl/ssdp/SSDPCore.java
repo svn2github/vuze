@@ -588,7 +588,7 @@ SSDPCore
 				
 				adapter.trace( "SSDP::receive NOTIFY - bad header:" + header );
 			}
-		}else if ( header.startsWith( "HTTP") && header.indexOf( "200") != -1 ){
+		}else if ( header.startsWith( "HTTP") && header.contains("200")){
 			
 			if ( location != null && st != null ){
 		

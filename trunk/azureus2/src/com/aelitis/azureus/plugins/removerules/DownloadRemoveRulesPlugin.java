@@ -230,8 +230,8 @@ DownloadRemoveRulesPlugin
 		
 		boolean	download_completed = download.isComplete();
 				
-		if ( 	status.indexOf( "not authori" ) != -1 ||
-				status.toLowerCase().indexOf( "unauthori" ) != -1 ){
+		if (status.contains("not authori") ||
+			status.toLowerCase().contains("unauthori")){
 	
 			if ( remove_unauthorised.getValue() &&
 				 (	(!remove_unauthorised_seeding_only.getValue()) ||
@@ -252,13 +252,13 @@ DownloadRemoveRulesPlugin
 		
 			String	url_string = torrent.getAnnounceURL().toString().toLowerCase();
 			
-			if ( url_string.indexOf( UPDATE_TRACKER ) != -1 ){
+			if (url_string.contains(UPDATE_TRACKER)){
 	
 					// emergency instruction from tracker
 				
-				if ( 	( download_completed && 
-							status.indexOf( "too many seeds" ) != -1 ) ||
-							status.indexOf( "too many peers" ) != -1 ){
+				if ( 	( download_completed &&
+					status.contains("too many seeds")) ||
+					status.contains("too many peers")){
 		
 					log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
 							"Download '" + download.getName()

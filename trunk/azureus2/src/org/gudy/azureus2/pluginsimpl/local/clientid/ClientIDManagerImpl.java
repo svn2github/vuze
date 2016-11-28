@@ -458,7 +458,7 @@ ClientIDManagerImpl
 					header += new String( buffer, 0, len, Constants.BYTE_ENCODING );
 									
 					if ( 	header.endsWith( NL+NL ) ||
-							header.indexOf( NL+NL ) != -1 ){
+						header.contains(NL + NL)){
 						
 						break;
 					}
@@ -547,7 +547,7 @@ ClientIDManagerImpl
 					
 					String	line = lines_in[i];
 					
-					if ( line.toLowerCase().indexOf( "host:" ) != -1 ){
+					if (line.toLowerCase().contains("host:")){
 						
 						lines_in[i] = "Host: " + target_host + ":" + target_port;
 						

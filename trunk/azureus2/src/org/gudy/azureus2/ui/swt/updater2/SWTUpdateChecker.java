@@ -327,7 +327,8 @@ public class SWTUpdateChecker implements UpdatableComponent
           
           installer.addChangeRightsAction("755",installer.getInstallDir() + OSX_APP + "/Contents/MacOS/" + name);
           
-        }else if( name.endsWith( ".dll" ) || name.endsWith( ".so" ) || name.indexOf( ".so." ) != -1 ) {
+        }else if( name.endsWith( ".dll" ) || name.endsWith( ".so" ) ||
+					name.contains(".so.")) {
         	
            	// native stuff for windows and linux
         	 

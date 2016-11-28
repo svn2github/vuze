@@ -275,7 +275,7 @@ NetworkAdminHTTPProxyImpl
 											 
 											 String	str = new String( reply_buffer, 0, reply.position());
 											 											 
-											 if ( str.indexOf( NL + NL ) != -1 ){
+											 if (str.contains(NL + NL)){
 												
 												 System.out.println( str );
 												 

@@ -2713,7 +2713,7 @@ TRTrackerServerTorrentImpl
 	{
 		if ( redirects != null ){
 			
-			if ( url_parameters.indexOf("permredirect") != -1 ){
+			if (url_parameters.contains("permredirect")){
 				
 				Debug.out( "redirect recursion" );
 				

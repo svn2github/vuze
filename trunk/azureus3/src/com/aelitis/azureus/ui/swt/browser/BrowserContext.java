@@ -447,7 +447,7 @@ public class BrowserContext
 							
 							if ( s != null ){
 								
-								if ( s.indexOf("torrent") != -1 ) {
+								if (s.contains("torrent")) {
 									
 									isTorrent = true;
 								}
@@ -495,7 +495,8 @@ public class BrowserContext
 							
 							boolean	can_rpc = UrlFilter.getInstance().urlCanRPC(event_location);
 							
-							boolean	test_for_torrent 	= !can_rpc && event_location.indexOf(".htm") == -1;
+							boolean	test_for_torrent 	= !can_rpc &&
+								!event_location.contains(".htm");
 							boolean	test_for_vuze		= can_rpc &&  ( event_location.endsWith( ".xml" ) || event_location.endsWith( ".vuze" ));
 							
 							if ( test_for_torrent || test_for_vuze ){
@@ -506,12 +507,12 @@ public class BrowserContext
 									
 									if ( s != null ){
 										
-										if ( test_for_torrent && s.indexOf("torrent") != -1 ) {
+										if ( test_for_torrent && s.contains("torrent")) {
 											
 											isTorrent = true;
 										}
 										
-										if ( test_for_vuze && s.indexOf("vuze") != -1 ) {
+										if ( test_for_vuze && s.contains("vuze")) {
 											
 											isVuzeFile = true;
 										}

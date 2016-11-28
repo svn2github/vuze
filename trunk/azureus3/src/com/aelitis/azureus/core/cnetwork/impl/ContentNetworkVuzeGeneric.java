@@ -567,7 +567,7 @@ ContentNetworkVuzeGeneric
 		boolean		for_post,
 		boolean 	include_azid ) 
 	{
-		if ( url_in.indexOf( "vzemb=" ) != -1 ){
+		if (url_in.contains("vzemb=")){
 	
 				// already present
 			
@@ -594,7 +594,7 @@ ContentNetworkVuzeGeneric
 			}
 		}else{
 			
-			if ( url_in.indexOf("?") >= 0 ){
+			if (url_in.contains("?")){
 	
 				return( url_in + "&" + suffix );
 				

@@ -106,7 +106,7 @@ public class StatusItem
 								
 				int cursor_id;
 				
-				if ( text.indexOf( "http://" ) == -1 ){
+				if (!text.contains("http://")){
 									
 					dm.setUserData( CLICK_KEY, null );
 					

@@ -1094,7 +1094,7 @@ WebPlugin
 			
 				// absolute or relative
 			
-			if ( root_dir.startsWith(File.separator) || root_dir.indexOf(":") != -1 ){
+			if ( root_dir.startsWith(File.separator) || root_dir.contains(":")){
 				
 				file_root = root_dir;
 				

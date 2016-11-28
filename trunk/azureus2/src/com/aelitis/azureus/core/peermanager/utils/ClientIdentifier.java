@@ -219,7 +219,7 @@ public class ClientIdentifier {
 		 * handshake.
 		 */
 		if (peer_id_name.startsWith("libtorrent (Rasterbar)")) {
-			if (handshake_name_to_process.toLowerCase().indexOf("libtorrent") == -1) {
+			if (!handshake_name_to_process.toLowerCase().contains("libtorrent")) {
 				handshake_name_to_process += " (" + peer_id_name + ")";
 			}
 			return handshake_name_to_process;
@@ -232,7 +232,9 @@ public class ClientIdentifier {
 		if (client_type_handshake.startsWith("libtorrent")) {
 			// Peer ID doesn't mention libtorrent (just the client name) and the handshake name doesn't
 			// mention the client name (just "libtorrent"), then combine them together.
-			if (client_type_peer.toLowerCase().indexOf("libtorrent") == -1 && client_type_handshake.toLowerCase().indexOf(client_type_peer.toLowerCase()) == -1) {
+			if (!client_type_peer.toLowerCase().contains("libtorrent") &&
+				!client_type_handshake.toLowerCase()
+					.contains(client_type_peer.toLowerCase())) {
 				return peer_id_name + " (" + handshake_name_to_process + ")";
 			}
 		}
