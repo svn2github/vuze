@@ -324,9 +324,7 @@ public class NatPMPDeviceImpl implements NatPMPDevice
         dstBuf[5] = priPort[3];
         dstBuf[6] = pubPort[2];  // Requested Public Port - 2 bytes
         dstBuf[7] = pubPort[3];
-        for (int i = 0; i < 4; i++) {
-            dstBuf[8 + i] = portLifeTime[i];
-        }
+	    System.arraycopy(portLifeTime, 0, dstBuf, 8, 4);
         
         DatagramPacket dstPkt = new DatagramPacket(dstBuf, dstBuf.length);       
         byte recBuf[] = new byte[NATPortMapReplyLen];

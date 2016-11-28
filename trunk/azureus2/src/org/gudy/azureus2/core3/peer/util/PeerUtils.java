@@ -452,10 +452,8 @@ public class PeerUtils {
 		byte[] peerId = new byte[20];
 	
 		byte[] version = Constants.VERSION_ID;
-    
-		for (int i = 0; i < 8; i++) {
-			peerId[i] = version[i];
-		}
+
+		System.arraycopy(version, 0, peerId, 0, 8);
     
 	 	for (int i = 8; i < 20; i++) {
 		  int pos = (int) ( Math.random() * chars.length());

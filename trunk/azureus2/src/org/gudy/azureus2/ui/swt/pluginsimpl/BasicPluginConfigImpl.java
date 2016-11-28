@@ -745,11 +745,8 @@ BasicPluginConfigImpl
 				if ( label != null){
 					moo[pos++] = label;
 				}
-				
-				for (int j=0;j<c.length;j++){
-						
-					moo[j+pos] = c[j];
-				}
+
+				System.arraycopy(c, 0, moo, 0 + pos, c.length);
 					
 				comp_map.put( param, moo );
 			}

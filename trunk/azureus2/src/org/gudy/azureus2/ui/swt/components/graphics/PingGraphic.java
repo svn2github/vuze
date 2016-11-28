@@ -1,6 +1,6 @@
 /*
  * File    : SpeedGraphic.java
- * Created : 15 déc. 2003}
+ * Created : 15 dï¿½c. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -97,11 +97,8 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
     	if ( all_values.length < new_values.length ){
     		
     		int[][]	new_all_values = new int[new_values.length][];
-    		
-    		for (int i=0;i<all_values.length;i++){
-    		
-    			new_all_values[i] = all_values[i];
-    		}
+
+		    System.arraycopy(all_values, 0, new_all_values, 0, all_values.length);
     		
     		for (int i=all_values.length;i<new_all_values.length; i++ ){
     			

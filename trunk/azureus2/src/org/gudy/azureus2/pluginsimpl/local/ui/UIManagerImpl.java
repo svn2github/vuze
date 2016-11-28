@@ -667,11 +667,8 @@ UIManagerImpl
 		all_params[0]	= title_resource;
 		all_params[1]	= message_resource;
 		all_params[2]	= new Long( message_map );
-		
-		for ( int i=0;i<params.length;i++){
-			
-			all_params[i+3] = params[i];
-		}
+
+		System.arraycopy(params, 0, all_params, 3, params.length);
 		
 		UIManagerEventAdapter event = 
 			new UIManagerEventAdapter(

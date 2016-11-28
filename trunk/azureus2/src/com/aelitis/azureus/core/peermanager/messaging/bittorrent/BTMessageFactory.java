@@ -253,9 +253,7 @@ public class BTMessageFactory {
     
     DirectByteBuffer[] raw_buffs = new DirectByteBuffer[ payload.length + 1 ];
     raw_buffs[0] = header;
-    for( int i=0; i < payload.length; i++ ) {
-      raw_buffs[i+1] = payload[i];
-    }
+    System.arraycopy(payload, 0, raw_buffs, 1, payload.length);
     
     return new RawMessageImpl( base_message, raw_buffs, ld.priority, ld.is_no_delay, ld.to_remove );
   }

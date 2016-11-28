@@ -246,9 +246,7 @@ public class AZMessageFactory {
     
     DirectByteBuffer[] raw_buffs = new DirectByteBuffer[ payload.length + 1 ];
     raw_buffs[0] = header;
-    for( int i=0; i < payload.length; i++ ) {
-      raw_buffs[i+1] = payload[i];
-    }
+	  System.arraycopy(payload, 0, raw_buffs, 1, payload.length);
      
     String message_id = base_message.getID();
     

@@ -205,10 +205,7 @@ class IntArray
 
         int barrLen = 4 * (usedLen - 1) + barrI;
         byte[] barr = new byte[barrLen];
-        for (int j = 0; j < barrI; j++)
-        {
-            barr[j] = temp[j];
-        }
+        System.arraycopy(temp, 0, barr, 0, barrI);
         // Highest value int is done now
 
         for (int iarrJ = usedLen - 2; iarrJ >= 0; iarrJ--)

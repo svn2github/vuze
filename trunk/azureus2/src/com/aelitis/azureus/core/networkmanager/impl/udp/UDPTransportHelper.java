@@ -236,11 +236,8 @@ UDPTransportHelper
 				if ( queued + buffer_rem <= UDPConnectionSet.MAX_BUFFERED_PAYLOAD ){
 					
 					ByteBuffer[] new_ppw = new ByteBuffer[ pending_partial_writes.length+1 ];
-					
-					for (int i=0;i<pending_partial_writes.length;i++){
-						
-						new_ppw[i] = pending_partial_writes[i];
-					}
+
+					System.arraycopy(pending_partial_writes, 0, new_ppw, 0, pending_partial_writes.length);
 					
 					ByteBuffer	copy = ByteBuffer.allocate( buffer_rem );
 					

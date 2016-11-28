@@ -5299,11 +5299,8 @@ SpeedLimitHandler
 					int	len = ranges.length;
 					
 					long[][] new_ranges = new long[len+1][];
-					
-					for (int i=0;i<len;i++){
-						
-						new_ranges[i] = ranges[i];
-					}
+
+					System.arraycopy(ranges, 0, new_ranges, 0, len);
 					
 					new_ranges[len] = new long[]{ l_start, l_end };
 					

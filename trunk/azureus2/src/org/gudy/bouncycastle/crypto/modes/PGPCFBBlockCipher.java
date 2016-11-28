@@ -298,10 +298,7 @@ public class PGPCFBBlockCipher
         
         if (count == 0)
         {
-            for (int n = 0; n < blockSize; n++) 
-            {
-                FR[n] = in[inOff + n];
-            }
+            System.arraycopy(in, inOff + 0, FR, 0, blockSize);
             
             cipher.processBlock(FR, 0, FRE, 0);
 
@@ -389,9 +386,8 @@ public class PGPCFBBlockCipher
         cipher.processBlock(FR, 0, FRE, 0);
         for (int n = 0; n < blockSize; n++) 
             out[outOff + n] = encryptByte(in[inOff + n], n);
-        
-        for (int n = 0; n < blockSize; n++) 
-            FR[n] = out[outOff + n];
+
+        System.arraycopy(out, outOff + 0, FR, 0, blockSize);
         
         return blockSize;
         
@@ -429,9 +425,8 @@ public class PGPCFBBlockCipher
         cipher.processBlock(FR, 0, FRE, 0);
         for (int n = 0; n < blockSize; n++) 
             out[outOff + n] = encryptByte(in[inOff + n], n);
-        
-        for (int n = 0; n < blockSize; n++) 
-            FR[n] = in[inOff + n];
+
+        System.arraycopy(in, inOff + 0, FR, 0, blockSize);
         
         return blockSize;
         

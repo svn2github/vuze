@@ -2064,11 +2064,8 @@ DHTPlugin
 		}
 		
 		DHTInterface[] result = new DHTInterface[dhts.length];
-		
-		for (int i=0;i<dhts.length;i++){
-			
-			result[i] = dhts[i];
-		}
+
+		System.arraycopy(dhts, 0, result, 0, dhts.length);
 		
 		return( result );
 	}

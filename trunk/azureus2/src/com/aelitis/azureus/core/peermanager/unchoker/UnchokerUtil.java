@@ -64,6 +64,9 @@ public class UnchokerUtil {
 	items.ensureCapacity( values.length );
     for( int i=start_pos; i < values.length; i++ ) {
       if( new_value >= values[ i ] ) {
+	      // Potentially:
+	      // System.arraycopy(values, i, values, i + 1, values.length - 2 + 1 - i);
+
         for( int j = values.length - 2; j >= i; j-- ) {  //shift displaced values to the right
           values[j + 1] = values[ j ];
         }

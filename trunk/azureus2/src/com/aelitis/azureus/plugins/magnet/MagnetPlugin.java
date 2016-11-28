@@ -813,11 +813,8 @@ MagnetPlugin
 					if ( new_trackers.size() > 0 ){
 						
 						TOTorrentAnnounceURLSet[]	new_sets = new TOTorrentAnnounceURLSet[ sets.length + new_trackers.size()];
-						
-						for ( int i=0;i<sets.length;i++){
-							
-							new_sets[i] = sets[i];
-						}
+
+						System.arraycopy(sets, 0, new_sets, 0, sets.length);
 						
 						for ( int i=0;i<new_trackers.size();i++){
 							

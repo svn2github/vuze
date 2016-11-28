@@ -246,11 +246,8 @@ MultiPlotGraphic
 	    	if ( all_values.length < new_values.length ){
 	    		
 	    		int[][]	new_all_values = new int[new_values.length][];
-	    		
-	    		for (int i=0;i<all_values.length;i++){
-	    		
-	    			new_all_values[i] = all_values[i];
-	    		}
+
+			    System.arraycopy(all_values, 0, new_all_values, 0, all_values.length);
 	    		
 	    		for (int i=all_values.length;i<new_all_values.length; i++ ){
 	    			

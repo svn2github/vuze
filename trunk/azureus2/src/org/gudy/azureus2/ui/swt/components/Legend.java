@@ -312,8 +312,7 @@ public class Legend {
 				// We don't want to give them disposed colors
 				// Restore defaults in case blockColors is a static or is used
 				// afterwards, or if the view wants to dispose of the old colors.
-				for (int i = 0; i < blockColors.length; i++)
-					blockColors[i] = defaultColors[i];
+				System.arraycopy(defaultColors, 0, blockColors, 0, blockColors.length);
 				for (int i = 0; i < keys.length;i++)
 					config.removeParameterListener(keys[i], paramListeners[i]);
 			}
