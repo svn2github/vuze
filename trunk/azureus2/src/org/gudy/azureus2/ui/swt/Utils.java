@@ -358,6 +358,50 @@ public class Utils
 				bounds.y + (bounds.height / 2) - shellSize.y / 2);
 	}
 
+	public static List<RGB>
+	getCustomColors()
+	{
+        String custom_colours_str = COConfigurationManager.getStringParameter( "color.parameter.custom.colors", "" );
+        
+        String[] bits = custom_colours_str.split( ";");
+        
+        List<RGB> custom_colours = new ArrayList<RGB>();
+        
+        for ( String bit: bits ){
+        	
+        	String[] x = bit.split(",");
+        	
+        	if ( x.length == 3 ){
+        		
+        		try{
+        			custom_colours.add( new RGB( Integer.parseInt( x[0]),Integer.parseInt( x[1]),Integer.parseInt( x[2])));
+        			
+        		}catch( Throwable f ){
+        			
+        		}
+        	}
+        }
+        
+        return( custom_colours );
+	}
+	
+	public static void
+	updateCustomColors(
+		RGB[]	new_cc )
+	{
+		if ( new_cc != null ){
+
+			String custom_colours_str = "";
+
+			for ( RGB colour: new_cc ){
+
+				custom_colours_str += (custom_colours_str.isEmpty()?"":";") + colour.red + "," + colour.green + "," + colour.blue;
+			}
+
+			COConfigurationManager.setParameter( "color.parameter.custom.colors", custom_colours_str );
+		}	
+	}
+	
 	public static RGB
 	showColorDialog(
 		Composite	parent,
@@ -397,8 +441,22 @@ public class Utils
 			
 			cd.setRGB( existing );
 			
+			List<RGB> custom_colours = Utils.getCustomColors();
+			
+			if ( existing != null ){
+				
+				custom_colours.remove( existing );
+			}
+			
+			cd.setRGBs( custom_colours.toArray( new RGB[0]));
+			
 			RGB rgb = cd.open();
 		
+			if ( rgb != null ){
+				
+				updateCustomColors( cd.getRGBs());
+			}
+			
 			return( rgb );
 			
 		}finally{
