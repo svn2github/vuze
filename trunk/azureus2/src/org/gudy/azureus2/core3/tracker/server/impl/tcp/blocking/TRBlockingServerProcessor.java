@@ -186,13 +186,13 @@ TRBlockingServerProcessor
 	
 						String cl_str = getHeaderField( header, lowercase_header, "content-length:" );
 						
+						boolean chunk_read = false;
 						if ( cl_str == null ){
 							
-							if ( 	lowercase_header.contains( "transfer-encoding" ) && 
-									lowercase_header.contains( "chunked" )){
-								
-								Debug.out( "Chunked transfer-encoding not supported!!!!" );
-							}
+							String transfer_encoding_str = getHeaderField(header,
+									lowercase_header, "transfer-encoding");
+							chunk_read = transfer_encoding_str != null
+									&& transfer_encoding_str.equalsIgnoreCase("chunked");
 							
 							cl_str = "0";
 						}
@@ -220,6 +220,54 @@ TRBlockingServerProcessor
 								fos	= new FileOutputStream( post_file );
 								
 								data_os	= fos;
+							}
+							if (chunk_read) {
+								while (true) {
+									// Read Chunk Size and CRLF
+									int chunkSize = -1;
+  								while (true) {
+  									int val = is.read();
+  									if (val == -1) {
+  										throw( new TRTrackerServerException( "premature end of input stream (chunksize)" ));
+  									}
+  									if (val == '\n') {
+  										break;
+  									}
+  									if (val != '\r') {
+  										if (chunkSize == -1) {
+  											chunkSize = 0;
+  										} else {
+  											chunkSize <<= 4;
+  										}
+  										chunkSize += Character.digit(val, 16);
+  									}
+  								}
+  								if (chunkSize == -1) {
+  									throw( new TRTrackerServerException( "invalid chunk size" ));
+  								}
+  								if (chunkSize == 0) {
+  									// terminating chunk, clean up last CRLF
+  									boolean bad = is.read() == -1 || is.read() == -1;
+  									if (bad) {
+  										throw( new TRTrackerServerException( "premature end of input stream (NoTerminatingChunk)" ));
+  									}
+  									break;
+  								}
+  								// Read Chunk data
+  								while (chunkSize > 0) {
+  									int	len = is.read( buffer, 0, Math.min(chunkSize,buffer.length));
+  									if (len < 0) {
+  										throw( new TRTrackerServerException( "premature end of input stream" ));
+  									}
+  									data_os.write( buffer, 0, len );
+  									chunkSize -= len;
+  								}
+  								// Cleanup Chunk Terminator CRLF
+									boolean bad = is.read() == -1 || is.read() == -1;
+  								if (bad) {
+  									throw( new TRTrackerServerException( "premature end of input stream (NoChunkEndMarker)" ));
+  								}
+								}
 							}
 							
 							while( content_length > 0 ){
