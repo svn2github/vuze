@@ -4341,22 +4341,111 @@ public class OpenTorrentOptionsWindow
 				
 				List<Tag> initialTags = torrentOptions.getInitialTags();
 				
+				Listener menuDetectListener = new Listener() {
+					public void handleEvent(Event event) {
+
+						final Button button = (Button) event.widget;
+						Menu menu = new Menu(button);
+						button.setMenu(menu);
+						
+						MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuilder() {
+							public void buildMenu(final Menu menu, MenuEvent menuEvent) {
+								Tag tag = (Tag) button.getData("Tag");
+								TagUIUtils.createSideBarMenuItems(menu, tag);
+							}
+						});
+					}
+				};
+				
+				PaintListener paintListener = new PaintListener() {
+					
+					public void paintControl(PaintEvent e) {
+						Button button;
+						Composite c = null;
+						if (e.widget instanceof Composite) {
+							c = (Composite) e.widget;
+							button = (Button) c.getChildren()[0];
+						} else {
+							button = (Button) e.widget;
+						}
+						Tag tag = (Tag) button.getData("Tag");
+						if (tag == null) {
+							return;
+						}
+					
+						//ImageLoader.getInstance().getImage(? "check_yes" : "check_no");
+
+						if (c != null) {
+							boolean checked = button.getSelection();
+		  				Point size = c.getSize();
+		  				Point sizeButton = button.getSize();
+		  				e.gc.setAntialias(SWT.ON);
+		  				e.gc.setForeground(ColorCache.getColor(e.display, tag.getColor()));
+		  				int lineWidth = button.getSelection() ? 2 : 1;
+		  				e.gc.setLineWidth(lineWidth);
+
+		  				int curve = 20;
+		  				int width = sizeButton.x + lineWidth + 1;
+		  				width += Constants.isOSX ? 5 : curve / 2;
+		  				if (checked) {
+		    				e.gc.setAlpha(0x20);
+		    				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
+		    				e.gc.fillRoundRectangle(-curve, lineWidth - 1, width + curve, size.y - lineWidth, curve, curve);
+		    				e.gc.setAlpha(0xff);
+		  				}
+		  				if (!checked) {
+		    				e.gc.setAlpha(0x80);
+		  				}
+		  				e.gc.drawRoundRectangle(-curve, lineWidth - 1, width + curve, size.y - lineWidth, curve, curve);
+		  				e.gc.drawLine(lineWidth - 1, lineWidth, lineWidth - 1, size.y - lineWidth);
+						} else {
+		  				if (!Constants.isOSX && button.getSelection()) {
+		    				Point size = button.getSize();
+		    				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
+		    				e.gc.setAlpha(20);
+		    				e.gc.fillRectangle(0, 0, size.x, size.y);
+		  				}
+						}
+					}
+				};
+							
 				for ( final Tag tag: TagUIUtils.sortTags( tt.getTags())){
 					
 					if ( tag.canBePublic() && !tag.isTagAuto()[0]){
 						
-						final Button but = new Button( parent, SWT.TOGGLE );
-					
-						but.setText( tag.getTagName( true ));
+						Composite p = new Composite(parent, SWT.DOUBLE_BUFFERED);
+						GridLayout layout = new GridLayout(1, false);
+						layout.marginHeight = 3;
+						if (Constants.isWindows) {
+							layout.marginWidth = 6;
+							layout.marginLeft = 2;
+							layout.marginTop = 1;
+						} else {
+							layout.marginWidth = 0;
+							layout.marginLeft = 3;
+							layout.marginRight = 11;
+						}
+						p.setLayout(layout);
+						p.addPaintListener(paintListener);
 						
-						but.setToolTipText( TagUIUtils.getTagTooltip(tag));
+						final Button button = new Button(p, SWT.CHECK);
+							
+						button.setBackground( Colors.white );
+						button.setData("Tag", tag);
+
+						button.addListener(SWT.MenuDetect, menuDetectListener);
+						button.addPaintListener(paintListener);
+																	
+						button.setText( tag.getTagName( true ));
+						
+						button.setToolTipText( TagUIUtils.getTagTooltip(tag));
 						
 						if ( initialTags.contains( tag )){
 							
-							but.setSelection( true );
+							button.setSelection( true );
 						}
 						
-						but.addSelectionListener(
+						button.addSelectionListener(
 							new SelectionAdapter() {
 								
 								public void 
@@ -4365,7 +4454,7 @@ public class OpenTorrentOptionsWindow
 								{
 									List<Tag>  tags = torrentOptions.getInitialTags();
 									
-									if ( but.getSelection()){
+									if ( button.getSelection()){
 										
 										tags.add( tag );
 										
@@ -4402,57 +4491,14 @@ public class OpenTorrentOptionsWindow
 										}
 									}
 									
+									button.getParent().redraw();
+									
 									torrentOptions.setInitialTags( tags );
 									
 									updateStartOptionsHeader();
 								}
 							});
-						
-						but.addPaintListener(
-							new PaintListener() {
-								public void paintControl(PaintEvent e) {
 
-				    				int[] colour = tag.getColor();
-
-				    				if ( colour != null ){
-				    					
-										boolean checked = but.getSelection();
-										
-										e.gc.setAntialias( SWT.ON );
-
-					    				Rectangle rect = but.getBounds();
-				    				
-						  				if ( checked ){
-						  					
-						    				e.gc.setAlpha( 0x50 );
-						    				
-						    				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
-						    				
-						    				e.gc.fillRectangle( 2, 2, rect.width-4, rect.height-4 );
-						    				
-						  				}else{
-						  				
-						  					e.gc.setAlpha( 0xff );
-						  					
-							  				e.gc.setLineWidth( 2 );
-	
-						  					e.gc.setForeground(ColorCache.getColor(e.display, tag.getColor()));
-						    				
-						    				e.gc.drawRectangle( 3, 3, rect.width-5, rect.height-5 );
-						  				}
-				    				}
-								}
-							});
-						
-						Menu menu = new Menu( but );
-						
-						but.setMenu( menu );
-						MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuilder() {
-							public void buildMenu(Menu root_menu, MenuEvent menuEvent) {
-								TagUIUtils.createSideBarMenuItems(root_menu, tag);
-							}
-						});
-						
 					}
 				}
 				
@@ -4517,14 +4563,11 @@ public class OpenTorrentOptionsWindow
 									}else{
 										
 										listTagsToCreate.remove(tagName);
-										
 									}
-									
-									
+																	
 									updateStartOptionsHeader();
 								}
 							});
-						
 					}
 				}
 				
