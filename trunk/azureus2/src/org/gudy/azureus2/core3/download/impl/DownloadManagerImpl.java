@@ -1203,7 +1203,7 @@ DownloadManagerImpl
 				read_torrent_state = 
 					new Object[]{ 	
 						torrent_save_dir, torrent_save_file, torrent_hash,
-						new Boolean(new_torrent), new Boolean( for_seeding ), new Boolean( has_ever_been_started ),
+						Boolean.valueOf(new_torrent), Boolean.valueOf(for_seeding), Boolean.valueOf(has_ever_been_started),
 						new Integer( initial_state )
 					};
 	
@@ -2211,7 +2211,8 @@ DownloadManagerImpl
 
 		listeners.dispatch(LDT_COMPLETIONCHANGED, new Object[] {
 				this,
-				new Boolean(_assumedComplete) });
+			Boolean.valueOf(_assumedComplete)
+		});
 	}
   
   

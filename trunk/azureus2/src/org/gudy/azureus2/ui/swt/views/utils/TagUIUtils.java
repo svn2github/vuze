@@ -263,7 +263,7 @@ public class TagUIUtils
 										
 								m.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_CHECK );
 															
-								m.setData( new Boolean( tag.isVisible()));
+								m.setData(Boolean.valueOf(tag.isVisible()));
 										
 								m.addListener(
 									new MenuItemListener() 

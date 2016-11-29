@@ -516,7 +516,7 @@ public class TableColumnSetupWindow
 		int pos = 0;
 		for (int i = 0; i < columnsChosen.length; i++) {
 			boolean visible = columnsChosen[i].isVisible();
-			mapNewVisibility.put(columnsChosen[i], new Boolean(visible));
+			mapNewVisibility.put(columnsChosen[i], Boolean.valueOf(visible));
 			if (visible) {
 				columnsChosen[i].setPositionNoShift(pos++);
 				tvChosen.addDataSource(columnsChosen[i]);

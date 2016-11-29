@@ -126,7 +126,7 @@ public class SeedsItem
 		menuShowIcon.setStyle(TableContextMenuItem.STYLE_CHECK);
 		menuShowIcon.addFillListener(new MenuItemFillListener() {
 			public void menuWillBeShown(MenuItem menu, Object data) {
-				menu.setData(new Boolean(showIcon));
+				menu.setData(Boolean.valueOf(showIcon));
 			}
 		});
 

@@ -1014,7 +1014,7 @@ DHTTrackerPlugin
 												
 												if ( track_it ){
 													
-													limited_online_tracking.put( download, new Boolean( track_it ));
+													limited_online_tracking.put( download, Boolean.valueOf(track_it));
 												}
 											}
 										}
@@ -2005,7 +2005,7 @@ DHTTrackerPlugin
 											
 											leecher_count++;
 											
-											is_seeds.add( new Boolean( false ));
+											is_seeds.add(Boolean.FALSE);
 		
 											if ( has_i2p ){
 												
@@ -2013,7 +2013,7 @@ DHTTrackerPlugin
 											}
 										}else{
 											
-											is_seeds.add( new Boolean( true ));
+											is_seeds.add(Boolean.TRUE);
 											
 											seed_count++;
 											
@@ -2262,7 +2262,7 @@ DHTTrackerPlugin
 										
 										Map<Object,Object>	user_data = new HashMap<Object,Object>();
 																				
-										user_data.put( Peer.PR_PRIORITY_CONNECTION, new Boolean( true ));
+										user_data.put( Peer.PR_PRIORITY_CONNECTION, Boolean.TRUE);
 
 										pm.addPeer( 
 												peer.getAddress(),

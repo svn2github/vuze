@@ -1441,7 +1441,7 @@ DownloadManagerController
 				new_limiters.addAll( external_rate_limiters_cow );
 			}
 			
-			new_limiters.add( new Object[]{ group, new Boolean( upload )});
+			new_limiters.add( new Object[]{ group, Boolean.valueOf(upload)});
 			
 			external_rate_limiters_cow = new_limiters;
 			

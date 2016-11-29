@@ -694,7 +694,7 @@ public class SB_Transfers
 							stats.numErrorInComplete += rel;
 						}
 						updateErrorTooltip(gm,stats);
-						dm.setUserData("wasErrorState", new Boolean(isErrorState));
+						dm.setUserData("wasErrorState", Boolean.valueOf(isErrorState));
 					}
 					refreshAllLibraries();
 				}
@@ -1523,7 +1523,7 @@ public class SB_Transfers
 					statsNoLowNoise.numDownloading--;
 				}
 			}
-			dm.setUserData("wasDownloading", new Boolean(isDownloading));
+			dm.setUserData("wasDownloading", Boolean.valueOf(isDownloading));
 		}
 
 		if (isSeeding != wasSeeding) {
@@ -1538,7 +1538,7 @@ public class SB_Transfers
 					statsNoLowNoise.numSeeding--;
 				}
 			}
-			dm.setUserData("wasSeeding", new Boolean(isSeeding));
+			dm.setUserData("wasSeeding", Boolean.valueOf(isSeeding));
 		}
 
 		if (isStopped != wasStopped) {
@@ -1561,7 +1561,7 @@ public class SB_Transfers
 					}
 				}
 			}
-			dm.setUserData("wasStopped", new Boolean(isStopped));
+			dm.setUserData("wasStopped", Boolean.valueOf(isStopped));
 		}
 
 		if (isQueued != wasQueued) {
@@ -1576,7 +1576,7 @@ public class SB_Transfers
 					statsNoLowNoise.numQueued--;
 				}
 			}
-			dm.setUserData("wasQueued", new Boolean(isQueued));
+			dm.setUserData("wasQueued", Boolean.valueOf(isQueued));
 		}
 		return( dm_state );
 	}

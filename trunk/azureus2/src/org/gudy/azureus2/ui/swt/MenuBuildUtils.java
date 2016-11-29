@@ -301,7 +301,7 @@ public class MenuBuildUtils {
 					if (az_menuitem.getStyle() == MenuItem.STYLE_CHECK
 							|| az_menuitem.getStyle() == MenuItem.STYLE_RADIO) {
 						if (!menuItem.isDisposed()) {
-							az_menuitem.setData(new Boolean(menuItem.getSelection()));
+							az_menuitem.setData(Boolean.valueOf(menuItem.getSelection()));
 						}
 					}
 					main_listener.handleEvent(e);

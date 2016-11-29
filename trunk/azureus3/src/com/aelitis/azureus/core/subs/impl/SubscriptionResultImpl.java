@@ -285,7 +285,7 @@ SubscriptionResultImpl
 	{
 		Map	map = JSONUtils.decodeJSON( result_json );
 		
-		map.put( "subs_is_read", new Boolean( read ));
+		map.put( "subs_is_read", Boolean.valueOf(read));
 		map.put( "subs_id", getID());
 		
 		Result.adjustRelativeTerms( map );

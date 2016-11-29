@@ -140,7 +140,7 @@ RPIPFilter
 			}
 		}else if ( method.equals( "getInRangeAddressesAreAllowed")){
 			
-			return( new RPReply( new Boolean( delegate.getInRangeAddressesAreAllowed())));
+			return( new RPReply(Boolean.valueOf(delegate.getInRangeAddressesAreAllowed())));
 			
 		}else if ( method.equals( "setInRangeAddressesAreAllowed[boolean]")){
 			
@@ -150,7 +150,7 @@ RPIPFilter
 			
 		}else if ( method.equals( "isEnabled")){
 			
-			return( new RPReply( new Boolean( delegate.isEnabled())));
+			return( new RPReply(Boolean.valueOf(delegate.isEnabled())));
 			
 		}else if ( method.equals( "setEnabled[boolean]")){
 			
@@ -160,7 +160,7 @@ RPIPFilter
 			
 		}else if ( method.equals( "isInRange[String]")){
 			
-			return( new RPReply( new Boolean( delegate.isInRange((String)params[0]))));
+			return( new RPReply(Boolean.valueOf(delegate.isInRange((String) params[0]))));
 		}
 				
 		throw( new RPException( "Unknown method: " + method ));
@@ -205,7 +205,7 @@ RPIPFilter
 							new RPRequest( 
 									this, 
 									"createAndAddRange[String,String,String,boolean]", 
-									new Object[]{description,start_ip,end_ip,new Boolean(this_session_only)})).getResponse();
+									new Object[]{description,start_ip,end_ip, Boolean.valueOf(this_session_only)})).getResponse();
 		
 		resp._setRemote( _dispatcher );
 		
@@ -306,7 +306,7 @@ RPIPFilter
 	setInRangeAddressesAreAllowed(
 		boolean	value )
 	{
-		_dispatcher.dispatch( new RPRequest( this, "setInRangeAddressesAreAllowed[boolean]", new Object[]{new Boolean(value)} )).getResponse();		
+		_dispatcher.dispatch( new RPRequest( this, "setInRangeAddressesAreAllowed[boolean]", new Object[]{Boolean.valueOf(value)} )).getResponse();
 	}
 	
 	public boolean
@@ -321,7 +321,7 @@ RPIPFilter
 	setEnabled(
 		boolean	value )
 	{
-		_dispatcher.dispatch( new RPRequest( this, "setEnabled[boolean]", new Object[]{new Boolean(value)} )).getResponse();		
+		_dispatcher.dispatch( new RPRequest( this, "setEnabled[boolean]", new Object[]{Boolean.valueOf(value)} )).getResponse();
 	}
 	
 	public void

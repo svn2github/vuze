@@ -2484,7 +2484,7 @@ SubscriptionManagerUI
 				
 				m.setStyle( MenuItem.STYLE_RADIO );
 								
-				m.setData( new Boolean( assigned_category == null ));
+				m.setData(Boolean.valueOf(assigned_category == null));
 				
 				m.addListener(
 					new MenuItemListener() 
@@ -2514,7 +2514,7 @@ SubscriptionManagerUI
 					
 					m.setStyle( MenuItem.STYLE_RADIO );
 										
-					m.setData( new Boolean( assigned_category != null && assigned_category.equals( cat.getName())));
+					m.setData(Boolean.valueOf(assigned_category != null && assigned_category.equals(cat.getName())));
 					
 					m.addListener(
 						new MenuItemListener() 
@@ -2602,7 +2602,7 @@ SubscriptionManagerUI
 				
 		m.setStyle( MenuItem.STYLE_RADIO );
 							
-		m.setData( new Boolean( assigned_tag == null ));
+		m.setData(Boolean.valueOf(assigned_tag == null));
 				
 		m.addListener(
 			new MenuItemListener() 
@@ -2681,7 +2681,7 @@ SubscriptionManagerUI
 						
 				m.setStyle( MenuItem.STYLE_RADIO );
 											
-				m.setData( new Boolean( assigned_tag == tag ));
+				m.setData(Boolean.valueOf(assigned_tag == tag));
 						
 				m.addListener(
 					new MenuItemListener() 

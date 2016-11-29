@@ -4911,7 +4911,7 @@ SubscriptionManagerImpl
 		
 		synchronized( potential_associations2 ){
 			
-			potential_associations2.put( hw, new Object[]{ subscriptions, new Boolean( full_lookup ), new Long( SystemTime.getCurrentTime())});
+			potential_associations2.put( hw, new Object[]{ subscriptions, Boolean.valueOf(full_lookup), new Long( SystemTime.getCurrentTime())});
 		}
 			
 		if ( recordAssociationsSupport( association_hash, subscriptions, full_lookup )){

@@ -114,13 +114,14 @@ RSSGeneratorPlugin
 			COConfigurationManager.setParameter( "rss.internal.migrated", true );	
 		}
 		
-		defaults.put( WebPlugin.PR_ENABLE, new Boolean( COConfigurationManager.getBooleanParameter( "Plugin.default.device.rss.enable", false )));
-		defaults.put( WebPlugin.PR_DISABLABLE, new Boolean( true ));
+		defaults.put( WebPlugin.PR_ENABLE,
+			Boolean.valueOf(COConfigurationManager.getBooleanParameter("Plugin.default.device.rss.enable", false)));
+		defaults.put( WebPlugin.PR_DISABLABLE, Boolean.TRUE);
 	    defaults.put( WebPlugin.PR_PORT, rss_port );
 	    defaults.put( WebPlugin.PR_ACCESS, rss_access );
 	    defaults.put( WebPlugin.PR_ROOT_DIR, root_dir.getAbsolutePath());
-	    defaults.put( WebPlugin.PR_ENABLE_KEEP_ALIVE, new Boolean(true));
-	    defaults.put( WebPlugin.PR_HIDE_RESOURCE_CONFIG, new Boolean(true));
+	    defaults.put( WebPlugin.PR_ENABLE_KEEP_ALIVE, Boolean.TRUE);
+	    defaults.put( WebPlugin.PR_HIDE_RESOURCE_CONFIG, Boolean.TRUE);
 	    defaults.put( WebPlugin.PR_PAIRING_SID, "rss" );
 	    
 	    defaults.put( WebPlugin.PR_CONFIG_MODEL_PARAMS, new String[]{ ConfigSection.SECTION_ROOT, "rss" });

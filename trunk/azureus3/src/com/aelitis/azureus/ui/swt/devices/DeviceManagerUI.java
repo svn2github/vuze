@@ -2555,7 +2555,7 @@ DeviceManagerUI
 						
 						final boolean f_all_manual = all_manual;
 						
-						manual_item.setData( new Boolean( f_all_manual ));
+						manual_item.setData(Boolean.valueOf(f_all_manual));
 						
 						manual_item.setStyle( MenuItem.STYLE_CHECK );
 						
@@ -2849,7 +2849,7 @@ DeviceManagerUI
 					
 					filterfiles_menu_item.addFillListener(new MenuItemFillListener() {
 						public void menuWillBeShown(MenuItem menu, Object data) {
-							menu.setData(new Boolean(renderer.getFilterFilesView()));
+							menu.setData(Boolean.valueOf(renderer.getFilterFilesView()));
 						}
 					});
 					filterfiles_menu_item.addListener(new MenuItemListener() {
@@ -2867,7 +2867,7 @@ DeviceManagerUI
 					
 					showcat_menu_item.addFillListener(new MenuItemFillListener() {
 						public void menuWillBeShown(MenuItem menu, Object data) {
-							menu.setData(new Boolean(renderer.getShowCategories()));
+							menu.setData(Boolean.valueOf(renderer.getShowCategories()));
 						}
 					});
 					showcat_menu_item.addListener(new MenuItemListener() {
@@ -2884,7 +2884,7 @@ DeviceManagerUI
 				
 				alwayscache_menu_item.addFillListener(new MenuItemFillListener() {
 					public void menuWillBeShown(MenuItem menu, Object data) {
-						menu.setData(new Boolean(renderer.getAlwaysCacheFiles()));
+						menu.setData(Boolean.valueOf(renderer.getAlwaysCacheFiles()));
 					}
 				});
 				alwayscache_menu_item.addListener(new MenuItemListener() {
@@ -2915,7 +2915,7 @@ DeviceManagerUI
 					
 					autocopy_menu_item.addFillListener(new MenuItemFillListener() {
 						public void menuWillBeShown(MenuItem menu, Object data) {
-							menu.setData(new Boolean(renderer.getAutoCopyToFolder()));
+							menu.setData(Boolean.valueOf(renderer.getAutoCopyToFolder()));
 						}
 					});
 					autocopy_menu_item.addListener(new MenuItemListener() {
@@ -3007,7 +3007,7 @@ DeviceManagerUI
 					
 					autocopy_menu_item.addFillListener(new MenuItemFillListener() {
 						public void menuWillBeShown(MenuItem menu, Object data) {
-							menu.setData(new Boolean(renderer.getAutoCopyToDevice()));
+							menu.setData(Boolean.valueOf(renderer.getAutoCopyToDevice()));
 						}
 					});
 					autocopy_menu_item.addListener(new MenuItemListener() {
@@ -3062,7 +3062,7 @@ DeviceManagerUI
 					
 					autostart_menu_item.addFillListener(new MenuItemFillListener() {
 						public void menuWillBeShown(MenuItem menu, Object data) {
-							menu.setData(new Boolean(renderer.getAutoStartDevice()));
+							menu.setData(Boolean.valueOf(renderer.getAutoStartDevice()));
 						}
 					});
 					autostart_menu_item.addListener(new MenuItemListener() {
@@ -3304,7 +3304,7 @@ DeviceManagerUI
 						public void menuWillBeShown(MenuItem menu, Object data) {
 							rss_menu_item.setEnabled( device_manager.isRSSPublishEnabled());
 							
-							menu.setData(new Boolean(device_manager.isRSSPublishEnabled() && renderer.isRSSPublishEnabled()));
+							menu.setData(Boolean.valueOf(device_manager.isRSSPublishEnabled() && renderer.isRSSPublishEnabled()));
 						}
 					});
 					rss_menu_item.addListener(new MenuItemListener() {
@@ -3379,7 +3379,7 @@ DeviceManagerUI
 
 				enabled_menu_item.addFillListener(new MenuItemFillListener() {
 					public void menuWillBeShown(MenuItem menu, Object data) {
-						menu.setData(new Boolean( dod.isEnabled()));
+						menu.setData(Boolean.valueOf(dod.isEnabled()));
 					}
 				});
 				
@@ -3581,7 +3581,7 @@ DeviceManagerUI
 				
 		m.setStyle( MenuItem.STYLE_RADIO );
 							
-		m.setData( new Boolean( assigned_tag == null ));
+		m.setData(Boolean.valueOf(assigned_tag == null));
 				
 		m.addListener(
 			new MenuItemListener() 
@@ -3660,7 +3660,7 @@ DeviceManagerUI
 						
 				m.setStyle( MenuItem.STYLE_RADIO );
 											
-				m.setData( new Boolean( assigned_tag == tag ));
+				m.setData(Boolean.valueOf(assigned_tag == tag));
 						
 				m.addListener(
 					new MenuItemListener() 

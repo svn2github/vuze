@@ -1274,7 +1274,7 @@ public class SubscriptionWizard {
 					
 					Map user_data = new HashMap();
 					
-					user_data.put( SubscriptionManagerUI.SUB_EDIT_MODE_KEY, new Boolean( true ));
+					user_data.put( SubscriptionManagerUI.SUB_EDIT_MODE_KEY, Boolean.TRUE);
 					
 					boolean	anonymous = anonCheck.getSelection();
 					

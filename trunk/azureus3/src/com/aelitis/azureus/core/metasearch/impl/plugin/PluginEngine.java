@@ -290,7 +290,7 @@ PluginEngine
 				
 			}else if ( pattern.equals( "m" )){
 			
-				search_parameters.put( SearchProvider.SP_MATURE, new Boolean(value ));
+				search_parameters.put( SearchProvider.SP_MATURE, Boolean.valueOf(value));
 
 			}else if ( pattern.equals( "n" )){
 				

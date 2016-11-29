@@ -752,7 +752,7 @@ SubscriptionHistoryImpl
 		
 		for (int i=0;i<result_ids.length;i++){
 			
-			rid_map.put( Base32.decode( result_ids[i]), new Boolean( reads[i] ));
+			rid_map.put( Base32.decode( result_ids[i]), Boolean.valueOf(reads[i]));
 		}
 	
 		boolean	changed = false;

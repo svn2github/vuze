@@ -1131,7 +1131,7 @@ DownloadManagerStateImpl
 						
 						if ( COConfigurationManager.getBooleanParameter( "enable.seedingonly.maxuploads" )){
 							
-							value = new Boolean( true );
+							value = Boolean.TRUE;
 						}
 						
 					}else if ( name == PARAM_MAX_UPLOADS_WHEN_SEEDING ){
@@ -1156,7 +1156,7 @@ DownloadManagerStateImpl
 						
 						if ( COConfigurationManager.getBooleanParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable" )){
 								
-							value = new Boolean( true );
+							value = Boolean.TRUE;
 						}
 
 					}else if ( name == PARAM_MAX_PEERS_WHEN_SEEDING ){
@@ -3208,7 +3208,7 @@ DownloadManagerStateImpl
 			
 			if ( st != null ){
 				
-				simple_torrent = new Boolean( st.longValue()==1 );
+				simple_torrent = Boolean.valueOf(st.longValue() == 1);
 			}
 			
 			Long	fc = (Long)cache.get( "fc" );
@@ -3731,7 +3731,7 @@ DownloadManagerStateImpl
     			
     			boolean st = delegate.isSimpleTorrent();
     			
-    			simple_torrent = new Boolean( st );
+    			simple_torrent = Boolean.valueOf(st);
     			
     			return( st );
     		}

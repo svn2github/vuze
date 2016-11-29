@@ -75,7 +75,8 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
-public class 
+@SuppressWarnings("unused")
+public class
 UISWTInstanceImpl
 	implements UIInstanceFactory, UISWTInstance, UIManagerEventListener
 {
@@ -522,7 +523,7 @@ UISWTInstanceImpl
 				break;
 			}			
 			case UIManagerEvent.ET_SHOW_CONFIG_SECTION: {
-				event.setResult(new Boolean(false));
+				event.setResult(Boolean.FALSE);
 
 				if (!(data instanceof String)){
 					break;

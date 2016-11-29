@@ -842,13 +842,13 @@ FMFileImpl
 					
 					Debug.out( "reserve file - entry already present" );
 					
-					entry[1] = new Boolean( false );
+					entry[1] = Boolean.FALSE;
 					
 					return;	
 				}
 			}
 			
-			owners.add( new Object[]{ owner, new Boolean( false ), "<reservation>" });
+			owners.add( new Object[]{ owner, Boolean.FALSE, "<reservation>" });
 			
 		}finally{
 			
@@ -904,7 +904,7 @@ FMFileImpl
 				throw( new FMFileManagerException( "File '"+canonical_path+"' has not been reserved (not found), '" + owner.getName()+"'"));
 			}
 		
-			my_entry[1] = new Boolean( access_mode==FM_WRITE );
+			my_entry[1] = Boolean.valueOf(access_mode == FM_WRITE);
 			my_entry[2] = reason;
 			
 			int	read_access 		= 0;

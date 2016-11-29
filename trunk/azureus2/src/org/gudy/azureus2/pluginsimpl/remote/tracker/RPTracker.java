@@ -134,7 +134,9 @@ RPTracker
 		throws TrackerException
 	{
 		try{
-			RPTrackerTorrent resp = (RPTrackerTorrent)_dispatcher.dispatch( new RPRequest( this, "host[Torrent,boolean]", new Object[]{torrent, new Boolean(persistent)})).getResponse();
+			RPTrackerTorrent resp = (RPTrackerTorrent)_dispatcher.dispatch( new RPRequest( this, "host[Torrent,boolean]", new Object[]{torrent,
+				Boolean.valueOf(persistent)
+			})).getResponse();
 			
 			resp._setRemote( _dispatcher );
 			

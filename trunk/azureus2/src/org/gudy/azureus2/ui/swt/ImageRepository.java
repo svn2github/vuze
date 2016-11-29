@@ -325,7 +325,7 @@ public class ImageRepository
   						if (method != null) {
   							awtImage = (java.awt.Image) method.invoke(sfInstance,
   									new Object[] {
-  										new Boolean(bBig)
+										  Boolean.valueOf(bBig)
   									});
   						}
   					}

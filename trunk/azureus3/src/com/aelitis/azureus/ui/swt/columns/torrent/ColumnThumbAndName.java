@@ -145,7 +145,7 @@ public class ColumnThumbAndName
 		menuShowIcon.setStyle(TableContextMenuItem.STYLE_CHECK);
 		menuShowIcon.addFillListener(new MenuItemFillListener() {
 			public void menuWillBeShown(MenuItem menu, Object data) {
-				menu.setData(new Boolean(showIcon));
+				menu.setData(Boolean.valueOf(showIcon));
 			}
 		});
 		final String CFG_SHOWPROGRAMICON = "NameColumn.showProgramIcon."
@@ -241,7 +241,7 @@ public class ColumnThumbAndName
 					
 					show_twisty = torrent != null && !dm.getTorrent().isSimpleTorrent();
 					
-					rowCore.setData( ID_EXPANDOHITAREASHOW, new Boolean( show_twisty ));
+					rowCore.setData( ID_EXPANDOHITAREASHOW, Boolean.valueOf(show_twisty));
 					
 				}else{
 					show_twisty = show;

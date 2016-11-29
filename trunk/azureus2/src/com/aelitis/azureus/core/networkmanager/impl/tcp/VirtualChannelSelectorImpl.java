@@ -427,7 +427,7 @@ public class VirtualChannelSelectorImpl {
         if( channel.isOpen() ) {  //only bother if channel has not already been closed
           try{  register_cancel_list_mon.enter();
           
-            paused_states.put( channel, new Boolean( true ) );  //ensure the op is paused upon reg select-time reg
+            paused_states.put( channel, Boolean.TRUE);  //ensure the op is paused upon reg select-time reg
 
           }
           finally{  register_cancel_list_mon.exit();  }

@@ -501,7 +501,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				engineMap.put("dl_link_css", engine.getDownloadLinkCSS());
 				engineMap.put("selected", Engine.SEL_STATE_STRINGS[ engine.getSelectionState()]);
 				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
-				engineMap.put("shareable", new Boolean( engine.isShareable()));
+				engineMap.put("shareable", Boolean.valueOf(engine.isShareable()));
 				params.add(engineMap);
 			}
 			sendBrowserMessage("metasearch", "enginesUsed",params);
@@ -524,7 +524,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				engineMap.put("dl_link_css", engine.getDownloadLinkCSS());
 				engineMap.put("selected", Engine.SEL_STATE_STRINGS[ engine.getSelectionState()]);
 				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
-				engineMap.put("shareable", new Boolean( engine.isShareable()));
+				engineMap.put("shareable", Boolean.valueOf(engine.isShareable()));
 				params.add(engineMap);
 			}
 			sendBrowserMessage("metasearch", "engineList",params);
@@ -655,11 +655,11 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			Map params = new HashMap();
 			
-			params.put( "auto", new Boolean( mode ));
+			params.put( "auto", Boolean.valueOf(mode));
 
 			boolean custom = CustomizationManagerFactory.getSingleton().getActiveCustomization() != null;
 						
-			params.put( "is_custom", new Boolean( custom ));
+			params.put( "is_custom", Boolean.valueOf(custom));
 
 			sendBrowserMessage("metasearch", "getAutoModeResult",params);
 			
@@ -734,15 +734,15 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					params.put("name", engine.getName());
 					params.put("type", Engine.ENGINE_TYPE_STRS[ engine.getType()]);
 					params.put("value", JSONObject.escape( engine.exportToJSONString()));
-					params.put("shareable", new Boolean( engine.isShareable()));
+					params.put("shareable", Boolean.valueOf(engine.isShareable()));
 					
 					params.put("uid", engine.getUID());
 					
-					params.put("supports_direct_download", 
-									new Boolean( 	engine.supportsField( Engine.FIELD_TORRENTLINK ) ||
-													engine.supportsField( Engine.FIELD_DOWNLOADBTNLINK )));
+					params.put("supports_direct_download",
+						Boolean.valueOf(engine.supportsField(Engine.FIELD_TORRENTLINK) ||
+							engine.supportsField(Engine.FIELD_DOWNLOADBTNLINK)));
 					
-					params.put( "auto_dl_supported", new Boolean( engine.getAutoDownloadSupported() == Engine.AUTO_DL_SUPPORTED_YES ));
+					params.put( "auto_dl_supported", Boolean.valueOf(engine.getAutoDownloadSupported() == Engine.AUTO_DL_SUPPORTED_YES));
 
 					sendBrowserMessage( "metasearch", "loadTemplateCompleted", params );
 					
@@ -1273,10 +1273,10 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					result.put( "id", subs.getID());
 					result.put( "name", subs.getName());
-					result.put( "is_public", new Boolean( shareable && subs.isPublic()));
-					result.put( "is_author", new Boolean( subs.isMine()));
-					result.put( "is_shareable", new Boolean( shareable ));
-					result.put( "auto_dl_supported", new Boolean( subs.isAutoDownloadSupported()));
+					result.put( "is_public", Boolean.valueOf(shareable && subs.isPublic()));
+					result.put( "is_author", Boolean.valueOf(subs.isMine()));
+					result.put( "is_shareable", Boolean.valueOf(shareable));
+					result.put( "auto_dl_supported", Boolean.valueOf(subs.isAutoDownloadSupported()));
 					
 					SubscriptionHistory history = subs.getHistory();
 					
@@ -1284,8 +1284,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 					result.put( "options", options );
 
-					options.put( "is_enabled", new Boolean( history.isEnabled()));
-					options.put( "auto_dl", new Boolean( history.isAutoDownload()));
+					options.put( "is_enabled", Boolean.valueOf(history.isEnabled()));
+					options.put( "auto_dl", Boolean.valueOf(history.isAutoDownload()));
 					
 					Map	info = new HashMap();
 
@@ -1665,7 +1665,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			Map params = new HashMap();
 			
-			params.put( "is_custom", new Boolean( custom ));
+			params.put( "is_custom", Boolean.valueOf(custom));
 
 			sendBrowserMessage( "metasearch", "isCustomizedResult", params );
 		}else if( OP_ADD_EXTERNAL_LINKS.equals(opid)) {
@@ -1974,7 +1974,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				params.put("name", engine.getName());
 				params.put("favicon", engine.getIcon());
 				params.put("dl_link_css", engine.getDownloadLinkCSS());
-				params.put("shareable", new Boolean( engine.isShareable()));
+				params.put("shareable", Boolean.valueOf(engine.isShareable()));
 				
 				if ( sid != null ){
 					params.put( "sid", sid );

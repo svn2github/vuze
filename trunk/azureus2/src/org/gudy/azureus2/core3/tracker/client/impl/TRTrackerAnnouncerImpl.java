@@ -236,7 +236,7 @@ TRTrackerAnnouncerImpl
 					boolean	explicit )
 				{
 					listeners.dispatch(	LDT_URL_CHANGED,
-							new Object[]{old_url, new_url, new Boolean(explicit)});
+							new Object[]{old_url, new_url, Boolean.valueOf(explicit)});
 				}
 				
 				public void

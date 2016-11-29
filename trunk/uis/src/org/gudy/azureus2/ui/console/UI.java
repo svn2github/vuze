@@ -264,7 +264,7 @@ UI
 			}
 			case UIManagerEvent.ET_SHOW_CONFIG_SECTION:				// data is String - section id
 			{
-				event.setResult(new Boolean(false));
+				event.setResult(Boolean.FALSE);
 				
 				break;
 			}

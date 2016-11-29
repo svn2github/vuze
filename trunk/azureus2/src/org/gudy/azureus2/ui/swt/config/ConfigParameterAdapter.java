@@ -59,7 +59,7 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
   
   						if (valueObject instanceof Boolean) {
   							boolean b = COConfigurationManager.getBooleanParameter(parameterName);
-  							owner.setValue(new Boolean(b));
+  							owner.setValue(Boolean.valueOf(b));
   						} else if (valueObject instanceof Integer) {
   							int i = COConfigurationManager.getIntParameter(parameterName);
   							owner.setValue(new Integer(i));

@@ -278,7 +278,8 @@ DownloadManagerImpl
 		boolean		auto_download,
 		Map			request_properties )
 	{
-		UIManagerImpl.fireEvent( null, UIManagerEvent.ET_OPEN_TORRENT_VIA_URL, new Object[]{ url, referrer, new Boolean( auto_download ), request_properties });
+		UIManagerImpl.fireEvent( null, UIManagerEvent.ET_OPEN_TORRENT_VIA_URL, new Object[]{ url, referrer,
+			Boolean.valueOf(auto_download), request_properties });
 	}
 	
 

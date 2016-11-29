@@ -166,7 +166,7 @@ PMSWTImpl
 																"pairing.ui.icon.show" );
 										
 										mi_show.setStyle( MenuItem.STYLE_CHECK );
-										mi_show.setData( new Boolean( is_visible ));
+										mi_show.setData(Boolean.valueOf(is_visible));
 										
 										mi_show.addListener(
 												new MenuItemListener()
@@ -191,7 +191,7 @@ PMSWTImpl
 														
 														status.setVisible( is_visible );
 														
-														mi_show.setData( new Boolean( is_visible ));
+														mi_show.setData(Boolean.valueOf(is_visible));
 														
 														if ( is_visible ){
 															

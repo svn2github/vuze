@@ -475,7 +475,7 @@ public class PlatformTorrentUtils
 
 				if (!isPlatformHost(announceURL.getHost())) {
 
-					mapPlatformTrackerTorrents.put(torrent, new Boolean(false));
+					mapPlatformTrackerTorrents.put(torrent, Boolean.FALSE);
 					return (false);
 				}
 			}
@@ -490,21 +490,21 @@ public class PlatformTorrentUtils
 
 					if (!isPlatformHost(urls[j].getHost())) {
 
-						mapPlatformTrackerTorrents.put(torrent, new Boolean(false));
+						mapPlatformTrackerTorrents.put(torrent, Boolean.FALSE);
 						return (false);
 					}
 				}
 			}
 
 			boolean b = announceURL != null;
-			mapPlatformTrackerTorrents.put(torrent, new Boolean(b));
+			mapPlatformTrackerTorrents.put(torrent, Boolean.valueOf(b));
 			return b;
 
 		} catch (Throwable e) {
 
 			Debug.printStackTrace(e);
 
-			mapPlatformTrackerTorrents.put(torrent, new Boolean(false));
+			mapPlatformTrackerTorrents.put(torrent, Boolean.FALSE);
 			return (false);
 		}
 	}
@@ -561,7 +561,7 @@ public class PlatformTorrentUtils
 			}
 		}
 		
-		dm.setUserData("isAdvancedViewOnly", new Boolean(advanced_view));
+		dm.setUserData("isAdvancedViewOnly", Boolean.valueOf(advanced_view));
 		
 		return advanced_view;
 	}

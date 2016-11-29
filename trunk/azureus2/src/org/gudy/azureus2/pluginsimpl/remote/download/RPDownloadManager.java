@@ -370,7 +370,9 @@ RPDownloadManager
 	public Download[]
 	getDownloads(boolean bSort)
 	{
-		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "getDownloads[boolean]", new Object[]{ new Boolean(bSort)} )).getResponse();
+		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "getDownloads[boolean]", new Object[]{
+			Boolean.valueOf(bSort)
+		} )).getResponse();
 		
 		for (int i=0;i<res.length;i++){
 			

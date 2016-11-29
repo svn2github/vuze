@@ -159,7 +159,7 @@ NetworkAdminSWTImpl
 													
 													status.setVisible( is_visible );
 													
-													mi_show.setData( new Boolean( is_visible ));
+													mi_show.setData(Boolean.valueOf(is_visible));
 													
 													if ( is_visible ){
 														

@@ -42,15 +42,15 @@ UIComponentImpl
 	protected
 	UIComponentImpl()
 	{
-		properties.put( PT_ENABLED, new Boolean( true ));
-		properties.put( PT_VISIBLE, new Boolean( true ));
+		properties.put( PT_ENABLED, Boolean.TRUE);
+		properties.put( PT_VISIBLE, Boolean.TRUE);
 	}
 	
 	public void
 	setEnabled(
 		boolean		enabled )
 	{
-		setProperty( PT_ENABLED, new Boolean( enabled ));
+		setProperty( PT_ENABLED, Boolean.valueOf(enabled));
 	}
 	
 	public boolean
@@ -63,7 +63,7 @@ UIComponentImpl
 	setVisible(
 		boolean		visible )
 	{
-		setProperty( PT_VISIBLE, new Boolean( visible ));
+		setProperty( PT_VISIBLE, Boolean.valueOf(visible));
 	}
 	
 	public boolean

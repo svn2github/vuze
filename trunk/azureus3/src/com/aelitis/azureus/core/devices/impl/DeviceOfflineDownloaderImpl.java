@@ -1243,7 +1243,7 @@ DeviceOfflineDownloaderImpl
 					
 					Map	user_data = new LightHashMap();
 											
-					user_data.put( Peer.PR_PRIORITY_CONNECTION, new Boolean( true ));
+					user_data.put( Peer.PR_PRIORITY_CONNECTION, Boolean.TRUE);
 					
 					pm.addPeer( service_ip, transfer.getDataPort(), 0, false, user_data );
 					

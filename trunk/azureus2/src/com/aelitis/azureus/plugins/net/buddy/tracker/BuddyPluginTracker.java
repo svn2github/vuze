@@ -402,7 +402,7 @@ BuddyPluginTracker
 				
 				user_data.put( PEER_KEY, download );
 				
-				user_data.put( Peer.PR_PRIORITY_CONNECTION, new Boolean( true ));
+				user_data.put( Peer.PR_PRIORITY_CONNECTION, Boolean.TRUE);
 				
 				c_pm.addPeer( ip.getHostAddress(), tcp_port, udp_port, true, user_data );
 			}
@@ -2174,11 +2174,11 @@ outer:
 
 							bdd.setTrackTime( now );
 							
-							res.put( d, new Boolean( true ));
+							res.put( d, Boolean.TRUE);
 							
 						}else{
 							
-							res.put( d, new Boolean( false ));
+							res.put( d, Boolean.FALSE);
 						}
 					}
 				}

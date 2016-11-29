@@ -36,6 +36,7 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 
+@SuppressWarnings("unused")
 public class 
 StartStopRulesDefaultPluginSWTUI
 	implements StartStopRulesDefaultPlugin.UIAdapter

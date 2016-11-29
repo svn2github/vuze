@@ -644,7 +644,7 @@ RPDownload
 	{
 		force_start	= _force_start;
 		
-		_dispatcher.dispatch( new RPRequest( this, "setForceStart[boolean]", new Object[]{new Boolean(force_start )})).getResponse();
+		_dispatcher.dispatch( new RPRequest( this, "setForceStart[boolean]", new Object[]{Boolean.valueOf(force_start)})).getResponse();
 	}
 	
 	public void 

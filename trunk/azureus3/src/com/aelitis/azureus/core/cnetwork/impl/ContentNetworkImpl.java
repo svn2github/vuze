@@ -308,7 +308,7 @@ ContentNetworkImpl
 	setStartupNetwork(
 		boolean		b )
 	{
-		setPersistentProperty( PP_STARTUP_NETWORK, new Boolean(b));
+		setPersistentProperty( PP_STARTUP_NETWORK, Boolean.valueOf(b));
 	}
 	
 	public void

@@ -1426,7 +1426,7 @@ public class GlobalManagerImpl
   		removal_listeners.dispatchWithException(LDT_MANAGER_WBR, new Object[] {
 				manager,
 				new Boolean(remove_torrent),
-				new Boolean(remove_data)
+			  Boolean.valueOf(remove_data)
 			});
   		
   	}catch( Throwable e ){
@@ -1725,7 +1725,7 @@ public class GlobalManagerImpl
 	    	  try{  
 	    		  paused_list_mon.enter();
 	          
-	    		  paused_list.add( new Object[]{wrapper, new Boolean(forced)});
+	    		  paused_list.add( new Object[]{wrapper, Boolean.valueOf(forced)});
 	    		  
 	    	  }finally{
 	    		  
@@ -1831,7 +1831,7 @@ public class GlobalManagerImpl
           	try {
           		paused_list_mon.enter();
             
-          		paused_list.add( new Object[]{ manager.getTorrent().getHashWrapper(), new Boolean(forced)});
+          		paused_list.add( new Object[]{ manager.getTorrent().getHashWrapper(), Boolean.valueOf(forced)});
           		
 	    	}finally{
 	    		
@@ -2194,7 +2194,7 @@ public class GlobalManagerImpl
 							  key 	= (byte[])m.get("hash");
 							  force 	= ((Long)m.get("force")).intValue() == 1;
 						  }
-						  paused_list.add( new Object[]{ new HashWrapper( key ), new Boolean( force )} );
+						  paused_list.add( new Object[]{ new HashWrapper( key ), Boolean.valueOf(force)} );
 					  }
 					  }
 					  finally {  paused_list_mon.exit();  }

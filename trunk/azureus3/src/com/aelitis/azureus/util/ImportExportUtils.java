@@ -254,7 +254,7 @@ public final class ImportExportUtils {
 		String	key,
 		boolean	value )
 	{
-		map.put( key, new Boolean( value ));
+		map.put( key, Boolean.valueOf(value));
 	}
 	
 	public static final String

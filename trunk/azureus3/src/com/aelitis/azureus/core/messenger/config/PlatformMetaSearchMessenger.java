@@ -246,7 +246,7 @@ PlatformMetaSearchMessenger
 		
 		if ( show == null ){
 			
-			show = new Boolean( true );
+			show = Boolean.TRUE;
 		}
 		
 		if ( id == null || show == null || date == null ){
@@ -295,7 +295,7 @@ PlatformMetaSearchMessenger
 		}
 		
 		parameters.put( "userId", user_id );
-		parameters.put( "selected", new Boolean( is_selected ));
+		parameters.put( "selected", Boolean.valueOf(is_selected));
 		
 		dispatcher.syncInvoke(	OP_TEMPLATE_SELECTED, parameters ); 
 	}

@@ -322,7 +322,7 @@ StartServer
 
           if (!core_started) {
 
-            queued_torrents.add( new Object[]{ file_name, new Boolean( open )});
+            queued_torrents.add( new Object[]{ file_name, Boolean.valueOf(open)});
 
             queued = true;
           }

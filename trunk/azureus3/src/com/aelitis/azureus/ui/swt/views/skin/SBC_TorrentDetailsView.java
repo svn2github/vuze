@@ -523,7 +523,7 @@ public class SBC_TorrentDetailsView
 					manager
 				});
 			}
-			menuTree.setData("is_detailed_view", new Boolean(true));
+			menuTree.setData("is_detailed_view", Boolean.TRUE);
 
 			MenuFactory.buildTorrentMenu(menuTree);
 		}

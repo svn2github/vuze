@@ -148,7 +148,7 @@ public class ColumnProgressETA
 		menuShowETA.setStyle(TableContextMenuItem.STYLE_CHECK);
 		menuShowETA.addFillListener(new MenuItemFillListener() {
 			public void menuWillBeShown(MenuItem menu, Object data) {
-				menu.setData(new Boolean(showETA));
+				menu.setData(Boolean.valueOf(showETA));
 			}
 		});
 		menuShowETA.addMultiListener(new MenuItemListener() {
@@ -163,7 +163,7 @@ public class ColumnProgressETA
 		menuShowSpeed.setStyle(TableContextMenuItem.STYLE_CHECK);
 		menuShowSpeed.addFillListener(new MenuItemFillListener() {
 			public void menuWillBeShown(MenuItem menu, Object data) {
-				menu.setData(new Boolean(showSpeed));
+				menu.setData(Boolean.valueOf(showSpeed));
 			}
 		});
 		menuShowSpeed.addMultiListener(new MenuItemListener() {

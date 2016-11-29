@@ -564,7 +564,7 @@ PluginConfigImpl
 	//
 	//
     public void setBooleanParameter(String name, boolean value) {
-		if ( setFakeValueWhenDisabled(key, name, new Boolean( value))){
+		if ( setFakeValueWhenDisabled(key, name, Boolean.valueOf(value))){
 			return;
 		}
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
@@ -623,7 +623,7 @@ PluginConfigImpl
 	//
     public void setCoreBooleanParameter(String name, boolean value) {
     	checkValidCoreParam(name);
-		if ( setFakeValueWhenDisabled(key, name, new Boolean( value))){
+		if ( setFakeValueWhenDisabled(key, name, Boolean.valueOf(value))){
 			return;
 		}
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
@@ -855,7 +855,7 @@ PluginConfigImpl
 	//
 	//
     public void setUnsafeBooleanParameter(String name, boolean value) {
-		if ( setFakeValueWhenDisabled(key, name, new Boolean( value))){
+		if ( setFakeValueWhenDisabled(key, name, Boolean.valueOf(value))){
 			return;
 		}
 		notifyParamExists(name);

@@ -1424,7 +1424,7 @@ MagnetPlugin
 													try{
 														potential_contacts_mon.enter();
 														
-														Object[]	entry = new Object[]{ new Boolean( alive ), contact};
+														Object[]	entry = new Object[]{Boolean.valueOf(alive), contact};
 														
 														boolean	added = false;
 														

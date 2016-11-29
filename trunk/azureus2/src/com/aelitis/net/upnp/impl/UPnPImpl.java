@@ -1054,7 +1054,7 @@ UPnPImpl
 
 			old_listeners = new ArrayList(log_listeners);
 
-			log_alert_history.add(new Object[]{ str, new Boolean( error ), new Integer( type )});
+			log_alert_history.add(new Object[]{ str, Boolean.valueOf(error), new Integer( type )});
 			
 			if ( log_alert_history.size() > 32 ){
 				
