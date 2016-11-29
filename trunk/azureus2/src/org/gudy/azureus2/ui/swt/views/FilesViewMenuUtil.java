@@ -644,8 +644,14 @@ public class FilesViewMenuUtil
 						
 						// we're doing a re-target so we just need to update the file info to refer to the new existing file
 						
-						dont_delete_existing = true;
+						if ( checkRetargetOK( fileInfo, f_target )){
 						
+							dont_delete_existing = true;
+							
+						}else{
+							
+							continue;
+						}
 					}else if ( existing_file.exists() && !askCanOverwrite(existing_file)){
 
 						// A rewrite will occur, so we need to ask the user's permission.
@@ -1011,6 +1017,31 @@ public class FilesViewMenuUtil
 		return mb.waitUntilClosed() == SWT.OK;
 	}
 
+	private static boolean checkRetargetOK(DiskManagerFileInfo info, File target) {
+		
+		if ( !target.exists()){
+			
+			return( true );
+		}
+		
+		if ( info.getTorrentFile().getLength() == target.length()){
+			
+			return( true );
+		}
+		
+		MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.CANCEL,
+				MessageText.getString("FilesView.retarget.confirm.title"),
+				MessageText.getString("FilesView.retarget.confirm.text"));
+		
+		mb.setDefaultButtonUsingStyle(SWT.OK);
+		
+		mb.setLeftImage(SWT.ICON_WARNING);
+		
+		mb.open(null);
+		
+		return mb.waitUntilClosed() == SWT.OK;
+	}
+	
 	// same code is used in tableitems.files.NameItem
 	private static void 
 	moveFile(
