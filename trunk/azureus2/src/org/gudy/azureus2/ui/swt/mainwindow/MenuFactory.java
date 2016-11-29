@@ -1715,7 +1715,7 @@ public class MenuFactory
 				
 		java.util.List<DownloadManager> dms = core.getGlobalManager().getDownloadManagers();
 		
-		content.append("Downloads - ").append(dms.size()).append(NL);
+		content.append("Downloads - ").append(String.valueOf( dms.size())).append(NL);
 
 		iw = new IndentWriter( new PrintWriter( content ));
 		
@@ -1736,7 +1736,7 @@ public class MenuFactory
 					hash_str = "<no hash>";
 				}
 				
-				content.append("    ").append(hash_str).append(": ").append(DisplayFormatters.formatDownloadStatus(dm)).append(NL);
+				iw.println( hash_str + ": " + DisplayFormatters.formatDownloadStatus(dm));
 				
 				iw.indent();
 				
