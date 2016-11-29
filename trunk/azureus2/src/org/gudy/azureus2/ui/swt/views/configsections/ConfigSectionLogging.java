@@ -481,7 +481,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 						
 						Map.Entry	entry = (Map.Entry)it.next();
 						
-						buffer.append( entry.getKey() + " -> " + entry.getValue() + "\r\n" );
+						buffer.append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\r\n");
 					}
 					
 					String	str = buffer.toString();

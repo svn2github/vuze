@@ -188,8 +188,10 @@ public class LimitControlDropUploadFirst implements LimitControl
         StringBuilder msg = new StringBuilder(" create-update: valueUp="+valueUp+",upLimit="+upLimit+",valueDown=");
         if(valueDown== 1.0 ) msg.append("_unlimited_");
         else msg.append(valueDown);
-        msg.append(",downLimit="+downLimit+",upMax="+upMax+",usedUpMax="+usedUpMax+",upMin="+upMin+",downMax="+downMax);
-        msg.append(",downMin="+downMin+",transferMode="+mode.getString()+",isDownUnlimited="+isDownloadUnlimited);
+        msg.append(",downLimit=").append(downLimit).append(",upMax=").append(upMax).append(",usedUpMax=").append(usedUpMax)
+          .append(",upMin=").append(upMin).append(",downMax=").append(downMax);
+        msg.append(",downMin=").append(downMin).append(",transferMode=").append(mode.getString()).append(",isDownUnlimited=")
+          .append(isDownloadUnlimited);
 
         SpeedManagerLogger.log( msg.toString() );
 

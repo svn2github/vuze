@@ -104,12 +104,12 @@ PListEditor
 	{
 		StringBuilder value = new StringBuilder();
 		StringBuilder find = new StringBuilder();
-		find.append("(?s).*?<key>" + key + "</key>\\s*" + "<array>");
+		find.append("(?s).*?<key>").append(key).append("</key>\\s*").append("<array>");
 		for(int i = 0 ; i < values.length ; i++) {
-			find.append("\\s*<" + valueType + ">" + values[i] + "</" + valueType + ">");
-			value.append("\n\t\t\t\t<" + valueType + ">");
+			find.append("\\s*<").append(valueType).append(">").append(values[i]).append("</").append(valueType).append(">");
+			value.append("\n\t\t\t\t<").append(valueType).append(">");
 			value.append(values[i]);
-			value.append("</" + valueType + ">");
+			value.append("</").append(valueType).append(">");
 		}
 		find.append("\\s*</array>.*");
 		value.append("\n\t\t\t");

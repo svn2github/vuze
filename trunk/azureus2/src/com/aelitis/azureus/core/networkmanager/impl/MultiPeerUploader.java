@@ -565,9 +565,10 @@ public class MultiPeerUploader implements RateControlledEntity {
   {
 	  StringBuilder str = new StringBuilder();
 		  
-	  str.append( "MPU (" + waiting_connections.size() + "/" + ready_connections.size() + "): " );
+	  str.append("MPU (").append(waiting_connections.size()).append("/").append(ready_connections.size()).append("): ");
 	  
-	  str.append( "can_process=" + canProcess(null) + ",bytes_allowed=" + rate_handler.getCurrentNumBytesAllowed() + ", waiting=" );
+	  str.append("can_process=").append(canProcess(null)).append(",bytes_allowed=").append(rate_handler.getCurrentNumBytesAllowed())
+		  .append(", waiting=");
   
 	  try {
 		  lists_lock.enter();

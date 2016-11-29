@@ -353,11 +353,11 @@ public class UIUpdaterSWT
 						sb.append("\n");
 					sb.append(lTime * 100 / waitTimeMS);
 					sb.append("% ");
-					sb.append(lTime + "ms avg: ");
-					sb.append("[" + ((UIUpdatable) key).getUpdateUIName() + "]");
-					sb.append(average[IDX_SIZE] + " samples");
-					sb.append("; max:" + average[IDX_MAX]);
-					sb.append("; last:" + average[IDX_LAST]);
+					sb.append(lTime).append("ms avg: ");
+					sb.append("[").append(((UIUpdatable) key).getUpdateUIName()).append("]");
+					sb.append(average[IDX_SIZE]).append(" samples");
+					sb.append("; max:").append(average[IDX_MAX]);
+					sb.append("; last:").append(average[IDX_LAST]);
 				}
 			}
 

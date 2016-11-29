@@ -639,11 +639,12 @@ AEProxySelectorImpl
 			long now		= SystemTime.getCurrentTime();
 			long mono_now 	= SystemTime.getMonotonousTime();
 			
-			sb.append( "Proxy: " + address + NL );
-			sb.append( "Last connection attempt: " + (last_connection_time==-1?"Never":( new Date( now - ( mono_now - last_connection_time )))) + NL );
-			sb.append( "Last failure: " + (last_fail_time==-1?"Never":( new Date( now - ( mono_now - last_fail_time )))) + NL );
-			sb.append( "Total connections: " + connection_count + NL );
-			sb.append( "Total failures: " + fail_count + NL );
+			sb.append("Proxy: ").append(address).append(NL);
+			sb.append("Last connection attempt: ")
+				.append(last_connection_time == -1 ? "Never" : (new Date(now - (mono_now - last_connection_time)))).append(NL);
+			sb.append("Last failure: ").append(last_fail_time == -1 ? "Never" : (new Date(now - (mono_now - last_fail_time)))).append(NL);
+			sb.append("Total connections: ").append(connection_count).append(NL);
+			sb.append("Total failures: ").append(fail_count).append(NL);
 			
 			List<MyProxy> proxies = new ArrayList<MyProxy>( proxy_list_cow );
 			
@@ -651,7 +652,7 @@ AEProxySelectorImpl
 			
 			for ( MyProxy p: proxies ){
 				
-				sb.append( p.getInfo( now, mono_now ) + NL );
+				sb.append(p.getInfo(now, mono_now)).append(NL);
 			}
 			
 			return( sb.toString());

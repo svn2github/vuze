@@ -182,7 +182,7 @@ public class ColumnActivityActions
 			if (sb.length() > 0) {
 				sb.append(", ");
 			}
-			sb.append("<A HREF=\"action:" + action + "\">" + action + "</A>");
+			sb.append("<A HREF=\"action:").append(action).append("\">").append(action).append("</A>");
 		}
 		
 		cell.getTableRow().setData("text", sb.toString());

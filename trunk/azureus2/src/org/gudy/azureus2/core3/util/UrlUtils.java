@@ -1232,13 +1232,13 @@ public class UrlUtils
 			pos = authority.lastIndexOf(':');
 			if ( pos == -1 ){
 				if ( port > 0 ){
-					result.append(authority + ":" + port );
+					result.append(authority).append(":").append(port);
 				}else{
 					result.append(authority);
 				}
 			}else{
 				if ( port > 0 ){
-					result.append(authority.substring(0,pos+1) + port );
+					result.append(authority.substring(0, pos + 1)).append(port);
 				}else{
 					result.append(authority.substring(0,pos));
 				}
@@ -1283,7 +1283,7 @@ public class UrlUtils
 			if ( pos == -1 ){
 				result.append(host );
 			}else{
-				result.append(host + authority.substring(pos));				
+				result.append(host).append(authority.substring(pos));
 			}
 		}
 		if (u.getPath() != null) {
@@ -1346,9 +1346,9 @@ public class UrlUtils
 				port = u.getDefaultPort();
 			}
 			if ( pos == -1 ){
-				result.append(authority + ":" + port );
+				result.append(authority).append(":").append(port);
 			}else{
-				result.append(authority.substring(0,pos+1) + port );				
+				result.append(authority.substring(0, pos + 1)).append(port);
 			}
 		}
 

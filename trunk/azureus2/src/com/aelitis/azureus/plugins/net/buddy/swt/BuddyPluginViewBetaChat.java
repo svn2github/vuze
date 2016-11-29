@@ -4183,7 +4183,7 @@ BuddyPluginViewBetaChat
 							
 							if ( obj instanceof URL ){
 							
-								sb.append( "\"" + ((URL)obj).toExternalForm() + "\"" );
+								sb.append("\"").append(((URL) obj).toExternalForm()).append("\"");
 								
 							}else{
 								
@@ -4234,7 +4234,7 @@ BuddyPluginViewBetaChat
 												
 												if ( match ){
 												
-													temp.append( "\"chat:nick[[" + UrlUtils.encode(my_nick) + "]]\"" );
+													temp.append("\"chat:nick[[").append(UrlUtils.encode(my_nick)).append("]]\"");
 	
 												}else{
 													

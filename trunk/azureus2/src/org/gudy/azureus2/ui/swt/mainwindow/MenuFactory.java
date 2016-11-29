@@ -1431,38 +1431,37 @@ public class MenuFactory
 					
 					LocaleUtilDecoder	locale_decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
 
-					content.append( "Character Encoding:\t" + locale_decoder.getName() + NL );
+					content.append("Character Encoding:\t").append(locale_decoder.getName()).append(NL);
 
 					String display_name = locale_decoder.decodeString( torrent.getName());
 					
-					content.append( "Name:\t" + display_name + NL );
+					content.append("Name:\t").append(display_name).append(NL);
 					
 					byte[] hash = torrent.getHash();
 					
-					content.append( "Hash:\t" + ByteFormatter.encodeString( hash ) + NL );
+					content.append("Hash:\t").append(ByteFormatter.encodeString(hash)).append(NL);
 										
-					content.append( 
-						"Size:\t" + DisplayFormatters.formatByteCountToKiBEtc( torrent.getSize()) + 
-						", piece size=" + DisplayFormatters.formatByteCountToKiBEtc( torrent.getPieceLength()) + 
-						", piece count=" + torrent.getPieces().length + NL );
+					content.append("Size:\t").append(DisplayFormatters.formatByteCountToKiBEtc(torrent.getSize())).append(", piece size=")
+						.append(DisplayFormatters.formatByteCountToKiBEtc(torrent.getPieceLength())).append(", piece count=")
+						.append(torrent.getPieces().length).append(NL);
 					
 					if ( torrent.getPrivate()){
 						
-						content.append( "Private Torrent" + NL );
+						content.append("Private Torrent").append(NL);
 					}
 					
 					URL announce_url = torrent.getAnnounceURL();
 					
 					if ( announce_url != null ){
 					
-						content.append( "Announce URL:\t" + announce_url + NL );
+						content.append("Announce URL:\t").append(announce_url).append(NL);
 					}
 					
 					TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
 					
 					if ( sets.length > 0 ){
 						
-						content.append( "Announce List" + NL );
+						content.append("Announce List").append(NL);
 						
 						for ( TOTorrentAnnounceURLSet set: sets ){
 							
@@ -1475,36 +1474,36 @@ public class MenuFactory
 								x += ( x.length()==0?"":", ") + u;
 							}
 						
-							content.append( "\t" + x + NL );
+							content.append("\t").append(x).append(NL);
 						}
 					}
 					
-					content.append( "Magnet URI:\t" + UrlUtils.getMagnetURI( display_name, PluginCoreUtils.wrap( torrent )) + NL );
+					content.append("Magnet URI:\t").append(UrlUtils.getMagnetURI(display_name, PluginCoreUtils.wrap(torrent))).append(NL);
 
 					long c_date = torrent.getCreationDate();
 					
 					if ( c_date > 0 ){
 					
-						content.append(  "Created On:\t" + DisplayFormatters.formatDate( c_date*1000) + NL );
+						content.append("Created On:\t").append(DisplayFormatters.formatDate(c_date * 1000)).append(NL);
 					}
 					
 					byte[] created_by = torrent.getCreatedBy();
 					
 					if ( created_by != null ){
 					
-						content.append( "Created By:\t" + locale_decoder.decodeString( created_by ) + NL );
+						content.append("Created By:\t").append(locale_decoder.decodeString(created_by)).append(NL);
 					}
 					
 					byte[] comment = torrent.getComment();
 					
 					if ( comment != null ){
 					
-						content.append( "Comment:\t" + locale_decoder.decodeString( comment ) + NL );
+						content.append("Comment:\t").append(locale_decoder.decodeString(comment)).append(NL);
 					}
 					
 					TOTorrentFile[] files = torrent.getFiles();
 					
-					content.append( "Files:\t" + files.length + " - simple=" + torrent.isSimpleTorrent() + NL );
+					content.append("Files:\t").append(files.length).append(" - simple=").append(torrent.isSimpleTorrent()).append(NL);
 					
 					for ( TOTorrentFile tf: files ){
 						
@@ -1517,7 +1516,8 @@ public class MenuFactory
 							f_name += (f_name.length()==0?"":File.separator) + locale_decoder.decodeString( comp );
 						}
 						
-						content.append( "\t" + f_name + "\t\t" + DisplayFormatters.formatByteCountToKiBEtc( tf.getLength()) + NL );
+						content.append("\t").append(f_name).append("\t\t").append(DisplayFormatters.formatByteCountToKiBEtc(tf.getLength()))
+							.append(NL);
 					}
 					
 				}catch( Throwable e ){
@@ -1710,12 +1710,12 @@ public class MenuFactory
 				continue;
 			}
 			
-			content.append( "    " + pi.getPluginName() + ": " + pi.getPluginVersion() + NL );
+			content.append("    ").append(pi.getPluginName()).append(": ").append(pi.getPluginVersion()).append(NL);
 		}
 				
 		java.util.List<DownloadManager> dms = core.getGlobalManager().getDownloadManagers();
 		
-		content.append( "Downloads - " + dms.size() + NL );
+		content.append("Downloads - ").append(dms.size()).append(NL);
 
 		iw = new IndentWriter( new PrintWriter( content ));
 		
@@ -1736,7 +1736,7 @@ public class MenuFactory
 					hash_str = "<no hash>";
 				}
 				
-				content.append( "    " + hash_str + ": " + DisplayFormatters.formatDownloadStatus( dm ) + NL );
+				content.append("    ").append(hash_str).append(": ").append(DisplayFormatters.formatDownloadStatus(dm)).append(NL);
 				
 				iw.indent();
 				

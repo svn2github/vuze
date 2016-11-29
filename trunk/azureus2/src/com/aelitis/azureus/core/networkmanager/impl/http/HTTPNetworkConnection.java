@@ -440,7 +440,8 @@ HTTPNetworkConnection
 			
 			if ( offsets.length == 1 && content_length > 0 ){
 				
-				res.append( "Content-Range: bytes " + offsets[0] + "-" + (offsets[0]+lengths[0]-1) + "/" + content_length );
+				res.append("Content-Range: bytes ").append(offsets[0]).append("-").append(offsets[0] + lengths[0] - 1).append("/")
+					.append(content_length);
 				res.append( NL );
 			}
 		}

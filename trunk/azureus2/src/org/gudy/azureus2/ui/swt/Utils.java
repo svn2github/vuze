@@ -1965,14 +1965,14 @@ public class Utils
 	{
 		if ( done.contains( comp )){
 			
-			sb.append( "<recursive: " + comp );
+			sb.append("<recursive: ").append(comp);
 			
 			return;
 		}	
 		
 		done.add( comp );
 		
-		sb.append( comp + "[" + comp.isVisible() + "," + comp.getBounds() + "]" );
+		sb.append(comp).append("[").append(comp.isVisible()).append(",").append(comp.getBounds()).append("]");
 		
 		if ( comp instanceof Composite ){
 			
@@ -3563,7 +3563,7 @@ public class Utils
 												
 												for ( String l: lines ){
 													
-													content.append( l + "\r\n" );
+													content.append(l).append("\r\n");
 												}
 												
 												if ( !complete ){
@@ -3576,7 +3576,7 @@ public class Utils
 													
 													if ( info.length() > 0 ){
 														
-														content.append( info + "\r\n" );
+														content.append(info).append("\r\n");
 													}
 												}
 												

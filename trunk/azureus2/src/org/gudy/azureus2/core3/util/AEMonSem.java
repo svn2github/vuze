@@ -443,7 +443,7 @@ AEMonSem
 					
 					AEMonSem	mon = (AEMonSem)stack.get(i);
 
-					sb.append( "$" + mon.name );
+					sb.append("$").append(mon.name);
 				}
 				
 				Debug.out( "**** Whoaaaaaa, AEMonSem debug stack is getting too large!!!! **** " + sb );

@@ -155,7 +155,7 @@ public class SB_Discovery
 									if (sb.length() > 0) {
 										sb.append("\n");
 									}
-									sb.append(subEntry.getTitle() + ": " + text);
+									sb.append(subEntry.getTitle()).append(": ").append(text);
 								}
 							}
 						}

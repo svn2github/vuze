@@ -431,7 +431,7 @@ PMSWTImpl
 					
 					if ( local_addresses.contains( ip )){
 						
-						tt_ip_details.append( MessageText.getString( "DHTView.db.local" ) + " (" + ip + ")" );
+						tt_ip_details.append(MessageText.getString("DHTView.db.local")).append(" (").append(ip).append(")");
 						
 					}else{
 						
@@ -446,12 +446,12 @@ PMSWTImpl
 						
 					}else{
 						
-						tt_ip_details.append( " " + MessageText.getString( "label.access.denied" ));
+						tt_ip_details.append(" ").append(MessageText.getString("label.access.denied"));
 						
 						newest_bad_mono 	= Math.max( newest_bad_mono, e_mono );
 					}
 					
-					tt_ip_details.append( " - " + age_str + " ago");
+					tt_ip_details.append(" - ").append(age_str).append(" ago");
 				}
 			}
 			
@@ -473,7 +473,7 @@ PMSWTImpl
 					
 				}else{
 					
-					tooltip_text.append( "\n    " + name );
+					tooltip_text.append("\n    ").append(name);
 					tooltip_text.append( tt_ip_details );
 					
 					records_added++;
@@ -488,7 +488,7 @@ PMSWTImpl
 		
 		if ( records_added == 0 ){
 			
-			tooltip_text.append( "\n    " + MessageText.getString( "pairing.ui.icon.tip.no.recent" ));
+			tooltip_text.append("\n    ").append(MessageText.getString("pairing.ui.icon.tip.no.recent"));
 		}
 		
 		String tooltip_text_str = tooltip_text.toString();

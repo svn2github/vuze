@@ -867,7 +867,7 @@ outer:
     	
     	for( Iterator<RawMessage> it = prev_sent.iterator(); it.hasNext(); ) {
     		RawMessage raw = it.next();
-        trace.append( "[#h" +i+ "]: ")
+        trace.append("[#h").append(i).append("]: ")
              .append(raw.getID())
              .append(" [")
              .append(raw.getDescription())

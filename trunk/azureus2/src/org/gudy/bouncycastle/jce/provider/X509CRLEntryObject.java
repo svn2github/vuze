@@ -141,8 +141,8 @@ public class X509CRLEntryObject extends X509CRLEntry
 		StringBuilder buf = new StringBuilder();
 		String nl = System.getProperty("line.separator");
 
-		buf.append("      userCertificate: " + this.getSerialNumber() + nl);
-		buf.append("       revocationDate: " + this.getRevocationDate() + nl);
+		buf.append("      userCertificate: ").append(this.getSerialNumber()).append(nl);
+		buf.append("       revocationDate: ").append(this.getRevocationDate()).append(nl);
 
 
 		X509Extensions extensions = c.getExtensions();
@@ -152,7 +152,7 @@ public class X509CRLEntryObject extends X509CRLEntry
 			Enumeration e = extensions.oids();
 			if ( e.hasMoreElements() )
 			{
-				buf.append("   crlEntryExtensions:" + nl);
+				buf.append("   crlEntryExtensions:").append(nl);
 
 				while ( e.hasMoreElements() )
 				{

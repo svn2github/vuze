@@ -1758,7 +1758,7 @@ BuddyPluginViewInstance
 						
 						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 						
-						sb.append( buddy.getPublicKey() + "\r\n" );
+						sb.append(buddy.getPublicKey()).append("\r\n");
 					}
 					
 					if ( sb.length() > 0 ){
@@ -2042,7 +2042,7 @@ BuddyPluginViewInstance
 											sb.append( buddy.getPublicKey());
 											sb.append( "\r\n" );
 
-											sb.append( "hash_ok: " + Arrays.equals( hash, sha1 ));
+											sb.append("hash_ok: ").append(Arrays.equals(hash, sha1));
 											sb.append( "\r\n" );
 											
 											sb.append( "payload: " );
@@ -2177,7 +2177,7 @@ BuddyPluginViewInstance
 
 											boolean ok = plugin.verify( pk, data, sig );
 											
-											sb.append( "sig_ok: " + ok  );
+											sb.append("sig_ok: ").append(ok);
 											sb.append( "\r\n" );
 											
 											sb.append( "data: " );

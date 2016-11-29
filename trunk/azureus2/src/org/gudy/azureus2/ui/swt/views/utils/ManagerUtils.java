@@ -1052,7 +1052,7 @@ public class ManagerUtils {
 																		
 									StringBuilder line = new StringBuilder( max_filename + 64 );
 									
-									line.append( "<a href=\"" + entry[0] + "\">" + XUXmlWriter.escapeXML( file_name ) + "</a>" );
+									line.append("<a href=\"").append(entry[0]).append("\">").append(XUXmlWriter.escapeXML(file_name)).append("</a>");
 									
 									line.append( padding, 0, max_filename - len );
 									

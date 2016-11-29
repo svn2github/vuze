@@ -131,9 +131,9 @@ public class JCERSAPublicKey
         StringBuilder buf = new StringBuilder();
         String          nl = System.getProperty("line.separator");
 
-        buf.append("RSA Public Key" + nl);
-        buf.append("            modulus: " + this.getModulus().toString(16) + nl);
-        buf.append("    public exponent: " + this.getPublicExponent().toString(16) + nl);
+        buf.append("RSA Public Key").append(nl);
+        buf.append("            modulus: ").append(this.getModulus().toString(16)).append(nl);
+        buf.append("    public exponent: ").append(this.getPublicExponent().toString(16)).append(nl);
 
         return buf.toString();
     }

@@ -2271,14 +2271,14 @@ TRTrackerBTAnnouncerImpl
 		
 		if ( up > 0 ){
 			
-			request.append( "&azup=" + up );
+			request.append("&azup=").append(up);
 		}
 		
 		String as = NetworkAdmin.getSingleton().getCurrentASN().getAS();
 		
 	    if ( as.length() > 0 ){
 	    	
-	    	request.append( "&azas=" + URLEncoder.encode( as, "UTF8" ));
+	    	request.append("&azas=").append(URLEncoder.encode(as, "UTF8"));
 	    }
 	    
 		DHTNetworkPosition	best_position = DHTNetworkPositionManager.getBestLocalPosition();
@@ -2288,7 +2288,7 @@ TRTrackerBTAnnouncerImpl
 			try{
 				byte[]	bytes = DHTNetworkPositionManager.serialisePosition( best_position );
 				
-				request.append( "&aznp=" + Base32.encode( bytes ));
+				request.append("&aznp=").append(Base32.encode(bytes));
 								
 			}catch( Throwable e ){
 				
