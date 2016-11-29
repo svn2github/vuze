@@ -89,6 +89,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionListener;
@@ -4303,7 +4304,35 @@ public class OpenTorrentOptionsWindow
 						widgetSelected(
 							SelectionEvent e) 
 						{
-							TagUIUtilsV3.showCreateTagDialog(null);
+							TagUIUtilsV3.showCreateTagDialog(
+								new UIFunctions.TagReturner()
+								{
+									public void returnedTags(Tag[] tags){
+									
+										List<Tag> initialTags = torrentOptions.getInitialTags();
+										
+										boolean changed = false;
+										
+										for ( Tag tag: tags ){
+											
+											if ( !initialTags.contains( tag )){
+												
+												initialTags.add( tag );
+												
+												changed = true;
+											}
+										}
+										
+										if ( changed ){
+										
+											torrentOptions.setInitialTags( initialTags );
+											
+											updateStartOptionsHeader();
+											
+											buildTagButtonPanel( tagButtonsArea, true );
+										}
+									}
+								});
 						}
 					});
 			}
@@ -4601,6 +4630,17 @@ public class OpenTorrentOptionsWindow
 						tagRemoved(
 							Tag tag ) 
 						{
+							List<Tag> initialTags = torrentOptions.getInitialTags();
+							
+							if ( initialTags.contains( tag )){
+								
+								initialTags.remove( tag );
+								
+								torrentOptions.setInitialTags( initialTags );
+								
+								updateStartOptionsHeader();
+							}
+							
 							rebuild();
 						}
 						
