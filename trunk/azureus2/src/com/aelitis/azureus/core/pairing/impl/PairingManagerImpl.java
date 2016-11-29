@@ -637,7 +637,7 @@ PairingManagerImpl
 				
 				for ( Map m: list ){
 					
-					result.add( new PairedService2Impl( (String)m.get( "sid" ), m ));
+					result.add(new PairedService2Impl((String) m.get("sid"), m));
 				}
 			}
 			
@@ -2340,14 +2340,14 @@ PairingManagerImpl
 			
 			for ( Map.Entry<String,Map> entry: smap.entrySet()){
 				
-				services.add( new PairedService2Impl( entry.getKey(), entry.getValue()));
+				services.add(new PairedService2Impl(entry.getKey(), entry.getValue()));
 			}
 			
 			return( services );
 		}
 	}
 	
-	private class
+	private static class
 	PairedService2Impl
 		implements PairedService
 	{
