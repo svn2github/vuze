@@ -23,6 +23,7 @@
 package org.gudy.azureus2.ui.swt.config;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Control;
@@ -59,10 +60,8 @@ public class ChangeSelectionActionPerformer implements IAdditionalActionPerforme
 	  
 	  for (int i=0;i<params.length;i++){
 		  Control[] x = params[i].getControls();
-		  
-		  for (int j=0;j<x.length;j++){
-			  c.add( x[j] );
-		  }
+
+		  Collections.addAll(c, x);
 	  }
 	  
 	  controls = new Control[c.size()];

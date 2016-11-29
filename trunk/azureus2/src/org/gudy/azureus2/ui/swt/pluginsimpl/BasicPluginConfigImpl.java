@@ -882,11 +882,8 @@ BasicPluginConfigImpl
 				    Object[] stuff = (Object[])comp_map.get( enable_param );
 				    
 				    if ( stuff != null ){
-				    	
-					    for(int k = 1 ; k < stuff.length ; k++) {
-					    	
-					    	controlsToEnable.add(stuff[k]);
-					    }
+
+					    controlsToEnable.addAll(Arrays.asList(stuff).subList(1, stuff.length));
 				    }
 				}
 				
@@ -901,11 +898,8 @@ BasicPluginConfigImpl
 				    Object[] stuff = (Object[])comp_map.get( disable_param );
 				    
 				    if ( stuff != null ){
-				    	
-					    for(int k = 1 ; k < stuff.length ; k++) {
-					    	
-					    	controlsToDisable.add(stuff[k]);
-					    }
+
+					    controlsToDisable.addAll(Arrays.asList(stuff).subList(1, stuff.length));
 				    }
 				}
 

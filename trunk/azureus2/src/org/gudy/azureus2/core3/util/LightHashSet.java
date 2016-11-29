@@ -351,21 +351,17 @@ public class LightHashSet extends AbstractSet implements Cloneable {
 		final Set s2 = new LightHashSet();
 		System.out.println("fill:");
 		time = System.currentTimeMillis();
-		for (int i = 0; i < fillData.length; i++)
-			s1.add(fillData[i]);
+		Collections.addAll(s1, fillData);
 		System.out.println(System.currentTimeMillis() - time);
 		time = System.currentTimeMillis();
-		for (int i = 0; i < fillData.length; i++)
-			s2.add(fillData[i]);
+		Collections.addAll(s2, fillData);
 		System.out.println(System.currentTimeMillis() - time);
 		System.out.println("replace-fill:");
 		time = System.currentTimeMillis();
-		for (int i = 0; i < fillData.length; i++)
-			s1.add(fillData[i]);
+		Collections.addAll(s1, fillData);
 		System.out.println(System.currentTimeMillis() - time);
 		time = System.currentTimeMillis();
-		for (int i = 0; i < fillData.length; i++)
-			s2.add(fillData[i]);
+		Collections.addAll(s2, fillData);
 		System.out.println(System.currentTimeMillis() - time);
 		System.out.println("get:");
 		time = System.currentTimeMillis();

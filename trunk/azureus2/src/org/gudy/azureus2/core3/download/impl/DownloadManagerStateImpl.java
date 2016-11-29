@@ -1506,11 +1506,8 @@ DownloadManagerStateImpl
 		}
 		
 		List	l = new ArrayList();
-		
-		for (int i=0;i<networks.length;i++){
-			
-			l.add( networks[i]);
-		}
+
+		Collections.addAll(l, networks);
 		
 		setListAttribute( AT_NETWORKS, l );
 	}

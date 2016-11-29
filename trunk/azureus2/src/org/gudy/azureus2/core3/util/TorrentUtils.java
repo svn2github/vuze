@@ -2458,8 +2458,7 @@ TorrentUtils
 	{
 		synchronized (TorrentUtils.class)
 		{
-			for (int i = 0; i < fluff.length; i++)
-				torrentFluffKeyset.add(fluff[i]);
+			Collections.addAll(torrentFluffKeyset, fluff);
 		}
 	}
 	
@@ -2703,11 +2702,8 @@ TorrentUtils
   			for (int i=0;i<sets.length;i++){
   					
   				URL[]	urls = sets[i].getAnnounceURLs();
-  				
-  				for ( URL u: urls ){
-  					
-  					url_list.add( u );
-  				}
+
+				  Collections.addAll(url_list, urls);
   			}
   			
        		urlg_mod_last_post	= applyDNSMods( getAnnounceURL(), group );

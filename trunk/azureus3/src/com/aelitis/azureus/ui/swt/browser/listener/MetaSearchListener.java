@@ -873,11 +873,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 										JSONArray	l_match = new JSONArray();
 										
 										l_matches.add( l_match );
-										
-										for (int j=0;j<match.length;j++){
-											
-											l_match.add( match[j] );
-										}
+
+										Collections.addAll(l_match, match);
 									}
 																
 									sendBrowserMessage( "metasearch", "testTemplateCompleted", params );

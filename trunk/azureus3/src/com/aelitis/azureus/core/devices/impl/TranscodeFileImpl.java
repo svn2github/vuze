@@ -26,10 +26,7 @@ package com.aelitis.azureus.core.devices.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -610,11 +607,8 @@ TranscodeFileImpl
 					if ( derp == null ){
 						
 						derp = new ArrayList<String>();
-						
-						for ( int i=0;i<pos;i++){
-							
-							derp.add( tags[i]);
-						}
+
+						derp.addAll(Arrays.asList(tags).subList(0, pos));
 					}
 				}
 			}

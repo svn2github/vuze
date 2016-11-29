@@ -19,6 +19,7 @@ package org.gudy.azureus2.ui.swt.update;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 import org.gudy.azureus2.core3.util.AEThread;
@@ -64,10 +65,7 @@ public class UpdateAutoDownloader
 		for (int i = 0; i < updates.length; i++) {
 			Update update = updates[i];
 			ResourceDownloader[] rds = update.getDownloaders();
-			for (int j = 0; j < rds.length; j++) {
-				ResourceDownloader rd = rds[j];
-				downloaders.add(rd);
-			}
+			Collections.addAll(downloaders, rds);
 		}
 
 		iterDownloaders = downloaders.iterator();

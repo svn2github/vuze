@@ -2230,11 +2230,8 @@ DHTControlImpl
 		}else{
 			
 			List	contacts_l = new ArrayList( contacts.length );
-			
-			for (int i=0;i<contacts.length;i++ ){
-				
-				contacts_l.add( contacts[i] );
-			}
+
+			Collections.addAll(contacts_l, contacts);
 			
 			put( 	external_put_pool,
 					true,
@@ -3701,10 +3698,7 @@ DHTControlImpl
 		
 				List	values_to_store = new ArrayList(values.length);
 
-				for (int i=0;i<values.length;i++){
-					
-					values_to_store.add( values[i] );
-				}
+				Collections.addAll(values_to_store, values);
 				
 				keys_to_store.put( key, values_to_store );
 			}

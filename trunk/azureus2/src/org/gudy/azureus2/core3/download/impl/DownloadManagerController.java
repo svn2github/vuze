@@ -2486,11 +2486,8 @@ DownloadManagerController
 		List	interfaces = new ArrayList();
 		
 		Object[]	intf = download_manager.getQueryableInterfaces();
-		
-		for (int i=0;i<intf.length;i++){
-			
-			interfaces.add( intf[i] );
-		}
+
+		Collections.addAll(interfaces, intf);
 		
 		interfaces.add( download_manager );
 		

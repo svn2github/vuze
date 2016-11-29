@@ -151,11 +151,8 @@ AENetworkClassifier
 		for (int i=0;i<sets.length;i++){
 			
 			URL[]	u = sets[i].getAnnounceURLs();
-			
-			for (int j=0;j<u.length;j++){
-				
-				urls.add( u[j] );
-			}
+
+			Collections.addAll(urls, u);
 		}
 		
 		List<String>	available_networks = new ArrayList<String>();
@@ -196,11 +193,8 @@ AENetworkClassifier
 											t_nets );
 					
 					if ( selected != null ){
-						
-						for (int j=0;j<selected.length;j++){
-							
-							res.add( selected[j] );
-						}
+
+						Collections.addAll(res, selected);
 					}
 				}catch( Throwable e ){
 					

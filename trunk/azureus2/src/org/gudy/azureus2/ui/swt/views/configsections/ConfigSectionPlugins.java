@@ -847,9 +847,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 						PluginParameter pp = (PluginParameter) parameterToPluginParameter
 								.get(parameterToEnable);
 						Control[] controls = pp.getControls();
-						for (int k = 0; k < controls.length; k++) {
-							controlsToEnable.add(controls[k]);
-						}
+						Collections.addAll(controlsToEnable, controls);
 					}
 
 					List parametersToDisable = ((BooleanParameterImpl) parameter)
@@ -861,9 +859,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 						PluginParameter pp = (PluginParameter) parameterToPluginParameter
 								.get(parameterToDisable);
 						Control[] controls = pp.getControls();
-						for (int k = 0; k < controls.length; k++) {
-							controlsToDisable.add(controls[k]);
-						}
+						Collections.addAll(controlsToDisable, controls);
 					}
 
 					Control[] ce = new Control[controlsToEnable.size()];

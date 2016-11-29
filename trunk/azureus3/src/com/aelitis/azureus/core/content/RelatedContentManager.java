@@ -1312,11 +1312,8 @@ RelatedContentManager
 					map.put( "b", from_info.getRand() % 100 );
 					
 					map.put( "m", encodeTags( _tags ));
-					
-					for ( String tag: _tags ){
-						
-						my_tags.add( tag );
-					}
+
+					Collections.addAll(my_tags, _tags);
 				}
 			}
 		}catch( Throwable e ){		
@@ -4952,13 +4949,9 @@ RelatedContentManager
 					if ( !same ){
 						
 						Set<String>	tags = new HashSet<String>();
-						
-						for ( String t: existing_tags ){
-							tags.add( t );
-						}
-						for ( String t: other_tags ){
-							tags.add( t );
-						}
+
+						Collections.addAll(tags, existing_tags);
+						Collections.addAll(tags, other_tags);
 						
 						setTags( tags.toArray( new String[tags.size()]));
 						

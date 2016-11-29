@@ -20,9 +20,7 @@ package com.aelitis.azureus.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.json.simple.JSONArray;
@@ -373,11 +371,8 @@ public final class ImportExportUtils {
 		List	l = new JSONArray(data.length);
 		
 		map.put( key, l );
-		
-		for (int i=0;i<data.length;i++){
-			
-			l.add( data[i] );
-		}
+
+		Collections.addAll(l, data);
 	}
 	
 	public static final void

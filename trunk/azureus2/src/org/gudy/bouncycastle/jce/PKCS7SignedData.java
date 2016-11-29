@@ -16,12 +16,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 import org.gudy.bouncycastle.jce.X509Principal;
 import org.gudy.bouncycastle.asn1.*;
@@ -303,17 +298,11 @@ public class PKCS7SignedData
         // Copy in the certificates and crls used to sign the private key.
         //
         signCert = (X509Certificate)certChain[0];
-        for (int i = 0;i < certChain.length;i++)
-        {
-            certs.add(certChain[i]);
-        }
+        Collections.addAll(certs, certChain);
 
         if (crlList != null)
         {
-            for (int i = 0;i < crlList.length;i++)
-            {
-                crls.add(crlList[i]);
-            }
+            Collections.addAll(crls, crlList);
         }
 
         //

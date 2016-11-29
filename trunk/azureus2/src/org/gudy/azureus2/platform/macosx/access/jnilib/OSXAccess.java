@@ -18,9 +18,7 @@ package org.gudy.azureus2.platform.macosx.access.jnilib;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.Constants;
 
@@ -89,9 +87,7 @@ public class OSXAccess
 		// initialize will have been called by now (via static constructor), hooking
 		// some callbacks
 		if (args != null) {
-			for (String arg : args) {
-				parameters.add(arg);
-			}
+			Collections.addAll(parameters, args);
 		}
 		return parameters.toArray(new String[0]);
 	}

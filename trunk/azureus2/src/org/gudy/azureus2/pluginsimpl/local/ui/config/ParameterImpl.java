@@ -23,6 +23,7 @@
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -85,9 +86,7 @@ ParameterImpl
 	 public void addDisabledOnSelection(Parameter parameter) {
 	  	if (parameter instanceof ParameterGroupImpl) {
 	  		ParameterImpl[] parameters = ((ParameterGroupImpl) parameter).getParameters();
-	  		for (ParameterImpl param : parameters) {
-	  			toDisable.add(param);
-				}
+			  Collections.addAll(toDisable, parameters);
 	  		return;
 	  	}
 	    toDisable.add(parameter);
@@ -96,9 +95,7 @@ ParameterImpl
 	  public void addEnabledOnSelection(Parameter parameter) {
 	  	if (parameter instanceof ParameterGroupImpl) {
 	  		ParameterImpl[] parameters = ((ParameterGroupImpl) parameter).getParameters();
-	  		for (ParameterImpl param : parameters) {
-					toEnable.add(param);
-				}
+			  Collections.addAll(toEnable, parameters);
 	  		return;
 	  	}
 	    toEnable.add(parameter);
