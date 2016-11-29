@@ -4281,12 +4281,13 @@ public class OpenTorrentOptionsWindow
 				Messages.setLanguageText(label, "label.initial_tags");
 		
 				
-				tagButtonsArea 	= new Composite( tagRight, SWT.NULL);
-				gridData = new GridData(GridData.FILL_HORIZONTAL );
-				Utils.setLayoutData(tagButtonsArea, gridData);
+				tagButtonsArea 	= new Composite( tagRight, SWT.DOUBLE_BUFFERED);
+				gridData = new GridData(SWT.FILL, SWT.FILL, true, true );
+				tagButtonsArea.setLayoutData( gridData);
 		
 				RowLayout tagLayout = new RowLayout();
 				tagLayout.pack = false;
+				tagLayout.spacing = 5;
 				Utils.setLayout(tagButtonsArea, tagLayout);
 				
 				buildTagButtonPanel( tagButtonsArea );
@@ -4430,7 +4431,7 @@ public class OpenTorrentOptionsWindow
 						
 						final Button button = new Button(p, SWT.CHECK);
 							
-						button.setBackground( Colors.white );
+						//button.setBackground( Colors.white );
 						button.setData("Tag", tag);
 
 						button.addListener(SWT.MenuDetect, menuDetectListener);
@@ -4515,7 +4516,7 @@ public class OpenTorrentOptionsWindow
 							break;
 						}
 						
-						final Button but = new Button( parent, SWT.TOGGLE );
+						final Button but = new Button( parent, SWT.CHECK );
 						but.setImage(ImageLoader.getInstance().getImage("image.sidebar.rcm"));
 		
 						
