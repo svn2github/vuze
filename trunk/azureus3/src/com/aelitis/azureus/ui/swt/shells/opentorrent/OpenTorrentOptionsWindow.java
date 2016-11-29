@@ -4430,8 +4430,11 @@ public class OpenTorrentOptionsWindow
 						p.addPaintListener(paintListener);
 						
 						final Button button = new Button(p, SWT.CHECK);
-							
-						//button.setBackground( Colors.white );
+						
+						if ( !Constants.isOSX ){
+							button.setBackground( Colors.white );
+						}
+						
 						button.setData("Tag", tag);
 
 						button.addListener(SWT.MenuDetect, menuDetectListener);
@@ -4517,6 +4520,11 @@ public class OpenTorrentOptionsWindow
 						}
 						
 						final Button but = new Button( parent, SWT.CHECK );
+						
+						if ( !Constants.isOSX ){
+							but.setBackground( Colors.white );
+						}
+						
 						but.setImage(ImageLoader.getInstance().getImage("image.sidebar.rcm"));
 		
 						
