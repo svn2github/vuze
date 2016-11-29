@@ -1230,30 +1230,7 @@ public class ConfigView implements UISWTViewEventListener {
 		return true;
 	}
 
-  public void
-  selectSection(
-  	Class<?>	config_section_class )
-  {
-	  TreeItem[]	items = tree.getItems();
-	  
-	  for (int i=0;i<items.length;i++){
-		  
-		  TreeItem	item = items[i];
-		  	    	
-		  ConfigSection section = (ConfigSection)item.getData("ConfigSectionSWT");
-			  
-		  if ( section != null && section.getClass() == config_section_class ){
-				  
-			  tree.setSelection( new TreeItem[]{ item });
-			  
-			  showSection( item, true );
-			  
-			  break;
-		  }
-	  }
-  }
-  
-  public void save() {
+	public void save() {
 		COConfigurationManager.setParameter("updated", 1);
 		COConfigurationManager.save();
 
