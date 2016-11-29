@@ -4460,7 +4460,7 @@ public class OpenTorrentOptionsWindow
 						
 						final Button button = new Button(p, SWT.CHECK);
 						
-						if ( !Constants.isOSX ){
+						if ( Constants.isWindows ){
 							button.setBackground( Colors.white );
 						}
 						
@@ -4550,7 +4550,7 @@ public class OpenTorrentOptionsWindow
 						
 						final Button but = new Button( parent, SWT.CHECK );
 						
-						if ( !Constants.isOSX ){
+						if ( Constants.isWindows ){
 							but.setBackground( Colors.white );
 						}
 						
