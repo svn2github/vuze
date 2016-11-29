@@ -72,6 +72,8 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
@@ -766,13 +768,33 @@ public class MainMDISetup
 			
 			public MdiEntry createMDiEntry(MultipleDocumentInterface mdi, String id,
 					Object datasource, Map<?, ?> params) {
-				// TODO: auto-open entries will have null datasource and id of:
-				//"Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
-				
+							
 				if (datasource instanceof Tag) {
 					Tag tag = (Tag) datasource;
 					
 					return SB_Transfers.setupTag(tag);
+					
+				}else{
+					
+					try{
+							// id format is "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
+
+						TagManager tm = TagManagerFactory.getTagManager();
+						
+						String[] bits = id.split( "\\." );
+						
+						int	tag_type = Integer.parseInt( bits[1] );
+						int	tag_id	 = Integer.parseInt( bits[2] );
+						
+						Tag tag = tm.getTagType( tag_type ).getTag( tag_id );
+						
+						if ( tag != null ){
+							
+							return SB_Transfers.setupTag(tag);
+						}
+					}catch( Throwable e ){
+						
+					}
 				}
 				
 				return null;
