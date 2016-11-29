@@ -126,7 +126,7 @@ public class ColumnThumbnail
 		/*
 		 * If the cell is not shown or nothing has changed then skip since there's nothing to update
 		 */
-		if (false == cell.isShown()
+		if (!cell.isShown()
 				|| (newTorrent == torrent && !bChanged && cell.isValid())) {
 			return;
 		}

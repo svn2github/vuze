@@ -196,7 +196,7 @@ public class ProgressReportingManager
 	 * @param listener
 	 */
 	public void addListener(IProgressReportingListener listener) {
-		if (null != listener && false == listeners.contains(listener)) {
+		if (null != listener && !listeners.contains(listener)) {
 			listeners.add(listener);
 		}
 	}
@@ -206,7 +206,7 @@ public class ProgressReportingManager
 	 * @param listener
 	 */
 	public void removeListener(IProgressReportingListener listener) {
-		if (null != listener && true == listeners.contains(listener)) {
+		if (null != listener && listeners.contains(listener)) {
 			listeners.remove(listener);
 		}
 	}
@@ -240,11 +240,11 @@ public class ProgressReportingManager
 		 */
 
 		IProgressReport pReport = reporter.getProgressReport();
-		if ((true == isAutoRemove && false == pReport.isActive())
-				|| true == pReport.isDisposed()) {
+		if ((isAutoRemove && !pReport.isActive())
+				|| pReport.isDisposed()) {
 			progressReporters.remove(reporter);
 			notifyListeners(MANAGER_EVENT_REMOVED, reporter);
-		} else if (true == progressReporters.contains(reporter)) {
+		} else if (progressReporters.contains(reporter)) {
 			progressReporters.push(reporter);
 			notifyListeners(MANAGER_EVENT_UPDATED, reporter);
 		} else {

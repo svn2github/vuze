@@ -191,7 +191,7 @@ public class ProgressReporter
 			 * Disposed already so no need to do it again
 			 */
 
-			if (true == isDisposed) {
+			if (isDisposed) {
 				return;
 			}
 
@@ -296,7 +296,7 @@ public class ProgressReporter
 		 * If a property has changed but the reporter has been canceled then don't notify the listener
 		 * since they are no longer expecting a REPORT_TYPE_PROPERTY_CHANGED event
 		 */
-		if (eventType == REPORT_TYPE_PROPERTY_CHANGED && true == isCanceled) {
+		if (eventType == REPORT_TYPE_PROPERTY_CHANGED && isCanceled) {
 			return;
 		}
 
@@ -310,7 +310,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setSelection(int, java.lang.String)
 	 */
 	public void setSelection(int selection, String message) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.message = message;
@@ -342,7 +342,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setPercentage(int, java.lang.String)
 	 */
 	public void setPercentage(int percentage, String message) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 
@@ -378,12 +378,12 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setIndeterminate(boolean)
 	 */
 	public void setIndeterminate(boolean isIndeterminate) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 
 		this.isIndeterminate = isIndeterminate;
-		if (true == isIndeterminate) {
+		if (isIndeterminate) {
 			minimum = 0;
 			maximum = 0;
 		}
@@ -395,7 +395,7 @@ public class ProgressReporter
 	 */
 	public void setDone() {
 		synchronized (this) {
-			if (true == shouldIgnore()) {
+			if (shouldIgnore()) {
 				return;
 			}
 
@@ -415,7 +415,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setMessage(java.lang.String)
 	 */
 	public void setMessage(String message) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.message = message;
@@ -427,7 +427,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setDetailMessage(java.lang.String)
 	 */
 	public void appendDetailMessage(String detailMessage) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.detailMessage = detailMessage;
@@ -449,7 +449,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setMinimum(int)
 	 */
 	public void setMinimum(int min) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.minimum = min;
@@ -460,7 +460,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setMaximum(int)
 	 */
 	public void setMaximum(int max) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.maximum = max;
@@ -472,7 +472,7 @@ public class ProgressReporter
 	 */
 	public void cancel() {
 		synchronized (this) {
-			if (true == isCanceled || true == shouldIgnore()) {
+			if (isCanceled || shouldIgnore()) {
 				return;
 			}
 
@@ -489,7 +489,7 @@ public class ProgressReporter
 	 */
 	public void retry() {
 		synchronized (this) {
-			if (true == shouldIgnore()) {
+			if (shouldIgnore()) {
 				return;
 			}
 			reInit();
@@ -503,7 +503,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setCancelAllowed(boolean)
 	 */
 	public void setCancelAllowed(boolean cancelAllowed) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 
@@ -515,7 +515,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setName(java.lang.String)
 	 */
 	public void setName(String name) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.name = name + ""; //KN: Just a quick way to ensure the name is not null
@@ -526,7 +526,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setTitle(java.lang.String)
 	 */
 	public void setTitle(String title) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.title = title;
@@ -537,7 +537,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setImage(org.eclipse.swt.graphics.Image)
 	 */
 	public void setImage(Image image) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.image = image;
@@ -548,7 +548,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setErrorMessage(java.lang.String)
 	 */
 	public void setErrorMessage(String errorMessage) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 
@@ -559,7 +559,7 @@ public class ProgressReporter
 		 * forwarding any error message from the same reporter more than once.
 		 */
 		if (null != this.errorMessage
-				&& true == this.errorMessage.equals(errorMessage)) {
+				&& this.errorMessage.equals(errorMessage)) {
 			return;
 		}
 
@@ -578,7 +578,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setRetryAllowed(boolean)
 	 */
 	public void setRetryAllowed(boolean retryOnError) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.isRetryAllowed = retryOnError;
@@ -601,7 +601,7 @@ public class ProgressReporter
 	 * @return
 	 */
 	private boolean shouldIgnore() {
-		return (true == isDisposed || true == isDone);
+		return (isDisposed || isDone);
 	}
 
 	public boolean getCancelCloses() {
@@ -640,7 +640,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setObjectData(java.lang.Object)
 	 */
 	public void setObjectData(Object objectData) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		this.objectData = objectData;
@@ -661,14 +661,14 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#addListener(org.gudy.azureus2.ui.swt.mainwindow.IProgressReporterListener)
 	 */
 	public void addListener(IProgressReporterListener listener) {
-		if (true == shouldIgnore()) {
+		if (shouldIgnore()) {
 			return;
 		}
 		if (null != listener) {
 			if (null == reporterListeners) {
 				reporterListeners = new CopyOnWriteList();
 				reporterListeners.add(listener);
-			} else if (false == reporterListeners.contains(listener)) {
+			} else if (!reporterListeners.contains(listener)) {
 				reporterListeners.add(listener);
 			}
 		}

@@ -506,8 +506,8 @@ public class MenuFactory
 
 		Listener enableHandler = new Listener() {
 			public void handleEvent(Event event) {
-				if (true == MenuFactory.isEnabledForCurrentMode(item)) {
-					if (false == item.isDisposed() && false == event.widget.isDisposed()) {
+				if (MenuFactory.isEnabledForCurrentMode(item)) {
+					if (!item.isDisposed() && !event.widget.isDisposed()) {
 						boolean hasDetails = UIFunctionsManagerSWT.getUIFunctionsSWT().hasDetailViews();
 						item.setEnabled(hasDetails);
 					}
@@ -530,8 +530,8 @@ public class MenuFactory
 
 		Listener enableHandler = new Listener() {
 			public void handleEvent(Event event) {
-				if (false == item.isDisposed()) {
-					item.setEnabled(false == MiniBarManager.getManager().getShellManager().isEmpty());
+				if (!item.isDisposed()) {
+					item.setEnabled(!MiniBarManager.getManager().getShellManager().isEmpty());
 				}
 			}
 		};
@@ -1950,14 +1950,14 @@ public class MenuFactory
 
 		Listener enableHandler = new Listener() {
 			public void handleEvent(Event event) {
-				if (null == shell || true == shell.isDisposed()
-						|| true == item.isDisposed()) {
+				if (null == shell || shell.isDisposed()
+						|| item.isDisposed()) {
 					event.doit = false;
 					return;
 				}
 
 				if (((shell.getStyle() & SWT.MIN) != 0)) {
-					item.setEnabled(false == shell.getMinimized());
+					item.setEnabled(!shell.getMinimized());
 				} else {
 					item.setEnabled(false);
 				}
@@ -1994,7 +1994,7 @@ public class MenuFactory
 				boolean hasNonMaximizedShell = false;
 				while (iter.hasNext()) {
 					Shell shell = iter.next();
-					if (false == shell.isDisposed() && false == shell.getMinimized()) {
+					if (!shell.isDisposed() && !shell.getMinimized()) {
 						hasNonMaximizedShell = true;
 						break;
 					}
@@ -2097,8 +2097,8 @@ public class MenuFactory
 		Listener enableHandler = new Listener() {
 			public void handleEvent(Event event) {
 				if ( !shell.isDisposed() && !item.isDisposed()) {
-					if (false == Constants.isOSX) {
-						if (true == shell.getMaximized()) {
+					if (!Constants.isOSX) {
+						if (shell.getMaximized()) {
 							Messages.setLanguageText(
 									item,
 									MessageText.resolveLocalizationKey(MENU_ID_WINDOW_ZOOM_RESTORE));
@@ -2110,7 +2110,7 @@ public class MenuFactory
 					}
 
 					if (((shell.getStyle() & SWT.MAX) != 0)) {
-						item.setEnabled(false == shell.getMinimized());
+						item.setEnabled(!shell.getMinimized());
 					} else {
 						item.setEnabled(false);
 					}
@@ -2703,7 +2703,7 @@ public class MenuFactory
 		 * and recursively traverse to all its sub menus until a matching
 		 * menu is found or until it has touched all sub menus
 		 */
-		if (null == menuToStartWith || true == menuToStartWith.isDisposed()
+		if (null == menuToStartWith || menuToStartWith.isDisposed()
 				|| null == idToMatch || idToMatch.length() < 1) {
 			return null;
 		}
@@ -2711,7 +2711,7 @@ public class MenuFactory
 		/*
 		 * The given menuToStartWith may be the one we're looking for
 		 */
-		if (true == idToMatch.equals(getID(menuToStartWith))) {
+		if (idToMatch.equals(getID(menuToStartWith))) {
 			return menuToStartWith;
 		}
 
@@ -2748,7 +2748,7 @@ public class MenuFactory
 		 * and recursively traverse to all its sub menus until a matching
 		 * menu item is found or until it has touched all existing menu items
 		 */
-		if (null == menuToStartWith || true == menuToStartWith.isDisposed()
+		if (null == menuToStartWith || menuToStartWith.isDisposed()
 				|| null == idToMatch || idToMatch.length() < 1) {
 			return null;
 		}
@@ -2757,7 +2757,7 @@ public class MenuFactory
 
 		for (int i = 0; i < items.length; i++) {
 			MenuItem item = items[i];
-			if (true == idToMatch.equals(getID(item))) {
+			if (idToMatch.equals(getID(item))) {
 				return item;
 			}
 
@@ -2776,7 +2776,7 @@ public class MenuFactory
 	}
 
 	private static String getID(Widget widget) {
-		if (null != widget && false == widget.isDisposed()) {
+		if (null != widget && !widget.isDisposed()) {
 			Object id = widget.getData(KEY_MENU_ID);
 			if (null != id) {
 				return id.toString();
@@ -2786,13 +2786,13 @@ public class MenuFactory
 	}
 
 	public static void setEnablementKeys(Widget widget, int keys) {
-		if (null != widget && false == widget.isDisposed()) {
+		if (null != widget && !widget.isDisposed()) {
 			widget.setData(KEY_ENABLEMENT, new Integer(keys));
 		}
 	}
 
 	public static int getEnablementKeys(Widget widget) {
-		if (null != widget && false == widget.isDisposed()) {
+		if (null != widget && !widget.isDisposed()) {
 			Object keys = widget.getData(KEY_ENABLEMENT);
 			if (keys instanceof Integer) {
 				return ((Integer) keys).intValue();
@@ -2815,7 +2815,7 @@ public class MenuFactory
 		 * and recursively traverse to all its sub menus until a matching
 		 * menu item is found or until it has touched all existing menu items
 		 */
-		if (null == menuToStartWith || true == menuToStartWith.isDisposed()) {
+		if (null == menuToStartWith || menuToStartWith.isDisposed()) {
 			return;
 		}
 
@@ -2823,7 +2823,7 @@ public class MenuFactory
 		 * If the given menu itself is disabled then just return since
 		 * its menu items can not be seen anyway
 		 */
-		if (false == setEnablement(menuToStartWith)) {
+		if (!setEnablement(menuToStartWith)) {
 			return;
 		}
 
@@ -2836,7 +2836,7 @@ public class MenuFactory
 			 * If the current menu item is disabled then just return since
 			 * its children items can not be seen anyway
 			 */
-			if (false == setEnablement(item)) {
+			if (!setEnablement(item)) {
 				continue;
 			}
 
@@ -2855,7 +2855,7 @@ public class MenuFactory
 	 * @return
 	 */
 	public static boolean setEnablement(Widget widget) {
-		if (null != widget && false == widget.isDisposed()) {
+		if (null != widget && !widget.isDisposed()) {
 			boolean isEnabled = isEnabledForCurrentMode(widget);
 
 			if (widget instanceof MenuItem) {
@@ -2878,7 +2878,7 @@ public class MenuFactory
 		int keys = getEnablementKeys(widget);
 		if (keys <= 0) {
 			return true;
-		} else if (true == isAZ3) {
+		} else if (isAZ3) {
 			return ((keys & FOR_AZ3) != 0);
 		} else {
 			return ((keys & FOR_AZ2) != 0);

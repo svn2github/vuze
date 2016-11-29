@@ -807,7 +807,7 @@ DiskManagerChannelImpl
 						
 						try{
 
-							while( true && !cancelled ){
+							while(!cancelled){
 							
 								if ( wait_sem.reserve( 500 )){
 									

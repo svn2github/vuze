@@ -61,12 +61,12 @@ public class TwistieSection
 				false);
 		gDataCollapsed.heightHint = 0;
 
-		content._setLayoutData((true == label.isCollapsed()) ? gDataCollapsed
+		content._setLayoutData((label.isCollapsed()) ? gDataCollapsed
 				: gDataExpanded);
 
 		label.addTwistieListener(new ITwistieListener() {
 			public void isCollapsed(boolean value) {
-				content._setLayoutData((true == value) ? gDataCollapsed : gDataExpanded);
+				content._setLayoutData((value) ? gDataCollapsed : gDataExpanded);
 				layout(true, true);
 
 			}
@@ -85,11 +85,11 @@ public class TwistieSection
 	}
 
 	public void setBackground(Color color) {
-		if (null != label && false == label.isDisposed()) {
+		if (null != label && !label.isDisposed()) {
 			label.setBackground(color);
 		}
 
-		if (null != content && false == content.isDisposed()) {
+		if (null != content && !content.isDisposed()) {
 			content.setBackground(color);
 		}
 
@@ -97,18 +97,18 @@ public class TwistieSection
 	}
 
 	public void setForeground(Color color) {
-		if (null != label && false == label.isDisposed()) {
+		if (null != label && !label.isDisposed()) {
 			label.setForeground(color);
 		}
 
-		if (null != content && false == content.isDisposed()) {
+		if (null != content && !content.isDisposed()) {
 			content.setForeground(color);
 		}
 		super.setForeground(color);
 	}
 
 	public void setEnabled(boolean enabled) {
-		if (null != label && false == label.isDisposed()) {
+		if (null != label && !label.isDisposed()) {
 			label.setEnabled(enabled);
 		}
 		super.setEnabled(enabled);
@@ -119,7 +119,7 @@ public class TwistieSection
 	 * @param listener
 	 */
 	public void addTwistieListener(ITwistieListener listener) {
-		if (null != label && false == label.isDisposed()) {
+		if (null != label && !label.isDisposed()) {
 			label.addTwistieListener(listener);
 		}
 	}
@@ -129,7 +129,7 @@ public class TwistieSection
 	 * @param listener
 	 */
 	public void removeTwistieListener(ITwistieListener listener) {
-		if (null != label && false == label.isDisposed()) {
+		if (null != label && !label.isDisposed()) {
 			label.removeTwistieListener(listener);
 		}
 	}
@@ -140,7 +140,7 @@ public class TwistieSection
 	 */
 
 	public void setDescription(String string) {
-		if (null != label && false == label.isDisposed()) {
+		if (null != label && !label.isDisposed()) {
 			label.setDescription(string);
 		}
 	}
@@ -151,7 +151,7 @@ public class TwistieSection
 	 */
 
 	public void setTitle(String string) {
-		if (null != label && false == label.isDisposed()) {
+		if (null != label && !label.isDisposed()) {
 			label.setTitle(string);
 		}
 	}
@@ -162,7 +162,7 @@ public class TwistieSection
 	 */
 
 	public void setToolTipText(String string) {
-		if (null != label && false == label.isDisposed()) {
+		if (null != label && !label.isDisposed()) {
 			label.setToolTipText(string);
 		}
 	}
@@ -173,7 +173,7 @@ public class TwistieSection
 	 */
 
 	public void setTwistieForeground(Color color) {
-		if (null != label && false == label.isDisposed()) {
+		if (null != label && !label.isDisposed()) {
 			label.setTwistieForeground(color);
 		}
 	}

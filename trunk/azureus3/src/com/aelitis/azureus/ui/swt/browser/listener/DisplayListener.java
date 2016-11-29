@@ -420,7 +420,7 @@ public class DisplayListener
 		/*
 		 * Refreshes all except the currently active tab
 		 */
-		if (true == VZ_NON_ACTIVE.equals(tabID)) {
+		if (VZ_NON_ACTIVE.equals(tabID)) {
 			// 3.2 TODO: Need to fix this up
 
 			List browserViewIDs = new ArrayList();
@@ -456,7 +456,7 @@ public class DisplayListener
 				SWTSkinObject skinObject = skin.getSkinObject(browserID);
 				if (skinObject instanceof SWTSkinObjectBrowser) {
 					final BrowserWrapper browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
-					if (null != browser && false == browser.isDisposed()) {
+					if (null != browser && !browser.isDisposed()) {
 						browser.refresh();
 					}
 				}

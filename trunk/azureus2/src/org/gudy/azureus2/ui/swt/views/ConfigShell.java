@@ -84,9 +84,9 @@ public class ConfigShell
 	}
 
 	public void swt_open(String section) {
-		if (null != shell && false == shell.isDisposed()) {
+		if (null != shell && !shell.isDisposed()) {
 			configView.selectSection(section, true);
-			if (true == shell.getMinimized()) {
+			if (shell.getMinimized()) {
 				shell.setMinimized(false);
 			}
 			shell.forceActive();

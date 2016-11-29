@@ -637,7 +637,7 @@ UserAlerts
   	public static void requestUserAttention(int type, Object data) {
 
   		PlatformManager pm = PlatformManagerFactory.getPlatformManager();
-  		if (true == pm.hasCapability(PlatformManagerCapabilities.RequestUserAttention)) {
+  		if (pm.hasCapability(PlatformManagerCapabilities.RequestUserAttention)) {
   			try {
   				pm.requestUserAttention(type, data);
   			} catch (PlatformManagerException e) {

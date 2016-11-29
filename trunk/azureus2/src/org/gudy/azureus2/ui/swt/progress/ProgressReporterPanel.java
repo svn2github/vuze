@@ -301,16 +301,16 @@ public class ProgressReporterPanel
 		 */
 		{
 
-			if (true == pReport.isInErrorState()) {
+			if (pReport.isInErrorState()) {
 				updateStatusLabel(
 					MessageText.getString("Progress.reporting.default.error"), true);
-			}else if (true == pReport.isDone()) {
+			}else if (pReport.isDone()) {
 				updateStatusLabel(
 					MessageText.getString("Progress.reporting.status.finished"), false);
-			} else if (true == pReport.isCanceled()) {
+			} else if (pReport.isCanceled()) {
 				updateStatusLabel(
 					MessageText.getString("Progress.reporting.status.canceled"), false);
-			} else if (true == pReport.isIndeterminate()) {
+			} else if (pReport.isIndeterminate()) {
 				updateStatusLabel(Constants.INFINITY_STRING, false);
 			} else {
 				updateStatusLabel(pReport.getPercentage() + "%", false);
@@ -428,7 +428,7 @@ public class ProgressReporterPanel
 	 * @param pReport
 	 */
 	private int handleEvents(final IProgressReport pReport) {
-		if (null == pReport || true == isDisposed() || null == getDisplay()) {
+		if (null == pReport || isDisposed() || null == getDisplay()) {
 			return RETVAL_OK;
 		}
 
@@ -444,10 +444,10 @@ public class ProgressReporterPanel
 
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
-						if (null != nameLabel && false == nameLabel.isDisposed()) {
+						if (null != nameLabel && !nameLabel.isDisposed()) {
 							nameLabel.setText(formatForDisplay(pReport.getName()));
 						}
-						if (true == pReport.isIndeterminate()) {
+						if (pReport.isIndeterminate()) {
 							updateStatusLabel(Constants.INFINITY_STRING, false);
 						} else {
 							updateStatusLabel(pReport.getPercentage() + "%", false);
@@ -505,7 +505,7 @@ public class ProgressReporterPanel
 			case REPORT_TYPE_MODE_CHANGE:
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
-						if (null != pBar && false == pBar.isDisposed()) {
+						if (null != pBar && !pBar.isDisposed()) {
 							pBar.setIndeterminate(pReport.isIndeterminate());
 						}
 					}
@@ -555,12 +555,12 @@ public class ProgressReporterPanel
 			return;
 		}
 
-		if (true == pReport.isInErrorState()) {
+		if (pReport.isInErrorState()) {
 			pBar.setIndeterminate(false);
 			pBar.setSelection(pReport.getMinimum());
 		} else {
 			pBar.setIndeterminate(pReport.isIndeterminate());
-			if (false == pReport.isIndeterminate()) {
+			if (!pReport.isIndeterminate()) {
 				pBar.setMinimum(pReport.getMinimum());
 				pBar.setMaximum(pReport.getMaximum());
 			}
@@ -590,7 +590,7 @@ public class ProgressReporterPanel
 		}
 		
 		statusLabel.setText(formatForDisplay(text));
-		if (false == showAsError) {
+		if (!showAsError) {
 			statusLabel.setForeground(normalColor);
 		} else {
 			statusLabel.setForeground(errorColor);
@@ -605,9 +605,9 @@ public class ProgressReporterPanel
 	 */
 	private void synchActionLabels(IProgressReport pReport) {
 		if (null == actionLabel_remove || null == actionLabel_cancel
-				|| null == actionLabel_retry || true == actionLabel_remove.isDisposed()
-				|| true == actionLabel_cancel.isDisposed()
-				|| true == actionLabel_retry.isDisposed()) {
+				|| null == actionLabel_retry || actionLabel_remove.isDisposed()
+				|| actionLabel_cancel.isDisposed()
+				|| actionLabel_retry.isDisposed()) {
 			return;
 		}
 
@@ -639,18 +639,18 @@ public class ProgressReporterPanel
 		showActionLabel(actionLabel_remove, false);
 		showActionLabel(actionLabel_retry, false);
 
-		if (true == pReport.isDone()) {
+		if (pReport.isDone()) {
 			showActionLabel(actionLabel_remove, true);
-		} else if (true == pReport.isInErrorState()) {
-			if (true == pReport.isRetryAllowed()) {
+		} else if (pReport.isInErrorState()) {
+			if (pReport.isRetryAllowed()) {
 				showActionLabel(actionLabel_retry, true);
 				showActionLabel(actionLabel_remove, true);
 			} else {
 				showActionLabel(actionLabel_remove, true);
 			}
 
-		} else if (true == pReport.isCanceled()) {
-			if (true == pReport.isRetryAllowed()) {
+		} else if (pReport.isCanceled()) {
+			if (pReport.isRetryAllowed()) {
 				showActionLabel(actionLabel_retry, true);
 				showActionLabel(actionLabel_remove, true);
 			} else {
@@ -670,14 +670,14 @@ public class ProgressReporterPanel
 	 * @param showIt
 	 */
 	private void showActionLabel(Label label, boolean showIt) {
-		((GridData) label.getLayoutData()).widthHint = (true == showIt) ? 16 : 0;
+		((GridData) label.getLayoutData()).widthHint = (showIt) ? 16 : 0;
 	}
 
 	/**
 	 * Resizes the content of this panel to fit within the shell and to layout children control appropriately
 	 */
 	public void resizeContent() {
-		if (false == isDisposed()) {
+		if (!isDisposed()) {
 			layout(true, true);
 		}
 	}
@@ -725,7 +725,7 @@ public class ProgressReporterPanel
 
 		int charCount = detailListWidget.getCharCount();
 		detailListWidget.append(value + "\n");
-		if (true == isError) {
+		if (isError) {
 			StyleRange style2 = new StyleRange();
 			style2.start = charCount;
 			style2.length = value.length();

@@ -221,7 +221,7 @@ public class FileDownloadWindow
 						case REPORT_TYPE_DONE:
 							return RETVAL_OK_TO_DISPOSE;
 						case REPORT_TYPE_RETRY:
-							if (true == pReport.isRetryAllowed()) {
+							if (pReport.isRetryAllowed()) {
 								downloader.cancel();
 								downloader = TorrentDownloaderFactory.create(
 										FileDownloadWindow.this, original_url, referrer,
@@ -270,7 +270,7 @@ public class FileDownloadWindow
 				if (localLastState == state) {
 					return;
 				}
-				if (false == pReport.isCanceled()) {
+				if (!pReport.isCanceled()) {
 					pReporter.cancel();
 				}
 				return;
@@ -285,7 +285,7 @@ public class FileDownloadWindow
 				 * If the user has canceled then a call  to downloader.cancel() has already been made
 				 * so don't bother prompting for the user to retry
 				 */
-				if (true == pReport.isCanceled()) {
+				if (pReport.isCanceled()) {
 					return;
 				}
 

@@ -2645,7 +2645,7 @@ public class GlobalManagerImpl
 	  	dmMap.put( "file_priorities_c" , map_file_priorities );
 	  }
 
-	  dmMap.put( "allocated", new Long( dm.isDataAlreadyAllocated() == true ? 1 : 0 ) );
+	  dmMap.put( "allocated", new Long(dm.isDataAlreadyAllocated() ? 1 : 0 ) );
 
 	  return( dmMap );
   }

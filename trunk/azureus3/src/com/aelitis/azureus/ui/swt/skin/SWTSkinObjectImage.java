@@ -603,7 +603,7 @@ public class SWTSkinObjectImage
 	}
 
 	public void setImageByID(final String imageID, final AECallback callback) {
-		if (customImage == false && customImageID != null
+		if (!customImage && customImageID != null
 				&& customImageID.equals(imageID)) {
 			if (callback != null) {
 				callback.callbackFailure(null);
@@ -634,7 +634,7 @@ public class SWTSkinObjectImage
 	}
 
 	public void setImageUrl(final String url) {
-		if (customImage == false && customImageID != null
+		if (!customImage && customImageID != null
 				&& customImageID.equals(url)) {
 			return;
 		}

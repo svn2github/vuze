@@ -50,7 +50,7 @@ class ProgressReporterStack
 			/*
 			 * Remove the reporter from the stack if it's in there already
 			 */
-			if (true == reporterStack.contains(reporter)) {
+			if (reporterStack.contains(reporter)) {
 				reporterStack.remove(reporter);
 			}
 
@@ -64,7 +64,7 @@ class ProgressReporterStack
 	 */
 	public IProgressReporter peek() {
 		synchronized (lockObject) {
-			if (false == reporterStack.isEmpty()) {
+			if (!reporterStack.isEmpty()) {
 				return (IProgressReporter) reporterStack.peek();
 			}
 			return null;
@@ -78,7 +78,7 @@ class ProgressReporterStack
 	 */
 	public boolean remove(IProgressReporter reporter) {
 		synchronized (lockObject) {
-			if (null != reporter && true == reporterStack.contains(reporter)) {
+			if (null != reporter && reporterStack.contains(reporter)) {
 				return reporterStack.remove(reporter);
 			}
 			return false;
@@ -102,7 +102,7 @@ class ProgressReporterStack
 	 */
 	public IProgressReporter pop() {
 		synchronized (lockObject) {
-			if (false == reporterStack.isEmpty()) {
+			if (!reporterStack.isEmpty()) {
 				return (IProgressReporter) reporterStack.pop();
 			}
 			return null;
@@ -116,7 +116,7 @@ class ProgressReporterStack
 		synchronized (lockObject) {
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = ((IProgressReporter) iterator.next());
-				if (false == reporter.getProgressReport().isActive()) {
+				if (!reporter.getProgressReport().isActive()) {
 					iterator.remove();
 				}
 			}
@@ -133,8 +133,8 @@ class ProgressReporterStack
 			List reporters = new ArrayList();
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = ((IProgressReporter) iterator.next());
-				if (true == onlyActive) {
-					if (true == reporter.getProgressReport().isActive()) {
+				if (onlyActive) {
+					if (reporter.getProgressReport().isActive()) {
 						reporters.add(reporter);
 					}
 				} else {
@@ -161,7 +161,7 @@ class ProgressReporterStack
 			int activeReporters = 0;
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = ((IProgressReporter) iterator.next());
-				if (true == reporter.getProgressReport().isActive()) {
+				if (reporter.getProgressReport().isActive()) {
 					activeReporters++;
 				}
 			}
@@ -178,7 +178,7 @@ class ProgressReporterStack
 			int reportersInErrorState = 0;
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = ((IProgressReporter) iterator.next());
-				if (true == reporter.getProgressReport().isInErrorState()) {
+				if (reporter.getProgressReport().isInErrorState()) {
 					reportersInErrorState++;
 				}
 			}
@@ -197,7 +197,7 @@ class ProgressReporterStack
 			int activeReporters = 0;
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = (IProgressReporter) iterator.next();
-				if (true == reporter.getProgressReport().isActive()) {
+				if (reporter.getProgressReport().isActive()) {
 					activeReporters++;
 				}
 				if (activeReporters > 1) {
@@ -217,7 +217,7 @@ class ProgressReporterStack
 		synchronized (lockObject) {
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = (IProgressReporter) iterator.next();
-				if (true == reporter.getProgressReport().isActive()) {
+				if (reporter.getProgressReport().isActive()) {
 					return reporter;
 				}
 			}

@@ -2834,7 +2834,7 @@ public class Utils
 			Rectangle monitorBounds = null;
 			for (int i = 0; i < monitors.length; i++) {
 				monitorBounds = monitors[i].getClientArea();
-				if (true == monitorBounds.contains(location)) {
+				if (monitorBounds.contains(location)) {
 					return monitors[i];
 				}
 			}

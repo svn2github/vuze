@@ -72,7 +72,7 @@ public class AZProgressBar
 	public void setIndeterminate(boolean isIndeterminate) {
 		if (this.isIndeterminate != isIndeterminate || null == stack.topControl) {
 			this.isIndeterminate = isIndeterminate;
-			if (true == isIndeterminate) {
+			if (isIndeterminate) {
 				stack.topControl = indeterminateProgressBar;
 			} else {
 				incrementalProgressBar.setMinimum(0);

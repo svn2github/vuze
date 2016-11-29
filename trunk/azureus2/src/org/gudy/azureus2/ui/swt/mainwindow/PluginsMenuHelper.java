@@ -148,7 +148,7 @@ public class PluginsMenuHelper
 		MenuFactory.addPluginInstallMenuItem(pluginMenu);
 		MenuFactory.addPluginUnInstallMenuItem(pluginMenu);
 
-		if (true == includeGetPluginsMenu) {
+		if (includeGetPluginsMenu) {
 			MenuFactory.addGetPluginsMenuItem(pluginMenu);
 		}
 	}

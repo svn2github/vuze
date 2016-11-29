@@ -84,7 +84,7 @@ public class MainMenu
 		addPluginsMenu(parent);
 
 		// ========== Windows menu (OSX only)================
-		if (true == Constants.isOSX) {
+		if (Constants.isOSX) {
 			addWindowMenu(parent);
 		}
 
@@ -266,7 +266,7 @@ public class MainMenu
 		/*
 		 * The Torrents menu is now a user-configured option
 		 */
-		if (true == COConfigurationManager.getBooleanParameter("show_torrents_menu")) {
+		if (COConfigurationManager.getBooleanParameter("show_torrents_menu")) {
 			MenuFactory.createTorrentMenuItem(menuBar);
 		}
 
@@ -313,7 +313,7 @@ public class MainMenu
 
 		Menu helpMenu = helpItem.getMenu();
 
-		if (false == Constants.isOSX) {
+		if (!Constants.isOSX) {
 			MenuFactory.addAboutMenuItem(helpMenu);
 			MenuFactory.addSeparatorMenuItem(helpMenu);
 		}
@@ -327,7 +327,7 @@ public class MainMenu
 
 		MenuFactory.addSeparatorMenuItem(helpMenu);
 
-		if (false == SystemProperties.isJavaWebStartInstance()) {
+		if (!SystemProperties.isJavaWebStartInstance()) {
 			MenuFactory.addCheckUpdateMenuItem(helpMenu);
 			MenuFactory.addBetaMenuItem(helpMenu);
 			MenuFactory.addVoteMenuItem(helpMenu);
@@ -341,7 +341,7 @@ public class MainMenu
 	}
 
 	public Menu getMenu(String id) {
-		if (true == IMenuConstants.MENU_ID_MENU_BAR.equals(id)) {
+		if (IMenuConstants.MENU_ID_MENU_BAR.equals(id)) {
 			return menuBar;
 		}
 		return MenuFactory.findMenu(menuBar, id);

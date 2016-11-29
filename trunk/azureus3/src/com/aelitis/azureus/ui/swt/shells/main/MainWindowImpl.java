@@ -798,8 +798,8 @@ public class MainWindowImpl
 		} finally {
 
 			String configID = SkinConstants.VIEWID_PLUGINBAR + ".visible";
-			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
-					configID)) {
+			if (!ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+				configID)) {
 				COConfigurationManager.setBooleanDefault(configID, true);
 			}
 			setVisible(WINDOW_ELEMENT_TOPBAR,

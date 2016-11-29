@@ -302,7 +302,7 @@ public class FontUtils
 		control.addDisposeListener(new DisposeListener() {
 
 			public void widgetDisposed(DisposeEvent e) {
-				if (null != newFont && false == newFont.isDisposed()) {
+				if (null != newFont && !newFont.isDisposed()) {
 					newFont.dispose();
 				}
 			}

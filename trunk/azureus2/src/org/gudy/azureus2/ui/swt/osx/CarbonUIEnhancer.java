@@ -204,7 +204,7 @@ public class CarbonUIEnhancer
 					"&", "");
 		}
 
-		if (false == isAZ3) {
+		if (!isAZ3) {
 			if (fgWizardActionName == null) {
 				fgWizardActionName = MessageText.getString(
 						"MainWindow.menu.file.configure").replaceAll("&", "");

@@ -324,7 +324,7 @@ public class ProgressReporterWindow
 				/*
 				 * Removes any inactive panels that may already be in the window if this option is set to true
 				 */
-				if (true == isAutoRemove) {
+				if (isAutoRemove) {
 					removeInActivePanels();
 				}
 
@@ -357,12 +357,12 @@ public class ProgressReporterWindow
 	private void removeInActivePanels() {
 		Control[] controls = scrollChild.getChildren();
 		for (int i = 0; i < controls.length; i++) {
-			if (null == controls[i] || true == controls[i].isDisposed()) {
+			if (null == controls[i] || controls[i].isDisposed()) {
 				continue;
 			}
 			if (controls[i] instanceof ProgressReporterPanel) {
 				IProgressReporter pReporter = ((ProgressReporterPanel) controls[i]).getProgressReporter();
-				if (false == pReporter.getProgressReport().isActive()) {
+				if (!pReporter.getProgressReport().isActive()) {
 					
 					if ( !pReporter.getProgressReport().isInErrorState()){
 						
@@ -422,7 +422,7 @@ public class ProgressReporterWindow
 		/*
 		 * Set the shell size if it's different that the computed size
 		 */
-		if (false == shell.getSize().equals(p)) {
+		if (!shell.getSize().equals(p)) {
 			shell.setSize(p);
 			shell.layout(false);
 		}
@@ -493,7 +493,7 @@ public class ProgressReporterWindow
 		Control[] controls = scrollChild.getChildren();
 
 		for (int i = controls.length - 1; i >= 0; i--) {
-			if (true != controls[i].equals(panelToIgnore)) {
+			if (!controls[i].equals(panelToIgnore)) {
 				((GridData) controls[i].getLayoutData()).grabExcessVerticalSpace = true;
 				break;
 			}
@@ -530,7 +530,7 @@ public class ProgressReporterWindow
 	 * re-layout the controls and window appropriately 
 	 */
 	public void isCollapsed(boolean value) {
-		if (null != shell && false == shell.isDisposed()) {
+		if (null != shell && !shell.isDisposed()) {
 			scrollable.setRedraw(false);
 			Rectangle r = scrollable.getClientArea();
 			scrollable.setMinSize(scrollChild.computeSize(r.width, SWT.DEFAULT));
@@ -574,7 +574,7 @@ public class ProgressReporterWindow
 			 */
 			if (pReporters.length == 0) {
 				if ((style & AUTO_CLOSE) != 0) {
-					if (null != shell && false == shell.isDisposed()) {
+					if (null != shell && !shell.isDisposed()) {
 						shell.close();
 					}
 				} else {
@@ -590,7 +590,7 @@ public class ProgressReporterWindow
 				formatLastPanel(panel);
 			}
 
-			if (null != shell && false == shell.isDisposed()) {
+			if (null != shell && !shell.isDisposed()) {
 				shell.layout(true, true);
 			}
 		}
@@ -613,8 +613,8 @@ public class ProgressReporterWindow
 
 		public int report(IProgressReport progressReport) {
 
-			if (true == isAutoRemove && false == progressReport.isActive() && !progressReport.isInErrorState()) {
-				if (null != panel && false == panel.isDisposed()) {
+			if (isAutoRemove && !progressReport.isActive() && !progressReport.isInErrorState()) {
+				if (null != panel && !panel.isDisposed()) {
 					ProgressReportingManager.getInstance().remove(
 							panel.getProgressReporter());
 

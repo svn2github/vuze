@@ -862,15 +862,15 @@ public class MessageText {
 			return null;
 		}
 
-		if (true == "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"))) {
+		if ("az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"))) {
 			String v3Key = null;
-			if (false == localizationKey.startsWith("v3.")) {
+			if (!localizationKey.startsWith("v3.")) {
 				v3Key = "v3." + localizationKey;
 			} else {
 				v3Key = localizationKey;
 			}
 
-			if (true == MessageText.keyExists(v3Key)) {
+			if (MessageText.keyExists(v3Key)) {
 				return v3Key;
 			}
 		}
@@ -890,15 +890,15 @@ public class MessageText {
 			return null;
 		}
 
-		if (true == "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"))) {
+		if ("az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"))) {
 			String v3Key = null;
-			if (false == acceleratorKey.startsWith("v3.")) {
+			if (!acceleratorKey.startsWith("v3.")) {
 				v3Key = "v3." + acceleratorKey;
 			} else {
 				v3Key = acceleratorKey;
 			}
 
-			if (true == MessageText.keyExists(v3Key + ".keybinding")) {
+			if (MessageText.keyExists(v3Key + ".keybinding")) {
 				return v3Key;
 			}
 		}

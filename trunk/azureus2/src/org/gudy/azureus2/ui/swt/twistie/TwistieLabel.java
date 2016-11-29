@@ -186,7 +186,7 @@ public class TwistieLabel
 					e.gc.setBackground(getForeground());
 				}
 
-				if (true == isCollapsed) {
+				if (isCollapsed) {
 					e.gc.fillPolygon(translate(points_for_collapsed, offsetX, offsetY));
 				} else {
 					e.gc.fillPolygon(translate(points_for_expanded, offsetX, offsetY));
@@ -246,10 +246,10 @@ public class TwistieLabel
 	 * Sets the foreground color for the control and also all the text-base children
 	 */
 	public void setForeground(Color color) {
-		if (null != titleLabel && false == titleLabel.isDisposed()) {
+		if (null != titleLabel && !titleLabel.isDisposed()) {
 			titleLabel.setForeground(color);
 		}
-		if (null != descriptionLabel && false == descriptionLabel.isDisposed()) {
+		if (null != descriptionLabel && !descriptionLabel.isDisposed()) {
 			descriptionLabel.setForeground(color);
 		}
 

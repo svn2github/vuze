@@ -291,7 +291,7 @@ public class MainStatusBar
 
 		// final int progressFlag = (Constants.isOSX) ? SWT.INDETERMINATE	: SWT.HORIZONTAL;
 		// KN: Don't know why OSX is treated differently but this check was already here from the previous code
-		if (true == Constants.isOSX) {
+		if (Constants.isOSX) {
 			progressBar = new AZProgressBar(statusBar, true);
 		} else {
 			progressBar = new AZProgressBar(statusBar, false);
@@ -327,14 +327,14 @@ public class MainStatusBar
 					 * If there's nothing to see then open the window; the default widow will say there's nothing to see
 					 * KN: calling isShowingEmpty return true is there is already a window opened showing the empty panel
 					 */
-					if (false == ProgressReporterWindow.isShowingEmpty()) {
+					if (!ProgressReporterWindow.isShowingEmpty()) {
 						ProgressReporterWindow.open(reporters,
 								ProgressReporterWindow.SHOW_TOOLBAR);
 					}
 				} else {
 
 					for (int i = 0; i < reporters.length; i++) {
-						if (false == ProgressReporterWindow.isOpened(reporters[i])) {
+						if (!ProgressReporterWindow.isOpened(reporters[i])) {
 							ProgressReporterWindow.open(reporters,
 									ProgressReporterWindow.SHOW_TOOLBAR);
 							break;
@@ -1985,11 +1985,11 @@ public class MainStatusBar
 		/*
 		 * We show/hide the progress bar simply by setting the .widthHint and letting the statusBar handle the layout
 		 */
-		if (true == state && false == progressBar.isVisible()) {
+		if (state && !progressBar.isVisible()) {
 			progressGridData.widthHint = 100;
 			progressBar.setVisible(true);
 			statusBar.layout();
-		} else if (false == state && true == progressBar.isVisible()) {
+		} else if (!state && progressBar.isVisible()) {
 			progressBar.setVisible(false);
 			progressGridData.widthHint = 0;
 			statusBar.layout();
@@ -2070,7 +2070,7 @@ public class MainStatusBar
 				/*
 				 * Update status text
 				 */
-				if (true == isAZ3) {
+				if (isAZ3) {
 					statusText.setText(pReport.getName());
 				} else {
 					setStatusText(pReport.getName());
@@ -2083,7 +2083,7 @@ public class MainStatusBar
 				 */
 				showProgressBar(false);
 
-				if (true == isAZ3) {
+				if (isAZ3) {
 					statusText.setText("");
 				} else {
 					setStatusText(null);
@@ -2184,9 +2184,9 @@ public class MainStatusBar
 				 * Pops up the ProgressReportingWindow to show this report if it is an error report;
 				 * this is to help catch the users attention
 				 */
-				if (true == pReport.isInErrorState()) {
+				if (pReport.isInErrorState()) {
 					
-					if(true == "reporterType_updater".equals(pReport.getReporterType())){
+					if("reporterType_updater".equals(pReport.getReporterType())){
 						/*
 						 * Suppressing the pop-up for update-related errors
 						 */
@@ -2199,7 +2199,7 @@ public class MainStatusBar
 					/*
 					 * The new window is opened only if there is not one already showing the same reporter
 					 */
-					if (false == ProgressReporterWindow.isOpened(final_reporter)) {
+					if (!ProgressReporterWindow.isOpened(final_reporter)) {
 						if ( !ProgressReporterWindow.isOpened(final_reporter)){
 									ProgressReporterWindow.open(final_reporter,
 											ProgressReporterWindow.NONE);
@@ -2210,7 +2210,7 @@ public class MainStatusBar
 				/*
 				 * If this reporter is not active then get the previous reporter that is still active and display info from that
 				 */
-				if (false == pReport.isActive()) {
+				if (!pReport.isActive()) {
 					swt_updateFromPrevious();
 				} else {
 					swt_update(pReport);
@@ -2231,7 +2231,7 @@ public class MainStatusBar
 			 * If there is at least 2 reporters still active then show the progress bar as indeterminate
 			 * and display the text from the current reporter
 			 */
-			if (true == PRManager.hasMultipleActive()) {
+			if (PRManager.hasMultipleActive()) {
 				
 				setStatusText(pReport.getName());
 				progressBar.setIndeterminate(true);

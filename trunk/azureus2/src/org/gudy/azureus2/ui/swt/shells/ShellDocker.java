@@ -56,10 +56,10 @@ public class ShellDocker
 	private Shell mainShell = null;
 
 	public ShellDocker(Control anchorControl, Shell dockedShell) {
-		if (null == anchorControl || true == anchorControl.isDisposed()) {
+		if (null == anchorControl || anchorControl.isDisposed()) {
 			throw new NullPointerException("anchorControl cannot be null or disposed");
 		}
-		if (null == dockedShell || true == dockedShell.isDisposed()) {
+		if (null == dockedShell || dockedShell.isDisposed()) {
 			throw new NullPointerException("dockedShell cannot be null or disposed");
 		}
 
@@ -91,7 +91,7 @@ public class ShellDocker
 	public void openShell(boolean isDocked, boolean isAnimated) {
 		setDocked(isDocked);
 
-		if (false == isDocked) {
+		if (!isDocked) {
 			/*
 			 * Centers the window by default
 			 */
@@ -110,7 +110,7 @@ public class ShellDocker
 			}
 		}
 
-		if (false == isAnimated) {
+		if (!isAnimated) {
 			dockedShell.open();
 		} else {
 			//TODO: implement any fancy animation FX here; this is currently just opening the shell normally
@@ -126,7 +126,7 @@ public class ShellDocker
 	public void setDocked(boolean isDocked) {
 		this.isDocked = isDocked;
 
-		if (true == isDocked) {
+		if (isDocked) {
 
 			performDocking();
 
@@ -136,7 +136,7 @@ public class ShellDocker
 					public void handleEvent(Event event) {
 						if (event.type == SWT.Resize) {
 
-							if (true == isResizeWithShell()) {
+							if (isResizeWithShell()) {
 								System.out.println("resizing");//KN: sysout
 							} else {
 								performDocking();
@@ -149,11 +149,11 @@ public class ShellDocker
 				};
 			}
 
-			if (null != mainShell && false == mainShell.isDisposed()) {
-				if (true == isMoveWithShell()) {
+			if (null != mainShell && !mainShell.isDisposed()) {
+				if (isMoveWithShell()) {
 					mainShell.addListener(SWT.Move, dockingEnabler);
 				}
-				if (true == isResizeWithShell()) {
+				if (isResizeWithShell()) {
 					mainShell.addListener(SWT.Resize, dockingEnabler);
 				}
 				anchorControl.addListener(SWT.Move, dockingEnabler);
@@ -174,13 +174,13 @@ public class ShellDocker
 			});
 
 		} else {
-			if (null != mainShell && false == mainShell.isDisposed()) {
+			if (null != mainShell && !mainShell.isDisposed()) {
 				if (null != dockingEnabler) {
 					mainShell.removeListener(SWT.Move, dockingEnabler);
 					mainShell.removeListener(SWT.Resize, dockingEnabler);
 				}
 			}
-			if (null != anchorControl && false == anchorControl.isDisposed()) {
+			if (null != anchorControl && !anchorControl.isDisposed()) {
 				if (null != dockingEnabler) {
 					anchorControl.removeListener(SWT.Move, dockingEnabler);
 					anchorControl.removeListener(SWT.Resize, dockingEnabler);
@@ -191,7 +191,7 @@ public class ShellDocker
 	}
 
 	private void performDocking() {
-		if (true == isAlive()) {
+		if (isAlive()) {
 			switch (anchorControlPosition.getPosition()) {
 				case DockPosition.TOP_LEFT:
 					dockedShell.setLocation(mainShell.toDisplay(anchorControl.getLocation()));
@@ -227,16 +227,16 @@ public class ShellDocker
 	}
 
 	private boolean isAlive() {
-		if (null == mainShell || true == mainShell.isDisposed()) {
+		if (null == mainShell || mainShell.isDisposed()) {
 			System.err.println("\tmainshell is disposed?");//KN: sysout
 			return false;
 		}
-		if (null == dockedShell || true == dockedShell.isDisposed()) {
+		if (null == dockedShell || dockedShell.isDisposed()) {
 			System.err.println("\tdockedShell is disposed?");//KN: sysout
 			return false;
 		}
 
-		if (null == anchorControl || true == anchorControl.isDisposed()) {
+		if (null == anchorControl || anchorControl.isDisposed()) {
 			System.err.println("\tanchorControl is disposed?");//KN: sysout
 			return false;
 		}
