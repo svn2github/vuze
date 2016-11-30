@@ -22,10 +22,10 @@ package org.gudy.azureus2.core3.disk.impl;
 public class 
 DiskManagerRecheckInstance 
 {
-	private DiskManagerRecheckScheduler	scheduler;
-	private long						metric;
-	private int							piece_length;
-	private boolean						low_priority;
+	private final DiskManagerRecheckScheduler	scheduler;
+	private final long						metric;
+	private final int							piece_length;
+	private final boolean						low_priority;
 	
 	protected
 	DiskManagerRecheckInstance(

@@ -45,7 +45,7 @@ LocaleUtil
 	Constants.BYTE_ENCODING, Constants.DEFAULT_ENCODING, systemEncoding
   };
   
-   private static LocaleUtil singleton = new LocaleUtil();
+   private static final LocaleUtil singleton = new LocaleUtil();
   
    public static LocaleUtil
    getSingleton()
@@ -53,10 +53,10 @@ LocaleUtil
    	return( singleton );
    }
    
-   private LocaleUtilDecoder[] 	all_decoders;
-   private LocaleUtilDecoder[]	general_decoders;
+   private final LocaleUtilDecoder[] 	all_decoders;
+   private final LocaleUtilDecoder[]	general_decoders;
    private LocaleUtilDecoder	system_decoder;
-   private LocaleUtilDecoder	fallback_decoder;
+   private final LocaleUtilDecoder	fallback_decoder;
      
   
   

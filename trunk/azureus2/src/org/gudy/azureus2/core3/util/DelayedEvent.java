@@ -26,7 +26,7 @@ package org.gudy.azureus2.core3.util;
 public class 
 DelayedEvent 
 {
-	private TimerEvent		event;
+	private final TimerEvent		event;
 	
 	public
 	DelayedEvent(

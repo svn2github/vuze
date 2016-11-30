@@ -34,11 +34,11 @@ public class
 TRTrackerServerPeerImpl
 	implements TRTrackerServerPeer, TRTrackerServerSimplePeer, HostNameToIPResolverListener, TRTrackerServerNatCheckerListener
 {	
-	private HashWrapper	peer_id;
-	private int			key_hash_code;
+	private final HashWrapper	peer_id;
+	private final int			key_hash_code;
 	
 	private byte[]		ip;
-	private boolean		ip_override;
+	private final boolean		ip_override;
 	private short		tcp_port;
 	private short		udp_port;
 	private short		http_port;

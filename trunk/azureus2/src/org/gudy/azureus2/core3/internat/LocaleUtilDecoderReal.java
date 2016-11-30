@@ -36,8 +36,8 @@ public class
 LocaleUtilDecoderReal 
 	implements LocaleUtilDecoder
 {
-	protected CharsetDecoder	decoder;
-	protected int				index;
+	protected final CharsetDecoder	decoder;
+	protected final int				index;
 	
 	protected
 	LocaleUtilDecoderReal(

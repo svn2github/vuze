@@ -105,7 +105,7 @@ public class TorrentOpenOptions
 
 	private Map<Integer, File> initial_linkage_map = null;
 
-	private CopyOnWriteList<FileListener> fileListeners = new CopyOnWriteList<FileListener>(1);
+	private final CopyOnWriteList<FileListener> fileListeners = new CopyOnWriteList<FileListener>(1);
 
 	public Map<String, Boolean> peerSource 		= new HashMap<String, Boolean>();
 	

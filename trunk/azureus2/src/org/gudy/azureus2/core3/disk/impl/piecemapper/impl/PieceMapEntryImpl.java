@@ -32,9 +32,9 @@ PieceMapEntryImpl
 		 * It identifies the file, the offset within the file, and the length of the chunk
 		 */
 	
-	private DiskManagerFileInfoImpl _file;
-	private long 					_offset;
-	private int						_length;
+	private final DiskManagerFileInfoImpl _file;
+	private final long 					_offset;
+	private final int						_length;
 
 	public 
 	PieceMapEntryImpl(

@@ -59,7 +59,7 @@ public class PEPieceImpl
 	private long        	time_last_download;
 
 	private final String[] 	writers;
-	private List 			writes;
+	private final List 			writes;
 	
 	private String			reservedBy;	// using address for when they send bad/disconnect/reconnect
 	

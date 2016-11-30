@@ -68,8 +68,8 @@ DownloadManagerController
 	extends LogRelation
 	implements PEPeerManagerAdapter, PeerManagerRegistrationAdapter, SimpleTimer.TimerTickReceiver
 {
-	private static long STATE_FLAG_HASDND = 0x01;
-	private static long STATE_FLAG_COMPLETE_NO_DND = 0x02;
+	private static final long STATE_FLAG_HASDND = 0x01;
+	private static final long STATE_FLAG_COMPLETE_NO_DND = 0x02;
 	
 	private static long skeleton_builds;
 	
@@ -119,7 +119,7 @@ DownloadManagerController
 	private static final int LDT_DL_ADDED		= 1;
 	private static final int LDT_DL_REMOVED		= 2;
 
-	private static ListenerManager	disk_listeners_agregator 	= ListenerManager.createAsyncManager(
+	static final ListenerManager	disk_listeners_agregator 	= ListenerManager.createAsyncManager(
 			"DMC:DiskListenAgregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
@@ -142,7 +142,7 @@ DownloadManagerController
 				}
 			});	
 	
-	private ListenerManager	disk_listeners 	= ListenerManager.createManager(
+	private final ListenerManager	disk_listeners 	= ListenerManager.createManager(
 			"DMC:DiskListenDispatcher",
 			new ListenerManagerDispatcher()
 			{
@@ -156,14 +156,14 @@ DownloadManagerController
 				}
 			});
 	
-	private AEMonitor	disk_listeners_mon	= new AEMonitor( "DownloadManagerController:DL" );
+	private final AEMonitor	disk_listeners_mon	= new AEMonitor( "DownloadManagerController:DL" );
 	
-	private AEMonitor	control_mon		= new AEMonitor( "DownloadManagerController" );
-	private AEMonitor	state_mon		= new AEMonitor( "DownloadManagerController:State" );
-	private AEMonitor	facade_mon		= new AEMonitor( "DownloadManagerController:Facade" );
+	final AEMonitor	control_mon		= new AEMonitor( "DownloadManagerController" );
+	private final AEMonitor	state_mon		= new AEMonitor( "DownloadManagerController:State" );
+	final AEMonitor	facade_mon		= new AEMonitor( "DownloadManagerController:Facade" );
 	
-	private DownloadManagerImpl			download_manager;
-	private DownloadManagerStatsImpl	stats;
+	final DownloadManagerImpl			download_manager;
+	final DownloadManagerStatsImpl	stats;
 	
 		// these are volatile as we want to ensure that if a state is read it is always the
 		// most up to date value available (as we don't synchronize state read - see below
@@ -179,7 +179,7 @@ DownloadManagerController
 	private volatile DiskManager 			disk_manager_use_accessors;
 	private DiskManagerListener				disk_manager_listener_use_accessors;
 
-	private FileInfoFacadeSet		fileFacadeSet = new FileInfoFacadeSet();
+	final FileInfoFacadeSet		fileFacadeSet = new FileInfoFacadeSet();
 	private boolean					files_facade_destroyed;
 	
 	private boolean					cached_complete_excluding_dnd;
@@ -187,7 +187,7 @@ DownloadManagerController
 	private boolean         		cached_values_set;
 	
 	private Set<String>				cached_networks;
-	private Object					cached_networks_lock = new Object();
+	final Object					cached_networks_lock = new Object();
 	
 	private PeerManagerRegistration	peer_manager_registration;
 	private PEPeerManager 			peer_manager;
@@ -197,7 +197,7 @@ DownloadManagerController
 	private String 	errorDetail;
 	private int		errorType	= DownloadManager.ET_NONE;
 	
-	private GlobalManagerStats		global_stats;
+	final GlobalManagerStats		global_stats;
 	
 	private boolean bInitialized = false;
 	
@@ -215,14 +215,14 @@ DownloadManagerController
 	private long		priority_connection_count;
 	
 	private static final int				HTTP_SEEDS_MAX	= 64;
-	private LinkedList<ExternalSeedPeer>	http_seeds = new LinkedList<ExternalSeedPeer>();
+	private final LinkedList<ExternalSeedPeer>	http_seeds = new LinkedList<ExternalSeedPeer>();
 	
 	private int	md_info_dict_size;
 	private volatile WeakReference<byte[]>	md_info_dict_ref = new WeakReference<byte[]>( null );
 	
 	private static final int MD_INFO_PEER_HISTORY_MAX 		= 128;
 
-	private Map<String,int[]>	md_info_peer_history = 
+	private final Map<String,int[]>	md_info_peer_history =
 		new LinkedHashMap<String,int[]>(MD_INFO_PEER_HISTORY_MAX,0.75f,true)
 		{
 			protected boolean 
@@ -3099,7 +3099,7 @@ DownloadManagerController
 	}
 	
 	private class DiskManagerListener_Default implements DiskManagerListener {
-		private boolean open_for_seeding;
+		private final boolean open_for_seeding;
 
 		public DiskManagerListener_Default(boolean open_for_seeding) {
 			this.open_for_seeding = open_for_seeding;

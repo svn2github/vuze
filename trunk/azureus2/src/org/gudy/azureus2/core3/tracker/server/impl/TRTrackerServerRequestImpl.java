@@ -35,12 +35,12 @@ public class
 TRTrackerServerRequestImpl
 	implements TRTrackerServerRequest
 {
-	protected TRTrackerServerImpl			server;
-	protected TRTrackerServerPeer			peer;
-	protected TRTrackerServerTorrent		torrent;
-	protected int							type;
-	protected String						request;
-	protected Map							response;
+	protected final TRTrackerServerImpl			server;
+	protected final TRTrackerServerPeer			peer;
+	protected final TRTrackerServerTorrent		torrent;
+	protected final int							type;
+	protected final String						request;
+	protected final Map							response;
 	
 	public
 	TRTrackerServerRequestImpl(

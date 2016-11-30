@@ -24,16 +24,16 @@ import java.util.LinkedList;
 public class 
 AsyncDispatcher 
 {
-	private String					name;
+	private final String					name;
 	private AEThread2				thread;
 	private int						priority	= Thread.NORM_PRIORITY;
 	private AERunnable				queue_head;
 	private LinkedList<AERunnable>	queue_tail;
-	private AESemaphore				queue_sem 	= new AESemaphore( "AsyncDispatcher" );
+	final AESemaphore				queue_sem 	= new AESemaphore( "AsyncDispatcher" );
 	
 	private int						num_priority;
 	
-	private int quiesce_after_millis;
+	final int quiesce_after_millis;
 	
 	public
 	AsyncDispatcher()

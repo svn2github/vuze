@@ -55,7 +55,7 @@ DownloadManagerStatsImpl
 			});
 	}
 
-	private DownloadManagerImpl	download_manager;
+	private final DownloadManagerImpl	download_manager;
 		
 		//Completed (used for auto-starting purposes)
 		

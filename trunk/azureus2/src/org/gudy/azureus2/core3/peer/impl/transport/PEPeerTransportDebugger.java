@@ -32,7 +32,7 @@ import java.nio.channels.*;
 public class 
 PEPeerTransportDebugger
 {
-	protected int	piece_length;
+	protected final int	piece_length;
 	
 	protected
 	PEPeerTransportDebugger(

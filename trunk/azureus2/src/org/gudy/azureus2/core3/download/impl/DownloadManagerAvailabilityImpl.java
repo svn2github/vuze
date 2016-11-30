@@ -51,7 +51,7 @@ public class
 DownloadManagerAvailabilityImpl
 	implements DownloadManagerAvailability
 {
-	private  List<TrackerPeerSource>	peer_sources = new ArrayList<TrackerPeerSource>();
+	private final List<TrackerPeerSource>	peer_sources = new ArrayList<TrackerPeerSource>();
 	
 	private TRTrackerAnnouncer	tracker_client;
 	

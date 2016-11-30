@@ -39,13 +39,13 @@ NonDaemonTaskRunner
 	public static final int	LINGER_PERIOD	= 2500;
 	
 	protected static NonDaemonTaskRunner	singleton;
-	protected static AEMonitor				class_mon		= new AEMonitor( "NonDaemonTaskRunner:class" );
+	protected static final AEMonitor				class_mon		= new AEMonitor( "NonDaemonTaskRunner:class" );
 	
-	protected Stack			tasks		= new Stack();
-	protected AEMonitor		tasks_mon	= new AEMonitor( "NonDaemonTaskRunner:tasks" );
-	protected AESemaphore	task_sem	= new AESemaphore("NonDaemonTaskRunner");
+	protected final Stack			tasks		= new Stack();
+	protected final AEMonitor		tasks_mon	= new AEMonitor( "NonDaemonTaskRunner:tasks" );
+	protected final AESemaphore	task_sem	= new AESemaphore("NonDaemonTaskRunner");
 	
-	protected List		wait_until_idle_list	= new ArrayList();
+	protected final List		wait_until_idle_list	= new ArrayList();
 	
 	protected AEThread2	current_thread;
 	
@@ -183,8 +183,8 @@ NonDaemonTaskRunner
 	protected static class
 	taskWrapper
 	{
-		protected NonDaemonTask		task;
-		protected AESemaphore		sem;
+		protected final NonDaemonTask		task;
+		protected final AESemaphore		sem;
 		
 		protected Object	  	result;
 		protected Throwable  	exception;

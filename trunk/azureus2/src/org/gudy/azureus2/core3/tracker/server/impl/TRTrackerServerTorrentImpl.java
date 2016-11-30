@@ -67,8 +67,8 @@ TRTrackerServerTorrentImpl
 	private static final int	QUEUED_PEERS_ADD_MAX		= 3;
 		
 		
-	private TRTrackerServerImpl	server;
-	private HashWrapper			hash;
+	private final TRTrackerServerImpl	server;
+	private final HashWrapper			hash;
 
 	private Map<HashWrapper,TRTrackerServerPeerImpl>		peer_map 		= new HashMap<HashWrapper,TRTrackerServerPeerImpl>();
 	
@@ -82,7 +82,7 @@ TRTrackerServerTorrentImpl
 	private List			biased_peers			= null;
 	private int				min_biased_peers		= 0;
 	
-	private Map				lightweight_seed_map	= new HashMap();
+	private final Map				lightweight_seed_map	= new HashMap();
 	
 	private int				seed_count;
 	private int				removed_count;
@@ -91,16 +91,16 @@ TRTrackerServerTorrentImpl
 	
 	private int				bad_NAT_count;	// calculated periodically
 	
-	private Random			random		= new Random( SystemTime.getCurrentTime());
+	private final Random			random		= new Random( SystemTime.getCurrentTime());
 	
 	private long			last_scrape_calc_time;
 	private Map				last_scrape;
 	
-	private LinkedHashMap		announce_cache	= new LinkedHashMap();
+	private final LinkedHashMap		announce_cache	= new LinkedHashMap();
 	
-	private TRTrackerServerTorrentStatsImpl	stats;
+	private final TRTrackerServerTorrentStatsImpl	stats;
 		
-	private List			listeners	= new ArrayList();
+	private final List			listeners	= new ArrayList();
 	private List			peer_listeners;
 	private boolean			deleted;
 	private boolean			enabled;
@@ -117,7 +117,7 @@ TRTrackerServerTorrentImpl
 	
 	private LinkedList		queued_peers;
 	
-	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTorrent" );
+	protected final AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTorrent" );
 
 	private List	explicit_manual_biased_peers;
 		
@@ -2861,10 +2861,10 @@ TRTrackerServerTorrentImpl
 	static class
 	announceCacheEntry
 	{
-		protected Map		data;
-		protected boolean	send_peer_ids;
-		protected byte		compact_mode;
-		protected long		time;
+		protected final Map		data;
+		protected final boolean	send_peer_ids;
+		protected final byte		compact_mode;
+		protected final long		time;
 		
 		protected
 		announceCacheEntry(
@@ -2906,10 +2906,10 @@ TRTrackerServerTorrentImpl
 	protected static class
 	lightweightSeed
 	{
-		long	timeout;
-		long	last_contact_time;
-		long	uploaded;
-		byte	nat_status;
+		final long	timeout;
+		final long	last_contact_time;
+		final long	uploaded;
+		final byte	nat_status;
 		
 		protected
 		lightweightSeed(
@@ -2955,14 +2955,14 @@ TRTrackerServerTorrentImpl
 		private static final byte	FLAG_SEED			= 0x01;
 		private static final byte	FLAG_BIASED			= 0x02;
 		
-		private short	tcp_port;
-		private short	udp_port;
-		private short	http_port;
+		private final short	tcp_port;
+		private final short	udp_port;
+		private final short	http_port;
 		private byte[]	ip;
-		private byte	crypto_level;
-		private byte	az_ver;
+		private final byte	crypto_level;
+		private final byte	az_ver;
 		private int		create_time_secs;
-		private int		timeout_secs;
+		private final int		timeout_secs;
 		private byte	flags;
 		
 		protected
@@ -3171,9 +3171,9 @@ TRTrackerServerTorrentImpl
 	temporaryBiasedSeed
 		implements TRTrackerServerSimplePeer
 	{
-		private String			ip;
-		private int				tcp_port;
-		private HashWrapper		peer_id;
+		private final String			ip;
+		private final int				tcp_port;
+		private final HashWrapper		peer_id;
 		
 		protected
 		temporaryBiasedSeed(

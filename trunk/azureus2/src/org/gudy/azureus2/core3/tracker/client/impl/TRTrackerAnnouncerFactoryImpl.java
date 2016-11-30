@@ -37,10 +37,10 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 TRTrackerAnnouncerFactoryImpl 
 {
-	protected static List<TRTrackerAnnouncerFactoryListener>	listeners 	= new ArrayList<TRTrackerAnnouncerFactoryListener>();
-	protected static List<TRTrackerAnnouncerImpl>				clients		= new ArrayList<TRTrackerAnnouncerImpl>();
+	protected static final List<TRTrackerAnnouncerFactoryListener>	listeners 	= new ArrayList<TRTrackerAnnouncerFactoryListener>();
+	protected static final List<TRTrackerAnnouncerImpl>				clients		= new ArrayList<TRTrackerAnnouncerImpl>();
 	
-	protected static AEMonitor 		class_mon 	= new AEMonitor( "TRTrackerClientFactory" );
+	protected static final AEMonitor 		class_mon 	= new AEMonitor( "TRTrackerClientFactory" );
 
 	public static TRTrackerAnnouncer
 	create(

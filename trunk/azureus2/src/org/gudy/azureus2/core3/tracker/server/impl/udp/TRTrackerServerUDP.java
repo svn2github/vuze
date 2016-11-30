@@ -46,9 +46,9 @@ TRTrackerServerUDP
 	
 	private static final int THREAD_POOL_SIZE				= 10;
 
-	private ThreadPool	thread_pool;
+	private final ThreadPool	thread_pool;
 	
-	private int				port;
+	private final int				port;
 	private InetAddress		current_bind_ip;
 	
 	private DatagramSocket	dg_socket;

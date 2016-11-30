@@ -35,9 +35,9 @@ AEJarSigner2
 {
 	protected static Class	JarSigner_class;
 	
-	protected String		keystore_name;
-	protected String		keystore_password;
-	protected String		alias;
+	protected final String		keystore_name;
+	protected final String		keystore_password;
+	protected final String		alias;
 	
 	public
 	AEJarSigner2(

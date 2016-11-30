@@ -38,15 +38,15 @@ public class
 TRHostTorrentHostImpl
 	implements TRHostTorrent 
 {
-	private TRHostImpl					host;
-	private TRTrackerServer				server;
+	private final TRHostImpl					host;
+	private final TRTrackerServer				server;
 	private TRTrackerServerTorrent		server_torrent;
 	private TOTorrent					torrent;
 	private long						date_added;
-	private int							port;
+	private final int							port;
 	
 	private List				listeners_cow		= new ArrayList();
-	private List				removal_listeners	= new ArrayList();
+	private final List				removal_listeners	= new ArrayList();
 	
 	private int					status	= TS_STOPPED;
 	private boolean				persistent;
@@ -69,18 +69,18 @@ TRHostTorrentHostImpl
 	
 		//average over 10 periods, update every period.
 
-	private Average			average_uploaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
-	private Average			average_downloaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
-	private Average			average_bytes_in		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
-	private Average			average_bytes_out		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
-	private Average			average_announce		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
-	private Average			average_scrape			= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	private final Average			average_uploaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	private final Average			average_downloaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	private final Average			average_bytes_in		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	private final Average			average_bytes_out		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	private final Average			average_announce		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	private final Average			average_scrape			= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	
 	private boolean			disable_reply_caching;
 	
 	private HashMap data;
 	
-	protected AEMonitor this_mon 	= new AEMonitor( "TRHostTorrentHost" );
+	protected final AEMonitor this_mon 	= new AEMonitor( "TRHostTorrentHost" );
 
 	protected
 	TRHostTorrentHostImpl(

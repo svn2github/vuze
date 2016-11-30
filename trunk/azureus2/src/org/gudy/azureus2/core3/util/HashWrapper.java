@@ -30,7 +30,7 @@ HashWrapper
 	implements ByteArrayWrapper
 {
   
-  private byte[] 	hash;
+  private final byte[] 	hash;
   private int		hash_code;
   
   public HashWrapper(byte[] _hash) 

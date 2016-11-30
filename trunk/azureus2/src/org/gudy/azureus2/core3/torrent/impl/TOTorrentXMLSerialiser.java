@@ -38,7 +38,7 @@ public class
 TOTorrentXMLSerialiser
 	extends XUXmlWriter
 {
-	protected TOTorrentImpl		torrent;
+	protected final TOTorrentImpl		torrent;
 	
 	protected
 	TOTorrentXMLSerialiser(

@@ -77,7 +77,7 @@ LongTermStatsImpl
 	private GlobalManagerStats	gm_stats;
 	private DHT[]				dhts;
 	
-	private final int STAT_ENTRY_COUNT	= 6;
+	private static final int STAT_ENTRY_COUNT	= 6;
 	
 		// totals at start of session
 	
@@ -97,9 +97,9 @@ LongTermStatsImpl
 	private long	ss_dht_sent;
 	private long	ss_dht_received;
 	
-	private long[] line_stats_prev = new long[STAT_ENTRY_COUNT];
+	private final long[] line_stats_prev = new long[STAT_ENTRY_COUNT];
 	
-	private Average[] stat_averages = new Average[STAT_ENTRY_COUNT];
+	private final Average[] stat_averages = new Average[STAT_ENTRY_COUNT];
 
 	{
 		for ( int i=0;i<STAT_ENTRY_COUNT;i++){
@@ -117,9 +117,9 @@ LongTermStatsImpl
 	
 	private DayCache			day_cache;
 	
-	private final int MONTH_CACHE_MAX = 3;
+	private static final int MONTH_CACHE_MAX = 3;
 	
-	private Map<String,MonthCache>	month_cache_map = 
+	private final Map<String,MonthCache>	month_cache_map =
 		new LinkedHashMap<String,MonthCache>(MONTH_CACHE_MAX,0.75f,true)
 		{
 			protected boolean 
@@ -130,8 +130,8 @@ LongTermStatsImpl
 			}
 		};
 		
-	private static SimpleDateFormat	debug_utc_format 	= new SimpleDateFormat( "yyyy,MM,dd:HH:mm" );
-	private static SimpleDateFormat	utc_date_format 	= new SimpleDateFormat( "yyyy,MM,dd" );
+	private static final SimpleDateFormat	debug_utc_format 	= new SimpleDateFormat( "yyyy,MM,dd:HH:mm" );
+	private static final SimpleDateFormat	utc_date_format 	= new SimpleDateFormat( "yyyy,MM,dd" );
 	
 	static{
 		debug_utc_format.setTimeZone( TimeZone.getTimeZone( "UTC" ));
@@ -142,9 +142,9 @@ LongTermStatsImpl
 	
 	private long	session_total;
 	
-	private CopyOnWriteList<Object[]>	listeners = new CopyOnWriteList<Object[]>();
+	private final CopyOnWriteList<Object[]>	listeners = new CopyOnWriteList<Object[]>();
 	
-	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "lts", 5000 );
+	private final AsyncDispatcher	dispatcher = new AsyncDispatcher( "lts", 5000 );
 	
 	private int	start_of_week 	= -1;
 	private int start_of_month	= -1;
@@ -1249,11 +1249,11 @@ outer:
 	private static class
 	DayCache
 	{
-		private String			year;
-		private String			month;
-		private String			day;
+		private final String			year;
+		private final String			month;
+		private final String			day;
 		
-		private Map<Long,long[]>	contents = new HashMap<Long, long[]>();
+		private final Map<Long,long[]>	contents = new HashMap<Long, long[]>();
 
 		private
 		DayCache(
@@ -1313,8 +1313,8 @@ outer:
 	private class
 	MonthCache
 	{	
-		private String			year;
-		private String			month;
+		private final String			year;
+		private final String			month;
 	
 		private boolean		dirty;
 		

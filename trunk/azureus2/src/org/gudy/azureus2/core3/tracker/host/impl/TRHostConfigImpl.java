@@ -42,21 +42,21 @@ TRHostConfigImpl
 	public static final String	LOG_FILE_NAME				= "tracker.log";
 	public static final long	BACKUP_RETENTION_PERIOD		= 7*24*60*60*1000L;
 	
-	private TRHostImpl	host;
+	private final TRHostImpl	host;
 	
-	private AEMonitor 	save_lock_mon 	= new AEMonitor( "TRHostConfig:SL" );
+	private final AEMonitor 	save_lock_mon 	= new AEMonitor( "TRHostConfig:SL" );
 	
-	private String		log_dir;
+	private final String		log_dir;
 	
 	private volatile boolean		loading	= false;
 	private volatile boolean		save_outstanding	= false;
 	
 	private Map			saved_stats				= new HashMap();
-	private List		saved_stats_to_delete	= new ArrayList();
+	private final List		saved_stats_to_delete	= new ArrayList();
 	
 	private boolean		config_exists = true;
 	
-	private AEMonitor this_mon 	= new AEMonitor( "TRHostConfig" );
+	private final AEMonitor this_mon 	= new AEMonitor( "TRHostConfig" );
 
 	protected
 	TRHostConfigImpl(

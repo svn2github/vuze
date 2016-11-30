@@ -58,12 +58,12 @@ ConfigurationChecker
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
 	 
-  private static boolean system_properties_set	= false;
+  private static final boolean system_properties_set	= false;
   
   private static boolean checked 				= false;
   private static boolean new_install			= false;
   
-  private static AEMonitor	class_mon	= new AEMonitor( "ConfigChecker");
+  private static final AEMonitor	class_mon	= new AEMonitor( "ConfigChecker");
 
 	private static boolean new_version = false;
   

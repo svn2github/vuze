@@ -40,9 +40,9 @@ public class TorrentDownloaderManager implements TorrentDownloaderCallBackInterf
     private GlobalManager gm = null;
     private String downloaddir;
     //private String error;
-    private ArrayList running = new ArrayList();
-    private ArrayList queued = new ArrayList();
-    private ArrayList errors = new ArrayList();
+    private final ArrayList running = new ArrayList();
+    private final ArrayList queued = new ArrayList();
+    private final ArrayList errors = new ArrayList();
     
     public TorrentDownloaderManager() {
         try {

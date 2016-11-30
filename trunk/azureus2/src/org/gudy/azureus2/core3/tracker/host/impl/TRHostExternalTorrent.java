@@ -39,14 +39,14 @@ public class
 TRHostExternalTorrent 
 	implements TOTorrent
 {
-	private byte[]		name;
-	private byte[]		hash;
-	private HashWrapper	hash_wrapper;
-	private URL			announce_url;
+	private final byte[]		name;
+	private final byte[]		hash;
+	private final HashWrapper	hash_wrapper;
+	private final URL			announce_url;
 	
-	protected Map		additional_properties = new HashMap();
+	protected final Map		additional_properties = new HashMap();
 	
-	protected AEMonitor this_mon 	= new AEMonitor( "TRHostExternalTorrent" );
+	protected final AEMonitor this_mon 	= new AEMonitor( "TRHostExternalTorrent" );
 
 	protected
 	TRHostExternalTorrent(

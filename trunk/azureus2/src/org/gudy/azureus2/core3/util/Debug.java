@@ -28,19 +28,22 @@ import java.util.*;
  */
 public class Debug {
   
-	private static boolean STOP_AT_INITIALIZER = System.getProperty("debug.stacktrace.full", "0").equals("0");
+	private static final boolean STOP_AT_INITIALIZER = System.getProperty("debug.stacktrace.full", "0").equals("0");
 
-	private static AEDiagnosticsLogger	diag_logger;
+	private static final AEDiagnosticsLogger	diag_logger;
 	
 	static{
+		// store in local variable first, so we can have diag_logger final
+		AEDiagnosticsLogger temp_diag_logger = null;
 		try{
-			diag_logger = AEDiagnostics.getLogger( "debug" );
-			
-			diag_logger.setForced( true );
+			temp_diag_logger = AEDiagnostics.getLogger( "debug" );
+
+			temp_diag_logger.setForced( true );
 			
 		}catch( Throwable e ){
 			
 		}
+		diag_logger = temp_diag_logger;
 	}
 	
   

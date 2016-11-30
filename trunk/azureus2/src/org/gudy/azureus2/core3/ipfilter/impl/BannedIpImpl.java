@@ -31,8 +31,8 @@ BannedIpImpl
 	implements BannedIp
 {
 	protected long			time;
-	protected String		torrent_name;
-	protected String 		ip;
+	protected final String		torrent_name;
+	protected final String 		ip;
 	
 	protected
 	BannedIpImpl(

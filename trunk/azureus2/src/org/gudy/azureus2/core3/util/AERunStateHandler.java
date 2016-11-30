@@ -49,13 +49,13 @@ AERunStateHandler
 	};
 	
 	
-	private static boolean	start_low = COConfigurationManager.getBooleanParameter( "Start In Low Resource Mode" );
+	private static final boolean	start_low = COConfigurationManager.getBooleanParameter( "Start In Low Resource Mode" );
 	
 	private static long	current_mode = start_low?RS_ALL_LOW:RS_ALL_ACTIVE;
 	
-	private static AsyncDispatcher	dispatcher = new AsyncDispatcher(2500);
+	private static final AsyncDispatcher	dispatcher = new AsyncDispatcher(2500);
 	
-	private static CopyOnWriteList<RunStateChangeListener>	listeners = new CopyOnWriteList<RunStateChangeListener>();
+	private static final CopyOnWriteList<RunStateChangeListener>	listeners = new CopyOnWriteList<RunStateChangeListener>();
 	
 	public static boolean
 	isDelayedUI()

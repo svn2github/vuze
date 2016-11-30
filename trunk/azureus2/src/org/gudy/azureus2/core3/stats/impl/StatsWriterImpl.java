@@ -47,7 +47,7 @@ public class
 StatsWriterImpl
 	extends XUXmlWriter
 {
-	AzureusCore		core;
+	final AzureusCore		core;
 	
 	protected
 	StatsWriterImpl(

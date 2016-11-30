@@ -31,7 +31,7 @@ public final class SHA1Simple {
 
   private int h0,h1,h2,h3,h4;
   
-  private byte[]	temp = new byte[64];
+  private final byte[]	temp = new byte[64];
   
   /**
    * Create a new SHA-1 message digest hasher.

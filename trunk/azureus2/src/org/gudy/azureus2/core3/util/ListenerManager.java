@@ -68,10 +68,10 @@ ListenerManager<T>
 	
 	private final String	name;
 	
-	private ListenerManagerDispatcher<T>				target;
+	private final ListenerManagerDispatcher<T>				target;
 	private ListenerManagerDispatcherWithException		target_with_exception;
 	
-	private boolean		async;
+	private final boolean		async;
 	private AEThread2	async_thread;
 	
 	private List<T>			listeners		= new ArrayList<T>(0);

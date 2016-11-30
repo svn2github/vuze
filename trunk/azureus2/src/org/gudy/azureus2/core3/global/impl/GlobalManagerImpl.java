@@ -100,7 +100,7 @@ public class GlobalManagerImpl
     private static final int LDT_SEEDING_ONLY           = 5;
     private static final int LDT_EVENT		            = 6;
 	   
-	private ListenerManager	listeners_and_event_listeners 	= ListenerManager.createAsyncManager(
+	private final ListenerManager	listeners_and_event_listeners 	= ListenerManager.createAsyncManager(
 		"GM:ListenDispatcher",
 		new ListenerManagerDispatcher()
 		{
@@ -154,7 +154,7 @@ public class GlobalManagerImpl
 	
 	private static final int LDT_MANAGER_WBR			= 1;
 	
-	private ListenerManager	removal_listeners 	= ListenerManager.createManager(
+	private final ListenerManager	removal_listeners 	= ListenerManager.createManager(
 			"GM:DLWBRMListenDispatcher",
 			new ListenerManagerDispatcherWithException()
 			{
@@ -210,37 +210,37 @@ public class GlobalManagerImpl
 				
 
 	private volatile List<DownloadManager> 		managers_cow	= new ArrayList<DownloadManager>();
-	private AEMonitor							managers_mon	= new AEMonitor( "GM:Managers" );
+	private final AEMonitor							managers_mon	= new AEMonitor( "GM:Managers" );
 	
-	private Map		manager_map			= new HashMap();
+	final Map		manager_map			= new HashMap();
 		
-	private GlobalMangerProgressListener	progress_listener;
+	private final GlobalMangerProgressListener	progress_listener;
 	private long							lastListenerUpdate;
 	
-	private Checker checker;
-	private GlobalManagerStatsImpl		stats;
+	private final Checker checker;
+	private final GlobalManagerStatsImpl		stats;
     private long last_swarm_stats_calc_time		= 0;
     private long last_swarm_stats				= 0;
     
     // Set this flag to disable interaction with downloads.config.
     // Do *NOT* change this - only the constructor should set it once.
-	private boolean cripple_downloads_config;
+	private final boolean cripple_downloads_config;
 
-	private TRTrackerScraper 			trackerScraper;
+	private final TRTrackerScraper 			trackerScraper;
 	private GlobalManagerStatsWriter 	stats_writer;
 	private GlobalManagerHostSupport	host_support;
   
 	private Object						download_history_manager;
 	
 		// for non-persistent downloads
-	private Map<HashWrapper,Map>		saved_download_manager_state	= new HashMap<HashWrapper,Map>();
+	private final Map<HashWrapper,Map>		saved_download_manager_state	= new HashMap<HashWrapper,Map>();
 	
 	
 	private int							next_seed_piece_recheck_index;
 	
-	private TorrentFolderWatcher torrent_folder_watcher;
+	private final TorrentFolderWatcher torrent_folder_watcher;
   
-	private ArrayList paused_list = new ArrayList();
+	private final ArrayList paused_list = new ArrayList();
 	private final AEMonitor paused_list_mon = new AEMonitor( "GlobalManager:PL" );
   
 	private final GlobalManagerFileMerger	file_merger;
@@ -255,7 +255,7 @@ public class GlobalManagerImpl
 	private boolean seeding_only_mode 				= false;
 	private boolean potentially_seeding_only_mode	= false;
 	
-	private FrequencyLimitedDispatcher	check_seeding_only_state_dispatcher = 
+	private final FrequencyLimitedDispatcher	check_seeding_only_state_dispatcher =
 		new FrequencyLimitedDispatcher(
 			new AERunnable(){ public void runSupport(){ checkSeedingOnlyStateSupport(); }}, 5000 );
 	
@@ -264,25 +264,25 @@ public class GlobalManagerImpl
 	private long	nat_status_last_good	= -1;
 	private boolean	nat_status_probably_ok;
 		
-   private CopyOnWriteList	dm_adapters = new CopyOnWriteList();
+   private final CopyOnWriteList	dm_adapters = new CopyOnWriteList();
 
    /** delay loading of torrents */
    DelayedEvent loadTorrentsDelay = null;
    /** Whether loading of existing torrents is done */
    boolean loadingComplete = false;
    /** Monitor to block adding torrents while loading existing torrent list */
-   AESemaphore loadingSem = new AESemaphore("Loading Torrents");
+   final AESemaphore loadingSem = new AESemaphore("Loading Torrents");
 
-   AEMonitor addingDM_monitor = new AEMonitor("addingDM");
-   /** List of torrents being added, but not added to the GM list yet */ 
-   List addingDMs = new ArrayList();
+   final AEMonitor addingDM_monitor = new AEMonitor("addingDM");
+   /** List of torrents being added, but not added to the GM list yet */
+   final List addingDMs = new ArrayList();
 	
    private MainlineDHTProvider provider = null;
 
    private TimerEvent	auto_resume_timer;
    private boolean		auto_resume_disabled;
    
-   private TaggableLifecycleHandler	taggable_life_manager;
+   private final TaggableLifecycleHandler	taggable_life_manager;
    
    {
    	auto_resume_disabled = 
@@ -299,12 +299,12 @@ public class GlobalManagerImpl
     private static final int waitTime = 10*1000;
     // 5 minutes save resume data interval (default)
     private int saveResumeLoopCount 	= 5*60*1000 / waitTime;
-    private int initSaveResumeLoopCount = 60*1000 / waitTime;
-    private int natCheckLoopCount		= 30*1000 / waitTime;
-    private int seedPieceCheckCount		= 30*1000 / waitTime;
-    private int oneMinuteThingCount		= 60*1000 / waitTime;
+    private static final int initSaveResumeLoopCount = 60*1000 / waitTime;
+    private static final int natCheckLoopCount		= 30*1000 / waitTime;
+    private static final int seedPieceCheckCount		= 30*1000 / waitTime;
+    private static final int oneMinuteThingCount		= 60*1000 / waitTime;
            
-    private AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
+    private final AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
 
      public Checker() {
       super("Global Status Checker");
@@ -3912,27 +3912,27 @@ public class GlobalManagerImpl
 	{
 		private static final int[] color_default = { 41, 140, 165 };
 		
-		private Object	main_tag_key 	= new Object();
-		private Object	comp_tag_key	= new Object();
+		private final Object	main_tag_key 	= new Object();
+		private final Object	comp_tag_key	= new Object();
 		
 			// exclusive tags
 		
-		private TagDownloadWithState	tag_initialising;
-		private TagDownloadWithState	tag_downloading;
-		private TagDownloadWithState	tag_seeding;
-		private TagDownloadWithState	tag_queued_downloading;
-		private TagDownloadWithState	tag_queued_seeding;
-		private TagDownloadWithState	tag_stopped;
-		private TagDownloadWithState	tag_error;
+		private final TagDownloadWithState	tag_initialising;
+		private final TagDownloadWithState	tag_downloading;
+		private final TagDownloadWithState	tag_seeding;
+		private final TagDownloadWithState	tag_queued_downloading;
+		private final TagDownloadWithState	tag_queued_seeding;
+		private final TagDownloadWithState	tag_stopped;
+		private final TagDownloadWithState	tag_error;
 	
 			// non-exclusive/derived tags
 		
-		private TagDownloadWithState	tag_active;
-		private TagDownloadWithState	tag_inactive;
-		private TagDownloadWithState	tag_complete;
-		private TagDownloadWithState	tag_incomplete;
+		private final TagDownloadWithState	tag_active;
+		private final TagDownloadWithState	tag_inactive;
+		private final TagDownloadWithState	tag_complete;
+		private final TagDownloadWithState	tag_incomplete;
 		
-		private TagDownloadWithState	tag_paused;
+		private final TagDownloadWithState	tag_paused;
 		
 		private int user_mode = -1;
 		

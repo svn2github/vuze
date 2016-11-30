@@ -79,17 +79,17 @@ GlobalManagerFileMerger
 	
 	private static final Object merged_data_lock = new Object();
 	
-	private GlobalManagerImpl		gm;
+	private final GlobalManagerImpl		gm;
 	
 	private boolean	initialised;
 	private boolean	enabled;
 	private boolean	enabled_extended;
 	
-	private Map<HashWrapper,DownloadManager>		dm_map = new HashMap<HashWrapper, DownloadManager>();
+	final Map<HashWrapper,DownloadManager>		dm_map = new HashMap<HashWrapper, DownloadManager>();
 	
-	private List<SameSizeFiles>				sames = new ArrayList<SameSizeFiles>();
+	final List<SameSizeFiles>				sames = new ArrayList<SameSizeFiles>();
 	
-	private AsyncDispatcher		read_write_dispatcher = new AsyncDispatcher( "GMFM" );
+	final AsyncDispatcher		read_write_dispatcher = new AsyncDispatcher( "GMFM" );
 	
 	private TimerEventPeriodic	timer_event;
 	
@@ -464,9 +464,9 @@ GlobalManagerFileMerger
 				DownloadManagerPeerListenerEx dmpl =
 					new DownloadManagerPeerListenerEx(){
 						
-						AsyncDispatcher dispatcher = new AsyncDispatcher( "GMFM:serial" );
+						final AsyncDispatcher dispatcher = new AsyncDispatcher( "GMFM:serial" );
 						
-						private Object		lock = this;
+						final Object		lock = this;
 								
 						private DiskManager	current_disk_manager;
 						

@@ -59,7 +59,7 @@ public class IpFilterAutoLoaderImpl
 	public static final String CFG_AUTOLOAD_FILE = "Ip Filter Autoload File";
   
 
-	private static AEMonitor class_mon = new AEMonitor(
+	static final AEMonitor class_mon = new AEMonitor(
 			"IpFilterAutoLoaderImpl:class");
 
 	private Object timerEventFilterReload;

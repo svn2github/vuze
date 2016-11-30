@@ -48,7 +48,7 @@ StatsWriterPeriodicImpl
 	private boolean started;
 	
 	private long			last_write_time	= 0;
-	private AzureusCore		core;
+	private final AzureusCore		core;
 	
 	private TimerEventPeriodic event;
 	private boolean			config_enabled;

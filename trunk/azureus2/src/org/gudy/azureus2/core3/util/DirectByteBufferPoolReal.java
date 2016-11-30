@@ -1024,9 +1024,9 @@ DirectByteBufferPoolReal
   	private static class
 	sliceBuffer
 	{
-		private ByteBuffer	buffer;
-		private short		alloc_id;
-		private short		slice_id;
+		private final ByteBuffer	buffer;
+		private final short		alloc_id;
+		private final short		slice_id;
 		
 		protected
 		sliceBuffer(
@@ -1062,7 +1062,7 @@ DirectByteBufferPoolReal
 	sliceDBB
 		extends DirectByteBuffer
 	{
-		private sliceBuffer	slice_buffer;
+		private final sliceBuffer	slice_buffer;
 
 		protected
 		sliceDBB(

@@ -35,8 +35,8 @@ class
 GlobalManagerHostSupport
 	implements 	TRHostTorrentFinder
 {
-	protected GlobalManager	gm;
-	protected TRHost		host;
+	protected final GlobalManager	gm;
+	protected final TRHost		host;
 	
 	protected
 	GlobalManagerHostSupport(

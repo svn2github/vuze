@@ -77,15 +77,15 @@ LongTermStatsGenericImpl
 	
 		// totals at start of session
 	
-	private long[]	st;
+	private final long[]	st;
 	
 		// session offsets at start of session
 	
-	private long[]	ss;
+	private final long[]	ss;
 	
-	private long[] line_stats_prev;
+	private final long[] line_stats_prev;
 	
-	private Average[] stat_averages;
+	private final Average[] stat_averages;
 	
 	private boolean				active;
 	private boolean				closing;
@@ -96,9 +96,9 @@ LongTermStatsGenericImpl
 	
 	private DayCache			day_cache;
 	
-	private final int MONTH_CACHE_MAX = 3;
+	private static final int MONTH_CACHE_MAX = 3;
 	
-	private Map<String,MonthCache>	month_cache_map = 
+	private final Map<String,MonthCache>	month_cache_map =
 		new LinkedHashMap<String,MonthCache>(MONTH_CACHE_MAX,0.75f,true)
 		{
 			protected boolean 
@@ -109,8 +109,8 @@ LongTermStatsGenericImpl
 			}
 		};
 		
-	private static SimpleDateFormat	debug_utc_format 	= new SimpleDateFormat( "yyyy,MM,dd:HH:mm" );
-	private static SimpleDateFormat	utc_date_format 	= new SimpleDateFormat( "yyyy,MM,dd" );
+	private static final SimpleDateFormat	debug_utc_format 	= new SimpleDateFormat( "yyyy,MM,dd:HH:mm" );
+	private static final SimpleDateFormat	utc_date_format 	= new SimpleDateFormat( "yyyy,MM,dd" );
 	
 	static{
 		debug_utc_format.setTimeZone( TimeZone.getTimeZone( "UTC" ));
@@ -121,9 +121,9 @@ LongTermStatsGenericImpl
 	
 	private long	session_total;
 	
-	private CopyOnWriteList<Object[]>	listeners = new CopyOnWriteList<Object[]>();
+	private final CopyOnWriteList<Object[]>	listeners = new CopyOnWriteList<Object[]>();
 	
-	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "lts", 5000 );
+	private final AsyncDispatcher	dispatcher = new AsyncDispatcher( "lts", 5000 );
 	
 	private int	start_of_week 	= -1;
 	private int start_of_month	= -1;
@@ -1101,11 +1101,11 @@ LongTermStatsGenericImpl
 	private static class
 	DayCache
 	{
-		private String			year;
-		private String			month;
-		private String			day;
+		private final String			year;
+		private final String			month;
+		private final String			day;
 		
-		private Map<Long,long[]>	contents = new HashMap<Long, long[]>();
+		private final Map<Long,long[]>	contents = new HashMap<Long, long[]>();
 
 		private
 		DayCache(
@@ -1165,8 +1165,8 @@ LongTermStatsGenericImpl
 	private class
 	MonthCache
 	{	
-		private String			year;
-		private String			month;
+		private final String			year;
+		private final String			month;
 	
 		private boolean		dirty;
 		

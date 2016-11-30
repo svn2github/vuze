@@ -45,27 +45,27 @@ public class
 DMWriterImpl 
 	implements DMWriter
 {
-	private static final LogIDs LOGID = LogIDs.DISK;
+	static final LogIDs LOGID = LogIDs.DISK;
 	
 	private static final int		MIN_ZERO_BLOCK	= 1*1024*1024;	// must be mult of 1024 (see init below)
 	
-	private DiskManagerHelper		disk_manager;
-	private DiskAccessController	disk_access;
+	final DiskManagerHelper		disk_manager;
+	final DiskAccessController	disk_access;
 		
 	private int				async_writes;
-	private Set				write_requests		= new HashSet();
-	private AESemaphore		async_write_sem 	= new AESemaphore("DMWriter::asyncWrite");
+	final Set				write_requests		= new HashSet();
+	final AESemaphore		async_write_sem 	= new AESemaphore("DMWriter::asyncWrite");
 
 	private boolean	started;
 	
 	private volatile boolean	stopped;
 	
-	private int			pieceLength;
-	private long		totalLength;
+	private final int			pieceLength;
+	private final long		totalLength;
 		
 	private boolean	complete_recheck_in_progress;
 	
-	private AEMonitor		this_mon	= new AEMonitor( "DMWriter" );
+	final AEMonitor		this_mon	= new AEMonitor( "DMWriter" );
 		
 	public
 	DMWriterImpl(
@@ -551,10 +551,10 @@ DMWriterImpl
 	requestDispatcher
 		implements DiskAccessRequestListener
 	{
-		private DiskManagerWriteRequest			request;
-		private DiskManagerWriteRequestListener	listener;
-		private DirectByteBuffer				buffer;
-		private List							chunks;
+		private final DiskManagerWriteRequest			request;
+		private final DiskManagerWriteRequestListener	listener;
+		private final DirectByteBuffer				buffer;
+		private final List							chunks;
 				
 		private int	chunk_index;
 		

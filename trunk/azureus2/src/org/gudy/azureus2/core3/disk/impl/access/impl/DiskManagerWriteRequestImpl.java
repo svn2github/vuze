@@ -28,10 +28,10 @@ DiskManagerWriteRequestImpl
 	extends DiskManagerRequestImpl
 	implements DiskManagerWriteRequest
 {  
-	private int 				pieceNumber;
-	private int 				offset;
-	private DirectByteBuffer	buffer;
-	private Object				user_data;
+	private final int 				pieceNumber;
+	private final int 				offset;
+	private final DirectByteBuffer	buffer;
+	private final Object				user_data;
  
 	public 
 	DiskManagerWriteRequestImpl(

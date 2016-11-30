@@ -34,11 +34,11 @@ HostNameToIPResolver
 {
 	static protected AEThread2		resolver_thread;
 	
-	static protected List			request_queue		= new ArrayList();
+	static protected final List			request_queue		= new ArrayList();
 	
-	static protected AEMonitor		request_queue_mon	= new AEMonitor( "HostNameToIPResolver" );
+	static protected final AEMonitor		request_queue_mon	= new AEMonitor( "HostNameToIPResolver" );
 
-	static protected AESemaphore	request_semaphore	= new AESemaphore("HostNameToIPResolver");
+	static protected final AESemaphore	request_semaphore	= new AESemaphore("HostNameToIPResolver");
 	
 	public static boolean
 	isDNSName(
@@ -295,8 +295,8 @@ HostNameToIPResolver
 	protected static class
 	request
 	{
-		protected String						host;
-		protected HostNameToIPResolverListener	listener;
+		protected final String						host;
+		protected final HostNameToIPResolverListener	listener;
 		
 		protected
 		request(

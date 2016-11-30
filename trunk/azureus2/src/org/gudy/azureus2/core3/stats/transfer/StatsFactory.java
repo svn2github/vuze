@@ -40,7 +40,7 @@ StatsFactory
 	private static OverallStats 	overall_stats;
 	private static LongTermStats	longterm_stats;
 	
-	private static Map<String,LongTermStats> generic_longterm_stats = new HashMap<String, LongTermStats>();
+	private static final Map<String,LongTermStats> generic_longterm_stats = new HashMap<String, LongTermStats>();
 	
 	public static OverallStats 
 	getStats() 

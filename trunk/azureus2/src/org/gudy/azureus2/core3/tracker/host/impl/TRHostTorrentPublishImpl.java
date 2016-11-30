@@ -40,12 +40,12 @@ public class
 TRHostTorrentPublishImpl
 	implements TRHostTorrent 
 {
-	private TRHostImpl		host;
+	private final TRHostImpl		host;
 	private TOTorrent		torrent;
 
-	private long			date_added;
+	private final long			date_added;
 	
-	private int				status	= TS_PUBLISHED;
+	private static final int				status	= TS_PUBLISHED;
 	private boolean			persistent;
 	
 	private int					seed_count;
@@ -53,11 +53,11 @@ TRHostTorrentPublishImpl
 	private TRHostPeer[]		peers = new TRHostPeer[0];
 	
 	private List				listeners_cow		= new ArrayList();
-	private List				removal_listeners	= new ArrayList();
+	private final List				removal_listeners	= new ArrayList();
 	
 	private HashMap data;
 
-	protected AEMonitor this_mon 	= new AEMonitor( "TRHostTorrentPublish" );
+	protected final AEMonitor this_mon 	= new AEMonitor( "TRHostTorrentPublish" );
 
 	protected
 	TRHostTorrentPublishImpl(

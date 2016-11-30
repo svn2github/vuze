@@ -61,10 +61,10 @@ TRTrackerDHTAnnouncerImpl
 {
 	public final static LogIDs LOGID = LogIDs.TRACKER;
 
-	private TOTorrent		torrent;
+	private final TOTorrent		torrent;
 	private HashWrapper		torrent_hash;
 	
-	private TRTrackerAnnouncerImpl.Helper		helper;
+	private final TRTrackerAnnouncerImpl.Helper		helper;
 	
 	private byte[]			data_peer_id;
 	
@@ -75,7 +75,7 @@ TRTrackerDHTAnnouncerImpl
 	
 	private TRTrackerAnnouncerResponseImpl	last_response;
 	
-	private boolean			manual;
+	private final boolean			manual;
 	
 	public
 	TRTrackerDHTAnnouncerImpl(

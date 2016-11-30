@@ -33,7 +33,7 @@ public class
 PEPeerManagerStatsImpl 
 	implements PEPeerManagerStats
 {	
-	private PEPeerManagerAdapter	adapter;
+	private final PEPeerManagerAdapter	adapter;
 	
 	private long total_data_bytes_received = 0;
 	private long total_protocol_bytes_received = 0;

@@ -30,15 +30,15 @@ public class
 TRTrackerAnnouncerResponsePeerImpl
 	implements TRTrackerAnnouncerResponsePeer
 {
-	private String		source;
-	private byte[]		peer_id;
-	private String		address;
-	private short		tcp_port;
-	private short		udp_port;
-	private short		http_port;
-	private short		crypto;
-	private byte		az_version;
-	private short		up_speed;
+	private final String		source;
+	private final byte[]		peer_id;
+	private final String		address;
+	private final short		tcp_port;
+	private final short		udp_port;
+	private final short		http_port;
+	private final short		crypto;
+	private final byte		az_version;
+	private final short		up_speed;
 	
 	public
 	TRTrackerAnnouncerResponsePeerImpl(

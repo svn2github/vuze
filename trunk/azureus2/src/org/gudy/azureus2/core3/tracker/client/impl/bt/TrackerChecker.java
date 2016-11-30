@@ -45,12 +45,12 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
    * key = Tracker URL string
    * value = TrackerStatus object
    */
-  private HashMap       trackers;
-  private AEMonitor 	trackers_mon 	= new AEMonitor( "TrackerChecker:trackers" );
+  private final HashMap       trackers;
+  private final AEMonitor 	trackers_mon 	= new AEMonitor( "TrackerChecker:trackers" );
 
   /** TRTrackerScraperImpl object associated with this object.
    */
-  private TRTrackerBTScraperImpl    scraper;
+  private final TRTrackerBTScraperImpl    scraper;
 
 	private long nextScrapeCheckOn;
     

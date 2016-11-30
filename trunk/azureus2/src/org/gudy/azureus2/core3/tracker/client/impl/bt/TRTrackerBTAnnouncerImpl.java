@@ -90,9 +90,9 @@ TRTrackerBTAnnouncerImpl
 	
 	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
-	protected static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
+	protected static final Timer	tracker_timer = new Timer( "Tracker Timer", 32);
 	
-	public static String 	UDP_REALM = "UDP Tracker";
+	public static final String 	UDP_REALM = "UDP Tracker";
 	
 	private static int userMinInterval = 0;
 	private static int userMaxNumwant = 100;
@@ -123,12 +123,12 @@ TRTrackerBTAnnouncerImpl
 	  		});
     }
 	
-	private static AEMonitor 	class_mon 			= new AEMonitor( "TRTrackerBTAnnouncer:class" );
-	private static Map			tracker_report_map	= new HashMap();
+	private static final AEMonitor 	class_mon 			= new AEMonitor( "TRTrackerBTAnnouncer:class" );
+	private static final Map			tracker_report_map	= new HashMap();
 	
     
-	private TOTorrent					torrent;
-	private TOTorrentAnnounceURLSet[]	announce_urls;
+	final TOTorrent					torrent;
+	private final TOTorrentAnnounceURLSet[]	announce_urls;
 	
 	private TRTrackerAnnouncerImpl.Helper	helper;
 	
@@ -140,7 +140,7 @@ TRTrackerBTAnnouncerImpl
 	private TRTrackerAnnouncerResponseImpl	last_response			= null;
 	private long				last_update_time_secs;
 	private long				current_time_to_wait_secs;
-	private boolean				manual_control;
+	final boolean				manual_control;
   
 	private long		tracker_interval;
 	private long		tracker_min_interval;
@@ -191,11 +191,11 @@ TRTrackerBTAnnouncerImpl
   
  
 	private String 		ip_override;
-	private String[]	peer_networks;
+	private final String[]	peer_networks;
 		
 	private TRTrackerAnnouncerDataProvider 	announce_data_provider;
 	
-	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerBTAnnouncer" );
+	protected final AEMonitor this_mon 	= new AEMonitor( "TRTrackerBTAnnouncer" );
 
 	private boolean	az_tracker;
 	private boolean	enable_sni_hack;

@@ -50,7 +50,7 @@ TRBlockingServerProcessor
 	protected static final int KEEP_ALIVE_SOCKET_TIMEOUT				= 30*1000;
 
 	private static final LogIDs LOGID = LogIDs.TRACKER;
-	protected Socket				socket;
+	protected final Socket				socket;
 	
 
 	protected int					timeout_ticks		= 1;

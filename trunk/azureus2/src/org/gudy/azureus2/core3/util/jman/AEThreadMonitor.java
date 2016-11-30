@@ -39,16 +39,19 @@ AEThreadMonitor
 {	
 	private boolean disable_getThreadCpuTime = false; 
 	
-	private ThreadMXBean	thread_bean;
-	
+	private final ThreadMXBean	thread_bean;
+
 	{
-		try{
-			thread_bean = ManagementFactory.getThreadMXBean();
-			
-		}catch( Throwable e ){
-			
+		// store in local variable first, so we can have thread_bean final
+		ThreadMXBean threadMXBean = null;
+		try {
+			threadMXBean = ManagementFactory.getThreadMXBean();
+
+		} catch (Throwable e) {
+
 			e.printStackTrace();
 		}
+		thread_bean = threadMXBean;
 	}
 	
 	public long

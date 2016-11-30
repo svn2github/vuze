@@ -31,7 +31,7 @@ public class
 BadIpImpl
 	implements BadIp
 {
-	protected String		ip;
+	protected final String		ip;
 	protected int			warning_count;
 	protected long			last_time;
 	

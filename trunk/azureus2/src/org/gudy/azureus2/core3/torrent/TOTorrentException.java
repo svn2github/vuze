@@ -36,7 +36,7 @@ TOTorrentException
 	public static final int		RT_HASH_FAILS				= 8;
 	public static final int		RT_CANCELLED				= 9;
 	
-	protected int	reason;
+	protected final int	reason;
 	
 	public
 	TOTorrentException(

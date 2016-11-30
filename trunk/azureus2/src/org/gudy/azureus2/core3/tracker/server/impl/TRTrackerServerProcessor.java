@@ -525,9 +525,9 @@ TRTrackerServerProcessor
 	lightweightPeer
 		implements TRTrackerServerPeer
 	{
-		private String	ip;
-		private int		port;
-		private byte[]	peer_id;
+		private final String	ip;
+		private final int		port;
+		private final byte[]	peer_id;
 		
 		public
 		lightweightPeer(

@@ -23,7 +23,7 @@ public class
 FrequencyLimitedDispatcher 
 {
 	private AERunnable	target;
-	private long		min_millis;
+	private final long		min_millis;
 	
 	private long			last_run;
 	private DelayedEvent	delay_event;

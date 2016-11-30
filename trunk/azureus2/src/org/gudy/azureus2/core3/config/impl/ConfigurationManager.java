@@ -41,18 +41,18 @@ ConfigurationManager
   
   private static ConfigurationManager 	config_temp = null;
   private static ConfigurationManager 	config 		= null;
-  private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
+  private static final AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
  
 		  
   private ConcurrentHashMapWrapper<String,Object> propertiesMap;	// leave this NULL - it picks up errors caused by initialisation sequence errors
-  private List transient_properties     = new ArrayList();
+  private final List transient_properties     = new ArrayList();
   
-  private List<COConfigurationListener>		listenerz 			= new ArrayList<COConfigurationListener>();
-  private Map<String,ParameterListener[]> 	parameterListenerz 	= new HashMap<String,ParameterListener[]>();
+  private final List<COConfigurationListener>		listenerz 			= new ArrayList<COConfigurationListener>();
+  private final Map<String,ParameterListener[]> 	parameterListenerz 	= new HashMap<String,ParameterListener[]>();
     
-  private List<ResetToDefaultsListener>	reset_to_def_listeners = new ArrayList<ResetToDefaultsListener>();
+  private final List<ResetToDefaultsListener>	reset_to_def_listeners = new ArrayList<ResetToDefaultsListener>();
   
-  private static FrequencyLimitedDispatcher dirty_dispatcher = 
+  private static final FrequencyLimitedDispatcher dirty_dispatcher =
 	  new FrequencyLimitedDispatcher(
 			  new AERunnable()
 			  {
@@ -64,7 +64,7 @@ ConfigurationManager
 			  },
 			  30*1000 );
  
-  private ParameterListener 
+  private final ParameterListener
 	exportable_parameter_listener = 
 		new ParameterListener() {
 			
@@ -76,8 +76,8 @@ ConfigurationManager
 			}
 		};
 	
-  private Map<String,String[]>	exported_parameters = new HashMap<String, String[]>();
-  private Map<String,String>	imported_parameters	= new HashMap<String, String>();
+  private final Map<String,String[]>	exported_parameters = new HashMap<String, String[]>();
+  private final Map<String,String>	imported_parameters	= new HashMap<String, String>();
   private volatile boolean		exported_parameters_dirty;
 
 

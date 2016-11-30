@@ -134,7 +134,7 @@ TorrentUtils
 	private static final List<byte[]>		created_torrents;
 	private static final Set<HashWrapper>	created_torrents_set;
 	
-	private static ThreadLocal<Map<String,Object>>		tls	= 
+	private static final ThreadLocal<Map<String,Object>>		tls	=
 		new ThreadLocal<Map<String,Object>>()
 		{
 			public Map<String,Object>
@@ -149,18 +149,18 @@ TorrentUtils
 	
 	private static boolean bSaveTorrentBackup;
 	
-	private static CopyOnWriteList<torrentAttributeListener>			torrent_attribute_listeners 	= new CopyOnWriteList<torrentAttributeListener>();
-	private static CopyOnWriteList<TorrentAnnounceURLChangeListener>	torrent_url_changed_listeners 	= new CopyOnWriteList<TorrentAnnounceURLChangeListener>();
+	private static final CopyOnWriteList<torrentAttributeListener>			torrent_attribute_listeners 	= new CopyOnWriteList<torrentAttributeListener>();
+	static final CopyOnWriteList<TorrentAnnounceURLChangeListener>	torrent_url_changed_listeners 	= new CopyOnWriteList<TorrentAnnounceURLChangeListener>();
 	
-	private static AsyncDispatcher	dispatcher = new AsyncDispatcher();
+	private static final AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
 	private static boolean					DNS_HANDLING_ENABLE	= true;
 	private static final boolean			TRACE_DNS 			= false;
-	private static int						DNS_HISTORY_TIMEOUT	= 4*60*60*1000;
+	private static final int						DNS_HISTORY_TIMEOUT	= 4*60*60*1000;
 	
-	private static Map<String,DNSTXTEntry>	dns_mapping = new HashMap<String, DNSTXTEntry>();
+	private static final Map<String,DNSTXTEntry>	dns_mapping = new HashMap<String, DNSTXTEntry>();
 	private static volatile int				dns_mapping_seq_count;
-	private static ThreadPool				dns_threads	= new ThreadPool( "DNS:lookups", 16, true );
+	private static final ThreadPool				dns_threads	= new ThreadPool( "DNS:lookups", 16, true );
 
 	static{
 		SimpleTimer.addPeriodicEvent(
@@ -180,7 +180,7 @@ TorrentUtils
 			});
 	}
 	
-	static DNSUtils.DNSUtilsIntf dns_utils = DNSUtils.getSingleton();
+	static final DNSUtils.DNSUtilsIntf dns_utils = DNSUtils.getSingleton();
 	
 	static {
 		COConfigurationManager.addAndFireParameterListeners(
@@ -213,7 +213,7 @@ TorrentUtils
 		}
 	}
 
-	static AtomicLong	torrent_delete_level = new AtomicLong();
+	static final AtomicLong	torrent_delete_level = new AtomicLong();
 	static long			torrent_delete_time;
 	
 	
@@ -2418,7 +2418,7 @@ TorrentUtils
 	
 	private static final int	PIECE_HASH_TIMEOUT	= 3*60*1000;
 	
-	private static Map	torrent_delegates = new WeakHashMap();
+	static final Map	torrent_delegates = new WeakHashMap();
 	
 	static{
 		SimpleTimer.addPeriodicEvent(
@@ -2445,8 +2445,8 @@ TorrentUtils
 			});
 	}
 	
-	private static HashSet	torrentFluffKeyset = new HashSet(2);
-	private static Map		fluffThombstone = new HashMap(1);
+	static final HashSet	torrentFluffKeyset = new HashSet(2);
+	static final Map		fluffThombstone = new HashMap(1);
 	
 	/**
 	 * Register keys that are used for heavyweight maps that should be discarded when the torrent is not in use
@@ -2481,8 +2481,8 @@ TorrentUtils
 		extends LogRelation
 		implements ExtendedTorrent
 	{
-		private TOTorrent		delegate;
-		private File			file;
+		private final TOTorrent		delegate;
+		private final File			file;
 		
 		private boolean			fluff_dirty;
 		
@@ -4375,7 +4375,7 @@ TorrentUtils
 	URLGroup
 		implements TOTorrentAnnounceURLGroup
 	{
-		private TOTorrentAnnounceURLGroup		delegate;
+		private final TOTorrentAnnounceURLGroup		delegate;
 		private TOTorrentAnnounceURLSet[]		sets;
 		
 		private boolean modified;
@@ -4424,12 +4424,12 @@ TorrentUtils
 	private static class
 	DNSTXTEntry
 	{
-		private long					create_time = SystemTime.getMonotonousTime();
+		private final long					create_time = SystemTime.getMonotonousTime();
 		
-		private AESemaphore				sem = new AESemaphore( "DNSTXTEntry" );
+		private final AESemaphore				sem = new AESemaphore( "DNSTXTEntry" );
 		
 		private boolean					has_records;
-		private List<DNSTXTPortInfo>	ports = new ArrayList<DNSTXTPortInfo>();
+		private final List<DNSTXTPortInfo>	ports = new ArrayList<DNSTXTPortInfo>();
 		
 		private long
 		getCreateTime()
@@ -4525,8 +4525,8 @@ TorrentUtils
 	private static class
 	DNSTXTPortInfo
 	{
-		private boolean	is_tcp;
-		private int		port;
+		private final boolean	is_tcp;
+		private final int		port;
 		
 		private
 		DNSTXTPortInfo(

@@ -51,20 +51,20 @@ CategoryImpl
 	extends TagBase 
 	implements Category, Comparable, TagDownload 
 {
-  private String sName;
-  private int type;
-  private List<DownloadManager> managers = new ArrayList<DownloadManager>();
+  final String sName;
+  private final int type;
+  private final List<DownloadManager> managers = new ArrayList<DownloadManager>();
 
   private int upload_speed;
   private int download_speed;
 
-  private Object UPLOAD_PRIORITY_KEY = new Object();
+  private final Object UPLOAD_PRIORITY_KEY = new Object();
   
   private final Map<String,String>	attributes;
   
-  private static AtomicInteger	tag_ids = new AtomicInteger();
+  private static final AtomicInteger	tag_ids = new AtomicInteger();
   
-  private LimitedRateGroup upload_limiter = 
+  private final LimitedRateGroup upload_limiter =
 	  new LimitedRateGroup()
 	  {
 		  public String 
@@ -89,7 +89,7 @@ CategoryImpl
 		  }
 	  };
    
-  private LimitedRateGroup download_limiter = 
+  private final LimitedRateGroup download_limiter =
 	  new LimitedRateGroup()
   {
 	  public String 
@@ -117,7 +117,7 @@ CategoryImpl
   
   private static final int LDT_CATEGORY_DMADDED     = 1;
   private static final int LDT_CATEGORY_DMREMOVED   = 2;
-	private ListenerManager<CategoryListener>	category_listeners = ListenerManager.createManager(
+	private final ListenerManager<CategoryListener>	category_listeners = ListenerManager.createManager(
 		"CatListenDispatcher",
 		new ListenerManagerDispatcher<CategoryListener>()
 		{

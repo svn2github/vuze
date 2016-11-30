@@ -63,12 +63,12 @@ TRTrackerAnnouncerMuxer
 	private TRTrackerAnnouncerFactory.DataProvider		f_provider;
 	private boolean										is_manual;
 	
-	private long				create_time = SystemTime.getMonotonousTime();
+	private final long				create_time = SystemTime.getMonotonousTime();
 	
-	private CopyOnWriteList<TRTrackerAnnouncerHelper>	announcers 	= new CopyOnWriteList<TRTrackerAnnouncerHelper>();
-	private Set<TRTrackerAnnouncerHelper>				activated	= new HashSet<TRTrackerAnnouncerHelper>();
+	private final CopyOnWriteList<TRTrackerAnnouncerHelper>	announcers 	= new CopyOnWriteList<TRTrackerAnnouncerHelper>();
+	private final Set<TRTrackerAnnouncerHelper>				activated	= new HashSet<TRTrackerAnnouncerHelper>();
 	private long										last_activation_time;
-	private Set<String>									failed_urls	= new HashSet<String>();
+	private final Set<String>									failed_urls	= new HashSet<String>();
 	
 	private volatile TimerEvent					event;
 	
@@ -83,7 +83,7 @@ TRTrackerAnnouncerMuxer
 	private TRTrackerAnnouncerHelper			last_best_active;
 	private long								last_best_active_set_time;
 	
-	private Map<String,StatusSummary>			recent_responses = new HashMap<String,StatusSummary>();
+	final Map<String,StatusSummary>			recent_responses = new HashMap<String,StatusSummary>();
 	
 	private TRTrackerAnnouncerResponse			last_response_informed;
 
@@ -1639,7 +1639,7 @@ TRTrackerAnnouncerMuxer
 		private TRTrackerAnnouncerHelper		helper;
 		
 		private long		time;
-		private URL			url;
+		private final URL			url;
 		private int			status;
 		private String		status_str;
 		private int			seeds		= -1;

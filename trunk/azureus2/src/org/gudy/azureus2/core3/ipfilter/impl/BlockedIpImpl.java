@@ -1,6 +1,6 @@
 /*
  * File    : BlockedIpImpl.java
- * Created : 12 déc. 2003}
+ * Created : 12 dï¿½c. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -31,11 +31,11 @@ import org.gudy.azureus2.core3.util.SystemTime;
  */
 public class BlockedIpImpl implements BlockedIp {
 
-  private String ip;
-  private long time;
-  private IpRange range;
-  private String torrentname;
-  private boolean	loggable;
+  private final String ip;
+  private final long time;
+  private final IpRange range;
+  private final String torrentname;
+  private final boolean	loggable;
   
   public BlockedIpImpl(String ip,IpRange range, String torrent_name,boolean _loggable) {
     this.ip = ip;

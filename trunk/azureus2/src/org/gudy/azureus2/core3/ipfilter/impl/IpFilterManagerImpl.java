@@ -41,7 +41,7 @@ public class
 IpFilterManagerImpl
 	implements IpFilterManager, ParameterListener
 {
-	protected static IpFilterManagerImpl		singleton	= new IpFilterManagerImpl();
+	protected static final IpFilterManagerImpl		singleton	= new IpFilterManagerImpl();
 
 	private RandomAccessFile rafDescriptions = null;
 	

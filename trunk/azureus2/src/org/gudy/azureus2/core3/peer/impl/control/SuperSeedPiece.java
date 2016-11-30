@@ -1,6 +1,6 @@
 /*
  * File    : SuperSeedPiece.java
- * Created : 13 déc. 2003}
+ * Created : 13 dï¿½c. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -33,7 +33,7 @@ public class SuperSeedPiece {
   
   
   //private PEPeerControl manager;
-  private int pieceNumber;
+  private final int pieceNumber;
   
   private int level;
   private long timeFirstDistributed;
@@ -43,7 +43,7 @@ public class SuperSeedPiece {
   
   	// use class monitor to reduce number of monitor objects (low contention here)
   
-  private static AEMonitor	class_mon	= new AEMonitor( "SuperSeedPiece:class" );
+  private static final AEMonitor	class_mon	= new AEMonitor( "SuperSeedPiece:class" );
   
   
   public SuperSeedPiece(PEPeerControl manager,int _pieceNumber) {

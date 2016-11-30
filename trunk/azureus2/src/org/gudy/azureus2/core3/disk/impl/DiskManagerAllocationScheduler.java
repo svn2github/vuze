@@ -27,8 +27,8 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 public class 
 DiskManagerAllocationScheduler 
 {   
-	private List		instances		= new ArrayList();
-	private AEMonitor	instance_mon	= new AEMonitor( "DiskManagerAllocationScheduler" );
+	private final List		instances		= new ArrayList();
+	private final AEMonitor	instance_mon	= new AEMonitor( "DiskManagerAllocationScheduler" );
 	
 	
 	public void

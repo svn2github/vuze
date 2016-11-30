@@ -35,7 +35,7 @@ public class TorrentOpenFileOptions
 	public final String orgFileName;
 
 	/** @todo: getter/setters */
-	public long lSize;
+	public final long lSize;
 
 	/** Whether to download this file.  Probably should be switched to the DND state variable */
 	private boolean toDownload;

@@ -45,13 +45,13 @@ class
 VuzeURLConnection 
 	extends HttpURLConnection 
 {
-	private URL		url;
+	private final URL		url;
 	
 	private int		response_code	= HTTP_OK;
 	private String	response_msg	= "OK";
 	
 	private InputStream					input_stream;
-	private Map<String,List<String>> 	headers = new HashMap<String, List<String>>();
+	private final Map<String,List<String>> 	headers = new HashMap<String, List<String>>();
 
 	VuzeURLConnection(
 		URL 	u )

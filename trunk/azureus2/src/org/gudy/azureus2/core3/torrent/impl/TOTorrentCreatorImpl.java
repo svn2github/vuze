@@ -39,7 +39,7 @@ public class
 TOTorrentCreatorImpl
 	implements TOTorrentCreator
 {
-	private File					torrent_base;
+	private final File					torrent_base;
 	private URL						announce_url;
 	private boolean					add_other_hashes;
 	private long					piece_length;
@@ -50,12 +50,12 @@ TOTorrentCreatorImpl
 	
 	private boolean					is_desc;
 	
-	private Map<String,File>		linkage_map		= new HashMap<String, File>();
+	private final Map<String,File>		linkage_map		= new HashMap<String, File>();
 	private File					descriptor_dir;
 	
 	private TOTorrentCreateImpl		torrent;
 
-	private List<TOTorrentProgressListener>	listeners = new ArrayList<TOTorrentProgressListener>();
+	private final List<TOTorrentProgressListener>	listeners = new ArrayList<TOTorrentProgressListener>();
 	
 	public 
 	TOTorrentCreatorImpl(
@@ -504,8 +504,8 @@ TOTorrentCreatorImpl
 	private static class
 	DescEntry
 	{
-		private List<String>	logical_path;
-		private File			target;
+		private final List<String>	logical_path;
+		private final File			target;
 		
 		private
 		DescEntry(

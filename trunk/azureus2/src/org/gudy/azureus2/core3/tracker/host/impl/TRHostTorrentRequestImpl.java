@@ -36,9 +36,9 @@ public class
 TRHostTorrentRequestImpl
 	implements TRHostTorrentRequest
 {
-	protected TRHostTorrent				torrent;
-	protected TRHostPeer				peer;
-	protected TRTrackerServerRequest	request;
+	protected final TRHostTorrent				torrent;
+	protected final TRHostPeer				peer;
+	protected final TRTrackerServerRequest	request;
 	
 	protected
 	TRHostTorrentRequestImpl(

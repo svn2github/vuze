@@ -60,8 +60,8 @@ public class MessageText {
 	  updateProductName();
   }
   
-  private static Map pluginLocalizationPaths = new HashMap();
-  private static Collection pluginResourceBundles = new ArrayList();
+  private static final Map pluginLocalizationPaths = new HashMap();
+  private static final Collection pluginResourceBundles = new ArrayList();
   private static IntegratedResourceBundle RESOURCE_BUNDLE;
   private static Set			platform_specific_keys	= new HashSet();
   private static final Pattern PAT_PARAM_ALPHA = Pattern.compile("\\{([^0-9].+?)\\}");
@@ -69,7 +69,7 @@ public class MessageText {
 	
   private static int bundle_fail_count	= 0;
   
-  private static List listeners = new ArrayList();
+  private static final List listeners = new ArrayList();
   
   // preload default language w/o plugins
   static{

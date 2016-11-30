@@ -83,7 +83,7 @@ DownloadManagerStateImpl
 		}
 	}
 	
-	private static Random	random = RandomUtils.SECURE_RANDOM;
+	private static final Random	random = RandomUtils.SECURE_RANDOM;
 	
 	private static final Map	default_parameters;
 	private static final Map	default_attributes;
@@ -107,9 +107,9 @@ DownloadManagerStateImpl
 		TorrentUtils.registerMapFluff( new String[] {TRACKER_CACHE_KEY,RESUME_KEY} );
 	}
 	
-	private static AEMonitor	class_mon	= new AEMonitor( "DownloadManagerState:class" );
+	private static final AEMonitor	class_mon	= new AEMonitor( "DownloadManagerState:class" );
 	
-	private static Map<HashWrapper,DownloadManagerStateImpl>		state_map 					= new HashMap<HashWrapper,DownloadManagerStateImpl>();
+	static final Map<HashWrapper,DownloadManagerStateImpl>		state_map 					= new HashMap<HashWrapper,DownloadManagerStateImpl>();
 	
 	static{
 		ParameterListener listener = 
@@ -149,11 +149,11 @@ DownloadManagerStateImpl
 	}
 	
 	
-	private static Map					global_state_cache			= new HashMap();
-	private static ArrayList			global_state_cache_wrappers	= new ArrayList();
+	private static final Map					global_state_cache			= new HashMap();
+	private static final ArrayList			global_state_cache_wrappers	= new ArrayList();
 	
-	private static CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> global_listeners_read_map_cow  = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
-	private static CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> global_listeners_write_map_cow = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
+	private static final CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> global_listeners_read_map_cow  = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
+	private static final CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> global_listeners_write_map_cow = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
 
 	
 	private DownloadManagerImpl			download_manager;
@@ -164,20 +164,20 @@ DownloadManagerStateImpl
 	
 	private Category 	category;
 
-	private CopyOnWriteList<DownloadManagerStateListener>		listeners_cow	= new CopyOnWriteList<DownloadManagerStateListener>();
+	private final CopyOnWriteList<DownloadManagerStateListener>		listeners_cow	= new CopyOnWriteList<DownloadManagerStateListener>();
 	
-	private CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> listeners_read_map_cow  = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
-	private CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> listeners_write_map_cow = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
+	private final CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> listeners_read_map_cow  = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
+	private final CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>> listeners_write_map_cow = new CopyOnWriteMap<String,CopyOnWriteList<DownloadManagerStateAttributeListener>>();
 	
 	
 	private Map			parameters;
 	private Map			attributes;
 	
-	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
+	private final AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 	
 	private int supressWrites = 0;
 
-	private static ThreadLocal		tls_wbr	= 
+	private static final ThreadLocal		tls_wbr	=
 		new ThreadLocal()
 		{
 			public Object
@@ -2754,7 +2754,7 @@ DownloadManagerStateImpl
 		implements DownloadManagerState
 	{
 		
-		protected DownloadManager		download_manager;
+		protected final DownloadManager		download_manager;
 		
 		protected
 		nullState(
@@ -3148,9 +3148,9 @@ DownloadManagerStateImpl
 		extends 	LogRelation
 		implements 	TorrentUtils.ExtendedTorrent
 	{
-		private DownloadManagerImpl	download_manager;
+		private final DownloadManagerImpl	download_manager;
 		
-		private String		torrent_file;
+		private final String		torrent_file;
 		private HashWrapper	torrent_hash_wrapper;
 		private Map			cache;	
 		private Map			cache_attributes;

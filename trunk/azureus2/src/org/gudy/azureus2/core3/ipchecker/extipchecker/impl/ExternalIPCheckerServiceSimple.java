@@ -30,7 +30,7 @@ public class
 ExternalIPCheckerServiceSimple
 	extends ExternalIPCheckerServiceImpl 
 {
-	protected String	url;
+	protected final String	url;
 	
 	protected
 	ExternalIPCheckerServiceSimple(

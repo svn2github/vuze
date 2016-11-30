@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.config.StringList;
  */
 public class StringListImpl implements StringList {
 
-	List list;
+	final List list;
 	
 	public StringListImpl() {
 		this.list = new ArrayList();

@@ -71,7 +71,7 @@ DownloadHistoryManagerImpl
 	
 	private final AzureusCore	azureus_core;
 	
-	private ListenerManager<DownloadHistoryListener>	listeners = 
+	private final ListenerManager<DownloadHistoryListener>	listeners =
 		ListenerManager.createAsyncManager(
 			"DHM",
 			new ListenerManagerDispatcher<DownloadHistoryListener>() {
@@ -86,7 +86,7 @@ DownloadHistoryManagerImpl
 				}
 			});
 	
-	private Object	lock = new Object();
+	final Object	lock = new Object();
 	
 	private WeakReference<Map<Long,DownloadHistoryImpl>>		history_active	= new WeakReference<Map<Long,DownloadHistoryImpl>>( null );
 	private WeakReference<Map<Long,DownloadHistoryImpl>>		history_dead	= new WeakReference<Map<Long,DownloadHistoryImpl>>( null );
@@ -104,7 +104,7 @@ DownloadHistoryManagerImpl
 	
 	private boolean	history_escaped = false;
 	
-	private Map<Long,Long>	redownload_cache	= new HashMap<Long, Long>();
+	private final Map<Long,Long>	redownload_cache	= new HashMap<Long, Long>();
 	
 	private boolean	enabled;
 	
@@ -831,8 +831,8 @@ DownloadHistoryManagerImpl
 	DownloadHistoryEventImpl
 		implements DownloadHistoryEvent
 	{
-		private int						type;
-		private List<DownloadHistory>	history;
+		private final int						type;
+		private final List<DownloadHistory>	history;
 		
 		private
 		DownloadHistoryEventImpl(

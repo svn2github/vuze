@@ -33,7 +33,7 @@ public class
 ExternalIPCheckerImpl
 	implements ExternalIPChecker 
 {
-	static ExternalIPCheckerService[]	services;
+	static final ExternalIPCheckerService[]	services;
 	
 	static{
 		services = new ExternalIPCheckerService[]{

@@ -378,7 +378,7 @@ public class PeerUtils {
   }
   
 
-	private static Set<Integer>	ignore_peer_ports	= new HashSet<Integer>();
+	private static final Set<Integer>	ignore_peer_ports	= new HashSet<Integer>();
 	
 	static{
 		COConfigurationManager.addParameterListener(
@@ -488,8 +488,8 @@ public class PeerUtils {
 	private static volatile LocationProvider	country_provider;
 	private static long							country_provider_last_check;
 
-	private static Object	country_key 	= new Object();
-	private static Object	net_key 		= new Object();
+	private static final Object	country_key 	= new Object();
+	private static final Object	net_key 		= new Object();
 		
 	private static LocationProvider
 	getCountryProvider()

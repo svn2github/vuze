@@ -60,8 +60,8 @@ OverallStatsImpl
   private static final int	SAVE_PERIOD		= 10*60*1000;	// 10 min
   private static final int	SAVE_TICKS		= SAVE_PERIOD / STATS_PERIOD;
   
-  private AzureusCore			core;
-  private GlobalManagerStats	gm_stats;
+  final AzureusCore			core;
+  final GlobalManagerStats	gm_stats;
   
   private DHT[] dhts;
   
@@ -99,9 +99,9 @@ OverallStatsImpl
   
   private long[]	lastSnapshot;
   
-  private long session_start_time = SystemTime.getCurrentTime();
+  private final long session_start_time = SystemTime.getCurrentTime();
   
-  protected AEMonitor	this_mon	= new AEMonitor( "OverallStats" );
+  protected final AEMonitor	this_mon	= new AEMonitor( "OverallStats" );
 
   private int 	tick_count;
   

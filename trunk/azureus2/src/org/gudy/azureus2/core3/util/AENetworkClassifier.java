@@ -49,7 +49,7 @@ AENetworkClassifier
 	
 	public static final String[] AT_NON_PUBLIC = { AT_I2P, AT_TOR };
 	
-	private static List	listeners = new ArrayList();
+	private static final List	listeners = new ArrayList();
 	
 	public static String
 	categoriseAddress(

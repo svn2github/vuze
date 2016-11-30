@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.config.StringIterator;
  */
 public class StringIteratorImpl implements StringIterator {
 
-	Iterator iterator;
+	final Iterator iterator;
 	
 	public StringIteratorImpl(Iterator _iterator) {
 		iterator = _iterator;

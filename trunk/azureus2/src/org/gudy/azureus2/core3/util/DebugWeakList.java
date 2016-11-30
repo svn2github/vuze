@@ -28,8 +28,8 @@ DebugWeakList
 {
 	final static boolean DEBUG = Constants.isCVSVersion();
 	
-	private String		name;
-	private List		list;
+	private final String		name;
+	final List		list;
 	
 	public
 	DebugWeakList(

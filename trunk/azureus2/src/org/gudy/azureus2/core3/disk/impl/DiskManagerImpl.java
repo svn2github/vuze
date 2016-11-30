@@ -90,7 +90,7 @@ DiskManagerImpl
 	
     private static final LogIDs LOGID = LogIDs.DISK;
 
-    private static DiskAccessController disk_access_controller;
+    private static final DiskAccessController disk_access_controller;
 
     static {
         int max_read_threads        = COConfigurationManager.getIntParameter( "diskmanager.perf.read.maxthreads" );
@@ -140,10 +140,10 @@ DiskManagerImpl
     		});
     }
     
-    private static DiskManagerRecheckScheduler      recheck_scheduler       = new DiskManagerRecheckScheduler();
-    private static DiskManagerAllocationScheduler   allocation_scheduler    = new DiskManagerAllocationScheduler();
+    private static final DiskManagerRecheckScheduler      recheck_scheduler       = new DiskManagerRecheckScheduler();
+    private static final DiskManagerAllocationScheduler   allocation_scheduler    = new DiskManagerAllocationScheduler();
 
-    private static ThreadPool	start_pool = new ThreadPool( "DiskManager:start", 64, true );
+    private static final ThreadPool	start_pool = new ThreadPool( "DiskManager:start", 64, true );
     
     static{
     	start_pool.setThreadPriority( Thread.MIN_PRIORITY );
@@ -152,7 +152,7 @@ DiskManagerImpl
     private boolean used    = false;
 
     private boolean started = false;
-    private AESemaphore started_sem = new AESemaphore( "DiskManager::started" );
+    final AESemaphore started_sem = new AESemaphore( "DiskManager::started" );
     private boolean starting;
     private boolean stopping;
 
@@ -171,7 +171,7 @@ DiskManagerImpl
     private long        remaining;
 
 
-    private TOTorrent       torrent;
+    private final TOTorrent       torrent;
 
 
     private DMReader                reader;
@@ -189,7 +189,7 @@ DiskManagerImpl
     private DiskManagerFileInfoImpl[]				files;
 	private DiskManagerFileInfoSet					fileset;
 	
-    protected DownloadManager       download_manager;
+    protected final DownloadManager       download_manager;
 
     private boolean alreadyMoved = false;
 
@@ -197,7 +197,7 @@ DiskManagerImpl
     private long                skipped_file_set_size;
     private long                skipped_but_downloaded;
 
-    private AtomicLong			priority_change_marker = new AtomicLong( RandomUtils.nextLong());
+    private final AtomicLong			priority_change_marker = new AtomicLong( RandomUtils.nextLong());
     {
 	    if ( priority_change_marker.get() == 0 ){
 	    	priority_change_marker.incrementAndGet();
@@ -216,7 +216,7 @@ DiskManagerImpl
     private static final int LDT_PIECE_DONE_CHANGED     = 3;
     private static final int LDT_ACCESS_MODE_CHANGED    = 4;
 
-    protected static ListenerManager<DiskManagerListener>    listeners_aggregator    = ListenerManager.createAsyncManager(
+    protected static final ListenerManager<DiskManagerListener>    listeners_aggregator    = ListenerManager.createAsyncManager(
             "DiskM:ListenAggregatorDispatcher",
             new ListenerManagerDispatcher<DiskManagerListener>()
             {
@@ -252,7 +252,7 @@ DiskManagerImpl
                 }
             });
 
-    private ListenerManager<DiskManagerListener> listeners   = ListenerManager.createManager(
+    private final ListenerManager<DiskManagerListener> listeners   = ListenerManager.createManager(
             "DiskM:ListenDispatcher",
             new ListenerManagerDispatcher<DiskManagerListener>()
             {
@@ -266,8 +266,8 @@ DiskManagerImpl
                 }
             });
 
-    private AEMonitor   start_stop_mon  = new AEMonitor( "DiskManager:startStop" );
-    private AEMonitor   file_piece_mon  = new AEMonitor( "DiskManager:filePiece" );
+    final AEMonitor   start_stop_mon  = new AEMonitor( "DiskManager:startStop" );
+    private final AEMonitor   file_piece_mon  = new AEMonitor( "DiskManager:filePiece" );
 
     
     public
@@ -2613,7 +2613,7 @@ DiskManagerImpl
 	        		1000,
 	        		new TimerEventPerformer()
 	        		{		
-	        			private long	start_time = SystemTime.getMonotonousTime();
+	        			private final long	start_time = SystemTime.getMonotonousTime();
 	        			
 	        			private long	last_update_processed;
 	        			

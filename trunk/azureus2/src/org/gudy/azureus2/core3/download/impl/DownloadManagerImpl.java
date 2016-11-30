@@ -136,10 +136,10 @@ DownloadManagerImpl
 	private static final int LDT_FILEPRIORITYCHANGED 	= 5;
 	
 	
-	private AEMonitor	listeners_mon	= new AEMonitor( "DM:DownloadManager:L" );
+	private final AEMonitor	listeners_mon	= new AEMonitor( "DM:DownloadManager:L" );
     
     
-	private static ListenerManager<DownloadManagerListener>	listeners_aggregator 	= ListenerManager.createAsyncManager(
+	static final ListenerManager<DownloadManagerListener>	listeners_aggregator 	= ListenerManager.createAsyncManager(
 			"DM:ListenAggregatorDispatcher",
 			new ListenerManagerDispatcher<DownloadManagerListener>()
 			{
@@ -176,9 +176,9 @@ DownloadManagerImpl
 				}
 			});		
 	
-	private static CopyOnWriteList<DownloadManagerListener>	global_dm_listeners = new CopyOnWriteList<DownloadManagerListener>();
+	static final CopyOnWriteList<DownloadManagerListener>	global_dm_listeners = new CopyOnWriteList<DownloadManagerListener>();
 
-    private static DownloadManagerListener global_dm_listener = 
+    private static final DownloadManagerListener global_dm_listener =
 		new DownloadManagerListener() {
 			
 			public void stateChanged(DownloadManager manager, int state) {
@@ -280,7 +280,7 @@ DownloadManagerImpl
     }
     
 
-	private ListenerManager<DownloadManagerListener>	listeners 	= ListenerManager.createManager(
+	private final ListenerManager<DownloadManagerListener>	listeners 	= ListenerManager.createManager(
 			"DM:ListenDispatcher",
 			new ListenerManagerDispatcher<DownloadManagerListener>()
 			{
@@ -302,7 +302,7 @@ DownloadManagerImpl
 	private static final int LDT_TL_ANNOUNCERESULT		= 1;
 	private static final int LDT_TL_SCRAPERESULT		= 2;
 	
-	private ListenerManager	tracker_listeners 	= ListenerManager.createManager(
+	final ListenerManager	tracker_listeners 	= ListenerManager.createManager(
 			"DM:TrackerListenDispatcher",
 			new ListenerManagerDispatcher()
 			{
@@ -334,7 +334,7 @@ DownloadManagerImpl
 	
 		// one static async manager for them all
 	
-	private static ListenerManager<DownloadManagerPeerListener>	peer_listeners_aggregator 	= ListenerManager.createAsyncManager(
+	static final ListenerManager<DownloadManagerPeerListener>	peer_listeners_aggregator 	= ListenerManager.createAsyncManager(
 			"DM:PeerListenAggregatorDispatcher",
 			new ListenerManagerDispatcher<DownloadManagerPeerListener>()
 			{
@@ -363,7 +363,7 @@ DownloadManagerImpl
 				}
 			});
 
-	private static Object TPS_Key = new Object();
+	static final Object TPS_Key = new Object();
 	
 	public static volatile String	dnd_subfolder;
 	
@@ -406,7 +406,7 @@ DownloadManagerImpl
 
 	
 	
-	private ListenerManager<DownloadManagerPeerListener>	peer_listeners 	= ListenerManager.createManager(
+	private final ListenerManager<DownloadManagerPeerListener>	peer_listeners 	= ListenerManager.createManager(
 			"DM:PeerListenDispatcher",
 			new ListenerManagerDispatcher<DownloadManagerPeerListener>()
 			{
@@ -420,10 +420,10 @@ DownloadManagerImpl
 				}
 			});	
 	
-	private AEMonitor	peer_listeners_mon	= new AEMonitor( "DM:DownloadManager:PeerL" );
+	final AEMonitor	peer_listeners_mon	= new AEMonitor( "DM:DownloadManager:PeerL" );
 	
-	private Map<PEPeer,String>	current_peers 						= new IdentityHashMap<PEPeer, String>();
-	private Map<PEPeer,Long>	current_peers_unmatched_removal 	= new IdentityHashMap<PEPeer, Long>();
+	final Map<PEPeer,String>	current_peers 						= new IdentityHashMap<PEPeer, String>();
+	private final Map<PEPeer,Long>	current_peers_unmatched_removal 	= new IdentityHashMap<PEPeer, Long>();
 	
 		// PieceListeners
 	
@@ -432,7 +432,7 @@ DownloadManagerImpl
 	
 		// one static async manager for them all
 	
-	private static ListenerManager	piece_listeners_aggregator 	= ListenerManager.createAsyncManager(
+	static final ListenerManager	piece_listeners_aggregator 	= ListenerManager.createAsyncManager(
 			"DM:PieceListenAggregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
@@ -455,7 +455,7 @@ DownloadManagerImpl
 				}
 			});
 
-	private ListenerManager	piece_listeners 	= ListenerManager.createManager(
+	private final ListenerManager	piece_listeners 	= ListenerManager.createManager(
 			"DM:PieceListenDispatcher",
 			new ListenerManagerDispatcher()
 			{
@@ -471,16 +471,16 @@ DownloadManagerImpl
 	
 	private List<DownloadManagerTPSListener>	tps_listeners;
 	
-	private AEMonitor	piece_listeners_mon	= new AEMonitor( "DM:DownloadManager:PeiceL" );
+	private final AEMonitor	piece_listeners_mon	= new AEMonitor( "DM:DownloadManager:PeiceL" );
 	
-	private List	current_pieces	= new ArrayList();
+	private final List	current_pieces	= new ArrayList();
   
-	private DownloadManagerController	controller;
-	private DownloadManagerStatsImpl	stats;
+	final DownloadManagerController	controller;
+	private final DownloadManagerStatsImpl	stats;
 
-	protected AEMonitor					this_mon = new AEMonitor( "DM:DownloadManager" );
+	protected final AEMonitor					this_mon = new AEMonitor( "DM:DownloadManager" );
 	
-	private boolean		persistent;
+	private final boolean		persistent;
 
 	/**
 	 * Pretend this download is complete while not running, 
@@ -506,7 +506,7 @@ DownloadManagerImpl
 	
 	private long		resume_time;
 	
-	private GlobalManager globalManager;
+	final GlobalManager globalManager;
 	private String torrentFileName;
 	
 	private boolean	open_for_seeding;
@@ -530,7 +530,7 @@ DownloadManagerImpl
 	private String 			torrent_created_by;
 	
 	private TRTrackerAnnouncer 				tracker_client;
-	private TRTrackerAnnouncerListener		tracker_client_listener = 
+	private final TRTrackerAnnouncerListener		tracker_client_listener =
 			new TRTrackerAnnouncerListener() 
 			{
 				public void 
@@ -600,7 +600,7 @@ DownloadManagerImpl
 	
 				// a second listener used to catch and propagate the "stopped" event
 				
-	private TRTrackerAnnouncerListener		stopping_tracker_client_listener = 
+	private final TRTrackerAnnouncerListener		stopping_tracker_client_listener =
 		new TRTrackerAnnouncerListener() 
 		{
 			public void 
@@ -628,9 +628,9 @@ DownloadManagerImpl
 		};
 		
 		
-	private CopyOnWriteList	activation_listeners = new CopyOnWriteList();
+	private final CopyOnWriteList	activation_listeners = new CopyOnWriteList();
 	
-	private long						scrape_random_seed	= SystemTime.getCurrentTime();
+	private final long						scrape_random_seed	= SystemTime.getCurrentTime();
 
 	private volatile Map<Object,Object>		data;
   
@@ -814,7 +814,7 @@ DownloadManagerImpl
 				 DownloadManagerStateAttributeListener attr_listener = 
 					 new DownloadManagerStateAttributeListener() 
 				 	 {
-					 	private ThreadLocal<Boolean>	links_changing = 
+					 	private final ThreadLocal<Boolean>	links_changing =
 					 			new ThreadLocal<Boolean>()
 					 			{
 					 				protected Boolean initialValue(){

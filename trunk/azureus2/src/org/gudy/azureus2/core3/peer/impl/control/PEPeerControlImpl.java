@@ -172,7 +172,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			});
 	}
 	
-	private static IpFilter ip_filter = IpFilterManagerFactory.getSingleton().getIPFilter();
+	private static final IpFilter ip_filter = IpFilterManagerFactory.getSingleton().getIPFilter();
 
 	private volatile boolean	is_running 		= false;  
 	private volatile boolean	is_destroyed 	= false;  
@@ -196,7 +196,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private boolean				restart_initiated;
 
 	private final int       _nbPieces;     //how many pieces in the torrent
-	private PEPieceImpl[]	pePieces;      //pieces that are currently in progress
+	private final PEPieceImpl[]	pePieces;      //pieces that are currently in progress
 	private int				nbPiecesActive;	// how many pieces are currently in progress
 
 	private int				nbPeersSnubbed;
@@ -278,7 +278,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 
 
-	private PeerDatabase	peer_database = PeerDatabaseFactory.createPeerDatabase();
+	private final PeerDatabase	peer_database = PeerDatabaseFactory.createPeerDatabase();
 
 	private int				bad_piece_reported		= -1;
 	
@@ -296,7 +296,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	private static final String	PEER_NAT_TRAVERSE_DONE_KEY	= PEPeerControlImpl.class.getName() + "::nat_trav_done";
 	
-	private Map<String,PEPeerTransport>	pending_nat_traversals = 
+	private final Map<String,PEPeerTransport>	pending_nat_traversals =
 		new LinkedHashMap<String,PEPeerTransport>(PENDING_NAT_TRAVERSAL_MAX,0.75f,true)
 	{
 		protected boolean 
@@ -311,7 +311,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private static final int UDP_RECONNECT_MAX			= 16;
 	
-	private Map<String,PEPeerTransport>	udp_reconnects = 
+	private final Map<String,PEPeerTransport>	udp_reconnects =
 		new LinkedHashMap<String,PEPeerTransport>(UDP_RECONNECT_MAX,0.75f,true)
 	{
 		protected boolean 
@@ -381,7 +381,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	private long			last_seed_disconnect_time;
 	
-	private BloomFilter		naughty_fast_extension_bloom = 
+	private final BloomFilter		naughty_fast_extension_bloom =
 			BloomFilterFactory.createRotating(
 				BloomFilterFactory.createAddRemove4Bit( 2000 ), 2 );
 	

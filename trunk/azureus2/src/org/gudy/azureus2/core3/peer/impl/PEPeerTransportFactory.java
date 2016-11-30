@@ -38,7 +38,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 public class 
 PEPeerTransportFactory 
 {
-	protected static Map	extension_handlers = new HashMap();
+	protected static final Map	extension_handlers = new HashMap();
 	
   
   /**

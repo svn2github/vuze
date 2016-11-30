@@ -514,8 +514,8 @@ TOTorrentXMLDeserialiser
 	protected static class
 	mapEntry
 	{
-		String		name;
-		Object		value;
+		final String		name;
+		final Object		value;
 		
 		mapEntry(
 			String	_name,

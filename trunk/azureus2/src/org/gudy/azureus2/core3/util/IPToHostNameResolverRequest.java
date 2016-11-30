@@ -23,7 +23,7 @@ package org.gudy.azureus2.core3.util;
 public class
 IPToHostNameResolverRequest
 {
-	protected String						ip;
+	protected final String						ip;
 	protected IPToHostNameResolverListener	listener;
 	
 	protected

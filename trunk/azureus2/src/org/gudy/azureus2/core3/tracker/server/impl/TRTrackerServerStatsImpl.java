@@ -33,7 +33,7 @@ public class
 TRTrackerServerStatsImpl
 	implements TRTrackerServerStats
 {
-	private TRTrackerServerImpl	server;
+	private final TRTrackerServerImpl	server;
 	
 	private long		announces;
 	private long		scrapes;

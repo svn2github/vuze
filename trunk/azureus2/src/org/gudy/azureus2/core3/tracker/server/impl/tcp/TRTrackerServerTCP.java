@@ -38,32 +38,18 @@ public abstract class
 TRTrackerServerTCP 
 	extends 	TRTrackerServerImpl
 {
-	private static int 	THREAD_POOL_SIZE		= COConfigurationManager.getIntParameter( "Tracker Max Threads" );
+	private static final int 	THREAD_POOL_SIZE		= Math.max(1, COConfigurationManager.getIntParameter( "Tracker Max Threads" ));
 	
-	public static long PROCESSING_GET_LIMIT			= COConfigurationManager.getIntParameter( "Tracker Max GET Time" )*1000;
-	public static int  PROCESSING_POST_MULTIPLIER	= COConfigurationManager.getIntParameter( "Tracker Max POST Time Multiplier" );
+	public static final long PROCESSING_GET_LIMIT			= Math.max(0, COConfigurationManager.getIntParameter( "Tracker Max GET Time" )*1000);
+	public static final int  PROCESSING_POST_MULTIPLIER	=  Math.max(0, COConfigurationManager.getIntParameter( "Tracker Max POST Time Multiplier" ));
 	
-	static{
-			// sanity checks
-		
-		if ( THREAD_POOL_SIZE <= 0 ){
-			THREAD_POOL_SIZE	= 1;
-		}
-		if ( PROCESSING_GET_LIMIT < 0 ){
-			PROCESSING_GET_LIMIT = 0;
-		}
-		if ( PROCESSING_POST_MULTIPLIER < 0 ){
-			PROCESSING_POST_MULTIPLIER	= 0;
-		}
-	}
-	
-	private boolean	ssl;
+	private final boolean	ssl;
 	private int		port;
-	private boolean	apply_ip_filter;
+	private final boolean	apply_ip_filter;
 	
 	private boolean restrict_non_blocking_requests = TRTrackerServerImpl.restrict_non_blocking_requests;
 	
-	private ThreadPool	thread_pool;
+	private final ThreadPool	thread_pool;
 	
 	public
 	TRTrackerServerTCP(
@@ -81,7 +67,8 @@ TRTrackerServerTCP
 		ssl						= _ssl;
 		apply_ip_filter			= _apply_ip_filter;
 
-		thread_pool = new ThreadPool( "TrackerServer:TCP:"+port, THREAD_POOL_SIZE );			
+		thread_pool = new ThreadPool( "TrackerServer:TCP:"+port, THREAD_POOL_SIZE );
+			
 		if ( PROCESSING_GET_LIMIT > 0 ){
 			
 			thread_pool.setExecutionLimit( PROCESSING_GET_LIMIT );
@@ -114,18 +101,13 @@ TRTrackerServerTCP
 		restrict_non_blocking_requests = restrict;
 	}
 	
-	static boolean	LOG_DOS_TO_FILE	= false;
-	
-	static{
-		
-		LOG_DOS_TO_FILE = System.getProperty("azureus.log.dos") != null;
-	}
+	static boolean	LOG_DOS_TO_FILE	= System.getProperty("azureus.log.dos") != null;
 	
 	protected static File		dos_log_file;
 	
-	protected static AEMonitor class_mon 	= new AEMonitor( "TRTrackerServerTCP:class" );
+	protected static final AEMonitor class_mon 	= new AEMonitor( "TRTrackerServerTCP:class" );
 
-	Map	DOS_map = 
+	final Map	DOS_map =
 		new LinkedHashMap( 1000, (float)0.75, true )
 		{
 			protected boolean 
@@ -136,13 +118,13 @@ TRTrackerServerTCP
 			}
 		};
 	
-	List	dos_list	= new ArrayList(128);
+	final List	dos_list	= new ArrayList(128);
 	
 	long	last_dos_check				= 0;
-	long	MAX_DOS_ENTRIES				= 10000;
-	long	MAX_DOS_RETENTION			= 10000;
-	int		DOS_CHECK_DEAD_WOOD_COUNT	= 512;
-	int		DOS_MIN_INTERVAL			= 1000;
+	static final long	MAX_DOS_ENTRIES				= 10000;
+	static final long	MAX_DOS_RETENTION			= 10000;
+	static final int		DOS_CHECK_DEAD_WOOD_COUNT	= 512;
+	static final int		DOS_MIN_INTERVAL			= 1000;
 	int		dos_check_count				= 0;
 	
 	protected boolean
@@ -272,7 +254,7 @@ TRTrackerServerTCP
 	protected class
 	DOSEntry
 	{
-		String		ip;
+		final String		ip;
 		long		last_time;
 		
 		protected

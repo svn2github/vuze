@@ -32,10 +32,10 @@ public class
 IPToHostNameResolver 
 {
 	static protected AEThread2		resolver_thread;
-	static protected List			request_queue		= new ArrayList();
-	static protected AEMonitor		request_mon			= new AEMonitor( "IPToHostNameResolver" );
+	static protected final List			request_queue		= new ArrayList();
+	static protected final AEMonitor		request_mon			= new AEMonitor( "IPToHostNameResolver" );
 
-	static protected AESemaphore	request_semaphore	= new AESemaphore("IPToHostNameResolver");
+	static protected final AESemaphore	request_semaphore	= new AESemaphore("IPToHostNameResolver");
 	
 	public static IPToHostNameResolverRequest
 	addResolverRequest(

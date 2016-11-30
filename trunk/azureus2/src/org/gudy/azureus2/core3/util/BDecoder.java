@@ -197,7 +197,7 @@ public class BDecoder
 	// reuseable objects for key decoding
 	private ByteBuffer keyBytesBuffer = ByteBuffer.allocate(32);
 	private CharBuffer keyCharsBuffer = CharBuffer.allocate(32);
-	private CharsetDecoder keyDecoder = Constants.BYTE_CHARSET.newDecoder();
+	private final CharsetDecoder keyDecoder = Constants.BYTE_CHARSET.newDecoder();
 
 	private Object 
 	decodeInputStream(
@@ -1317,7 +1317,7 @@ public class BDecoder
 		final private byte[] bytes;
 		private int pos = 0;
 		private int markPos;
-		private int overPos;
+		private final int overPos;
 
 		
 		public BDecoderInputStreamArray(ByteBuffer buffer) {

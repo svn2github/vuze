@@ -27,7 +27,7 @@ public class
 DMPieceMapImpl
 	implements DMPieceMap
 {
-	private DMPieceList[]	piece_lists;
+	private final DMPieceList[]	piece_lists;
 	
 	protected
 	DMPieceMapImpl(

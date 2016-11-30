@@ -29,18 +29,18 @@ import java.nio.ByteBuffer;
 public class 
 ConcurrentHasherRequest 
 {	
-	private static AEMonitor		class_mon = new AEMonitor( "ConcHashRequest:class" );
+	private static final AEMonitor		class_mon = new AEMonitor( "ConcHashRequest:class" );
 	
-	private ConcurrentHasher					concurrent_hasher;
-	private ByteBuffer							buffer;
+	private final ConcurrentHasher					concurrent_hasher;
+	private final ByteBuffer							buffer;
 	private ConcurrentHasherRequestListener		listener;
 
-	private int									size;
+	private final int									size;
 	private byte[]								result;
 	private boolean								cancelled;
-	private boolean								low_priority;
+	private final boolean								low_priority;
 	
-	private AESemaphore	sem = new AESemaphore("ConcHashRequest");
+	private final AESemaphore	sem = new AESemaphore("ConcHashRequest");
 	
 	protected
 	ConcurrentHasherRequest(

@@ -67,15 +67,15 @@ TRTrackerServerImpl
 	
 	public static String	redirect_on_not_found		= "";
 	
-	public static List<String>	banned_clients = new ArrayList<String>();
+	public static final List<String>	banned_clients = new ArrayList<String>();
 	
 		// torrent map is static across all protocol servers
 	
-	private static Map		torrent_map = new HashMap(); 
+	private static final Map		torrent_map = new HashMap();
 	
-	private static Map		link_map	= new HashMap();
+	private static final Map		link_map	= new HashMap();
 	
-	protected AEMonitor class_mon 	= new AEMonitor( "TRTrackerServer:class" );
+	protected final AEMonitor class_mon 	= new AEMonitor( "TRTrackerServer:class" );
 
 
 	static{
@@ -230,18 +230,18 @@ TRTrackerServerImpl
 		return( support_experimental_extensions );
 	}
 	
-	protected IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
+	protected final IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
 	
 	private long		current_announce_retry_interval;
 	private long		current_scrape_retry_interval;
 	private long		current_total_clients;
 	
 	private int		current_min_poll_interval;
-	private int		current_min_seed_announce_mult;
+	private final int		current_min_seed_announce_mult;
 	
-	private TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl( this );
+	private final TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl( this );
 		
-	private String	name;
+	private final String	name;
 	private boolean	web_password_enabled;
 	private boolean	web_password_https_only;
 	
@@ -256,16 +256,16 @@ TRTrackerServerImpl
 	private boolean	keep_alive_enabled	= false;
 	
 	
-	protected CopyOnWriteList<TRTrackerServerListener>	listeners 	= new CopyOnWriteList<TRTrackerServerListener>();
-	protected CopyOnWriteList<TRTrackerServerListener2>	listeners2 	= new CopyOnWriteList<TRTrackerServerListener2>();
+	protected final CopyOnWriteList<TRTrackerServerListener>	listeners 	= new CopyOnWriteList<TRTrackerServerListener>();
+	protected final CopyOnWriteList<TRTrackerServerListener2>	listeners2 	= new CopyOnWriteList<TRTrackerServerListener2>();
 	
-	private List<TRTrackerServerAuthenticationListener>		auth_listeners		= new ArrayList<TRTrackerServerAuthenticationListener>();
+	private final List<TRTrackerServerAuthenticationListener>		auth_listeners		= new ArrayList<TRTrackerServerAuthenticationListener>();
 	
-	private Vector<TRTrackerServerRequestListener>	request_listeners 	= new Vector<TRTrackerServerRequestListener>();
+	private final Vector<TRTrackerServerRequestListener>	request_listeners 	= new Vector<TRTrackerServerRequestListener>();
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServer" );
 
-	private COConfigurationListener		config_listener;
+	private final COConfigurationListener		config_listener;
 	private boolean						destroyed;
 	
 	private Set							biased_peers;

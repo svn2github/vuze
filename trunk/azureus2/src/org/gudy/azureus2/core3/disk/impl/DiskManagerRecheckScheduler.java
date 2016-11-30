@@ -54,8 +54,8 @@ DiskManagerRecheckScheduler
  				param_listener );
     }
     
-	private List		instances		= new ArrayList();
-	private AEMonitor	instance_mon	= new AEMonitor( "DiskManagerRecheckScheduler" );
+	private final List		instances		= new ArrayList();
+	private final AEMonitor	instance_mon	= new AEMonitor( "DiskManagerRecheckScheduler" );
 	
 	
 	public DiskManagerRecheckInstance

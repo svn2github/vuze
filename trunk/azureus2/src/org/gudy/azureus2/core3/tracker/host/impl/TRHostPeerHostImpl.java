@@ -33,7 +33,7 @@ public class
 TRHostPeerHostImpl
 	implements TRHostPeer 
 {
-	protected	TRTrackerServerPeer	peer;
+	protected final TRTrackerServerPeer	peer;
 	
 	protected
 	TRHostPeerHostImpl(

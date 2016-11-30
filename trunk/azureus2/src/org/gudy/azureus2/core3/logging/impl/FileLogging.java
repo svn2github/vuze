@@ -43,7 +43,7 @@ public class FileLogging implements ILogEventListener {
 
 	public static final String BAK_FILE_NAME = "az.log.bak";
 
-	public static LogIDs[] configurableLOGIDs = {LogIDs.STDOUT, LogIDs.ALERT, LogIDs.CORE,
+	public static final LogIDs[] configurableLOGIDs = {LogIDs.STDOUT, LogIDs.ALERT, LogIDs.CORE,
 			LogIDs.DISK, LogIDs.GUI, LogIDs.NET, LogIDs.NWMAN, LogIDs.PEER,
 			LogIDs.PLUGIN, LogIDs.TRACKER, LogIDs.CACHE, LogIDs.PIECES };
 	
@@ -58,9 +58,9 @@ public class FileLogging implements ILogEventListener {
 
 	// List of components we don't log.  
 	// Array represents LogTypes (info, warning, error)
-	private ArrayList[] ignoredComponents = new ArrayList[3];
+	private final ArrayList[] ignoredComponents = new ArrayList[3];
 	
-	private ArrayList listeners = new ArrayList();
+	private final ArrayList listeners = new ArrayList();
 
 	public void initialize() {
 		// Shorten from COConfigurationManager To make code more readable

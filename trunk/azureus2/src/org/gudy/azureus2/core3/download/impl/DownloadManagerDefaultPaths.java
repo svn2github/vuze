@@ -409,7 +409,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
     }
 
     private abstract static class ParameterHelper implements ContextDescriptor {
-		private Map settings = new HashMap();
+		private final Map settings = new HashMap();
 		private String context = null;
 
 		protected boolean getBoolean(String key) {

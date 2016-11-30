@@ -72,7 +72,7 @@ SESecurityManagerImpl
 {
 	private static final LogIDs LOGID = LogIDs.NET; 
 
-	protected static SESecurityManagerImpl	singleton = new SESecurityManagerImpl();
+	protected static final SESecurityManagerImpl	singleton = new SESecurityManagerImpl();
 	
 	protected static String	KEYSTORE_TYPE;
 	
@@ -120,12 +120,12 @@ SESecurityManagerImpl
 	protected String	keystore_name;
 	protected String	truststore_name;
 	
-	protected List<SECertificateListener>		certificate_listeners 	= new ArrayList<SECertificateListener>();
+	protected final List<SECertificateListener>		certificate_listeners 	= new ArrayList<SECertificateListener>();
 	
-	protected CopyOnWriteList	password_listeners 		= new CopyOnWriteList();
+	protected final CopyOnWriteList	password_listeners 		= new CopyOnWriteList();
 	
 	
-	private static ThreadLocal		tls	= 
+	private static final ThreadLocal		tls	=
 		new ThreadLocal()
 		{
 			public Object
@@ -135,14 +135,14 @@ SESecurityManagerImpl
 			}
 		};
 		
-	protected Map	password_handlers		= new HashMap();
-	protected Map	certificate_handlers	= new HashMap();
+	protected final Map	password_handlers		= new HashMap();
+	protected final Map	certificate_handlers	= new HashMap();
 	
 	protected boolean	 exit_vm_permitted	= false;
 	
 	private	AzureusSecurityManager	my_sec_man;
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "SESecurityManager" );
+	protected final AEMonitor	this_mon	= new AEMonitor( "SESecurityManager" );
 	
 	public static SESecurityManagerImpl
 	getSingleton()
@@ -152,7 +152,7 @@ SESecurityManagerImpl
 	
 	private boolean initialized = false;
 	
-	private List	stoppable_threads = new ArrayList();
+	final List	stoppable_threads = new ArrayList();
 	
 	public void
 	initialise()
@@ -444,7 +444,7 @@ SESecurityManagerImpl
 		Authenticator.setDefault(
 				new Authenticator()
 				{
-					protected AEMonitor	auth_mon = new AEMonitor( "SESecurityManager:auth");
+					protected final AEMonitor	auth_mon = new AEMonitor( "SESecurityManager:auth");
 					
 					protected PasswordAuthentication
 					getPasswordAuthentication()
@@ -1759,7 +1759,7 @@ SESecurityManagerImpl
 	AzureusSecurityManager
 		extends SecurityManager
 	{
-		private SecurityManager	old_sec_man;
+		private final SecurityManager	old_sec_man;
 		
 		private
 		AzureusSecurityManager(

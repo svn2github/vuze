@@ -30,7 +30,7 @@ public class
 TOTorrentAnnounceURLGroupImpl
 	implements TOTorrentAnnounceURLGroup 
 {
-	private TOTorrentImpl	torrent;
+	private final TOTorrentImpl	torrent;
 	private TOTorrentAnnounceURLSet[]		sets;
 	
 	protected

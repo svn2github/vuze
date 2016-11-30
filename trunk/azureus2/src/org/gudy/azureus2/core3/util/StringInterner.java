@@ -35,7 +35,7 @@ import com.aelitis.azureus.core.util.HashCodeUtils;
 public class 
 StringInterner
 {
-	public static boolean DISABLE_INTERNING = false;
+	public static final boolean DISABLE_INTERNING = false;
 	
 	private static final int SCHEDULED_CLEANUP_INTERVAL = 60*1000;
 	
@@ -49,9 +49,9 @@ StringInterner
 	private static final int SCHEDULED_CLEANUP_GOAL = 1000;	
 	private static final int SCHEDULED_AGING_THRESHOLD = 750;
 	
-	private static LightHashSet managedInterningSet = new LightHashSet(800);
-	private static LightHashSet unmanagedInterningSet = new LightHashSet();
-	private static ReadWriteLock managedSetLock = new ReentrantReadWriteLock();
+	private static final LightHashSet managedInterningSet = new LightHashSet(800);
+	private static final LightHashSet unmanagedInterningSet = new LightHashSet();
+	static final ReadWriteLock managedSetLock = new ReentrantReadWriteLock();
 	
 	private final static ReferenceQueue managedRefQueue = new ReferenceQueue();
 	private final static ReferenceQueue unmanagedRefQueue = new ReferenceQueue();

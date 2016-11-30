@@ -46,7 +46,7 @@ MagnetConnection2
 {
 	private static final String	NL			= "\r\n";
 	
-	private static LinkedList<MagnetOutputStream>		active_os = new LinkedList<MagnetOutputStream>();
+	static final LinkedList<MagnetOutputStream>		active_os = new LinkedList<MagnetOutputStream>();
 	private static TimerEventPeriodic					active_os_event;
 	
 	private static void
@@ -103,11 +103,11 @@ MagnetConnection2
 		}
 	}
 	
-	private MagnetHandler	handler;
+	private final MagnetHandler	handler;
 	private OutputStream 	output_stream;
 	private InputStream 	input_stream;
 	
-	private LinkedList<String>	status_list = new LinkedList<String>();
+	private final LinkedList<String>	status_list = new LinkedList<String>();
 	
 	public
 	MagnetConnection2(
@@ -281,9 +281,9 @@ MagnetConnection2
 	MagnetOutputStream
 		extends OutputStream
 	{
-		private LinkedList<byte[]>	buffers 	= new LinkedList<byte[]>();
+		private final LinkedList<byte[]>	buffers 	= new LinkedList<byte[]>();
 		private int					available;
-		private AESemaphore			buffer_sem 	= new AESemaphore( "mos:buffers" );
+		private final AESemaphore			buffer_sem 	= new AESemaphore( "mos:buffers" );
 		private boolean				closed;
 		
 		private long				last_read	= SystemTime.getMonotonousTime();
@@ -549,7 +549,7 @@ MagnetConnection2
 	MagnetInputStream
 		extends InputStream
 	{
-		private MagnetOutputStream out;
+		private final MagnetOutputStream out;
 		
 		private
 		MagnetInputStream(

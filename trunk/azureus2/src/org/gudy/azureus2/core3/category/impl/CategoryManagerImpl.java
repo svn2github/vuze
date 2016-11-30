@@ -82,15 +82,15 @@ CategoryManagerImpl
   private static CategoryImpl catAll = null;
   private static CategoryImpl catUncategorized = null;
   private static boolean doneLoading = false;
-  private static AEMonitor	class_mon	= new AEMonitor( "CategoryManager:class" );
+  private static final AEMonitor	class_mon	= new AEMonitor( "CategoryManager:class" );
   
-  private Map<String,CategoryImpl> categories 			= new HashMap<String,CategoryImpl>();
-  private AEMonitor	categories_mon	= new AEMonitor( "Categories" );
+  private final Map<String,CategoryImpl> categories 			= new HashMap<String,CategoryImpl>();
+  private final AEMonitor	categories_mon	= new AEMonitor( "Categories" );
   
   private static final int LDT_CATEGORY_ADDED     = 1;
   private static final int LDT_CATEGORY_REMOVED   = 2;
   private static final int LDT_CATEGORY_CHANGED   = 3;
-  private ListenerManager category_listeners = ListenerManager.createManager(
+  private final ListenerManager category_listeners = ListenerManager.createManager(
     "CatListenDispatcher",
     new ListenerManagerDispatcher()
     {

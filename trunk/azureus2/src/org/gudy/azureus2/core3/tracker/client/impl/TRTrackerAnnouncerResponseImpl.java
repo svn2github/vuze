@@ -32,10 +32,10 @@ public class
 TRTrackerAnnouncerResponseImpl
 	implements TRTrackerAnnouncerResponse 
 {
-	private URL				url;
-	private HashWrapper		hash;
-	private int				status;
-	private long			time_to_wait;
+	private final URL				url;
+	private final HashWrapper		hash;
+	private final int				status;
+	private final long			time_to_wait;
 	private String			failure_reason;
 	
 	private boolean			was_udp_probe		= false;

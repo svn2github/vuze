@@ -37,7 +37,7 @@ public class Logger {
 
 	private static LoggerImpl loggerImpl = null;
 
-	private static FileLogging fileLogging = new FileLogging();
+	private static final FileLogging fileLogging = new FileLogging();
 
 	static {
 		try {

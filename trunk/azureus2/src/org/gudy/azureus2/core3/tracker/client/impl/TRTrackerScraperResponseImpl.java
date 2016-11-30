@@ -34,7 +34,7 @@ public abstract class
 TRTrackerScraperResponseImpl 
   implements TRTrackerScraperResponse
 {
-	private HashWrapper hash;
+	private final HashWrapper hash;
 	private int     	seeds;
 	private int    		peers;
 	private int			completed;

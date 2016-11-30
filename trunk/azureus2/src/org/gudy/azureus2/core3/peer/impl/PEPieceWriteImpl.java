@@ -31,10 +31,10 @@ package org.gudy.azureus2.core3.peer.impl;
 public class 
 PEPieceWriteImpl
 {	
-	protected int blockNumber;
-	protected String sender;
-	protected byte[] hash;
-	protected boolean correct;
+	protected final int blockNumber;
+	protected final String sender;
+	protected final byte[] hash;
+	protected final boolean correct;
 		
 	public PEPieceWriteImpl(int blockNumber,String sender, byte[] hash,boolean correct) {
 		this.blockNumber = blockNumber;

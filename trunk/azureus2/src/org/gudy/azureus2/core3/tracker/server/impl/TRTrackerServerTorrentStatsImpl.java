@@ -32,7 +32,7 @@ public class
 TRTrackerServerTorrentStatsImpl
 	implements TRTrackerServerTorrentStats 
 {
-	private TRTrackerServerTorrentImpl		torrent;
+	private final TRTrackerServerTorrentImpl		torrent;
 	private long							announce_count;
 	private long							scrape_count;
 	private long							completed_count;

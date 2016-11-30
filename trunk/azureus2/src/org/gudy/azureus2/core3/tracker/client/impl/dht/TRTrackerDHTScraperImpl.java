@@ -44,11 +44,11 @@ public class
 TRTrackerDHTScraperImpl 
 {
 	protected static TRTrackerDHTScraperImpl	singleton;
-	protected static AEMonitor 					class_mon 	= new AEMonitor( "TRTrackerDHTScraper" );
+	protected static final AEMonitor 					class_mon 	= new AEMonitor( "TRTrackerDHTScraper" );
 
-	private TRTrackerScraperImpl		scraper;
+	private final TRTrackerScraperImpl		scraper;
 
-	private Map<HashWrapper,TRTrackerDHTScraperResponseImpl>		responses = new HashMap<HashWrapper,TRTrackerDHTScraperResponseImpl>();
+	private final Map<HashWrapper,TRTrackerDHTScraperResponseImpl>		responses = new HashMap<HashWrapper,TRTrackerDHTScraperResponseImpl>();
 	
 	public static TRTrackerDHTScraperImpl
 	create(

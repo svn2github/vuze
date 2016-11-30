@@ -27,7 +27,7 @@ AEVerifierException
 	public static final int FT_SIGNATURE_MISSING	= 1;
 	public static final int FT_SIGNATURE_BAD		= 2;
 	
-	private int	failure_type;
+	private final int	failure_type;
 	
 	public
 	AEVerifierException(

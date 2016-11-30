@@ -48,12 +48,12 @@ DMReaderImpl
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
 
-	private DiskManagerHelper		disk_manager;
-	private DiskAccessController	disk_access;	
+	final DiskManagerHelper		disk_manager;
+	final DiskAccessController	disk_access;
 
 	private int						async_reads;
-	private Set						read_requests		= new HashSet();
-	private AESemaphore				async_read_sem = new AESemaphore("DMReader:asyncReads");
+	final Set						read_requests		= new HashSet();
+	final AESemaphore				async_read_sem = new AESemaphore("DMReader:asyncReads");
 	
 	private boolean					started;
 	private boolean					stopped;
@@ -61,7 +61,7 @@ DMReaderImpl
 	private long					total_read_ops;
 	private long					total_read_bytes;
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "DMReader" );
+	protected final AEMonitor	this_mon	= new AEMonitor( "DMReader" );
 	
 	public
 	DMReaderImpl(
@@ -482,12 +482,12 @@ DMReaderImpl
 	requestDispatcher
 		implements DiskAccessRequestListener
 	{
-		private DiskManagerReadRequest			dm_request;
-		private DiskManagerReadRequestListener	listener;
-		private DirectByteBuffer				buffer;
-		private List							chunks;
+		private final DiskManagerReadRequest			dm_request;
+		final DiskManagerReadRequestListener	listener;
+		private final DirectByteBuffer				buffer;
+		private final List							chunks;
 		
-		private int	buffer_length;
+		private final int	buffer_length;
 		
 		private int	chunk_index;
 		private int	chunk_limit;

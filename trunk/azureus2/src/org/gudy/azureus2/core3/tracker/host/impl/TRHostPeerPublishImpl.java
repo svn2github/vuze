@@ -33,7 +33,7 @@ public class
 TRHostPeerPublishImpl
 	implements TRHostPeer
 {
-	protected boolean	seed;
+	protected final boolean	seed;
 	
 	protected
 	TRHostPeerPublishImpl(

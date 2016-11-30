@@ -40,7 +40,7 @@ public class
 GlobalManagerStatsImpl
 	implements GlobalManagerStats, TimerTickReceiver
 {
-	private GlobalManagerImpl		manager;
+	private final GlobalManagerImpl		manager;
 	
 	private long smooth_last_sent;
 	private long smooth_last_received;
@@ -62,15 +62,15 @@ GlobalManagerStatsImpl
 
     private int	data_send_speed_at_close;
     
-	private Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
-    private Average protocol_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
-	private Average data_receive_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
-    private Average protocol_receive_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+	private final Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+    private final Average protocol_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+	private final Average data_receive_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+    private final Average protocol_receive_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
-	private Average data_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
-    private Average protocol_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
-	private Average data_send_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
-    private Average protocol_send_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+	private final Average data_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+    private final Average protocol_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+	private final Average data_send_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+    private final Average protocol_send_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
 
 	protected 

@@ -39,7 +39,7 @@ public class
 TRTrackerServerNATChecker 
 {
 	private static final LogIDs LOGID = LogIDs.TRACKER;
-	protected static TRTrackerServerNATChecker		singleton	= new TRTrackerServerNATChecker();
+	protected static final TRTrackerServerNATChecker		singleton	= new TRTrackerServerNATChecker();
 	
 	protected static final int THREAD_POOL_SIZE		= 32;
 	protected static final int CHECK_QUEUE_LIMIT	= 2048; 
@@ -55,11 +55,11 @@ TRTrackerServerNATChecker
 	protected boolean		enabled;
 	protected ThreadPool	thread_pool;
 	
-	protected List			check_queue		= new ArrayList();
-	protected AESemaphore	check_queue_sem	= new AESemaphore("TracerServerNATChecker");
-	protected AEMonitor		check_queue_mon	= new AEMonitor( "TRTrackerServerNATChecker:Q" );
+	protected final List			check_queue		= new ArrayList();
+	protected final AESemaphore	check_queue_sem	= new AESemaphore("TracerServerNATChecker");
+	protected final AEMonitor		check_queue_mon	= new AEMonitor( "TRTrackerServerNATChecker:Q" );
 
-	protected AEMonitor 	this_mon 		= new AEMonitor( "TRTrackerServerNATChecker" );
+	protected final AEMonitor 	this_mon 		= new AEMonitor( "TRTrackerServerNATChecker" );
 
 	protected
 	TRTrackerServerNATChecker()

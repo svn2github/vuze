@@ -55,10 +55,10 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 public class 
 TRTrackerServerFactoryImpl 
 {
-	protected static CopyOnWriteList		servers		= new CopyOnWriteList();
+	protected static final CopyOnWriteList		servers		= new CopyOnWriteList();
 	
-	protected static List		listeners 	= new ArrayList();
-	protected static AEMonitor 	class_mon 	= new AEMonitor( "TRTrackerServerFactory" );
+	protected static final List		listeners 	= new ArrayList();
+	protected static final AEMonitor 	class_mon 	= new AEMonitor( "TRTrackerServerFactory" );
 
 	static{
 		Set	types = new HashSet();

@@ -104,7 +104,7 @@ public class LightHashMap<S,T> extends AbstractMap<S,T> implements Cloneable {
 	private abstract class HashIterator implements Iterator {
 		protected int	nextIdx		= -2;
 		protected int	currentIdx	= -2;
-		protected Object[] itData = data;
+		protected final Object[] itData = data;
 
 		public HashIterator()
 		{

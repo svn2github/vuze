@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class 
 AEMonitor2 
 {
-	ReentrantLock	lock = new ReentrantLock();
+	final ReentrantLock	lock = new ReentrantLock();
 	
 	public
 	AEMonitor2(

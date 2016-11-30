@@ -37,7 +37,7 @@ public class
 StatsWriterStreamerImpl
 	implements StatsWriterStreamer 
 {
-	protected AzureusCore 	core;
+	protected final AzureusCore 	core;
 	
 	public
 	StatsWriterStreamerImpl(

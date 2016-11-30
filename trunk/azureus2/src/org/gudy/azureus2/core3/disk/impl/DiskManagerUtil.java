@@ -212,7 +212,7 @@ DiskManagerUtil
 		}
 	}
 
-	private static AEMonitor    cache_read_mon  = new AEMonitor( "DiskManager:cacheRead" );
+	static final AEMonitor    cache_read_mon  = new AEMonitor( "DiskManager:cacheRead" );
 
 	private static boolean
 	setFileLink(

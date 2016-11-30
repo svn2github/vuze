@@ -55,14 +55,14 @@ DiskManagerFileInfoImpl
   private String				root_dir;
   private final File			relative_file;
   
-  private int			file_index;
+  final int			file_index;
   private CacheFile		cache_file;
   
   private String 		extension;
   private long 			downloaded;
   
-  private DiskManagerHelper 	diskManager;
-  private TOTorrentFile			torrent_file;
+  final DiskManagerHelper 	diskManager;
+  final TOTorrentFile			torrent_file;
   
   private int 		priority 	= 0;
   
@@ -627,7 +627,7 @@ DiskManagerFileInfoImpl
 	private volatile LazyMovingImmediateAverageState	write_average_state;
 	private volatile LazyMovingImmediateAverageState	eta_average_state;
 	
-	private static LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> read_adapter = 
+	private static final LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> read_adapter =
 			new LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl>()
 			{
 				public LazyMovingImmediateAverageState
@@ -653,7 +653,7 @@ DiskManagerFileInfoImpl
 				}
 			};
 	
-	private static LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> write_adapter = 
+	private static final LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> write_adapter =
 			new LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl>()
 			{
 				public LazyMovingImmediateAverageState
@@ -679,7 +679,7 @@ DiskManagerFileInfoImpl
 				}
 			};
 		
-	private static LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> eta_adapter = 
+	private static final LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> eta_adapter =
 			new LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl>()
 			{
 				public LazyMovingImmediateAverageState

@@ -51,7 +51,7 @@ TRNonBlockingServerProcessor
 	private static final int			READ_BUFFER_INCREMENT	= 1024;
 	private static final int			READ_BUFFER_LIMIT		= 32*1024;	// needs to be reasonable size to handle scrapes with plugin generated per-hash content
 		
-	private SocketChannel				socket_channel;
+	private final SocketChannel				socket_channel;
 	
 	private VirtualChannelSelector.VirtualSelectorListener 	read_listener;
 	private VirtualChannelSelector.VirtualSelectorListener 	write_listener;

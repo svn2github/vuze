@@ -31,7 +31,7 @@ public class
 GlobalManagerDownloadRemovalVetoException
 	extends Exception
 {
-	private boolean silent;
+	private final boolean silent;
 	
 	public
 	GlobalManagerDownloadRemovalVetoException(

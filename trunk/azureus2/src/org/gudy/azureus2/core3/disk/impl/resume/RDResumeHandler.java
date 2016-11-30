@@ -92,8 +92,8 @@ RDResumeHandler
 	    	 });
 	}
 	
-	private DiskManagerImpl		disk_manager;
-	private DMChecker			checker;
+	final DiskManagerImpl		disk_manager;
+	final DMChecker			checker;
 		
 	private volatile boolean	started;
 	private volatile boolean	stopped;

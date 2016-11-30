@@ -44,11 +44,11 @@ public class
 PieceMapperImpl 
 	implements DMPieceMapper
 {
-	private TOTorrent			torrent;
+	private final TOTorrent			torrent;
 	
-	private int				last_piece_length;
+	private final int				last_piece_length;
 	
-	protected ArrayList<fileInfo> btFileList = new ArrayList<fileInfo>();
+	protected final ArrayList<fileInfo> btFileList = new ArrayList<fileInfo>();
 
 	
 	public
@@ -326,9 +326,9 @@ PieceMapperImpl
 		implements DMPieceMapperFile
 	{
 		private DiskManagerFileInfoImpl		file;
-		private TOTorrentFile				torrent_file;
-		private String 						path;
-		private String 						name;
+		private final TOTorrentFile				torrent_file;
+		private final String 						path;
+		private final String 						name;
 
 		public 
 		fileInfo(

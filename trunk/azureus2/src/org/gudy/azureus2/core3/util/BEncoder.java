@@ -72,9 +72,9 @@ BEncoder
     private int			current_buffer_pos	= 0;
     private byte[][]	old_buffers;		
     
-    private byte[]		int_buffer			= new byte[12];
+    private final byte[]		int_buffer			= new byte[12];
     
-    private boolean	url_encode;
+    private final boolean	url_encode;
     
     private
     BEncoder(

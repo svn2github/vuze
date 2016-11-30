@@ -41,7 +41,7 @@ import java.nio.ByteOrder;
  */
 public final class BrokenMd5Hasher {
     
-    private ByteBuffer buffer = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN);
+    private final ByteBuffer buffer = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN);
     private int stateA = 0x67452301;
     private int stateB = 0xEFCDAB89;
     private int stateC = 0x98BADCFE;

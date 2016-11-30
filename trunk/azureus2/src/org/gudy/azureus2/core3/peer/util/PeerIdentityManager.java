@@ -314,7 +314,7 @@ public class PeerIdentityManager {
   	protected static final class
   	DataEntry
   	{
-  		private Map<PeerIdentity,String>	_peerMap = new LightHashMap<PeerIdentity, String>();
+  		private final Map<PeerIdentity,String>	_peerMap = new LightHashMap<PeerIdentity, String>();
 	    		
   		private final boolean
   		hasIP(

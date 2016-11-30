@@ -30,12 +30,12 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 TOTorrentFileHasher 
 {
-	protected boolean	do_other_per_file_hash;
-	protected int		piece_length;
+	protected final boolean	do_other_per_file_hash;
+	protected final int		piece_length;
 	
-	protected Vector	pieces = new Vector();
+	protected final Vector	pieces = new Vector();
 	
-	protected byte[]	buffer;
+	protected final byte[]	buffer;
 	protected int		buffer_pos;
 	 
 	protected SHA1Hasher					overall_sha1_hash;
@@ -47,7 +47,7 @@ TOTorrentFileHasher
 	protected byte[]						per_file_sha1_digest;
 	protected byte[]						per_file_ed2k_digest;
 	
-	protected TOTorrentFileHasherListener	listener;
+	protected final TOTorrentFileHasherListener	listener;
 		
 	protected boolean						cancelled;
 	

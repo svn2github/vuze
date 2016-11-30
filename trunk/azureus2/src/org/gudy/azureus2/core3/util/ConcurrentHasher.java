@@ -34,18 +34,18 @@ public class
 ConcurrentHasher 
 {
 	
-	protected static ConcurrentHasher		singleton	= new ConcurrentHasher();
+	protected static final ConcurrentHasher		singleton	= new ConcurrentHasher();
 	
 	protected int			processor_num;
 	
-	protected List<ConcurrentHasherRequest>				requests		= new LinkedList<ConcurrentHasherRequest>();
+	protected final List<ConcurrentHasherRequest>				requests		= new LinkedList<ConcurrentHasherRequest>();
 	
-	protected List<SHA1Hasher>	hashers			= new ArrayList<SHA1Hasher>();
+	protected final List<SHA1Hasher>	hashers			= new ArrayList<SHA1Hasher>();
 	
-	protected AESemaphore		request_sem		= new AESemaphore("ConcHashReqQ");
-	protected AESemaphore		scheduler_sem	= new AESemaphore("ConcHashSched");
+	protected final AESemaphore		request_sem		= new AESemaphore("ConcHashReqQ");
+	protected final AESemaphore		scheduler_sem	= new AESemaphore("ConcHashSched");
 		
-	protected AEMonitor			requests_mon	= new AEMonitor( "ConcurrentHasher:R" );
+	protected final AEMonitor			requests_mon	= new AEMonitor( "ConcurrentHasher:R" );
 
 	private static boolean friendly_hashing;
 

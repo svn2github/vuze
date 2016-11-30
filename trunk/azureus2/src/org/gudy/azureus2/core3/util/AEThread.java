@@ -31,7 +31,7 @@ public abstract class
 AEThread 
 	extends Thread
 {
-	private static WeakHashMap	our_thread_map = new WeakHashMap();
+	private static final WeakHashMap	our_thread_map = new WeakHashMap();
 		
 	public
 	AEThread(

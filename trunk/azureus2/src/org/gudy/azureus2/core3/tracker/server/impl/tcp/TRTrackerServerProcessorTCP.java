@@ -84,8 +84,8 @@ TRTrackerServerProcessorTCP
 			});
 	}
 	
-	private TRTrackerServerTCP	server;
-	private String				server_url;
+	private final TRTrackerServerTCP	server;
+	private final String				server_url;
 	
 	private boolean			disable_timeouts 	= false;
 

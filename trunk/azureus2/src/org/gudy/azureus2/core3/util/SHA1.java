@@ -29,9 +29,9 @@ import java.nio.ByteBuffer;
 public final class SHA1 {
 
 	private int h0,h1,h2,h3,h4;
-	private ByteBuffer finalBuffer;
+	private final ByteBuffer finalBuffer;
 
-	private ByteBuffer saveBuffer;
+	private final ByteBuffer saveBuffer;
 	private int s0,s1,s2,s3,s4;
 
 	private long length;

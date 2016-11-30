@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
  */
 public class SuperSeedPeer implements Comparable{
 
-  public PEPeerTransport peer;
+  public final PEPeerTransport peer;
   
   public SuperSeedPeer(PEPeerTransport peer) {
     this.peer = peer;

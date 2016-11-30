@@ -42,9 +42,9 @@ AEDiagnosticsLogger
 {
 	private static final int	MAX_PENDING = 8*1024;
 	
-	private String 			name;
+	private final String 			name;
 	private int				max_size;
-	private File			debug_dir;
+	private final File			debug_dir;
 	private boolean			timestamp_enable				= true;
 	private boolean			force;
 	
@@ -56,7 +56,7 @@ AEDiagnosticsLogger
 	private int							pending_size;
 	private boolean						direct_writes;
 	
-	private boolean		close_pws = false;
+	private static final boolean		close_pws = false;
 	
 	private static final String	start_date;
 	private static final long	timezone_offset;

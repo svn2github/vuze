@@ -29,12 +29,12 @@ import java.util.*;
 public abstract class 
 AEMonSem 
 {
-	protected static boolean	DEBUG					= AEDiagnostics.DEBUG_MONITOR_SEM_USAGE;
-	protected static boolean	DEBUG_CHECK_DUPLICATES	= false;
+	protected static final boolean	DEBUG					= AEDiagnostics.DEBUG_MONITOR_SEM_USAGE;
+	protected static final boolean	DEBUG_CHECK_DUPLICATES	= false;
 	
-	protected static long		DEBUG_TIMER				= 30000;
+	protected static final long		DEBUG_TIMER				= 30000;
 		
-	private static ThreadLocal		tls	= 
+	private static final ThreadLocal		tls	=
 		new ThreadLocal()
 		{
 			public Object
@@ -47,16 +47,16 @@ AEMonSem
 	private static long	monitor_id_next;
 	private static long	semaphore_id_next;
 	
-	private static Map 	debug_traces		= new HashMap();
-	private static List	debug_recursions	= new ArrayList();
-	private static List	debug_reciprocals	= new ArrayList();
+	private static final Map 	debug_traces		= new HashMap();
+	static final List	debug_recursions	= new ArrayList();
+	private static final List	debug_reciprocals	= new ArrayList();
 	//private static List	debug_sem_in_mon	= new ArrayList();
 	
 	
 	
-	private static Map	debug_name_mapping		= new WeakHashMap();
-	private static Map	debug_monitors			= new WeakHashMap();
-	private static Map	debug_semaphores		= new WeakHashMap();
+	private static final Map	debug_name_mapping		= new WeakHashMap();
+	private static final Map	debug_monitors			= new WeakHashMap();
+	private static final Map	debug_semaphores		= new WeakHashMap();
 	
 	static{
 		if ( DEBUG ){
@@ -69,7 +69,6 @@ AEMonSem
 				run()
 				{
 					// add known and validated exceptions 
-					
 					debug_recursions.add( "ResourceDownloader" );		// known tree recursion
 					debug_recursions.add( "ConnectionPool:CP" );		// known tree recursion
 					debug_recursions.add( "(S)RDRretry" );				// RDretry sem left on stack after 1st d/l so appears recursive on subsequent
@@ -217,26 +216,26 @@ AEMonSem
 		Object[][]	total_x = new Object[x.length][];
 		
 		int	total_pos	= 0;
-		
+
 		for (int i=0;i<x.length;i++){
-		
+
 			AEMonSem	ms = x[i];
-			
+
 			long	diff = ms.entry_count - ms.last_entry_count;
-			
+
 			if ( current == null ){
-			
+
 				current	= ms;
-	
+
 			}else{
-				
+
 				if( current.name.equals( ms.name )){
-	
+
 					current_total += diff;
-					
+
 				}else{
 					total_x[total_pos++] = new Object[]{ current.name, new Long( current_total )};
-					
+
 					current 		= ms;
 					current_total	= diff;
 				}
@@ -352,8 +351,8 @@ AEMonSem
 	protected String		last_trace_key;
 	
 	
-	protected String		name;
-	protected boolean		is_monitor;
+	protected final String		name;
+	protected final boolean		is_monitor;
 	protected int			waiting		= 0;
 	
 	protected
@@ -791,8 +790,8 @@ AEMonSem
 	protected static class
 	monSemData
 	{
-		protected String		class_name;
-		protected int			line_number;
+		protected final String		class_name;
+		protected final int			line_number;
 		
 		
 		protected

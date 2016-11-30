@@ -33,7 +33,7 @@ import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 public class 
 GlobalManagerStatsWriter
 {
-	protected StatsWriterPeriodic	stats_writer;
+	protected final StatsWriterPeriodic	stats_writer;
 	
 	protected
 	GlobalManagerStatsWriter(

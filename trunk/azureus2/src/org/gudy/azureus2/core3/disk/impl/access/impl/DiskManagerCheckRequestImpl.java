@@ -26,8 +26,8 @@ DiskManagerCheckRequestImpl
 	extends DiskManagerRequestImpl
 	implements DiskManagerCheckRequest
 {
-	private int		piece_number;
-	private Object	user_data;
+	private final int		piece_number;
+	private final Object	user_data;
 	private boolean	low_priority;
 	private boolean	ad_hoc		= true;
 	

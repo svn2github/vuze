@@ -35,10 +35,10 @@ import org.gudy.azureus2.core3.util.*;
 public class BadIpsImpl implements BadIps {
   
   private static BadIps 	instance; 
-  private static AEMonitor	class_mon	= new AEMonitor( "BadIps:class" );
+  private static final AEMonitor	class_mon	= new AEMonitor( "BadIps:class" );
   
-  private Map 		bad_ip_map;
-  private AEMonitor	bad_ip_map_mon		= new AEMonitor( "BadIps:Map");
+  private final Map 		bad_ip_map;
+  private final AEMonitor	bad_ip_map_mon		= new AEMonitor( "BadIps:Map");
   
   public static BadIps 
   getInstance() 

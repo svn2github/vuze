@@ -38,7 +38,7 @@ UnresolvableHostManager
 	
 	protected static int	next_address	= 0xf0000000 + RandomUtils.nextInt(0x00ffffff);
 	
-	protected static Map	host_map	= new HashMap();
+	protected static final Map	host_map	= new HashMap();
 	
 	public static int
 	getPseudoAddress(

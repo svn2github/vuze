@@ -35,7 +35,7 @@ public class
 TRTrackerBTScraperResponseImpl
 	extends TRTrackerScraperResponseImpl
 {
-	private TrackerStatus ts;
+	private final TrackerStatus ts;
 
 	private boolean	is_dht_backup;
 	  

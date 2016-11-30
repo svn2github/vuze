@@ -87,7 +87,7 @@ TRTrackerAnnouncerImpl
 		return( key_id );
 	}
 	
-	protected ListenerManager<TRTrackerAnnouncerListener>	listeners 	= ListenerManager.createManager(
+	protected final ListenerManager<TRTrackerAnnouncerListener>	listeners 	= ListenerManager.createManager(
 			"TrackerClient:ListenDispatcher",
 			new ListenerManagerDispatcher<TRTrackerAnnouncerListener>()
 			{
@@ -118,8 +118,8 @@ TRTrackerAnnouncerImpl
 				}
 			});
 
-	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
-	private AEMonitor tracker_peer_cache_mon 	= new AEMonitor( "TRTrackerClientClassic:PC" );
+	final Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
+	private final AEMonitor tracker_peer_cache_mon 	= new AEMonitor( "TRTrackerClientClassic:PC" );
 	private int	cache_peers_used;
 	
 	final private TOTorrent						torrent;

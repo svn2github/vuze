@@ -34,7 +34,7 @@ import java.util.jar.*;
 public class 
 AEJarReader 
 {
-	protected Map		entries	= new HashMap();
+	protected final Map		entries	= new HashMap();
 	
 	public
 	AEJarReader(

@@ -142,14 +142,14 @@ TOTorrentCreateImpl
 	private long							piece_count;
 	private boolean							add_other_hashes;
 	
-	private List<TOTorrentProgressListener>							progress_listeners = new ArrayList<TOTorrentProgressListener>();
+	private final List<TOTorrentProgressListener>							progress_listeners = new ArrayList<TOTorrentProgressListener>();
 	
 	private int	reported_progress;
 		
 	private Set<String>	ignore_set = new HashSet<String>();
 	
 	private Map<String,File>	linkage_map;
-	private Map<String,String>	linked_tf_map = new HashMap<String, String>();
+	private final Map<String,String>	linked_tf_map = new HashMap<String, String>();
 	
 	private boolean	cancelled;
 	

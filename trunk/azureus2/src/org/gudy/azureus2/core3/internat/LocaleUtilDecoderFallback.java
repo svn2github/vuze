@@ -32,7 +32,7 @@ public class
 LocaleUtilDecoderFallback 
 	implements LocaleUtilDecoder
 {
-	public static String	NAME	= "Fallback";
+	public static final String	NAME	= "Fallback";
 
 	private static volatile int		max_ok_name_length	= 64;
 	private static volatile boolean max_ok_name_length_determined;
@@ -42,7 +42,7 @@ LocaleUtilDecoderFallback
 	
 	private static final String VALID_CHARS = "abcdefghijklmnopqrstuvwxyz1234567890_-.";
 	
-	private int		index;
+	private final int		index;
 	
 
 	protected

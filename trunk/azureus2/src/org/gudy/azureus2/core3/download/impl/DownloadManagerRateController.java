@@ -50,11 +50,11 @@ DownloadManagerRateController
 	private static AzureusCore		core;
 	private static SpeedManager		speed_manager;
 	
-	private static Map<PEPeerManager,PMState>		pm_map = new HashMap<PEPeerManager, PMState>();
+	static final Map<PEPeerManager,PMState>		pm_map = new HashMap<PEPeerManager, PMState>();
 	
 	private static TimerEventPeriodic	timer;
 	
-	private static AsyncDispatcher	dispatcher = new AsyncDispatcher( "DMCRateController" );
+	static final AsyncDispatcher	dispatcher = new AsyncDispatcher( "DMCRateController" );
 	
 	private static boolean	enable;
 	private static boolean 	enable_limit_handling;
@@ -83,7 +83,7 @@ DownloadManagerRateController
 
 	private static volatile int rate_limit	= 0;
 	
-	private static LimitedRateGroup 
+	static final LimitedRateGroup
 		limiter = 
 			new LimitedRateGroup()
 			{

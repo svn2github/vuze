@@ -33,7 +33,7 @@ public class
 TRTrackerDHTScraperResponseImpl 
 	extends TRTrackerScraperResponseImpl
 {
-	private URL		url;
+	private final URL		url;
 	
 	protected
 	TRTrackerDHTScraperResponseImpl(

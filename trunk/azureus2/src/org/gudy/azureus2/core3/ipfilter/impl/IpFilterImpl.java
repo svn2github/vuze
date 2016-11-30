@@ -54,15 +54,15 @@ IpFilterImpl
 	private final static int MAX_BLOCKS_TO_REMEMBER = 500;
   
 	private static IpFilterImpl ipFilter;
-	private static AEMonitor2	class_mon	= new AEMonitor2( "IpFilter:class" );
+	static final AEMonitor2	class_mon	= new AEMonitor2( "IpFilter:class" );
  
-	private IPAddressRangeManager	range_manager = new IPAddressRangeManager();
+	private final IPAddressRangeManager	range_manager = new IPAddressRangeManager();
 	
-	private Map<Integer,BannedIpImpl>			bannedIps;
+	private final Map<Integer,BannedIpImpl>			bannedIps;
 	 
     //Map ip blocked -> matching range
 	
-	private LinkedList		ipsBlocked;
+	private final LinkedList		ipsBlocked;
 	
 	private int num_ips_blocked 			= 0;
 	private int num_ips_blocked_loggable	= 0;
@@ -70,13 +70,13 @@ IpFilterImpl
 	private long	last_update_time;
     
   
-	private CopyOnWriteList<IPFilterListener>	listenerz = new CopyOnWriteList<IPFilterListener>( true );
+	final CopyOnWriteList<IPFilterListener>	listenerz = new CopyOnWriteList<IPFilterListener>( true );
 	
-	private CopyOnWriteList<IpFilterExternalHandler>	external_handlers = new CopyOnWriteList<IpFilterExternalHandler>();
+	private final CopyOnWriteList<IpFilterExternalHandler>	external_handlers = new CopyOnWriteList<IpFilterExternalHandler>();
 	
-	FrequencyLimitedDispatcher blockedListChangedDispatcher;
+	final FrequencyLimitedDispatcher blockedListChangedDispatcher;
 
-	private IpFilterAutoLoaderImpl ipFilterAutoLoader;
+	private final IpFilterAutoLoaderImpl ipFilterAutoLoader;
 	
 	private boolean	ip_filter_enabled;
 	private boolean	ip_filter_allow;
@@ -1130,8 +1130,8 @@ IpFilterImpl
 	}
 	
 	private TimerEventPeriodic		unban_timer;
-	private Map<Long,List<String>>	unban_map 			= new TreeMap<Long,List<String>>();
-	private Map<String,Long>		unban_map_reverse	= new HashMap<String, Long>();
+	final Map<Long,List<String>>	unban_map 			= new TreeMap<Long,List<String>>();
+	final Map<String,Long>		unban_map_reverse	= new HashMap<String, Long>();
 	
 	
 	private void

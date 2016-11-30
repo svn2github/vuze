@@ -68,7 +68,7 @@ public class ConfigurationDefaults {
   private static final Long TRUE	= ONE;
 
   private static ConfigurationDefaults configdefaults;
-  private static AEMonitor				class_mon	= new AEMonitor( "ConfigDef");
+  private static final AEMonitor				class_mon	= new AEMonitor( "ConfigDef");
   
   private ConcurrentHashMapWrapper<String,Object> def = null;
   
@@ -82,7 +82,7 @@ public class ConfigurationDefaults {
   public static final String DEFAULT_FILE_CONVERSION_CHARS = "\"='";
 
   
-  private Hashtable parameter_verifiers	= new Hashtable();
+  private final Hashtable parameter_verifiers	= new Hashtable();
 	public static final String CFG_TORRENTADD_OPENOPTIONS_MANY = "many";
 	public static final String CFG_TORRENTADD_OPENOPTIONS_ALWAYS = "always";
 	public static final String CFG_TORRENTADD_OPENOPTIONS_NEVER = "never";

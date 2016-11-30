@@ -75,7 +75,7 @@ public class UrlUtils
 			"magnet://?",
 			"maggot://" };
 
-	private static int MAGNETURL_STARTS_AT = 3;	// dht:// is a form of magnet URL
+	private static final int MAGNETURL_STARTS_AT = 3;	// dht:// is a form of magnet URL
 	
 	private static final Object[] XMLescapes = new Object[] {
 		new String[] { "&", "&amp;" },

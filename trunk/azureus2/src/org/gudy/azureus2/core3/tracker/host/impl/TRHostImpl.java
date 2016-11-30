@@ -57,23 +57,23 @@ TRHostImpl
 	private static final int TICKS_PER_STATS_PERIOD	= STATS_PERIOD_SECS/TICK_PERIOD_SECS;
 		
 	private static TRHostImpl	singleton;
-	private static AEMonitor 	class_mon 	= new AEMonitor( "TRHost:class" );
+	private static final AEMonitor 	class_mon 	= new AEMonitor( "TRHost:class" );
 
 	private TRHostConfigImpl		config;
 		
-	private Hashtable				server_map 	= new Hashtable();
+	private final Hashtable				server_map 	= new Hashtable();
 	
-	private List	host_torrents			= new ArrayList();
-	private Map	host_torrent_hash_map	= new HashMap();
+	final List	host_torrents			= new ArrayList();
+	private final Map	host_torrent_hash_map	= new HashMap();
 	
-	private Map	host_torrent_map		= new HashMap();
-	private Map	tracker_client_map		= new HashMap();
+	private final Map	host_torrent_map		= new HashMap();
+	private final Map	tracker_client_map		= new HashMap();
 	
 	private static final int LDT_TORRENT_ADDED			= 1;
 	private static final int LDT_TORRENT_REMOVED		= 2;
 	private static final int LDT_TORRENT_CHANGED		= 3;
 	
-	private ListenerManager<TRHostListener>	listeners 	= ListenerManager.createAsyncManager(
+	private final ListenerManager<TRHostListener>	listeners 	= ListenerManager.createAsyncManager(
 		"TRHost:ListenDispatcher",
 		new ListenerManagerDispatcher<TRHostListener>()
 		{
@@ -100,7 +100,7 @@ TRHostImpl
 			}
 		});	
 	
-	private CopyOnWriteList<TRHostListener2>	listeners2 = new CopyOnWriteList<TRHostListener2>();
+	private final CopyOnWriteList<TRHostListener2>	listeners2 = new CopyOnWriteList<TRHostListener2>();
 	
 	private static boolean host_add_announce_urls;
 	
@@ -118,11 +118,11 @@ TRHostImpl
 				});
 	}
 	
-	private List<TRHostAuthenticationListener>	auth_listeners		= new ArrayList<TRHostAuthenticationListener>();
+	private final List<TRHostAuthenticationListener>	auth_listeners		= new ArrayList<TRHostAuthenticationListener>();
 	
 	private boolean	server_factory_listener_added;
 	
-	protected AEMonitor this_mon 	= new AEMonitor( "TRHost" );
+	protected final AEMonitor this_mon 	= new AEMonitor( "TRHost" );
 
 	private volatile boolean	closed;
 	
@@ -166,7 +166,7 @@ TRHostImpl
 						{
 							private int	tick_count = 0;
 							
-							private Set	failed_ports = new HashSet();
+							private final Set	failed_ports = new HashSet();
 							
 							public void
 							runSupport()
@@ -784,7 +784,7 @@ TRHostImpl
 		}
 	}
 	
-	private AsyncDispatcher dispatcher = new AsyncDispatcher( "TRHost:stopHosting" );
+	final AsyncDispatcher dispatcher = new AsyncDispatcher( "TRHost:stopHosting" );
 	
 	protected void
 	stopHosting(

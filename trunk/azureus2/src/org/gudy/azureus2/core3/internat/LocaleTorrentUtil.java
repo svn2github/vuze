@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
  */
 public class LocaleTorrentUtil
 {
-	private static List listeners = new ArrayList();
+	private static final List listeners = new ArrayList();
 
 	/**
 	 * Retrieves the encoding of the torrent if it can be determined.

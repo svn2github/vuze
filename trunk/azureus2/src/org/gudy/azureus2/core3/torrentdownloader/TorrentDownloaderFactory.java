@@ -194,7 +194,7 @@ public class TorrentDownloaderFactory {
   			TorrentDownloaderCallBackInterface callback			= 
   				new TorrentDownloaderCallBackInterface()
   				{
-  					private TorrentDownloaderCallBackInterface	original_callback = _callback;
+  					private final TorrentDownloaderCallBackInterface	original_callback = _callback;
   					
   					private boolean no_retry = original_callback == null;
   					

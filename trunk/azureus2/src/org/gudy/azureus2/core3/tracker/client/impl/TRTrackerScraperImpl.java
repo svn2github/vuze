@@ -41,10 +41,10 @@ TRTrackerScraperImpl
 	implements TRTrackerScraper 
 {
 	private static TRTrackerScraperImpl		singleton;
-	private static AEMonitor 				class_mon 	= new AEMonitor( "TRTrackerScraper" );
+	private static final AEMonitor 				class_mon 	= new AEMonitor( "TRTrackerScraper" );
 
-	private TRTrackerBTScraperImpl		bt_scraper;
-	private TRTrackerDHTScraperImpl		dht_scraper;
+	private final TRTrackerBTScraperImpl		bt_scraper;
+	private final TRTrackerDHTScraperImpl		dht_scraper;
 	
 	private TRTrackerScraperClientResolver		client_resolver;
 	
@@ -52,7 +52,7 @@ TRTrackerScraperImpl
 	
 	private static final int LDT_SCRAPE_RECEIVED		= 1;
 	
-	private ListenerManager	listeners 	= ListenerManager.createManager(
+	private final ListenerManager	listeners 	= ListenerManager.createManager(
 			"TrackerScraper:ListenDispatcher",
 			new ListenerManagerDispatcher()
 			{

@@ -31,7 +31,7 @@ public class
 TOTorrentAnnounceURLSetImpl 
 	implements TOTorrentAnnounceURLSet
 {
-	private TOTorrentImpl	torrent;
+	private final TOTorrentImpl	torrent;
 	private URL[]			urls;
 	
 	protected

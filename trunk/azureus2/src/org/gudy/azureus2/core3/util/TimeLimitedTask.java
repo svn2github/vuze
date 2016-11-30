@@ -25,9 +25,9 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 public class 
 TimeLimitedTask 
 {
-	private String		name;
-	private int			max_millis;
-	private int			priority;
+	private final String		name;
+	private final int			max_millis;
+	private final int			priority;
 	private task		t;
 	
 	public

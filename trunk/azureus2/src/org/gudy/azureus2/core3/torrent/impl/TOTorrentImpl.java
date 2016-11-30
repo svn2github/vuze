@@ -71,7 +71,7 @@ TOTorrentImpl
 	
 	private byte[]							comment;
 	private URL								announce_url;
-	private TOTorrentAnnounceURLGroupImpl	announce_group = new TOTorrentAnnounceURLGroupImpl(this);
+	private final TOTorrentAnnounceURLGroupImpl	announce_group = new TOTorrentAnnounceURLGroupImpl(this);
 	
 	private long		piece_length;
 	private byte[][]	pieces;
@@ -89,14 +89,14 @@ TOTorrentImpl
 	private byte[]				created_by;
 	
 	private Map					additional_properties 		= new LightHashMap(4);
-	private Map					additional_info_properties	= new LightHashMap(4);
+	private final Map					additional_info_properties	= new LightHashMap(4);
 	
 	private boolean				created;
 	private boolean				serialising;
 	
 	private List<TOTorrentListener>	listeners;
 	
-	protected AEMonitor this_mon 	= new AEMonitor( "TOTorrent" );
+	protected final AEMonitor this_mon 	= new AEMonitor( "TOTorrent" );
 
 	/** 
 	 * Constructor for deserialisation

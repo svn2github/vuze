@@ -40,10 +40,10 @@ public class
 TRTrackerBTScraperImpl 
 {
 	protected static TRTrackerBTScraperImpl	singleton;
-	protected static AEMonitor 				class_mon 	= new AEMonitor( "TRTrackerBTScraper" );
+	protected static final AEMonitor 				class_mon 	= new AEMonitor( "TRTrackerBTScraper" );
 
-	private TRTrackerScraperImpl		scraper;
-	private TrackerChecker				tracker_checker;
+	private final TRTrackerScraperImpl		scraper;
+	private final TrackerChecker				tracker_checker;
 
 	public static TRTrackerBTScraperImpl
 	create(

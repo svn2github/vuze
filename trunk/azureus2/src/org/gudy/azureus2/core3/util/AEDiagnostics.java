@@ -113,12 +113,12 @@ AEDiagnostics
 	private static volatile boolean	startup_complete;
 	private static boolean	enable_pending_writes;
 	
-	private static Map<String,AEDiagnosticsLogger>		loggers	= new HashMap<String, AEDiagnosticsLogger>();
+	private static final Map<String,AEDiagnosticsLogger>		loggers	= new HashMap<String, AEDiagnosticsLogger>();
 	
 	protected static boolean	logging_enabled;
 	protected static boolean	loggers_enabled;
 	
-	private static List<AEDiagnosticsEvidenceGenerator>		evidence_generators	= new ArrayList<AEDiagnosticsEvidenceGenerator>();
+	private static final List<AEDiagnosticsEvidenceGenerator>		evidence_generators	= new ArrayList<AEDiagnosticsEvidenceGenerator>();
 		
 	private static final AESemaphore	dump_check_done_sem = new AESemaphore( "dumpcheckcomplete" );
 	

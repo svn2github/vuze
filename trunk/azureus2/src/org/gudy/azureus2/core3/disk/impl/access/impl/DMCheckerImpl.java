@@ -49,11 +49,11 @@ DMCheckerImpl
 	private static boolean	flush_pieces;
 	private static boolean	checking_read_priority;
 	
-	private static AEMonitor		class_mon	= new AEMonitor( "DMChecker:class" );
-	private static List				async_check_queue		= new ArrayList();
-	private static AESemaphore		async_check_queue_sem 	= new AESemaphore("DMChecker::asyncCheck");
+	static final AEMonitor		class_mon	= new AEMonitor( "DMChecker:class" );
+	static final List				async_check_queue		= new ArrayList();
+	static final AESemaphore		async_check_queue_sem 	= new AESemaphore("DMChecker::asyncCheck");
 
-	private static boolean	fully_async = COConfigurationManager.getBooleanParameter( "diskmanager.perf.checking.fully.async" );
+	private static final boolean	fully_async = COConfigurationManager.getBooleanParameter( "diskmanager.perf.checking.fully.async" );
 	
 	static{
 		if ( fully_async ){
@@ -115,13 +115,13 @@ DMCheckerImpl
  				param_listener );
     }
    
-	protected DiskManagerHelper		disk_manager;
+	protected final DiskManagerHelper		disk_manager;
 		
 	protected int			async_checks;
-	protected AESemaphore	async_check_sem 	= new AESemaphore("DMChecker::asyncCheck");
+	protected final AESemaphore	async_check_sem 	= new AESemaphore("DMChecker::asyncCheck");
 	
 	protected int			async_reads;
-	protected AESemaphore	async_read_sem 		= new AESemaphore("DMChecker::asyncRead");
+	protected final AESemaphore	async_read_sem 		= new AESemaphore("DMChecker::asyncRead");
 
 	private boolean	started;
 	
@@ -132,7 +132,7 @@ DMCheckerImpl
 	
 	private boolean				checking_enabled		= true;
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "DMChecker" );
+	protected final AEMonitor	this_mon	= new AEMonitor( "DMChecker" );
 		
 	public
 	DMCheckerImpl(

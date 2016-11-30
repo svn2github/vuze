@@ -92,7 +92,7 @@ implements PEPeerTransport
 	protected String ip_resolved;
 	private IPToHostNameResolverRequest	ip_resolver_request;
 
-	private int port;
+	private final int port;
 
 	private PeerItem peer_item_identity;
 	private int tcp_listen_port = 0;
@@ -197,7 +197,7 @@ implements PEPeerTransport
 	private byte	other_peer_have_none_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_reject_request_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_allowed_fast_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte  	other_peer_bt_lt_ext_version    	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private final byte  	other_peer_bt_lt_ext_version    	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_stats_request_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;

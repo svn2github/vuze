@@ -40,7 +40,7 @@ public class
 PRUDPPacketRequestScrape 
 	extends PRUDPPacketRequest
 {
-	protected List		hashes;
+	protected final List		hashes;
 
 	public
 	PRUDPPacketRequestScrape(

@@ -41,7 +41,7 @@ public class XMLElement {
     protected Collection<XMLElement> contents;
     
     protected Map<String,String> attributes;
-    protected String tag_name;
+    protected final String tag_name;
     protected boolean auto_order;
 
     public XMLElement(String tag_name) {
@@ -304,6 +304,6 @@ public class XMLElement {
         }
     }
 
-    private static Comparator<XMLElement> CONTENT_COMPARATOR = new ContentComparator();
+    private static final Comparator<XMLElement> CONTENT_COMPARATOR = new ContentComparator();
 
 }

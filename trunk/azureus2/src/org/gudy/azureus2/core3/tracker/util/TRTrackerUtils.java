@@ -52,10 +52,10 @@ TRTrackerUtils
 	// author of MakeTorrent has requested we blacklist his site
 	// as people keep embedding it as a tracker in torrents
 
-	private static String[]	BLACKLISTED_HOSTS	=  
+	private static final String[]	BLACKLISTED_HOSTS	=
 		{ "krypt.dyndns.org" };
 
-	private static int[]		BLACKLISTED_PORTS	= 
+	private static final int[]		BLACKLISTED_PORTS	=
 		{ 81 };
 
 	private static String			tracker_ip;
@@ -68,7 +68,7 @@ TRTrackerUtils
 	private static String		ports_for_url;
 	private static String		ports_for_url_with_crypto;
 	
-	private static CopyOnWriteList		listeners = new CopyOnWriteList();
+	static final CopyOnWriteList		listeners = new CopyOnWriteList();
 	
 	private static AEThread2		listener_thread;
 	
@@ -279,9 +279,9 @@ TRTrackerUtils
 	   	return( null );
 	}
 	
-	private static Map	az_trackers = COConfigurationManager.getMapParameter( "Tracker Client AZ Instances", new HashMap());
+	private static final Map	az_trackers = COConfigurationManager.getMapParameter( "Tracker Client AZ Instances", new HashMap());
 	
-	private static Map	udp_probe_results = COConfigurationManager.getMapParameter( "Tracker Client UDP Probe Results", new HashMap());
+	private static final Map	udp_probe_results = COConfigurationManager.getMapParameter( "Tracker Client UDP Probe Results", new HashMap());
 
 
 	static{

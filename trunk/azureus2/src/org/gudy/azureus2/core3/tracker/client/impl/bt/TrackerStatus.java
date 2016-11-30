@@ -113,8 +113,8 @@ public class TrackerStatus {
 	private byte					autoUDPscrapeEvery				= 1;
 	private int						scrapeCount;
 	
-	private static List				logged_invalid_urls				= new ArrayList();
-	private static ThreadPool		thread_pool						= new ThreadPool("TrackerStatus", 10, true);	// queue when full rather than block
+	private static final List				logged_invalid_urls				= new ArrayList();
+	private static final ThreadPool		thread_pool						= new ThreadPool("TrackerStatus", 10, true);	// queue when full rather than block
 	
 	private final URL				tracker_url;
 	private boolean					az_tracker;
@@ -125,13 +125,13 @@ public class TrackerStatus {
 	private String					scrapeURL						= null;
  
   /** key = Torrent hash.  values = TRTrackerScraperResponseImpl */
-  private HashMap<HashWrapper,TRTrackerScraperResponseImpl> 					hashes;
+  private final HashMap<HashWrapper,TRTrackerScraperResponseImpl> 					hashes;
   /** only needed to notify listeners */ 
-  private TRTrackerScraperImpl		scraper;
+  private final TRTrackerScraperImpl		scraper;
   
   private boolean bSingleHashScrapes = false;
     
-  protected AEMonitor hashes_mon 	= new AEMonitor( "TrackerStatus:hashes" );
+  protected final AEMonitor hashes_mon 	= new AEMonitor( "TrackerStatus:hashes" );
   private final TrackerChecker checker;
   
   private final AtomicInteger numActiveScrapes = new AtomicInteger(0);

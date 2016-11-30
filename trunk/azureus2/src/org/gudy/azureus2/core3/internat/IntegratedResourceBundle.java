@@ -116,8 +116,8 @@ IntegratedResourceBundle
 		}
 	}
 	
-	private Locale	locale;
-	private boolean	is_message_bundle;
+	private final Locale	locale;
+	private final boolean	is_message_bundle;
 
 	private Map	messages;
 	private Map	used_messages;

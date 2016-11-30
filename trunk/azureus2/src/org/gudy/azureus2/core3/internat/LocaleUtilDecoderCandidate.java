@@ -24,7 +24,7 @@ public class
 LocaleUtilDecoderCandidate 
 	implements Comparable 
 {
-	private int					index;
+	private final int					index;
 	private String 				value;
 	private LocaleUtilDecoder	decoder;
     

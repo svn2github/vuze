@@ -43,7 +43,7 @@ public class TrackersUtil {
   private Map<String,Map> webseeds;
   
   private static TrackersUtil 	instance;
-  private static AEMonitor		class_mon 	= new AEMonitor( "TrackersUtil:class" );
+  private static final AEMonitor		class_mon 	= new AEMonitor( "TrackersUtil:class" );
 
   
   

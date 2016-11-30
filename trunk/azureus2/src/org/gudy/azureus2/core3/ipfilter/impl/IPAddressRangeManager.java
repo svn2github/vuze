@@ -40,7 +40,7 @@ IPAddressRangeManager
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
 
-	protected ArrayList entries = new ArrayList();
+	protected final ArrayList entries = new ArrayList();
 	
 	protected long		total_span;
 	
@@ -49,7 +49,7 @@ IPAddressRangeManager
 	
 	protected IpRange[] mergedRanges = new IpRange[0];
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "IPAddressRangeManager" );
+	protected final AEMonitor	this_mon	= new AEMonitor( "IPAddressRangeManager" );
 
 	protected
 	IPAddressRangeManager()

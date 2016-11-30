@@ -42,16 +42,16 @@ ExternalIPCheckerServiceImpl
 	private static final int		MAX_PAGE_SIZE	= 4096;
 	private static final String	MSG_KEY_ROOT	= "IPChecker.external";
 	
-	private String		name;
-	private String		description;
-	private String		url;
+	private final String		name;
+	private final String		description;
+	private final String		url;
 	
 	private boolean		completed;
 	
-	private Vector		listeners	= new Vector();
-	private AEMonitor		this_mon	= new AEMonitor( "ExtIPCheckServ");
+	private final Vector		listeners	= new Vector();
+	private final AEMonitor		this_mon	= new AEMonitor( "ExtIPCheckServ");
 	
-	private AESemaphore	timeout_sem	= new AESemaphore( "ExtIPCheckServ" );
+	final AESemaphore	timeout_sem	= new AESemaphore( "ExtIPCheckServ" );
 	
 	protected
 	ExternalIPCheckerServiceImpl(

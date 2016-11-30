@@ -26,7 +26,7 @@ import java.io.IOException;
 public class 
 RARTOCDecoder 
 {
-	private DataProvider		provider;
+	private final DataProvider		provider;
 	
 	public 
 	RARTOCDecoder(

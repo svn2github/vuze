@@ -104,7 +104,7 @@ public class LightHashSet extends AbstractSet implements Cloneable {
 	private class HashIterator implements Iterator {
 		private int	nextIdx		= -1;
 		private int	currentIdx	= -1;
-		private Object[] itData = data;
+		private final Object[] itData = data;
 
 		public HashIterator()
 		{

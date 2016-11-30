@@ -68,7 +68,7 @@ DMPieceMapSimple
 	pieceList
 		implements DMPieceList, DMPieceMapEntry
 	{
-		private int	piece_number;
+		private final int	piece_number;
 		
 		protected
 		pieceList(

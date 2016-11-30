@@ -55,8 +55,8 @@ public class FileUtil {
   private static final int	RESERVED_FILE_HANDLE_COUNT	= 4;
   private static boolean    first_reservation		= true;
   private static boolean	is_my_lock_file			= false;
-  private static List		reserved_file_handles 	= new ArrayList();
-  private static AEMonitor	class_mon				= new AEMonitor( "FileUtil:class" );
+  private static final List		reserved_file_handles 	= new ArrayList();
+  private static final AEMonitor	class_mon				= new AEMonitor( "FileUtil:class" );
   
   private static Method reflectOnUsableSpace;
   
