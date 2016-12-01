@@ -35,7 +35,11 @@ import com.aelitis.azureus.core.util.HashCodeUtils;
 public class 
 StringInterner
 {
-	public static final boolean DISABLE_INTERNING = false;
+	/**
+	 * Can't be final as set true for a few specific apps
+	 */
+	
+	public static boolean DISABLE_INTERNING = false;
 	
 	private static final int SCHEDULED_CLEANUP_INTERVAL = 60*1000;
 	
