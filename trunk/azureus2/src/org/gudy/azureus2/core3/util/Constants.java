@@ -125,7 +125,8 @@ Constants
   	/**
   	 *  Can't be final as accesed from client speed measurer plugin
   	 */
-  
+
+  @SuppressWarnings("CanBeFinal")
   public static boolean DOWNLOAD_SOURCES_PRETEND_COMPLETE	= false;
 	  
   	// keep the CVS style constant coz version checkers depend on it!

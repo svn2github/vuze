@@ -39,6 +39,7 @@ StringInterner
 	 * Can't be final as set true for a few specific apps
 	 */
 	
+	@SuppressWarnings("CanBeFinal")
 	public static boolean DISABLE_INTERNING = false;
 	
 	private static final int SCHEDULED_CLEANUP_INTERVAL = 60*1000;
