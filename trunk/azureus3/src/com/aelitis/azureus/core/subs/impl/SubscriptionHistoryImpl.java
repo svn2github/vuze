@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
+import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.util.ImportExportUtils;
 
@@ -137,7 +138,9 @@ SubscriptionHistoryImpl
 			
 			boolean	got_new_or_changed_result	= false;
 			
-			SubscriptionResultImpl[] existing_results = manager.loadResults( subs );
+			LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
+			
+			SubscriptionResultImpl[] existing_results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
 					
 			ByteArrayHashMap	result_key_map 	= new ByteArrayHashMap();
 			ByteArrayHashMap	result_key2_map = new ByteArrayHashMap();
@@ -276,7 +279,7 @@ SubscriptionHistoryImpl
 		
 			// always save config as we have a new scan time
 		
-		saveConfig();
+		saveConfig( SubscriptionListener.CR_RESULTS );
 		
 		return( result );
 	}
@@ -295,7 +298,7 @@ SubscriptionHistoryImpl
 			
 			enabled	= _enabled;
 		
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -313,7 +316,7 @@ SubscriptionHistoryImpl
 			
 			auto_dl	= _auto_dl;
 		
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_METADATA);
 			
 			if ( auto_dl ){
 				
@@ -336,7 +339,7 @@ SubscriptionHistoryImpl
 			
 			max_results	= _max_results;
 		
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -352,7 +355,7 @@ SubscriptionHistoryImpl
 	{
 		networks = nets;
 		
-		saveConfig();
+		saveConfig(SubscriptionListener.CR_METADATA);
 	}
 	
 	
@@ -366,7 +369,7 @@ SubscriptionHistoryImpl
 			enabled	= _enabled;
 			auto_dl	= _auto_dl;
 			
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_METADATA);
 			
 			if ( enabled && auto_dl ){
 				
@@ -488,9 +491,9 @@ SubscriptionHistoryImpl
 	{
 		interval_override		= mins;
 		
-		saveConfig();
+		saveConfig(SubscriptionListener.CR_METADATA);
 		
-		subs.fireChanged();
+		subs.fireChanged( SubscriptionListener.CR_METADATA );
 	}
 	
 	public int
@@ -513,7 +516,9 @@ SubscriptionHistoryImpl
 		
 		synchronized( this ){
 			
-			results = manager.loadResults( subs );
+			LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
+			
+			results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
 		}
 		
 		if ( include_deleted ){
@@ -540,17 +545,12 @@ SubscriptionHistoryImpl
 	getResult(
 		String		result_id )
 	{
-		SubscriptionResult[] results = getResults( true );
-		
-		for (int i=0;i<results.length;i++){
+		synchronized( this ){
 			
-			if ( results[i].getID().equals( result_id )){
-				
-				return( results[i] );
-			}
+			LinkedHashMap<String,SubscriptionResultImpl> results = manager.loadResults( subs );
+			
+			return( results.get( result_id ));
 		}
-		
-		return( null );
 	}
 	
 	protected void
@@ -563,8 +563,10 @@ SubscriptionHistoryImpl
 
 		synchronized( this ){
 			
-			SubscriptionResultImpl[] results = manager.loadResults( subs );
+			LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
 						
+			SubscriptionResultImpl[] results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
+			
 			for (int i=0;i<results.length;i++){
 				
 				if ( Arrays.equals( results[i].getKey1(), key )){
@@ -585,7 +587,7 @@ SubscriptionHistoryImpl
 		
 		if ( changed ){
 			
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_RESULTS);
 		}
 		
 		if ( isAutoDownload() && !result.getRead() && !result.isDeleted()){
@@ -610,7 +612,9 @@ SubscriptionHistoryImpl
 
 		synchronized( this ){
 				
-			SubscriptionResultImpl[] results = manager.loadResults( subs );
+			LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
+			
+			SubscriptionResultImpl[] results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
 
 			for (int i=0;i<results.length;i++){
 				
@@ -634,7 +638,7 @@ SubscriptionHistoryImpl
 		
 		if ( changed ){
 			
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_RESULTS);
 		}
 	}
 	
@@ -645,7 +649,9 @@ SubscriptionHistoryImpl
 		
 		synchronized( this ){
 						
-			SubscriptionResultImpl[] results = manager.loadResults( subs );
+			LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
+			
+			SubscriptionResultImpl[] results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
 
 			for (int i=0;i<results.length;i++){
 				
@@ -669,7 +675,7 @@ SubscriptionHistoryImpl
 		
 		if ( changed ){
 			
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_RESULTS);
 		}
 	}
 	
@@ -680,7 +686,9 @@ SubscriptionHistoryImpl
 		
 		synchronized( this ){
 						
-			SubscriptionResultImpl[] results = manager.loadResults( subs );
+			LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
+			
+			SubscriptionResultImpl[] results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
 
 			for (int i=0;i<results.length;i++){
 				
@@ -704,7 +712,7 @@ SubscriptionHistoryImpl
 		
 		if ( changed ){
 			
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_RESULTS);
 		}
 	}
 	
@@ -715,7 +723,9 @@ SubscriptionHistoryImpl
 		
 		synchronized( this ){
 						
-			SubscriptionResultImpl[] results = manager.loadResults( subs );
+			LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
+			
+			SubscriptionResultImpl[] results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
 
 			for (int i=0;i<results.length;i++){
 				
@@ -739,7 +749,7 @@ SubscriptionHistoryImpl
 		
 		if ( changed ){
 			
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_RESULTS);
 		}
 	}
 	
@@ -761,7 +771,9 @@ SubscriptionHistoryImpl
 		
 		synchronized( this ){
 						
-			SubscriptionResultImpl[] results = manager.loadResults( subs );
+			LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
+			
+			SubscriptionResultImpl[] results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
 
 			for (int i=0;i<results.length;i++){
 				
@@ -802,7 +814,7 @@ SubscriptionHistoryImpl
 		
 		if ( changed ){
 			
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_RESULTS);
 		}
 		
 		if ( isAutoDownload()){
@@ -819,7 +831,9 @@ SubscriptionHistoryImpl
 	{
 		synchronized( this ){
 			
-			SubscriptionResultImpl[] results = manager.loadResults( subs );
+			LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
+			
+			SubscriptionResultImpl[] results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
 			
 			if ( results.length > 0 ){
 				
@@ -835,7 +849,7 @@ SubscriptionHistoryImpl
 		last_new_result	= 0;
 		last_scan		= 0;
 					
-		saveConfig();
+		saveConfig(SubscriptionListener.CR_RESULTS);
 	}
 	
 	protected void
@@ -853,7 +867,9 @@ SubscriptionHistoryImpl
 
 			if ((num_unread + num_read ) > max_results ){
 
-				SubscriptionResultImpl[] results = manager.loadResults( subs );
+				LinkedHashMap<String,SubscriptionResultImpl> results_map = manager.loadResults( subs );
+				
+				SubscriptionResultImpl[] results = results_map.values().toArray( new SubscriptionResultImpl[results_map.size()] );
 				
 				for (int i=0;i<results.length;i++){
 					
@@ -890,7 +906,7 @@ SubscriptionHistoryImpl
 		
 		if ( changed ){
 			
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_RESULTS);
 		}
 	}
 	
@@ -953,7 +969,7 @@ SubscriptionHistoryImpl
 			consec_fails++;
 		}
 		
-		subs.fireChanged();
+		subs.fireChanged( SubscriptionListener.CR_METADATA );
 	}
 	
 	public String
@@ -988,7 +1004,7 @@ SubscriptionHistoryImpl
 			
 			dl_with_ref = b;
 			
-			saveConfig();
+			saveConfig(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -1041,7 +1057,8 @@ SubscriptionHistoryImpl
 	}
 	
 	protected void
-	saveConfig()
+	saveConfig(
+		int		reason )
 	{
 		Map	map = new HashMap();
 		
@@ -1065,7 +1082,7 @@ SubscriptionHistoryImpl
 			}
 			map.put( "nets", str );
 		}
-		subs.updateHistoryConfig( map );
+		subs.updateHistoryConfig( map, reason );
 	}
 	
 	protected void

@@ -46,7 +46,7 @@ import com.aelitis.azureus.util.ConstantsVuze;
 
 
 public class
-SubscriptionViewExternal
+SubscriptionViewExternalBrowser
 	implements SubscriptionsViewBase
 {
 	private Subscription	subs;
@@ -60,13 +60,7 @@ SubscriptionViewExternal
 	private UISWTView swtView;
 
 	public
-	SubscriptionViewExternal()
-	{
-	}
-
-	public void
-	updateBrowser(
-		boolean	is_auto )
+	SubscriptionViewExternalBrowser()
 	{
 	}
 

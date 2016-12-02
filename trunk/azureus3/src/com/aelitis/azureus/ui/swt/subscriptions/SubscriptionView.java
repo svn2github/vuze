@@ -35,7 +35,14 @@ SubscriptionView
 	{
 		boolean	internal_subs = !COConfigurationManager.getBooleanParameter( "browser.external.subs" );
 		
-		impl = internal_subs?new SubscriptionViewInternal():new SubscriptionViewExternal();
+		if ( System.getProperty( "az.subs.native.results", "0" ).equals( "1" )){
+			
+			impl = new SubscriptionViewInternalNative();
+			
+		}else{
+			
+			impl = internal_subs?new SubscriptionViewInternalBrowser():new SubscriptionViewExternalBrowser();
+		}
 	}
 	
 	public boolean
@@ -48,13 +55,6 @@ SubscriptionView
 	getClone()
 	{
 		return( new SubscriptionView());
-	}
-	
-	public void
-	updateBrowser(
-		boolean	is_auto )
-	{
-		impl.updateBrowser(is_auto);
 	}
 	
 	public void 

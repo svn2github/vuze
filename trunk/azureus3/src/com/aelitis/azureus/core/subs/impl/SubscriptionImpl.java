@@ -629,11 +629,12 @@ SubscriptionImpl
 	
 	protected void
 	updateHistoryConfig(
-		Map		_history_map )
+		Map		_history_map,
+		int		reason )
 	{
 		history_map = _history_map;
 		
-		fireChanged();
+		fireChanged( reason );
 	}
 	
 	protected void
@@ -650,7 +651,7 @@ SubscriptionImpl
 		
 		syncToBody(body);
 		
-		fireChanged();
+		fireChanged( SubscriptionListener.CR_METADATA );
 	}
 	
 	protected void
@@ -744,7 +745,7 @@ SubscriptionImpl
 		
 		manager.configDirty( this );
 		
-		fireChanged();
+		fireChanged(SubscriptionListener.CR_METADATA);
 	}
 	
 	public void
@@ -782,7 +783,7 @@ SubscriptionImpl
 				}
 			}
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -923,7 +924,7 @@ SubscriptionImpl
 				}
 			}
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -940,7 +941,7 @@ SubscriptionImpl
 			
 			server_publication_outstanding = true;
 		
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -952,7 +953,7 @@ SubscriptionImpl
 			server_published 				= true;
 			server_publication_outstanding	= false;
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -1024,7 +1025,7 @@ SubscriptionImpl
 				}
 			}
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 			
 			return( true );
 		}
@@ -1256,7 +1257,7 @@ SubscriptionImpl
 				}
 			}
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 			
 			return( true );
 		}
@@ -1356,7 +1357,7 @@ SubscriptionImpl
 			
 			highest_prompted_version = v;
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -1379,7 +1380,7 @@ SubscriptionImpl
 			
 			highest_prompted_version = 0;
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 			
 			manager.checkUpgrade(this);
 		}
@@ -1430,7 +1431,7 @@ SubscriptionImpl
 				reset();
 			}
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -1464,7 +1465,7 @@ SubscriptionImpl
 									
 									popularity = pop;
 									
-									fireChanged();
+									fireChanged(SubscriptionListener.CR_METADATA);
 								}
 								
 								listener.gotPopularity( popularity );
@@ -1514,7 +1515,7 @@ SubscriptionImpl
 			
 			popularity		= pop;
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 		}
 	}
 	
@@ -1734,7 +1735,7 @@ SubscriptionImpl
 		
 		if ( !internal ){
 			
-			fireChanged();
+			fireChanged(SubscriptionListener.CR_METADATA);
 			
 			manager.associationAdded( this, hash);
 		}
@@ -1961,7 +1962,7 @@ SubscriptionImpl
 	{
 		creator_ref = ref;
 		
-		fireChanged();
+		fireChanged(SubscriptionListener.CR_METADATA);
 	}
 	
 	public String
@@ -1988,7 +1989,7 @@ SubscriptionImpl
 		
 		category = _category;
 
-		fireChanged();
+		fireChanged(SubscriptionListener.CR_METADATA);
 	}
 	
 	public String
@@ -2012,7 +2013,7 @@ SubscriptionImpl
 		
 		tag_id = _tag_id;
 
-		fireChanged();
+		fireChanged(SubscriptionListener.CR_METADATA);
 	}
 	
 	public long
@@ -2043,11 +2044,12 @@ SubscriptionImpl
 		
 		parent = _parent;
 
-		fireChanged();
+		fireChanged(SubscriptionListener.CR_METADATA);
 	}
 	
 	protected void
-	fireChanged()
+	fireChanged(
+		int		reason )
 	{
 		manager.configDirty( this );
 		
@@ -2056,7 +2058,7 @@ SubscriptionImpl
 		while( it.hasNext()){
 			
 			try{
-				((SubscriptionListener)it.next()).subscriptionChanged( this );
+				((SubscriptionListener)it.next()).subscriptionChanged( this, reason );
 				
 			}catch( Throwable e ){
 				

@@ -23,9 +23,13 @@ package com.aelitis.azureus.core.subs;
 public interface 
 SubscriptionListener 
 {
+	public static final int CR_METADATA	= 1;
+	public static final int CR_RESULTS	= 2;
+	
 	public void
 	subscriptionChanged(
-		Subscription		subs );
+		Subscription		subs,
+		int					reason );
 	
 	public void
 	subscriptionDownloaded(

@@ -120,7 +120,7 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 	public void subscriptionDownloaded(Subscription subs, boolean auto) {
 	}
 	
-	public void subscriptionChanged(Subscription subs) {
+	public void subscriptionChanged(Subscription subs, int reason ) {
 		mdiEntry.redraw();
 		ViewTitleInfoManager.refreshTitleInfo(mdiEntry.getViewTitleInfo());
 	}

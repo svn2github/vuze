@@ -704,7 +704,8 @@ SubscriptionManagerUI
 							
 							public void 
 							subscriptionChanged(
-								Subscription subs) 
+								Subscription 	subs,
+								int				reason ) 
 							{
 							}
 						});

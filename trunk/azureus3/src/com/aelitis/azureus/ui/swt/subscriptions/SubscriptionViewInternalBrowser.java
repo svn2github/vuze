@@ -65,7 +65,7 @@ import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
 public class
-SubscriptionViewInternal
+SubscriptionViewInternalBrowser
 	implements SubscriptionsViewBase, OpenCloseSearchDetailsListener, UIPluginViewToolBarListener
 {
 	private static boolean							subscription_proxy_init_done;
@@ -73,7 +73,7 @@ SubscriptionViewInternal
 	private static boolean							subscription_proxy_set;
 	private static AESemaphore						subscription_proxy_sem = new AESemaphore( "sps" );
 
-	private static List<SubscriptionViewInternal>	pending = new ArrayList<SubscriptionViewInternal>();
+	private static List<SubscriptionViewInternalBrowser>	pending = new ArrayList<SubscriptionViewInternalBrowser>();
 	
 	private static void
 	initProxy()
@@ -81,7 +81,7 @@ SubscriptionViewInternal
 			// can't make this a static initializer as class is loaded whenever we have a subscription
 			// in the sidebar, regardless of focus
 		
-		synchronized( SubscriptionViewInternal.class ){
+		synchronized( SubscriptionViewInternalBrowser.class ){
 			
 			if ( subscription_proxy_init_done ){
 				
@@ -128,20 +128,20 @@ SubscriptionViewInternal
 					}
 				}finally{
 					
-					List<SubscriptionViewInternal> to_redo = null;
+					List<SubscriptionViewInternalBrowser> to_redo = null;
 					
-					synchronized( SubscriptionViewInternal.class ){
+					synchronized( SubscriptionViewInternalBrowser.class ){
 						
 						subscription_proxy_set	= true;
 													
-						to_redo = new ArrayList<SubscriptionViewInternal>( pending );
+						to_redo = new ArrayList<SubscriptionViewInternalBrowser>( pending );
 						
 						pending.clear();
 					}
 					
 					subscription_proxy_sem.releaseForever();
 											
-					for ( SubscriptionViewInternal view: to_redo ){
+					for ( SubscriptionViewInternalBrowser view: to_redo ){
 							
 						try{
 							view.mainBrowserContext.setAutoReloadPending( false, subscription_proxy == null );
@@ -173,7 +173,7 @@ SubscriptionViewInternal
 				parameterChanged(
 					String parameterName ) 
 				{
-					synchronized( SubscriptionViewInternal.class ){
+					synchronized( SubscriptionViewInternalBrowser.class ){
 						
 						if ( !subscription_proxy_init_done ){
 							
@@ -197,7 +197,7 @@ SubscriptionViewInternal
 	
 	private static AEProxyFactory.PluginHTTPProxy
 	getSubscriptionProxy(
-		SubscriptionViewInternal		view )
+		SubscriptionViewInternalBrowser		view )
 	{
 		initProxy();
 		
@@ -205,7 +205,7 @@ SubscriptionViewInternal
 
 		subscription_proxy_sem.reserve( force_proxy?60*1000:2500 );
 		
-		synchronized( SubscriptionViewInternal.class ){
+		synchronized( SubscriptionViewInternalBrowser.class ){
 			
 			if ( subscription_proxy_set ){
 				
@@ -245,7 +245,7 @@ SubscriptionViewInternal
 	private UISWTView swtView;
 
 	public
-	SubscriptionViewInternal()
+	SubscriptionViewInternalBrowser()
 	{
 	}
 	
@@ -260,8 +260,8 @@ SubscriptionViewInternal
 			MdiEntrySWT entry = mdi.getEntrySWT(key);
 			if (entry != null) {
 				UISWTViewEventListener eventListener = entry.getEventListener();
-				if (eventListener instanceof SubscriptionViewInternal) {
-					SubscriptionViewInternal subsView = (SubscriptionViewInternal) eventListener;
+				if (eventListener instanceof SubscriptionViewInternalBrowser) {
+					SubscriptionViewInternalBrowser subsView = (SubscriptionViewInternalBrowser) eventListener;
 					subsView.updateBrowser( false );
 				}
 			}
@@ -322,7 +322,8 @@ SubscriptionViewInternal
 			{
 				public void 
 				subscriptionChanged(
-					Subscription subs ) 
+					Subscription 	subs,
+					int				reason ) 
 				{
 					Utils.execSWTThread(
 						new Runnable()

@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.core.subs.impl;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -61,6 +62,8 @@ SubscriptionResultImpl
 	private boolean		deleted;
 	
 	private String		result_json;
+	
+	private WeakReference<Map<Integer,Object>>	props_ref = null;
 	
 	protected
 	SubscriptionResultImpl(
@@ -178,6 +181,11 @@ SubscriptionResultImpl
 			
 			key2		= other.getKey2();
 			result_json = other_json_str;
+			
+			synchronized( this ){
+				
+				props_ref = null;
+			}
 			
 			return( true );
 		}
@@ -370,66 +378,81 @@ SubscriptionResultImpl
 	public Map<Integer,Object>
 	toPropertyMap()
 	{
-		Map map = toJSONMap();
-		
-		Map<Integer,Object>	result = new HashMap<Integer, Object>();
-		
-		String title = (String)map.get( "n" );
-		
-		result.put( SearchResult.PR_UID, getID());
-		result.put( SearchResult.PR_NAME, title );
-		
-		String pub_date = (String)map.get( "ts" );
-		if ( pub_date != null ){	
-			result.put( SearchResult.PR_PUB_DATE, new Date( Long.parseLong( pub_date )));
-		}
-		
-		String size = (String)map.get( "lb" );
-		if ( size != null ){	
-			result.put( SearchResult.PR_SIZE, Long.parseLong( size ));
-		}
-		
-		String	dbl_link 	= (String)map.get( "dbl" );
-		String	dl_link 	= (String)map.get( "dl" );
-
-		if ( dbl_link == null ){
+		synchronized( this ){
 			
-			dbl_link = dl_link;
-		}		
+			if ( props_ref != null ){
+				
+				Map<Integer,Object> cached = props_ref.get();
+				
+				if ( cached != null ){
+					
+					return( cached );
+				}
+			}
 		
-		if ( dbl_link != null ){
-			result.put( SearchResult.PR_DOWNLOAD_LINK, dbl_link );
+			Map map = toJSONMap();
+			
+			Map<Integer,Object>	result = new HashMap<Integer, Object>();
+			
+			String title = (String)map.get( "n" );
+			
+			result.put( SearchResult.PR_UID, getID());
+			result.put( SearchResult.PR_NAME, title );
+			
+			String pub_date = (String)map.get( "ts" );
+			if ( pub_date != null ){	
+				result.put( SearchResult.PR_PUB_DATE, new Date( Long.parseLong( pub_date )));
+			}
+			
+			String size = (String)map.get( "lb" );
+			if ( size != null ){	
+				result.put( SearchResult.PR_SIZE, Long.parseLong( size ));
+			}
+			
+			String	dbl_link 	= (String)map.get( "dbl" );
+			String	dl_link 	= (String)map.get( "dl" );
+	
+			if ( dbl_link == null ){
+				
+				dbl_link = dl_link;
+			}		
+			
+			if ( dbl_link != null ){
+				result.put( SearchResult.PR_DOWNLOAD_LINK, dbl_link );
+			}
+			if ( dl_link != null ){
+				result.put( SearchResult.PR_TORRENT_LINK, dl_link );
+			}
+			
+			String	cdp_link = (String)map.get( "cdp" );
+	
+			if ( cdp_link != null ){
+				result.put( SearchResult.PR_DETAILS_LINK, cdp_link );
+			}
+			
+			String	hash = (String)map.get( "h" );
+			if ( hash != null ){
+				result.put( SearchResult.PR_HASH, Base32.decode( hash ));
+			}
+			
+			String	seeds = (String)map.get( "s" );
+			if ( seeds != null ){
+				result.put( SearchResult.PR_SEED_COUNT, Long.parseLong(seeds) );
+			}
+			
+			String	peers = (String)map.get( "p" );
+			if ( peers != null ){
+				result.put( SearchResult.PR_LEECHER_COUNT, Long.parseLong(peers) );
+			}
+			
+			String	rank = (String)map.get( "r" );
+			if ( rank != null ){
+				result.put( SearchResult.PR_RANK, (long)(100*Float.parseFloat( rank )));
+			}
+			
+			props_ref = new WeakReference<Map<Integer,Object>>( result );
+			
+			return( result );
 		}
-		if ( dl_link != null ){
-			result.put( SearchResult.PR_TORRENT_LINK, dl_link );
-		}
-		
-		String	cdp_link = (String)map.get( "cdp" );
-
-		if ( cdp_link != null ){
-			result.put( SearchResult.PR_DETAILS_LINK, cdp_link );
-		}
-		
-		String	hash = (String)map.get( "h" );
-		if ( hash != null ){
-			result.put( SearchResult.PR_HASH, Base32.decode( hash ));
-		}
-		
-		String	seeds = (String)map.get( "s" );
-		if ( seeds != null ){
-			result.put( SearchResult.PR_SEED_COUNT, Long.parseLong(seeds) );
-		}
-		
-		String	peers = (String)map.get( "p" );
-		if ( peers != null ){
-			result.put( SearchResult.PR_LEECHER_COUNT, Long.parseLong(peers) );
-		}
-		
-		String	rank = (String)map.get( "r" );
-		if ( rank != null ){
-			result.put( SearchResult.PR_RANK, (long)(100*Float.parseFloat( rank )));
-		}
-		
-		return( result );
 	}
 }

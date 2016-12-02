@@ -19,6 +19,7 @@ package com.aelitis.azureus.core.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Allan Crooks
@@ -71,6 +72,12 @@ public class CopyOnWriteMap<K,V> {
 	
 	public boolean isEmpty() {
 		return this.map.isEmpty();
+	}
+	
+	public Set<K>
+	keySet()
+	{
+		return( map.keySet());
 	}
 	
 	/*

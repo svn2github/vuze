@@ -288,6 +288,8 @@ SubscriptionManagerImpl
 	
 	private AEDiagnosticsLogger		logger;
 	
+	private Map<SubscriptionImpl,Object[]>		result_cache = new HashMap<SubscriptionImpl, Object[]>();
+		
 	
 	protected
 	SubscriptionManagerImpl(
@@ -372,6 +374,33 @@ SubscriptionManagerImpl
 			
 			scheduler = new SubscriptionSchedulerImpl( this );
 		}
+		
+	SimpleTimer.addPeriodicEvent(
+			"SubscriptionCacheCheck",
+			10*1000,
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(TimerEvent event) {
+				
+					long now = SystemTime.getMonotonousTime();
+					
+					synchronized( result_cache ){
+					
+						Iterator<Object[]> it = result_cache.values().iterator();
+						
+						while( it.hasNext()){
+							
+							long time = (Long)it.next()[1];
+							
+							if ( now - time > 15*1000 ){
+								
+								it.remove();
+							}
+						}
+					}
+				}
+			});
 	}
 	
 	protected void
@@ -2101,6 +2130,11 @@ SubscriptionManagerImpl
 		
 		try{
 			FileUtil.deleteResilientFile( getResultsFile( subs ));
+			
+			synchronized( result_cache ){
+				
+				result_cache.remove( subs );
+			}
 			
 			File vuze_file = getVuzeFile( subs );
 			
@@ -6601,45 +6635,80 @@ SubscriptionManagerImpl
 		throw( new SubscriptionException( "Failed to extract engine id " + id ));
 	}
 	
-	protected SubscriptionResultImpl[]
+	protected LinkedHashMap<String,SubscriptionResultImpl>
 	loadResults(
 		SubscriptionImpl			subs )
 	{
-		List	results = new ArrayList();
-		
-		try{
-			File	f = getResultsFile( subs );
+		synchronized( result_cache ){
 			
-			Map	map = FileUtil.readResilientFile( f );
+			Object[]	entry = result_cache.get( subs );
 			
-			List	list = (List)map.get( "results" );
-			
-			if ( list != null ){
-			
-				SubscriptionHistoryImpl	history = (SubscriptionHistoryImpl)subs.getHistory();
+			if ( entry != null ){
 				
-				for (int i=0;i<list.size();i++){
+				entry[1] = SystemTime.getMonotonousTime();
+				
+				return((LinkedHashMap<String,SubscriptionResultImpl>)entry[0]);
+			}
+		
+			LinkedHashMap	results = new LinkedHashMap<String,SubscriptionResultImpl>(1024);
+			
+			try{
+				File	f = getResultsFile( subs );
+				
+				System.out.println( "Loading " + f );
+				
+				Map	map = FileUtil.readResilientFile( f );
+				
+				List	list = (List)map.get( "results" );
+				
+				if ( list != null ){
+				
+					SubscriptionHistoryImpl	history = (SubscriptionHistoryImpl)subs.getHistory();
 					
-					Map	result_map =(Map)list.get(i);
-					
-					try{
-						SubscriptionResultImpl result = new SubscriptionResultImpl( history, result_map );
+					for (int i=0;i<list.size();i++){
 						
-						results.add( result );
+						Map	result_map =(Map)list.get(i);
 						
-					}catch( Throwable e ){
-						
-						log( "Failed to decode result '" + result_map + "'", e );
+						try{
+							SubscriptionResultImpl result = new SubscriptionResultImpl( history, result_map );
+							
+							results.put( result.getID(), result );
+							
+						}catch( Throwable e ){
+							
+							log( "Failed to decode result '" + result_map + "'", e );
+						}
 					}
 				}
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to load results for '" + subs.getName() + "' - continuing with empty result set", e );
 			}
 			
-		}catch( Throwable e ){
+			result_cache.put( subs, new Object[]{ results, SystemTime.getMonotonousTime() });
 			
-			log( "Failed to load results for '" + subs.getName() + "' - continuing with empty result set", e );
+			if ( result_cache.size() > 5 ){
+				
+				SubscriptionImpl	oldest_sub 	= null;
+				long				oldest_time	= Long.MAX_VALUE;
+				
+				for ( Map.Entry<SubscriptionImpl,Object[]> x: result_cache.entrySet()){
+					
+					long time = (Long)x.getValue()[1];
+					
+					if ( time < oldest_time ){
+						
+						oldest_time	= time;
+						oldest_sub	= x.getKey();
+					}
+				}
+				
+				result_cache.remove( oldest_sub );
+			}
+			
+			return( results );
 		}
-		
-		return((SubscriptionResultImpl[])results.toArray( new SubscriptionResultImpl[results.size()] ));
 	}
 	
 	protected void
@@ -6785,25 +6854,30 @@ SubscriptionManagerImpl
  		SubscriptionImpl			subs,
  		SubscriptionResultImpl[]	results )
  	{
-		try{
-			File	f = getResultsFile( subs );
-	
-			Map	map = new HashMap();
+		synchronized( result_cache ){
 			
-			List	list = new ArrayList( results.length );
+			result_cache.remove( subs );
 			
-			map.put( "results", list );
-			
-			for (int i=0;i<results.length;i++){
+			try{
+				File	f = getResultsFile( subs );
+		
+				Map	map = new HashMap();
 				
-				list.add( results[i].toBEncodedMap());
+				List	list = new ArrayList( results.length );
+				
+				map.put( "results", list );
+				
+				for (int i=0;i<results.length;i++){
+					
+					list.add( results[i].toBEncodedMap());
+				}
+				
+				FileUtil.writeResilientFile( f, map );
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to save results for '" + subs.getName(), e );
 			}
-			
-			FileUtil.writeResilientFile( f, map );
-			
-		}catch( Throwable e ){
-			
-			log( "Failed to save results for '" + subs.getName(), e );
 		}
  	}
 	

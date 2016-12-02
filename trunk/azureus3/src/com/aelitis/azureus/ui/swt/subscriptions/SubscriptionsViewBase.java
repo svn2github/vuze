@@ -26,10 +26,6 @@ public interface
 SubscriptionsViewBase
 	extends UISWTViewCoreEventListener
 {
-	public void
-	updateBrowser(
-		final boolean	is_auto );
-	
 	public void 
 	refreshView();
 }
