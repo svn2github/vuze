@@ -60,8 +60,14 @@ public class SWTSkinObjectText1
 			String sID, String sConfigID, String[] typeParams, SWTSkinObject parent) {
 		super(skin, skinProperties, sID, sConfigID, "text", parent);
 
-		style = SWT.WRAP;
+		String sPrefix = sConfigID + ".text";
 
+		if ( properties.getBooleanValue(sPrefix + ".wrap", true )){
+			style = SWT.WRAP;
+		}else{
+			style = SWT.NONE;
+		}
+		
 		String sAlign = skinProperties.getStringValue(sConfigID + ".align");
 		if (sAlign != null) {
 			int align = SWTSkinUtils.getAlignment(sAlign, SWT.NONE);
