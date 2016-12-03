@@ -42,6 +42,12 @@ SBC_SubscriptionResult
 		result_id	= _result.getID();
 	}
 	
+	public String
+	getID()
+	{
+		return( result_id );
+	}
+	
 	public long
 	getTimeFound()
 	{

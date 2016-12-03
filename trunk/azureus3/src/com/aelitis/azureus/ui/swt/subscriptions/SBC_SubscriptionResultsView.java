@@ -387,6 +387,7 @@ SBC_SubscriptionResultsView
 		SWTSkinObject skinObject, Object params) 
 	{
 		synchronized( this ){
+			
 			Subscription new_ds = null;
 			
 			if ( params instanceof Subscription ){
@@ -424,18 +425,65 @@ SBC_SubscriptionResultsView
 		Subscription		subs,
 		int					reason )
 	{	
-		if ( subs == ds ){
+		if ( reason == SubscriptionListener.CR_RESULTS ){
 			
-			if ( reason == SubscriptionListener.CR_RESULTS ){
+			reconcileResults( subs );
+			
+			tv_subs_results.runForAllRows(
+				new TableGroupRowRunner() {
+					@Override
+					public void run(TableRowCore row) {
+						row.invalidate( true );
+					}
+				});
+		}
+	}
+	
+	private void
+	reconcileResults(
+		Subscription		subs )
+	{
+		synchronized( this ){
+			
+			if ( subs != ds || ds == null || subs == null || tv_subs_results == null ){
 				
-					// TODO: need to add new rows, delete dead etc.
-				tv_subs_results.runForAllRows(
-					new TableGroupRowRunner() {
-						@Override
-						public void run(TableRowCore row) {
-							row.invalidate( true );
-						}
-					});
+				return;
+			}
+			
+			tv_subs_results.processDataSourceQueueSync();
+			
+			List<SBC_SubscriptionResult> existing_results = tv_subs_results.getDataSources();
+						
+			Map<String,SBC_SubscriptionResult>	existing_map = new HashMap<String, SBC_SubscriptionResult>();
+			
+			for ( SBC_SubscriptionResult result: existing_results ){
+				
+				existing_map.put( result.getID(), result );
+			}
+			
+			SubscriptionResult[] current_results = ds.getResults( false );
+			
+			List<SBC_SubscriptionResult> new_results	= new ArrayList<SBC_SubscriptionResult>(current_results.length);
+			
+			for ( SubscriptionResult result: current_results ){
+				
+				if ( existing_map.remove( result.getID()) == null ){
+					
+					new_results.add( new SBC_SubscriptionResult( ds, result));
+				}
+			}
+		
+			if ( new_results.size() > 0 ){
+			
+				tv_subs_results.addDataSources( new_results.toArray( new SBC_SubscriptionResult[ new_results.size()]));
+			}
+			
+			if ( existing_map.size() > 0 ){
+				
+				Collection<SBC_SubscriptionResult> to_remove = existing_map.values();
+				
+				tv_subs_results.removeDataSources( to_remove.toArray( new SBC_SubscriptionResult[ to_remove.size()]));
+
 			}
 		}
 	}
@@ -644,16 +692,7 @@ SBC_SubscriptionResultsView
 				public void 
 				tableViewInitialized() 
 				{
-					SubscriptionResult[] _results = ds.getResults( false );
-					
-					SBC_SubscriptionResult[] results = new SBC_SubscriptionResult[_results.length];
-					
-					for ( int i=0;i<_results.length;i++){
-						
-						results[i] = new SBC_SubscriptionResult(ds, _results[i] );
-					}
-					
-					tv_subs_results.addDataSources( results );
+					reconcileResults( ds );
 				}
 
 				public void 
@@ -931,10 +970,6 @@ SBC_SubscriptionResultsView
 			
 			result.delete();
 		}
-		
-		tv_subs_results.removeDataSources( results );
-		
-		tv_subs_results.processDataSourceQueue();
 		
 		if ( focusRow != null ){
   		
