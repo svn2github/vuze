@@ -190,7 +190,7 @@ TRBlockingServerProcessor
 						if ( cl_str == null ){
 							
 							String transfer_encoding_str = getHeaderField(header,
-									lowercase_header, "transfer-encoding");
+									lowercase_header, "transfer-encoding: ");
 							chunk_read = transfer_encoding_str != null
 									&& transfer_encoding_str.equalsIgnoreCase("chunked");
 							
