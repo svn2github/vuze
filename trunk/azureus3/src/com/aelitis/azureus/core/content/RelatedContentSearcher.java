@@ -343,7 +343,8 @@ RelatedContentSearcher
 											
 											return( new Date( date ));
 											
-										}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
+										}else if ( 	property_name == SearchResult.PR_TORRENT_LINK || 
+													property_name == SearchResult.PR_DOWNLOAD_LINK ||
 													property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
 											
 											byte[] hash = c.getHash();
@@ -352,6 +353,21 @@ RelatedContentSearcher
 												
 												return( UrlUtils.getMagnetURI( hash, c.getTitle(), c.getNetworks()));
 											}
+										}else if ( property_name == SearchResult.PR_CATEGORY ){
+											
+											String[] tags = c.getTags();
+											
+											if ( tags != null ){
+												
+												for ( String tag: tags ){
+													
+													if ( !tag.startsWith( "_" )){
+														
+														return( tag );
+													}
+												}
+											}
+
 										}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_CONTENT_NETWORK ){
 											
 											return( c.getContentNetwork());
@@ -1270,7 +1286,8 @@ RelatedContentSearcher
 										
 										return( new Date( date ));
 										
-									}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
+									}else if ( 	property_name == SearchResult.PR_TORRENT_LINK ||
+												property_name == SearchResult.PR_DOWNLOAD_LINK ||
 												property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
 										
 										byte[] hash = (byte[])map.get( "h" );
@@ -1278,6 +1295,21 @@ RelatedContentSearcher
 										if ( hash != null ){
 											
 											return( UrlUtils.getMagnetURI( hash, title, RelatedContentManager.convertNetworks((byte)ImportExportUtils.importLong( map, "o", RelatedContentManager.NET_PUBLIC ))));
+										}
+										
+									}else if ( property_name == SearchResult.PR_CATEGORY ){
+										
+										String[] tags = manager.decodeTags((byte[])map.get( "g" ));
+										
+										if ( tags != null ){
+											
+											for ( String tag: tags ){
+												
+												if ( !tag.startsWith( "_" )){
+													
+													return( tag );
+												}
+											}
 										}
 									}else if (  property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_CONTENT_NETWORK ){
 										

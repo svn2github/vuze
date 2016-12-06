@@ -357,7 +357,7 @@ public abstract class Result {
 	{
 		if ( category == null || category.length() == 0 ){
 			
-			return( null );
+			return( "" );
 		}
 		
 		category = category.toLowerCase(Locale.US);
@@ -379,7 +379,7 @@ public abstract class Result {
 			return( Engine.CT_GAME );
 		}else{
 			
-			return( null );
+			return( "" );
 		}
 	}
 	
