@@ -20,6 +20,7 @@
 package com.aelitis.azureus.core.metasearch.impl.web;
 
 import java.util.Date;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 import org.apache.commons.lang.*;
@@ -113,6 +114,26 @@ public class WebResult extends Result {
 			if(separator != -1) {
 				this.category = this.category.substring(separator+1).trim();
 			}*/
+			
+			if ( contentType == null || contentType.length() == 0 ){
+				String cat = this.category.toLowerCase(Locale.US);
+				if ( 	cat.startsWith( "video" ) || 
+						cat.startsWith( "movie" ) || 
+						cat.startsWith( "show" ) || 
+						cat.startsWith( "tv" )){
+					
+					contentType = Engine.CT_VIDEO;
+					
+				}else if ( 	cat.startsWith( "audio" ) ||
+							cat.startsWith( "music" )){
+					
+					contentType = Engine.CT_AUDIO;
+					
+				}else if ( cat.startsWith( "game" )){
+					
+					contentType = Engine.CT_GAME;
+				}
+			}
 		}
 	}
 	

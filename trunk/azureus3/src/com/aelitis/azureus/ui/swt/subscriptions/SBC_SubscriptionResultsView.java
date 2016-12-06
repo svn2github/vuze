@@ -57,7 +57,10 @@ import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultActions;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultAge;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultNew;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultRank;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultSeedsPeers;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultSize;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultType;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
@@ -364,6 +367,16 @@ SBC_SubscriptionResultsView
 		
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
+			ColumnSubResultType.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSubResultType(column);
+					}
+				});	
+		
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
 			ColumnSubResultActions.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
@@ -384,6 +397,16 @@ SBC_SubscriptionResultsView
 			
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
+			ColumnSubResultSeedsPeers.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSubResultSeedsPeers(column);
+					}
+				});		
+		
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
 			ColumnSubResultAge.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
@@ -392,15 +415,26 @@ SBC_SubscriptionResultsView
 					}
 				});
 
-
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
+			ColumnSubResultRank.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSubResultRank(column);
+					}
+				});
 		
 		tableManager.setDefaultColumnNames( TABLE_SR,
 				new String[] {
 					ColumnSubResultNew.COLUMN_ID,
+					ColumnSubResultType.COLUMN_ID,
 					ColumnSubResultName.COLUMN_ID,
 					ColumnSubResultActions.COLUMN_ID,
 					ColumnSubResultSize.COLUMN_ID,
+					ColumnSubResultSeedsPeers.COLUMN_ID,
 					ColumnSubResultAge.COLUMN_ID,
+					ColumnSubResultRank.COLUMN_ID,
 				});
 		
 		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSubResultAge.COLUMN_ID);

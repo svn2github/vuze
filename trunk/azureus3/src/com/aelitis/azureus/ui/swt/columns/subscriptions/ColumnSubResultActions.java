@@ -209,8 +209,8 @@ public class ColumnSubResultActions
 			URLInfo hitUrl = sp.getHitUrl(event.x + bounds.x, event.y + bounds.y);
 			int newCursor;
 			if (hitUrl != null) {
-				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
-					if (hitUrl.url.equals("download")) {
+				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP && event.button == 1 ){
+					if (hitUrl.url.equals("download")){
 						String referer_str = null;
 						
 						String torrentUrl = entry.getTorrentLink();
@@ -272,15 +272,16 @@ public class ColumnSubResultActions
 							Debug.out( e );
 						}
 					}
+				}else{
+					if (hitUrl.url.equals("download")){
+						tooltip = entry.getTorrentLink();
+					}else if ( hitUrl.url.equals("details")){
+						tooltip = entry.getDetgailsLink();
+					}
 				}
-				Object ds = event.cell.getDataSource();
 
 				newCursor = SWT.CURSOR_HAND;
-				if (UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
-					tooltip = hitUrl.title;
-				} else {
-					tooltip = hitUrl.url;
-				}
+			
 			} else {
 				newCursor = SWT.CURSOR_ARROW;
 			}

@@ -12,48 +12,57 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
  */
 
 package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
-
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class ColumnSubResultSize
-	implements TableCellRefreshListener
-{
-	public static final String COLUMN_ID = "size";
+import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
 
-	/**
-	 * 
-	 * @param sTableID
-	 */
-	public ColumnSubResultSize(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 80 );
-		column.addListeners(this);
+
+public class ColumnSubResultSeedsPeers
+	implements TableCellRefreshListener, TableColumnExtraInfoListener
+{
+	public static String COLUMN_ID = "seeds_peers";
+
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			TableColumn.CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
+	}
+
+	/** Default Constructor */
+	public ColumnSubResultSeedsPeers(TableColumn column) {
+		column.setWidth(80);
+		column.setAlignment(TableColumn.ALIGN_CENTER);
 		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
-		column.setType(TableColumn.TYPE_TEXT_ONLY);
-		
-		if ( column instanceof TableColumnCore ){
-			((TableColumnCore)column).setUseCoreDataSource( true );
-		}
+		column.addListeners(this);
 	}
 
 	public void refresh(TableCell cell) {
-		SBC_SubscriptionResult rc = (SBC_SubscriptionResult) cell.getDataSource();
-		if (rc == null) {
+		SBC_SubscriptionResult result = (SBC_SubscriptionResult) cell.getDataSource();
+	
+		long sort = result.getSeedsPeersSortValue();
+				
+		if ( !cell.setSortValue(sort) && cell.isValid()){
+			
 			return;
 		}
 
-		long size = rc.getSize();
-
-		if ( size > 0 && cell.setSortValue( size )){
-		
-			cell.setText( DisplayFormatters.formatByteCountToKiBEtc( size ));
+		if (!cell.isShown()) {
+			return;
 		}
+		
+		String str = result.getSeedsPeers();
+
+		cell.setText(str);
+		
+		return;
+		
 	}
 }

@@ -19,24 +19,22 @@ package com.aelitis.azureus.ui.swt.columns.subscriptions;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
 
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
+
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class ColumnSubResultAge
+public class ColumnSubResultRank
 	implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "age";
+	public static final String COLUMN_ID = "rank";
 
 	/**
 	 * 
 	 * @param sTableID
 	 */
-	public ColumnSubResultAge(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 50 );
+	public ColumnSubResultRank(TableColumn column) {
+		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 60 );
 		column.addListeners(this);
-		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
+		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 		
 		if ( column instanceof TableColumnCore ){
@@ -50,14 +48,11 @@ public class ColumnSubResultAge
 			return;
 		}
 
-		long time = rc.getTime();
-				
-		long age_secs = (SystemTime.getCurrentTime() - time)/1000;
+		long rank = rc.getRank();
 
-		if ( cell.setSortValue( age_secs )){
+		if ( rank >= 0 && cell.setSortValue( rank )){
 		
-			cell.setToolTip(time <= 0?"--":DisplayFormatters.formatCustomDateOnly( time ));
-			cell.setText( age_secs < 0?"--":TimeFormatter.format3( age_secs ));
+			cell.setText( String.valueOf(rank ));
 		}
 	}
 }

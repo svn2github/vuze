@@ -450,6 +450,12 @@ SubscriptionResultImpl
 				result.put( SearchResult.PR_RANK, (long)(100*Float.parseFloat( rank )));
 			}
 			
+			String contentType = (String)map.get( "ct" );
+			
+			if ( contentType != null ){
+				result.put( SearchResult.PR_CONTENT_TYPE, contentType );
+			}
+			
 			props_ref = new WeakReference<Map<Integer,Object>>( result );
 			
 			return( result );

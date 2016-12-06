@@ -6654,9 +6654,7 @@ SubscriptionManagerImpl
 			
 			try{
 				File	f = getResultsFile( subs );
-				
-				System.out.println( "Loading " + f );
-				
+								
 				Map	map = FileUtil.readResilientFile( f );
 				
 				List	list = (List)map.get( "results" );

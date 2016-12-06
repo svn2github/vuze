@@ -37,7 +37,11 @@ SBC_SubscriptionResult
 	
 	private final String			name;
 	private final byte[]			hash;
+	private final int				content_type;
 	private final long				size;
+	private final long				seeds_peers_sort;
+	private final String			seeds_peers;
+	private final int				rank;
 	private final long				time;
 	private final String			torrent_link;
 	private final String			details_link;
@@ -55,6 +59,24 @@ SBC_SubscriptionResult
 		name = (String)properties.get( SearchResult.PR_NAME );
 		
 		hash = (byte[])properties.get( SearchResult.PR_HASH );
+		
+		String type = (String)properties.get( SearchResult.PR_CONTENT_TYPE );
+		
+		if ( type == null || type.length() == 0 ){
+			content_type = 0;
+		}else{
+			char c = type.charAt(0);
+			
+			if ( c == 'v' ){
+				content_type = 1;
+			}else if ( c == 'a' ){
+				content_type = 2;
+			}else if ( c == 'g' ){
+				content_type = 3;
+			}else{
+				content_type = 0;
+			}
+		}
 		
 		size = (Long)properties.get( SearchResult.PR_SIZE );
 		
@@ -80,7 +102,27 @@ SBC_SubscriptionResult
 		
 		torrent_link = (String)properties.get( SearchResult.PR_TORRENT_LINK );
 		details_link = (String)properties.get( SearchResult.PR_DETAILS_LINK );
-
+		
+		long seeds 		= (Long)properties.get( SearchResult.PR_SEED_COUNT );
+		long leechers 	= (Long)properties.get( SearchResult.PR_LEECHER_COUNT );
+		
+		seeds_peers = (seeds<0?"--":String.valueOf(seeds)) + "/" + (leechers<0?"--":String.valueOf(leechers));
+		
+		if ( seeds < 0 ){
+			seeds = 0;
+		}else{
+			seeds++;
+		}
+		
+		if ( leechers < 0 ){
+			leechers = 0;
+		}else{
+			leechers++;
+		}
+		
+		seeds_peers_sort = ((seeds&0x7fffffff)<<32) | ( leechers & 0xffffffff );
+				
+		rank	 	= ((Long)properties.get( SearchResult.PR_RANK )).intValue();
 	}
 	
 	public Subscription
@@ -107,10 +149,34 @@ SBC_SubscriptionResult
 		return( hash );
 	}
 	
+	public int
+	getContentType()
+	{
+		return( content_type );
+	}
+	
 	public long
 	getSize()
 	{
 		return( size );
+	}
+	
+	public String
+	getSeedsPeers()
+	{
+		return( seeds_peers );
+	}
+	
+	public long
+	getSeedsPeersSortValue()
+	{
+		return( seeds_peers_sort );
+	}
+	
+	public int
+	getRank()
+	{
+		return( rank );
 	}
 	
 	public String

@@ -37,15 +37,16 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class ColumnSubResultType
 	implements TableCellSWTPaintListener, TableCellAddedListener,
-	TableCellRefreshListener, TableCellMouseListener
+	TableCellRefreshListener
 {
 	public static final String COLUMN_ID = "type";
 
 	private static int WIDTH = 38;
 
-	private static Image imgNew;
-
-	private static Image imgOld;
+	private static Image imgVideo;
+	private static Image imgAudio;
+	private static Image imgGame;
+	private static Image imgOther;
 
 
 	public ColumnSubResultType(TableColumn column ) {
@@ -60,15 +61,44 @@ public class ColumnSubResultType
 			((TableColumnCore)column).addCellOtherListener("SWTPaint", this );
 		}
 		
-		imgNew = ImageLoader.getInstance().getImage("image.activity.unread");
-		imgOld = ImageLoader.getInstance().getImage("image.activity.read");
+		imgVideo = ImageLoader.getInstance().getImage("column.image.ct_video");
+		imgAudio = ImageLoader.getInstance().getImage("column.image.ct_audio");
+		imgGame = ImageLoader.getInstance().getImage("column.image.ct_game");
+		imgOther = ImageLoader.getInstance().getImage("column.image.ct_other");
 	}
 
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		SBC_SubscriptionResult entry = (SBC_SubscriptionResult) cell.getDataSource();
 
 		Rectangle cellBounds = cell.getBounds();
-		Image img = entry== null || entry.getRead() ? imgOld: imgNew;
+		Image img;
+		if ( entry == null ){
+			img = imgOther;
+		}else{
+			int ct = entry.getContentType();
+			switch( ct ){
+				case 0:{
+					img = imgOther;
+					break;
+				}
+				case 1:{
+					img = imgVideo;
+					break;
+				}
+				case 2:{
+					img = imgAudio;
+					break;
+				}
+				case 3:{
+					img = imgAudio;
+					break;
+				}
+				default:{
+					img = imgGame;
+					break;
+				}
+			}	
+		}
 
 		if (img != null && !img.isDisposed()) {
 			Rectangle imgBounds = img.getBounds();
@@ -81,39 +111,18 @@ public class ColumnSubResultType
 	public void cellAdded(TableCell cell) {
 		cell.setMarginWidth(0);
 		cell.setMarginHeight(0);
-		
-		if ( cell instanceof TableCellSWT ){
-		
-			((TableCellSWT)cell).setCursorID( SWT.CURSOR_HAND );
-		}
 	}
 
 	public void refresh(TableCell cell) {
 		SBC_SubscriptionResult entry = (SBC_SubscriptionResult)cell.getDataSource();
 
 		if ( entry != null ){
-			
-			boolean unread = !entry.getRead();
-			
-			long sortVal = ((unread ? 2 : 1) << 62) + (SystemTime.getCurrentTime()-entry.getTime())/1000;
-	
-			if (!cell.setSortValue(sortVal) && cell.isValid()) {
+							
+			if (!cell.setSortValue( entry.getContentType()) && cell.isValid()){
+				
 				return;
 			}
 		}
 	}
 
-	public void cellMouseTrigger(final TableCellMouseEvent event) {
-		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN
-				&& event.button == 1) {
-			SBC_SubscriptionResult entry = (SBC_SubscriptionResult) event.cell.getDataSource();
-			
-			if ( entry != null ){
-			
-				entry.setRead(!entry.getRead());
-			
-				event.cell.invalidate();
-			}
-		}
-	}
 }
