@@ -50,7 +50,7 @@ public class ColumnSubResultAge
 			return;
 		}
 
-		long time = rc.getTimeFound();
+		long time = rc.getTime();
 				
 		long age_secs = (SystemTime.getCurrentTime() - time)/1000;
 

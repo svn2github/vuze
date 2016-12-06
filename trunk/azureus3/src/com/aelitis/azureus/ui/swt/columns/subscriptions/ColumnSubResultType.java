@@ -95,7 +95,7 @@ public class ColumnSubResultType
 			
 			boolean unread = !entry.getRead();
 			
-			long sortVal = ((unread ? 2 : 1) << 62) + (SystemTime.getCurrentTime()-entry.getTimeFound())/1000;
+			long sortVal = ((unread ? 2 : 1) << 62) + (SystemTime.getCurrentTime()-entry.getTime())/1000;
 	
 			if (!cell.setSortValue(sortVal) && cell.isValid()) {
 				return;

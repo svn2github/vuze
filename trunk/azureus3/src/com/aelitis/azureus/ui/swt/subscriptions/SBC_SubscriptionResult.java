@@ -38,7 +38,7 @@ SBC_SubscriptionResult
 	private final String			name;
 	private final byte[]			hash;
 	private final long				size;
-	private final long				time_found;
+	private final long				time;
 	private final String			torrent_link;
 	private final String			details_link;
 	
@@ -58,7 +58,25 @@ SBC_SubscriptionResult
 		
 		size = (Long)properties.get( SearchResult.PR_SIZE );
 		
-		time_found = _result.getTimeFound();
+		Date pub_date = (Date)properties.get( SearchResult.PR_PUB_DATE );
+		
+		if ( pub_date == null ){
+			
+			time = _result.getTimeFound();
+			
+		}else{
+			
+			long pt = pub_date.getTime();
+			
+			if ( pt <= 0 ){
+				
+				time = _result.getTimeFound();
+				
+			}else{
+			
+				time = pt;
+			};
+		}
 		
 		torrent_link = (String)properties.get( SearchResult.PR_TORRENT_LINK );
 		details_link = (String)properties.get( SearchResult.PR_DETAILS_LINK );
@@ -108,9 +126,9 @@ SBC_SubscriptionResult
 	}
 	
 	public long
-	getTimeFound()
+	getTime()
 	{
-		return( time_found );
+		return( time );
 	}
 	
 	public boolean
