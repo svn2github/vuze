@@ -24,6 +24,8 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.util.*;
 
+import org.gudy.azureus2.plugins.utils.search.SearchResult;
+
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 
@@ -33,6 +35,13 @@ SBC_SubscriptionResult
 	private final Subscription		subs;
 	private final String			result_id;
 	
+	private final String			name;
+	private final byte[]			hash;
+	private final long				size;
+	private final long				time_found;
+	private final String			torrent_link;
+	private final String			details_link;
+	
 	protected
 	SBC_SubscriptionResult(
 		Subscription		_subs,
@@ -40,6 +49,26 @@ SBC_SubscriptionResult
 	{
 		subs		= _subs;
 		result_id	= _result.getID();
+		
+		Map<Integer,Object>	properties = _result.toPropertyMap();
+		
+		name = (String)properties.get( SearchResult.PR_NAME );
+		
+		hash = (byte[])properties.get( SearchResult.PR_HASH );
+		
+		size = (Long)properties.get( SearchResult.PR_SIZE );
+		
+		time_found = _result.getTimeFound();
+		
+		torrent_link = (String)properties.get( SearchResult.PR_TORRENT_LINK );
+		details_link = (String)properties.get( SearchResult.PR_DETAILS_LINK );
+
+	}
+	
+	public Subscription
+	getSubscription()
+	{
+		return( subs );
 	}
 	
 	public String
@@ -48,17 +77,40 @@ SBC_SubscriptionResult
 		return( result_id );
 	}
 	
+	public final String
+	getName()
+	{
+		return( name );
+	}
+	
+	public byte[]
+	getHash()
+	{
+		return( hash );
+	}
+	
+	public long
+	getSize()
+	{
+		return( size );
+	}
+	
+	public String
+	getTorrentLink()
+	{
+		return( torrent_link );
+	}
+	
+	public String
+	getDetgailsLink()
+	{
+		return( details_link );
+	}
+	
 	public long
 	getTimeFound()
 	{
-		SubscriptionResult result = subs.getHistory().getResult( result_id );
-		
-		if ( result != null ){
-			
-			return( result.getTimeFound());
-		}
-		
-		return( 0 );
+		return( time_found );
 	}
 	
 	public boolean
@@ -84,19 +136,6 @@ SBC_SubscriptionResult
 			
 			result.setRead( read );
 		}
-	}
-	
-	public Map<Integer,Object>
-	toPropertyMap()
-	{
-		SubscriptionResult result = subs.getHistory().getResult( result_id );
-		
-		if ( result != null ){
-			
-			return( result.toPropertyMap());
-		}
-		
-		return( new HashMap<Integer,Object>());
 	}
 	
 	public void

@@ -57,7 +57,7 @@ public class ColumnSubResultAge
 		if ( cell.setSortValue( age_secs )){
 		
 			cell.setToolTip(time <= 0?"--":DisplayFormatters.formatCustomDateOnly( time ));
-			cell.setText( age_secs <= 0?"--":TimeFormatter.format( age_secs ));
+			cell.setText( age_secs < 0?"--":TimeFormatter.format3( age_secs ));
 		}
 	}
 }

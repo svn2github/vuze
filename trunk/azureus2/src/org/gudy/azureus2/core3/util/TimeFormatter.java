@@ -22,13 +22,19 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
+
 /**
  * @author Olivier
  * 
  */
 public class TimeFormatter {
   // XXX should be i18n'd
-	static final String[] TIME_SUFFIXES = { "s", "m", "h", "d", "y" };
+	static final String[] TIME_SUFFIXES 	= { "s", "m", "h", "d", "y" };
+	
+	static final String[] TIME_SUFFIXES_2 	= { "sec", "min", "hr", "day", "wk", "mo", "yr" };
 
 	public static final String[] DATEFORMATS_DESC = new String[] {
 		"EEEE, MMMM d, yyyy GG",
@@ -60,6 +66,38 @@ public class TimeFormatter {
 			// see http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
 		
 		cookie_date_format.setTimeZone(TimeZone.getTimeZone("GMT"));
+	}
+	
+	static{
+		COConfigurationManager.addListener(
+    		new COConfigurationListener()
+    		{
+    			public void 
+    			configurationSaved() 
+    			{
+    				loadMessages();
+    			}
+    		});
+		
+		loadMessages();
+	}
+	
+	private static void
+	loadMessages()
+	{
+		TIME_SUFFIXES[0]	= MessageText.getString( "ConfigView.section.stats.seconds.short" );
+		TIME_SUFFIXES[1]	= MessageText.getString( "ConfigView.section.stats.minutes.short" );
+		TIME_SUFFIXES[2]	= MessageText.getString( "ConfigView.section.stats.hours.short" );
+		TIME_SUFFIXES[3]	= MessageText.getString( "ConfigView.section.stats.days.short" );
+		TIME_SUFFIXES[4]	= MessageText.getString( "ConfigView.section.stats.years.short" );
+		
+		TIME_SUFFIXES_2[0]	= MessageText.getString( "ConfigView.section.stats.seconds" );
+		TIME_SUFFIXES_2[1]	= MessageText.getString( "ConfigView.section.stats.minutes" );
+		TIME_SUFFIXES_2[2]	= MessageText.getString( "ConfigView.section.stats.hours" );
+		TIME_SUFFIXES_2[3]	= MessageText.getString( "ConfigView.section.stats.days" );
+		TIME_SUFFIXES_2[4]	= MessageText.getString( "ConfigView.section.stats.weeks.medium" );
+		TIME_SUFFIXES_2[5]	= MessageText.getString( "ConfigView.section.stats.months.medium" );
+		TIME_SUFFIXES_2[6]	= MessageText.getString( "ConfigView.section.stats.years.medium" );
 	}
 	
 	/**
@@ -151,6 +189,46 @@ public class TimeFormatter {
 		
 			result += (i==start?vals[i]:(" " + twoDigits(vals[i]))) + TIME_SUFFIXES[i];
 		}
+		
+		return result;
+	}
+	
+	/**
+	 * format seconds into most significant time chunk (year, week etc)
+	 * @param time_secs
+	 * @return
+	 */
+	
+	public static String 
+	format3(
+		long 	time_secs )
+	{	
+		if (time_secs == Constants.CRAPPY_INFINITY_AS_INT || time_secs >= Constants.CRAPPY_INFINITE_AS_LONG)
+			return Constants.INFINITY_STRING;
+
+		if ( time_secs < 0 ){
+			
+			return "";
+			
+		}
+
+		// secs, mins, hours, days, weeks, months, years (kind of...)
+		
+		int[] vals = {
+			(int) time_secs % 60,
+			(int) (time_secs / 60) % 60,
+			(int) (time_secs / ( 60*60)) % 24,
+			(int) (time_secs / ( 60*60*24)) % 7,
+			(int) (time_secs / ( 60*60*24*7)) % 30,
+			(int) (time_secs / ( 60*60*24*365L))
+		};
+
+		int start = vals.length - 1;
+		while (vals[start] == 0 && start > 0) {
+			start--;
+		}
+		
+		String result = vals[start] + " " + TIME_SUFFIXES_2[start];
 		
 		return result;
 	}

@@ -53,9 +53,11 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultActions;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultAge;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultNew;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultSize;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
@@ -362,6 +364,26 @@ SBC_SubscriptionResultsView
 		
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
+			ColumnSubResultActions.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSubResultActions(column);
+					}
+				});			
+		
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
+			ColumnSubResultSize.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSubResultSize(column);
+					}
+				});			
+			
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
 			ColumnSubResultAge.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
@@ -376,10 +398,12 @@ SBC_SubscriptionResultsView
 				new String[] {
 					ColumnSubResultNew.COLUMN_ID,
 					ColumnSubResultName.COLUMN_ID,
+					ColumnSubResultActions.COLUMN_ID,
+					ColumnSubResultSize.COLUMN_ID,
 					ColumnSubResultAge.COLUMN_ID,
 				});
 		
-		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSubResultName.COLUMN_ID);
+		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSubResultAge.COLUMN_ID);
 	}
 
 	public Object 
@@ -658,15 +682,13 @@ SBC_SubscriptionResultsView
 					
 					last_selected_content.add( rc );
 					
-					Map<Integer,Object> props =  rc.toPropertyMap();
-
-					byte[] hash = (byte[])props.get( SearchResult.PR_HASH );
+					byte[] hash = rc.getHash();
 					
 					if ( hash != null && hash.length > 0 ){
 						
-						SelectedContent sc = new SelectedContent(Base32.encode(hash), (String)props.get( SearchResult.PR_NAME));
+						SelectedContent sc = new SelectedContent(Base32.encode(hash), rc.getName());
 						
-						sc.setDownloadInfo(new DownloadUrlInfo(	getDownloadURI( props )));
+						sc.setDownloadInfo(new DownloadUrlInfo(	getDownloadURI( rc )));
 						
 						valid.add(sc);
 					}
@@ -1009,9 +1031,7 @@ SBC_SubscriptionResultsView
 		}
 
 		try{
-			Map<Integer,Object>	props = ds.toPropertyMap();
-			
-			String name = (String)props.get( SearchResult.PR_NAME );
+			String name = ds.getName();
 			
 			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
 			
@@ -1093,16 +1113,16 @@ SBC_SubscriptionResultsView
 
 	public String
 	getDownloadURI(
-		Map<Integer,Object> props )
+		SBC_SubscriptionResult	result )
 	{
-		String torrent_url = (String)props.get( SearchResult.PR_TORRENT_LINK );
+		String torrent_url = (String)result.getTorrentLink();
 		
 		if ( torrent_url != null && torrent_url.length() > 0 ){
 			
 			return( torrent_url );
 		}
 		
-		String uri = UrlUtils.getMagnetURI( (byte[])props.get( SearchResult.PR_HASH ), (String)props.get( SearchResult.PR_NAME ), ds.getHistory().getDownloadNetworks());
+		String uri = UrlUtils.getMagnetURI( result.getHash(), result.getName(), ds.getHistory().getDownloadNetworks());
 		
 		return( uri );
 	}

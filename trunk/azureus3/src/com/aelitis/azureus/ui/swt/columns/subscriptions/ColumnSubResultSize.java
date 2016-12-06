@@ -12,55 +12,49 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
  */
 
 package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
-
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.plugins.utils.search.SearchResult;
-
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
 
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class ColumnSubResultName
-	implements TableCellRefreshListener, TableColumnExtraInfoListener
+public class ColumnSubResultSize
+	implements TableCellRefreshListener
 {
-	public static String COLUMN_ID = "name";
+	public static final String COLUMN_ID = "size";
 
-
-	public void fillTableColumnInfo(TableColumnInfo info) {
-		info.addCategories(new String[] {
-			TableColumn.CAT_ESSENTIAL,
-		});
-		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
-	}
-
-	/** Default Constructor */
-	public ColumnSubResultName(TableColumn column) {
-		column.setWidth(400);
-		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+	/**
+	 * 
+	 * @param sTableID
+	 */
+	public ColumnSubResultSize(TableColumn column) {
+		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 80 );
 		column.addListeners(this);
+		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		
+		if ( column instanceof TableColumnCore ){
+			((TableColumnCore)column).setUseCoreDataSource( true );
+		}
 	}
 
 	public void refresh(TableCell cell) {
-		SBC_SubscriptionResult result = (SBC_SubscriptionResult) cell.getDataSource();
-	
-		String str = result.getName();
-		
-		if ( !cell.setSortValue(str) && cell.isValid()){
-			
+		SBC_SubscriptionResult rc = (SBC_SubscriptionResult) cell.getDataSource();
+		if (rc == null) {
 			return;
 		}
 
-		if (!cell.isShown()) {
-			return;
+		long size = rc.getSize();
+
+		if ( size > 0 && cell.setSortValue( size )){
+		
+			cell.setText( DisplayFormatters.formatByteCountToKiBEtc( size ));
 		}
-		
-		cell.setText(str);
-		
-		return;
-		
 	}
 }

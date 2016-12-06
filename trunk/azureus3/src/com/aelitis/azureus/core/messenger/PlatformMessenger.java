@@ -502,7 +502,23 @@ public class PlatformMessenger
 			String replyType = MapUtils.getMapString(mapReply, "type", "payload");
 			Map payload;
 			if (replyType.equalsIgnoreCase("payload")) {
-				payload = MapUtils.getMapMap(mapReply, "payload", Collections.EMPTY_MAP);
+				// parg, 12/5/216 - not sure when this broke or how significant it is but subscription-update (for example) returns a list not a map
+				Object test = mapReply.get( "payload" );
+				if ( test instanceof List ){
+					List temp = (List)test;
+					payload = new HashMap();
+					try{
+						for ( int i=0;i<temp.size();i+=2){
+							String k = (String)temp.get(i);
+							Object v = temp.get(i+1);
+							payload.put( k, v );
+						}
+					}catch( Throwable e ){
+						Debug.out( "invalid reply: " + mapReply, e );
+					}
+				}else{
+					payload = MapUtils.getMapMap(mapReply, "payload", Collections.EMPTY_MAP);
+				}
 			} else {
 				payload = new HashMap();
 				payload.put("message", MapUtils.getMapString(mapReply, "message", "?"));
