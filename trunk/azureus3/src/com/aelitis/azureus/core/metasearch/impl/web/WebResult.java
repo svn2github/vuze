@@ -116,23 +116,7 @@ public class WebResult extends Result {
 			}*/
 			
 			if ( contentType == null || contentType.length() == 0 ){
-				String cat = this.category.toLowerCase(Locale.US);
-				if ( 	cat.startsWith( "video" ) || 
-						cat.startsWith( "movie" ) || 
-						cat.startsWith( "show" ) || 
-						cat.startsWith( "tv" )){
-					
-					contentType = Engine.CT_VIDEO;
-					
-				}else if ( 	cat.startsWith( "audio" ) ||
-							cat.startsWith( "music" )){
-					
-					contentType = Engine.CT_AUDIO;
-					
-				}else if ( cat.startsWith( "game" )){
-					
-					contentType = Engine.CT_GAME;
-				}
+				contentType = guessContentTypeFromCategory( this.category );
 			}
 		}
 	}

@@ -351,6 +351,38 @@ public abstract class Result {
 		return object;
 	}
 	
+	protected String
+	guessContentTypeFromCategory(
+		String		category )
+	{
+		if ( category == null || category.length() == 0 ){
+			
+			return( null );
+		}
+		
+		category = category.toLowerCase(Locale.US);
+		
+		if ( 	category.startsWith( "video" ) || 
+				category.startsWith( "movie" ) || 
+				category.startsWith( "show" ) || 
+				category.startsWith( "tv" )){
+			
+			return( Engine.CT_VIDEO );
+			
+		}else if ( 	category.startsWith( "audio" ) ||
+				category.startsWith( "music" )){
+			
+			return( Engine.CT_AUDIO );
+			
+		}else if ( category.startsWith( "game" )){
+			
+			return( Engine.CT_GAME );
+		}else{
+			
+			return( null );
+		}
+	}
+	
 	public static void
 	adjustRelativeTerms(
 		Map		map )

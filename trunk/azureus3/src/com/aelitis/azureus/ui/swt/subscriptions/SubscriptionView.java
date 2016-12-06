@@ -18,7 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.subscriptions;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListenerEx;
@@ -28,11 +27,12 @@ public class
 SubscriptionView
 	implements SubscriptionsViewBase, UISWTViewCoreEventListenerEx
 {
-	private SubscriptionsViewBase		impl;
+	private final SubscriptionsViewBase		impl;
 	
 	public
 	SubscriptionView()
 	{
+		/*
 		boolean	internal_subs = !COConfigurationManager.getBooleanParameter( "browser.external.subs" );
 		
 		if ( System.getProperty( "az.subs.native.results", "0" ).equals( "1" )){
@@ -43,6 +43,9 @@ SubscriptionView
 			
 			impl = internal_subs?new SubscriptionViewInternalBrowser():new SubscriptionViewExternalBrowser();
 		}
+		*/
+		
+		impl = new SubscriptionViewInternalNative();
 	}
 	
 	public boolean

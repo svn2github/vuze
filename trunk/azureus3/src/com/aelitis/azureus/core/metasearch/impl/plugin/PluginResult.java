@@ -74,8 +74,14 @@ PluginResult
 	public String 
 	getContentType()
 	{
-		return(getStringProperty( SearchResult.PR_CONTENT_TYPE ));
+		String ct = getStringProperty( SearchResult.PR_CONTENT_TYPE );
 
+		if ( ct == null || ct.length() == 0 ){
+			
+			ct = guessContentTypeFromCategory( getCategory());
+		}
+		
+		return( ct );
 	}
 	
 	public void 

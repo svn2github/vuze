@@ -150,7 +150,7 @@ public class ColumnSubResultActions
 		if (entry == null) return;
 		
 		String link 	= entry.getTorrentLink();
-		String details 	= entry.getDetgailsLink();
+		String details 	= entry.getDetailsLink();
 		
 		if (!cell.setSortValue(link) && cell.isValid()) {
 			return;
@@ -262,7 +262,7 @@ public class ColumnSubResultActions
 						}
 					}else if ( hitUrl.url.equals("details")){
 						
-						String details_url = entry.getDetgailsLink();
+						String details_url = entry.getDetailsLink();
 
 						try{
 							Utils.launch( new URL( details_url ));
@@ -276,7 +276,7 @@ public class ColumnSubResultActions
 					if (hitUrl.url.equals("download")){
 						tooltip = entry.getTorrentLink();
 					}else if ( hitUrl.url.equals("details")){
-						tooltip = entry.getDetgailsLink();
+						tooltip = entry.getDetailsLink();
 					}
 				}
 

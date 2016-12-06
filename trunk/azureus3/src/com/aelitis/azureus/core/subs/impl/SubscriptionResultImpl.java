@@ -431,23 +431,37 @@ SubscriptionResultImpl
 			}
 			
 			String	hash = (String)map.get( "h" );
+			
 			if ( hash != null ){
 				result.put( SearchResult.PR_HASH, Base32.decode( hash ));
 			}
 			
 			String	seeds = (String)map.get( "s" );
-			if ( seeds != null ){
-				result.put( SearchResult.PR_SEED_COUNT, Long.parseLong(seeds) );
-			}
 			
+			result.put( SearchResult.PR_SEED_COUNT, seeds==null?-1:Long.parseLong(seeds) );
+						
 			String	peers = (String)map.get( "p" );
-			if ( peers != null ){
-				result.put( SearchResult.PR_LEECHER_COUNT, Long.parseLong(peers) );
-			}
+			
+			result.put( SearchResult.PR_LEECHER_COUNT, peers==null?-1:Long.parseLong(peers) );
+		
+			
+			String	votes = (String)map.get( "v" );
+			
+			result.put( SearchResult.PR_VOTES, votes==null?-1:Long.parseLong(votes) );
+			
+			String	comments = (String)map.get( "co" );
+			
+			result.put( SearchResult.PR_COMMENTS, comments==null?-1:Long.parseLong(comments) );
 			
 			String	rank = (String)map.get( "r" );
-			if ( rank != null ){
-				result.put( SearchResult.PR_RANK, (long)(100*Float.parseFloat( rank )));
+		
+			result.put( SearchResult.PR_RANK, rank==null?-1:(long)(100*Float.parseFloat( rank )));
+			
+			String	category = (String)map.get( "c" );
+			
+			if ( category != null ){
+				
+				result.put( SearchResult.PR_CATEGORY, category );
 			}
 			
 			String contentType = (String)map.get( "ct" );

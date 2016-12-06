@@ -41,10 +41,13 @@ SBC_SubscriptionResult
 	private final long				size;
 	private final long				seeds_peers_sort;
 	private final String			seeds_peers;
+	private final long				votes_comments_sort;
+	private final String			votes_comments;
 	private final int				rank;
 	private final long				time;
 	private final String			torrent_link;
 	private final String			details_link;
+	private final String			category;
 	
 	protected
 	SBC_SubscriptionResult(
@@ -107,7 +110,7 @@ SBC_SubscriptionResult
 		long leechers 	= (Long)properties.get( SearchResult.PR_LEECHER_COUNT );
 		
 		seeds_peers = (seeds<0?"--":String.valueOf(seeds)) + "/" + (leechers<0?"--":String.valueOf(leechers));
-		
+				
 		if ( seeds < 0 ){
 			seeds = 0;
 		}else{
@@ -121,8 +124,36 @@ SBC_SubscriptionResult
 		}
 		
 		seeds_peers_sort = ((seeds&0x7fffffff)<<32) | ( leechers & 0xffffffff );
-				
+			
+		long votes		= (Long)properties.get( SearchResult.PR_VOTES );
+		long comments 	= (Long)properties.get( SearchResult.PR_COMMENTS );
+
+		if ( votes < 0 && comments < 0 ){
+			
+			votes_comments_sort = 0;
+			votes_comments		= null;
+			
+		}else{
+
+			votes_comments = (votes<0?"--":String.valueOf(votes)) + "/" + (comments<0?"--":String.valueOf(comments));
+
+			if ( votes < 0 ){
+				votes= 0;
+			}else{
+				votes++;
+			}
+			if ( comments < 0 ){
+				comments= 0;
+			}else{
+				comments++;
+			}
+			
+			votes_comments_sort = ((votes&0x7fffffff)<<32) | ( comments & 0xffffffff );
+		}
+		
 		rank	 	= ((Long)properties.get( SearchResult.PR_RANK )).intValue();
+		
+		category = (String)properties.get( SearchResult.PR_CATEGORY );
 	}
 	
 	public Subscription
@@ -173,6 +204,18 @@ SBC_SubscriptionResult
 		return( seeds_peers_sort );
 	}
 	
+	public String
+	getVotesComments()
+	{
+		return( votes_comments );
+	}
+	
+	public long
+	getVotesCommentsSortValue()
+	{
+		return( votes_comments_sort );
+	}
+	
 	public int
 	getRank()
 	{
@@ -186,9 +229,15 @@ SBC_SubscriptionResult
 	}
 	
 	public String
-	getDetgailsLink()
+	getDetailsLink()
 	{
 		return( details_link );
+	}
+	
+	public String
+	getCategory()
+	{
+		return( category );
 	}
 	
 	public long

@@ -16,7 +16,6 @@
 
 package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -27,7 +26,6 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
 
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -41,7 +39,7 @@ public class ColumnSubResultType
 {
 	public static final String COLUMN_ID = "type";
 
-	private static int WIDTH = 38;
+	private static int WIDTH = 45;
 
 	private static Image imgVideo;
 	private static Image imgAudio;

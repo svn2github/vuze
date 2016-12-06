@@ -1231,6 +1231,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 								
 				result.put( "id", subs.getID());
 				
+				subs.requestAttention();
+				
 				sendBrowserMessage( "metasearch", "createSubscriptionCompleted", result );
 
 			} catch( Throwable e ){

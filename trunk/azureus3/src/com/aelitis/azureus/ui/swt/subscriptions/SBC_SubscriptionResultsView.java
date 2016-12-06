@@ -33,9 +33,10 @@ import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
-import org.gudy.azureus2.plugins.utils.search.SearchResult;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -55,9 +56,11 @@ import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultActions;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultAge;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultCategory;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultNew;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultRank;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultRatings;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultSeedsPeers;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultSize;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultType;
@@ -83,17 +86,10 @@ SBC_SubscriptionResultsView
 	
 	private Text txtFilter;
 
-	protected int minSeeds;
-
-	private boolean showUnknownSeeds = true;
-
-	private long createdMsAgo;
-
-	private int minRank;
 
 	private int minSize;
+	private int maxSize;
 	
-	private boolean showIndirect = true;
 	
 	private Subscription	 ds;
 
@@ -181,82 +177,17 @@ SBC_SubscriptionResultsView
 
 			/////
 			
-			
-			Composite cMinSeeds = new Composite(cRow, SWT.NONE);
-			layout = new GridLayout(2, false);
-			layout.marginWidth = 0;
-			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
-			cMinSeeds.setLayout(layout);
-			
-			Label lblMinSeeds = new Label(cMinSeeds, SWT.NONE);
-			lblMinSeeds.setText(MessageText.getString("rcmview.filter.minSeeds"));
-			Spinner spinMinSeeds = new Spinner(cMinSeeds, SWT.BORDER);
-			spinMinSeeds.setMinimum(0);
-			spinMinSeeds.setSelection(minSeeds);
-			spinMinSeeds.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					minSeeds = ((Spinner) event.widget).getSelection();
-					refilter();
-				}
-			});
-			
-			
-			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
-			label.setLayoutData(new RowData(-1, sepHeight));
-
-			Composite cCreatedAgo = new Composite(cRow, SWT.NONE);
-			layout = new GridLayout(2, false);
-			layout.marginWidth = 0;
-			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
-			cCreatedAgo.setLayout(layout);
-			Label lblCreatedAgo = new Label(cCreatedAgo, SWT.NONE);
-			lblCreatedAgo.setText(MessageText.getString("rcmview.filter.createdAgo"));
-			Spinner spinCreatedAgo = new Spinner(cCreatedAgo, SWT.BORDER);
-			spinCreatedAgo.setMinimum(0);
-			spinCreatedAgo.setMaximum(999);
-			spinCreatedAgo.setSelection((int) (createdMsAgo / 86400000L));
-			spinCreatedAgo.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					((Spinner) event.widget).setMaximum(999);
-					createdMsAgo = ((Spinner) event.widget).getSelection() * 86400L*1000L;
-					refilter();
-				}
-			});
-			
-				// min rank
-			
-			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
-			label.setLayoutData(new RowData(-1, sepHeight));
-
-			Composite cMinRank = new Composite(cRow, SWT.NONE);
-			layout = new GridLayout(2, false);
-			layout.marginWidth = 0;
-			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
-			cMinRank.setLayout(layout);
-			Label lblMinRank = new Label(cMinRank, SWT.NONE);
-			lblMinRank.setText(MessageText.getString("rcmview.filter.minRank"));
-			Spinner spinMinRank = new Spinner(cMinRank, SWT.BORDER);
-			spinMinRank.setMinimum(0);
-			spinMinRank.setSelection(minRank);
-			spinMinRank.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					minRank = ((Spinner) event.widget).getSelection();
-					refilter();
-				}
-			});
+		
 
 				// min size
 			
-			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
-			label.setLayoutData(new RowData(-1, sepHeight));
-
 			Composite cMinSize = new Composite(cRow, SWT.NONE);
 			layout = new GridLayout(2, false);
 			layout.marginWidth = 0;
 			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
 			cMinSize.setLayout(layout);
 			Label lblMinSize = new Label(cMinSize, SWT.NONE);
-			lblMinSize.setText(MessageText.getString("rcmview.filter.minSize"));
+			lblMinSize.setText(MessageText.getString("SubscriptionResults.filter.min_size"));
 			Spinner spinMinSize = new Spinner(cMinSize, SWT.BORDER);
 			spinMinSize.setMinimum(0);
 			spinMinSize.setMaximum(100*1024*1024);	// 100 TB should do...
@@ -268,30 +199,25 @@ SBC_SubscriptionResultsView
 				}
 			});
 			
-				// show indirect
+			// max size
 			
 			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
 			label.setLayoutData(new RowData(-1, sepHeight));
 
-			Button chkShowPrivate = new Button(cRow, SWT.CHECK);
-			chkShowPrivate.setText( MessageText.getString( "rcm.header.show_indirect" ));
-			chkShowPrivate.setSelection(showIndirect );
-			chkShowPrivate.addListener(SWT.Selection, new Listener() {
+			Composite cMaxSize = new Composite(cRow, SWT.NONE);
+			layout = new GridLayout(2, false);
+			layout.marginWidth = 0;
+			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+			cMaxSize.setLayout(layout);
+			Label lblMaxSize = new Label(cMaxSize, SWT.NONE);
+			lblMaxSize.setText(MessageText.getString("SubscriptionResults.filter.max_size"));
+			Spinner spinMaxSize = new Spinner(cMaxSize, SWT.BORDER);
+			spinMaxSize.setMinimum(0);
+			spinMaxSize.setMaximum(100*1024*1024);	// 100 TB should do...
+			spinMaxSize.setSelection(maxSize);
+			spinMaxSize.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
-					showIndirect = ((Button) event.widget).getSelection();
-					refilter();
-				}
-			});
-			
-			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
-			label.setLayoutData(new RowData(-1, sepHeight));
-
-			Button chkShowUnknownSeeds = new Button(cRow, SWT.CHECK);
-			chkShowUnknownSeeds.setText(MessageText.getString("rcmview.filter.showUnknown"));
-			chkShowUnknownSeeds.setSelection(showUnknownSeeds);
-			chkShowUnknownSeeds.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					showUnknownSeeds = ((Button) event.widget).getSelection();
+					maxSize = ((Spinner) event.widget).getSelection();
 					refilter();
 				}
 			});
@@ -307,16 +233,12 @@ SBC_SubscriptionResultsView
 	isOurContent(
 		SBC_SubscriptionResult result) 
 	{
-		/*
-		boolean show = 
-			((c.getSeeds() >= minSeeds) || (showUnknownSeeds && c.getSeeds() < 0)) && 
-			(createdMsAgo == 0 || (SystemTime.getCurrentTime() - c.getPublishDate() < createdMsAgo)) &&
-			((c.getRank() >= minRank)) &&
-			(c.getSize()==-1||(c.getSize() >= 1024L*1024*minSize)) &&
-			(showIndirect || c.getHash() != null);
-		*/
+		long	size = result.getSize();
 		
-		boolean show = true;
+		boolean show = 
+			
+			(size==-1||(size >= 1024L*1024*minSize)) &&
+			(size==-1||(maxSize ==0 || size <= 1024L*1024*maxSize));
 		
 		return( show );
 	}
@@ -404,7 +326,17 @@ SBC_SubscriptionResultsView
 						new ColumnSubResultSeedsPeers(column);
 					}
 				});		
-		
+	
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
+			ColumnSubResultRatings.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSubResultRatings(column);
+					}
+				});		
+
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
 			ColumnSubResultAge.COLUMN_ID,
@@ -425,6 +357,16 @@ SBC_SubscriptionResultsView
 					}
 				});
 		
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
+			ColumnSubResultCategory.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSubResultCategory(column);
+					}
+				});
+		
 		tableManager.setDefaultColumnNames( TABLE_SR,
 				new String[] {
 					ColumnSubResultNew.COLUMN_ID,
@@ -433,8 +375,10 @@ SBC_SubscriptionResultsView
 					ColumnSubResultActions.COLUMN_ID,
 					ColumnSubResultSize.COLUMN_ID,
 					ColumnSubResultSeedsPeers.COLUMN_ID,
+					ColumnSubResultRatings.COLUMN_ID,
 					ColumnSubResultAge.COLUMN_ID,
 					ColumnSubResultRank.COLUMN_ID,
+					ColumnSubResultCategory.COLUMN_ID,
 				});
 		
 		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSubResultAge.COLUMN_ID);
@@ -649,7 +593,7 @@ SBC_SubscriptionResultsView
 				TABLE_SR,
 				TABLE_SR, 
 				new TableColumnCore[0], 
-				ColumnSubResultName.COLUMN_ID,
+				ColumnSubResultAge.COLUMN_ID,
 				SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
 		
 		if (txtFilter != null) {
@@ -757,159 +701,39 @@ SBC_SubscriptionResultsView
 				}
 			});
 
-		/*
-		RelatedContentUISWT ui = RelatedContentUISWT.getSingleton();
-		
-		final Image	swarm_image = ui==null?null:ui.getSwarmImage();
-		
-		tv_related_content.addMenuFillListener(
-			new TableViewSWTMenuFillListener() 
+
+		tv_subs_results.addMenuFillListener(
+			new TableViewSWTMenuFillListener()
 			{
 				public void 
 				fillMenu(String sColumnName, Menu menu)
 				{
-					Object[] _related_content = tv_related_content.getSelectedDataSources().toArray();
+					Object[] _related_content = tv_subs_results.getSelectedDataSources().toArray();
 
-					final RelatedContent[] related_content = new RelatedContent[_related_content.length];
+					final SBC_SubscriptionResult[] results = new SBC_SubscriptionResult[_related_content.length];
 
-					System.arraycopy(_related_content, 0, related_content, 0, related_content.length);
-
-					final MenuItem assoc_item = new MenuItem(menu, SWT.PUSH);
-
-					if ( swarm_image != null && !swarm_image.isDisposed()){
+					System.arraycopy(_related_content, 0, results, 0, results.length);
 					
-						assoc_item.setImage( swarm_image );
-					}
-					
-					assoc_item.setText(MessageText.getString("rcm.menu.discovermore"));
-
-					final ArrayList<RelatedContent> assoc_ok = new ArrayList<RelatedContent>();
-					
-					for ( RelatedContent c: related_content ){
-						
-						if ( c.getHash() != null ){
+					MenuItem item = new MenuItem(menu, SWT.PUSH);
+					item.setText(MessageText.getString("label.copy.url.to.clip"));
+					item.addSelectionListener(new SelectionAdapter() {
+						public void widgetSelected(SelectionEvent e) {
 							
-							assoc_ok.add( c );
-						}
-					}
-					
-					assoc_item.addSelectionListener(new SelectionAdapter() {
-						public void widgetSelected(SelectionEvent e ){
+							StringBuffer buffer = new StringBuffer(1024);
 							
-							int	 i = 0;
-							
-							RelatedContentUISWT ui = RelatedContentUISWT.getSingleton();
-							
-							if ( ui != null ){
+							for ( SBC_SubscriptionResult result: results ){
 								
-								for ( RelatedContent c: assoc_ok ){
-								
-									ui.addSearch( c.getHash(), c.getNetworks(), c.getTitle());
-									
-									i++;
-									
-									if ( i > 8 ){
-										
-										break;
-									}
+								if ( buffer.length() > 0 ){
+									buffer.append( "\r\n" );
 								}
+								
+								buffer.append( getDownloadURI( result ));
 							}
+							ClipboardCopy.copyToClipBoard( buffer.toString());
 						};
 					});
 					
-					if ( assoc_ok.size() == 0 ){
-						
-						assoc_item.setEnabled( false );
-					}
-					
-					MenuItem item;
-
-					
-					new MenuItem(menu, SWT.SEPARATOR );
-
-					item = new MenuItem(menu, SWT.PUSH);
-					item.setText(MessageText.getString("rcm.menu.google.hash"));
-					item.addSelectionListener(new SelectionAdapter() {
-						public void widgetSelected(SelectionEvent e) {
-							String s = ByteFormatter.encodeString(related_content[0].getHash());
-							String URL = "https://google.com/search?q=" + UrlUtils.encode(s);
-							launchURL(URL);
-						};
-					});
-
-					item = new MenuItem(menu, SWT.PUSH);
-					item.setText(MessageText.getString("rcm.menu.gis"));
-					item.addSelectionListener(new SelectionAdapter() {
-						public void widgetSelected(SelectionEvent e) {
-							String s = related_content[0].getTitle();
-							s = s.replaceAll("[-_]", " ");
-							String URL = "http://images.google.com/images?q=" + UrlUtils.encode(s);
-							launchURL(URL);
-						}
-
-					});
-
-					item = new MenuItem(menu, SWT.PUSH);
-					item.setText(MessageText.getString("rcm.menu.google"));
-					item.addSelectionListener(new SelectionAdapter() {
-						public void widgetSelected(SelectionEvent e) {
-							String s = related_content[0].getTitle();
-							s = s.replaceAll("[-_]", " ");
-							String URL = "https://google.com/search?q=" + UrlUtils.encode(s);
-							launchURL(URL);
-						};
-					});
-
-					item = new MenuItem(menu, SWT.PUSH);
-					item.setText(MessageText.getString("rcm.menu.bis"));
-					item.addSelectionListener(new SelectionAdapter() {
-						public void widgetSelected(SelectionEvent e) {
-							String s = related_content[0].getTitle();
-							s = s.replaceAll("[-_]", " ");
-							String URL = "http://www.bing.com/images/search?q=" + UrlUtils.encode(s);
-							launchURL(URL);
-						};
-					});
-
-					new MenuItem(menu, SWT.SEPARATOR );
-					
-					item = new MenuItem(menu, SWT.PUSH);
-					item.setText(MessageText.getString("rcm.menu.uri"));
-					item.addSelectionListener(new SelectionAdapter() {
-						public void widgetSelected(SelectionEvent e) {
-							
-							ClipboardCopy.copyToClipBoard( RCMPlugin.getMagnetURI(related_content[0]));
-						};
-					});
-					
-					if ( related_content.length==1 ){
-						byte[] hash = related_content[0].getHash();
-						item.setEnabled(hash!=null&&hash.length > 0 );
-					}else{
-						item.setEnabled(false);
-					}
-					
-					item = new MenuItem(menu, SWT.PUSH);
-					item.setText(MessageText.getString("rcm.menu.uri.i2p"));
-					item.addSelectionListener(new SelectionAdapter() {
-						public void widgetSelected(SelectionEvent e) {
-							
-							String[] magnet_uri = { RCMPlugin.getMagnetURI(related_content[0]) };
-							
-							UrlUtils.extractNetworks( magnet_uri );
-							
-							String i2p_only_uri = magnet_uri[0] + "&net=" + UrlUtils.encode( AENetworkClassifier.AT_I2P );
-							
-							ClipboardCopy.copyToClipBoard( i2p_only_uri );
-						};
-					});
-					
-					if ( related_content.length==1 ){
-						byte[] hash = related_content[0].getHash();
-						item.setEnabled(hash!=null&&hash.length > 0 );
-					}else{
-						item.setEnabled(false);
-					}
+					item.setEnabled( results.length > 0 );
 					
 					new MenuItem(menu, SWT.SEPARATOR );
 
@@ -921,10 +745,14 @@ SBC_SubscriptionResultsView
 
 					remove_item.addSelectionListener(new SelectionAdapter() {
 						public void widgetSelected(SelectionEvent e) {
-							userDelete(related_content);
+							userDelete(results);
 						}
 
 					});
+					
+					remove_item.setEnabled( results.length > 0 );
+					
+					new MenuItem(menu, SWT.SEPARATOR );
 				}
 
 				public void 
@@ -933,7 +761,6 @@ SBC_SubscriptionResultsView
 				{
 				}
 			});
-		 */
 
 		tv_subs_results.addKeyListener(
 				new KeyListener()
