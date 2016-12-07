@@ -38,8 +38,7 @@ public class ColumnSubResultSeedsPeers
 
 	/** Default Constructor */
 	public ColumnSubResultSeedsPeers(TableColumn column) {
-		column.setWidth(80);
-		column.setAlignment(TableColumn.ALIGN_CENTER);
+		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 80 );
 		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		column.addListeners(this);
 	}

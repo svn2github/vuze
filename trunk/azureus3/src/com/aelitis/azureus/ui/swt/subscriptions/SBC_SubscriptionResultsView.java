@@ -68,7 +68,6 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 
-
 public class 
 SBC_SubscriptionResultsView
 	extends SkinView
@@ -279,21 +278,21 @@ SBC_SubscriptionResultsView
 		
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultName.COLUMN_ID,
-				new TableColumnCreationListener() {
-					
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultName(column);
-					}
-				});	
-		
-		tableManager.registerColumn(
-			SBC_SubscriptionResult.class, 
 			ColumnSubResultType.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnSubResultType(column);
+					}
+				});	
+		
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
+			ColumnSubResultName.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSubResultName(column);
 					}
 				});	
 		
@@ -366,22 +365,6 @@ SBC_SubscriptionResultsView
 						new ColumnSubResultCategory(column);
 					}
 				});
-		
-		tableManager.setDefaultColumnNames( TABLE_SR,
-				new String[] {
-					ColumnSubResultNew.COLUMN_ID,
-					ColumnSubResultType.COLUMN_ID,
-					ColumnSubResultName.COLUMN_ID,
-					ColumnSubResultActions.COLUMN_ID,
-					ColumnSubResultSize.COLUMN_ID,
-					ColumnSubResultSeedsPeers.COLUMN_ID,
-					ColumnSubResultRatings.COLUMN_ID,
-					ColumnSubResultAge.COLUMN_ID,
-					ColumnSubResultRank.COLUMN_ID,
-					ColumnSubResultCategory.COLUMN_ID,
-				});
-		
-		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSubResultAge.COLUMN_ID);
 	}
 
 	public Object 
@@ -587,7 +570,6 @@ SBC_SubscriptionResultsView
 	initTable(
 		Composite control ) 
 	{
-		
 		tv_subs_results = TableViewFactory.createTableViewSWT(
 				SBC_SubscriptionResult.class, 
 				TABLE_SR,
@@ -595,6 +577,31 @@ SBC_SubscriptionResultsView
 				new TableColumnCore[0], 
 				ColumnSubResultAge.COLUMN_ID,
 				SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
+		
+		TableColumnManager tableManager = TableColumnManager.getInstance();
+
+		tableManager.setDefaultColumnNames( TABLE_SR,
+				new String[] {
+					ColumnSubResultNew.COLUMN_ID,
+					ColumnSubResultType.COLUMN_ID,
+					ColumnSubResultName.COLUMN_ID,
+					ColumnSubResultActions.COLUMN_ID,
+					ColumnSubResultSize.COLUMN_ID,
+					ColumnSubResultSeedsPeers.COLUMN_ID,
+					ColumnSubResultRatings.COLUMN_ID,
+					ColumnSubResultAge.COLUMN_ID,
+					ColumnSubResultRank.COLUMN_ID,
+					ColumnSubResultCategory.COLUMN_ID,
+				});
+		
+		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSubResultAge.COLUMN_ID);
+		
+		TableColumnCore tcc = tableManager.getTableColumnCore( TABLE_SR, ColumnSubResultAge.COLUMN_ID );
+		
+		if ( tcc != null ){
+			
+			tcc.setDefaultSortAscending( true );
+		}
 		
 		if (txtFilter != null) {
 			tv_subs_results.enableFilterCheck(txtFilter, this);

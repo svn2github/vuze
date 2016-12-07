@@ -19,7 +19,6 @@ package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
 
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.plugins.utils.search.SearchResult;
 
 import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
 
@@ -39,7 +38,7 @@ public class ColumnSubResultName
 
 	/** Default Constructor */
 	public ColumnSubResultName(TableColumn column) {
-		column.setWidth(400);
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 400 );
 		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		column.addListeners(this);
 	}

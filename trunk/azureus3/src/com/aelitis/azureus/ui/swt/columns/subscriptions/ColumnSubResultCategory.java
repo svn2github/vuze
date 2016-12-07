@@ -38,7 +38,7 @@ public class ColumnSubResultCategory
 
 	/** Default Constructor */
 	public ColumnSubResultCategory(TableColumn column) {
-		column.setWidth(400);
+		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 100 );
 		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		column.addListeners(this);
 	}
