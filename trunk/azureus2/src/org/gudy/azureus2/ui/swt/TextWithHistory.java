@@ -443,7 +443,13 @@ TextWithHistory
 			}
 			
 			return( true );
+			
 		}else{
+			
+			if ( current_shell != null ){
+				
+				current_shell.dispose();
+			}
 			
 			return( false );
 		}

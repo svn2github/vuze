@@ -15,15 +15,15 @@
  *
  */
 
-package com.aelitis.azureus.ui.swt.columns.subscriptions;
+package com.aelitis.azureus.ui.swt.columns.searchsubs;
 
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
+import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
 
 
-public class ColumnSubResultName
+public class ColumnSearchSubResultName
 	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
 	public static String COLUMN_ID = "name";
@@ -37,14 +37,14 @@ public class ColumnSubResultName
 	}
 
 	/** Default Constructor */
-	public ColumnSubResultName(TableColumn column) {
+	public ColumnSearchSubResultName(TableColumn column) {
 		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 400 );
 		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		column.addListeners(this);
 	}
 
 	public void refresh(TableCell cell) {
-		SBC_SubscriptionResult result = (SBC_SubscriptionResult) cell.getDataSource();
+		SearchSubsResultBase result = (SearchSubsResultBase) cell.getDataSource();
 	
 		String str = result.getName();
 		

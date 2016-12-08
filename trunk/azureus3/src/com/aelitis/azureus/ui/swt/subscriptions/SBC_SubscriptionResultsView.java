@@ -54,10 +54,10 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultActions;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultAge;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultCategory;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultNew;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultRank;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultRatings;
@@ -288,11 +288,11 @@ SBC_SubscriptionResultsView
 		
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultName.COLUMN_ID,
+			ColumnSearchSubResultName.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultName(column);
+						new ColumnSearchSubResultName(column);
 					}
 				});	
 		
@@ -584,7 +584,7 @@ SBC_SubscriptionResultsView
 				new String[] {
 					ColumnSubResultNew.COLUMN_ID,
 					ColumnSubResultType.COLUMN_ID,
-					ColumnSubResultName.COLUMN_ID,
+					ColumnSearchSubResultName.COLUMN_ID,
 					ColumnSubResultActions.COLUMN_ID,
 					ColumnSubResultSize.COLUMN_ID,
 					ColumnSubResultSeedsPeers.COLUMN_ID,
