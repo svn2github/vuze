@@ -25,6 +25,7 @@ package com.aelitis.azureus.ui.swt.search;
 
 import java.util.Date;
 
+import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.util.Base32;
 
 import com.aelitis.azureus.core.metasearch.Engine;
@@ -33,7 +34,7 @@ import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
 
 public class 
 SBC_SearchResult 
-	implements SearchSubsResultBase
+	implements SearchSubsResultBase, SBC_SearchResultsView.ImageLoadListener
 {
 	private final SBC_SearchResultsView		view;
 	
@@ -224,6 +225,12 @@ SBC_SearchResult
 		return( 0 );
 	}
 	
+	public Image
+	getIcon()
+	{
+		return( view.getIcon( engine, this ));
+	}
+	
 	public boolean
 	getRead()
 	{
@@ -237,7 +244,8 @@ SBC_SearchResult
 	}
 	
 	public void
-	invalidate()
+	imageLoaded(
+		Image		image )
 	{
 		view.invalidate( this );
 	}

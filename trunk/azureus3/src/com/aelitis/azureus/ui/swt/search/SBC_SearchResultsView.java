@@ -29,6 +29,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -49,6 +50,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -82,6 +84,8 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.search.ColumnSearchResultSite;
 import com.aelitis.azureus.ui.swt.columns.searchsubs.*;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
 import com.aelitis.azureus.ui.swt.search.SearchResultsTabArea.SearchQuery;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
@@ -174,12 +178,13 @@ SBC_SearchResultsView
 			filter_area.setLayoutData(fd);
 
 			GridLayout layout = new GridLayout();
+			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0; 
 			filter_area.setLayout(layout);
 			
 			int sepHeight = 20;
 			
 			Composite cRow = new Composite(filter_area, SWT.NONE);
-			cRow.setLayoutData(new GridData( GridData.FILL_BOTH ));
+			cRow.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
 			
 			RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
 			rowLayout.spacing = 5;
@@ -267,6 +272,21 @@ SBC_SearchResultsView
 			
 			button.setSelection( !deselected_engines.contains( engine.getUID()));
 			
+			Image image = 
+				getIcon(
+					engine,
+					new ImageLoadListener() {
+						
+						public void imageLoaded(Image image) {
+							button.setImage( image );
+						}
+					});
+			
+			if ( image != null ){
+				
+				button.setImage( image );
+			}
+			
 			button.addSelectionListener(
 				new SelectionAdapter() {
 			
@@ -287,6 +307,8 @@ SBC_SearchResultsView
 					}
 				});
 		}
+		
+		engine_area.layout( true );
 	}
 	
 	private void
@@ -753,6 +775,93 @@ SBC_SearchResultsView
 		String uri = UrlUtils.getMagnetURI( result.getHash(), result.getName(), new String[]{ AENetworkClassifier.AT_PUBLIC });
 		
 		return( uri );
+	}
+	
+	private static ImageLoader	image_loader = new ImageLoader( null, null );
+
+	private static Map<String,Object[]>	image_map = new HashMap<String,Object[]>();
+
+	public Image
+	getIcon(
+		final SBC_SearchResult		result )
+	{
+		return( getIcon( result.getEngine(), result ));
+	}
+	
+	public Image
+	getIcon(
+		Engine					engine,
+		ImageLoadListener		result )
+	{
+		String icon = engine.getIcon();
+		
+		Image img = null;
+		
+		if ( icon != null ){
+			
+			Object[] x = image_map.get( icon );
+			
+			if ( x == null ){
+				
+				Set<ImageLoadListener>	waiters = new HashSet<ImageLoadListener>();
+				
+				final Object[] f_x = new Object[]{ null, waiters, SystemTime.getMonotonousTime() };
+				
+				waiters.add( result );
+				
+				image_map.put( icon, f_x );
+				
+				image_loader.getUrlImage( 
+					icon, 
+					new ImageDownloaderListener() {
+						
+						public void imageDownloaded(Image image, boolean returnedImmediately) {
+							
+							f_x[0]	= image;
+							
+							Set<ImageLoadListener> set = (Set<ImageLoadListener>)f_x[1];
+			
+							for ( ImageLoadListener result: set ){
+								
+								result.imageLoaded( image );
+							}
+							
+							f_x[1] = null;
+						}
+					});
+				
+				img = (Image)f_x[0];	// in case synchronously set
+				
+			}else{
+				
+				if ( x[1] instanceof Set ){
+					
+					((Set<ImageLoadListener>)x[1]).add( result );
+					
+				}else{
+					
+					img = (Image)x[0];
+					
+					if ( img == null ){
+						
+						if ( SystemTime.getMonotonousTime() - (Long)x[2] > 120*1000 ){
+							
+							image_map.remove( icon );
+						}
+					}
+				}
+			}
+		}
+		
+		return( img );
+	}
+	
+	public interface
+	ImageLoadListener
+	{
+		public void
+		imageLoaded(
+			Image		image );
 	}
 	
 	private class

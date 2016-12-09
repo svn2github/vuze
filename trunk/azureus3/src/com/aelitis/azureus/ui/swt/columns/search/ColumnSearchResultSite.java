@@ -29,11 +29,9 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
+
 import com.aelitis.azureus.ui.swt.search.SBC_SearchResult;
 
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -48,10 +46,6 @@ public class ColumnSearchResultSite
 	public static final String COLUMN_ID = "site";
 
 	private static int WIDTH = 38; // enough to fit title
-
-	private static ImageLoader	image_loader = new ImageLoader( null, null );
-
-	private static Map<String,Object[]>	image_map = new HashMap<String,Object[]>();
 
 	public ColumnSearchResultSite(TableColumn column ) {
 	
@@ -70,66 +64,8 @@ public class ColumnSearchResultSite
 		SBC_SearchResult entry = (SBC_SearchResult) cell.getDataSource();
 
 		Rectangle cellBounds = cell.getBounds();
-		
-		final String icon = entry.getEngine().getIcon();
-		
-		Image img = null;
-		
-		if ( icon != null ){
-			
-			Object[] x = image_map.get( icon );
-			
-			if ( x == null ){
 				
-				Set<SBC_SearchResult>	waiters = new HashSet<SBC_SearchResult>();
-				
-				final Object[] f_x = new Object[]{ null, waiters, SystemTime.getMonotonousTime() };
-				
-				waiters.add( entry );
-				
-				image_map.put( icon, f_x );
-				
-				image_loader.getUrlImage( 
-					icon, 
-					new ImageDownloaderListener() {
-						
-						public void imageDownloaded(Image image, boolean returnedImmediately) {
-							
-							f_x[0]	= image;
-							
-							Set<SBC_SearchResult> set = (Set<SBC_SearchResult>)f_x[1];
-			
-							for ( SBC_SearchResult result: set ){
-								
-								result.invalidate();
-							}
-							
-							f_x[1] = null;
-						}
-					});
-				
-				img = (Image)f_x[0];	// in case synchronously set
-				
-			}else{
-				
-				if ( x[1] instanceof Set ){
-					
-					((Set<SBC_SearchResult>)x[1]).add( entry );
-					
-				}else{
-					
-					img = (Image)x[0];
-					
-					if ( img == null ){
-						
-						if ( SystemTime.getMonotonousTime() - (Long)x[2] > 120*1000 ){
-							
-							image_map.remove( icon );
-						}
-					}
-				}
-			}
-		}
+		Image img = entry.getIcon();
 
 		if (img != null && !img.isDisposed()) {
 			Rectangle imgBounds = img.getBounds();
