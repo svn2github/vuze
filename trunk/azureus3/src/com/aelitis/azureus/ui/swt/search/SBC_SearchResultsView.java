@@ -22,16 +22,10 @@
 
 package com.aelitis.azureus.ui.swt.search;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormData;
@@ -49,12 +43,10 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
-import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -70,27 +62,20 @@ import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
-import com.aelitis.azureus.core.subs.Subscription;
-import com.aelitis.azureus.core.subs.SubscriptionListener;
-import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableGroupRowRunner;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
-import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.columns.search.ColumnSearchResultSite;
 import com.aelitis.azureus.ui.swt.columns.searchsubs.*;
-import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.search.SearchResultsTabArea.SearchQuery;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
@@ -98,7 +83,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectToggle;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinToggleListener;
-import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
 
 public class 
 SBC_SearchResultsView 
@@ -112,7 +96,6 @@ SBC_SearchResultsView
 	
 	private TableViewSWT<SBC_SearchResult> tv_subs_results;
 
-	private MdiEntry 			mdi_entry;
 	private Composite			table_parent;
 	
 	
@@ -370,6 +353,16 @@ SBC_SearchResultsView
 						new ColumnSearchSubResultCategory(column);
 					}
 				});
+		
+		tableManager.registerColumn(
+			SBC_SearchResult.class, 
+			ColumnSearchResultSite.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSearchResultSite(column);
+					}
+				});
 	}
 	
 	public void
@@ -418,6 +411,7 @@ SBC_SearchResultsView
 				ColumnSearchSubResultAge.COLUMN_ID,
 				ColumnSearchSubResultRank.COLUMN_ID,
 				ColumnSearchSubResultCategory.COLUMN_ID,
+				ColumnSearchResultSite.COLUMN_ID,
 			});
 		
 		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultRank.COLUMN_ID);
@@ -562,23 +556,6 @@ SBC_SearchResultsView
 					item.setEnabled( results.length > 0 );
 					
 					new MenuItem(menu, SWT.SEPARATOR );
-
-					final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
-
-					remove_item.setText(MessageText.getString("azbuddy.ui.menu.remove"));
-
-					Utils.setMenuItemImage( remove_item, "delete" );
-
-					remove_item.addSelectionListener(new SelectionAdapter() {
-						public void widgetSelected(SelectionEvent e) {
-							userDelete(results);
-						}
-
-					});
-					
-					remove_item.setEnabled( results.length > 0 );
-					
-					new MenuItem(menu, SWT.SEPARATOR );
 				}
 
 				public void 
@@ -587,120 +564,24 @@ SBC_SearchResultsView
 				{
 				}
 			});
-
-		tv_subs_results.addKeyListener(
-				new KeyListener()
-				{
-					public void 
-					keyPressed(
-						KeyEvent e )
-					{
-						if ( e.stateMask == 0 && e.keyCode == SWT.DEL ){
-							
-							Object[] selected;
-							
-							synchronized (this) {
-								
-								if ( tv_subs_results == null ){
-									
-									selected = new Object[0];
-									
-								}else{
-								
-									selected = tv_subs_results.getSelectedDataSources().toArray();
-								}
-							}
-							
-							SBC_SearchResult[] content = new SBC_SearchResult[ selected.length ];
-							
-							for ( int i=0;i<content.length;i++){
-								
-								content[i] = (SBC_SearchResult)selected[i];
-							}
-							
-							userDelete( content );
-							
-							e.doit = false;
-						}
-					}
-					
-					public void 
-					keyReleased(
-						KeyEvent arg0 ) 
-					{
-					}
-				});
-		
-		/*
-		if (ds instanceof RCMItemSubView) {
-	  		tv_related_content.addCountChangeListener(new TableCountChangeListener() {
-	  			
-	  			public void rowRemoved(TableRowCore row) {
-	  				updateCount();
-	  			}
-	  			
-	  			public void rowAdded(TableRowCore row) {
-	  				updateCount();
-	  			}
-	
-					private void updateCount() {
-						int size = tv_related_content == null ? 0 : tv_related_content.size(false);
-						((RCMItemSubView) ds).setCount(size);
-					}
-	  		});
-	  		((RCMItemSubView) ds).setCount(0);
-		}
-		*/
 		
 		tv_subs_results.initialize( table_parent );
 
 		control.layout(true);
 	}
 	
-	private void 
-	userDelete(
-		SBC_SearchResult[] results ) 
+	protected void
+	invalidate(
+		SBC_SearchResult		result )
 	{
-		TableRowCore focusedRow = tv_subs_results.getFocusedRow();
+		TableRowCore row = tv_subs_results.getRow( result );
 		
-		TableRowCore focusRow = null;
-		
-		if (focusedRow != null) {
-			int i = tv_subs_results.indexOf(focusedRow);
-			int size = tv_subs_results.size(false);
-			if (i < size - 1) {
-				focusRow = tv_subs_results.getRow(i + 1);
-			} else if (i > 0) {
-				focusRow = tv_subs_results.getRow(i - 1);
-			}
-		}
-		
-		for ( SBC_SearchResult result: results ){
+		if ( row != null ){
 			
-			result.delete();
-		}
-		
-		if ( focusRow != null ){
-  		
-			tv_subs_results.setSelectedRows(new TableRowCore[]{focusRow });
-		}
-	};
-
-	public String 
-	getUpdateUIName() 
-	{
-		return( "SearchResultsView" );
-	}
-
-	public void 
-	updateUI() 
-	{
-		if ( tv_subs_results != null ){
-			
-			tv_subs_results.refreshTable( false );
+			row.invalidate( true );
 		}
 	}
-
+	
 	public boolean 
 	filterCheck(
 		SBC_SearchResult ds, 
@@ -744,42 +625,10 @@ SBC_SearchResultsView
 	public void filterSet(String filter) {
 	}
 
-	public boolean 
-	toolBarItemActivated(
-		ToolBarItem item, 
-		long activationType,
-		Object datasource ) 
-	{
-		if ( tv_subs_results == null || !tv_subs_results.isVisible()){
-			
-			return( false );
-		}
-		
-		if (item.getID().equals("remove")) {
-			
-			Object[] _related_content = tv_subs_results.getSelectedDataSources().toArray();
-			
-			if ( _related_content.length > 0 ){
-				
-				SBC_SearchResult[] related_content = new SBC_SearchResult[_related_content.length];
-				
-				System.arraycopy( _related_content, 0, related_content, 0, related_content.length );
-				
-				userDelete( related_content );
-			
-				return true;
-			}
-		}
-		
-		return false;
-	}
-
 	public void
 	anotherSearch(
 		SearchQuery	sq )
-	{
-		System.out.println( "Native search: " + sq.term );
-		
+	{		
 		tv_subs_results.removeAllTableRows();
 		
 		SWTSkinObjectText title = (SWTSkinObjectText)parent.getSkinObject("title");
@@ -842,7 +691,7 @@ SBC_SearchResultsView
 				
 				for ( int i=0;i<results.length;i++){
 					
-					data_sources[i] = new SBC_SearchResult( engine, results[i] );
+					data_sources[i] = new SBC_SearchResult( SBC_SearchResultsView.this, engine, results[i] );
 				}
 				
 				tv_subs_results.addDataSources( data_sources );

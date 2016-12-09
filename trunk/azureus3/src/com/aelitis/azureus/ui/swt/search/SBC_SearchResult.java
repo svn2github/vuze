@@ -35,6 +35,8 @@ public class
 SBC_SearchResult 
 	implements SearchSubsResultBase
 {
+	private final SBC_SearchResultsView		view;
+	
 	private final Engine			engine;
 	private final Result			result;
 	
@@ -46,9 +48,11 @@ SBC_SearchResult
 
 	public
 	SBC_SearchResult(
-		Engine		_engine,
-		Result		_result )
+		SBC_SearchResultsView	_view,
+		Engine					_engine,
+		Result					_result )
 	{
+		view	= _view;
 		engine	= _engine;
 		result	= _result;
 
@@ -233,7 +237,8 @@ SBC_SearchResult
 	}
 	
 	public void
-	delete()
+	invalidate()
 	{
+		view.invalidate( this );
 	}
 }

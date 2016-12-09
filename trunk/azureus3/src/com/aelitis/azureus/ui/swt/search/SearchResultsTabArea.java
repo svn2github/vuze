@@ -27,6 +27,8 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 
@@ -55,12 +57,16 @@ public class SearchResultsTabArea
 	private SWTSkinObjectContainer	nativeSkinObject;
 	
 	private SWTSkin 				skin;
+	private MdiEntry				mdi_entry;
 	private MdiEntryVitalityImage 	vitalityImage;
 
 	private boolean menu_added;
 		
-	public SearchQuery sq;
-
+	private SearchQuery 	current_sq;
+	
+	private SearchQuery 				last_actual_sq;
+	private SearchResultsTabAreaBase	last_actual_sq_impl;
+	
 	private SearchResultsTabAreaBase	activeImpl;
 	
 	private SearchResultsTabAreaBrowser	browserImpl = new SearchResultsTabAreaBrowser( this );
@@ -119,11 +125,11 @@ public class SearchResultsTabArea
 		
 		if ( mdi != null ){
 			
-			final MdiEntry entry = mdi.getEntryBySkinView(this);
+			mdi_entry = mdi.getEntryBySkinView(this);
 			
-			if ( entry != null ){
+			if ( mdi_entry != null ){
 				
-				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
+				vitalityImage = mdi_entry.addVitalityImage("image.sidebar.vitality.dots");
 				
 				if ( vitalityImage != null ){
 					
@@ -153,9 +159,9 @@ public class SearchResultsTabArea
 			}
 		});
 		
-		if ( sq != null ){
+		if ( current_sq != null ){
 			
-			anotherSearch( sq );
+			anotherSearch( current_sq );
 		}
 						
 		return null;
@@ -188,9 +194,9 @@ public class SearchResultsTabArea
 			
 		activeImpl.showView();
 		
-		if ( sq != null ){
+		if ( current_sq != null ){
 			
-			anotherSearch( sq );
+			anotherSearch( current_sq );
 		}
 	}
 	
@@ -208,12 +214,14 @@ public class SearchResultsTabArea
 		}
 	}
 
-	public Object dataSourceChanged(SWTSkinObject skinObject, Object params) {
-		if (params instanceof SearchQuery) {
-			sq = (SearchQuery) params;
-			if (browserSkinObject != null) {
-				anotherSearch(sq.term, sq.toSubscribe);
-			}
+	public Object 
+	dataSourceChanged(
+		SWTSkinObject 	skinObject, 
+		Object 			params) 
+	{		
+		if ( params instanceof SearchQuery ){
+										
+			anotherSearch((SearchQuery)params);
 		}
 
 		return null;
@@ -229,11 +237,38 @@ public class SearchResultsTabArea
 	
 	public void 
 	anotherSearch(
-		SearchQuery sq ) 
+		SearchQuery another_sq ) 
 	{
-		this.sq = sq;
+		current_sq = another_sq;
 		
-		activeImpl.anotherSearch( sq );
+		if ( activeImpl != null ){
+			
+			if ( 	last_actual_sq != null && 
+					last_actual_sq.term.equals( current_sq.term ) && 
+					last_actual_sq.toSubscribe == current_sq.toSubscribe &&
+					last_actual_sq_impl == activeImpl ){
+				
+					// same search, ignore
+			
+				return;
+			}
+		
+			last_actual_sq		= current_sq;
+			last_actual_sq_impl	= activeImpl;
+			
+			activeImpl.anotherSearch( current_sq );
+			
+			if ( mdi_entry != null ){
+			
+				ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());
+			}
+		}
+	}
+	
+	public SearchQuery
+	getCurrentSearch()
+	{
+		return( current_sq );
 	}
 	
 	protected void

@@ -58,8 +58,13 @@ SearchHandler
 		public Object getTitleInfoProperty(int propertyID) {
 			if (propertyID == TITLE_TEXT) {
 				SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
-				if (searchClass != null && searchClass.sq != null) {
-					return searchClass.sq.term;
+				if (searchClass != null ){
+					SearchResultsTabArea.SearchQuery sq = searchClass.getCurrentSearch();
+					
+					if ( sq != null ){
+					
+						return sq.term;
+					}
 				}
 			}
 			return null;
@@ -113,6 +118,7 @@ SearchHandler
 				if (searchClass != null) {
 					searchClass.anotherSearch(sSearchText, toSubscribe);
 				}
+				existingEntry.setDatasource(sq);
 				mdi.showEntry(existingEntry);
 				return;
 			}
