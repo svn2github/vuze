@@ -35,8 +35,8 @@ public class
 NetworkAdminHTTPTester 
 	implements NetworkAdminProtocolTester
 {
-	private AzureusCore						core;
-	private NetworkAdminProgressListener	listener;
+	private final AzureusCore						core;
+	private final NetworkAdminProgressListener	listener;
 	
 	protected
 	NetworkAdminHTTPTester(

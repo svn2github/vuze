@@ -91,7 +91,7 @@ BloomFilterImpl
 	}
 	
 
-	private int			max_entries;
+	private final int			max_entries;
 	//private BigInteger	bi_max_entries;
 	
 	private int			entry_count;

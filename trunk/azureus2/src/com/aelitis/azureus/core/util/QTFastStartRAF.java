@@ -42,7 +42,7 @@ QTFastStartRAF
 		supported_extensions.add( "mp4" );
 	}
 	
-	private static Set<String>	tested = new HashSet<String>();
+	private static final Set<String>	tested = new HashSet<String>();
 	
 	public static boolean
 	isSupportedExtension(
@@ -70,7 +70,7 @@ QTFastStartRAF
 		ATOM_PNOT, ATOM_SKIP, ATOM_WIDE, ATOM_PICT,
 		ATOM_FTYP };
 
-	private FileAccessor	input;
+	private final FileAccessor	input;
 	
 	private boolean		transparent;
 	
@@ -458,7 +458,7 @@ QTFastStartRAF
 	RAFAccessor
 		implements FileAccessor
 	{
-		private File					file;
+		private final File					file;
 		private RandomAccessFile		raf;
 		
 		private

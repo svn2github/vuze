@@ -42,10 +42,10 @@ HTTPMessageDecoder
 	private volatile boolean		paused_internally;
 	private volatile boolean		destroyed;
 	
-	private StringBuffer	header_so_far = new StringBuffer();
+	private final StringBuffer	header_so_far = new StringBuffer();
 	private boolean			header_ready;
 	
-	private List			messages = new ArrayList();
+	private final List			messages = new ArrayList();
 	
 	private int				protocol_bytes_read;
 		

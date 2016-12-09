@@ -42,10 +42,10 @@ DHTDBValueImpl
 	private byte[]				value;
 	private DHTTransportContact	originator;
 	private DHTTransportContact	sender;
-	private boolean				local;
+	private final boolean				local;
 	private byte				flags;
-	private byte				life_hours;
-	private byte				rep_control;
+	private final byte				life_hours;
+	private final byte				rep_control;
 	private int					version;
 	
 	private long				store_time;

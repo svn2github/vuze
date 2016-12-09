@@ -26,7 +26,7 @@ public class
 DHTRouterContactWrapper 
 	implements DHTRouterContact
 {
-	private DHTRouterContact		delegate;
+	private final DHTRouterContact		delegate;
 	
 	public
 	DHTRouterContactWrapper(

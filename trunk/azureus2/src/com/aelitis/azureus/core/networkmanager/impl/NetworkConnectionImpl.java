@@ -329,7 +329,7 @@ NetworkConnectionImpl
 	bogusTransport
 		implements Transport
 	{
-		private Transport transport;
+		private final Transport transport;
 		
 		protected
 		bogusTransport(

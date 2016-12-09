@@ -62,7 +62,7 @@ DHTUDPUtils
 	
 	protected static final int	CT_UDP		= 1;
 			
-	private static Map<String,byte[]>	node_id_history = 
+	private static final Map<String,byte[]>	node_id_history =
 		new LinkedHashMap<String,byte[]>(128,0.75f,true)
 		{
 			protected boolean 
@@ -73,7 +73,7 @@ DHTUDPUtils
 			}
 		};
 		
-	private static SHA1Simple	hasher = new SHA1Simple();
+	private static final SHA1Simple	hasher = new SHA1Simple();
 	
 	protected static byte[]
 	getNodeID(
@@ -1334,8 +1334,8 @@ DHTUDPUtils
 		return( res );
 	}
 	
-	private static List<DHTTransportUDPImpl>			transports 		= new ArrayList<DHTTransportUDPImpl>();
-	private static List<DHTTransportAlternativeNetwork>	alt_networks 	= new ArrayList<DHTTransportAlternativeNetwork>();
+	private static final List<DHTTransportUDPImpl>			transports 		= new ArrayList<DHTTransportUDPImpl>();
+	private static final List<DHTTransportAlternativeNetwork>	alt_networks 	= new ArrayList<DHTTransportAlternativeNetwork>();
 	
 	protected static void
 	registerTransport(

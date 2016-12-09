@@ -52,13 +52,13 @@ AzureusRestarterImpl
 
 	protected static boolean	restarted		= false;
 	
-	private static String JAVA_EXEC_DIR = System.getProperty("java.home") +
+	private static final String JAVA_EXEC_DIR = System.getProperty("java.home") +
 	 																		  System.getProperty("file.separator") +
 	 																		  "bin" +
 	 																		  System.getProperty("file.separator");
 	
 	
-	protected AzureusCore	azureus_core;
+	protected final AzureusCore	azureus_core;
 	protected String		classpath_prefix;
 	
 	public

@@ -257,12 +257,12 @@ MultiPartDecoder
 	public static class
 	FormField
 	{
-		protected String		name;
-		protected Map			attributes;
+		protected final String		name;
+		protected final Map			attributes;
 		
 		protected long			total_len;
 		
-		ByteArrayOutputStream	baos = new ByteArrayOutputStream(1024);
+		final ByteArrayOutputStream	baos = new ByteArrayOutputStream(1024);
 		
 		File					file;
 		FileOutputStream		fos;

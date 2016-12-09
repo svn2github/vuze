@@ -33,7 +33,7 @@ DeleteFileOnCloseInputStream
 	extends InputStream
 {
 	private InputStream			in;
-	private File				file;
+	private final File				file;
 	private boolean				closed;
 	
 	private long				pos;

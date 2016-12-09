@@ -28,7 +28,7 @@ public class
 BloomFilterAddRemove4Bit
 	extends BloomFilterImpl
 {
-	private byte[]		map;
+	private final byte[]		map;
 
 	public
 	BloomFilterAddRemove4Bit(

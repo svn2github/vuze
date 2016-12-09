@@ -43,8 +43,8 @@ public class PingSpaceMapper
     int lastDownloadBitsPerSec;
     int lastUploadBitsPerSec;
 
-    int goodPingInMilliSec;
-    int badPingInMilliSec;
+    final int goodPingInMilliSec;
+    final int badPingInMilliSec;
 
     int totalPointsInMap = 0;
 
@@ -292,7 +292,7 @@ public class PingSpaceMapper
         public static final int INDEX_PING_NEUTRAL = 1;
         public static final int INDEX_PING_BAD = 2;
 
-        int pingCount[] = new int[3];
+        final int[] pingCount = new int[3];
         int uploadBound[] = new int[2];
         int downloadBound[] = new int[2];
 

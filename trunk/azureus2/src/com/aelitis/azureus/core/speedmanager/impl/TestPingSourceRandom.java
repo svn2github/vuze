@@ -26,7 +26,7 @@ public class
 TestPingSourceRandom 
 	extends TestPingSourceImpl
 {
-	private Random	random	= new Random();
+	private final Random	random	= new Random();
 	
 	protected
 	TestPingSourceRandom(

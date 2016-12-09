@@ -51,7 +51,7 @@ FMFileAccessLinear
 	
 	private static final boolean USE_MMAP = System.getProperty("azureus.io.usemmap","false") == "true";
 
-	private FMFileImpl		owner;
+	private final FMFileImpl		owner;
 	
 	protected
 	FMFileAccessLinear(

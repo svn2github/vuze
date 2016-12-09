@@ -27,7 +27,7 @@ public class
 UncloseableInputStream 
 	extends InputStream
 {
-	private InputStream		is;
+	private final InputStream		is;
 	
 	private boolean			closed;
 	

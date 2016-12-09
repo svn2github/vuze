@@ -51,24 +51,24 @@ SecureMessageServiceClientImpl
 	private static final long	MIN_RETRY_PERIOD		=    5*60*1000;
 	private static final long	MAX_RETRY_PERIOD		= 2*60*60*1000;
 
-	private String									host;
-	private int										port;
-	private int										timeout_secs;
-	private RSAPublicKey							public_key;
-	private SecureMessageServiceClientAdapter		adapter;
+	private final String									host;
+	private final int										port;
+	private final int										timeout_secs;
+	private final RSAPublicKey							public_key;
+	final SecureMessageServiceClientAdapter		adapter;
 
 	private long				retry_millis			= MIN_RETRY_PERIOD;
 	private int					connect_failure_count	= 0;
 	
 	
-	private AEMonitor			message_mon;
-	private AESemaphore			message_sem;
+	private final AEMonitor			message_mon;
+	final AESemaphore			message_sem;
 		
 	private String				last_failed_user_pw			= "";
 	private long				last_failed_user_pw_time;
 	
-	private List				messages 	= new ArrayList();
-	private List				listeners	= new ArrayList();
+	private final List				messages 	= new ArrayList();
+	private final List				listeners	= new ArrayList();
 	
 	public
 	SecureMessageServiceClientImpl(

@@ -47,12 +47,12 @@ FMFileImpl
 	protected static final String		READ_ACCESS_MODE	= "r";
 	protected static final String		WRITE_ACCESS_MODE	= "rw"; // "rwd"; - removing this to improve performance
 	
-	private static Map			file_map = new HashMap();
-	private static AEMonitor	file_map_mon	= new AEMonitor( "FMFile:map");
+	private static final Map			file_map = new HashMap();
+	private static final AEMonitor	file_map_mon	= new AEMonitor( "FMFile:map");
 	
 	// If there is an exception that occurs, which causes us to try and perform
 	// a reopen, setting this flag to true will print it to debug.
-	private static boolean OUTPUT_REOPEN_RELATED_ERRORS = true; 
+	private static final boolean OUTPUT_REOPEN_RELATED_ERRORS = true;
 	
 	static{
 		AEDiagnostics.addEvidenceGenerator(
@@ -67,8 +67,8 @@ FMFileImpl
 			});
 	}
 	
-	private FMFileManagerImpl	manager;
-	private FMFileOwner			owner;
+	private final FMFileManagerImpl	manager;
+	private final FMFileOwner			owner;
 	private int					access_mode			= FM_READ;
 	
 	private File				linked_file;
@@ -80,7 +80,7 @@ FMFileImpl
 	private File				created_dirs_leaf;
 	private List				created_dirs;
 	
-	protected AEMonitor			this_mon	= new AEMonitor( "FMFile" );
+	protected final AEMonitor			this_mon	= new AEMonitor( "FMFile" );
 	
 	private boolean				clone;
 	

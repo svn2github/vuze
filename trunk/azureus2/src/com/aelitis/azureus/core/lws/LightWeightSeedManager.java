@@ -54,7 +54,7 @@ import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 public class 
 LightWeightSeedManager 
 {
-	private static LightWeightSeedManager singleton = new LightWeightSeedManager();
+	private static final LightWeightSeedManager singleton = new LightWeightSeedManager();
 	
 	public static LightWeightSeedManager
 	getSingleton()
@@ -63,10 +63,10 @@ LightWeightSeedManager
 	}
 	
 	
-	private Map lws_map = new HashMap();
+	private final Map lws_map = new HashMap();
 	
 	private boolean					started;
-	private Set<LWSDownload>		dht_add_queue = new HashSet<LWSDownload>();
+	final Set<LWSDownload>		dht_add_queue = new HashSet<LWSDownload>();
 	
 	private boolean				borked;
 	private DHTTrackerPlugin	public_dht_tracker_plugin;
@@ -76,7 +76,7 @@ LightWeightSeedManager
 	
 	private TimerEventPeriodic	timer;
 	
-	private AESemaphore			init_sem = new AESemaphore( "LWSM" );
+	final AESemaphore			init_sem = new AESemaphore( "LWSM" );
 	
 	
 	protected

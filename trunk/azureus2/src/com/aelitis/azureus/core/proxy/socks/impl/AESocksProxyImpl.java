@@ -34,7 +34,7 @@ AESocksProxyImpl
 	implements AESocksProxy, AEProxyHandler
 {
 	private AEProxy										proxy;
-	private AESocksProxyPlugableConnectionFactory		connection_factory;
+	private final AESocksProxyPlugableConnectionFactory		connection_factory;
 	
 	private String	proxy_chain_host;
 	private int		proxy_chain_port;

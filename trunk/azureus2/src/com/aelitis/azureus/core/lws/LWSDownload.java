@@ -60,15 +60,15 @@ public class
 LWSDownload
 	implements Download
 {
-	private LightWeightSeed				lws;
-	private TRTrackerAnnouncer			announcer;
+	private final LightWeightSeed				lws;
+	private final TRTrackerAnnouncer			announcer;
 	
-	private DownloadAnnounceResultImpl	announce_result;
+	final DownloadAnnounceResultImpl	announce_result;
 	
-	private Map	user_data			= new HashMap();
-	private Map	torrent_attributes 	= new HashMap();
+	private final Map	user_data			= new HashMap();
+	private final Map	torrent_attributes 	= new HashMap();
 	
-	private DownloadScrapeResult	scrape_result = 
+	private final DownloadScrapeResult	scrape_result =
 		new DownloadScrapeResult()
 		{
 			public Download

@@ -64,12 +64,12 @@ UDPConnectionSet
 	public static final int MIN_WRITE_PAYLOAD		= MIN_MSS - MAX_HEADER;
 	public static final int MAX_BUFFERED_PAYLOAD	= 512;
 		
-	private UDPConnectionManager	manager;
-	private UDPSelector				selector;
-	private int						local_port;
-	private InetSocketAddress		remote_address;
+	private final UDPConnectionManager	manager;
+	private final UDPSelector				selector;
+	private final int						local_port;
+	private final InetSocketAddress		remote_address;
 	private boolean					outgoing;
-	private String					connection_key;
+	private final String					connection_key;
 	
 	private Random			random;
 	
@@ -86,9 +86,9 @@ UDPConnectionSet
 	
 	private volatile boolean	failed;
 	
-	private Map	connections = new HashMap();
+	private final Map	connections = new HashMap();
 	
-	private LinkedList	connection_writers = new LinkedList();
+	private final LinkedList	connection_writers = new LinkedList();
 	
 	private long	total_tick_count;
 	
@@ -158,7 +158,7 @@ UDPConnectionSet
 	
 	private static final int 	MAX_TRANSMIT_UNACK_DATA_PACKETS	= 10;
 	private static final int 	MAX_TRANSMIT_UNACK_PACKETS		= MAX_TRANSMIT_UNACK_DATA_PACKETS + 4;	// + protocol packets
-	private List				transmit_unack_packets = new ArrayList();
+	private final List				transmit_unack_packets = new ArrayList();
 		
 	private static final int	MAX_CONTIGUOUS_RETRANS_FOR_ACK	= 3;
 	
@@ -185,10 +185,10 @@ UDPConnectionSet
 	
 	
 	private static final int RECEIVE_DONE_SEQ_MAX	= 128;
-	private LinkedList	receive_done_sequences	= new LinkedList();
+	private final LinkedList	receive_done_sequences	= new LinkedList();
 	
 	private static final int RECEIVE_OUT_OF_ORDER_PACKETS_MAX	= 64;
-	private List	receive_out_of_order_packets	= new LinkedList();
+	private final List	receive_out_of_order_packets	= new LinkedList();
 	
 	private int explicitack_ticks = 0;
 
@@ -2562,9 +2562,9 @@ UDPConnectionSet
 	protected class
 	SequenceGenerator
 	{
-		private Random		generator;
-		private RC4Engine	cipher;
-		private boolean		in;
+		private final Random		generator;
+		private final RC4Engine	cipher;
+		private final boolean		in;
 		
 		private final int[]	seq_memory;
 		private final int[]	alt_seq_memory;

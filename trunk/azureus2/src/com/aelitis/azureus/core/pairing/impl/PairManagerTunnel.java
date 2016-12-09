@@ -46,17 +46,17 @@ import com.aelitis.azureus.core.pairing.PairedServiceRequestHandler;
 public class 
 PairManagerTunnel 
 {
-	private static ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
+	static final ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 
-	private PairingManagerTunnelHandler		tunnel_handler;
-	private String							tunnel_key;
+	final PairingManagerTunnelHandler		tunnel_handler;
+	private final String							tunnel_key;
 	
-	private InetAddress						originator;
-	private String							sid;
-	private PairedServiceRequestHandler		request_handler;
-	private SecretKeySpec					key;
-	private String							tunnel_url;
-	private String							endpoint_url;
+	private final InetAddress						originator;
+	private final String							sid;
+	private final PairedServiceRequestHandler		request_handler;
+	private final SecretKeySpec					key;
+	final String							tunnel_url;
+	private final String							endpoint_url;
 	
 	private long	last_active = SystemTime.getMonotonousTime();
 	

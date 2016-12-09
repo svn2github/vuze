@@ -43,15 +43,15 @@ DiskAccessControllerInstance
 	private final int aggregation_request_limit;
 	private final int aggregation_byte_limit;
 	
-	private String		name;
-	private boolean		enable_aggregation;
+	private final String		name;
+	final boolean		enable_aggregation;
 	
-	private boolean		invert_threads	= !COConfigurationManager.getBooleanParameter( "diskmanager.perf.queue.torrent.bias" );
+	final boolean		invert_threads	= !COConfigurationManager.getBooleanParameter( "diskmanager.perf.queue.torrent.bias" );
 	
-	private int	max_threads;
+	final int	max_threads;
 	private int	max_mb_queued;
 		
-	private groupSemaphore	max_mb_sem;
+	private final groupSemaphore	max_mb_sem;
 	
 	private long			request_bytes_queued;
 	private long			requests_queued;
@@ -67,11 +67,11 @@ DiskAccessControllerInstance
 	private long			io_time;
 	private long			io_count;
 
-	private requestDispatcher[]	dispatchers;
+	private final requestDispatcher[]	dispatchers;
 	
 	private long		last_check		= 0;	
 	
-	private Map			torrent_dispatcher_map	= new HashMap();	
+	private final Map			torrent_dispatcher_map	= new HashMap();
 	
 	private static final int REQUEST_NUM_LOG_CHUNK 		= 100;
 	private static final int REQUEST_BYTE_LOG_CHUNK 	= 1024*1024;
@@ -79,7 +79,7 @@ DiskAccessControllerInstance
 	private int			next_request_num_log	= REQUEST_NUM_LOG_CHUNK;
 	private long		next_request_byte_log	= REQUEST_BYTE_LOG_CHUNK;
 	
-	private static ThreadLocal		tls	= 
+	static final ThreadLocal		tls	=
 		new ThreadLocal()
 		{
 			public Object
@@ -364,17 +364,17 @@ DiskAccessControllerInstance
 	protected class
 	requestDispatcher
 	{
-		private int			index;
-		private AEThread2[]	threads		= new AEThread2[invert_threads?max_threads:1];
+		private final int			index;
+		final AEThread2[]	threads		= new AEThread2[invert_threads?max_threads:1];
 		private int			active_threads;
 		
-		private LinkedList	requests 	= new LinkedList();
+		final LinkedList	requests 	= new LinkedList();
 		
-		private Map			request_map	= new HashMap();
+		final Map			request_map	= new HashMap();
 		private long		last_request_map_tidy;
 		
-		private AESemaphore	request_sem		= new AESemaphore("DiskAccessControllerInstance:requestDispatcher:request" );
-		private AESemaphore	schedule_sem	= new AESemaphore("DiskAccessControllerInstance:requestDispatcher:schedule", 1 );
+		final AESemaphore	request_sem		= new AESemaphore("DiskAccessControllerInstance:requestDispatcher:request" );
+		final AESemaphore	schedule_sem	= new AESemaphore("DiskAccessControllerInstance:requestDispatcher:schedule", 1 );
 		
 		
 		private long	last_request_time;
@@ -759,7 +759,7 @@ DiskAccessControllerInstance
 	{
 		private int value;
 		
-		private List	waiters = new LinkedList();
+		private final List	waiters = new LinkedList();
 		
 		private long	blocks;
 		

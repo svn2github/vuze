@@ -32,7 +32,7 @@ DHTUDPPacketHandlerStats
 	private long	bytes_received;
 	private long	timeouts;
 	
-	private PRUDPPacketHandlerStats		stats;
+	private final PRUDPPacketHandlerStats		stats;
 	
 	protected
 	DHTUDPPacketHandlerStats(

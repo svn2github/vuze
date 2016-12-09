@@ -52,15 +52,15 @@ public class
 DHTImpl 
 	implements DHT, AERunStateHandler.RunStateChangeListener
 {
-	private DHTStorageAdapter		storage_adapter;
+	final DHTStorageAdapter		storage_adapter;
 	private DHTNATPuncherAdapter	nat_adapter;
-	private DHTControl				control;
+	private final DHTControl				control;
 	private DHTNATPuncher			nat_puncher;
 	private DHTSpeedTester			speed_tester;
-	private	Properties				properties;
-	private DHTLogger				logger;
+	private final Properties				properties;
+	private final DHTLogger				logger;
 	
-	private CopyOnWriteList<DHTListener>	listeners = new CopyOnWriteList<DHTListener>();
+	private final CopyOnWriteList<DHTListener>	listeners = new CopyOnWriteList<DHTListener>();
 	
 	private boolean	runstate_startup 	= true;
 	private boolean	sleeping			= false;

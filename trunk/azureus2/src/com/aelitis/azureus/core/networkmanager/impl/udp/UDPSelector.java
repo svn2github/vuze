@@ -35,8 +35,8 @@ UDPSelector
 {
 	private static final int POLL_FREQUENCY	= COConfigurationManager.getIntParameter( "network.udp.poll.time", 100 );
 	
-	private List		ready_set	= new LinkedList();
-	private AESemaphore	ready_sem	= new AESemaphore( "UDPSelector" );
+	final List		ready_set	= new LinkedList();
+	final AESemaphore	ready_sem	= new AESemaphore( "UDPSelector" );
 	
 	private volatile boolean destroyed;
 	

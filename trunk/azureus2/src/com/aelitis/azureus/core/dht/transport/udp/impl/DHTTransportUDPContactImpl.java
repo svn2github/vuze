@@ -85,14 +85,14 @@ DHTTransportUDPContactImpl
 			true );
 	}
 	
-	private	DHTTransportUDPImpl		transport;
+	final DHTTransportUDPImpl		transport;
 	private InetSocketAddress		external_address;
 	private InetSocketAddress		transport_address;
 	
 	private byte[]				id;
 	private byte				protocol_version;
 	private int					instance_id;
-	private long				skew;
+	private final long				skew;
 	private byte				generic_flags;
 	
 	private int					random_id;

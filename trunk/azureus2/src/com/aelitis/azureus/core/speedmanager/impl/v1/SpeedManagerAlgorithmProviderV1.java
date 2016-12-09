@@ -122,16 +122,16 @@ SpeedManagerAlgorithmProviderV1
 	private static final int	INCREASING	= 1;
 	private static final int	DECREASING	= 2;
 	
-	private SpeedManagerAlgorithmProviderAdapter	adapter;
+	private final SpeedManagerAlgorithmProviderAdapter	adapter;
 	
 	
-	private Average upload_average				= AverageFactory.MovingImmediateAverage( 5 );
-	private Average upload_short_average		= AverageFactory.MovingImmediateAverage( 2 );
-	private Average upload_short_prot_average	= AverageFactory.MovingImmediateAverage( 2 );
+	private final Average upload_average				= AverageFactory.MovingImmediateAverage( 5 );
+	private final Average upload_short_average		= AverageFactory.MovingImmediateAverage( 2 );
+	private final Average upload_short_prot_average	= AverageFactory.MovingImmediateAverage( 2 );
 	
-	private Average	ping_average_history		= AverageFactory.MovingImmediateAverage(PING_AVERAGE_HISTORY_COUNT);
+	private final Average	ping_average_history		= AverageFactory.MovingImmediateAverage(PING_AVERAGE_HISTORY_COUNT);
 	
-	private Average choke_speed_average			= AverageFactory.MovingImmediateAverage( 3 );
+	private final Average choke_speed_average			= AverageFactory.MovingImmediateAverage( 3 );
 
 	private Map							ping_sources;
 	private volatile int				replacement_contacts;
@@ -571,7 +571,7 @@ SpeedManagerAlgorithmProviderV1
 	protected static class
 	pingSource
 	{
-		private SpeedManagerPingSource	source;
+		private final SpeedManagerPingSource	source;
 
 		private int		last_good_ping;
 		private int		bad_pings;

@@ -39,7 +39,7 @@ public class PingSpaceMon
     TransferMode mode;
 
 
-    List listeners = new ArrayList();//List<PSMonitorListener>
+    final List listeners = new ArrayList();//List<PSMonitorListener>
 
 
     public void addListener(PSMonitorListener listener){

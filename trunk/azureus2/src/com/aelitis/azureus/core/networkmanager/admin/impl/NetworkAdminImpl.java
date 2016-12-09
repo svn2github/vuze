@@ -109,7 +109,7 @@ NetworkAdminImpl
 	
 	
 	private Set<NetworkInterface>				old_network_interfaces;
-	private Map<String,AddressHistoryRecord>	address_history			= new HashMap<String,AddressHistoryRecord>();
+	private final Map<String,AddressHistoryRecord>	address_history			= new HashMap<String,AddressHistoryRecord>();
 	private long								address_history_update_time;
 	
 	private InetAddress[]				currentBindIPs			= new InetAddress[] { null };
@@ -149,10 +149,10 @@ NetworkAdminImpl
 	
 	private boolean logged_bind_force_issue;
 	
-	private CopyOnWriteList	listeners = new CopyOnWriteList();
+	private final CopyOnWriteList	listeners = new CopyOnWriteList();
 	
 	
-	private NetworkAdminRouteListener
+	final NetworkAdminRouteListener
 		trace_route_listener = new NetworkAdminRouteListener()
 		{
 			private int	node_count = 0;
@@ -185,14 +185,14 @@ NetworkAdminImpl
 	
 	private long last_asn_lookup_time;
 	
-	private List asn_ips_checked = new ArrayList(0);
+	private final List asn_ips_checked = new ArrayList(0);
 	
-	private List as_history = new ArrayList();
+	private final List as_history = new ArrayList();
 	
-	private AsyncDispatcher		async_asn_dispacher 	= new AsyncDispatcher();
+	private final AsyncDispatcher		async_asn_dispacher 	= new AsyncDispatcher();
 	private static final int	MAX_ASYNC_ASN_LOOKUPS	= 1024;
 	
-	private Map<InetAddress, NetworkAdminASN>	async_asn_history = 
+	final Map<InetAddress, NetworkAdminASN>	async_asn_history =
 		new LinkedHashMap<InetAddress, NetworkAdminASN>(256,0.75f,true)
 		{
 			protected boolean 
@@ -203,7 +203,7 @@ NetworkAdminImpl
 			}
 		};
 		
-	private boolean 	initialised;
+	private final boolean 	initialised;
 	
 	public
 	NetworkAdminImpl()
@@ -332,7 +332,7 @@ NetworkAdminImpl
 	}
 	
 	private List<NetworkInterface> 	last_getni_result;
-	private Object					getni_lock = new Object();
+	private final Object					getni_lock = new Object();
 	
 	protected boolean
 	checkNetworkInterfaces(
@@ -1382,11 +1382,11 @@ addressLoop:
 		return( null );
 	}
 	
-	private static InetAddress[]		gdpa_lock = { null };
+	static final InetAddress[]		gdpa_lock = { null };
 	private static AESemaphore			gdpa_sem;
 	private static long					gdpa_last_fail;
 	private static long					gdpa_last_lookup;
-	private static AESemaphore			gdpa_initial_sem = new AESemaphore( "gdpa:init" );
+	static final AESemaphore			gdpa_initial_sem = new AESemaphore( "gdpa:init" );
 	
 	public InetAddress
 	getDefaultPublicAddress()
@@ -3833,7 +3833,7 @@ addressLoop:
 	networkInterface
 		implements NetworkAdminNetworkInterface
 	{
-		private NetworkInterface		ni;
+		private final NetworkInterface		ni;
 		
 		protected
 		networkInterface(
@@ -3926,7 +3926,7 @@ addressLoop:
 		networkAddress
 			implements NetworkAdminNetworkInterfaceAddress
 		{
-			private InetAddress		address;
+			private final InetAddress		address;
 			
 			protected
 			networkAddress(
@@ -4079,9 +4079,9 @@ addressLoop:
 	networkNode
 		implements NetworkAdminNode
 	{
-		private InetAddress	address;
-		private int			distance;
-		private int			rtt;
+		private final InetAddress	address;
+		private final int			distance;
+		private final int			rtt;
 		
 		protected
 		networkNode(
@@ -4167,9 +4167,9 @@ addressLoop:
 	private static class
 	AddressHistoryRecord
 	{
-		private String					ni_name;
-		private boolean					ni_has_multiple_addresses;
-		private InetAddress				address;
+		private final String					ni_name;
+		private final boolean					ni_has_multiple_addresses;
+		private final InetAddress				address;
 		private long					last_seen;
 		
 		private 

@@ -32,8 +32,8 @@ public class
 DHTUDPPacketNetworkHandler 
 	implements PRUDPRequestHandler
 {
-	private DHTUDPPacketHandlerFactory		factory;
-	private int								port;
+	private final DHTUDPPacketHandlerFactory		factory;
+	private final int								port;
 	
 	protected
 	DHTUDPPacketNetworkHandler(

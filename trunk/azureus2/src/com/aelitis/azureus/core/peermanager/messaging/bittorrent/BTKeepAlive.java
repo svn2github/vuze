@@ -31,7 +31,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent keep-alive message.
  */
 public class BTKeepAlive implements BTMessage, RawMessage {
-  private byte version;
+  private final byte version;
   private DirectByteBuffer[] buffer = null;
   
   private boolean no_delay = false;

@@ -33,7 +33,7 @@ UTUploadOnly
 	private final byte version;
 	private DirectByteBuffer buffer = null;
 	  
-	private boolean	upload_only;
+	private final boolean	upload_only;
 	
 	public
 	UTUploadOnly(

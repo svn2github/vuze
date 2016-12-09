@@ -28,10 +28,10 @@ SpeedManagerAlgorithmProviderV2
 	implements SpeedManagerAlgorithmProvider
 {
 
-    private SpeedManagerAlgorithmProviderAdapter		adapter;
+    private final SpeedManagerAlgorithmProviderAdapter		adapter;
 
     //Test algorithms below.
-    private SpeedManagerAlgorithmProvider strategy;
+    private final SpeedManagerAlgorithmProvider strategy;
 
     
     //key names are below.

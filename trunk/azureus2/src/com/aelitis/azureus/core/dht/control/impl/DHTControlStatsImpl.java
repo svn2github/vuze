@@ -38,13 +38,13 @@ DHTControlStatsImpl
 	private static final int	UPDATE_INTERVAL	= 10*1000;
 	private static final int	UPDATE_PERIOD	= 120;
 	
-	private DHTControlImpl		control;
+	private final DHTControlImpl		control;
 	
 	
-	private Average	packets_in_average 		= Average.getInstance(UPDATE_INTERVAL, UPDATE_PERIOD );
-	private Average	packets_out_average 	= Average.getInstance(UPDATE_INTERVAL, UPDATE_PERIOD );
-	private Average	bytes_in_average 		= Average.getInstance(UPDATE_INTERVAL, UPDATE_PERIOD );
-	private Average	bytes_out_average 		= Average.getInstance(UPDATE_INTERVAL, UPDATE_PERIOD );
+	private final Average	packets_in_average 		= Average.getInstance(UPDATE_INTERVAL, UPDATE_PERIOD );
+	private final Average	packets_out_average 	= Average.getInstance(UPDATE_INTERVAL, UPDATE_PERIOD );
+	private final Average	bytes_in_average 		= Average.getInstance(UPDATE_INTERVAL, UPDATE_PERIOD );
+	private final Average	bytes_out_average 		= Average.getInstance(UPDATE_INTERVAL, UPDATE_PERIOD );
 
 	private DHTTransportStats	transport_snapshot;
 	private long[]				router_snapshot;

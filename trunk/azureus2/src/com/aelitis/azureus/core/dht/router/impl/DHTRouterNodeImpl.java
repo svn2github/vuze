@@ -37,9 +37,9 @@ import com.aelitis.azureus.core.dht.router.DHTRouterContactAttachment;
 public class 
 DHTRouterNodeImpl
 {
-	private DHTRouterImpl	router;
-	private int				depth;
-	private boolean			contains_router_node_id;
+	private final DHTRouterImpl	router;
+	private final int				depth;
+	private final boolean			contains_router_node_id;
 	
 	private List<DHTRouterContactImpl>	buckets;
 	private List<DHTRouterContactImpl>	replacements;

@@ -25,46 +25,46 @@ import org.gudy.azureus2.core3.util.Constants;
 public class BTPeerIDByteDecoderDefinitions {
 
 	// Az style two byte code identifiers to real client name. 
-	private static HashMap az_style_code_map = new HashMap();
-	private static HashMap az_client_version_map = new HashMap();
+	private static final HashMap az_style_code_map = new HashMap();
+	private static final HashMap az_client_version_map = new HashMap();
 	
 	// Shadow's style one byte code identifiers to real client name.
-	private static HashMap shadow_style_code_map = new HashMap();
-	private static HashMap shadow_client_version_map = new HashMap();
+	private static final HashMap shadow_style_code_map = new HashMap();
+	private static final HashMap shadow_client_version_map = new HashMap();
 	
 	// Mainline's new style uses one byte code identifiers too.
-	private static HashMap mainline_style_code_map = new HashMap();
+	private static final HashMap mainline_style_code_map = new HashMap();
 	
 	/**
 	 * List of objects which describes clients with their own custom
 	 * naming scheme.
 	 */ 
-	private static ArrayList custom_style_client_list = new ArrayList();
+	private static final ArrayList custom_style_client_list = new ArrayList();
 	
 	// Version number formats.
-	static String VER_AZ_THREE_DIGITS = "1.2.3";
-	static String VER_AZ_THREE_DIGITS_PLUS_MNEMONIC = "1.2.3 [4]";
-	static String VER_AZ_ONE_MAJ_TWO_MIN_PLUS_MNEMONIC = "1.23 [4]";
-	static String VER_AZ_FOUR_DIGITS = "1.2.3.4";
-	static String VER_AZ_V_FOUR_DIGITS = "v1.2.3.4";
-	static String VER_AZ_TWO_MAJ_TWO_MIN = "12.34";
-	static String VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN = "2.34";
-	static String VER_AZ_KTORRENT_STYLE = "1.2.3=[RD].4";
-	static String VER_AZ_TRANSMISSION_STYLE = "transmission";
-	static String VER_AZ_LAST_THREE_DIGITS = "2.3.4";
-	static String VER_AZ_THREE_ALPHANUMERIC_DIGITS = "2.33.4"; // So 'B' = 11, for example, like Shadow's style of numbering.
+	static final String VER_AZ_THREE_DIGITS = "1.2.3";
+	static final String VER_AZ_THREE_DIGITS_PLUS_MNEMONIC = "1.2.3 [4]";
+	static final String VER_AZ_ONE_MAJ_TWO_MIN_PLUS_MNEMONIC = "1.23 [4]";
+	static final String VER_AZ_FOUR_DIGITS = "1.2.3.4";
+	static final String VER_AZ_V_FOUR_DIGITS = "v1.2.3.4";
+	static final String VER_AZ_TWO_MAJ_TWO_MIN = "12.34";
+	static final String VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN = "2.34";
+	static final String VER_AZ_KTORRENT_STYLE = "1.2.3=[RD].4";
+	static final String VER_AZ_TRANSMISSION_STYLE = "transmission";
+	static final String VER_AZ_LAST_THREE_DIGITS = "2.3.4";
+	static final String VER_AZ_THREE_ALPHANUMERIC_DIGITS = "2.33.4"; // So 'B' = 11, for example, like Shadow's style of numbering.
 	
 	// These are used to describe how the version number is extracted from the
 	// peer ID as well as how that version number is formatted. 
-	static String VER_BLOCK = "abcde"; // Is given as a block in the peer ID, we show the same block
-	static String VER_DOTTED_BLOCK = "a.b.c.d.e"; // Is given as a dotted block in the peer ID, we show the block in the same dotted format.
-	static String VER_BYTE_BLOCK_DOTTED_CHAR = "abcde -> a.b.c.d.e"; // Is given a block in the peer ID, but should be displayed in a dotted format.
-	static String VER_TWOBYTE_BLOCK_DOTTED_CHAR = "abcde -> ab.cd"; // Is given a block in the peer ID, but should be displayed in a dotted format.
-	static String VER_BITS_ON_WHEELS = "BOW-STYLE";
-	static String VER_TWO_BYTE_THREE_PART = "ab -> a . b/10 . b%10";
-	static String NO_VERSION = "NO_VERSION";
-	static String VER_BYTE_UM_STYLE = "abcd -> a.b.cd"; 
-	static String VER_BITLORD = "abcdef -> a.b.c-edf";
+	static final String VER_BLOCK = "abcde"; // Is given as a block in the peer ID, we show the same block
+	static final String VER_DOTTED_BLOCK = "a.b.c.d.e"; // Is given as a dotted block in the peer ID, we show the block in the same dotted format.
+	static final String VER_BYTE_BLOCK_DOTTED_CHAR = "abcde -> a.b.c.d.e"; // Is given a block in the peer ID, but should be displayed in a dotted format.
+	static final String VER_TWOBYTE_BLOCK_DOTTED_CHAR = "abcde -> ab.cd"; // Is given a block in the peer ID, but should be displayed in a dotted format.
+	static final String VER_BITS_ON_WHEELS = "BOW-STYLE";
+	static final String VER_TWO_BYTE_THREE_PART = "ab -> a . b/10 . b%10";
+	static final String NO_VERSION = "NO_VERSION";
+	static final String VER_BYTE_UM_STYLE = "abcd -> a.b.cd";
+	static final String VER_BITLORD = "abcdef -> a.b.c-edf";
 	
 	// Used to register client information.
 	private static void addAzStyle(String id, String client) {
@@ -465,9 +465,9 @@ public class BTPeerIDByteDecoderDefinitions {
 	
 	static class ClientData {
 		
-		String client_name;
-		private int simple_string_pos;
-		private String simple_string;
+		final String client_name;
+		private final int simple_string_pos;
+		private final String simple_string;
 		private VersionNumberData version_data;
 		
 		ClientData(String client_name, String simple_string, int simple_string_pos) {
@@ -481,10 +481,10 @@ public class BTPeerIDByteDecoderDefinitions {
 
 	static class VersionNumberData {
 
-		private String type; // How to extract and put digit components together
-		private int pos; // Where does this appear in a client ID string?
-		private String fmt; // How do we display that version number?
-		private int length; // How long is the version number?
+		final String type; // How to extract and put digit components together
+		final int pos; // Where does this appear in a client ID string?
+		final String fmt; // How do we display that version number?
+		final int length; // How long is the version number?
 		
 		VersionNumberData(String type, int length, String formatter, int position) {
 			this.type = type;

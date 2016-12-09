@@ -76,7 +76,7 @@ public class
 DHTTransportUDPImpl 
 	implements DHTTransportUDP, DHTUDPRequestHandler
 {
-	public static boolean TEST_EXTERNAL_IP	= false;
+	public static final boolean TEST_EXTERNAL_IP	= false;
 		
 	public static final int		MIN_ADDRESS_CHANGE_PERIOD_INIT_DEFAULT	= 5*60*1000;
 	public static final int		MIN_ADDRESS_CHANGE_PERIOD_NEXT_DEFAULT	= 10*60*1000;
@@ -87,21 +87,21 @@ DHTTransportUDPImpl
 	private String				external_address;
 	private int					min_address_change_period = MIN_ADDRESS_CHANGE_PERIOD_INIT_DEFAULT;
 	
-	private byte				protocol_version;
-	private int					network;
-	private boolean				v6;
-	private String				ip_override;
+	private final byte				protocol_version;
+	private final int					network;
+	private final boolean				v6;
+	private final String				ip_override;
 	private int					port;
-	private int					max_fails_for_live;
-	private int					max_fails_for_unknown;
+	private final int					max_fails_for_live;
+	private final int					max_fails_for_unknown;
 	private long				request_timeout;
 	private long				store_timeout;
 	private boolean				reachable;
 	private boolean				reachable_accurate;
-	private int					dht_send_delay;
-	private int					dht_receive_delay;
+	private final int					dht_send_delay;
+	private final int					dht_receive_delay;
 
-	private DHTLogger			logger;
+	final DHTLogger			logger;
 		
 	private DHTUDPPacketHandler			packet_handler;
 	
@@ -111,9 +111,9 @@ DHTTransportUDPImpl
 		
 	private long last_address_change;
 	
-	private List listeners	= new ArrayList();
+	final List listeners	= new ArrayList();
 	
-	private IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
+	private final IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
 
 	
 	private DHTTransportUDPStatsImpl	stats;
@@ -126,7 +126,7 @@ DHTTransportUDPImpl
 	private static final int CONTACT_HISTORY_MAX 		= 32;
 	private static final int CONTACT_HISTORY_PING_SIZE	= 24;
 	
-	private Map<InetSocketAddress,DHTTransportContact>	contact_history = 
+	final Map<InetSocketAddress,DHTTransportContact>	contact_history =
 		new LinkedHashMap<InetSocketAddress,DHTTransportContact>(CONTACT_HISTORY_MAX,0.75f,true)
 		{
 			protected boolean 
@@ -139,7 +139,7 @@ DHTTransportUDPImpl
 		
 	private static final int ROUTABLE_CONTACT_HISTORY_MAX 		= 128;
 
-	private Map<InetSocketAddress,DHTTransportContact>	routable_contact_history = 
+	final Map<InetSocketAddress,DHTTransportContact>	routable_contact_history =
 		new LinkedHashMap<InetSocketAddress,DHTTransportContact>(ROUTABLE_CONTACT_HISTORY_MAX,0.75f,true)
 		{
 			protected boolean 
@@ -153,11 +153,11 @@ DHTTransportUDPImpl
 		
 	private long					other_routable_total;
 	private long					other_non_routable_total;
-	private MovingImmediateAverage	routeable_percentage_average = AverageFactory.MovingImmediateAverage(8);
+	private final MovingImmediateAverage	routeable_percentage_average = AverageFactory.MovingImmediateAverage(8);
 	
 	private static final int RECENT_REPORTS_HISTORY_MAX = 32;
 
-	private Map	recent_reports = 
+	private final Map	recent_reports =
 			new LinkedHashMap(RECENT_REPORTS_HISTORY_MAX,0.75f,true)
 			{
 				protected boolean 
@@ -177,22 +177,22 @@ DHTTransportUDPImpl
 	private long	last_alien_count;
 	private long	last_alien_fv_count;
 	
-	private Average	alien_average 		= Average.getInstance(STATS_PERIOD,STATS_DURATION_SECS);
-	private Average	alien_fv_average 	= Average.getInstance(STATS_PERIOD,STATS_DURATION_SECS);
+	private final Average	alien_average 		= Average.getInstance(STATS_PERIOD,STATS_DURATION_SECS);
+	private final Average	alien_fv_average 	= Average.getInstance(STATS_PERIOD,STATS_DURATION_SECS);
 		
 	private Random				random;
 	
 	private static final int	BAD_IP_BLOOM_FILTER_SIZE	= 32000;
 	private BloomFilter			bad_ip_bloom_filter;
 	
-	private static AEMonitor	class_mon	= new AEMonitor( "DHTTransportUDP:class" );
+	private static final AEMonitor	class_mon	= new AEMonitor( "DHTTransportUDP:class" );
 	
-	private AEMonitor	this_mon	= new AEMonitor( "DHTTransportUDP" );
+	final AEMonitor	this_mon	= new AEMonitor( "DHTTransportUDP" );
 
 	private boolean		initial_address_change_deferred;
 	private boolean		address_changing;
 	
-	private DHTTransferHandler xfer_handler;
+	private final DHTTransferHandler xfer_handler;
 	
 	public
 	DHTTransportUDPImpl(
@@ -3215,14 +3215,14 @@ outer:
 	
 		// the _state networks are populated via ping requests to other peers
 	
-	private Map<Integer, DHTTransportAlternativeNetworkImpl>	alt_net_states 		= new HashMap<Integer, DHTTransportAlternativeNetworkImpl>();
+	private final Map<Integer, DHTTransportAlternativeNetworkImpl>	alt_net_states 		= new HashMap<Integer, DHTTransportAlternativeNetworkImpl>();
 	
 		// the _providers represent a local source of contacts that are used as a primary
 		// source of contacts for replying to other peers ping requests
 		
 	private volatile Map<Integer, DHTTransportAlternativeNetwork>		alt_net_providers	= new HashMap<Integer, DHTTransportAlternativeNetwork>();
 	
-	private Object	alt_net_providers_lock = new Object();
+	private final Object	alt_net_providers_lock = new Object();
 	
 	{
 		for ( Integer net: DHTTransportAlternativeNetwork.AT_ALL ){

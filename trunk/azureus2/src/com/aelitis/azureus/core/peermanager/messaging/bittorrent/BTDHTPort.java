@@ -29,7 +29,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  */
 public class BTDHTPort implements BTMessage {
 	
-	private int port;
+	private final int port;
 	private DirectByteBuffer buffer;
 	
 	public BTDHTPort(int port) {

@@ -125,9 +125,9 @@ SpeedManagerImpl
 		// config end
 	
 	
-	private AzureusCore			core;
+	final AzureusCore			core;
 	private DHTSpeedTester		speed_tester;
-	private SpeedManagerAdapter	adapter;
+	final SpeedManagerAdapter	adapter;
 	
 	private SpeedManagerAlgorithmProvider	provider = new nullProvider();
 	
@@ -136,26 +136,26 @@ SpeedManagerImpl
 	private boolean						enabled;
 
 	private final static boolean				pm_enabled = true;
-	
-    private Map							contacts	= new HashMap();
+
+	final Map							contacts	= new HashMap();
 	private volatile int				total_contacts;
 	private pingContact[]				contacts_array	= new pingContact[0];
 	
 	private Object	original_limits;
 	
-	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
+	final AsyncDispatcher	dispatcher = new AsyncDispatcher();
 
-	private SpeedManagerPingMapperImpl		ping_mapper;
+	final SpeedManagerPingMapperImpl		ping_mapper;
 
-	private SpeedManagerPingMapperImpl[] 	ping_mappers;
+	final SpeedManagerPingMapperImpl[] 	ping_mappers;
 	
-	private CopyOnWriteList		transient_mappers = new CopyOnWriteList();
+	private final CopyOnWriteList		transient_mappers = new CopyOnWriteList();
 
-	private AEDiagnosticsLogger	logger;
+	private final AEDiagnosticsLogger	logger;
 	
 	private String		asn;
 	
-	private CopyOnWriteList	listeners = new CopyOnWriteList();
+	private final CopyOnWriteList	listeners = new CopyOnWriteList();
 	
 	public
 	SpeedManagerImpl(
@@ -1077,7 +1077,7 @@ SpeedManagerImpl
 	pingContact
 		implements SpeedManagerPingSource
 	{
-		private DHTSpeedTesterContact	contact;
+		private final DHTSpeedTesterContact	contact;
 		
 		private int	ping_time;
 		

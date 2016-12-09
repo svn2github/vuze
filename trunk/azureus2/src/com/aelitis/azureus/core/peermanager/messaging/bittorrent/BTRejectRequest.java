@@ -30,7 +30,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * NOTE: Overrides equals()
  */
 public class BTRejectRequest implements BTMessage {
-  private byte version;
+  private final byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   

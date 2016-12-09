@@ -46,12 +46,12 @@ NATTraverser
 	
 	private static final int	MAX_QUEUE_SIZE	= 128;
 	
-	private AzureusCore		core;
+	private final AzureusCore		core;
 	private DHTNATPuncher	puncher;
 	
-	private ThreadPool	thread_pool = new ThreadPool("NATTraverser", 16, true );
+	private final ThreadPool	thread_pool = new ThreadPool("NATTraverser", 16, true );
 	
-	private Map	handlers = new HashMap();
+	private final Map	handlers = new HashMap();
 	
 	public
 	NATTraverser(

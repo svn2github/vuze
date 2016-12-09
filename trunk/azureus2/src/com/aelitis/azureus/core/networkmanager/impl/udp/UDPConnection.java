@@ -29,13 +29,13 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 public class 
 UDPConnection 
 {	
-	private UDPConnectionSet	set;
+	private final UDPConnectionSet	set;
 	private int					id;
 	private UDPTransportHelper	transport;
 	
-	private List	read_buffers = new LinkedList();
+	private final List	read_buffers = new LinkedList();
 	
-	private AESemaphore	read_buffer_sem	= new AESemaphore( "UDPConnection", 64 );
+	private final AESemaphore	read_buffer_sem	= new AESemaphore( "UDPConnection", 64 );
 	
 	
 	private volatile boolean	connected = true;

@@ -54,9 +54,9 @@ public class TorrentFolderWatcher {
 
 	private final ArrayList to_delete = new ArrayList();
 
-	protected AEMonitor this_mon = new AEMonitor("TorrentFolderWatcher");
+	protected final AEMonitor this_mon = new AEMonitor("TorrentFolderWatcher");
 
-	private FilenameFilter filename_filter = new FilenameFilter() {
+	private final FilenameFilter filename_filter = new FilenameFilter() {
 		public boolean accept(File dir, String name) {
 			String lc_name = name.toLowerCase();
 
@@ -64,7 +64,7 @@ public class TorrentFolderWatcher {
 		}
 	};
 
-	private ParameterListener param_listener = new ParameterListener() {
+	private final ParameterListener param_listener = new ParameterListener() {
 		public void parameterChanged(String parameterName) {
 			if (COConfigurationManager.getBooleanParameter(PARAMID_FOLDER)) {
 				if (!running) {
@@ -87,7 +87,7 @@ public class TorrentFolderWatcher {
 		{
 			private long	last_run = 0;	// trigger a run on startup
 			
-			private AESemaphore wait_sem = new AESemaphore( "fw:wait" );
+			final AESemaphore wait_sem = new AESemaphore( "fw:wait" );
 			
 			{
 				COConfigurationManager.addParameterListener(

@@ -52,7 +52,7 @@ DHTUDPPacketData
 	
 		// assume keys are 20 bytes + 1 len, data len is 2 bytes
 	
-	public static int	MAX_DATA_SIZE = DHTUDPPacketHelper.PACKET_MAX_BYTES - DHTUDPPacketReply.DHT_HEADER_SIZE -
+	public static final int	MAX_DATA_SIZE = DHTUDPPacketHelper.PACKET_MAX_BYTES - DHTUDPPacketReply.DHT_HEADER_SIZE -
 											1- 21 - 21 - 14;
 	
 	public

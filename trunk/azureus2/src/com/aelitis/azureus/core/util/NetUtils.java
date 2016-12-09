@@ -46,9 +46,9 @@ NetUtils
 	private static boolean						first_check	= true;
 	private static boolean						check_in_progress;
 	
-	private static AESemaphore					ni_sem = new AESemaphore( "NetUtils:ni" );
+	static final AESemaphore					ni_sem = new AESemaphore( "NetUtils:ni" );
 	
-	private static Map<Object,Object[]>			host_or_address_map 	= new HashMap<Object, Object[]>();
+	private static final Map<Object,Object[]>			host_or_address_map 	= new HashMap<Object, Object[]>();
 	
 	private static final Object	RESULT_NULL = new Object();
 	

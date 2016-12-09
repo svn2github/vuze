@@ -37,9 +37,9 @@ public class
 CacheFileWithoutCache
 	implements CacheFile
 {
-	protected CacheFileManagerImpl		manager;
-	protected FMFile					file;
-	protected TOTorrentFile				torrent_file;
+	protected final CacheFileManagerImpl		manager;
+	protected final FMFile					file;
+	protected final TOTorrentFile				torrent_file;
 
 	private long	bytes_written;
 	private long	bytes_read;

@@ -28,7 +28,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 
 public class BTSuggestPiece implements BTMessage {
   private DirectByteBuffer buffer = null;
-  private byte	version;
+  private final byte	version;
   private String description = null;
   
   private final int piece_number;

@@ -26,7 +26,7 @@ public class
 TransportHelperFilterInserter 
 	implements TransportHelperFilter
 {
-	private TransportHelperFilter	target_filter;
+	private final TransportHelperFilter	target_filter;
 		
 	private ByteBuffer	read_insert;
 	

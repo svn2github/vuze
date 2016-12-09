@@ -47,11 +47,11 @@ AEProxySelectorImpl
 	
 	private static final String NL = "\r\n";
 
-	private static AEProxySelectorImpl		singleton = new AEProxySelectorImpl();
+	private static final AEProxySelectorImpl		singleton = new AEProxySelectorImpl();
 	
-	private static List<Proxy>		no_proxy_list = Arrays.asList( new Proxy[]{ Proxy.NO_PROXY });
+	private static final List<Proxy>		no_proxy_list = Arrays.asList( new Proxy[]{ Proxy.NO_PROXY });
 
-	private static ThreadLocal<Integer>		tls	= 
+	private static final ThreadLocal<Integer>		tls	=
 		new ThreadLocal<Integer>()
 		{
 			public Integer
@@ -72,7 +72,7 @@ AEProxySelectorImpl
 	private volatile ActiveProxy		active_proxy;			
 	private volatile List<String>		alt_dns_servers	= new ArrayList<String>();
 	
-	private CopyOnWriteMap<String,List<Proxy>>	explicit_proxy_map = new CopyOnWriteMap<String, List<Proxy>>();	
+	private final CopyOnWriteMap<String,List<Proxy>>	explicit_proxy_map = new CopyOnWriteMap<String, List<Proxy>>();
 	
 	private
 	AEProxySelectorImpl()
@@ -607,7 +607,7 @@ AEProxySelectorImpl
 		private Boolean				alt_dns_enable;
 		
 		private List<String>		alt_dns_to_try;
-		private Map<String,Long>	alt_dns_tried		= new HashMap<String,Long>();
+		private final Map<String,Long>	alt_dns_tried		= new HashMap<String,Long>();
 		
 		private long				default_dns_tried_time	= -1;
 		

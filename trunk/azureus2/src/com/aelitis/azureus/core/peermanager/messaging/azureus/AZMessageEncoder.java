@@ -39,7 +39,7 @@ implements
 	public static final int PADDING_MODE_NORMAL			= 1;
 	public static final int PADDING_MODE_MINIMAL		= 2;
 	
-	private int padding_mode;
+	private final int padding_mode;
 
 	public 
 	AZMessageEncoder( 

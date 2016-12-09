@@ -40,7 +40,7 @@ FeatureAvailability
 	private static final long	FT_DISABLE_GAMES					= 0x0000000000000400;
 	private static final long	FT_DISABLE_MAGNET_MD				= 0x0000000000000800;
 	
-	private static VersionCheckClient vcc = VersionCheckClient.getSingleton();
+	private static final VersionCheckClient vcc = VersionCheckClient.getSingleton();
 	
 	/*
 	public static final boolean 

@@ -91,7 +91,7 @@ HTTPNetworkConnection
 	private static final int	DEAD_CONNECTION_TIMEOUT_PERIOD	= 30*1000;
 	private static final int	MAX_CON_PER_ENDPOINT			= 5*1000;
 
-	private static Map<networkConnectionKey,List<HTTPNetworkConnection>>	http_connection_map = new HashMap<networkConnectionKey,List<HTTPNetworkConnection>>();
+	static final Map<networkConnectionKey,List<HTTPNetworkConnection>>	http_connection_map = new HashMap<networkConnectionKey,List<HTTPNetworkConnection>>();
 	
 	static{
 		SimpleTimer.addPeriodicEvent(
@@ -206,33 +206,33 @@ HTTPNetworkConnection
 		return( some_closed );
 	}
 	
-	private HTTPNetworkManager	manager;
-	private NetworkConnection	connection;
-	private PEPeerTransport		peer;
+	private final HTTPNetworkManager	manager;
+	private final NetworkConnection	connection;
+	private final PEPeerTransport		peer;
 	
-	private HTTPMessageDecoder	decoder;
-	private HTTPMessageEncoder	encoder;
+	private final HTTPMessageDecoder	decoder;
+	private final HTTPMessageEncoder	encoder;
 	
 	private boolean			sent_handshake	= false;
 	
-	private byte[]	peer_id	= PeerUtils.createWebSeedPeerID();
+	private final byte[]	peer_id	= PeerUtils.createWebSeedPeerID();
 
 	private boolean	choked	= true;
 	
-	private List<httpRequest>		http_requests			= new ArrayList<httpRequest>();
-	private List<BTRequest>			choked_requests 		= new ArrayList<BTRequest>();
-	private List<pendingRequest>	outstanding_requests 	= new ArrayList<pendingRequest>();
+	private final List<httpRequest>		http_requests			= new ArrayList<httpRequest>();
+	private final List<BTRequest>			choked_requests 		= new ArrayList<BTRequest>();
+	private final List<pendingRequest>	outstanding_requests 	= new ArrayList<pendingRequest>();
 	
-	private BitSet	piece_map	= new BitSet();
+	private final BitSet	piece_map	= new BitSet();
 	
 	private long	last_http_activity_time;
 	
-	private networkConnectionKey	network_connection_key;
+	private final networkConnectionKey	network_connection_key;
 	
 	private boolean	closing;
 	private boolean	destroyed;
 		
-	private String	last_modified_date;
+	private final String	last_modified_date;
 	private String	content_type	= DEFAULT_CONTENT_TYPE;
 	
 	private CopyOnWriteList<requestListener>	request_listeners = null;
@@ -1151,11 +1151,11 @@ HTTPNetworkConnection
 	private static class
 	pendingRequest
 	{
-		private int	piece;
-		private int	start;
-		private int	length;
+		private final int	piece;
+		private final int	start;
+		private final int	length;
 				
-		private httpRequest	http_request;
+		private final httpRequest	http_request;
 		
 		private BTPiece	bt_piece;
 				

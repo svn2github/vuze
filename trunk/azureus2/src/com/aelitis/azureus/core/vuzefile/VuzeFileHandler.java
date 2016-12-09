@@ -41,7 +41,7 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 public class 
 VuzeFileHandler 
 {
-	private static VuzeFileHandler singleton = new VuzeFileHandler();
+	private static final VuzeFileHandler singleton = new VuzeFileHandler();
 	
 	public static VuzeFileHandler
 	getSingleton()
@@ -49,7 +49,7 @@ VuzeFileHandler
 		return( singleton );
 	}
 	
-	private CopyOnWriteList<VuzeFileProcessor>	processors = new CopyOnWriteList<VuzeFileProcessor>();
+	private final CopyOnWriteList<VuzeFileProcessor>	processors = new CopyOnWriteList<VuzeFileProcessor>();
 	
 	
 	protected

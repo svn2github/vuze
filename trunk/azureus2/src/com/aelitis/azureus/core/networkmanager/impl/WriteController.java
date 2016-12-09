@@ -72,8 +72,8 @@ public class WriteController implements AzureusCoreStatsProvider{
   private long	booster_process_time;;
   private int	booster_normal_written;
   private int	booster_stat_index;
-  private int[]	booster_normal_writes 	= new int[5];
-  private int[]	booster_gifts 			= new int[5];
+  private final int[]	booster_normal_writes 	= new int[5];
+  private final int[]	booster_gifts 			= new int[5];
   
   private int aggressive_np_normal_priority_count;
   private int aggressive_np_high_priority_count;
@@ -83,7 +83,7 @@ public class WriteController implements AzureusCoreStatsProvider{
   private long	progress_count;
   private long	non_progress_count;
   
-  private EventWaiter 	write_waiter = new EventWaiter();
+  private final EventWaiter 	write_waiter = new EventWaiter();
   
   private NetworkManager	net_man;
   

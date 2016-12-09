@@ -44,10 +44,10 @@ public class
 TagPropertyTrackerHandler 
 	implements TagFeatureProperties.TagPropertyListener
 {
-	private AzureusCore		azureus_core;
-	private TagManagerImpl	tag_manager;
+	private final AzureusCore		azureus_core;
+	final TagManagerImpl	tag_manager;
 	
-	private Map<String,List<Tag>>	tracker_host_map = new HashMap<String,List<Tag>>();
+	private final Map<String,List<Tag>>	tracker_host_map = new HashMap<String,List<Tag>>();
 	
 	protected
 	TagPropertyTrackerHandler(

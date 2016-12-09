@@ -117,7 +117,7 @@ implements PiecePicker
 	private static final int	NO_REQUEST_BACKOFF_MAX_MILLIS	= 5*1000;
 	private static final int	NO_REQUEST_BACKOFF_MAX_LOOPS	= NO_REQUEST_BACKOFF_MAX_MILLIS / PeerControlScheduler.SCHEDULE_PERIOD_MILLIS;
 
-	private static Random 	random = new Random();
+	static final Random 	random = new Random();
 
 	private final DiskManager			diskManager;
 	private final PEPeerControl			peerControl;
@@ -131,7 +131,7 @@ implements PiecePicker
 	protected final DiskManagerPiece[]	dmPieces;
 	protected final PEPiece[]			pePieces;
 
-	private List<PEPiece>	rarestStartedPieces; //List of pieces started as rarest first
+	private final List<PEPiece>	rarestStartedPieces; //List of pieces started as rarest first
 
 	protected final AEMonitor availabilityMon = new AEMonitor("PiecePicker:avail");
 	private final AEMonitor endGameModeChunks_mon =new AEMonitor("PiecePicker:EGM");
@@ -194,9 +194,9 @@ implements PiecePicker
 	private List 				endGameModeChunks;
 
 	private long				lastProviderRecalcTime;
-	private CopyOnWriteList		rta_providers = new CopyOnWriteList();
+	private final CopyOnWriteList		rta_providers = new CopyOnWriteList();
 	private long[]				provider_piece_rtas;
-	private CopyOnWriteList		priority_providers = new CopyOnWriteList();
+	private final CopyOnWriteList		priority_providers = new CopyOnWriteList();
 	private long[]				provider_piece_priorities;
 
 	private int					allocate_request_loop_count;
@@ -210,7 +210,7 @@ implements PiecePicker
 	private static boolean		enable_request_hints;
 	private static boolean		includeLanPeersInReqLimiting;
 	
-	private CopyOnWriteList		listeners = new CopyOnWriteList();
+	private final CopyOnWriteList		listeners = new CopyOnWriteList();
 
 	private volatile float[]	fileAvailabilities;
 	private volatile long		fileAvailabilitiesCalcTime;
@@ -3247,7 +3247,7 @@ implements PiecePicker
 	protected static class
 	RealTimeData
 	{
-		private List[]	peer_requests;
+		private final List[]	peer_requests;
 
 		protected
 		RealTimeData(
@@ -3272,8 +3272,8 @@ implements PiecePicker
 	private static class
 	RealTimePeerRequest
 	{
-		private PEPeerTransport			peer;
-		private DiskManagerReadRequest	request;
+		private final PEPeerTransport			peer;
+		private final DiskManagerReadRequest	request;
 
 		protected
 		RealTimePeerRequest(

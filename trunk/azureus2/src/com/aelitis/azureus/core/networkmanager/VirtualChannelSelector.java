@@ -47,7 +47,7 @@ public class VirtualChannelSelector {
   
   private static final int MAX_SAFEMODE_SELECTORS = 20000 / MAX_CHANNELS_PER_SAFE_SELECTOR;
   
-  private String		name;
+  private final String		name;
 
   private VirtualChannelSelectorImpl selector_impl;
   

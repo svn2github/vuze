@@ -56,8 +56,8 @@ public class
 DHTNATPuncherImpl
 	implements DHTNATPuncher
 {
-	private static boolean		TESTING	= false;
-	private static boolean		TRACE	= false;
+	private static final boolean		TESTING	= false;
+	private static final boolean		TRACE	= false;
 	
 	static{
 		if ( TESTING ){
@@ -86,18 +86,18 @@ DHTNATPuncherImpl
 	private static final int	RESP_NOT_OK		= 1;
 	private static final int	RESP_FAILED		= 2;
 	
-	private static byte[]		transfer_handler_key = new SHA1Simple().calculateHash("Aelitis:NATPuncher:TransferHandlerKey".getBytes());
+	private static final byte[]		transfer_handler_key = new SHA1Simple().calculateHash("Aelitis:NATPuncher:TransferHandlerKey".getBytes());
 	
 	private boolean				started;
 	
-	private DHTNATPuncherAdapter	adapter;
-	private	DHT						dht;
-	private DHTLogger				logger;
-	private boolean					is_secondary;
+	private final DHTNATPuncherAdapter	adapter;
+	private final DHT						dht;
+	private final DHTLogger				logger;
+	private final boolean					is_secondary;
 	
-	private PluginInterface		plugin_interface;
-	private Formatters			formatters;
-	private UTTimer				timer;
+	private final PluginInterface		plugin_interface;
+	private final Formatters			formatters;
+	private final UTTimer				timer;
 	
 	private static final int	REPUBLISH_TIME_MIN 			= 5*60*1000;
 	private static final int	TRANSFER_TIMEOUT			= 30*1000;
@@ -109,16 +109,16 @@ DHTNATPuncherImpl
 	private static final int	RENDEZVOUS_CLIENT_PING_PERIOD	= 50*1000;		// some routers only hold tunnel for 60s
 	private static final int	RENDEZVOUS_PING_FAIL_LIMIT		= 4;			// if you make this < 2 change code below!
 	
-	private Monitor						server_mon;
-	private Map<String,BindingData> 	rendezvous_bindings = new HashMap<String,BindingData>();
+	final Monitor						server_mon;
+	final Map<String,BindingData> 	rendezvous_bindings = new HashMap<String,BindingData>();
 	
-	private CopyOnWriteList<DHTNATPuncherImpl>		secondaries	 = new CopyOnWriteList<DHTNATPuncherImpl>();
+	final CopyOnWriteList<DHTNATPuncherImpl>		secondaries	 = new CopyOnWriteList<DHTNATPuncherImpl>();
 	
 	private boolean	force_active;
 	
 	private long	last_publish;
 	
-	private Monitor	pub_mon;
+	final Monitor	pub_mon;
 	private boolean	publish_in_progress;
 	
 	private volatile DHTTransportContact		rendezvous_local_contact;
@@ -134,7 +134,7 @@ DHTNATPuncherImpl
 	
 	private static final int FAILED_RENDEZVOUS_HISTORY_MAX	= 16;
 	
-	private Map		failed_rendezvous	= 
+	private final Map		failed_rendezvous	=
 		new LinkedHashMap(FAILED_RENDEZVOUS_HISTORY_MAX,0.75f,true)
 		{
 			protected boolean 
@@ -147,10 +147,10 @@ DHTNATPuncherImpl
 	
 	private boolean	rendezvous_running;
 	
-	private Map		explicit_rendezvous_map		= new HashMap();
+	private final Map		explicit_rendezvous_map		= new HashMap();
 	
-	private Monitor	punch_mon;
-	private List	oustanding_punches 	= new ArrayList();
+	private final Monitor	punch_mon;
+	private final List	oustanding_punches 	= new ArrayList();
 	
 	
 	private DHTTransportContact		current_local		= null;
@@ -162,7 +162,7 @@ DHTNATPuncherImpl
 	private volatile byte[]							last_publish_key;
 	private volatile List<DHTTransportContact>		last_write_set;
 	
-	private CopyOnWriteList<DHTNATPuncherListener>		listeners = new CopyOnWriteList<DHTNATPuncherListener>();
+	private final CopyOnWriteList<DHTNATPuncherListener>		listeners = new CopyOnWriteList<DHTNATPuncherListener>();
 	
 	private boolean	suspended;
 	
@@ -893,7 +893,7 @@ DHTNATPuncherImpl
   									DHT.FLAG_SINGLE_VALUE,
   									new DHTOperationListener()
   									{
-  										private List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
+  										private final List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
   										
   										public void
   										searching(
@@ -965,7 +965,7 @@ DHTNATPuncherImpl
 							DHT.FLAG_SINGLE_VALUE,
 							new DHTOperationListener()
 							{
-								private List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
+								private final List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
 
 								public void
 								searching(
@@ -2265,7 +2265,7 @@ DHTNATPuncherImpl
 		}
 	}
 	
-	private Map<String,Object[]>	rendezvous_lookup_cache				= new HashMap<String, Object[]>();
+	final Map<String,Object[]>	rendezvous_lookup_cache				= new HashMap<String, Object[]>();
 	private long					rendezvous_lookup_cache_tidy_time	= -1;
 	
 	protected DHTTransportContact
@@ -2672,7 +2672,7 @@ DHTNATPuncherImpl
 	private static class
 	BindingData
 	{
-		private DHTTransportUDPContact		contact;
+		private final DHTTransportUDPContact		contact;
 		private long						bind_time;
 		
 		private int			ok_count;

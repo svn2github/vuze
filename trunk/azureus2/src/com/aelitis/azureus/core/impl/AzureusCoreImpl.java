@@ -124,7 +124,7 @@ AzureusCoreImpl
 {
 	private final static LogIDs LOGID = LogIDs.CORE;
 	protected static AzureusCore		singleton;
-	protected static AEMonitor			class_mon	= new AEMonitor( "AzureusCore:class" );
+	protected static final AEMonitor			class_mon	= new AEMonitor( "AzureusCore:class" );
 	
 	private static final String DM_ANNOUNCE_KEY	= "AzureusCore:announce_key";
 	
@@ -141,7 +141,7 @@ AzureusCoreImpl
 	 */
 	static List<AzureusCoreRunningListener> coreRunningListeners = new ArrayList<AzureusCoreRunningListener>(1);
 	
-	static AEMonitor mon_coreRunningListeners = new AEMonitor("CoreCreationListeners");
+	static final AEMonitor mon_coreRunningListeners = new AEMonitor("CoreCreationListeners");
 	
 	public static AzureusCore
 	create()
@@ -191,12 +191,12 @@ AzureusCoreImpl
 		return( singleton );
 	}	
 
-	private PluginInitializer 	pi;
+	final PluginInitializer 	pi;
 	private GlobalManager		global_manager;
-	private AZInstanceManager	instance_manager;
+	private final AZInstanceManager	instance_manager;
 	private SpeedManager		speed_manager;
-	private CryptoManager		crypto_manager;
-	private NATTraverser		nat_traverser;
+	private final CryptoManager		crypto_manager;
+	private final NATTraverser		nat_traverser;
 	
 	private final long create_time;
 
@@ -205,17 +205,17 @@ AzureusCoreImpl
 	private volatile boolean				stopped;
 	private volatile boolean				restarting;
 	
-	private CopyOnWriteList		listeners				= new CopyOnWriteList();
-	private CopyOnWriteList		lifecycle_listeners		= new CopyOnWriteList();
-	private List				operation_listeners		= new ArrayList();
+	private final CopyOnWriteList		listeners				= new CopyOnWriteList();
+	final CopyOnWriteList		lifecycle_listeners		= new CopyOnWriteList();
+	private final List				operation_listeners		= new ArrayList();
 	
-	private CopyOnWriteList<PowerManagementListener>	power_listeners = new CopyOnWriteList<PowerManagementListener>();
+	private final CopyOnWriteList<PowerManagementListener>	power_listeners = new CopyOnWriteList<PowerManagementListener>();
 	
-	private AESemaphore			stopping_sem	= new AESemaphore( "AzureusCore::stopping" );
+	final AESemaphore			stopping_sem	= new AESemaphore( "AzureusCore::stopping" );
 	
-	private AEMonitor			this_mon		= new AEMonitor( "AzureusCore" );
+	private final AEMonitor			this_mon		= new AEMonitor( "AzureusCore" );
 
-	private AzureusCoreOperation	initialisation_op = createOperation( AzureusCoreOperation.OP_INITIALISATION );
+	final AzureusCoreOperation	initialisation_op = createOperation( AzureusCoreOperation.OP_INITIALISATION );
 	
 	public static boolean SUPPRESS_CLASSLOADER_ERRORS = true;
 	
@@ -346,7 +346,7 @@ AzureusCoreImpl
 						return(
 							new VCPublicAddress()
 							{
-								private VersionCheckClient vcc = VersionCheckClient.getSingleton();
+								private final VersionCheckClient vcc = VersionCheckClient.getSingleton();
 								
 								public String
 								getAddress()

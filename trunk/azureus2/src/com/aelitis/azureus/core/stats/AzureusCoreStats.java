@@ -293,8 +293,8 @@ AzureusCoreStats
 	private static boolean 	enable_averages;
 	private static Timer	average_timer;
 	
-	private static CopyOnWriteList provider_listeners = new CopyOnWriteList();
-	private static CopyOnWriteList derived_generators = new CopyOnWriteList();
+	private static final CopyOnWriteList provider_listeners = new CopyOnWriteList();
+	private static final CopyOnWriteList derived_generators = new CopyOnWriteList();
 	
 	public static void
 	addStatsDefinitions(
@@ -555,7 +555,7 @@ AzureusCoreStats
 					AVERAGE_PERIOD,
 					new TimerEventPerformer()
 					{
-						private Map	ave = averages;
+						private final Map	ave = averages;
 
 						public void
 						perform(

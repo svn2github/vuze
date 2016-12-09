@@ -57,7 +57,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private volatile boolean destroyed = false;
   private volatile boolean is_paused = false;
   
-  private ArrayList messages_last_read = new ArrayList();
+  private final ArrayList messages_last_read = new ArrayList();
   private int protocol_bytes_last_read = 0;
   private int data_bytes_last_read = 0; 
   private int percent_complete = -1;

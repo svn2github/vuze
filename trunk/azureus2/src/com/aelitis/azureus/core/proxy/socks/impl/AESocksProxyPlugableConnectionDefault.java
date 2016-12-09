@@ -46,10 +46,10 @@ public class
 AESocksProxyPlugableConnectionDefault
 	implements AESocksProxyPlugableConnection
 {
-	protected AESocksProxyConnection	socks_connection;
-	protected AEProxyConnection			connection;
+	protected final AESocksProxyConnection	socks_connection;
+	protected final AEProxyConnection			connection;
 	
-	protected SocketChannel		source_channel;
+	protected final SocketChannel		source_channel;
 	protected SocketChannel		target_channel;
 
 	protected proxyStateRelayData	relay_data_state;
@@ -151,7 +151,7 @@ AESocksProxyPlugableConnectionDefault
 	proxyStateRelayConnect
 		extends AESocksProxyState
 	{
-		protected InetSocketAddress	address;
+		protected final InetSocketAddress	address;
 		
 		protected
 		proxyStateRelayConnect(

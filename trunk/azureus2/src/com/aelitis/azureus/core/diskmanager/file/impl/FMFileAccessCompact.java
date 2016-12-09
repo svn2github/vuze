@@ -37,15 +37,15 @@ FMFileAccessCompact
 {
 	private final static byte SS = DirectByteBuffer.SS_FILE;
 
-	private TOTorrentFile		torrent_file;
+	private final TOTorrentFile		torrent_file;
 	private int					piece_size;
 	
-	private File				controlFileDir;
-	private String				controlFileName;
-	private FMFileAccess		delegate;
+	private final File				controlFileDir;
+	private final String				controlFileName;
+	private final FMFileAccess		delegate;
 	
 	private volatile long		current_length;
-	private long				version				= 0;
+	private static final long				version				= 0;
 	
 	private volatile boolean	write_required;
 	

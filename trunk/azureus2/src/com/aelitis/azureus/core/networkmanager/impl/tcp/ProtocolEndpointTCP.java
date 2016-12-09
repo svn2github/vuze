@@ -66,7 +66,7 @@ ProtocolEndpointTCP
 	}
 	
 	private ConnectionEndpoint		ce;
-	private InetSocketAddress		address;
+	private final InetSocketAddress		address;
 	
 	private
 	ProtocolEndpointTCP(

@@ -113,7 +113,7 @@ public class NetworkAdminSpeedTesterBTImpl
     }
 
     
-    private PluginInterface plugin;
+    private final PluginInterface plugin;
 
      
     private boolean	test_started;
@@ -389,11 +389,11 @@ public class NetworkAdminSpeedTesterBTImpl
     private class TorrentSpeedTestMonitorThread
         extends Thread
     {
-        List historyDownloadSpeed = new LinkedList();  //<Long>
-        List historyUploadSpeed = new LinkedList();    //<Long>
-        List timestamps = new LinkedList();            //<Long>
+        final List historyDownloadSpeed = new LinkedList();  //<Long>
+        final List historyUploadSpeed = new LinkedList();    //<Long>
+        final List timestamps = new LinkedList();            //<Long>
 
-        Download testDownload;
+        final Download testDownload;
  
         public static final long MAX_TEST_TIME = 2*60*1000; //Limit test to 2 minutes.
         public static final long MAX_PEAK_TIME = 30 * 1000; //Limit to 30 seconds at peak.
@@ -784,7 +784,7 @@ public class NetworkAdminSpeedTesterBTImpl
 
     class BitTorrentResult implements NetworkAdminSpeedTesterResult{
 
-        long time;
+        final long time;
         int downspeed;
         int upspeed;
         boolean hadError = false;

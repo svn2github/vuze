@@ -25,7 +25,7 @@ import java.util.*;
 public class 
 AzureusContentDirectoryManager 
 {
-	private static List	directories = new ArrayList();
+	private static final List	directories = new ArrayList();
 	
 	public static void
 	registerDirectory(

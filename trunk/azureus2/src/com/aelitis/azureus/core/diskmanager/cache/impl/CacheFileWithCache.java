@@ -48,7 +48,7 @@ CacheFileWithCache
   private static final byte SS_CACHE = DirectByteBuffer.SS_CACHE;
   private static final LogIDs LOGID = LogIDs.CACHE;
 
-  protected static Comparator comparator = new
+  protected static final Comparator comparator = new
 		Comparator()
 		{
 			public int 
@@ -99,8 +99,8 @@ CacheFileWithCache
 	
 	protected final static int		READAHEAD_HISTORY	= 32;
 	
-	protected CacheFileManagerImpl		manager;
-	protected FMFile					file;
+	protected final CacheFileManagerImpl		manager;
+	protected final FMFile					file;
 	protected int						access_mode	= CF_READ;
 	protected TOTorrentFile				torrent_file;
 	protected TOTorrent      			torrent;
@@ -109,7 +109,7 @@ CacheFileWithCache
 	protected long[]					read_history; // lazy allocation
 	protected int						read_history_next	= 0;
 	
-	protected TreeSet					cache			= new TreeSet(comparator);
+	protected final TreeSet					cache			= new TreeSet(comparator);
 			
 	protected int 	current_read_ahead_size				= 0;
 	
@@ -117,8 +117,8 @@ CacheFileWithCache
 	
 	protected int		read_ahead_stats_wait	= READ_AHEAD_STATS_WAIT_TICKS;
 	
-	protected Average	read_ahead_made_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 5);
-	protected Average	read_ahead_used_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 5);
+	protected final Average	read_ahead_made_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 5);
+	protected final Average	read_ahead_used_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 5);
 	
 	protected long		read_ahead_bytes_made;
 	protected long		last_read_ahead_bytes_made;
@@ -128,7 +128,7 @@ CacheFileWithCache
 	protected int piece_size						= 0;
 	protected int piece_offset						= 0;
 		
-	protected AEMonitor				this_mon		= new AEMonitor( "CacheFile" );
+	protected final AEMonitor				this_mon		= new AEMonitor( "CacheFile" );
 	
 	protected volatile CacheFileManagerException	pending_exception;
 	

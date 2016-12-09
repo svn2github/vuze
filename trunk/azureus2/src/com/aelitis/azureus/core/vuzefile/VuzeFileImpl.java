@@ -29,7 +29,7 @@ public class
 VuzeFileImpl
 	implements VuzeFile
 {
-	private VuzeFileHandler			handler;
+	private final VuzeFileHandler			handler;
 	private VuzeFileComponent[]		components;
 	
 	protected
@@ -170,8 +170,8 @@ VuzeFileImpl
 	comp
 		implements VuzeFileComponent
 	{
-		private int			type;
-		private Map			contents;
+		private final int			type;
+		private final Map			contents;
 		private boolean		processed;
 		
 		private Map			user_data;

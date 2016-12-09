@@ -105,7 +105,7 @@ public class VirtualChannelSelectorImpl {
 	
 	private static final int SELECTOR_TIMEOUT	= 15*1000;
 	
-	private static AESemaphore get_selector_allowed = new AESemaphore( "getSelectorAllowed", 1 );
+	static final AESemaphore get_selector_allowed = new AESemaphore( "getSelectorAllowed", 1 );
 	
 	private static class
 	SelectorTimeoutException

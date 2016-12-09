@@ -27,7 +27,7 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
  */
 public class LTDisabledExtensionMessage implements LTMessage {
 	
-	public static LTDisabledExtensionMessage INSTANCE = new LTDisabledExtensionMessage();
+	public static final LTDisabledExtensionMessage INSTANCE = new LTDisabledExtensionMessage();
 
 	private LTDisabledExtensionMessage() {}
 

@@ -79,9 +79,9 @@ public class IncomingSocketChannelManager
   private VirtualServerChannelSelector[] serverSelectors = new VirtualServerChannelSelector[0];
   private int listenFailCounts[] = new int[0];
   
-  private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
+  final IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
   
-  protected AEMonitor	this_mon	= new AEMonitor( "IncomingSocketChannelManager" );
+  protected final AEMonitor	this_mon	= new AEMonitor( "IncomingSocketChannelManager" );
 
   private long	last_non_local_connection_time;
   

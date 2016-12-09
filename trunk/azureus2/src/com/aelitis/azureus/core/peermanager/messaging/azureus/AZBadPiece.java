@@ -36,7 +36,7 @@ AZBadPiece
 	private final byte version;
 	private DirectByteBuffer buffer = null;
 
-	private int		piece_number;
+	private final int		piece_number;
 	
 	public 
 	AZBadPiece(

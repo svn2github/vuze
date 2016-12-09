@@ -27,7 +27,7 @@ public class
 TransportHelperFilterStreamXOR
 	extends TransportHelperFilterStream
 {
-	private byte[]		mask;
+	private final byte[]		mask;
 	private int			read_position;
 	private int			write_position;
 	

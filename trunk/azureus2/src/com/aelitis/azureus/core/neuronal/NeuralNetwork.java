@@ -19,9 +19,9 @@ package com.aelitis.azureus.core.neuronal;
 
 public class NeuralNetwork {
 
-	NeuralNetworkLayer inputLayer;
-	NeuralNetworkLayer hiddenLayer;
-	NeuralNetworkLayer outputLayer;
+	final NeuralNetworkLayer inputLayer;
+	final NeuralNetworkLayer hiddenLayer;
+	final NeuralNetworkLayer outputLayer;
 	
 	public NeuralNetwork(int nbInputNodes, int nbHiddenNodes, int nbOutputNodes) {
 		inputLayer = new NeuralNetworkLayer(nbInputNodes);

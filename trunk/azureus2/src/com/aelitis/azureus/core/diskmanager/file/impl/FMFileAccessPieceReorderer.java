@@ -88,10 +88,10 @@ FMFileAccessPieceReorderer
 	
 	private static final long	DIRT_FLUSH_MILLIS		= 30*1000;
 	
-	private FMFileAccess	delegate;
-	private File			control_dir;
-	private String			control_file;
-	private int				storage_type;
+	private final FMFileAccess	delegate;
+	private final File			control_dir;
+	private final String			control_file;
+	private final int				storage_type;
 	
 	private int			piece_size;
 	

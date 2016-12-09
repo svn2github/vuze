@@ -23,7 +23,7 @@ import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderA
 
 public class SMInstance {
 
-    private static SMInstance instance = new SMInstance();
+    private static final SMInstance instance = new SMInstance();
 
     private static SpeedManagerAlgorithmProviderAdapter adapter;
     private static SMConfigurationAdapter conf;

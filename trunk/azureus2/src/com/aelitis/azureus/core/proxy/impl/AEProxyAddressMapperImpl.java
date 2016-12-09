@@ -44,7 +44,7 @@ public class
 AEProxyAddressMapperImpl
 	implements AEProxyAddressMapper
 {
-	protected static AEProxyAddressMapper	singleton = new AEProxyAddressMapperImpl();
+	protected static final AEProxyAddressMapper	singleton = new AEProxyAddressMapperImpl();
 	
 	public static AEProxyAddressMapper
 	getSingleton()
@@ -57,12 +57,12 @@ AEProxyAddressMapperImpl
 	protected String	prefix;
 	protected long		next_value;
 	
-	protected Map<String,String>		map			= new HashMap<String,String>();
-	protected Map<String,String>		reverse_map	= new HashMap<String,String>();
+	protected final Map<String,String>		map			= new HashMap<String,String>();
+	protected final Map<String,String>		reverse_map	= new HashMap<String,String>();
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "AEProxyAddressMapper" );
+	protected final AEMonitor	this_mon	= new AEMonitor( "AEProxyAddressMapper" );
 		
-	private Map<Integer,PortMappingImpl>	port_mappings = new HashMap<Integer,PortMappingImpl>();
+	final Map<Integer,PortMappingImpl>	port_mappings = new HashMap<Integer,PortMappingImpl>();
 	
 	protected
 	AEProxyAddressMapperImpl()
@@ -340,9 +340,9 @@ AEProxyAddressMapperImpl
 	PortMappingImpl
 		implements PortMapping
 	{
-		private String				ip;
-		private int					port;
-		private Map<String,Object>	properties;
+		private final String				ip;
+		private final int					port;
+		private final Map<String,Object>	properties;
 		
 		private
 		PortMappingImpl(

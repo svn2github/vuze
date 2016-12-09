@@ -47,11 +47,11 @@ LWSPeerManagerAdapter
 	extends 	LogRelation
 	implements 	PEPeerManagerAdapter
 {	
-	private LightWeightSeed			lws;
+	private final LightWeightSeed			lws;
 	
-	private PeerManagerRegistration	peer_manager_registration;
+	private final PeerManagerRegistration	peer_manager_registration;
 	
-	private String[]	enabled_networks;
+	private final String[]	enabled_networks;
 	
 	private int	md_info_dict_size;
 	

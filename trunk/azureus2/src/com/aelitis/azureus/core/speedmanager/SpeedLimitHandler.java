@@ -112,9 +112,9 @@ SpeedLimitHandler
 {
 	private static SpeedLimitHandler		singleton;
 	
-	private static Object	RL_TO_BE_REMOVED_LOCK = new Object();
-	private static Object	RLD_TO_BE_REMOVED_KEY = new Object();
-	private static Object	RLU_TO_BE_REMOVED_KEY = new Object();
+	private static final Object	RL_TO_BE_REMOVED_LOCK = new Object();
+	private static final Object	RLD_TO_BE_REMOVED_KEY = new Object();
+	private static final Object	RLU_TO_BE_REMOVED_KEY = new Object();
 	
 	public static SpeedLimitHandler
 	getSingleton(
@@ -146,11 +146,11 @@ SpeedLimitHandler
 	private static final String	NET_IPV4		= "IPv4";
 	private static final String	NET_IPV6		= "IPv6";
 	
-	private AzureusCore			core;
-	private PluginInterface 	plugin_interface;
-	private TorrentAttribute	category_attribute;
+	final AzureusCore			core;
+	final PluginInterface 	plugin_interface;
+	final TorrentAttribute	category_attribute;
 	
-	private LoggerChannel	logger;
+	private final LoggerChannel	logger;
 	
 	private TimerEventPeriodic		schedule_event;
 	private List<ScheduleRule>		current_rules	= new ArrayList<ScheduleRule>();
@@ -161,15 +161,15 @@ SpeedLimitHandler
 	private List<Prioritiser>		current_prioritisers = new ArrayList<Prioritiser>();
 	
 	private Map<String,IPSet>		current_ip_sets 			= new HashMap<String,IPSet>();
-	private Map<String,RateLimiter>	ip_set_rate_limiters_up 	= new HashMap<String,RateLimiter>();
-	private Map<String,RateLimiter>	ip_set_rate_limiters_down 	= new HashMap<String,RateLimiter>();
+	private final Map<String,RateLimiter>	ip_set_rate_limiters_up 	= new HashMap<String,RateLimiter>();
+	private final Map<String,RateLimiter>	ip_set_rate_limiters_down 	= new HashMap<String,RateLimiter>();
 	private TimerEventPeriodic		ip_set_event;
 
 	private boolean					net_limit_listener_added;
 	
 	private Map<Integer,List<NetLimit>>		net_limits	= new HashMap<Integer,List<NetLimit>>();
 	
-	private List<String> predefined_profile_names = new ArrayList<String>();
+	private final List<String> predefined_profile_names = new ArrayList<String>();
 	
 	{
 		predefined_profile_names.add( "null" );
@@ -182,7 +182,7 @@ SpeedLimitHandler
 	
 	private final IPSetTagType	ip_set_tag_type = TagManagerFactory.getTagManager().isEnabled()?new IPSetTagType():null;
 	
-	private Object extensions_lock = new Object();
+	private final Object extensions_lock = new Object();
 	
 	
 	private
@@ -2068,9 +2068,9 @@ SpeedLimitHandler
 	
 	private DML current_dml;
 	
-	private static Object	ip_set_peer_key = new Object();
+	private static final Object	ip_set_peer_key = new Object();
 
-	private FrequencyLimitedDispatcher check_ip_sets_limiter = new FrequencyLimitedDispatcher(
+	private final FrequencyLimitedDispatcher check_ip_sets_limiter = new FrequencyLimitedDispatcher(
 			new AERunnable() {
 				public void runSupport() {
 					checkIPSetsSupport();
@@ -2253,7 +2253,7 @@ SpeedLimitHandler
 		private final org.gudy.azureus2.plugins.download.DownloadManager		download_manager;
 		private final boolean													has_cats_or_tags;
 		
-		private List<Runnable>	listener_removers = new ArrayList<Runnable>();
+		final List<Runnable>	listener_removers = new ArrayList<Runnable>();
 		
 		private volatile boolean	destroyed;
 		
@@ -3578,7 +3578,7 @@ SpeedLimitHandler
     	String				key,
     	boolean				b )
     {
-    	map.put( key, new Long(b?1:0));
+    	map.put( key, Long.valueOf(b?1:0));
     }
     
     private boolean
@@ -3723,9 +3723,9 @@ SpeedLimitHandler
 	    private int			lan_up_limit;
 	    private int			lan_down_limit;
 	    
-	    private Map<String,int[]>	download_limits = new HashMap<String, int[]>();
-	    private Map<String,int[]>	category_limits = new HashMap<String, int[]>();
-	    private Map<String,int[]>	tag_limits 		= new HashMap<String, int[]>();
+	    private final Map<String,int[]>	download_limits = new HashMap<String, int[]>();
+	    private final Map<String,int[]>	category_limits = new HashMap<String, int[]>();
+	    private final Map<String,int[]>	tag_limits 		= new HashMap<String, int[]>();
 	    
 	    private 
 	    LimitDetails()
@@ -4566,12 +4566,12 @@ SpeedLimitHandler
 		private static final byte	FR_WEEKEND	= ( FR_SAT | FR_SUN );
 		private static final byte	FR_DAILY	= ( FR_WEEKDAY | FR_WEEKEND );
 		
-		private String	profile_name;
-		private byte	frequency;
-		private int		from_mins;
-		private int		to_mins;
+		final String	profile_name;
+		final byte	frequency;
+		final int		from_mins;
+		final int		to_mins;
 		
-		private List<ScheduleRuleExtensions>	extensions;
+		private final List<ScheduleRuleExtensions>	extensions;
 		
 		private 
 		ScheduleRule(
@@ -4941,7 +4941,7 @@ SpeedLimitHandler
 		}
 	}
 	
-	private class
+	class
 	NetLimit
 	{
 		final private String			name;
@@ -5145,8 +5145,8 @@ SpeedLimitHandler
 		private final String		name;
 		
 		private long[][]			ranges 			= new long[0][];
-		private Set<String>			country_codes 	= new HashSet<String>();
-		private Set<String>			networks	 	= new HashSet<String>();
+		private final Set<String>			country_codes 	= new HashSet<String>();
+		private final Set<String>			networks	 	= new HashSet<String>();
 		
 		private boolean	inverse;
 		
@@ -5160,11 +5160,11 @@ SpeedLimitHandler
 		
 		//private Average send_rate		= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 		//private Average receive_rate	= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
-		private Average send_rate		= AverageFactory.MovingImmediateAverage( 10 );
-		private Average receive_rate	= AverageFactory.MovingImmediateAverage( 10 );
+		final Average send_rate		= AverageFactory.MovingImmediateAverage( 10 );
+		final Average receive_rate	= AverageFactory.MovingImmediateAverage( 10 );
 
-		private RateLimiter		up_limiter;
-		private RateLimiter		down_limiter;
+		final RateLimiter		up_limiter;
+		final RateLimiter		down_limiter;
 		
 		private int				peer_up_lim;
 		private int				peer_down_lim;
@@ -5536,12 +5536,12 @@ SpeedLimitHandler
 			extends TagBase
 			implements TagPeer, TagFeatureExecOnAssign
 		{
-			private Object	UPLOAD_PRIORITY_ADDED_KEY = new Object();
+			private final Object	UPLOAD_PRIORITY_ADDED_KEY = new Object();
 			
 			private int upload_priority;
 			
-			private Set<PEPeer>	added_peers 	= new HashSet<PEPeer>();
-			private Set<PEPeer>	pending_peers 	= new HashSet<PEPeer>();
+			private final Set<PEPeer>	added_peers 	= new HashSet<PEPeer>();
+			private final Set<PEPeer>	pending_peers 	= new HashSet<PEPeer>();
 			
 			private 
 			TagPeerImpl(
@@ -5961,11 +5961,11 @@ SpeedLimitHandler
 	private class
 	Prioritiser
 	{
-		private final int		FREQ_DEFAULT	= 5;
-		private final int		MIN_DEFAULT		= 1024;
-		private final int		MAX_DEFAULT		= 100*1024*1024;
-		private final int		PROBE_DEFAULT	= 3;
-		private final int		REST_DEFAULT	= 12;
+		private static final int		FREQ_DEFAULT	= 5;
+		private static final int		MIN_DEFAULT		= 1024;
+		private static final int		MAX_DEFAULT		= 100*1024*1024;
+		private static final int		PROBE_DEFAULT	= 3;
+		private static final int		REST_DEFAULT	= 12;
 		
 		private boolean				is_down;
 		private int					freq			= FREQ_DEFAULT;
@@ -5980,9 +5980,9 @@ SpeedLimitHandler
 		private int	check_ticks		= 1;
 		private int skip_ticks		= 0;
 		
-		private List<Object[]>				temp_states = new ArrayList<Object[]>();
+		private final List<Object[]>				temp_states = new ArrayList<Object[]>();
 		
-		private List<PrioritiserTagState>	tag_states = new ArrayList<PrioritiserTagState>();
+		private final List<PrioritiserTagState>	tag_states = new ArrayList<PrioritiserTagState>();
 		
 		private int					phase 					= 0;
 		private int					phase_0_stable_waits	= 0;
@@ -6000,13 +6000,13 @@ SpeedLimitHandler
 		
 		private int					phase_2_max_detected = 0;
 		
-		private Map<PrioritiserTagState,int[]>		phase_2_limits = new HashMap<PrioritiserTagState, int[]>();
+		private final Map<PrioritiserTagState,int[]>		phase_2_limits = new HashMap<PrioritiserTagState, int[]>();
 		
 		private int					phase_4_tag_state	= 0;
 		
-		private Map<PrioritiserTagState,int[]>		phase_4_limits = new HashMap<PrioritiserTagState, int[]>();
+		private final Map<PrioritiserTagState,int[]>		phase_4_limits = new HashMap<PrioritiserTagState, int[]>();
 		
-		private Set<PrioritiserTagState>	wake_on_active_tags = new HashSet<PrioritiserTagState>();
+		private final Set<PrioritiserTagState>	wake_on_active_tags = new HashSet<PrioritiserTagState>();
 		
 		private
 		Prioritiser()
@@ -7358,7 +7358,7 @@ SpeedLimitHandler
 			
 		}
 		
-		private class
+		class
 		PrioritiserTagState
 		{
 			private static final int STABLE_PERIODS				= 2;

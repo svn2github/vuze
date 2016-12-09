@@ -27,8 +27,8 @@ public class
 TransportHelperFilterTransparent 
 	implements TransportHelperFilter
 {
-	private TransportHelper		transport;
-	private boolean				is_plain;
+	private final TransportHelper		transport;
+	private final boolean				is_plain;
 	
 	private ByteBuffer			read_insert;
 	

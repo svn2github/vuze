@@ -87,18 +87,18 @@ DHTRouterImpl
 	private List<DHTRouterContactImpl>					outstanding_pings	= new ArrayList<DHTRouterContactImpl>();
 	private List<DHTRouterContactImpl>					outstanding_adds	= new ArrayList<DHTRouterContactImpl>();
 	
-	private DHTRouterStatsImpl		stats	= new DHTRouterStatsImpl( this );
+	private final DHTRouterStatsImpl		stats	= new DHTRouterStatsImpl( this );
 	
-	private AEMonitor	this_mon	= new AEMonitor( "DHTRouter" );
+	private final AEMonitor	this_mon	= new AEMonitor( "DHTRouter" );
 
-	private static AEMonitor	class_mon	= new AEMonitor( "DHTRouter:class" );
+	private static final AEMonitor	class_mon	= new AEMonitor( "DHTRouter:class" );
 	
 	private final CopyOnWriteList<DHTRouterObserver>	observers = new CopyOnWriteList<DHTRouterObserver>();
 
 	private boolean	sleeping;
 	private boolean	suspended;
 	
-	private BloomFilter recent_contact_bloom = 
+	private final BloomFilter recent_contact_bloom =
 		BloomFilterFactory.createRotating(
 			BloomFilterFactory.createAddOnly(10*1024),
 			2 );

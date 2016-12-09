@@ -63,7 +63,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
     private int downloadLimitMax = SMConst.START_DOWNLOAD_RATE_MAX;
     private int downloadLimitMin = SMConst.calculateMinDownload( downloadLimitMax );
 
-    private TransferMode transferMode = new TransferMode();
+    private final TransferMode transferMode = new TransferMode();
 
     //Upload and Download bandwidth usage modes. Compare usage to current limit.
     private SaturatedMode uploadBandwidthStatus =SaturatedMode.NONE;
@@ -117,11 +117,11 @@ public class SpeedLimitMonitor implements PSMonitorListener
     boolean useVariancePingMap = false;
     SpeedManagerPingMapper transientPingMap;
 
-    PingSpaceMon longTermMonitor = new PingSpaceMon();
+    final PingSpaceMon longTermMonitor = new PingSpaceMon();
 
-    LimitControl slider = new LimitControlDropUploadFirst();
+    final LimitControl slider = new LimitControlDropUploadFirst();
 
-    SpeedLimitListener persistentMapListener;
+    final SpeedLimitListener persistentMapListener;
 
     public SpeedLimitMonitor(SpeedManager sm){
 

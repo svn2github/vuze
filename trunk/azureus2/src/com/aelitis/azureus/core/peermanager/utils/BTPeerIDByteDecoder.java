@@ -58,7 +58,7 @@ public class BTPeerIDByteDecoder {
 		catch (UnsupportedEncodingException uee) {return "";}
 	}
 	
-	private static HashSet logged_discrepancies = new HashSet();
+	private static final HashSet logged_discrepancies = new HashSet();
 	public static void logClientDiscrepancy(String peer_id_name, String handshake_name, String discrepancy, String protocol, byte[] peer_id) {
 		if (!client_logging_allowed) {return;}
 		
@@ -101,7 +101,7 @@ public class BTPeerIDByteDecoder {
 	static boolean client_logging_allowed = true;
 
 	// I don't expect this to grow too big, and it won't grow if there's no logging going on.
-	private static HashSet logged_ids = new HashSet();
+	private static final HashSet logged_ids = new HashSet();
 	static void logUnknownClient(byte[] peer_id_bytes) {logUnknownClient(peer_id_bytes, true);}
 	static void logUnknownClient(byte[] peer_id_bytes, boolean to_debug_out) {
 		

@@ -36,10 +36,10 @@ AZRequestHint
 	private final byte version;
 	private DirectByteBuffer buffer = null;
 
-	private int		piece_number;
-	private int		offset;
-	private int		length;
-	private int		life;
+	private final int		piece_number;
+	private final int		offset;
+	private final int		length;
+	private final int		life;
 	
 	public 
 	AZRequestHint(

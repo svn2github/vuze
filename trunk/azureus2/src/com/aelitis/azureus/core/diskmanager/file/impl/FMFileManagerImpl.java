@@ -44,7 +44,7 @@ FMFileManagerImpl
 	public static final boolean DEBUG	= false;
 	
 	protected static FMFileManagerImpl	singleton;
-	protected static AEMonitor			class_mon	= new AEMonitor( "FMFileManager:class" );
+	protected static final AEMonitor			class_mon	= new AEMonitor( "FMFileManager:class" );
 	
 	
 	public static FMFileManager
@@ -66,21 +66,21 @@ FMFileManagerImpl
 		}
 	}
 	
-	protected LinkedHashMap		map;
-	protected AEMonitor			map_mon	= new AEMonitor( "FMFileManager:Map");
+	protected final LinkedHashMap		map;
+	protected final AEMonitor			map_mon	= new AEMonitor( "FMFileManager:Map");
 
-	protected HashMap<Object,LinkFileMap>			links		= new HashMap<Object,LinkFileMap>();
-	protected AEMonitor			links_mon	= new AEMonitor( "FMFileManager:Links");
+	protected final HashMap<Object,LinkFileMap>			links		= new HashMap<Object,LinkFileMap>();
+	protected final AEMonitor			links_mon	= new AEMonitor( "FMFileManager:Links");
 
-	protected boolean			limited;
-	protected int				limit_size;
+	protected final boolean			limited;
+	protected final int				limit_size;
 	
 	protected AESemaphore		close_queue_sem;
 	protected List				close_queue;
-	protected AEMonitor			close_queue_mon	= new AEMonitor( "FMFileManager:CQ");
+	protected final AEMonitor			close_queue_mon	= new AEMonitor( "FMFileManager:CQ");
 	
 	protected List				files;
-	protected AEMonitor			files_mon		= new AEMonitor( "FMFileManager:File");
+	protected final AEMonitor			files_mon		= new AEMonitor( "FMFileManager:File");
 	
 	protected 
 	FMFileManagerImpl()

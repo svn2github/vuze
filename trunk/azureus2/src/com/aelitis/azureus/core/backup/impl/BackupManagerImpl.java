@@ -85,9 +85,9 @@ BackupManagerImpl
 		return( singleton );
 	}
 	
-	private AzureusCore			core;
+	private final AzureusCore			core;
 	
-	private AsyncDispatcher		dispatcher = new AsyncDispatcher();
+	private final AsyncDispatcher		dispatcher = new AsyncDispatcher();
 
 	private boolean		first_schedule_check = true;
 	private TimerEvent	backup_event;
@@ -112,7 +112,7 @@ BackupManagerImpl
 			{
 				private COConfigurationListener	save_listener;
 				
-				private Object	lock = this;
+				final Object	lock = this;
 				
 				public void 
 				parameterChanged(

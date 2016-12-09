@@ -31,7 +31,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  */
 public class BTInterested implements BTMessage {
   
-  private byte version;
+  private final byte version;
   
   public BTInterested(byte _version) {
     version = _version;

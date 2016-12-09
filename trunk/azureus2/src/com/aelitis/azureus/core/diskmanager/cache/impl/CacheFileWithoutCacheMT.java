@@ -39,11 +39,11 @@ CacheFileWithoutCacheMT
 	private static int	num_clones;
 	private static int	max_clone_depth;
 	
-	private CacheFileManagerImpl		manager;
-	private FMFile						base_file;
+	private final CacheFileManagerImpl		manager;
+	private final FMFile						base_file;
 	private FMFile[]					files;
 	private int[]						files_use_count;
-	private TOTorrentFile				torrent_file;
+	private final TOTorrentFile				torrent_file;
 	private boolean						moving;
 	
 	private long	bytes_written;

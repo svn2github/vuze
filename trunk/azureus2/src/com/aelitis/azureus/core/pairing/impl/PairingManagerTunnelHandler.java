@@ -83,21 +83,21 @@ PairingManagerTunnelHandler
 	private byte[] 		SRP_SALT;
 	private BigInteger 	SRP_VERIFIER;
 
-	private PairingManagerImpl		manager;
-	private AzureusCore				core;
+	final PairingManagerImpl		manager;
+	private final AzureusCore				core;
 	
 	private boolean	started = false;
 	private boolean	active	= false;
 	
-	private List<DHTNATPuncher>	nat_punchers_ipv4 = new ArrayList<DHTNATPuncher>();
-	private List<DHTNATPuncher>	nat_punchers_ipv6 = new ArrayList<DHTNATPuncher>();
+	private final List<DHTNATPuncher>	nat_punchers_ipv4 = new ArrayList<DHTNATPuncher>();
+	private final List<DHTNATPuncher>	nat_punchers_ipv6 = new ArrayList<DHTNATPuncher>();
 	
 	private int	last_punchers_registered = 0;
 	
 	private TimerEvent	update_event;
 	
 
-	private Map<String,Object[]> local_server_map = 
+	private final Map<String,Object[]> local_server_map =
 		new LinkedHashMap<String,Object[]>( 10, 0.75f, true )
 		{
 			protected boolean 
@@ -118,7 +118,7 @@ PairingManagerTunnelHandler
 	
 	private static final int MAX_TUNNELS	= 10;
 	
-	private Map<String,PairManagerTunnel>	tunnels = new HashMap<String,PairManagerTunnel>();
+	final Map<String,PairManagerTunnel>	tunnels = new HashMap<String,PairManagerTunnel>();
 	
 	private String	init_fail;
 	
@@ -331,7 +331,7 @@ PairingManagerTunnelHandler
 			core.getNATTraverser().registerHandler( 
 				new NATTraversalHandler()
 				{
-					private Map<Long,Object[]> server_map = 
+					private final Map<Long,Object[]> server_map =
 						new LinkedHashMap<Long,Object[]>( 10, 0.75f, true )
 						{
 							protected boolean 

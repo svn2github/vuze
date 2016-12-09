@@ -34,12 +34,12 @@ public class TagDiscovery
 	//public static int DISCOVERY_TYPE_PEER = 2; // Not used, but if we ever get tags from connected peers..
 	
 
-	private String name;
-	private String torrentName;
-	private String network;
-	private byte[] hash;
+	private final String name;
+	private final String torrentName;
+	private final String network;
+	private final byte[] hash;
 	
-	private long timestamp;
+	private final long timestamp;
 	private int discoveryType;
 	
 	public TagDiscovery(String name, String network, String torrentName, byte[] hash) {

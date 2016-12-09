@@ -53,17 +53,17 @@ public class
 DHTUDPPacketHandler 
 	implements DHTUDPPacketHandlerStub
 {
-	private DHTUDPPacketHandlerFactory	factory;
-	private int							network;
+	private final DHTUDPPacketHandlerFactory	factory;
+	final int							network;
 	
-	private PRUDPPacketHandler		packet_handler;
-	private DHTUDPRequestHandler	request_handler;
+	private final PRUDPPacketHandler		packet_handler;
+	private final DHTUDPRequestHandler	request_handler;
 	
-	private DHTUDPPacketHandlerStats	stats;
+	private final DHTUDPPacketHandlerStats	stats;
 	
 	private boolean						test_network_alive	= true;
 
-	private int							BLOOM_FILTER_SIZE		= 10000;
+	private static final int							BLOOM_FILTER_SIZE		= 10000;
 	private static final int			BLOOM_ROTATION_PERIOD	= 3*60*1000; 
 	private BloomFilter					bloom1;
 	private BloomFilter					bloom2;

@@ -31,7 +31,7 @@ import java.util.ArrayList;
 public class SpeedManagerAlgorithmProviderPingMap 
         implements SpeedManagerAlgorithmProvider, COConfigurationListener {
 
-    private SpeedManagerAlgorithmProviderAdapter adapter;
+    private final SpeedManagerAlgorithmProviderAdapter adapter;
 
     private long timeSinceLastUpdate;
 
@@ -39,7 +39,7 @@ public class SpeedManagerAlgorithmProviderPingMap
     private int consecutiveDownticks=0;
 
     //SpeedLimitMonitor
-    private SpeedLimitMonitor limitMonitor;
+    private final SpeedLimitMonitor limitMonitor;
 
     //variables for display and vivaldi.
     //private int lastMetricValue;
@@ -54,7 +54,7 @@ public class SpeedManagerAlgorithmProviderPingMap
     private int intervalCount = 0;
 
     //for managing ping sources.
-    PingSourceManager pingSourceManager = new PingSourceManager();
+    final PingSourceManager pingSourceManager = new PingSourceManager();
     //NOTE:: PingSourceManager is something that should be moved up one level!!!
 
     int sessionMaxUploadRate = 0;

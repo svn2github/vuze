@@ -37,9 +37,9 @@ public class
 DHTTransportLoopbackContactImpl
 	implements DHTTransportContact
 {
-	private DHTTransportLoopbackImpl	transport;
+	private final DHTTransportLoopbackImpl	transport;
 	
-	private byte[]		id;
+	private final byte[]		id;
 	private int			random_id;
 	
 	protected

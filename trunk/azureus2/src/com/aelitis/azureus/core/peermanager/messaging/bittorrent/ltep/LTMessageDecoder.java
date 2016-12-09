@@ -31,7 +31,7 @@ import com.aelitis.azureus.core.util.CopyOnWriteMap;
  */
 public class LTMessageDecoder extends BTMessageDecoder {
 	
-	private static CopyOnWriteMap<Byte,byte[]>	default_entension_handlers = new CopyOnWriteMap<Byte, byte[]>();
+	private static final CopyOnWriteMap<Byte,byte[]>	default_entension_handlers = new CopyOnWriteMap<Byte, byte[]>();
 	
 	public static void
 	addDefaultExtensionHandler(
@@ -48,7 +48,7 @@ public class LTMessageDecoder extends BTMessageDecoder {
 		default_entension_handlers.remove( (byte)id );
 	}
 	
-	private CopyOnWriteMap<Byte,byte[]>	extension_handlers = new CopyOnWriteMap<Byte, byte[]>();
+	private final CopyOnWriteMap<Byte,byte[]>	extension_handlers = new CopyOnWriteMap<Byte, byte[]>();
 	
 	public 
 	LTMessageDecoder() 

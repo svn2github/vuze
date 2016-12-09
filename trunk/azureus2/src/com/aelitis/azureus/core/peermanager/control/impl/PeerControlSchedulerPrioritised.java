@@ -37,12 +37,12 @@ PeerControlSchedulerPrioritised
 {
 	private Map	instance_map = new HashMap();
 	
-	private List	pending_registrations = new ArrayList();
+	final List	pending_registrations = new ArrayList();
 	
 	private volatile boolean	registrations_changed;
 	private volatile long		latest_time;
 	
-	protected AEMonitor	this_mon = new AEMonitor( "PeerControlSchedulerPrioritised" );
+	protected final AEMonitor	this_mon = new AEMonitor( "PeerControlSchedulerPrioritised" );
 	
 	
 	private final SpeedTokenDispenserPrioritised tokenDispenser = new SpeedTokenDispenserPrioritised();
@@ -252,7 +252,7 @@ PeerControlSchedulerPrioritised
 	protected static class
 	instanceWrapper implements Comparable
 	{
-		private PeerControlInstance		instance;
+		private final PeerControlInstance		instance;
 		private boolean					unregistered;
 		
 		private long					offset;

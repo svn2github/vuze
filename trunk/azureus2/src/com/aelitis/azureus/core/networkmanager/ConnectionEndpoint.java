@@ -38,7 +38,7 @@ import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 public class 
 ConnectionEndpoint 
 {
-	private InetSocketAddress	notional_address;
+	private final InetSocketAddress	notional_address;
 	private ProtocolEndpoint[]	protocols;
 	
 	private Map<String,Object>	properties;
@@ -408,7 +408,7 @@ ConnectionEndpoint
 	ConnectListenerEx
 		implements ConnectListener
 	{
-		private ConnectListener		listener;
+		private final ConnectListener		listener;
 		
 		private boolean	ok;
 		private boolean	failed;

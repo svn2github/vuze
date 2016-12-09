@@ -65,25 +65,25 @@ DHTTransferHandler
 	private final long	READ_XFER_REREQUEST_DELAY;
 	private final long	WRITE_REPLY_TIMEOUT;	
 
-	private static boolean	XFER_TRACE	= false;
+	private static final boolean	XFER_TRACE	= false;
 
-	private Map<HashWrapper,transferHandlerInterceptor> transfer_handlers 	= new HashMap<HashWrapper,transferHandlerInterceptor>();
+	private final Map<HashWrapper,transferHandlerInterceptor> transfer_handlers 	= new HashMap<HashWrapper,transferHandlerInterceptor>();
 	
-	private Map<Long,transferQueue>	read_transfers		= new HashMap<Long,transferQueue>();
-	private Map<Long,transferQueue> write_transfers		= new HashMap<Long,transferQueue>();
+	private final Map<Long,transferQueue>	read_transfers		= new HashMap<Long,transferQueue>();
+	private final Map<Long,transferQueue> write_transfers		= new HashMap<Long,transferQueue>();
 	
 	private long	last_xferq_log;
 	
 	private int 	active_write_queue_processor_count;
 	private long	total_bytes_on_transfer_queues;
 	
-	private Map<HashWrapper,Object>	call_transfers		= new HashMap<HashWrapper,Object>();
+	final Map<HashWrapper,Object>	call_transfers		= new HashMap<HashWrapper,Object>();
 
 	private final Adapter			adapter;
 	private final int				max_data;
 	private final DHTLogger			logger;
 	
-	private AEMonitor	this_mon	= new AEMonitor( "DHTTransferHandler" );
+	final AEMonitor	this_mon	= new AEMonitor( "DHTTransferHandler" );
 
 	public
 	DHTTransferHandler(
@@ -1293,14 +1293,14 @@ DHTTransferHandler
 	protected class
 	transferQueue
 	{
-		private Map<Long,transferQueue>			transfers;
+		private final Map<Long,transferQueue>			transfers;
 		
-		private long		connection_id;
+		private final long		connection_id;
 		private boolean		destroyed;
 		
-		private List<Packet>		packets	= new ArrayList<Packet>();
+		private final List<Packet>		packets	= new ArrayList<Packet>();
 		
-		private AESemaphore	packets_sem	= new AESemaphore("DHTUDPTransport:transferQueue");
+		private final AESemaphore	packets_sem	= new AESemaphore("DHTUDPTransport:transferQueue");
 		
 		protected
 		transferQueue(
@@ -1588,8 +1588,8 @@ DHTTransferHandler
 	transferHandlerInterceptor
 		implements DHTTransportTransferHandler
 	{
-		private DHTTransportTransferHandler		handler;
-		private Map<String,Object>				options;
+		private final DHTTransportTransferHandler		handler;
+		private final Map<String,Object>				options;
 		
 		protected
 		transferHandlerInterceptor(
@@ -1688,14 +1688,14 @@ DHTTransferHandler
 		public static final byte		PT_WRITE_REQUEST	= DHTUDPPacketData.PT_WRITE_REQUEST;
 		public static final byte		PT_WRITE_REPLY		= DHTUDPPacketData.PT_WRITE_REPLY;
 
-		private long	connection_id;
-		private byte	packet_type;
-		private byte[]	transfer_key;
-		private byte[]	key;
-		private byte[]	data;
-		private int		start_position;
-		private int		length;
-		private int		total_length;
+		private final long	connection_id;
+		private final byte	packet_type;
+		private final byte[]	transfer_key;
+		private final byte[]	key;
+		private final byte[]	data;
+		private final int		start_position;
+		private final int		length;
+		private final int		total_length;
 		
 		private int		flags;
 		

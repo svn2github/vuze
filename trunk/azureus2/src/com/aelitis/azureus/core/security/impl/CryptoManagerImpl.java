@@ -75,11 +75,11 @@ CryptoManagerImpl
 	}
 	
 	private byte[]				secure_id;
-	private CryptoHandler		ecc_handler;
-	private CopyOnWriteList		password_handlers	= new CopyOnWriteList();
-	private CopyOnWriteList		keychange_listeners	= new CopyOnWriteList();
+	private final CryptoHandler		ecc_handler;
+	private final CopyOnWriteList		password_handlers	= new CopyOnWriteList();
+	private final CopyOnWriteList		keychange_listeners	= new CopyOnWriteList();
 	
-	private Map	session_passwords =	Collections.synchronizedMap( new HashMap());
+	private final Map	session_passwords =	Collections.synchronizedMap( new HashMap());
 	
 	protected
 	CryptoManagerImpl()
@@ -677,8 +677,8 @@ CryptoManagerImpl
 	protected static class
 	passwordDetails
 	{
-		private char[]		password;
-		private int			type;
+		private final char[]		password;
+		private final int			type;
 		
 		protected 
 		passwordDetails(
@@ -706,8 +706,8 @@ CryptoManagerImpl
 	SRPParametersImpl
 		implements SRPParameters
 	{
-		private byte[]		salt;
-		private BigInteger	verifier;
+		private final byte[]		salt;
+		private final BigInteger	verifier;
 		
 		private
 		SRPParametersImpl(

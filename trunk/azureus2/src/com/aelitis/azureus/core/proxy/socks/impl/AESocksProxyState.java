@@ -38,7 +38,7 @@ AESocksProxyState
 	implements AEProxyState
 {
 	private static final LogIDs LOGID = LogIDs.NET;
-	private AESocksProxyConnection	socks_connection;
+	private final AESocksProxyConnection	socks_connection;
 	
 	protected ByteBuffer					buffer;
 

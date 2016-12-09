@@ -40,7 +40,7 @@ public class MessageManager {
   private final ByteArrayHashMap 	message_map 	= new ByteArrayHashMap();
   private final List				messages		= new ArrayList();
   
-  protected AEMonitor	this_mon = new AEMonitor( "MessageManager" );
+  protected final AEMonitor	this_mon = new AEMonitor( "MessageManager" );
   
   private MessageManager() {
     /*nothing*/

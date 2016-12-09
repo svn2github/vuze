@@ -43,8 +43,8 @@ AZMyInstanceImpl
 	public static final long	FORCE_READ_EXT_MIN	= 8*60*60*1000;
 	public static final long	UPNP_READ_MIN		= 5*60*1000;
 	
-	private AZInstanceManagerAdapter	adapter;
-	private AZInstanceManagerImpl		manager;
+	final AZInstanceManagerAdapter	adapter;
+	final AZInstanceManagerImpl		manager;
 	
 	private String				id;
 	private InetAddress			internal_address;

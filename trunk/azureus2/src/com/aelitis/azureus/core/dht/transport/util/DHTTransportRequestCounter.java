@@ -38,8 +38,8 @@ public class
 DHTTransportRequestCounter
 	implements DHTTransportRequestHandler
 {
-	private DHTTransportRequestHandler		delegate;
-	private DHTTransportStatsImpl			stats;
+	private final DHTTransportRequestHandler		delegate;
+	private final DHTTransportStatsImpl			stats;
 	
 	public
 	DHTTransportRequestCounter(

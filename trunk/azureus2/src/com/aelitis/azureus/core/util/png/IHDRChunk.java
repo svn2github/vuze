@@ -25,8 +25,8 @@ public class IHDRChunk extends CRCedChunk {
 	
 	private static final byte[] type = {(byte) 73, (byte)  72, (byte)  68, (byte)  82};
 	
-	private int width;
-	private int height;
+	private final int width;
+	private final int height;
 	
 	public IHDRChunk(int width, int height) {
 		super(type);

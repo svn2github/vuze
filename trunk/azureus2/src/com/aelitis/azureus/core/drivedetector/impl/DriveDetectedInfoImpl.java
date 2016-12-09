@@ -30,8 +30,8 @@ import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
 public class DriveDetectedInfoImpl
 	implements DriveDetectedInfo
 {
-	File location;
-	private Map info;
+	final File location;
+	private final Map info;
 	
 	public DriveDetectedInfoImpl(File location, Map info) {
 		this.location = location;

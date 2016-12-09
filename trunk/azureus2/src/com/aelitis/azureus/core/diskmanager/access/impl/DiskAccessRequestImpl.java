@@ -37,14 +37,14 @@ DiskAccessRequestImpl
 	protected static final short	OP_WRITE_AND_FREE	= 3;
 	
 	
-	private CacheFile					file;
-	private long						offset;
-	private DirectByteBuffer			buffer;
-	private DiskAccessRequestListener	listener;
-	private short						op;
-	private short						cache_policy;
+	private final CacheFile					file;
+	private final long						offset;
+	private final DirectByteBuffer			buffer;
+	private final DiskAccessRequestListener	listener;
+	private final short						op;
+	private final short						cache_policy;
 	
-	private int							size;
+	private final int							size;
 	
 	private volatile boolean	cancelled;
 	

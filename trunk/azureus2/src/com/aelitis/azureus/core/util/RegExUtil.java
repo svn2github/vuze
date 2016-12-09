@@ -28,7 +28,7 @@ import org.gudy.azureus2.core3.util.Debug;
 public class 
 RegExUtil 
 {
-	private static ThreadLocal<Map<String,Object[]>>		tls	= 
+	private static final ThreadLocal<Map<String,Object[]>>		tls	=
 		new ThreadLocal<Map<String,Object[]>>()
 		{
 			public Map<String,Object[]>

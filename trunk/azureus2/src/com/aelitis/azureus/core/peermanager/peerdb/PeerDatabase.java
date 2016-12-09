@@ -40,7 +40,7 @@ public class PeerDatabase {
   private static final int BLOOM_ROTATION_PERIOD = 7*60*1000;
   private static final int BLOOM_FILTER_SIZE = 10000;
   
-  private long start_time = SystemTime.getMonotonousTime();
+  private final long start_time = SystemTime.getMonotonousTime();
   
   private final HashMap peer_connections = new HashMap();
   

@@ -113,7 +113,7 @@ DHTTransportUDP
 	
 	public static class
 	Helper{
-		private static int explicit_min = COConfigurationManager.getIntParameter( "DHT.protocol.version.min", -1 );
+		private static final int explicit_min = COConfigurationManager.getIntParameter( "DHT.protocol.version.min", -1 );
 		
 		static byte
 		getVersion(

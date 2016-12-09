@@ -38,14 +38,14 @@ ProtocolDecoderInitial
 {	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
-	private ProtocolDecoderAdapter	adapter;
+	final ProtocolDecoderAdapter	adapter;
 	
 	private TransportHelperFilter	filter;
 	
-	private TransportHelper	transport;
+	final TransportHelper	transport;
 
-	private byte[][]	shared_secrets;
-	private ByteBuffer	initial_data;
+	private final byte[][]	shared_secrets;
+	final ByteBuffer	initial_data;
 	private ByteBuffer	decode_buffer; 
 	private int			decode_read;
 	

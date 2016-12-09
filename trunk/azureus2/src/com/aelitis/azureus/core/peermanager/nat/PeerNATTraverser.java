@@ -90,13 +90,13 @@ PeerNATTraverser
 	
 	private static final int STATS_TICK_COUNT		= 120*1000 / TIMER_PERIOD;
 	
-	private NATTraverser	nat_traverser;
+	final NATTraverser	nat_traverser;
 	
-	private Map			initiators			= new HashMap();
-	private LinkedList	pending_requests 	= new LinkedList();
-	private List		active_requests		= new ArrayList();
+	final Map			initiators			= new HashMap();
+	final LinkedList	pending_requests 	= new LinkedList();
+	final List		active_requests		= new ArrayList();
 	
-	private Average	usage_average 		= Average.getInstance(USAGE_PERIOD,USAGE_DURATION_SECS);
+	final Average	usage_average 		= Average.getInstance(USAGE_PERIOD,USAGE_DURATION_SECS);
 
 	private int		attempted_count			= 0;
 	private int		success_count			= 0;
@@ -427,9 +427,9 @@ PeerNATTraverser
 	PeerNATTraversal
 		implements NATTraversalObserver
 	{
-		private PeerNATInitiator		initiator;
-		private InetSocketAddress		target;
-		private PeerNATTraversalAdapter	adapter;		
+		private final PeerNATInitiator		initiator;
+		private final InetSocketAddress		target;
+		private final PeerNATTraversalAdapter	adapter;
 		
 		private NATTraversal	traversal;
 		private boolean			cancelled;

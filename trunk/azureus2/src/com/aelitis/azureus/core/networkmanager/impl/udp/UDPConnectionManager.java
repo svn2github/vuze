@@ -88,9 +88,9 @@ UDPConnectionManager
 	private int next_connection_id;
 
 	
-	private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
+	final IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
 
-	private NetworkGlue	network_glue;
+	private final NetworkGlue	network_glue;
 	
 	private UDPSelector		selector;
 	private ProtocolTimer	protocol_timer;

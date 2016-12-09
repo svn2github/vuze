@@ -27,7 +27,7 @@ public class
 CacheFileManagerException 
 	extends Exception
 {
-	private CacheFile	file;
+	private final CacheFile	file;
 	private int			fail_index;
 	
 	public

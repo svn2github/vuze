@@ -204,7 +204,7 @@ DNSUtilsImpl
 		throw( new UnknownHostException( host ));
 	}
 	
-	private static Map<String,String>	test_records = new HashMap<String,String>();
+	private static final Map<String,String>	test_records = new HashMap<String,String>();
 	
 	static{
 		test_records.put( "test1.test.null", "BITTORRENT DENY ALL" );
@@ -361,7 +361,7 @@ DNSUtilsImpl
 	DNSDirContextImpl
 		implements DNSUtils.DNSDirContext
 	{
-		private	DirContext ctx;
+		final DirContext ctx;
 		
 		private
 		DNSDirContextImpl(

@@ -48,8 +48,8 @@ CryptoSTSEngineImpl
 
 	private KeyPair 	ephemeralKeyPair;
 	
-	private PublicKey	myPublicKey;
-	private PrivateKey	myPrivateKey;
+	private final PublicKey	myPublicKey;
+	private final PrivateKey	myPrivateKey;
 	private PublicKey 	remotePubKey;
 	private byte[] 		sharedSecret;
 	

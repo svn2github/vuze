@@ -31,7 +31,7 @@ public abstract class
 TransportHelperFilterStream 
 	implements TransportHelperFilter
 {
-	private TransportHelper		transport;
+	private final TransportHelper		transport;
 
 	private DirectByteBuffer	write_buffer_pending_db;
 	private ByteBuffer			write_buffer_pending_byte;

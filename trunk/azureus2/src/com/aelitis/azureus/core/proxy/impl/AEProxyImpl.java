@@ -50,22 +50,22 @@ AEProxyImpl
 	private long				last_debug;
 	
 	private int					port;
-	private long				connect_timeout;
-	private long				read_timeout;
-	private AEProxyHandler		proxy_handler;
+	private final long				connect_timeout;
+	private final long				read_timeout;
+	private final AEProxyHandler		proxy_handler;
 	
 	private ServerSocketChannel		ssc;	
-	private VirtualChannelSelector	read_selector;
-	private VirtualChannelSelector	connect_selector;
-	private VirtualChannelSelector	write_selector;
+	final VirtualChannelSelector	read_selector;
+	final VirtualChannelSelector	connect_selector;
+	final VirtualChannelSelector	write_selector;
 	
-	private List<AEProxyConnectionImpl>				processors = new ArrayList<AEProxyConnectionImpl>();
+	private final List<AEProxyConnectionImpl>				processors = new ArrayList<AEProxyConnectionImpl>();
 	
 	private final HashMap 		write_select_regs = new HashMap();
 	
 	private boolean				allow_external_access;
 	
-	private AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
+	private final AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
 	
 	private volatile boolean	destroyed;
 	

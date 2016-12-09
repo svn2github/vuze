@@ -37,7 +37,7 @@ HTTPMessage
 	private static final String	MSG_DESC		= "HTTP data";
 	
 	
-	private DirectByteBuffer[]	data;
+	private final DirectByteBuffer[]	data;
 	
 	protected
 	HTTPMessage(

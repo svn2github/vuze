@@ -38,7 +38,7 @@ public class
 DHTTransportLoopbackImpl
 	implements DHTTransport
 {
-	public static		byte	VERSION			= 1;
+	public static final byte	VERSION			= 1;
 	
 	public static 		int		LATENCY			= 0;
 	public static		int		FAIL_PERCENTAGE	= 0;
@@ -82,12 +82,12 @@ DHTTransportLoopbackImpl
 	}
 	
 	private static long	node_id_seed_next	= 0;
-	private static Map	node_map	= new HashMap();
+	private static final Map	node_map	= new HashMap();
 	
-	private static List	dispatch_queue = new ArrayList();
-	private static AESemaphore	dispatch_queue_sem	= new AESemaphore("DHTTransportLoopback" );
+	static final List	dispatch_queue = new ArrayList();
+	static final AESemaphore	dispatch_queue_sem	= new AESemaphore("DHTTransportLoopback" );
 	
-	private static AEMonitor	class_mon	= new AEMonitor( "DHTTransportLoopback:class" );
+	static final AEMonitor	class_mon	= new AEMonitor( "DHTTransportLoopback:class" );
 
 	static{
 		AEThread	dispatcher = 
@@ -133,13 +133,13 @@ DHTTransportLoopbackImpl
 	private byte[]				node_id;
 	private DHTTransportContact	local_contact;
 	
-	private int			id_byte_length;
+	private final int			id_byte_length;
 	
 	private DHTTransportRequestHandler		request_handler;
 	
-	private DHTTransportStatsImpl	stats = new DHTTransportLoopbackStatsImpl( VERSION );
+	private final DHTTransportStatsImpl	stats = new DHTTransportLoopbackStatsImpl( VERSION );
 
-	private List	listeners = new ArrayList();
+	private final List	listeners = new ArrayList();
 	
 	public static DHTTransportStats
 	getOverallStats()

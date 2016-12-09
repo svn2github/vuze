@@ -35,7 +35,7 @@ public class LTHandshake implements LTMessage {
 	private byte[] bencoded_data;
 	private String bencoded_string;
 	private String description;
-    private byte version;
+    private final byte version;
     private DirectByteBuffer[] buffer_array;
     
     public LTHandshake(Map data_dict, byte version) {

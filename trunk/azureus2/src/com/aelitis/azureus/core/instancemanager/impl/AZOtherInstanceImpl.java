@@ -87,14 +87,14 @@ AZOtherInstanceImpl
 		return( null );
 	}
 	
-	private String					id;
-	private String					app_id;
+	private final String					id;
+	private final String					app_id;
 	private List					internal_addresses	= new ArrayList();
 	private InetAddress				external_address;
 	private int						tcp_port;
 	private int						udp_port;
-	private int						udp_non_data_port;
-	private Map<String,Object>		props;
+	private final int						udp_non_data_port;
+	private final Map<String,Object>		props;
 	
 	private long	alive_time;
 

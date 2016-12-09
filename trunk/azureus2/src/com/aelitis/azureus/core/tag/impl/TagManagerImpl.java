@@ -114,17 +114,17 @@ TagManagerImpl
 		return( singleton );
 	}
 	
-	private CopyOnWriteList<TagTypeBase>	tag_types = new CopyOnWriteList<TagTypeBase>();
+	final CopyOnWriteList<TagTypeBase>	tag_types = new CopyOnWriteList<TagTypeBase>();
 	
-	private Map<Integer,TagType>	tag_type_map = new HashMap<Integer, TagType>();
+	private final Map<Integer,TagType>	tag_type_map = new HashMap<Integer, TagType>();
 	
 	private static final String RSS_PROVIDER	= "tags";
 	
-	private Set<TagBase>	rss_tags = new HashSet<TagBase>();
+	final Set<TagBase>	rss_tags = new HashSet<TagBase>();
 	
-	private Set<DownloadManager>	active_copy_on_complete = new IdentityHashSet<DownloadManager>();
+	final Set<DownloadManager>	active_copy_on_complete = new IdentityHashSet<DownloadManager>();
 	
-	private RSSGeneratorPlugin.Provider rss_generator = 
+	private final RSSGeneratorPlugin.Provider rss_generator =
 		new RSSGeneratorPlugin.Provider()
 		{
 			public boolean 
@@ -666,9 +666,9 @@ TagManagerImpl
 			}
 		};
 	
-	private AsyncDispatcher async_dispatcher = new AsyncDispatcher(5000);
+	final AsyncDispatcher async_dispatcher = new AsyncDispatcher(5000);
 
-	private FrequencyLimitedDispatcher dirty_dispatcher = 
+	private final FrequencyLimitedDispatcher dirty_dispatcher =
 		new FrequencyLimitedDispatcher(
 			new AERunnable()
 			{
@@ -704,14 +704,14 @@ TagManagerImpl
 	
 	private boolean				config_dirty;
 	
-	private List<Object[]>		config_change_queue = new ArrayList<Object[]>();
+	private final List<Object[]>		config_change_queue = new ArrayList<Object[]>();
 	
 	
-	private CopyOnWriteList<TagManagerListener>		listeners = new CopyOnWriteList<TagManagerListener>();
+	private final CopyOnWriteList<TagManagerListener>		listeners = new CopyOnWriteList<TagManagerListener>();
 	
-	private CopyOnWriteList<Object[]>				feature_listeners = new CopyOnWriteList<Object[]>();
+	private final CopyOnWriteList<Object[]>				feature_listeners = new CopyOnWriteList<Object[]>();
 	
-	private Map<Long,LifecycleHandlerImpl>			lifecycle_handlers = new HashMap<Long,LifecycleHandlerImpl>();
+	private final Map<Long,LifecycleHandlerImpl>			lifecycle_handlers = new HashMap<Long,LifecycleHandlerImpl>();
 	
 	private TagPropertyUntaggedHandler	untagged_handler;
 	
@@ -2313,7 +2313,7 @@ TagManagerImpl
 		private TaggableResolver		resolver;
 		private boolean					initialised;
 		
-		private CopyOnWriteList<TaggableLifecycleListener>	listeners = new CopyOnWriteList<TaggableLifecycleListener>();
+		private final CopyOnWriteList<TaggableLifecycleListener>	listeners = new CopyOnWriteList<TaggableLifecycleListener>();
 		
 		private
 		LifecycleHandlerImpl()

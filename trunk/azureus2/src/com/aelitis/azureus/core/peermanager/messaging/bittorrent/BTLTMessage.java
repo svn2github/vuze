@@ -29,8 +29,8 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  */
 public class BTLTMessage implements BTMessage {
 	
-	public byte extension_id;
-	public Message base_message;
+	public final byte extension_id;
+	public final Message base_message;
 	public DirectByteBuffer buffer_header;
 	
 	public BTLTMessage(Message base_message, byte extension_id) {

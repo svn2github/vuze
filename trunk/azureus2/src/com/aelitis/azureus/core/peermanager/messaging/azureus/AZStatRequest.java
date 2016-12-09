@@ -36,7 +36,7 @@ AZStatRequest
 	private final byte version;
 	private DirectByteBuffer buffer = null;
 
-	private Map	request;
+	private final Map	request;
 	
 	public 
 	AZStatRequest(

@@ -62,7 +62,7 @@ DHTControlImpl
 {
 	private static final boolean DISABLE_REPLICATE_ON_JOIN	= true;
 	
-	public  static 		 int EXTERNAL_LOOKUP_CONCURRENCY			= 16;
+	public  static final int EXTERNAL_LOOKUP_CONCURRENCY			= 16;
 	private static final int EXTERNAL_PUT_CONCURRENCY				= 8;
 	private static final int EXTERNAL_SLEEPING_PUT_CONCURRENCY		= 4;
 	
@@ -71,25 +71,25 @@ DHTControlImpl
 	private static final int INTEGRATION_TIME_MAX			= 15*1000;
 	
 		
-	private DHTControlAdapter		adapter;
-	private DHTTransport			transport;
-	private DHTTransportContact		local_contact;
+	final DHTControlAdapter		adapter;
+	private final DHTTransport			transport;
+	DHTTransportContact		local_contact;
 	
 	private DHTRouter		router;
 	
-	private DHTDB			database;
+	final DHTDB			database;
 	
-	private DHTControlStatsImpl	stats;
+	private final DHTControlStatsImpl	stats;
 	
-	private DHTLogger	logger;
+	final DHTLogger	logger;
 	
-	private	int			node_id_byte_count;
-	private int			search_concurrency;
-	private int			lookup_concurrency;
-	private int			cache_at_closest_n;
-	private int			K;
-	private int			B;
-	private int			max_rep_per_node;
+	private final int			node_id_byte_count;
+	final int			search_concurrency;
+	private final int			lookup_concurrency;
+	private final int			cache_at_closest_n;
+	final int			K;
+	private final int			B;
+	private final int			max_rep_per_node;
 	
 	private final boolean	encode_keys;
 	private final boolean	enable_random_poking;
@@ -97,19 +97,19 @@ DHTControlImpl
 	private long		router_start_time;
 	private int			router_count;
 		
-	private ThreadPool	internal_lookup_pool;
-	private ThreadPool	external_lookup_pool;
-	private ThreadPool	internal_put_pool;
-	private ThreadPool	external_put_pool;
+	final ThreadPool	internal_lookup_pool;
+	final ThreadPool	external_lookup_pool;
+	final ThreadPool	internal_put_pool;
+	private final ThreadPool	external_put_pool;
 	
-	private Map			imported_state	= new HashMap();
+	private final Map			imported_state	= new HashMap();
 	
 	private volatile boolean	seeded;
 	
 	private long		last_lookup;
 	
 
-	private ListenerManager<DHTControlListener>	listeners 	= ListenerManager.createAsyncManager(
+	final ListenerManager<DHTControlListener>	listeners 	= ListenerManager.createAsyncManager(
 			"DHTControl:listenDispatcher",
 			new ListenerManagerDispatcher<DHTControlListener>()
 			{
@@ -123,10 +123,10 @@ DHTControlImpl
 				}
 			});
 
-	private List		activities		= new ArrayList();
-	private AEMonitor	activity_mon	= new AEMonitor( "DHTControl:activities" );
+	final List		activities		= new ArrayList();
+	final AEMonitor	activity_mon	= new AEMonitor( "DHTControl:activities" );
 	
-	protected AEMonitor	estimate_mon		= new AEMonitor( "DHTControl:estimate" );
+	protected final AEMonitor	estimate_mon		= new AEMonitor( "DHTControl:estimate" );
 	private long		last_dht_estimate_time;
 	private long		local_dht_estimate;
 	private long		combined_dht_estimate;
@@ -134,7 +134,7 @@ DHTControlImpl
 	
 	private static final int	LOCAL_ESTIMATE_HISTORY	= 32;
 	
-	private Map	local_estimate_values = 
+	private final Map	local_estimate_values =
 		new LinkedHashMap(LOCAL_ESTIMATE_HISTORY,0.75f,true)
 		{
 			protected boolean 
@@ -147,9 +147,9 @@ DHTControlImpl
 		
 	private static final int	REMOTE_ESTIMATE_HISTORY	= 128;
 	
-	private List	remote_estimate_values = new LinkedList();
+	private final List	remote_estimate_values = new LinkedList();
 		
-	protected AEMonitor	spoof_mon		= new AEMonitor( "DHTControl:spoof" );
+	protected final AEMonitor	spoof_mon		= new AEMonitor( "DHTControl:spoof" );
 
 	//private Cipher 			spoof_cipher;
 	//private SecretKey		spoof_key;
@@ -158,7 +158,7 @@ DHTControlImpl
 	
 	private static final int	SPOOF_GEN_HISTORY_SIZE	= 256;
 	
-	private Map<InetAddress,Integer>	spoof_gen_history = 
+	private final Map<InetAddress,Integer>	spoof_gen_history =
 		new LinkedHashMap<InetAddress,Integer>(SPOOF_GEN_HISTORY_SIZE,0.75f,true)
 		{
 			protected boolean 
@@ -169,7 +169,7 @@ DHTControlImpl
 			}
 		};
 	
-	private Map<HashWrapper,byte[]>	spoof_gen_history2 = 
+	private final Map<HashWrapper,byte[]>	spoof_gen_history2 =
 			new LinkedHashMap<HashWrapper,byte[]>(SPOOF_GEN_HISTORY_SIZE,0.75f,true)
 			{
 				protected boolean 
@@ -2057,7 +2057,7 @@ DHTControlImpl
 					router.getK(),
 					new lookupResultHandler( get_listener )
 					{
-						private List	found_values	= new ArrayList();
+						private final List	found_values	= new ArrayList();
 							
 						public void
 						diversify(
@@ -3034,7 +3034,7 @@ DHTControlImpl
 	{
 		private final ANImpl	root;
 		private int				depth 	= -1;
-		private String			result;
+		private final String			result;
 		
 		private
 		ASImpl(
@@ -4714,10 +4714,10 @@ DHTControlImpl
 	protected static class
 	sortedTransportContactSet
 	{
-		private TreeSet<DHTTransportContact>	tree_set;
+		private final TreeSet<DHTTransportContact>	tree_set;
 		
-		private byte[]	pivot;
-		private boolean	ascending;
+		final byte[]	pivot;
+		final boolean	ascending;
 		
 		protected
 		sortedTransportContactSet(
@@ -4763,9 +4763,9 @@ DHTControlImpl
 	DHTOperationListenerDemuxer
 		implements DHTOperationListener
 	{
-		private AEMonitor	this_mon = new AEMonitor( "DHTOperationListenerDemuxer" );
+		private final AEMonitor	this_mon = new AEMonitor( "DHTOperationListenerDemuxer" );
 		
-		private DHTOperationListener	delegate;
+		private final DHTOperationListener	delegate;
 		
 		private boolean		complete_fired;
 		private boolean		complete_included_ok;
@@ -4997,7 +4997,7 @@ DHTControlImpl
 	anonValue
 		implements DHTTransportValue
 	{
-		private DHTTransportValue delegate;
+		private final DHTTransportValue delegate;
 		
 		protected
 		anonValue(
@@ -5089,7 +5089,7 @@ DHTControlImpl
 			}
 		}
 		
-		private DHTTransportContact	delegate;
+		private final DHTTransportContact	delegate;
 		
 		protected
 		anonContact(
@@ -5407,7 +5407,7 @@ DHTControlImpl
 	DhtTask
 		extends ThreadPoolTask
 	{
-		private controlActivity	activity;
+		private final controlActivity	activity;
 		
 		protected 
 		DhtTask(
@@ -5606,9 +5606,9 @@ DHTControlImpl
 	controlActivity
 		implements DHTControlActivity
 	{
-		protected ThreadPool	tp;
-		protected DhtTask		task;
-		protected int			type;
+		protected final ThreadPool	tp;
+		protected final DhtTask		task;
+		protected final int			type;
 		
 		protected
 		controlActivity(

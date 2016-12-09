@@ -32,13 +32,13 @@ NetworkGlueLoopBack
 	implements NetworkGlue
  
 {
-	private int latency			= 0;
+	private static final int latency			= 0;
 	
-	private NetworkGlueListener		listener;
+	final NetworkGlueListener		listener;
 	
-	private List	message_queue	= new ArrayList();
+	private final List	message_queue	= new ArrayList();
 	
-	private Random	random = new Random();
+	private final Random	random = new Random();
 	
 	protected
 	NetworkGlueLoopBack(

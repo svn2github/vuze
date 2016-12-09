@@ -55,7 +55,7 @@ RSSGeneratorPlugin
 	
 	private static boolean	loaded;
 	
-	private static Properties defaults = new Properties();
+	private static final Properties defaults = new Properties();
 	    
 	public static void
 	load(
@@ -134,7 +134,7 @@ RSSGeneratorPlugin
 	}
 	
 	
-	private static Map<String,Provider>	providers = new TreeMap<String, Provider>();
+	private static final Map<String,Provider>	providers = new TreeMap<String, Provider>();
 	
 	private HyperlinkParameter		test_param;
 	private BooleanParameter		enable_low_noise;

@@ -39,14 +39,14 @@ public class
 DHTNetworkPositionManager 
 {
 	private static DHTNetworkPositionProvider[]	providers = new DHTNetworkPositionProvider[0];
-	private static Object providers_lock = new Object();
+	private static final Object providers_lock = new Object();
 	
 	private static DHTStorageAdapter	storage_adapter = null;
 	
-	private static CopyOnWriteList<DHTNetworkPositionProviderListener>		provider_listeners = new CopyOnWriteList<DHTNetworkPositionProviderListener>();
+	private static final CopyOnWriteList<DHTNetworkPositionProviderListener>		provider_listeners = new CopyOnWriteList<DHTNetworkPositionProviderListener>();
 	private static volatile CopyOnWriteList<DHTNetworkPositionListener>		position_listeners;
 	
-	private static DHTNetworkPosition[] NP_EMPTY_ARRAY = {};
+	private static final DHTNetworkPosition[] NP_EMPTY_ARRAY = {};
 	
 	public static void
 	initialise(

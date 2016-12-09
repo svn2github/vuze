@@ -66,20 +66,20 @@ public class
 LWSDiskManager 
 	implements DiskManagerHelper
 {
-	private static sePiece	piece = new sePiece();	
+	private static final sePiece	piece = new sePiece();
 
-	private LightWeightSeed			lws;
-	private DiskAccessController	disk_access_controller;
-	private File					save_file;
+	private final LightWeightSeed			lws;
+	private final DiskAccessController	disk_access_controller;
+	private final File					save_file;
 	private DMReader 				reader;
 	private DMChecker 				checker_use_accessor;
 	private DMPieceMapper			piece_mapper;
 	private DMPieceMap				piece_map_use_accessor;
 	
-	private sePiece[]					pieces;
+	private final sePiece[]					pieces;
 	private DiskManagerFileInfoImpl[]	files;
 	private String						internal_name;
-	private DownloadManagerState		download_state;
+	private final DownloadManagerState		download_state;
 	
 	private boolean	started;
 	private int 	state 			= DiskManager.INITIALIZING;

@@ -62,7 +62,7 @@ CryptoHandlerECC
 	private static final int	TIMEOUT_DEFAULT_SECS		= 60*60;
 
 	
-	private CryptoManagerImpl		manager;
+	final CryptoManagerImpl		manager;
 	
 	private String				CONFIG_PREFIX = CryptoManager.CRYPTO_CONFIG_PREFIX + "ecc.";
 

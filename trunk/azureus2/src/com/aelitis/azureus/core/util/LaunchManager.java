@@ -27,7 +27,7 @@ import org.gudy.azureus2.core3.util.AEThread2;
 public class 
 LaunchManager 
 {
-	private static LaunchManager	singleton = new LaunchManager();
+	private static final LaunchManager	singleton = new LaunchManager();
 	
 	public static LaunchManager
 	getManager()
@@ -35,7 +35,7 @@ LaunchManager
 		return( singleton );
 	}
 	
-	private CopyOnWriteList<LaunchController>	controllers	= new CopyOnWriteList<LaunchController>();
+	final CopyOnWriteList<LaunchController>	controllers	= new CopyOnWriteList<LaunchController>();
 	
 	public void
 	launchRequest(
@@ -96,7 +96,7 @@ LaunchManager
 	public static class
 	LaunchTarget
 	{
-		private DownloadManager			dm;
+		private final DownloadManager			dm;
 		private DiskManagerFileInfo		file_info;
 		
 		private 

@@ -46,13 +46,13 @@ NetworkGlueUDP
 {
 	private static final LogIDs LOGID = LogIDs.NET;
 	
-	private NetworkGlueListener		listener;
+	private final NetworkGlueListener		listener;
 
 	private PRUDPPacketHandler handler;
 	
-	private LinkedList	msg_queue			= new LinkedList();
-	private AESemaphore	msg_queue_sem		= new AESemaphore( "NetworkGlueUDP" );
-	private AESemaphore	msg_queue_slot_sem	= new AESemaphore( "NetworkGlueUDP", 128 );
+	final LinkedList	msg_queue			= new LinkedList();
+	final AESemaphore	msg_queue_sem		= new AESemaphore( "NetworkGlueUDP" );
+	final AESemaphore	msg_queue_slot_sem	= new AESemaphore( "NetworkGlueUDP", 128 );
 	
 	private long total_packets_received;
 	private long total_bytes_received;

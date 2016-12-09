@@ -27,11 +27,11 @@ public class
 SecureMessageServiceClientMessageImpl
 	implements SecureMessageServiceClientMessage
 {
-	private SecureMessageServiceClientImpl		service;
-	private Map					request;
+	private final SecureMessageServiceClientImpl		service;
+	private final Map					request;
 	private Map					reply;
-	private Object				client_data;
-	private String				description;
+	private final Object				client_data;
+	private final String				description;
 	
 	protected
 	SecureMessageServiceClientMessageImpl(

@@ -34,7 +34,7 @@ public class
 DHTRouterContactImpl
 	implements DHTRouterContact
 {
-	private byte[]							node_id;
+	private final byte[]							node_id;
 	private DHTRouterContactAttachment		attachment;
 	
 	private boolean		has_been_alive;

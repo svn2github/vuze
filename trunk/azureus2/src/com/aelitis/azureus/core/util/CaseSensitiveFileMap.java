@@ -25,7 +25,7 @@ import java.io.*;
 public class 
 CaseSensitiveFileMap 
 {
-	private Map	map = new HashMap();
+	final Map	map = new HashMap();
 	
 	public File
 	get(
@@ -55,7 +55,7 @@ CaseSensitiveFileMap
 		return(
 			new Iterator()
 			{
-				private Iterator iterator = map.keySet().iterator();
+				private final Iterator iterator = map.keySet().iterator();
 				
 				public boolean 
 				hasNext()
@@ -83,8 +83,8 @@ CaseSensitiveFileMap
 	static class
 	wrapper
 	{
-		private File		file;
-		private String		file_str;
+		private final File		file;
+		private final String		file_str;
 		
 		protected
 		wrapper(

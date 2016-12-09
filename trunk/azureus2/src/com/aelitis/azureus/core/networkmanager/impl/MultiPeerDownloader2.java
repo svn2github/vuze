@@ -47,8 +47,8 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 	private final RateHandler main_handler;
 
 	private List			pending_actions;
-	private connectionList	active_connections 	= new connectionList();
-	private connectionList	idle_connections 	= new connectionList();
+	private final connectionList	active_connections 	= new connectionList();
+	private final connectionList	idle_connections 	= new connectionList();
 
 	private long			last_idle_check;
 	
@@ -573,7 +573,7 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 		private connectionEntry next;
 		private connectionEntry prev;
 		
-		private NetworkConnectionBase	connection;
+		final NetworkConnectionBase	connection;
 		
 		protected
 		connectionEntry(

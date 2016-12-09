@@ -49,7 +49,7 @@ public class
 CustomizationManagerImpl 
 	implements CustomizationManager
 {
-	private static CustomizationManagerImpl		singleton = new CustomizationManagerImpl();
+	private static final CustomizationManagerImpl		singleton = new CustomizationManagerImpl();
 	
 	public static CustomizationManager
 	getSingleton()
@@ -59,7 +59,7 @@ CustomizationManagerImpl
 
 	private boolean	initialised;
 	
-	private Map	customization_file_map = new HashMap();
+	private final Map	customization_file_map = new HashMap();
 	
 	private String				current_customization_name;
 	private CustomizationImpl	current_customization;

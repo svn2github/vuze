@@ -74,7 +74,7 @@ HTTPNetworkManager
 	private long	total_invalid_requests;
 	private long	total_ok_requests;
 	
-	private CopyOnWriteList<URLHandler>	url_handlers = new CopyOnWriteList<URLHandler>();
+	final CopyOnWriteList<URLHandler>	url_handlers = new CopyOnWriteList<URLHandler>();
 	
 	private 
 	HTTPNetworkManager()

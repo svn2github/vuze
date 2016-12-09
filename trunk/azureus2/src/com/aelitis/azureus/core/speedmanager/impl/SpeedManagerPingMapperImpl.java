@@ -64,20 +64,20 @@ SpeedManagerPingMapperImpl
 	private static final int SPEED_HISTORY_PERIOD	= 3*60*1000; // 3 min
 	private static final int SPEED_HISTORY_COUNT	= SPEED_HISTORY_PERIOD / SpeedManagerImpl.UPDATE_PERIOD_MILLIS;
 		
-	private SpeedManagerImpl	speed_manager;
-	private String				name;
-	private boolean				variance;
-	private boolean				trans;
+	private final SpeedManagerImpl	speed_manager;
+	private final String				name;
+	private final boolean				variance;
+	private final boolean				trans;
 			
 	private int	ping_count;
 	
 	private pingValue[]	pings;
-	private int			max_pings;
+	private final int			max_pings;
 	
 	private pingValue	prev_ping;
 	
-	private int[]		x_speeds = new int[ SPEED_HISTORY_COUNT ];
-	private int[]		y_speeds = new int[ SPEED_HISTORY_COUNT ];
+	private final int[]		x_speeds = new int[ SPEED_HISTORY_COUNT ];
+	private final int[]		y_speeds = new int[ SPEED_HISTORY_COUNT ];
 	
 	private int speeds_next;
 	
@@ -86,7 +86,7 @@ SpeedManagerPingMapperImpl
 	private int last_x;
 	private int	last_y;
 	
-	private int[]	recent_metrics = new int[3];
+	private final int[]	recent_metrics = new int[3];
 	private int		recent_metrics_next;
 	
 	private limitEstimate	up_estimate;
@@ -1502,9 +1502,9 @@ SpeedManagerPingMapperImpl
 	private static class
 	pingValue
 	{
-		private short	x;
-		private short	y;
-		private short	metric;
+		private final short	x;
+		private final short	y;
+		private final short	metric;
 		
 		protected
 		pingValue(
@@ -1550,7 +1550,7 @@ SpeedManagerPingMapperImpl
 		private short	y1;
 		private short	x2;
 		private short	y2;
-		private short	metric;
+		private final short	metric;
 		
 		protected
 		region(
@@ -1644,10 +1644,10 @@ SpeedManagerPingMapperImpl
 		private int		speed;
 		private float	estimate_type;
 		private float	metric_rating;
-		private long	when;
-		private int		hits;
+		private final long	when;
+		private final int		hits;
 		
-		private int[][]	segs;
+		private final int[][]	segs;
 		
 		protected
 		limitEstimate(

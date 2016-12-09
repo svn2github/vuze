@@ -40,11 +40,11 @@ public class
 CustomizationImpl 	
 	implements Customization
 {
-	private CustomizationManagerImpl		manager;
+	private final CustomizationManagerImpl		manager;
 	
-	private String		name;
-	private String		version;
-	private File		contents;
+	private final String		name;
+	private final String		version;
+	private final File		contents;
 	
 	protected
 	CustomizationImpl(

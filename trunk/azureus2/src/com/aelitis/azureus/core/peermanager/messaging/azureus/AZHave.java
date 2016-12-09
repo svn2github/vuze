@@ -38,7 +38,7 @@ AZHave
 	private final byte version;
 	private DirectByteBuffer buffer = null;
 
-	private int[]	piece_numbers;
+	private final int[]	piece_numbers;
 	
 	public 
 	AZHave(

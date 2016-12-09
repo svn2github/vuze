@@ -312,7 +312,7 @@ PMSWTImpl
 		local_addresses = ias;
 	}
 	
-	private Map<String,RemoteHistory>	history_map	= new HashMap<String, RemoteHistory>();
+	private final Map<String,RemoteHistory>	history_map	= new HashMap<String, RemoteHistory>();
 		
 	public void
 	recordRequest(
@@ -553,7 +553,7 @@ PMSWTImpl
 	private static class
 	RemoteHistory
 	{
-		private Map<String,RemoteHistoryEntry>	map = new HashMap<String, RemoteHistoryEntry>();
+		private final Map<String,RemoteHistoryEntry>	map = new HashMap<String, RemoteHistoryEntry>();
 			
 		private void
 		addRequest(

@@ -39,15 +39,15 @@ VirtualNonBlockingServerChannelSelector
 {
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 	
-	private List	server_channels	= new ArrayList();
+	private final List	server_channels	= new ArrayList();
   
 	private final InetAddress bind_address;
-	private int		start_port;
-	private int		num_ports;
+	private final int		start_port;
+	private final int		num_ports;
 	private final int receive_buffer_size;
 	private final VirtualBlockingServerChannelSelector.SelectListener listener;
   
-	protected AEMonitor	this_mon	= new AEMonitor( "VirtualNonBlockingServerChannelSelector" );
+	protected final AEMonitor	this_mon	= new AEMonitor( "VirtualNonBlockingServerChannelSelector" );
 
 	private long last_accept_time;
   

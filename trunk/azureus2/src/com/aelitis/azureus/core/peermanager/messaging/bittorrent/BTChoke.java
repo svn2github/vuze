@@ -31,7 +31,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  */
 public class BTChoke implements BTMessage {
   
-  private byte version;
+  private final byte version;
 	
   public BTChoke(byte _version) {
     version = _version;

@@ -37,9 +37,9 @@ public class
 NetworkAdminProtocolImpl 
 	implements NetworkAdminProtocol
 {
-	private AzureusCore		core;
-	private int				type;
-	private int				port;
+	private final AzureusCore		core;
+	private final int				type;
+	private final int				port;
 	
 	protected 
 	NetworkAdminProtocolImpl(

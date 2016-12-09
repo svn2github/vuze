@@ -36,12 +36,12 @@ UDPTransportHelper
 	public static final int READ_TIMEOUT		= 30*1000;
 	public static final int CONNECT_TIMEOUT		= 20*1000;
 	
-	private UDPConnectionManager	manager;
+	private final UDPConnectionManager	manager;
 	private UDPSelector				selector;
-	private InetSocketAddress		address;
+	private final InetSocketAddress		address;
 	private UDPTransport			transport;
 	
-	private boolean					incoming;
+	private final boolean					incoming;
 	
 	private UDPConnection			connection;
 	

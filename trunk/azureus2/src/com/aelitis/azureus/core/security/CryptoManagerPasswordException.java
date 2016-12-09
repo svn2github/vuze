@@ -24,7 +24,7 @@ CryptoManagerPasswordException
 	extends CryptoManagerException
 {
 	
-	private boolean	incorrect;
+	private final boolean	incorrect;
 	
 	public
 	CryptoManagerPasswordException(

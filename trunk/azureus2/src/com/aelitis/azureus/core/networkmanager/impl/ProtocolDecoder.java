@@ -32,9 +32,9 @@ ProtocolDecoder
 	private static final int	TIMEOUT_CHECK		= 5000;
 	private static final int	LOG_TICKS			= 60000 / TIMEOUT_CHECK;
 		
-	private static List<ProtocolDecoder>			decoders	= new ArrayList<ProtocolDecoder>();
+	static final List<ProtocolDecoder>			decoders	= new ArrayList<ProtocolDecoder>();
 	
-	private static AEMonitor	class_mon 	= new AEMonitor( "TCPProtocolDecoder:class" );
+	static final AEMonitor	class_mon 	= new AEMonitor( "TCPProtocolDecoder:class" );
 	
 	private static int	loop = 0;
 	

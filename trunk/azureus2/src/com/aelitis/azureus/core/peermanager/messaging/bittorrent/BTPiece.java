@@ -30,7 +30,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent piece message.
  */
 public class BTPiece implements BTMessage {
-  private byte version;
+  private final byte version;
   private final DirectByteBuffer[] buffer = new DirectByteBuffer[ 2 ];
   private String description;
   

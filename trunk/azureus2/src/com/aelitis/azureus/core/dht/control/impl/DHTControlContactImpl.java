@@ -33,7 +33,7 @@ public class
 DHTControlContactImpl
 	implements DHTControlContact, DHTRouterContactAttachment
 {
-	private DHTTransportContact		t_contact;
+	private final DHTTransportContact		t_contact;
 	private DHTRouterContact		r_contact;
 	
 	protected

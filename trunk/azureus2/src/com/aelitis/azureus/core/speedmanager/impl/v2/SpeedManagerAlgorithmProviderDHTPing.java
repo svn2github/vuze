@@ -42,7 +42,7 @@ public class SpeedManagerAlgorithmProviderDHTPing
         implements SpeedManagerAlgorithmProvider, COConfigurationListener
 {
 
-    private SpeedManagerAlgorithmProviderAdapter adapter;
+    private final SpeedManagerAlgorithmProviderAdapter adapter;
     private PluginInterface dhtPlugin;
 
 
@@ -58,7 +58,7 @@ public class SpeedManagerAlgorithmProviderDHTPing
     private int consecutiveDownticks=0;
 
     //SpeedLimitMonitor
-    private SpeedLimitMonitor limitMonitor;
+    private final SpeedLimitMonitor limitMonitor;
 
     //variables for display and vivaldi.
     private int lastMetricValue;
@@ -72,7 +72,7 @@ public class SpeedManagerAlgorithmProviderDHTPing
     private int intervalCount = 0;
 
     //for managing ping sources.
-    PingSourceManager pingSourceManager = new PingSourceManager();
+    final PingSourceManager pingSourceManager = new PingSourceManager();
 
     int sessionMaxUploadRate = 0;
 

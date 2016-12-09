@@ -36,7 +36,7 @@ CacheEntry
 	
 	protected CacheFileWithCache		file;
 	protected DirectByteBuffer	buffer;
-	protected long				offset;
+	protected final long				offset;
 	protected int				size;
 	protected int				buffer_pos;
 	protected int				buffer_limit;

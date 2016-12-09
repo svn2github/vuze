@@ -46,8 +46,8 @@ LinkFileMap
 		 * reworked
 		 */
 	
-	private Map<wrapper,Entry>	name_map 	= new HashMap<wrapper,Entry>();
-	private Map<Integer,Entry>	index_map 	= new HashMap<Integer,Entry>();
+	private final Map<wrapper,Entry>	name_map 	= new HashMap<wrapper,Entry>();
+	private final Map<Integer,Entry>	index_map 	= new HashMap<Integer,Entry>();
 	
 	public File
 	get(
@@ -287,9 +287,9 @@ LinkFileMap
 	public static class
 	Entry
 	{
-		private int		index;
-		private File	from_file;
-		private File	to_file;
+		private final int		index;
+		private final File	from_file;
+		private final File	to_file;
 		
 		private
 		Entry(
@@ -330,7 +330,7 @@ LinkFileMap
 	private static class
 	wrapper
 	{
-		private String		file_str;
+		private final String		file_str;
 		
 		protected
 		wrapper(

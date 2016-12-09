@@ -34,7 +34,7 @@ IncomingConnectionManager
 {
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
-	private static IncomingConnectionManager	singleton = new IncomingConnectionManager();
+	private static final IncomingConnectionManager	singleton = new IncomingConnectionManager();
 	
 	public static IncomingConnectionManager
 	getSingleton()
@@ -405,8 +405,8 @@ IncomingConnectionManager
 	SelectorListener
 		implements TransportHelper.selectListener
 	{
-		private int				local_port;
-		private Transport		transport;
+		private final int				local_port;
+		private final Transport		transport;
 		
 		protected
 		SelectorListener(

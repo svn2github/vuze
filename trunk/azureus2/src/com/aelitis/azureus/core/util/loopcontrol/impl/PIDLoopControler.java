@@ -21,13 +21,13 @@ import com.aelitis.azureus.core.util.loopcontrol.LoopControler;
 
 public class PIDLoopControler implements LoopControler {
 
-	double pGain;
-	double iGain;
-	double dGain;
+	final double pGain;
+	final double iGain;
+	final double dGain;
 	
 	double iState;
-	double iMin = -5000;
-	double iMax =  5000;
+	static final double iMin = -5000;
+	static final double iMax =  5000;
 	
 	double dState;
 	

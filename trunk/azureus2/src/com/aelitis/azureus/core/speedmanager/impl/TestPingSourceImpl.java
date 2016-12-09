@@ -37,13 +37,13 @@ public abstract class
 TestPingSourceImpl 
 	implements DHTSpeedTester
 {
-	private SpeedManagerAlgorithmProviderAdapter		adapter;
+	private final SpeedManagerAlgorithmProviderAdapter		adapter;
 	
 	private volatile int		contact_num;
 	
-	private List	listeners 	= new ArrayList();
+	private final List	listeners 	= new ArrayList();
 	
-	private CopyOnWriteList	sources		= new CopyOnWriteList();
+	final CopyOnWriteList	sources		= new CopyOnWriteList();
 	
 	private int		period;
 	
@@ -188,9 +188,9 @@ TestPingSourceImpl
 	testSource
 		implements DHTSpeedTesterContact
 	{
-		private InetSocketAddress address = new InetSocketAddress( 1 );
+		private final InetSocketAddress address = new InetSocketAddress( 1 );
 		
-		private List	listeners = new ArrayList();
+		private final List	listeners = new ArrayList();
 		
 		private int		rtt;
 		

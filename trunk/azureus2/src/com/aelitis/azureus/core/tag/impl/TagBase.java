@@ -87,16 +87,16 @@ TagBase
 
 	private static final String[] EMPTY_STRING_LIST = {};
 	
-	private TagTypeBase	tag_type;
+	final TagTypeBase	tag_type;
 	
-	private int			tag_id;
+	private final int			tag_id;
 	private String		tag_name;
 	
 	private static final int TL_ADD 	= 1;
 	private static final int TL_REMOVE 	= 2;
 	private static final int TL_SYNC 	= 3;
 	
-	private ListenerManager<TagListener>	t_listeners 	= 
+	private final ListenerManager<TagListener>	t_listeners 	=
 		ListenerManager.createManager(
 			"TagListeners",
 			new ListenerManagerDispatcher<TagListener>()
@@ -122,7 +122,7 @@ TagBase
 				}
 			});	
 		
-	private Map<org.gudy.azureus2.plugins.tag.TagListener, TagListener>	listener_map = new HashMap<org.gudy.azureus2.plugins.tag.TagListener, TagListener>();
+	private final Map<org.gudy.azureus2.plugins.tag.TagListener, TagListener>	listener_map = new HashMap<org.gudy.azureus2.plugins.tag.TagListener, TagListener>();
 	
 	private Boolean	is_visible;
 	private Boolean	is_public;
@@ -1231,7 +1231,7 @@ TagBase
 		return( tag_type.writeStringListAttribute( this, attr, value ));
 	}
 	
-	private static Map<Long,long[][]>	session_cache = new HashMap<Long, long[][]>();
+	private static final Map<Long,long[][]>	session_cache = new HashMap<Long, long[][]>();
 	
 	private long[]						total_up_at_start;
 	private long[]						total_down_at_start;
@@ -1647,10 +1647,10 @@ TagBase
  	TagPropertyImpl
  		implements TagProperty
  	{
- 		private String		name;
- 		private int			type;
+ 		private final String		name;
+ 		private final int			type;
  		
- 		private CopyOnWriteList<TagPropertyListener>	listeners = new CopyOnWriteList<TagPropertyListener>();
+ 		private final CopyOnWriteList<TagPropertyListener>	listeners = new CopyOnWriteList<TagPropertyListener>();
  		
  		private
  		TagPropertyImpl(

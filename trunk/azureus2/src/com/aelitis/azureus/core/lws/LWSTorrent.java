@@ -43,7 +43,7 @@ LWSTorrent
 	extends LogRelation
 	implements TOTorrent
 {
-	private static TOTorrentAnnounceURLGroup announce_group = 
+	private static final TOTorrentAnnounceURLGroup announce_group =
 		new TOTorrentAnnounceURLGroup()
 		{
 			private TOTorrentAnnounceURLSet[]	sets = new TOTorrentAnnounceURLSet[0];
@@ -92,7 +92,7 @@ LWSTorrent
 		Debug.out( "Not Supported" );
 	}
 	
-	private LightWeightSeed		lws;	
+	private final LightWeightSeed		lws;
 	
 
 		

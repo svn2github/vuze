@@ -36,8 +36,8 @@ public class
 DiskAccessControllerImpl
 	implements DiskAccessController, AzureusCoreStatsProvider
 {
-	private	DiskAccessControllerInstance	read_dispatcher;
-	private	DiskAccessControllerInstance	write_dispatcher;
+	final DiskAccessControllerInstance	read_dispatcher;
+	final DiskAccessControllerInstance	write_dispatcher;
 	
 	public
 	DiskAccessControllerImpl(
@@ -263,8 +263,8 @@ DiskAccessControllerImpl
 		return(
 			new DiskAccessControllerStats()
 			{
-				long	read_total_req 		= read_dispatcher.getTotalRequests();
-				long	read_total_bytes 	= read_dispatcher.getTotalBytes();
+				final long	read_total_req 		= read_dispatcher.getTotalRequests();
+				final long	read_total_bytes 	= read_dispatcher.getTotalBytes();
 				
 				public long 
 				getTotalReadRequests() 

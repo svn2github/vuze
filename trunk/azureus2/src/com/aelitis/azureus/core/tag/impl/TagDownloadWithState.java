@@ -73,7 +73,7 @@ TagDownloadWithState
 	
 	private long last_rate_update;
 	
-	private Object	UPLOAD_PRIORITY_ADDED_KEY = new Object();
+	final Object	UPLOAD_PRIORITY_ADDED_KEY = new Object();
 	private int		upload_priority;
 	private int		min_share_ratio;
 	private int		max_share_ratio;
@@ -86,9 +86,9 @@ TagDownloadWithState
 	private boolean	supports_xcode;
 	private boolean	supports_file_location;
 	
-	private Object	rate_lock = new Object();
+	final Object	rate_lock = new Object();
 	
-	private LimitedRateGroup upload_limiter = 
+	private final LimitedRateGroup upload_limiter =
 		new LimitedRateGroup()
 		{
 			public String 
@@ -129,7 +129,7 @@ TagDownloadWithState
 			}
 		};
 
-	private LimitedRateGroup download_limiter = 
+	private final LimitedRateGroup download_limiter =
 		new LimitedRateGroup()
 		{
 			public String 
@@ -179,9 +179,9 @@ TagDownloadWithState
 	
 	private int		run_states;
 	
-	private static AsyncDispatcher rs_async = new AsyncDispatcher(2000);
+	private static final AsyncDispatcher rs_async = new AsyncDispatcher(2000);
 
-	private TagProperty[] tag_properties = 
+	private final TagProperty[] tag_properties =
 		new TagProperty[]{ 
 			createTagProperty( TagFeatureProperties.PR_TRACKERS, TagFeatureProperties.PT_STRING_LIST ),
 			createTagProperty( TagFeatureProperties.PR_UNTAGGED, TagFeatureProperties.PT_BOOLEAN ),
@@ -522,7 +522,7 @@ TagDownloadWithState
 		return((Set<DownloadManager>)(Object)getTagged());
 	}
 
-	private DownloadManagerPeerListener 
+	private final DownloadManagerPeerListener
 		peer_listener =
 			new DownloadManagerPeerListener()
 			{

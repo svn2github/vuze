@@ -32,7 +32,7 @@ public class
 NetworkAdminNATDeviceImpl 
 	implements NetworkAdminNATDevice
 {
-	private UPnPPluginService		service;
+	private final UPnPPluginService		service;
 	private InetAddress				external_address;
 	private long					address_time;
 	

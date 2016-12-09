@@ -32,7 +32,7 @@ CacheFileManagerFactory
 	public static final String	DEFAULT_MANAGER = "com.aelitis.azureus.core.diskmanager.cache.impl.CacheFileManagerImpl";
 	
 	private static CacheFileManager	manager;
-	private static AEMonitor		class_mon	= new AEMonitor("CacheFileManagerFactory");
+	private static final AEMonitor		class_mon	= new AEMonitor("CacheFileManagerFactory");
 	
 	
 	public static CacheFileManager

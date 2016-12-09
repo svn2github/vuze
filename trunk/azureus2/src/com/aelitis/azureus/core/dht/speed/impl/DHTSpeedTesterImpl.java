@@ -46,17 +46,17 @@ DHTSpeedTesterImpl
 {
 	private static final long PING_TIMEOUT	= 5000;
 	
-	private PluginInterface		plugin_interface;
-	private DHT					dht;
+	private final PluginInterface		plugin_interface;
+	private final DHT					dht;
 	private int					contact_num;
 	
 	private BloomFilter			tried_bloom;
 	
-	private LinkedList			pending_contacts 	= new LinkedList();
-	private List				active_pings		= new ArrayList();
+	private final LinkedList			pending_contacts 	= new LinkedList();
+	private final List				active_pings		= new ArrayList();
 	
-	private List<DHTSpeedTesterListener>			new_listeners	= new ArrayList<DHTSpeedTesterListener>();
-	private CopyOnWriteList<DHTSpeedTesterListener>	listeners 		= new CopyOnWriteList<DHTSpeedTesterListener>();
+	private final List<DHTSpeedTesterListener>			new_listeners	= new ArrayList<DHTSpeedTesterListener>();
+	private final CopyOnWriteList<DHTSpeedTesterListener>	listeners 		= new CopyOnWriteList<DHTSpeedTesterListener>();
 	
 	public 
 	DHTSpeedTesterImpl(
@@ -365,8 +365,8 @@ DHTSpeedTesterImpl
 	protected static class
 	potentialPing
 	{
-		private DHTTransportContact		contact;
-		private int						rtt;
+		private final DHTTransportContact		contact;
+		private final int						rtt;
 		
 		protected
 		potentialPing(
@@ -406,7 +406,7 @@ DHTSpeedTesterImpl
 		private int					total_fails;
 		
 		private int					period	= 5;
-		private CopyOnWriteList		listeners = new CopyOnWriteList();
+		final CopyOnWriteList		listeners = new CopyOnWriteList();
 		
 		protected
 		activePing(
@@ -705,7 +705,7 @@ DHTSpeedTesterImpl
 	pingInstance
 	{
 		private activePing			contact;
-		private pingInstanceSet		set;
+		private final pingInstanceSet		set;
 		private int					result;
 		
 		protected
@@ -744,11 +744,11 @@ DHTSpeedTesterImpl
 	protected class
 	pingInstanceSet
 	{
-		private boolean		active;
+		private final boolean		active;
 		private int			instances;
 		private boolean		full;
 		
-		List	results = new ArrayList();
+		final List	results = new ArrayList();
 		
 		protected 
 		pingInstanceSet(

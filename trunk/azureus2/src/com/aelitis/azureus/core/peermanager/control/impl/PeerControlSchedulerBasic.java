@@ -35,15 +35,15 @@ PeerControlSchedulerBasic
 	extends PeerControlSchedulerImpl
 	implements AzureusCoreStatsProvider
 {
-	private Random	random = new Random();
+	private final Random	random = new Random();
 	
 	private Map<PeerControlInstance,instanceWrapper>	instance_map = new HashMap();
 	
-	private List<instanceWrapper>	pending_registrations = new ArrayList<instanceWrapper>();
+	private final List<instanceWrapper>	pending_registrations = new ArrayList<instanceWrapper>();
 	
 	private volatile boolean	registrations_changed;
 		
-	protected AEMonitor	this_mon = new AEMonitor( "PeerControlSchedulerBasic" );
+	protected final AEMonitor	this_mon = new AEMonitor( "PeerControlSchedulerBasic" );
 		
 	private final SpeedTokenDispenserBasic tokenDispenser = new SpeedTokenDispenserBasic();
 
@@ -246,7 +246,7 @@ PeerControlSchedulerBasic
 	protected class
 	instanceWrapper
 	{
-		private PeerControlInstance		instance;
+		private final PeerControlInstance		instance;
 		private boolean					unregistered;
 		
 		private long					next_tick;

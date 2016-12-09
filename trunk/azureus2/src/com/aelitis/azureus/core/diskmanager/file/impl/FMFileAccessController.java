@@ -46,7 +46,7 @@ FMFileAccessController
 			Debug.out( "*** Piece reordering storage forced ***" );
 		}
 	}
-	private FMFileImpl	owner;
+	private final FMFileImpl	owner;
 	
 	private int		type		= FMFile.FT_LINEAR;
 	

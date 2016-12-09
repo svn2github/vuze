@@ -27,8 +27,8 @@ public class PingSpaceMonitor
     long startTime;
     private static final long INTERVAL = 1000 * 60 * 5L; //five min interval.
 
-    int maxGoodPing;
-    int minBadPing;
+    final int maxGoodPing;
+    final int minBadPing;
 
     //ping counters
     int nBadPings,nGoodPings,nNeutralPings=0;

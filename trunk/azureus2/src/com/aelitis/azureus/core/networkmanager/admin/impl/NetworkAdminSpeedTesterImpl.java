@@ -33,7 +33,7 @@ public abstract class
 NetworkAdminSpeedTesterImpl 
 	implements NetworkAdminSpeedTester
 {
-    private CopyOnWriteList	listeners = new CopyOnWriteList();
+    private final CopyOnWriteList	listeners = new CopyOnWriteList();
 
     private boolean	result_reported;
     

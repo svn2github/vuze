@@ -390,7 +390,7 @@ implements Iterable<T>
 	CopyOnWriteListIterator
 		implements Iterator<T>
 	{
-		private Iterator<T>	it;
+		private final Iterator<T>	it;
 		private T			last;
 		
 		protected

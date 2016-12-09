@@ -42,7 +42,7 @@ public class
 TagPropertyTrackerTemplateHandler 
 	implements TagFeatureProperties.TagPropertyListener, TagListener
 {
-	private TagManagerImpl	tag_manager;
+	final TagManagerImpl	tag_manager;
 		
 	protected
 	TagPropertyTrackerTemplateHandler(

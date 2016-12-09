@@ -47,11 +47,11 @@ NetworkAdminSocksProxyImpl
 	private final String	TARGET_HOST	= VersionCheckClient.HTTP_SERVER_ADDRESS_V4;
 	private final int		TARGET_PORT	= VersionCheckClient.HTTP_SERVER_PORT;
 	
-	private String		host;
-	private String		port;
+	private final String		host;
+	private final String		port;
 	
-	private String		user;
-	private String		password;
+	final String		user;
+	final String		password;
 	
 	protected
 	NetworkAdminSocksProxyImpl(

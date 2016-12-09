@@ -27,7 +27,7 @@ import java.util.Set;
 public class 
 CopyOnWriteSet<T> 
 {
-	private boolean	is_identify;
+	private final boolean	is_identify;
 	
 	private volatile Set<T>	set;
 	
@@ -154,7 +154,7 @@ CopyOnWriteSet<T>
 	CopyOnWriteSetIterator
 		implements Iterator<T>
 	{
-		private Iterator<T>	it;
+		private final Iterator<T>	it;
 		private T			last;
 		
 		protected

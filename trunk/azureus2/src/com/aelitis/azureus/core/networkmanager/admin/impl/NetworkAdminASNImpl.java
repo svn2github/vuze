@@ -32,9 +32,9 @@ public class
 NetworkAdminASNImpl 
 	implements NetworkAdminASN
 {
-	private String		as;
+	private final String		as;
 	private String		asn;
-	private String		bgp_prefix;
+	private final String		bgp_prefix;
 	
 	
 	

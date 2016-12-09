@@ -106,11 +106,11 @@ public class SMConst
 
     static class FilteredLimitEstimate implements SpeedManagerLimitEstimate
     {
-        int bytesPerSec;
-        float type;
-        float metric;
-        long when;
-        String name;
+        final int bytesPerSec;
+        final float type;
+        final float metric;
+        final long when;
+        final String name;
 
         public FilteredLimitEstimate(int _bytesPerSec, float _type, float _metric, long _when, String _name){
             bytesPerSec = _bytesPerSec;

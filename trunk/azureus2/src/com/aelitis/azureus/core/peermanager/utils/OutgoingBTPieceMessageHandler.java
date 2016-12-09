@@ -52,7 +52,7 @@ public class OutgoingBTPieceMessageHandler {
   private boolean destroyed = false;
   private int request_read_ahead = 2;
 
-  private OutgoingBTPieceMessageHandlerAdapter	adapter;
+  final OutgoingBTPieceMessageHandlerAdapter	adapter;
 
   /**
    * Create a new handler for outbound piece messages,

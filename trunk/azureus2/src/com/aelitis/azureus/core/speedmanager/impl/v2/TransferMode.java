@@ -124,7 +124,7 @@ public class TransferMode
         public static final State SEEDING = new State("seeding");
         public static final State DOWNLOAD_LIMIT_SEARCH = new State("download limit search");
         public static final State UPLOAD_LIMIT_SEARCH = new State("upload limit search");
-        String mode;
+        final String mode;
 
         private State(String _mode){
             mode = _mode;

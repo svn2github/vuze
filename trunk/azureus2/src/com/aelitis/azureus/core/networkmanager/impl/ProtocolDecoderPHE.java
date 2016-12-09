@@ -126,9 +126,9 @@ ProtocolDecoderPHE
     	return( MIN_INCOMING_INITIAL_PACKET_SIZE + (min_overheads?PADDING_MAX_LIMITED:PADDING_MAX_NORMAL)/2 );
     }
     	
-    private static Random	random = RandomUtils.SECURE_RANDOM;
+    private static final Random	random = RandomUtils.SECURE_RANDOM;
     
-	private static Map	global_shared_secrets	= new LightHashMap();
+	private static final Map	global_shared_secrets	= new LightHashMap();
 	
 	private static boolean
 	cryptoSetup()
@@ -355,7 +355,7 @@ ProtocolDecoderPHE
 
 	private boolean processing_complete;
 	
-	private AEMonitor	process_mon	= new AEMonitor( "ProtocolDecoderPHE:process" );
+	private final AEMonitor	process_mon	= new AEMonitor( "ProtocolDecoderPHE:process" );
 	
 	public 
 	ProtocolDecoderPHE(

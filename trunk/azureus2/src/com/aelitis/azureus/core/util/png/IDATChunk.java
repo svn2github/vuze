@@ -26,8 +26,8 @@ import java.util.zip.DeflaterOutputStream;
 public class IDATChunk extends CRCedChunk {
 	private static final byte[] type = {(byte) 73, (byte) 68, (byte) 65, (byte) 84 };
 	
-	private int width;
-	private int height;
+	private final int width;
+	private final int height;
 	
 	public IDATChunk(int width, int height) {
 		super(type);

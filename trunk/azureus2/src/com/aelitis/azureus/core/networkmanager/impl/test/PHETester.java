@@ -46,11 +46,11 @@ PHETester
 {
 	private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( "PHETester", VirtualChannelSelector.OP_CONNECT, true );
 	 
-	private byte[]	TEST_HEADER	= "TestHeader".getBytes();
+	final byte[]	TEST_HEADER	= "TestHeader".getBytes();
 	
-	private static boolean	OUTGOING_PLAIN = false;
+	private static final boolean	OUTGOING_PLAIN = false;
 	
-	private static byte[]	shared_secret = "sdsjdksjdkj".getBytes();
+	private static final byte[]	shared_secret = "sdsjdksjdkj".getBytes();
 	
 	public
 	PHETester()

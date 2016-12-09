@@ -72,19 +72,19 @@ DHTDBImpl
 	private static final int MAX_VALUE_LIFETIME	= 3*24*60*60*1000;
 	
 	
-	private int			original_republish_interval;
+	private final int			original_republish_interval;
 	
 		// the grace period gives the originator time to republish their data as this could involve
 		// some work on their behalf to find closest nodes etc. There's no real urgency here anyway
 	
-	public static int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 60*60*1000;
+	public static final int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 60*60*1000;
 	
 	private static final boolean	ENABLE_PRECIOUS_STUFF			= false;
 	private static final int		PRECIOUS_CHECK_INTERVAL			= 2*60*60*1000;
 	
-	private int			cache_republish_interval;
+	private final int			cache_republish_interval;
 	
-	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60*1000;
+	private static final long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60*1000;
 	private long		last_cache_expiry_check;
 	
 	private static final long	IP_BLOOM_FILTER_REBUILD_PERIOD		= 15*60*1000;
@@ -100,14 +100,14 @@ DHTDBImpl
 	protected static final int		QUERY_STORE_REQUEST_ENTRY_SIZE	= 6;
 	protected static final int		QUERY_STORE_REPLY_ENTRY_SIZE	= 2;
 	
-	private Map<HashWrapper,DHTDBMapping>				stored_values 				= new HashMap<HashWrapper,DHTDBMapping>();
-	private Map<DHTDBMapping.ShortHash,DHTDBMapping>	stored_values_prefix_map	= new HashMap<DHTDBMapping.ShortHash,DHTDBMapping>();
+	final Map<HashWrapper,DHTDBMapping>				stored_values 				= new HashMap<HashWrapper,DHTDBMapping>();
+	private final Map<DHTDBMapping.ShortHash,DHTDBMapping>	stored_values_prefix_map	= new HashMap<DHTDBMapping.ShortHash,DHTDBMapping>();
 	
 	private DHTControl				control;
-	private DHTStorageAdapter		adapter;
+	private final DHTStorageAdapter		adapter;
 	private DHTRouter				router;
 	private DHTTransportContact		local_contact;
-	private DHTLogger				logger;
+	final DHTLogger				logger;
 	
 	private static final long	MAX_TOTAL_SIZE	= 4*1024*1024;
 	
@@ -119,9 +119,9 @@ DHTDBImpl
 	
 	private boolean force_original_republish;
 	
-	private IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
+	private final IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
 
-	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
+	final AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
 	private static final boolean	DEBUG_SURVEY		= false;
 	private static final boolean	SURVEY_ONLY_RF_KEYS	= true;
@@ -139,9 +139,9 @@ DHTDBImpl
 	
 	private volatile boolean survey_in_progress;
 		
-	private Map<HashWrapper,Long>	survey_mapping_times = new HashMap<HashWrapper, Long>();
+	private final Map<HashWrapper,Long>	survey_mapping_times = new HashMap<HashWrapper, Long>();
 	
-	private Map<HashWrapper,SurveyContactState>	survey_state = 
+	private final Map<HashWrapper,SurveyContactState>	survey_state =
 		new LinkedHashMap<HashWrapper,SurveyContactState>(MAX_SURVEY_STATE_SIZE,0.75f,true)
 		{
 			protected boolean 
@@ -155,7 +155,7 @@ DHTDBImpl
 	private TimerEventPeriodic		precious_timer;
 	private TimerEventPeriodic		original_republish_timer;
 	private TimerEventPeriodic		cache_republish_timer;
-	private TimerEventPeriodic		bloom_timer;
+	private final TimerEventPeriodic		bloom_timer;
 	private TimerEventPeriodic		survey_timer;
 	
 	
@@ -1817,7 +1817,7 @@ DHTDBImpl
 				true,
 				new DHTOperationAdapter()
 				{
-					private List<DHTTransportContact> contacts = new ArrayList<DHTTransportContact>();
+					private final List<DHTTransportContact> contacts = new ArrayList<DHTTransportContact>();
 					
 					private boolean	survey_complete;
 					
@@ -3693,7 +3693,7 @@ DHTDBImpl
 	adapterFacade
 		implements DHTStorageAdapter
 	{
-		private DHTStorageAdapter		delegate;
+		private final DHTStorageAdapter		delegate;
 		
 		protected
 		adapterFacade(
@@ -3922,12 +3922,12 @@ DHTDBImpl
 	{
 		private DHTTransportContact		contact;
 		
-		private long					creation_time	= SystemTime.getMonotonousTime();
-		private long					timeout			= creation_time + SURVEY_STATE_MAX_LIFE_TIMEOUT + RandomUtils.nextInt( SURVEY_STATE_MAX_LIFE_RAND );
+		private final long					creation_time	= SystemTime.getMonotonousTime();
+		private final long					timeout			= creation_time + SURVEY_STATE_MAX_LIFE_TIMEOUT + RandomUtils.nextInt( SURVEY_STATE_MAX_LIFE_RAND );
 		
 		private long					last_used		= creation_time;
 		
-		private Set<DHTDBMapping>		mappings = new HashSet<DHTDBMapping>();
+		private final Set<DHTDBMapping>		mappings = new HashSet<DHTDBMapping>();
 		
 		private int	consec_fails;
 		

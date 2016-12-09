@@ -28,7 +28,7 @@ public class
 BloomFilterAddOnly
 	extends BloomFilterImpl
 {
-	private byte[]		map;
+	private final byte[]		map;
 
 	public
 	BloomFilterAddOnly(

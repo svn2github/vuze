@@ -47,17 +47,17 @@ HTTPAuthHelper
 	public static final int	CONNECT_TIMEOUT		= 30*1000;
 	public static final int READ_TIMEOUT		= 30*1000;
 
-	private HTTPAuthHelper			parent;
-	private Map						children	= new HashMap();
+	private final HTTPAuthHelper			parent;
+	private final Map						children	= new HashMap();
 	
-	private URL						delegate_to;
-	private String					delegate_to_host;
-	private int						delegate_to_port;
-	private boolean					delegate_is_https;
+	private final URL						delegate_to;
+	final String					delegate_to_host;
+	final int						delegate_to_port;
+	final boolean					delegate_is_https;
 	
 	private Proxy	delegate_to_proxy;
 	
-	private CopyOnWriteList			listeners = new CopyOnWriteList();
+	private final CopyOnWriteList			listeners = new CopyOnWriteList();
 	
 	private int		port;
 	
@@ -65,11 +65,11 @@ HTTPAuthHelper
 	
 	private boolean			http_only_detected;
 	
-	private Map				cookie_names_set	= new HashMap();
+	private final Map				cookie_names_set	= new HashMap();
 	
-	private ThreadPool		thread_pool = new ThreadPool("HTTPSniffer", MAX_PROCESSORS, true );
+	final ThreadPool		thread_pool = new ThreadPool("HTTPSniffer", MAX_PROCESSORS, true );
 	
-	private List			processors = new ArrayList();
+	final List			processors = new ArrayList();
 	
 	private volatile boolean		destroyed;
 		
@@ -389,7 +389,7 @@ HTTPAuthHelper
 	{
 		private static final String	NL = "\r\n";
 		
-		private Socket		socket_in;
+		final Socket		socket_in;
 		private Socket		socket_out;
 		
 		private volatile boolean	destroyed;

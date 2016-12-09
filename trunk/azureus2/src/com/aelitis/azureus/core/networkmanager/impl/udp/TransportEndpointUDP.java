@@ -26,7 +26,7 @@ public class
 TransportEndpointUDP 
 	implements TransportEndpoint
 {
-	private ProtocolEndpoint		pe;
+	private final ProtocolEndpoint		pe;
 	
 	public
 	TransportEndpointUDP(

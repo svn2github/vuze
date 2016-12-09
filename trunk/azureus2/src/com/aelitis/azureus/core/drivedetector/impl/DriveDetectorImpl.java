@@ -33,13 +33,13 @@ public class DriveDetectorImpl
 	implements DriveDetector,
 	AEDiagnosticsEvidenceGenerator
 {
-	private AEMonitor2 mon_driveDetector = new AEMonitor2("driveDetector");
+	final AEMonitor2 mon_driveDetector = new AEMonitor2("driveDetector");
 
-	private CopyOnWriteList<DriveDetectedListener> listListeners = new CopyOnWriteList<DriveDetectedListener>(1);
+	final CopyOnWriteList<DriveDetectedListener> listListeners = new CopyOnWriteList<DriveDetectedListener>(1);
 	
-	private Map<File, Map> mapDrives = new HashMap<File, Map>(1); 
+	final Map<File, Map> mapDrives = new HashMap<File, Map>(1);
 	
-	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "DriveDetector" );
+	private final AsyncDispatcher	dispatcher = new AsyncDispatcher( "DriveDetector" );
 	
 	public DriveDetectorImpl() {
 		AEDiagnostics.addEvidenceGenerator(this);

@@ -41,7 +41,7 @@ public class VirtualBlockingServerChannelSelector
   private final int receive_buffer_size;
   private final SelectListener listener;
   
-  protected AEMonitor	this_mon	= new AEMonitor( "VirtualServerChannelSelector" );
+  protected final AEMonitor	this_mon	= new AEMonitor( "VirtualServerChannelSelector" );
 
   private long last_accept_time;
   

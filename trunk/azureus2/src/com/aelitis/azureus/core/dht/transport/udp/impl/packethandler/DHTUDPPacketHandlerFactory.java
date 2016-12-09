@@ -33,11 +33,11 @@ import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 public class 
 DHTUDPPacketHandlerFactory 
 {
-	private static DHTUDPPacketHandlerFactory	singleton = new DHTUDPPacketHandlerFactory();
+	private static final DHTUDPPacketHandlerFactory	singleton = new DHTUDPPacketHandlerFactory();
 		
-	private Map 			port_map = new HashMap();
+	private final Map 			port_map = new HashMap();
 	
-	protected AEMonitor	this_mon = new AEMonitor("DHTUDPPacketHandlerFactory" );
+	protected final AEMonitor	this_mon = new AEMonitor("DHTUDPPacketHandlerFactory" );
 
 	
 	

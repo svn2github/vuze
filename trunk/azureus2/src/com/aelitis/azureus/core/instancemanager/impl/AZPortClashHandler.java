@@ -33,7 +33,7 @@ public class
 AZPortClashHandler 
 	implements AZInstanceManagerListener
 {
-	private AZInstance	my_instance;
+	private final AZInstance	my_instance;
 	
 	private int	last_warned_tcp;
 	private int	last_warned_udp;

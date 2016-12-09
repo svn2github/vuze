@@ -36,7 +36,7 @@ AZStatReply
 	private final byte version;
 	private DirectByteBuffer buffer = null;
 
-	private Map	reply;
+	private final Map	reply;
 	
 	public 
 	AZStatReply(

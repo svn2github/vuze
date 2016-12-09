@@ -36,7 +36,7 @@ TagTypeDownloadManual
 {
 	private static final int[] color_default = { 0, 140, 66 };
 	
-	private AtomicInteger	next_tag_id = new AtomicInteger(0);
+	private final AtomicInteger	next_tag_id = new AtomicInteger(0);
 		
 	protected
 	TagTypeDownloadManual(

@@ -33,24 +33,24 @@ public class
 CacheFileManagerStatsImpl
 	implements CacheFileManagerStats
 {
-	protected CacheFileManagerImpl		manager;
+	protected final CacheFileManagerImpl		manager;
 	
 		// average over 10 seconds
 	
-	protected Average	cache_read_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 10);
-	protected Average	cache_write_average = Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 10);
-	protected Average	file_read_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 10);
+	protected final Average	cache_read_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 10);
+	protected final Average	cache_write_average = Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 10);
+	protected final Average	file_read_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 10);
 	
 		// file writes are bursty so use a lower average time
 	
-	protected Average	file_write_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 5);
+	protected final Average	file_write_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 5);
 
 	protected long		last_cache_read;
 	protected long		last_cache_write;
 	protected long		last_file_read;
 	protected long		last_file_write;
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "CacheFileManagerStats" );
+	protected final AEMonitor	this_mon	= new AEMonitor( "CacheFileManagerStats" );
 	
 	protected
 	CacheFileManagerStatsImpl(

@@ -27,7 +27,7 @@ public class
 IdentityHashSet<E> 
 	extends AbstractSet<E>
 {
-	private IdentityHashMap<E,Object> 	identity_map;
+	private final IdentityHashMap<E,Object> 	identity_map;
 
 
 	public 

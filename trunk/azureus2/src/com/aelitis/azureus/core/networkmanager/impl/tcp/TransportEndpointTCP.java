@@ -28,8 +28,8 @@ public class
 TransportEndpointTCP 
 	implements TransportEndpoint
 {
-	private ProtocolEndpoint		pe;
-	private SocketChannel			sc;
+	private final ProtocolEndpoint		pe;
+	private final SocketChannel			sc;
 	
 	public
 	TransportEndpointTCP(

@@ -35,7 +35,7 @@ UDPTransport
 {
 	private static final LogIDs LOGID = LogIDs.NET;
 	
-	private ProtocolEndpointUDP		endpoint;
+	private final ProtocolEndpointUDP		endpoint;
 	private byte[][]				shared_secrets;
 	
 	private int transport_mode = TRANSPORT_MODE_NORMAL;

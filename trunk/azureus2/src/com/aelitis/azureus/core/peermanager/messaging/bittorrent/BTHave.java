@@ -29,7 +29,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent have message.
  */
 public class BTHave implements BTMessage {
-  private byte version;
+  private final byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   

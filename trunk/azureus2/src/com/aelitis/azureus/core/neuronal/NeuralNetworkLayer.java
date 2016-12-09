@@ -19,7 +19,7 @@ package com.aelitis.azureus.core.neuronal;
 
 public class NeuralNetworkLayer {
 	
-	int numberOfNodes;
+	final int numberOfNodes;
 	double[][] weights;
 	double[][] weightChanges;
 	double[] neuronValues;
@@ -29,7 +29,7 @@ public class NeuralNetworkLayer {
 	double[] biasValues;
 	
 	double learningRate;
-	boolean linearOutput;
+	final boolean linearOutput;
 	boolean useMomentum;
 	double momentumFactor;
 	

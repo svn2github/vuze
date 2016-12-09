@@ -39,8 +39,8 @@ AEProxyConnectionImpl
 	implements AEProxyConnection
 {
 	private static final LogIDs LOGID = LogIDs.NET;
-	protected AEProxyImpl		server;
-	protected SocketChannel		source_channel;
+	protected final AEProxyImpl		server;
+	protected final SocketChannel		source_channel;
 
 
 	protected volatile AEProxyState	proxy_read_state 		= null;
@@ -52,7 +52,7 @@ AEProxyConnectionImpl
 	protected boolean	is_closed;
 	
 	
-	protected List		listeners	= new ArrayList(1);
+	protected final List		listeners	= new ArrayList(1);
 	
 	protected
 	AEProxyConnectionImpl(

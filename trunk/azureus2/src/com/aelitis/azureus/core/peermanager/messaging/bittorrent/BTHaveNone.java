@@ -28,7 +28,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 
 public class BTHaveNone implements BTMessage {
   
-  private byte version;
+  private final byte version;
 	
   public BTHaveNone(byte _version) {
     version = _version;

@@ -45,15 +45,15 @@ DHTDBMapping
 {
 	private static final boolean	TRACE_ADDS		= false;
 	
-	private DHTDBImpl			db;
-	private HashWrapper			key;
-	private ShortHash			short_key;
+	private final DHTDBImpl			db;
+	private final HashWrapper			key;
+	private final ShortHash			short_key;
 	private DHTStorageKey		adapter_key;
 	
 		// maps are access order, most recently used at tail, so we cycle values
 		
 	private Map<HashWrapper,DHTDBValueImpl>		direct_originator_map_may_be_null;
-	private Map<HashWrapper,DHTDBValueImpl>		indirect_originator_value_map		= createLinkedMap();
+	final Map<HashWrapper,DHTDBValueImpl>		indirect_originator_value_map		= createLinkedMap();
 	
 	private int				hits;
 	
@@ -1149,7 +1149,7 @@ DHTDBMapping
 	valueIterator
 		implements Iterator<DHTDBValueImpl>
 	{
-		private List<Map<HashWrapper,DHTDBValueImpl>>	maps 		=	new ArrayList<Map<HashWrapper,DHTDBValueImpl>>(2);
+		private final List<Map<HashWrapper,DHTDBValueImpl>>	maps 		=	new ArrayList<Map<HashWrapper,DHTDBValueImpl>>(2);
 		
 		private int		map_index 	= 0;
 		
@@ -1249,8 +1249,8 @@ DHTDBMapping
 	public static class 
 	ShortHash 
 	{
-		private byte[]	bytes;
-		private int		hash_code;
+		private final byte[]	bytes;
+		private final int		hash_code;
 		
 		protected
 		ShortHash(

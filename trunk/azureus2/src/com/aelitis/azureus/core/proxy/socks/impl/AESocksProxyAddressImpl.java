@@ -36,9 +36,9 @@ public class
 AESocksProxyAddressImpl
 	implements AESocksProxyAddress
 {
-	protected String			unresolved_address;
+	protected final String			unresolved_address;
 	protected InetAddress		address;
-	protected int				port;
+	protected final int				port;
 	
 	protected
 	AESocksProxyAddressImpl(

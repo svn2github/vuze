@@ -31,7 +31,7 @@ public class
 TransportStartpointTCP 
 	implements TransportStartpoint, ProtocolStartpoint
 {
-	private TransportEndpointTCP		ep;
+	private final TransportEndpointTCP		ep;
 
 	public
 	TransportStartpointTCP(

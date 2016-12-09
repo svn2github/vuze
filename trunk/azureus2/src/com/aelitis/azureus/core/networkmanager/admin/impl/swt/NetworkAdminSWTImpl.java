@@ -50,7 +50,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 public class 
 NetworkAdminSWTImpl 
 {
-	private NetworkAdminImpl		network_admin;
+	private final NetworkAdminImpl		network_admin;
 	
 	private UISWTStatusEntry 	status;
 		

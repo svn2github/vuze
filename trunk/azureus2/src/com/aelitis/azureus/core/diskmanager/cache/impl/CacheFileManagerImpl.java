@@ -114,7 +114,7 @@ CacheFileManagerImpl
 
 	private long	cache_file_id_next	= 0;
 	
-	protected FMFileManager		file_manager;
+	protected final FMFileManager		file_manager;
 	
 		// copy on update semantics
 	
@@ -123,12 +123,12 @@ CacheFileManagerImpl
 	
 		// access order
 	
-	protected LinkedHashMap		cache_entries = new LinkedHashMap(1024, 0.75f, true );
+	protected final LinkedHashMap		cache_entries = new LinkedHashMap(1024, 0.75f, true );
 	
 	protected CacheFileManagerStatsImpl	stats;
 	
 
-	protected Map	torrent_to_cache_file_map	= new LightHashMap();
+	protected final Map	torrent_to_cache_file_map	= new LightHashMap();
 	
 	protected long				cache_bytes_written;
 	protected long				cache_bytes_read;
@@ -140,7 +140,7 @@ CacheFileManagerImpl
 	protected long				file_read_count;
 	protected long				file_write_count;
 	
-	protected AEMonitor			this_mon	= new AEMonitor( "CacheFileManager" );
+	protected final AEMonitor			this_mon	= new AEMonitor( "CacheFileManager" );
 	
 	private long	cleaner_ticks	= CACHE_CLEANER_TICKS;
 	

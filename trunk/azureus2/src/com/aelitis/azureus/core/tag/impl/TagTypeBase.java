@@ -39,18 +39,18 @@ TagTypeBase
 {	
 	protected static final String	AT_COLOR_ID			= "col.rgb";
 
-	private int		tag_type;
-	private int		tag_type_features;
-	private String	tag_type_name;
+	private final int		tag_type;
+	private final int		tag_type_features;
+	private final String	tag_type_name;
 		
 	private static final int TTL_ADD 			= 1;
 	private static final int TTL_CHANGE 		= 2;
 	private static final int TTL_REMOVE 		= 3;
 	private static final int TTL_TYPE_CHANGE 	= 4;
 	
-	private static TagManagerImpl manager = TagManagerImpl.getSingleton();
+	private static final TagManagerImpl manager = TagManagerImpl.getSingleton();
 	
-	private ListenerManager<TagTypeListener>	tt_listeners 	= 
+	private final ListenerManager<TagTypeListener>	tt_listeners 	=
 		ListenerManager.createManager(
 			"TagTypeListeners",
 			new ListenerManagerDispatcher<TagTypeListener>()
@@ -80,7 +80,7 @@ TagTypeBase
 				}
 			});	
 		
-	private Map<Taggable,List<TagListener>>	tag_listeners = new HashMap<Taggable,List<TagListener>>();
+	private final Map<Taggable,List<TagListener>>	tag_listeners = new HashMap<Taggable,List<TagListener>>();
 	
 	protected
 	TagTypeBase(

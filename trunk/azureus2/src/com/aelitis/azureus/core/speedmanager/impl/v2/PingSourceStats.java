@@ -31,11 +31,11 @@ public class PingSourceStats
 
     final SpeedManagerPingSource source;
     double currPing;
-    Average shortTerm = AverageFactory.MovingImmediateAverage( 3 );
-    Average medTerm = AverageFactory.MovingImmediateAverage( 6 );
-    Average longTerm = AverageFactory.MovingImmediateAverage( 10 );
+    final Average shortTerm = AverageFactory.MovingImmediateAverage( 3 );
+    final Average medTerm = AverageFactory.MovingImmediateAverage( 6 );
+    final Average longTerm = AverageFactory.MovingImmediateAverage( 10 );
 
-    Average forChecks = AverageFactory.MovingImmediateAverage( 100 );
+    final Average forChecks = AverageFactory.MovingImmediateAverage( 100 );
 
     public PingSourceStats(SpeedManagerPingSource _source){
         source = _source;

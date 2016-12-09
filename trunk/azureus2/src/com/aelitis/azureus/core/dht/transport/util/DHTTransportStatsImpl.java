@@ -43,13 +43,13 @@ DHTTransportStatsImpl
 {
 	private static final int RTT_HISTORY	= 50;
 	
-	private byte	protocol_version;
+	private final byte	protocol_version;
 	
 	private long[]	pings			= new long[4];
 	private long[]	find_nodes		= new long[4];
 	private long[]	find_values		= new long[4];
 	private long[]	stores			= new long[4];
-	private long[]	stats			= new long[4];
+	private final long[]	stats			= new long[4];
 	private long[]	data			= new long[4];
 	private long[]	key_blocks		= new long[4];
 	private long[]	store_queries	= new long[4];
@@ -60,9 +60,9 @@ DHTTransportStatsImpl
 	private long	outgoing_requests;
 	
 	private long	incoming_version_requests;
-	private long[]	incoming_request_versions;
+	private final long[]	incoming_request_versions;
 	private long	outgoing_version_requests;
-	private long[]	outgoing_request_versions;
+	private final long[]	outgoing_request_versions;
 	
 	private static final int SKEW_VALUE_MAX	= 256;
 	private final int[]	skew_values = new int[SKEW_VALUE_MAX];
@@ -70,12 +70,12 @@ DHTTransportStatsImpl
 	private long		last_skew_average;
 	private long		last_skew_average_time;
 	
-	private BloomFilter	skew_originator_bloom = 
+	private final BloomFilter	skew_originator_bloom =
 		BloomFilterFactory.createRotating(
 				BloomFilterFactory.createAddOnly( SKEW_VALUE_MAX*4 ),
 				2 );
 	
-	private int[]	rtt_history			= new int[RTT_HISTORY];
+	private final int[]	rtt_history			= new int[RTT_HISTORY];
 	private int		rtt_history_pos;
 	
 	protected

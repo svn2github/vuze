@@ -52,7 +52,7 @@ import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
 public class 
 AEPluginProxyHandler 
 {
-	private static CopyOnWriteList<PluginInterface>		plugins = new CopyOnWriteList<PluginInterface>();
+	private static final CopyOnWriteList<PluginInterface>		plugins = new CopyOnWriteList<PluginInterface>();
 	
 	private static final int			plugin_init_max_wait	= 30*1000;
 	private static final AESemaphore 	plugin_init_complete 	= new AESemaphore( "init:waiter" );
@@ -555,7 +555,7 @@ AEPluginProxyHandler
 		private final Map<String,Object>	proxy_options;
 		private final Object[]				proxy_details;
 		
-		private List<PluginProxyImpl>	children = new ArrayList<AEPluginProxyHandler.PluginProxyImpl>();
+		private final List<PluginProxyImpl>	children = new ArrayList<AEPluginProxyHandler.PluginProxyImpl>();
 		
 		private
 		PluginProxyImpl(
@@ -707,9 +707,9 @@ AEPluginProxyHandler
 	PluginHTTPProxyImpl
 		implements PluginHTTPProxy
 	{
-		private String			reason;
-		private IPCInterface	ipc;
-		private Proxy			proxy;
+		private final String			reason;
+		private final IPCInterface	ipc;
+		private final Proxy			proxy;
 		
 		private
 		PluginHTTPProxyImpl(

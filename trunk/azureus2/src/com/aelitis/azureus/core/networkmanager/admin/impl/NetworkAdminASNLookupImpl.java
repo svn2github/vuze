@@ -47,7 +47,7 @@ NetworkAdminASNLookupImpl
 	
 	private static final int	TIMEOUT			= 30000;
 	
-	private InetAddress		address;
+	private final InetAddress		address;
 	
 	protected 
 	NetworkAdminASNLookupImpl(

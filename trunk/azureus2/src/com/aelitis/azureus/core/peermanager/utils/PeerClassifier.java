@@ -82,7 +82,7 @@ public class PeerClassifier {
 	  return( res );
   }
   
-	private static Set	platform_ips = Collections.synchronizedSet(new HashSet());
+	private static final Set	platform_ips = Collections.synchronizedSet(new HashSet());
 
 	
 		/**

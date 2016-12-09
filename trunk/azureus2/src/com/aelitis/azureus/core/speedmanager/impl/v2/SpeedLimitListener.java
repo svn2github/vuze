@@ -23,7 +23,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 
 public class SpeedLimitListener implements SpeedManagerListener {
 
-    SpeedLimitMonitor mon;
+    final SpeedLimitMonitor mon;
 
     public SpeedLimitListener(SpeedLimitMonitor limitMonitor){
 

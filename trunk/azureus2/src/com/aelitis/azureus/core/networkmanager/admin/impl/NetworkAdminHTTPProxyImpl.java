@@ -53,15 +53,15 @@ NetworkAdminHTTPProxyImpl
 	private final String	TARGET_HOST	= VersionCheckClient.HTTP_SERVER_ADDRESS_V4;
 	private final int		TARGET_PORT	= VersionCheckClient.HTTP_SERVER_PORT;
 
-	private String	http_host;
-	private String	http_port;
-	private String	https_host;
-	private String	https_port;
+	private final String	http_host;
+	private final String	http_port;
+	private final String	https_host;
+	private final String	https_port;
 	
-	private String	user;
-	private String	password;
+	private final String	user;
+	private final String	password;
 	
-	private String[]	non_proxy_hosts;
+	private final String[]	non_proxy_hosts;
 	
 	protected
 	NetworkAdminHTTPProxyImpl()
@@ -250,9 +250,9 @@ NetworkAdminHTTPProxyImpl
 								transport.getSocketChannel(), 
 								new VirtualChannelSelector.VirtualSelectorListener() 
 								{
-									private byte[]		reply_buffer = new byte[8192];
+									private final byte[]		reply_buffer = new byte[8192];
 									
-									private ByteBuffer	reply = ByteBuffer.wrap( reply_buffer );
+									private final ByteBuffer	reply = ByteBuffer.wrap( reply_buffer );
 									
 									public boolean 
 									selectSuccess( 
@@ -432,9 +432,9 @@ NetworkAdminHTTPProxyImpl
 	ProxyDetails
 		implements Details
 	{
-		private String	name;
-		private String	response;
-		private String	auth_type;
+		private final String	name;
+		private final String	response;
+		private final String	auth_type;
 		
 		protected
 		ProxyDetails(

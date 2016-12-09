@@ -138,32 +138,32 @@ PairingManagerImpl
 	
 	private AzureusCore	azureus_core;
 	
-	private BooleanParameter 	param_enable;
+	final BooleanParameter 	param_enable;
 
 	
-	private InfoParameter		param_ac_info;
-	private InfoParameter		param_status_info;
-	private InfoParameter		param_last_error;
-	private HyperlinkParameter	param_view;
+	private final InfoParameter		param_ac_info;
+	private final InfoParameter		param_status_info;
+	private final InfoParameter		param_last_error;
+	private final HyperlinkParameter	param_view;
 	
-	private BooleanParameter 	param_srp_enable;
-	private LabelParameter		param_srp_state;
+	final BooleanParameter 	param_srp_enable;
+	private final LabelParameter		param_srp_state;
 	
-	private BooleanParameter 	param_e_enable;
-	private StringParameter		param_public_ipv4;
-	private StringParameter		param_public_ipv6;
-	private StringParameter		param_host;
+	private final BooleanParameter 	param_e_enable;
+	private final StringParameter		param_public_ipv4;
+	private final StringParameter		param_public_ipv6;
+	private final StringParameter		param_host;
 	
-	private BooleanParameter 	param_net_enable;
+	private final BooleanParameter 	param_net_enable;
 
-	private StringParameter		param_local_ipv4;
-	private StringParameter		param_local_ipv6;
+	private final StringParameter		param_local_ipv4;
+	private final StringParameter		param_local_ipv6;
 
-	private BooleanParameter 	param_icon_enable;
+	private final BooleanParameter 	param_icon_enable;
 
-	private Map<String,PairedServiceImpl>		services = new HashMap<String, PairedServiceImpl>();
+	private final Map<String,PairedServiceImpl>		services = new HashMap<String, PairedServiceImpl>();
 	
-	private AESemaphore	init_sem = new AESemaphore( "PM:init" );
+	private final AESemaphore	init_sem = new AESemaphore( "PM:init" );
 	
 	private TimerEventPeriodic	global_update_event;
 	
@@ -185,7 +185,7 @@ PairingManagerImpl
 	private int max_update_period	= MAX_UPDATE_PERIOD_DEFAULT;
 	
 	
-	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
+	private final AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
 	private boolean			must_update_once;
 	private boolean			update_in_progress;
@@ -197,9 +197,9 @@ PairingManagerImpl
 	
 	private String			last_message;
 	
-	private Map<String,Object[]>	local_address_checks = new HashMap<String, Object[]>();
+	final Map<String,Object[]>	local_address_checks = new HashMap<String, Object[]>();
 
-	private CopyOnWriteList<PairingManagerListener>	listeners = new CopyOnWriteList<PairingManagerListener>();
+	private final CopyOnWriteList<PairingManagerListener>	listeners = new CopyOnWriteList<PairingManagerListener>();
 	
 	private UIAdapter		ui;
 	
@@ -2152,8 +2152,8 @@ PairingManagerImpl
 	PairedServiceImpl
 		implements PairedService, PairingConnectionData
 	{
-		private String				sid;
-		private Map<String,String>	attributes	= new HashMap<String, String>();
+		private final String				sid;
+		private final Map<String,String>	attributes	= new HashMap<String, String>();
 		
 		private	PairedServiceRequestHandler		request_handler;
 		
@@ -2263,7 +2263,7 @@ PairingManagerImpl
 	PairedNodeImpl
 		implements PairedNode
 	{
-		private Map		map;
+		private final Map		map;
 		
 		protected
 		PairedNodeImpl(
@@ -2351,8 +2351,8 @@ PairingManagerImpl
 	PairedService2Impl
 		implements PairedService
 	{
-		private String		sid;
-		private Map			map;
+		private final String		sid;
+		private final Map			map;
 		
 		protected
 		PairedService2Impl(
@@ -2386,7 +2386,7 @@ PairingManagerImpl
 	PairingConnectionData2
 		implements PairingConnectionData
 	{
-		private Map		map;
+		private final Map		map;
 		
 		protected
 		PairingConnectionData2(

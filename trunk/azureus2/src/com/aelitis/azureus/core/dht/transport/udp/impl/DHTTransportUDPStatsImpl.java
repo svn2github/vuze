@@ -33,7 +33,7 @@ public class
 DHTTransportUDPStatsImpl
 	extends 	DHTTransportStatsImpl
 {
-	private DHTTransportUDPImpl				transport;
+	private final DHTTransportUDPImpl				transport;
 	private DHTUDPPacketHandlerStats		stats;
 	
 	protected

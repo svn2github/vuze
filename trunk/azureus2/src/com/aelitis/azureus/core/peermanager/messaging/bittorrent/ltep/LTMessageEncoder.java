@@ -39,7 +39,7 @@ import org.gudy.azureus2.core3.util.Constants;
 public class LTMessageEncoder implements MessageStreamEncoder {
 	
 	protected final static LogIDs LOGID = LogIDs.PEER;
-	private Object log_object;
+	private final Object log_object;
 	private HashMap extension_map;
 	
 	public LTMessageEncoder(Object log_object) {

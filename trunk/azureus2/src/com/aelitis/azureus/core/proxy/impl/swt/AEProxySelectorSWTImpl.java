@@ -58,8 +58,8 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 public class 
 AEProxySelectorSWTImpl 
 {
-	private AzureusCore				core;
-	private AEProxySelectorImpl		proxy_selector;
+	private final AzureusCore				core;
+	private final AEProxySelectorImpl		proxy_selector;
 	
 	private UISWTStatusEntry 	status;
 		

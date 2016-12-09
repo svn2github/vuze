@@ -30,7 +30,7 @@ public class
 DHTRouterStatsImpl
 	implements DHTRouterStats
 {
-	private DHTRouterImpl		router;
+	private final DHTRouterImpl		router;
 	
 	protected
 	DHTRouterStatsImpl(

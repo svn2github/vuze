@@ -24,7 +24,11 @@ import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.*;
 
 public class HeightCoordinatesImpl implements Coordinates {
   
-  protected float x,y,h;
+  protected final float x;
+
+  protected final float y;
+
+  protected final float h;
   
   public HeightCoordinatesImpl(float x, float y, float h) {
     this.x = x;

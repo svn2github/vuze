@@ -65,15 +65,15 @@ TagPropertyConstraintHandler
 	private boolean		initialised;
 	private boolean 	initial_assignment_complete;
 	
-	private Map<Tag,TagConstraint>	constrained_tags 	= new HashMap<Tag,TagConstraint>();
+	final Map<Tag,TagConstraint>	constrained_tags 	= new HashMap<Tag,TagConstraint>();
 	
 	private boolean	dm_listener_added;
 	
-	private Map<Tag,Map<DownloadManager,Long>>			apply_history 		= new HashMap<Tag, Map<DownloadManager,Long>>();
+	final Map<Tag,Map<DownloadManager,Long>>			apply_history 		= new HashMap<Tag, Map<DownloadManager,Long>>();
 	
-	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "tag:constraints" );
+	private final AsyncDispatcher	dispatcher = new AsyncDispatcher( "tag:constraints" );
 	
-	private FrequencyLimitedDispatcher	freq_lim_dispatcher = 
+	private final FrequencyLimitedDispatcher	freq_lim_dispatcher =
 		new FrequencyLimitedDispatcher(
 			new AERunnable()
 			{
@@ -85,7 +85,7 @@ TagPropertyConstraintHandler
 			},
 			5000 );
 	
-	private IdentityHashMap<DownloadManager,List<TagConstraint>>	freq_lim_pending = new IdentityHashMap<DownloadManager,List<TagConstraint>>();
+	final IdentityHashMap<DownloadManager,List<TagConstraint>>	freq_lim_pending = new IdentityHashMap<DownloadManager,List<TagConstraint>>();
 	
 	
 	private TimerEventPeriodic		timer;
@@ -992,7 +992,7 @@ TagPropertyConstraintHandler
 		ConstraintExprParams
 			implements  ConstraintExpr
 		{
-			private String	value;
+			private final String	value;
 			
 			private
 			ConstraintExprParams(
@@ -1074,7 +1074,7 @@ TagPropertyConstraintHandler
 		ConstraintExprNot
 			implements  ConstraintExpr
 		{
-			private	ConstraintExpr expr;
+			private final ConstraintExpr expr;
 			
 			private
 			ConstraintExprNot(
@@ -1102,7 +1102,7 @@ TagPropertyConstraintHandler
 		ConstraintExprOr
 			implements  ConstraintExpr
 		{
-			private ConstraintExpr[]	exprs;
+			private final ConstraintExpr[]	exprs;
 			
 			private
 			ConstraintExprOr(
@@ -1145,7 +1145,7 @@ TagPropertyConstraintHandler
 		ConstraintExprAnd
 			implements  ConstraintExpr
 		{
-			private ConstraintExpr[]	exprs;
+			private final ConstraintExpr[]	exprs;
 			
 			private
 			ConstraintExprAnd(
@@ -1188,7 +1188,7 @@ TagPropertyConstraintHandler
 		ConstraintExprXor
 			implements  ConstraintExpr
 		{
-			private ConstraintExpr[]	exprs;
+			private final ConstraintExpr[]	exprs;
 			
 			private
 			ConstraintExprXor(
@@ -1254,7 +1254,7 @@ TagPropertyConstraintHandler
 		private static final int FT_IS_PAUSED		= 18;
 
 		
-		private static Map<String,Integer>	keyword_map = new HashMap<String, Integer>();
+		static final Map<String,Integer>	keyword_map = new HashMap<String, Integer>();
 		
 		private static final int	KW_SHARE_RATIO		= 0;
 		private static final int	KW_AGE 				= 1;

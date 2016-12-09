@@ -48,15 +48,15 @@ public class
 TagPropertyUntaggedHandler 
 	implements TagTypeListener
 {
-	private AzureusCore		azureus_core;
-	private TagManagerImpl	tag_manager;
+	private final AzureusCore		azureus_core;
+	final TagManagerImpl	tag_manager;
 	
 	private boolean	is_initialised;
 	private boolean	is_enabled;
 	
-	private Set<Tag>	untagged_tags = new HashSet<Tag>();
+	final Set<Tag>	untagged_tags = new HashSet<Tag>();
 	
-	private Map<Taggable,int[]>		taggable_counts = new IdentityHashMap<Taggable, int[]>();
+	final Map<Taggable,int[]>		taggable_counts = new IdentityHashMap<Taggable, int[]>();
 	
 	
 	protected

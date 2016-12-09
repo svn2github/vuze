@@ -51,7 +51,7 @@ AESocksProxyConnectionImpl
 	private String					username;
 	private String					password;
 	
-	private SocketChannel			source_channel;
+	final SocketChannel			source_channel;
 	
 	private int						socks_version;
 	
@@ -353,7 +353,7 @@ AESocksProxyConnectionImpl
 		extends AESocksProxyState
 	{
 		protected String	dns_address;
-		protected int		port;
+		protected final int		port;
 		
 		protected
 		proxyStateV4aRequest(
@@ -1141,8 +1141,8 @@ AESocksProxyConnectionImpl
 	proxyStateV5RequestPort
 		extends AESocksProxyState
 	{
-		protected String		unresolved_address;
-		protected InetAddress	address;
+		protected final String		unresolved_address;
+		protected final InetAddress	address;
 		
 		protected
 		proxyStateV5RequestPort(

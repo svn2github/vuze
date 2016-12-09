@@ -60,7 +60,7 @@ public abstract class CRCedChunk extends Chunk{
 
 	
 	 /* Table of CRCs of all 8-bit messages. */
-	   private static long[] crc_table = new long[256];
+	   private static final long[] crc_table = new long[256];
 	   
 	   /* Flag: has the table been computed? Initially false. */
 	   private static boolean crc_table_computed = false;

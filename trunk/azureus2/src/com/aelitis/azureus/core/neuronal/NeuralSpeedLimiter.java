@@ -30,13 +30,13 @@ public class NeuralSpeedLimiter {
 	long maxLatency;
 	long latency;
 	
-	NeuralNetwork neuralNetwork;
+	final NeuralNetwork neuralNetwork;
 	
 	private boolean dirty;
 	
 	private double currentULTarget = 0.6;
 	
-	double trainingSet[][] = new double[][] {
+	final double[][] trainingSet = new double[][] {
 			//dl speed,	ul speed,	latency,	no_down_limit,	down_limit,	no_up_limit,	up_limit
 			
 			//no latency => no limits

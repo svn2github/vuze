@@ -30,7 +30,7 @@ public class
 BTRawMessage
 	implements BTMessage, RawMessage
 {
-	private DirectByteBuffer		buffer;
+	private final DirectByteBuffer		buffer;
 	
 	public
 	BTRawMessage(

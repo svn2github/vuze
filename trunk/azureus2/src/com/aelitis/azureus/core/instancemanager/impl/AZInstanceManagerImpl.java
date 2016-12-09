@@ -60,9 +60,9 @@ AZInstanceManagerImpl
 	
 	private static final LogIDs LOGID = LogIDs.NET;
 	
-	private String				MC_GROUP_ADDRESS 	= "239.255.067.250";	// 239.255.000.000-239.255.255.255 
-	private int					MC_GROUP_PORT		= 16680;				//
-	private int					MC_CONTROL_PORT		= 0;
+	private static final String				MC_GROUP_ADDRESS 	= "239.255.067.250";	// 239.255.000.000-239.255.255.255
+	private static final int					MC_GROUP_PORT		= 16680;				//
+	private static final int					MC_CONTROL_PORT		= 0;
 
 	private static final int	MT_VERSION		= 1;
 	
@@ -78,9 +78,9 @@ AZInstanceManagerImpl
 	
 	private static AZInstanceManagerImpl	singleton;
 	
-	private List	listeners	= new ArrayList();
+	private final List	listeners	= new ArrayList();
 	
-	private static AEMonitor	class_mon = new AEMonitor( "AZInstanceManager:class" );
+	private static final AEMonitor	class_mon = new AEMonitor( "AZInstanceManager:class" );
 	
 	private static String	socks_proxy	= null;
 	
@@ -137,14 +137,14 @@ AZInstanceManagerImpl
 		return( singleton );
 	}
 	
-	private AZInstanceManagerAdapter	adapter;
+	private final AZInstanceManagerAdapter	adapter;
 	
 	private MCGroup	 	mc_group;
 	private long		search_id_next;
-	private List		requests = new ArrayList();
+	final List		requests = new ArrayList();
 	
-	private AZMyInstanceImpl		my_instance;
-	private Map						other_instances	= new HashMap();
+	final AZMyInstanceImpl		my_instance;
+	private final Map						other_instances	= new HashMap();
 	
 	private volatile boolean		initialised;
 	private volatile Map			tcp_lan_to_ext	= new HashMap();
@@ -162,10 +162,10 @@ AZInstanceManagerImpl
 	
 	private volatile boolean		include_well_known_lans	= true;
 	
-	private AESemaphore	initial_search_sem	= new AESemaphore( "AZInstanceManager:initialSearch" );
+	final AESemaphore	initial_search_sem	= new AESemaphore( "AZInstanceManager:initialSearch" );
 	private boolean		init_wait_abandoned;
 	
-	private AEMonitor	this_mon = new AEMonitor( "AZInstanceManager" );
+	final AEMonitor	this_mon = new AEMonitor( "AZInstanceManager" );
 
 	private boolean		closing;
 	
@@ -1297,9 +1297,9 @@ AZInstanceManagerImpl
 	{
 		private long	id;
 		
-		private Set	reply_instances	= new HashSet();
+		private final Set	reply_instances	= new HashSet();
 		
-		private Map	replies			= new HashMap();
+		private final Map	replies			= new HashMap();
 		
 		protected
 		request(
@@ -1394,9 +1394,9 @@ AZInstanceManagerImpl
 	trackedInstance
 		implements AZInstanceTracked
 	{
-		private AZInstance		instance;
-		private TrackTarget		target;
-		private boolean			seed;
+		private final AZInstance		instance;
+		private final TrackTarget		target;
+		private final boolean			seed;
 		
 		protected
 		trackedInstance(

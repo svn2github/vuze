@@ -66,7 +66,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 	private static final AEMonitor	timer_mon = new AEMonitor( "PeerManager:timeouts" );
 	private static AEThread2	timer_thread;
-	private static Set	timer_targets = new HashSet();
+	static final Set	timer_targets = new HashSet();
 
 	protected static void
 	registerForTimeouts(
@@ -524,8 +524,8 @@ public class PeerManager implements AzureusCoreStatsProvider{
 	PeerManagerRegistrationImpl
 		implements PeerManagerRegistration
 	{
-		private HashWrapper 					hash;
-		private PeerManagerRegistrationAdapter	adapter;
+		private final HashWrapper 					hash;
+		final PeerManagerRegistrationAdapter	adapter;
 
 		private PEPeerControl					download;
 

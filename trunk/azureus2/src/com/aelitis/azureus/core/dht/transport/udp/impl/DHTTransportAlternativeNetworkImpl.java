@@ -42,10 +42,10 @@ DHTTransportAlternativeNetworkImpl
 	
 	private static final boolean	TRACE = false;
 	
-	private int	network;
+	private final int	network;
 	private final int	max_contacts;
 	
-	private TreeSet<DHTTransportAlternativeContact> contacts =
+	private final TreeSet<DHTTransportAlternativeContact> contacts =
 		new TreeSet<DHTTransportAlternativeContact>(
 			new Comparator<DHTTransportAlternativeContact>() 
 			{

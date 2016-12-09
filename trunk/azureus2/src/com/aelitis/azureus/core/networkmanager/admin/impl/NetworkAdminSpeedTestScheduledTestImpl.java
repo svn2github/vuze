@@ -72,11 +72,11 @@ NetworkAdminSpeedTestScheduledTestImpl
     private static final long CHALLENGE_REPLY 	= 1;
     private static final long TEST_RESULT		= 2;
     
-    private static int ZERO_DOWNLOAD_SETTING = -1;
+    private static final int ZERO_DOWNLOAD_SETTING = -1;
 
 
-    private PluginInterface						plugin;
- 	private NetworkAdminSpeedTesterImpl			tester;
+	final PluginInterface						plugin;
+  final NetworkAdminSpeedTesterImpl			tester;
 	
     private String detectedRouter;
 
@@ -89,7 +89,7 @@ NetworkAdminSpeedTestScheduledTestImpl
 	
 	private volatile boolean	aborted;
 	
-	private CopyOnWriteList		listeners = new CopyOnWriteList();
+	private final CopyOnWriteList		listeners = new CopyOnWriteList();
 	
 	protected
 	NetworkAdminSpeedTestScheduledTestImpl(
@@ -638,7 +638,7 @@ NetworkAdminSpeedTestScheduledTestImpl
     	implements ParameterListener, DownloadManagerListener
     {
 
-        private Map torrentLimits = new HashMap(); //Map <Download , Map<String,Integer> >
+        private final Map torrentLimits = new HashMap(); //Map <Download , Map<String,Integer> >
 
         public static final String TORRENT_UPLOAD_LIMIT 	= "u";
         public static final String TORRENT_DOWNLOAD_LIMIT 	= "d";

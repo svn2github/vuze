@@ -28,8 +28,8 @@ public class
 TransportHelperFilterStreamCipher 
 	extends TransportHelperFilterStream
 {
-	private TransportCipher					read_cipher;
-	private TransportCipher					write_cipher;
+	private final TransportCipher					read_cipher;
+	private final TransportCipher					write_cipher;
 		
 	public
 	TransportHelperFilterStreamCipher(
