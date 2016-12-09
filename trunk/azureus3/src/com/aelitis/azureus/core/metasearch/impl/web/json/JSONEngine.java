@@ -283,7 +283,7 @@ JSONEngine
 
 			JSONArray resultArray = null;
 			
-			if(resultsEntryPath != null) {
+			if(resultsEntryPath != null && resultsEntryPath.length() > 0) {
 				String[] split = resultsEntryPath.split("\\.");
 				if(jsonObject instanceof JSONArray && split.length > 0 && !split[0].startsWith("[")) {
 					JSONArray array = (JSONArray) jsonObject;
