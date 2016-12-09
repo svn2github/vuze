@@ -55,15 +55,15 @@ import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultName;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultActions;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultAge;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultCategory;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultActions;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultAge;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultCategory;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultRank;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultRatings;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultSeedsPeers;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultSize;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultType;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultNew;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultRank;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultRatings;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultSeedsPeers;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultSize;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultType;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
@@ -278,11 +278,11 @@ SBC_SubscriptionResultsView
 		
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultType.COLUMN_ID,
+			ColumnSearchSubResultType.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultType(column);
+						new ColumnSearchSubResultType(column);
 					}
 				});	
 		
@@ -298,71 +298,71 @@ SBC_SubscriptionResultsView
 		
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultActions.COLUMN_ID,
+			ColumnSearchSubResultActions.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultActions(column);
+						new ColumnSearchSubResultActions(column);
 					}
 				});			
 		
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultSize.COLUMN_ID,
+			ColumnSearchSubResultSize.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultSize(column);
+						new ColumnSearchSubResultSize(column);
 					}
 				});			
 			
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultSeedsPeers.COLUMN_ID,
+			ColumnSearchSubResultSeedsPeers.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultSeedsPeers(column);
+						new ColumnSearchSubResultSeedsPeers(column);
 					}
 				});		
 	
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultRatings.COLUMN_ID,
+			ColumnSearchSubResultRatings.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultRatings(column);
+						new ColumnSearchSubResultRatings(column);
 					}
 				});		
 
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultAge.COLUMN_ID,
+			ColumnSearchSubResultAge.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultAge(column);
+						new ColumnSearchSubResultAge(column);
 					}
 				});
 
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultRank.COLUMN_ID,
+			ColumnSearchSubResultRank.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultRank(column);
+						new ColumnSearchSubResultRank(column);
 					}
 				});
 		
 		tableManager.registerColumn(
 			SBC_SubscriptionResult.class, 
-			ColumnSubResultCategory.COLUMN_ID,
+			ColumnSearchSubResultCategory.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultCategory(column);
+						new ColumnSearchSubResultCategory(column);
 					}
 				});
 	}
@@ -575,7 +575,7 @@ SBC_SubscriptionResultsView
 				TABLE_SR,
 				TABLE_SR, 
 				new TableColumnCore[0], 
-				ColumnSubResultAge.COLUMN_ID,
+				ColumnSearchSubResultAge.COLUMN_ID,
 				SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
 		
 		TableColumnManager tableManager = TableColumnManager.getInstance();
@@ -583,20 +583,20 @@ SBC_SubscriptionResultsView
 		tableManager.setDefaultColumnNames( TABLE_SR,
 				new String[] {
 					ColumnSubResultNew.COLUMN_ID,
-					ColumnSubResultType.COLUMN_ID,
+					ColumnSearchSubResultType.COLUMN_ID,
 					ColumnSearchSubResultName.COLUMN_ID,
-					ColumnSubResultActions.COLUMN_ID,
-					ColumnSubResultSize.COLUMN_ID,
-					ColumnSubResultSeedsPeers.COLUMN_ID,
-					ColumnSubResultRatings.COLUMN_ID,
-					ColumnSubResultAge.COLUMN_ID,
-					ColumnSubResultRank.COLUMN_ID,
-					ColumnSubResultCategory.COLUMN_ID,
+					ColumnSearchSubResultActions.COLUMN_ID,
+					ColumnSearchSubResultSize.COLUMN_ID,
+					ColumnSearchSubResultSeedsPeers.COLUMN_ID,
+					ColumnSearchSubResultRatings.COLUMN_ID,
+					ColumnSearchSubResultAge.COLUMN_ID,
+					ColumnSearchSubResultRank.COLUMN_ID,
+					ColumnSearchSubResultCategory.COLUMN_ID,
 				});
 		
-		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSubResultAge.COLUMN_ID);
+		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultAge.COLUMN_ID);
 		
-		TableColumnCore tcc = tableManager.getTableColumnCore( TABLE_SR, ColumnSubResultAge.COLUMN_ID );
+		TableColumnCore tcc = tableManager.getTableColumnCore( TABLE_SR, ColumnSearchSubResultAge.COLUMN_ID );
 		
 		if ( tcc != null ){
 			

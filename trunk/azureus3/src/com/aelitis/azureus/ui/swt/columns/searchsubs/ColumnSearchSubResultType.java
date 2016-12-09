@@ -14,7 +14,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package com.aelitis.azureus.ui.swt.columns.subscriptions;
+package com.aelitis.azureus.ui.swt.columns.searchsubs;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -24,7 +24,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
+import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -33,7 +33,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Sep 25, 2008
  *
  */
-public class ColumnSubResultType
+public class ColumnSearchSubResultType
 	implements TableCellSWTPaintListener, TableCellAddedListener,
 	TableCellRefreshListener
 {
@@ -47,7 +47,7 @@ public class ColumnSubResultType
 	private static Image imgOther;
 
 
-	public ColumnSubResultType(TableColumn column ) {
+	public ColumnSearchSubResultType(TableColumn column ) {
 	
 		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, WIDTH );
 		column.addListeners(this);
@@ -66,7 +66,7 @@ public class ColumnSubResultType
 	}
 
 	public void cellPaint(GC gc, TableCellSWT cell) {
-		SBC_SubscriptionResult entry = (SBC_SubscriptionResult) cell.getDataSource();
+		SearchSubsResultBase entry = (SearchSubsResultBase) cell.getDataSource();
 
 		Rectangle cellBounds = cell.getBounds();
 		Image img;
@@ -112,7 +112,7 @@ public class ColumnSubResultType
 	}
 
 	public void refresh(TableCell cell) {
-		SBC_SubscriptionResult entry = (SBC_SubscriptionResult)cell.getDataSource();
+		SearchSubsResultBase entry = (SearchSubsResultBase)cell.getDataSource();
 
 		if ( entry != null ){
 							

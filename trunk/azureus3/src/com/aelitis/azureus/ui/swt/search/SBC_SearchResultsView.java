@@ -89,7 +89,7 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultName;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.*;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.search.SearchResultsTabArea.SearchQuery;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -281,20 +281,16 @@ SBC_SearchResultsView
 		}
 		
 		TableColumnManager tableManager = TableColumnManager.getInstance();
-		
-		/*
-		
+				
 		tableManager.registerColumn(
 			SBC_SearchResult.class, 
-			ColumnSubResultType.COLUMN_ID,
+			ColumnSearchSubResultType.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultType(column);
+						new ColumnSearchSubResultType(column);
 					}
-				});	
-		*/
-		
+				});			
 		tableManager.registerColumn(
 			SBC_SearchResult.class, 
 			ColumnSearchSubResultName.COLUMN_ID,
@@ -305,77 +301,75 @@ SBC_SearchResultsView
 					}
 				});	
 		
-		/*
 		tableManager.registerColumn(
 			SBC_SearchResult.class, 
-			ColumnSubResultActions.COLUMN_ID,
+			ColumnSearchSubResultActions.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultActions(column);
+						new ColumnSearchSubResultActions(column);
 					}
 				});			
 		
 		tableManager.registerColumn(
 			SBC_SearchResult.class, 
-			ColumnSubResultSize.COLUMN_ID,
+			ColumnSearchSubResultSize.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultSize(column);
+						new ColumnSearchSubResultSize(column);
 					}
 				});			
 			
 		tableManager.registerColumn(
 			SBC_SearchResult.class, 
-			ColumnSubResultSeedsPeers.COLUMN_ID,
+			ColumnSearchSubResultSeedsPeers.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultSeedsPeers(column);
+						new ColumnSearchSubResultSeedsPeers(column);
 					}
 				});		
 	
 		tableManager.registerColumn(
 			SBC_SearchResult.class, 
-			ColumnSubResultRatings.COLUMN_ID,
+			ColumnSearchSubResultRatings.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultRatings(column);
+						new ColumnSearchSubResultRatings(column);
 					}
 				});		
 
 		tableManager.registerColumn(
 			SBC_SearchResult.class, 
-			ColumnSubResultAge.COLUMN_ID,
+			ColumnSearchSubResultAge.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultAge(column);
+						new ColumnSearchSubResultAge(column);
 					}
 				});
 
 		tableManager.registerColumn(
 			SBC_SearchResult.class, 
-			ColumnSubResultRank.COLUMN_ID,
+			ColumnSearchSubResultRank.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultRank(column);
+						new ColumnSearchSubResultRank(column);
 					}
 				});
 		
 		tableManager.registerColumn(
 			SBC_SearchResult.class, 
-			ColumnSubResultCategory.COLUMN_ID,
+			ColumnSearchSubResultCategory.COLUMN_ID,
 				new TableColumnCreationListener() {
 					
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnSubResultCategory(column);
+						new ColumnSearchSubResultCategory(column);
 					}
 				});
-				*/
 	}
 	
 	public void
@@ -415,18 +409,19 @@ SBC_SearchResultsView
 
 		tableManager.setDefaultColumnNames( TABLE_SR,
 				new String[] {
-					ColumnSearchSubResultName.COLUMN_ID,
-				
-				});
+				ColumnSearchSubResultType.COLUMN_ID,
+				ColumnSearchSubResultName.COLUMN_ID,
+				ColumnSearchSubResultActions.COLUMN_ID,
+				ColumnSearchSubResultSize.COLUMN_ID,
+				ColumnSearchSubResultSeedsPeers.COLUMN_ID,
+				ColumnSearchSubResultRatings.COLUMN_ID,
+				ColumnSearchSubResultAge.COLUMN_ID,
+				ColumnSearchSubResultRank.COLUMN_ID,
+				ColumnSearchSubResultCategory.COLUMN_ID,
+			});
 		
-		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultName.COLUMN_ID);
+		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultRank.COLUMN_ID);
 		
-		TableColumnCore tcc = tableManager.getTableColumnCore( TABLE_SR, ColumnSearchSubResultName.COLUMN_ID );
-		
-		if ( tcc != null ){
-			
-			tcc.setDefaultSortAscending( true );
-		}
 		
 		if (txtFilter != null) {
 			tv_subs_results.enableFilterCheck(txtFilter, this);
@@ -847,7 +842,7 @@ SBC_SearchResultsView
 				
 				for ( int i=0;i<results.length;i++){
 					
-					data_sources[i] = new SBC_SearchResult( results[i] );
+					data_sources[i] = new SBC_SearchResult( engine, results[i] );
 				}
 				
 				tv_subs_results.addDataSources( data_sources );

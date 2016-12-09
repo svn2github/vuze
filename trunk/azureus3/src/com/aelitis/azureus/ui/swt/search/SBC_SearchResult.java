@@ -22,11 +22,12 @@
 
 package com.aelitis.azureus.ui.swt.search;
 
-import java.util.*;
+
+import java.util.Date;
 
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.plugins.utils.search.SearchResult;
 
+import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
 
@@ -34,6 +35,7 @@ public class
 SBC_SearchResult 
 	implements SearchSubsResultBase
 {
+	private final Engine			engine;
 	private final Result			result;
 	
 	private final int				content_type;
@@ -44,8 +46,10 @@ SBC_SearchResult
 
 	public
 	SBC_SearchResult(
+		Engine		_engine,
 		Result		_result )
 	{
+		engine	= _engine;
 		result	= _result;
 
 		String type = result.getContentType();
@@ -66,9 +70,13 @@ SBC_SearchResult
 			}
 		}
 		
-		long seeds 		= result.getNbSeeds();
-		long leechers 	= result.getNbSuperSeeds();
+		int seeds 		= result.getNbSeeds();
+		int leechers 	= result.getNbSuperSeeds();
+		int	super_seeds	= result.getNbSuperSeeds();
 		
+		if ( super_seeds > 0 ){
+			seeds += (super_seeds*10);
+		}
 		seeds_peers = (seeds<0?"--":String.valueOf(seeds)) + "/" + (leechers<0?"--":String.valueOf(leechers));
 				
 		if ( seeds < 0 ){
@@ -112,6 +120,11 @@ SBC_SearchResult
 		}
 	}
 	
+	public Engine
+	getEngine()
+	{
+		return( engine );
+	}
 
 	public final String
 	getName()
@@ -171,7 +184,9 @@ SBC_SearchResult
 	public int
 	getRank()
 	{
-		return( (int)result.getRank() );
+		float rank = result.getRank();
+		
+		return( (int)( rank*100 ));
 	}
 	
 	public String
@@ -195,7 +210,14 @@ SBC_SearchResult
 	public long
 	getTime()
 	{
-		return( result.getPublishedDate().getTime() );
+		Date date = result.getPublishedDate();
+		
+		if ( date != null ){
+		
+			return( date.getTime());
+		}
+		
+		return( 0 );
 	}
 	
 	public boolean

@@ -44,7 +44,7 @@ public class ColumnSearchSubResultName
 	}
 
 	public void refresh(TableCell cell) {
-		SearchSubsResultBase result = (SearchSubsResultBase) cell.getDataSource();
+		SearchSubsResultBase result = (SearchSubsResultBase)cell.getDataSource();
 	
 		String str = result.getName();
 		

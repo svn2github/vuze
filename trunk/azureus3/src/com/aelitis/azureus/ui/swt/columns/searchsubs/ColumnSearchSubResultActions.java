@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
 
-package com.aelitis.azureus.ui.swt.columns.subscriptions;
+package com.aelitis.azureus.ui.swt.columns.searchsubs;
 
 import java.net.URL;
 import java.util.Map;
@@ -43,9 +43,11 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.swt.search.SBC_SearchResult;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
+import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
 import com.aelitis.azureus.util.*;
 
 /**
@@ -53,7 +55,7 @@ import com.aelitis.azureus.util.*;
  * @created Sep 25, 2008
  *
  */
-public class ColumnSubResultActions
+public class ColumnSearchSubResultActions
 	implements TableCellSWTPaintListener, TableCellRefreshListener,
 	TableCellMouseMoveListener, TableCellAddedListener
 {
@@ -69,7 +71,7 @@ public class ColumnSubResultActions
 	 * @param name
 	 * @param tableID
 	 */
-	public ColumnSubResultActions(TableColumn column) {
+	public ColumnSearchSubResultActions(TableColumn column) {
 		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 180);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
@@ -86,7 +88,7 @@ public class ColumnSubResultActions
 	}
 
 	public void cellPaint(GC gc, TableCellSWT cell) {
-		SBC_SubscriptionResult entry = (SBC_SubscriptionResult) cell.getDataSource();
+		SearchSubsResultBase entry = (SearchSubsResultBase)cell.getDataSource();
 		if (entry == null) {
 			return;
 		}
@@ -145,7 +147,7 @@ public class ColumnSubResultActions
 	}
 
 	public void refresh(TableCell cell) {
-		SBC_SubscriptionResult entry = (SBC_SubscriptionResult) cell.getDataSource();
+		SearchSubsResultBase entry = (SearchSubsResultBase)cell.getDataSource();
 		
 		if (entry == null) return;
 		
@@ -178,7 +180,7 @@ public class ColumnSubResultActions
 	}
 
 	public void cellMouseTrigger(TableCellMouseEvent event) {
-		SBC_SubscriptionResult entry = (SBC_SubscriptionResult) event.cell.getDataSource();
+		SearchSubsResultBase entry = (SearchSubsResultBase)event.cell.getDataSource();
 
 		String tooltip = null;
 		boolean invalidateAndRefresh = false;
@@ -227,30 +229,55 @@ public class ColumnSubResultActions
 							torrentUrl = cn.appendURLSuffix( torrentUrl, false, true );
 						}
 						
-						try {
-						
+						try{
 							Map headers = UrlUtils.getBrowserHeaders( referer_str );
+						
+							if ( entry instanceof SBC_SubscriptionResult ){					
 							
-							Subscription subs = entry.getSubscription();
-													
-							try{
-								Engine engine = subs.getEngine();
+								SBC_SubscriptionResult sub_entry = (SBC_SubscriptionResult)entry;
 								
-								if ( engine != null && engine instanceof WebEngine ){
+								Subscription subs = sub_entry.getSubscription();
+														
+								try{
+									Engine engine = subs.getEngine();
 									
-									WebEngine webEngine = (WebEngine) engine;
-									
-									if ( webEngine.isNeedsAuth()){
+									if ( engine != null && engine instanceof WebEngine ){
 										
-										headers.put( "Cookie",webEngine.getCookies());
+										WebEngine webEngine = (WebEngine) engine;
+										
+										if ( webEngine.isNeedsAuth()){
+											
+											headers.put( "Cookie",webEngine.getCookies());
+										}
+									}
+								}catch( Throwable e ){
+								
+									Debug.out( e );
+								}
+													
+								subs.addPotentialAssociation( sub_entry.getID(), torrentUrl );
+								
+							}else{
+								
+								SBC_SearchResult	search_entry = (SBC_SearchResult)entry;
+
+								Engine engine = search_entry.getEngine();
+								
+								if ( engine != null ){
+									
+									engine.addPotentialAssociation( torrentUrl );
+								
+									if ( engine instanceof WebEngine ){
+									
+										WebEngine webEngine = (WebEngine) engine;
+										
+										if ( webEngine.isNeedsAuth()){
+											
+											headers.put( "Cookie",webEngine.getCookies());
+										}
 									}
 								}
-							}catch( Throwable e ){
-							
-								Debug.out( e );
 							}
-														
-							subs.addPotentialAssociation( entry.getID(), torrentUrl );
 							
 							PluginInitializer.getDefaultInterface().getDownloadManager().addDownload(
 									new URL(torrentUrl), 

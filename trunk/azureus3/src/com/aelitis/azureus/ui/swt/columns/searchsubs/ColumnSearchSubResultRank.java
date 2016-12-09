@@ -14,15 +14,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package com.aelitis.azureus.ui.swt.columns.subscriptions;
+package com.aelitis.azureus.ui.swt.columns.searchsubs;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
-
+import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class ColumnSubResultRank
+public class ColumnSearchSubResultRank
 	implements TableCellRefreshListener
 {
 	public static final String COLUMN_ID = "rank";
@@ -31,7 +30,7 @@ public class ColumnSubResultRank
 	 * 
 	 * @param sTableID
 	 */
-	public ColumnSubResultRank(TableColumn column) {
+	public ColumnSearchSubResultRank(TableColumn column) {
 		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 60 );
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
@@ -43,7 +42,7 @@ public class ColumnSubResultRank
 	}
 
 	public void refresh(TableCell cell) {
-		SBC_SubscriptionResult rc = (SBC_SubscriptionResult) cell.getDataSource();
+		SearchSubsResultBase rc = (SearchSubsResultBase) cell.getDataSource();
 		if (rc == null) {
 			return;
 		}

@@ -14,29 +14,27 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package com.aelitis.azureus.ui.swt.columns.subscriptions;
+package com.aelitis.azureus.ui.swt.columns.searchsubs;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
+import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class ColumnSubResultAge
+public class ColumnSearchSubResultSize
 	implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "age";
+	public static final String COLUMN_ID = "size";
 
 	/**
 	 * 
 	 * @param sTableID
 	 */
-	public ColumnSubResultAge(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 50 );
+	public ColumnSearchSubResultSize(TableColumn column) {
+		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 80 );
 		column.addListeners(this);
-		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
+		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 		
 		if ( column instanceof TableColumnCore ){
@@ -45,19 +43,16 @@ public class ColumnSubResultAge
 	}
 
 	public void refresh(TableCell cell) {
-		SBC_SubscriptionResult rc = (SBC_SubscriptionResult) cell.getDataSource();
+		SearchSubsResultBase rc = (SearchSubsResultBase) cell.getDataSource();
 		if (rc == null) {
 			return;
 		}
 
-		long time = rc.getTime();
-				
-		long age_secs = (SystemTime.getCurrentTime() - time)/1000;
+		long size = rc.getSize();
 
-		if ( cell.setSortValue( age_secs )){
+		if ( size > 0 && cell.setSortValue( size )){
 		
-			cell.setToolTip(time <= 0?"--":DisplayFormatters.formatCustomDateOnly( time ));
-			cell.setText( age_secs < 0?"--":TimeFormatter.format3( age_secs ));
+			cell.setText( DisplayFormatters.formatByteCountToKiBEtc( size ));
 		}
 	}
 }

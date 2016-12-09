@@ -14,28 +14,29 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package com.aelitis.azureus.ui.swt.columns.subscriptions;
+package com.aelitis.azureus.ui.swt.columns.searchsubs;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.subscriptions.SBC_SubscriptionResult;
+import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class ColumnSubResultSize
+public class ColumnSearchSubResultAge
 	implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "size";
+	public static final String COLUMN_ID = "age";
 
 	/**
 	 * 
 	 * @param sTableID
 	 */
-	public ColumnSubResultSize(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 80 );
+	public ColumnSearchSubResultAge(TableColumn column) {
+		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 50 );
 		column.addListeners(this);
-		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 		
 		if ( column instanceof TableColumnCore ){
@@ -44,16 +45,19 @@ public class ColumnSubResultSize
 	}
 
 	public void refresh(TableCell cell) {
-		SBC_SubscriptionResult rc = (SBC_SubscriptionResult) cell.getDataSource();
+		SearchSubsResultBase rc = (SearchSubsResultBase) cell.getDataSource();
 		if (rc == null) {
 			return;
 		}
 
-		long size = rc.getSize();
+		long time = rc.getTime();
+				
+		long age_secs = (SystemTime.getCurrentTime() - time)/1000;
 
-		if ( size > 0 && cell.setSortValue( size )){
+		if ( cell.setSortValue( age_secs )){
 		
-			cell.setText( DisplayFormatters.formatByteCountToKiBEtc( size ));
+			cell.setToolTip(time <= 0?"--":DisplayFormatters.formatCustomDateOnly( time ));
+			cell.setText( age_secs < 0?"--":TimeFormatter.format3( age_secs ));
 		}
 	}
 }
