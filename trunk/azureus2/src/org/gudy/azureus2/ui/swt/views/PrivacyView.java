@@ -928,6 +928,14 @@ public class PrivacyView
 		ipfilter_enabled = new Button( ipfilter_comp, SWT.CHECK );
 		ipfilter_enabled.setText( MessageText.getString( "devices.contextmenu.od.enabled" ));
 		
+		ipfilter_enabled.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void widgetSelected(SelectionEvent e) {
+					current_dm.getDownloadState().setFlag( DownloadManagerState.FLAG_DISABLE_IP_FILTER, !ipfilter_enabled.getSelection());
+				}
+			});
+		
 		gd = new GridData( GridData.FILL_HORIZONTAL );
 		Utils.setLayoutData(ipfilter_enabled,  gd );
 			
