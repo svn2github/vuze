@@ -138,11 +138,6 @@ public class ColumnSearchResultSite
 	public void cellAdded(TableCell cell) {
 		cell.setMarginWidth(0);
 		cell.setMarginHeight(0);
-		
-		if ( cell instanceof TableCellSWT ){
-		
-			((TableCellSWT)cell).setCursorID( SWT.CURSOR_HAND );
-		}
 	}
 
 	public void refresh(TableCell cell) {
@@ -155,6 +150,8 @@ public class ColumnSearchResultSite
 			if (!cell.setSortValue(sortVal) && cell.isValid()) {
 				return;
 			}
+			
+			cell.setToolTip( entry.getEngine().getName());
 		}
 	}
 }
