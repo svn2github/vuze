@@ -76,7 +76,8 @@ public class
 DHTTransportUDPImpl 
 	implements DHTTransportUDP, DHTUDPRequestHandler
 {
-	public static final boolean TEST_EXTERNAL_IP	= false;
+	@SuppressWarnings("CanBeFinal")
+	public static boolean TEST_EXTERNAL_IP	= false;
 		
 	public static final int		MIN_ADDRESS_CHANGE_PERIOD_INIT_DEFAULT	= 5*60*1000;
 	public static final int		MIN_ADDRESS_CHANGE_PERIOD_NEXT_DEFAULT	= 10*60*1000;
