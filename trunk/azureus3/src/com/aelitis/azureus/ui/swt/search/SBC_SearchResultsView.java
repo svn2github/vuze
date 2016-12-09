@@ -28,18 +28,23 @@ import java.util.regex.Pattern;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Base32;
@@ -62,6 +67,7 @@ import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.util.CopyOnWriteSet;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -105,8 +111,14 @@ SBC_SearchResultsView
 	private int minSize;
 	private int maxSize;
 	
+	private final CopyOnWriteSet<String>	deselected_engines = new CopyOnWriteSet<String>( false );
+	
+	private Composite engine_area;
 	
 	private List<SBC_SearchResult>	last_selected_content = new ArrayList<SBC_SearchResult>();
+	
+	private Object 			search_lock	= new Object();
+	private SearchInstance	current_search;
 	
 	protected
 	SBC_SearchResultsView(
@@ -157,14 +169,18 @@ SBC_SearchResultsView
 			
 			Composite parent = (Composite) soFilterArea.getControl();
 	
-			Label label;
-			FormData fd;
-			GridLayout layout;
+			Composite filter_area = new Composite(parent, SWT.NONE);
+			FormData fd = Utils.getFilledFormData();
+			filter_area.setLayoutData(fd);
+
+			GridLayout layout = new GridLayout();
+			filter_area.setLayout(layout);
+			
 			int sepHeight = 20;
 			
-			Composite cRow = new Composite(parent, SWT.NONE);
-			fd = Utils.getFilledFormData();
-			cRow.setLayoutData(fd);
+			Composite cRow = new Composite(filter_area, SWT.NONE);
+			cRow.setLayoutData(new GridData( GridData.FILL_BOTH ));
+			
 			RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
 			rowLayout.spacing = 5;
 			rowLayout.marginBottom = rowLayout.marginTop = rowLayout.marginLeft = rowLayout.marginRight = 0; 
@@ -199,7 +215,7 @@ SBC_SearchResultsView
 			
 			// max size
 			
-			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
+			Label label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
 			label.setLayoutData(new RowData(-1, sepHeight));
 
 			Composite cMaxSize = new Composite(cRow, SWT.NONE);
@@ -220,11 +236,72 @@ SBC_SearchResultsView
 				}
 			});
 			
+			engine_area = new Composite(filter_area, SWT.NONE);
+			engine_area.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+
+			buildEngineArea( new Engine[0] );
 			
 			parent.layout(true);
 		}
 
 		return null;
+	}
+	
+	private void
+	buildEngineArea(
+		Engine[]	engines )
+	{
+		Utils.disposeComposite( engine_area, false );
+		
+		RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
+		rowLayout.spacing = 5;
+		rowLayout.marginBottom = rowLayout.marginTop = rowLayout.marginLeft = rowLayout.marginRight = 0; 
+		rowLayout.center = true;
+		engine_area.setLayout(rowLayout);
+		
+		for ( final Engine engine: engines ){
+			
+			final Button button = new Button( engine_area, SWT.CHECK );
+			
+			button.setText( engine.getName());
+			
+			button.setSelection( !deselected_engines.contains( engine.getUID()));
+			
+			button.addSelectionListener(
+				new SelectionAdapter() {
+			
+					public void widgetSelected(SelectionEvent e){
+						
+						String id = engine.getUID();
+						
+						if ( button.getSelection()){
+							
+							deselected_engines.remove( id );
+							
+						}else{
+							
+							deselected_engines.add( id );
+						}
+						
+						refilter();
+					}
+				});
+		}
+	}
+	
+	private void
+	setSearchEngines(
+		final Engine[]		engines )
+	{
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void 
+				run() 
+				{
+					buildEngineArea( engines );
+				}
+			});
 	}
 	
 	private boolean 
@@ -238,7 +315,19 @@ SBC_SearchResultsView
 			(size==-1||(size >= 1024L*1024*minSize)) &&
 			(size==-1||(maxSize ==0 || size <= 1024L*1024*maxSize));
 		
-		return( show );
+		if ( !show ){
+			
+			return( false );
+		}
+		
+		String engine_id = result.getEngine().getUID();
+		
+		if ( deselected_engines.contains( engine_id )){
+			
+			return( false );
+		}
+		
+		return( true );
 	}
 
 
@@ -381,6 +470,16 @@ SBC_SearchResultsView
 	public void
 	hideView()
 	{
+		synchronized( search_lock ){
+			
+			if ( current_search != null ){
+				
+				current_search.cancel();
+				
+				current_search = null;
+			}
+		}
+		
 		Utils.disposeSWTObjects(new Object[] {
 			table_parent,
 		});
@@ -421,7 +520,7 @@ SBC_SearchResultsView
 			tv_subs_results.enableFilterCheck(txtFilter, this);
 		}
 		
-		tv_subs_results.setRowDefaultHeight(16);
+		tv_subs_results.setRowDefaultHeight(COConfigurationManager.getIntParameter( "Search Subs Row Height" ));
 		
 		SWTSkinObject soSizeSlider = getSkinObject("table-size-slider");
 		if (soSizeSlider instanceof SWTSkinObjectContainer) {
@@ -629,93 +728,15 @@ SBC_SearchResultsView
 	anotherSearch(
 		SearchQuery	sq )
 	{		
-		tv_subs_results.removeAllTableRows();
-		
-		SWTSkinObjectText title = (SWTSkinObjectText)parent.getSkinObject("title");
+		synchronized( search_lock ){
 			
-		if ( title != null ){
+			if ( current_search != null ){
 				
-			title.setText( MessageText.getString( "search.results.view.title", new String[]{ sq.term }));
+				current_search.cancel();
+			}
+			
+			current_search = new SearchInstance( sq );
 		}
-		
-		MetaSearchManager metaSearchManager = MetaSearchManagerFactory.getSingleton();
-
-		ResultListener listener = new ResultListener() {
-			
-			public void 
-			contentReceived(
-				Engine engine, 
-				String content ) 
-			{
-			}
-			
-			public void 
-			matchFound(
-				Engine 		engine, 
-				String[] 	fields ) 
-			{
-			}
-			
-			public void 
-			engineFailed(
-				Engine 		engine, 
-				Throwable 	e ) 
-			{	
-				Debug.out( e );
-			}
-			
-			public void 
-			engineRequiresLogin(
-				Engine 		engine, 
-				Throwable 	e ) 
-			{
-				Debug.out( e );
-			}
-			
-			public void 
-			resultsComplete(
-				Engine engine ) 
-			{
-			
-				System.out.println( "Got complete from " + engine.getName());
-			}
-			
-			public void 
-			resultsReceived(
-				Engine 		engine,
-				Result[] 	results) 
-			{
-				System.out.println( "Got " + results.length + " results from " + engine.getName());
-				
-				SBC_SearchResult[]	data_sources = new  SBC_SearchResult[ results.length ];
-				
-				for ( int i=0;i<results.length;i++){
-					
-					data_sources[i] = new SBC_SearchResult( SBC_SearchResultsView.this, engine, results[i] );
-				}
-				
-				tv_subs_results.addDataSources( data_sources );
-			}
-		};
-		
-		List<SearchParameter>	sps = new ArrayList<SearchParameter>();
-					
-		sps.add( new SearchParameter( "s", sq.term ));
-		
-		SearchParameter[] parameters = sps.toArray(new SearchParameter[ sps.size()] );
-		
-		Map<String,String>	context = new HashMap<String, String>();
-		
-		context.put( Engine.SC_FORCE_FULL, "true" );
-		
-		context.put( Engine.SC_BATCH_PERIOD, "250" );
-		
-		context.put( Engine.SC_REMOVE_DUP_HASH, "true" );
-		
-		String headers = null;	// use defaults
-		
-		metaSearchManager.getMetaSearch().search( listener, parameters, headers, context, 500 );
-
 	}
 	
 	public String
@@ -734,4 +755,124 @@ SBC_SearchResultsView
 		return( uri );
 	}
 	
+	private class
+	SearchInstance
+		implements ResultListener
+	{
+		private volatile boolean	cancelled;
+		
+		private
+		SearchInstance(
+			SearchQuery		sq )
+		{
+			tv_subs_results.removeAllTableRows();
+			
+			SWTSkinObjectText title = (SWTSkinObjectText)parent.getSkinObject("title");
+				
+			if ( title != null ){
+					
+				title.setText( MessageText.getString( "search.results.view.title", new String[]{ sq.term }));
+			}
+			
+			MetaSearchManager metaSearchManager = MetaSearchManagerFactory.getSingleton();
+			
+			List<SearchParameter>	sps = new ArrayList<SearchParameter>();
+						
+			sps.add( new SearchParameter( "s", sq.term ));
+			
+			SearchParameter[] parameters = sps.toArray(new SearchParameter[ sps.size()] );
+			
+			Map<String,String>	context = new HashMap<String, String>();
+			
+			context.put( Engine.SC_FORCE_FULL, "true" );
+			
+			context.put( Engine.SC_BATCH_PERIOD, "250" );
+			
+			context.put( Engine.SC_REMOVE_DUP_HASH, "true" );
+			
+			String headers = null;	// use defaults
+			
+			Engine[] engines = metaSearchManager.getMetaSearch().search( this, parameters, headers, context, 500 );
+			
+			setSearchEngines( engines );
+		}
+		
+		protected void
+		cancel()
+		{
+			cancelled	= true;
+		}
+		
+		public void 
+		contentReceived(
+			Engine engine, 
+			String content ) 
+		{
+		}
+		
+		public void 
+		matchFound(
+			Engine 		engine, 
+			String[] 	fields ) 
+		{
+		}
+		
+		public void 
+		engineFailed(
+			Engine 		engine, 
+			Throwable 	e ) 
+		{	
+			if ( cancelled ){
+				
+				return;
+			}
+			
+			Debug.out( e );
+		}
+		
+		public void 
+		engineRequiresLogin(
+			Engine 		engine, 
+			Throwable 	e ) 
+		{
+			if ( cancelled ){
+				
+				return;
+			}
+			
+			Debug.out( e );
+		}
+		
+		public void 
+		resultsComplete(
+			Engine engine ) 
+		{
+			if ( cancelled ){
+				
+				return;
+			}
+			
+			System.out.println( "Got complete from " + engine.getName());
+		}
+		
+		public void 
+		resultsReceived(
+			Engine 		engine,
+			Result[] 	results) 
+		{
+			if ( cancelled ){
+				
+				return;
+			}
+			
+			SBC_SearchResult[]	data_sources = new  SBC_SearchResult[ results.length ];
+			
+			for ( int i=0;i<results.length;i++){
+				
+				data_sources[i] = new SBC_SearchResult( SBC_SearchResultsView.this, engine, results[i] );
+			}
+			
+			tv_subs_results.addDataSources( data_sources );
+		}
+	}
 }

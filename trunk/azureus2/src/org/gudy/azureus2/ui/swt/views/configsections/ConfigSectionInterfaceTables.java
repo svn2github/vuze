@@ -449,7 +449,24 @@ public class ConfigSectionInterfaceTables
 				}
 			}
 		}
+		
+		{
+			Group cSeachSubs = new Group(cSection, SWT.NULL);
+			Messages.setLanguageText(cSeachSubs, MSG_PREFIX + "searchsubs");
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			cSeachSubs.setLayout(layout);
+			Utils.setLayoutData(cSeachSubs, new GridData( GridData.FILL_HORIZONTAL ));
 
+			label = new Label(cSeachSubs, SWT.NULL);
+			Messages.setLanguageText(label, MSG_PREFIX + "searchsubs.row.height");
+			gridData = new GridData();
+			IntParameter graphicUpdate = new IntParameter(cSeachSubs, "Search Subs Row Height",
+					16, 64 );
+			graphicUpdate.setLayoutData(gridData);
+
+		}
+		
 		return cSection;
 	}
 }

@@ -89,7 +89,8 @@ public class ColumnSearchResultSite
 				
 				image_map.put( icon, f_x );
 				
-				image_loader.getUrlImage( icon, 
+				image_loader.getUrlImage( 
+					icon, 
 					new ImageDownloaderListener() {
 						
 						public void imageDownloaded(Image image, boolean returnedImmediately) {
@@ -106,6 +107,9 @@ public class ColumnSearchResultSite
 							f_x[1] = null;
 						}
 					});
+				
+				img = (Image)f_x[0];	// in case synchronously set
+				
 			}else{
 				
 				if ( x[1] instanceof Set ){

@@ -27,6 +27,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
@@ -607,7 +608,7 @@ SBC_SubscriptionResultsView
 			tv_subs_results.enableFilterCheck(txtFilter, this);
 		}
 		
-		tv_subs_results.setRowDefaultHeight(16);
+		tv_subs_results.setRowDefaultHeight(COConfigurationManager.getIntParameter( "Search Subs Row Height" ));
 		
 		SWTSkinObject soSizeSlider = getSkinObject("table-size-slider");
 		if (soSizeSlider instanceof SWTSkinObjectContainer) {
