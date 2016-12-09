@@ -28,6 +28,8 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.SystemTime;
+
 public class DateParserRegex extends DateParser {
 	
 	static boolean DEBUG = false;
@@ -345,6 +347,16 @@ public class DateParserRegex extends DateParser {
 					e.printStackTrace();
 				}
 				
+			} else {
+				try {
+					long parseLong = Long.parseLong(s);
+					if (parseLong < SystemTime.getCurrentTime() / 1000) {
+						// likely time in seconds, but could be a time close to epoch
+						parseLong *= 1000;
+					}
+					calendar.setTimeInMillis(parseLong);
+				} catch (Throwable t) {
+				}
 			}
 			
 			//System.out.println(input + " > " + calendar.getTime());
