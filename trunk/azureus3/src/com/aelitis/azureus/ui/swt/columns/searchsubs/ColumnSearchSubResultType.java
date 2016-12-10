@@ -88,11 +88,11 @@ public class ColumnSearchSubResultType
 					break;
 				}
 				case 3:{
-					img = imgAudio;
+					img = imgGame;
 					break;
 				}
 				default:{
-					img = imgGame;
+					img = imgOther;
 					break;
 				}
 			}	

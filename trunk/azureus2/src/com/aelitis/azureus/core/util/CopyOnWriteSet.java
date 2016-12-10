@@ -122,6 +122,35 @@ CopyOnWriteSet<T>
 		return( set.contains( o ));
 	}
 	
+	public void
+	clear()
+	{
+		synchronized( this ){
+			
+			if ( visible ){
+				
+				Set<T> new_set;
+				
+				if ( is_identify ){
+					
+					new_set = new IdentityHashSet<T>( set );
+					
+				}else{
+					
+					new_set = new HashSet<T>( set );
+				}
+				
+				set = new_set;
+				
+				visible = false;
+				
+			}else{
+				
+				set.clear();
+			}
+		}
+	}
+	
 	public int
 	size()
 	{
