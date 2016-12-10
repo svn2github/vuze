@@ -62,7 +62,10 @@ DHTControlImpl
 {
 	private static final boolean DISABLE_REPLICATE_ON_JOIN	= true;
 	
-	public  static final int EXTERNAL_LOOKUP_CONCURRENCY			= 16;
+	@SuppressWarnings("CanBeFinal")		// accessed from plugin
+	
+	public  static int EXTERNAL_LOOKUP_CONCURRENCY			= 16;
+	
 	private static final int EXTERNAL_PUT_CONCURRENCY				= 8;
 	private static final int EXTERNAL_SLEEPING_PUT_CONCURRENCY		= 4;
 	
