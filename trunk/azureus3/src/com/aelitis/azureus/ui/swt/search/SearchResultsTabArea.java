@@ -27,7 +27,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -106,7 +105,7 @@ public class SearchResultsTabArea
 			
 			final Button button = new Button( control_area, SWT.TOGGLE );
 			
-			button.setText( "Switch View" );
+			button.setText( "Switch To Native View" );
 			
 			button.setSelection( !isBrowserView );
 			
