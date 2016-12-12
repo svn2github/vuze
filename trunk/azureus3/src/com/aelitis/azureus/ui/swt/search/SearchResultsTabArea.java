@@ -27,6 +27,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -49,6 +50,7 @@ import org.gudy.azureus2.plugins.ui.menus.*;
  */
 public class SearchResultsTabArea
 	extends SkinView
+	implements ViewTitleInfo
 {	
 	private boolean					isBrowserView	= true;
 	
@@ -127,6 +129,8 @@ public class SearchResultsTabArea
 			mdi_entry = mdi.getEntryBySkinView(this);
 			
 			if ( mdi_entry != null ){
+				
+				mdi_entry.setViewTitleInfo( this );
 				
 				vitalityImage = mdi_entry.addVitalityImage("image.sidebar.vitality.dots");
 				
@@ -256,11 +260,8 @@ public class SearchResultsTabArea
 			last_actual_sq_impl	= activeImpl;
 			
 			activeImpl.anotherSearch( current_sq );
-			
-			if ( mdi_entry != null ){
-			
-				ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());
-			}
+						
+			ViewTitleInfoManager.refreshTitleInfo( this );
 		}
 	}
 	
@@ -268,6 +269,35 @@ public class SearchResultsTabArea
 	getCurrentSearch()
 	{
 		return( current_sq );
+	}
+	
+	public Object 
+	getTitleInfoProperty(
+		int 	pid )
+	{
+		SearchQuery	sq 						= current_sq;
+		SearchResultsTabAreaBase	impl 	= activeImpl;
+				
+		if ( pid == TITLE_TEXT ){
+		
+			if ( sq != null ){
+
+				return( sq.term );
+			}
+		}else if ( pid == TITLE_INDICATOR_TEXT ){
+			
+			if ( impl != null ){
+				
+				int results = impl.getResultCount();
+				
+				if ( results >= 0 ){
+					
+					return( String.valueOf( results ));
+				}
+			}
+		}
+		
+		return( null );
 	}
 	
 	protected void
@@ -278,5 +308,11 @@ public class SearchResultsTabArea
 			
 			vitalityImage.setVisible( busy );
 		}
+	}
+	
+	protected void
+	resultsFound()
+	{
+		ViewTitleInfoManager.refreshTitleInfo( this );
 	}
 }

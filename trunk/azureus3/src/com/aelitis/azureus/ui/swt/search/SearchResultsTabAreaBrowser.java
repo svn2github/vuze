@@ -534,6 +534,12 @@ SearchResultsTabAreaBrowser
 		closeSearchResults( null );
 	}
 	
+	public int
+	getResultCount()
+	{
+		return( -1 );
+	}
+	
 	public void resizeMainBrowser() {
 	}
 	

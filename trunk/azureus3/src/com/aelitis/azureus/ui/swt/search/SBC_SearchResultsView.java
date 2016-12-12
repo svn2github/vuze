@@ -23,6 +23,7 @@
 package com.aelitis.azureus.ui.swt.search;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
@@ -1105,6 +1106,19 @@ SBC_SearchResultsView
 		return( img );
 	}
 	
+	public int
+	getResultCount()
+	{
+		SearchInstance ci = current_search;
+		
+		if ( ci == null ){
+			
+			return( -1 );
+		}
+		
+		return( current_search.getResultCount());
+	}
+	
 	public interface
 	ImageLoadListener
 	{
@@ -1123,6 +1137,8 @@ SBC_SearchResultsView
 		private volatile boolean	cancelled;
 		
 		private Set<Engine>	pending = new HashSet<Engine>();
+		
+		private AtomicInteger	result_count = new AtomicInteger();
 		
 		private
 		SearchInstance(
@@ -1184,19 +1200,25 @@ SBC_SearchResultsView
 		protected Engine[]
 		getEngines()
 		{
-			return( engines );
+			synchronized( pending ){
+
+				return( engines );
+			}
 		}
 		
 		protected int
 		getEngineIndex(
 			Engine	e )
 		{
-			for ( int i=0;i<engines.length;i++ ){
-				if ( engines[i] == e ){
-					return( i );
+			synchronized( pending ){
+	
+				for ( int i=0;i<engines.length;i++ ){
+					if ( engines[i] == e ){
+						return( i );
+					}
 				}
+				return( -1 );
 			}
-			return( -1 );
 		}
 		
 		protected Object[]
@@ -1326,6 +1348,16 @@ SBC_SearchResultsView
 			}
 			
 			tv_subs_results.addDataSources( data_sources );
+			
+			result_count.addAndGet( results.length );
+			
+			parent.resultsFound();
+		}
+		
+		protected int
+		getResultCount()
+		{
+			return( result_count.get());
 		}
 	}
 	

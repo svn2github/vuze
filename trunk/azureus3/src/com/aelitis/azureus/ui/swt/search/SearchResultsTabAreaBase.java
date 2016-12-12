@@ -31,6 +31,9 @@ SearchResultsTabAreaBase
 	anotherSearch(
 		SearchQuery	sq );
 	
+	public int
+	getResultCount();
+	
 	public void
 	showView();
 	

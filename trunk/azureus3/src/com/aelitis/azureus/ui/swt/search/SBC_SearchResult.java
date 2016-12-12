@@ -76,7 +76,7 @@ SBC_SearchResult
 		}
 		
 		int seeds 		= result.getNbSeeds();
-		int leechers 	= result.getNbSuperSeeds();
+		int leechers 	= result.getNbPeers();
 		int	super_seeds	= result.getNbSuperSeeds();
 		
 		if ( super_seeds > 0 ){
