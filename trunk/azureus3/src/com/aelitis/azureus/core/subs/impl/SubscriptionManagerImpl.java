@@ -3384,11 +3384,7 @@ SubscriptionManagerImpl
 										}
 									}else if ( latest_version > sub.getVersion()){
 										
-										updateSubscription( sub, latest_version );
-										
-									}else{
-										
-										checkInitialDownload( sub );
+										updateSubscription( sub, latest_version );										
 									}
 									
 									if ( latest_version > 0 ){
@@ -3415,6 +3411,10 @@ SubscriptionManagerImpl
 							}catch( Throwable e ){
 								
 								log( "setSelected: failed for " + sub.getName(), e );
+								
+							}finally{
+								
+								checkInitialDownload( sub );
 							}
 						}
 					});
