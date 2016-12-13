@@ -20,8 +20,12 @@ package com.aelitis.azureus.ui.swt.search;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -52,7 +56,8 @@ public class SearchResultsTabArea
 	extends SkinView
 	implements ViewTitleInfo
 {	
-	private boolean					isBrowserView	= true;
+	private boolean					isBrowserView	= COConfigurationManager.getBooleanParameter( "Search View Is Web View", true );
+
 	
 	private SWTSkinObjectBrowser 	browserSkinObject;
 	private SWTSkinObjectContainer	nativeSkinObject;
@@ -103,11 +108,13 @@ public class SearchResultsTabArea
 			
 			Utils.disposeComposite( control_area, false );
 			
-			control_area.setLayout( new RowLayout());
+			control_area.setLayout( new GridLayout());
 			
 			final Button button = new Button( control_area, SWT.TOGGLE );
 			
-			button.setText( "Switch To Native View" );
+			button.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ));
+			
+			button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
 			
 			button.setSelection( !isBrowserView );
 			
@@ -116,6 +123,10 @@ public class SearchResultsTabArea
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						isBrowserView = !button.getSelection();
+						
+						button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
+
+						COConfigurationManager.setParameter( "Search View Is Web View", isBrowserView );
 						
 						selectView( skinObject );
 					}

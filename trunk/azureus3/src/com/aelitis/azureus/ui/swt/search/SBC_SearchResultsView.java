@@ -190,8 +190,21 @@ SBC_SearchResultsView
 			
 			SWTSkinObjectToggle soFilterButton = (SWTSkinObjectToggle) getSkinObject("filter-button");
 			if (soFilterButton != null) {
+				
+				boolean toggled = COConfigurationManager.getBooleanParameter( "Search View Filter Options Expanded", false );
+				
+				if ( toggled ){
+					
+					soFilterButton.setToggled( true );
+					
+					soFilterArea.setVisible( true );
+				}
+				
 				soFilterButton.addSelectionListener(new SWTSkinToggleListener() {
 					public void toggleChanged(SWTSkinObjectToggle so, boolean toggled) {
+						
+						COConfigurationManager.setParameter( "Search View Filter Options Expanded", toggled );
+						
 						soFilterArea.setVisible(toggled);
 						Utils.relayout(soFilterArea.getControl().getParent());
 					}
@@ -430,10 +443,8 @@ SBC_SearchResultsView
 						refilter();
 					}
 				});
-			
-			new MenuItem( menu, SWT.SEPARATOR );
-			
-			SearchUtils.addMenus( menu, engine );
+						
+			SearchUtils.addMenus( menu, engine, true );
 			
 			Label results = new Label( engine_comp, SWT.NULL );
 				

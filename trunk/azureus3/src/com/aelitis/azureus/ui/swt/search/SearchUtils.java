@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
+import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 
 public class 
@@ -185,9 +186,19 @@ SearchUtils
 	public static void
 	addMenus(
 		Menu				menu,
-		final Engine		engine )
+		final Engine		engine,
+		boolean				separator_required )
 	{
-
+		if ( engine instanceof PluginEngine ){
+			
+			return;
+		}
+		
+		if ( separator_required ){
+			
+			new MenuItem( menu, SWT.SEPARATOR );
+		}
+		
 		MenuItem remove_item = new MenuItem( menu, SWT.PUSH );
 		
 		Messages.setLanguageText( remove_item, "Button.remove" );
