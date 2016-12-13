@@ -126,6 +126,8 @@ public class SearchResultsTabArea
 						
 						button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
 
+						button.getParent().layout();
+						
 						COConfigurationManager.setParameter( "Search View Is Web View", isBrowserView );
 						
 						selectView( skinObject );
