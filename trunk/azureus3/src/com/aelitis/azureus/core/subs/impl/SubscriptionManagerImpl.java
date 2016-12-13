@@ -2011,8 +2011,7 @@ SubscriptionManagerImpl
 				public void
 				engineAdded(
 					Engine		engine )
-				{
-					
+				{					
 				}
 				
 				public void
@@ -2036,8 +2035,13 @@ SubscriptionManagerImpl
 				public void
 				engineRemoved(
 					Engine		engine )
+				{					
+				}
+				
+				public void 
+				engineStateChanged(
+					Engine engine) 
 				{
-					
 				}
 			});
 	}

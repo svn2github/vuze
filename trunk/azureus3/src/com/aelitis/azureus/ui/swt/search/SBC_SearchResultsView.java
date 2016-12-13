@@ -74,6 +74,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.MetaSearchListener;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.Result;
@@ -106,7 +107,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinToggleListener;
 
 public class 
 SBC_SearchResultsView 
-	implements SearchResultsTabAreaBase, TableViewFilterCheck<SBC_SearchResult>
+	implements SearchResultsTabAreaBase, TableViewFilterCheck<SBC_SearchResult>, MetaSearchListener
 {
 	public static final String TABLE_SR = "SearchResults";
 
@@ -430,6 +431,10 @@ SBC_SearchResultsView
 					}
 				});
 			
+			new MenuItem( menu, SWT.SEPARATOR );
+			
+			SearchUtils.addMenus( menu, engine );
+			
 			Label results = new Label( engine_comp, SWT.NULL );
 				
 			GC temp = new GC( results );
@@ -733,6 +738,8 @@ SBC_SearchResultsView
 
 		if ( so_list != null ){
 				
+			MetaSearchManagerFactory.getSingleton().getMetaSearch().addListener( this );
+			
 			so_list.setVisible(true);
 			
 			initTable((Composite) so_list.getControl());
@@ -752,9 +759,57 @@ SBC_SearchResultsView
 			}
 		}
 		
+		MetaSearchManagerFactory.getSingleton().getMetaSearch().removeListener( this );
+
 		Utils.disposeSWTObjects(new Object[] {
 			table_parent,
 		});
+	}
+	
+	public void
+	engineAdded(
+		Engine		engine )
+	{
+		if ( engine.isActive()){
+			
+			autoSearchAgain();
+		}
+	}
+	
+	public void
+	engineUpdated(
+		Engine		engine )
+	{	
+	}
+	
+	public void
+	engineRemoved(
+		Engine		engine )
+	{
+		SearchInstance si = current_search;
+		
+		if ( si != null ){
+			
+			if ( si.getEngineIndex( engine ) >= 0 ){
+				
+				autoSearchAgain();
+			}
+		}
+	}
+	
+	public void 
+	engineStateChanged(
+		Engine 		engine ) 
+	{
+		SearchInstance si = current_search;
+		
+		if ( si != null ){
+			
+			if ( si.getEngineIndex( engine ) >= 0 ){
+				
+				autoSearchAgain();
+			}
+		}
 	}
 	
 	private void 
@@ -996,6 +1051,17 @@ SBC_SearchResultsView
 	public void filterSet(String filter) {
 	}
 
+	private void
+	autoSearchAgain()
+	{
+		SearchInstance si = current_search;
+		
+		if ( si != null ){
+
+			anotherSearch( si.getSearchQuery());
+		}
+	}
+	
 	public void
 	anotherSearch(
 		SearchQuery	sq )
@@ -1131,6 +1197,7 @@ SBC_SearchResultsView
 	SearchInstance
 		implements ResultListener
 	{
+		private final SearchQuery		sq;
 		private final Engine[]			engines;
 		private final Object[][]		engine_status;
 		
@@ -1142,8 +1209,10 @@ SBC_SearchResultsView
 		
 		private
 		SearchInstance(
-			SearchQuery		sq )
+			SearchQuery		_sq )
 		{
+			sq		= _sq;
+			
 			tv_subs_results.removeAllTableRows();
 			
 			SWTSkinObjectText title = (SWTSkinObjectText)parent.getSkinObject("title");
@@ -1195,6 +1264,12 @@ SBC_SearchResultsView
 					pending.addAll( Arrays.asList( engines ));
 				}
 			}
+		}
+		
+		protected SearchQuery
+		getSearchQuery()
+		{
+			return( sq );
 		}
 		
 		protected Engine[]

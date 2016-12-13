@@ -655,6 +655,26 @@ MetaSearchImpl
 		}
 	}
 	
+	protected void
+	stateChanged(
+		Engine		engine )
+	{
+		Iterator<MetaSearchListener> it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			MetaSearchListener listener = it.next();
+			
+			try{					
+				listener.engineStateChanged( engine );	
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
 	public String
 	getFUD()
 	{

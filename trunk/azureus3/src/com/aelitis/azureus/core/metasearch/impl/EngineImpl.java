@@ -1107,6 +1107,8 @@ EngineImpl
 			selection_state	= state;
 						
 			configDirty();
+			
+			meta_search.stateChanged( this );
 		}
 	}
 	

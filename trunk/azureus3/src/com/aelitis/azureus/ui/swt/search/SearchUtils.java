@@ -184,6 +184,25 @@ SearchUtils
 	
 	public static void
 	addMenus(
+		Menu				menu,
+		final Engine		engine )
+	{
+
+		MenuItem remove_item = new MenuItem( menu, SWT.PUSH );
+		
+		Messages.setLanguageText( remove_item, "Button.remove" );
+		
+		Utils.setMenuItemImage( remove_item, "delete" );
+		
+		remove_item.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e) {
+				engine.setSelectionState( Engine.SEL_STATE_FORCE_DESELECTED );
+			}
+		});	
+	}
+	
+	public static void
+	addMenus(
 		final MenuManager		menuManager )
 	{
 		final org.gudy.azureus2.plugins.ui.menus.MenuItem template_menu = menuManager.addMenuItem("sidebar.Search","Search.menu.engines");

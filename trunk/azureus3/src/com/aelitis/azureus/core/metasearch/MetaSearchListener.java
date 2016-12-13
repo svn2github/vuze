@@ -34,4 +34,8 @@ MetaSearchListener
 	public void
 	engineRemoved(
 		Engine		engine );
+	
+	public void
+	engineStateChanged(
+		Engine		engine );
 }
