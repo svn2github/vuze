@@ -156,7 +156,7 @@ DHTPluginImpl
 			final PluginConfig conf = plugin_interface.getPluginconfig();
 			
 			int	send_delay = conf.getPluginIntParameter( "dht.senddelay", 25 );
-			int	recv_delay	= conf.getPluginIntParameter( "dht.recvdelay", 25 );
+			int	recv_delay	= conf.getPluginIntParameter( "dht.recvdelay", 10 );
 			
 			boolean	bootstrap	= conf.getPluginBooleanParameter( "dht.bootstrapnode", false );
 			
