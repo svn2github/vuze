@@ -351,7 +351,7 @@ public class WebResult extends Result {
 	 */
 	
 	public String getTorrentLink(){
-		return( torrentLink );
+		return( adjustLink( torrentLink ));
 	}
 	
 	public void setPlayLink(String playLink) {
@@ -467,15 +467,15 @@ public class WebResult extends Result {
 					lc_link.startsWith("bctp:") ||
 					lc_link.startsWith("dht:" )){
 				
-				return( link );
+				return( adjustLink( link ));
 			}
 			
 			if ( link.startsWith("/")){
 				
-				return((rootPageURL==null?"":rootPageURL) + link );
+				return(adjustLink((rootPageURL==null?"":rootPageURL) + link ));
 			}
 			
-			return((basePageURL==null?"":basePageURL) + link );
+			return(adjustLink((basePageURL==null?"":basePageURL) + link ));
 		}
 		
 		return( "" );

@@ -21,12 +21,14 @@
 package com.aelitis.azureus.core.subs.impl;
 
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -392,8 +394,32 @@ SubscriptionSchedulerImpl
 										URL original_url = new URL(dl);
 														
 										PluginProxy plugin_proxy 	= null;
-										URL			current_url 	= original_url;
+																			
+										if ( dl.startsWith( "tor:" )){
+											
+											String target_resource = dl.substring( 4 );
+								
+											original_url = new URL( target_resource );
+																		
+											Map<String,Object>	options = new HashMap<String,Object>();
 										
+											options.put( AEProxyFactory.PO_PEER_NETWORKS, new String[]{ AENetworkClassifier.AT_TOR });
+										
+											plugin_proxy = 
+												AEProxyFactory.getPluginProxy( 
+													"Subscription result download of '" + target_resource + "'",
+													original_url,
+													options,
+													true );
+								
+											if ( plugin_proxy == null ){
+												
+												throw( new Exception( "No Tor plugin proxy available for '" + dl + "'" ));
+											}
+										}
+												
+										URL			current_url 	= plugin_proxy==null?original_url:plugin_proxy.getURL();
+
 										Torrent torrent = null;
 										
 										try{
@@ -407,7 +433,7 @@ SubscriptionSchedulerImpl
 													
 													if ( plugin_proxy != null ){
 														
-														url_rd.setProperty( "URL_HOST", original_url.getHost());
+														url_rd.setProperty( "URL_HOST", plugin_proxy.getURLHostRewrite() + (current_url.getPort()==-1?"":(":" + current_url.getPort())));
 													}
 																											
 													String referer = use_ref?subs.getReferer():null;

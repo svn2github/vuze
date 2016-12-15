@@ -154,26 +154,26 @@ PluginResult
 	public String 
 	getDownloadLink()
 	{
-		return(getStringProperty( SearchResult.PR_DOWNLOAD_LINK ));
+		return( adjustLink( getStringProperty( SearchResult.PR_DOWNLOAD_LINK )));
 	}
 	
 	public String 
 	getDownloadButtonLink()
 	{
-		return(getStringProperty( SearchResult.PR_DOWNLOAD_BUTTON_LINK ));
+		return(adjustLink( getStringProperty( SearchResult.PR_DOWNLOAD_BUTTON_LINK )));
 	}
 	
 	public String 
 	getCDPLink()
 	{
-		return( getStringProperty( SearchResult.PR_DETAILS_LINK ));
+		return( adjustLink( getStringProperty( SearchResult.PR_DETAILS_LINK )));
 
 	}
 	
 	public String 
 	getPlayLink()
 	{
-		return(getStringProperty( SearchResult.PR_PLAY_LINK ));
+		return( adjustLink( getStringProperty( SearchResult.PR_PLAY_LINK )));
 	}
 	
 	public String 

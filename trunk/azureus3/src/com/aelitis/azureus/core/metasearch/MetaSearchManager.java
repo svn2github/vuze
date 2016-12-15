@@ -66,6 +66,13 @@ MetaSearchManager
 	getEngine(
 		SearchProvider	sp );
 	
+	public boolean
+	getProxyRequestsEnabled();
+	
+	public void
+	setProxyRequestsEnabled(
+		boolean		enabled );
+	
 	public void
 	addListener(
 		MetaSearchManagerListener		listener );

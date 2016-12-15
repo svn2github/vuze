@@ -27,6 +27,9 @@ import java.util.Map;
 public interface 
 MetaSearch 
 {	
+	public MetaSearchManager
+	getManager();
+	
 	public Engine
 	importFromBEncodedMap(
 		Map<String,Object>		map )

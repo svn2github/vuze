@@ -335,7 +335,7 @@ SubscriptionResultImpl
 				
 				String dl_link = (String)map.get( "dl" );
 				
-				if ( dl_link != null && dl_link.toLowerCase( Locale.US ).startsWith( "magnet:" )){
+				if ( dl_link != null ){ // actually always use an explicit dl link in preference to a magnet && dl_link.toLowerCase( Locale.US ).startsWith( "magnet:" )){
 					
 					link = dl_link;
 				}
@@ -347,13 +347,13 @@ SubscriptionResultImpl
 			link = (String)map.get( "dl" );
 		}		
 		
-		return( link );
+		return( Result.adjustLink( link ));
 	}
 	
 	public String 
 	getPlayLink() 
 	{
-		return((String)toJSONMap().get( "pl" ));
+		return (Result.adjustLink((String)toJSONMap().get( "pl" )));
 	}
 	
 	public String 
@@ -418,16 +418,16 @@ SubscriptionResultImpl
 			}		
 			
 			if ( dbl_link != null ){
-				result.put( SearchResult.PR_DOWNLOAD_LINK, dbl_link );
+				result.put( SearchResult.PR_DOWNLOAD_LINK, Result.adjustLink( dbl_link ));
 			}
 			if ( dl_link != null ){
-				result.put( SearchResult.PR_TORRENT_LINK, dl_link );
+				result.put( SearchResult.PR_TORRENT_LINK, Result.adjustLink( dl_link ));
 			}
 			
 			String	cdp_link = (String)map.get( "cdp" );
 	
 			if ( cdp_link != null ){
-				result.put( SearchResult.PR_DETAILS_LINK, cdp_link );
+				result.put( SearchResult.PR_DETAILS_LINK, Result.adjustLink(cdp_link ));
 			}
 			
 			String	hash = (String)map.get( "h" );

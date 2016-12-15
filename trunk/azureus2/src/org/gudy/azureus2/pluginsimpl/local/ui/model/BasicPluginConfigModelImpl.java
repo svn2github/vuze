@@ -29,6 +29,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.components.UITextArea;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.InfoParameter;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
@@ -70,9 +71,12 @@ BasicPluginConfigModelImpl
 		key_prefix		= pi.getPluginconfig().getPluginConfigKeyPrefix();
 		configobj       = (PluginConfigImpl)pi.getPluginconfig();
 		
-		String version = pi.getPluginVersion();
+		if ( parent_section != null && !parent_section.equals( ConfigSection.SECTION_ROOT )){
 		
-		addLabelParameter2( "!" + MessageText.getString( "ConfigView.pluginlist.column.version" ) + ": " + (version==null?"<local>":version) + "!" );
+			String version = pi.getPluginVersion();
+		
+			addLabelParameter2( "!" + MessageText.getString( "ConfigView.pluginlist.column.version" ) + ": " + (version==null?"<local>":version) + "!" );
+		}
 	}
 
 	public String

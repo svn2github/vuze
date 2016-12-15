@@ -160,6 +160,8 @@ DNSUtilsImpl
 		
 		throws UnknownHostException
 	{
+		System.out.println( "Lookup for " + host );
+		
 		List<InetAddress>	result = new ArrayList<InetAddress>();
 
 		try{						

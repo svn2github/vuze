@@ -26,11 +26,11 @@ import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
-
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -198,6 +198,21 @@ MetaSearchManagerImpl
 				return size() > 32;
 			}
 		};
+		
+	private boolean	proxy_requests_enabled;
+	
+	{
+		COConfigurationManager.addAndFireParameterListener(
+			"metasearch.config.proxy.enable",
+			new ParameterListener() {
+				
+				public void parameterChanged(String parameterName)
+				{
+					proxy_requests_enabled = COConfigurationManager.getBooleanParameter( "metasearch.config.proxy.enable", false );
+				}
+			});
+	}
+		
 	protected
 	MetaSearchManagerImpl()
 	{
@@ -1394,6 +1409,19 @@ MetaSearchManagerImpl
 				}
 			}
 		}
+	}
+	
+	public boolean 
+	getProxyRequestsEnabled()
+	{
+		return( proxy_requests_enabled );
+	}
+	
+	public void 
+	setProxyRequestsEnabled(
+		boolean enabled) 
+	{
+		COConfigurationManager.setParameter( "metasearch.config.proxy.enable", enabled );
 	}
 	
 	public void

@@ -1628,6 +1628,124 @@ public class UrlUtils
 	}
 	
 	public static void
+	HTTPSURLConnectionSNIHack(
+		final String			host_name,
+		HttpsURLConnection 		con )
+	{
+		final SSLSocketFactory factory = con.getSSLSocketFactory();
+		
+		SSLSocketFactory hack = new
+			SSLSocketFactory()
+			{
+				@Override
+				public Socket createSocket() throws IOException {
+					Socket result = factory.createSocket();
+					
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+					public Socket createSocket(
+						InetAddress address,
+						int port,
+						InetAddress localAddress,
+						int localPort)
+						throws IOException {
+					Socket result = factory.createSocket( address, port, localAddress, localPort );
+						
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public Socket createSocket(
+						InetAddress host,
+						int port)
+						throws IOException {
+					Socket result = factory.createSocket( host, port );
+					
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public Socket createSocket(
+						Socket s,
+						String host,
+						int port,
+						boolean autoClose)
+						throws IOException {
+					Socket result = factory.createSocket( s, host, port, autoClose );
+					
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public Socket createSocket(
+						String host,
+						int port)
+						throws IOException,
+						UnknownHostException {
+					Socket result = factory.createSocket( host, port );
+					
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public Socket createSocket(
+						String host,
+						int port,
+						InetAddress localHost,
+						int localPort)
+						throws IOException,
+						UnknownHostException {
+					Socket result = factory.createSocket( host, port, localHost, localPort );
+					
+					hack( result );
+					
+					return( result );
+				}
+				@Override
+				public String[] getDefaultCipherSuites() {
+					String[] result = factory.getDefaultCipherSuites();
+					
+					result = hack( result );
+					
+					return( result );
+				}
+				@Override
+				public String[] getSupportedCipherSuites() {
+					String[] result = factory.getSupportedCipherSuites();
+					
+					result = hack( result );
+					
+					return( result );
+				}
+			
+				private void
+				hack(
+					Socket	socket )
+				{
+					SSLSocket ssl_socket = (SSLSocket)socket;
+
+					SSLSocketSNIHack( host_name, ssl_socket);
+				}
+				
+				private String[]
+				hack(
+					String[]	cs  )
+				{
+					return( cs );
+				}
+			};
+			
+		con.setSSLSocketFactory( hack );
+	}
+	
+	public static void
 	DHHackIt(
 		HttpsURLConnection	ssl_con )
 	{

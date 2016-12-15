@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchLoginException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
@@ -559,13 +560,29 @@ WebEngine
 	{
 		String searchURL = searchURLFormat;
 
-		if ( searchURL.toLowerCase( Locale.US ).startsWith( "tor:" )){
+		String lc_url = searchURL.toLowerCase( Locale.US );
+		
+		boolean explicit_tor = lc_url.startsWith( "tor:" );
+				
+		boolean user_tor = false;
+		
+		if ( !explicit_tor ){
 			
+			String test = Result.adjustLink( searchURL );
+			
+			if ( test.startsWith( "tor:" )){
+								
+				user_tor = true;
+			}
+		}
+		
+		if ( explicit_tor || user_tor ){
+						
 				// strip out any stuff we probably don't want to send
 			
 			searchContext = new HashMap<String, String>();
 			
-			String target_resource = searchURLFormat.substring( 4 );
+			String target_resource = explicit_tor?searchURL.substring( 4 ):searchURL;
 			
 			URL location;
 			
@@ -604,13 +621,22 @@ WebEngine
 				
 				pageDetails	details = getWebPageContentSupport( proxy, proxy_host, url.toExternalForm(), searchParameters, searchContext, headers, only_if_modified );
 			
+				/*
+				 * Don't need this anymore, modification is done at link use time if needed
 				String content = details.getContent();
 				
 				content = content.replaceAll( "(?i)http://", "tor:http://" );
 				content = content.replaceAll( "(?i)https://", "tor:https://" );
 				content = content.replaceAll( "(?i)ftp://", "tor:ftp://" );
 				
+					// handle JSON encoded stuff
+				
+				content = content.replaceAll( "(?i)http:\\\\/\\\\/", "tor:http:\\/\\/" );
+				content = content.replaceAll( "(?i)https:\\\\/\\\\/", "tor:https:\\/\\/" );
+				content = content.replaceAll( "(?i)ftp:\\\\/\\\\/", "tor:ftp:\\/\\/" );
+				
 				details.setContent( content );
+				*/
 				
 				if ( verifier != null ){
 					

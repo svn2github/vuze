@@ -333,6 +333,13 @@ ResourceDownloaderURLImpl
 									UrlUtils.DHHackIt( ssl_con );
 								}
 								
+								if ( internal_error_hack && plugin_proxy != null ){
+									
+									String host = plugin_proxy.getURLHostRewrite();
+									
+									UrlUtils.HTTPSURLConnectionSNIHack( host, ssl_con );
+								}
+								
 								con = ssl_con;
 				  	
 							}else{
@@ -433,7 +440,8 @@ ResourceDownloaderURLImpl
 									}
 								}
 								
-								if ( SESecurityManager.installServerCertificates( url ) != null ){
+								if ( 	plugin_proxy != null &&
+										SESecurityManager.installServerCertificates( url ) != null ){
 									
 										// certificate has been installed
 									
@@ -681,6 +689,8 @@ ResourceDownloaderURLImpl
 					URL		current_url		= outer_url;
 					Proxy 	current_proxy 	= force_proxy;
 					
+					PluginProxy current_plugin_proxy = null;
+					
 					URL	initial_url = current_url;
 
 redirect_label:
@@ -688,25 +698,25 @@ redirect_label:
 						
 						follow_redirect = false;						
 						
-						PluginProxy	plugin_proxy;
+						PluginProxy	plugin_proxy_auto;
 						
 						boolean		ok = false;
 						
 						if ( auto_plugin_proxy ){
 							
-							plugin_proxy = AEProxyFactory.getPluginProxy( "downloading resource", current_url );
+							plugin_proxy_auto = AEProxyFactory.getPluginProxy( "downloading resource", current_url );
 			
-							if ( plugin_proxy == null ){
+							if ( plugin_proxy_auto == null ){
 								
 								throw( new ResourceDownloaderException( this, "No plugin proxy available" ));
 							}
 							
-							current_url		= plugin_proxy.getURL();
-							current_proxy	= plugin_proxy.getProxy();
+							current_url		= plugin_proxy_auto.getURL();
+							current_proxy	= plugin_proxy_auto.getProxy();
 							
 						}else{
 							
-							plugin_proxy = null;
+							plugin_proxy_auto = null;
 						}
 						
 						try{
@@ -718,7 +728,7 @@ redirect_label:
 								try{
 									URLConnection	con;
 									
-									PluginProxy current_plugin_proxy = plugin_proxy==null?AEProxyFactory.getPluginProxy( force_proxy ):plugin_proxy;
+									current_plugin_proxy = plugin_proxy_auto==null?AEProxyFactory.getPluginProxy( force_proxy ):plugin_proxy_auto;
 
 									if ( current_url.getProtocol().equalsIgnoreCase("https")){
 								      	
@@ -825,6 +835,13 @@ redirect_label:
 										if ( dh_hack ){
 											
 											UrlUtils.DHHackIt( ssl_con );
+										}
+										
+										if ( internal_error_hack && current_plugin_proxy != null ){
+											
+											String host = current_plugin_proxy.getURLHostRewrite();
+											
+											UrlUtils.HTTPSURLConnectionSNIHack( host, ssl_con );
 										}
 										
 										con = ssl_con;
@@ -1298,7 +1315,8 @@ redirect_label:
 											}
 										}
 										
-										if ( SESecurityManager.installServerCertificates( current_url ) != null ){
+										if ( 	current_plugin_proxy == null && 
+												SESecurityManager.installServerCertificates( current_url ) != null ){
 											
 												// certificate has been installed
 											
@@ -1361,9 +1379,9 @@ redirect_label:
 							}
 						}finally{
 							
-							if ( plugin_proxy != null ){
+							if ( plugin_proxy_auto != null ){
 								
-								plugin_proxy.setOK( ok );
+								plugin_proxy_auto.setOK( ok );
 							}
 						}
 					}

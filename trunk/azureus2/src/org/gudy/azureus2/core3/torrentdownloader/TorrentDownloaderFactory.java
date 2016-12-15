@@ -366,7 +366,7 @@ public class TorrentDownloaderFactory {
 		  	  	  				 			
 		  	  	  				 			props.put( "HOST", plugin_proxy.getURLHostRewrite() + (original_url.getPort()==-1?"":(":"+original_url.getPort())));
 		  	  	  				 			
-		  	  	  				  			delegate.init( this, plugin_proxy.getURL().toExternalForm(), plugin_proxy.getProxy(), referrer, props, fileordir );
+		  	  	  				  			delegate.init( this, plugin_proxy.getURL().toExternalForm(), plugin_proxy.getProxy(), referrer==null?original_url.toExternalForm():referrer, props, fileordir );
 		  	  	  				  				  	  	  							
 		  	  	  							delegate.start();
 		  	  	  							

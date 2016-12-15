@@ -255,7 +255,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 							
 							UrlUtils.DHHackIt( ssl_con );
 						}
-						
+												
 						if ( connect_loop > 0 ){
 				 				
 			 					// meh, some https trackers are just screwed
@@ -275,6 +275,16 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 							}
 			 			}
 					
+						if ( internal_error_hack ){
+							
+							if ( current_plugin_proxy != null ){
+								
+								String host = current_plugin_proxy.getURLHostRewrite();
+								
+								UrlUtils.HTTPSURLConnectionSNIHack( host, ssl_con );
+							}
+						}
+
 	    				con = ssl_con;
 	
 	    			}else{
@@ -474,14 +484,19 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 							}
 						}
 						
-	    				if ( SESecurityManager.installServerCertificates( url ) != null ){
-	
-	    						// certificate has been installed
-	
-	    					try_again = true;
-	    				}
-	    				
-	    				if ( url != current_url && SESecurityManager.installServerCertificates( current_url ) != null ){
+						if ( current_plugin_proxy == null ){
+							
+		    				if ( SESecurityManager.installServerCertificates( url ) != null ){
+		
+		    						// certificate has been installed
+		
+		    					try_again = true;
+		    				}
+						}
+						
+	    				if ( 	url != current_url && 
+	    						current_plugin_proxy == null && 
+	    						SESecurityManager.installServerCertificates( current_url ) != null ){
 	    					
     							// certificate has been installed
 

@@ -19,6 +19,8 @@
 
 package com.aelitis.azureus.core.metasearch;
 
+import java.net.InetAddress;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,7 +29,9 @@ import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang.Entities;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.json.simple.JSONObject;
 
@@ -381,6 +385,51 @@ public abstract class Result {
 			
 			return( "" );
 		}
+	}
+	
+	public static String
+	adjustLink(
+		String		link )
+	{
+		if ( link == null || link.length() < 5 ){
+			
+			return( link );
+		}
+		
+		char c = link.charAt(0);
+		
+		if ( c == 'h' || c == 'H' || c == 'f' || c == 'F' ){
+			
+			if ( MetaSearchManagerFactory.getSingleton().getProxyRequestsEnabled()){
+			
+				try{
+					String host =  new URL( link ).getHost();
+					
+					if ( AENetworkClassifier.categoriseAddress( host ) != AENetworkClassifier.AT_PUBLIC ){
+						
+						return( link );
+					}
+					
+					InetAddress ia = HostNameToIPResolver.hostAddressToInetAddress( host );
+					
+					if ( ia != null ){
+						
+						if ( 	ia.isLoopbackAddress() ||
+								ia.isLinkLocalAddress() ||
+								ia.isSiteLocalAddress()){
+							
+							return( link );
+						}
+					}
+				}catch( Throwable e ){
+						
+				}
+				
+				return( "tor:" + link );
+			}
+		}
+		
+		return( link );
 	}
 	
 	public static void

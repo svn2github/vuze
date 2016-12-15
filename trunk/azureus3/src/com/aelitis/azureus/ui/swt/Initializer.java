@@ -67,6 +67,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
+import com.aelitis.azureus.ui.swt.search.SearchUI;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindowFactory;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
@@ -519,7 +520,15 @@ public class Initializer
 
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 
-		try{
+  		try{
+  			new SearchUI();
+  			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+  		
+  		try{
 			new SubscriptionManagerUI();
 			
 		}catch( Throwable e ){
@@ -528,14 +537,14 @@ public class Initializer
 		}
 
   		
-		if (!uiClassic) {
-  		try{
-  			new DeviceManagerUI( core );
-  				
-  		}catch( Throwable e ){
-  				
-  			Debug.printStackTrace(e);
-  		}
+		if (!uiClassic){
+	  		try{
+	  			new DeviceManagerUI( core );
+	  				
+	  		}catch( Throwable e ){
+	  				
+	  			Debug.printStackTrace(e);
+	  		}
 		}
 		
 		if ( core.canStart()){

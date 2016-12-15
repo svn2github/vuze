@@ -91,7 +91,7 @@ MetaSearchImpl
 		loadConfig();
 	}
 	
-	protected MetaSearchManagerImpl
+	public MetaSearchManagerImpl
 	getManager()
 	{
 		return( manager );
