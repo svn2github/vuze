@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.PaintEvent;
@@ -55,9 +57,11 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -104,6 +108,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectToggle;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinToggleListener;
+import com.aelitis.azureus.ui.swt.utils.SearchSubsUtils;
 
 public class 
 SBC_SearchResultsView 
@@ -127,9 +132,24 @@ SBC_SearchResultsView
 	
 	private Text txtFilter;
 
+	private final Object filter_lock = new Object();
 
 	private int minSize;
 	private int maxSize;
+	
+	private String[]	with_keywords 		= {};
+	private String[]	without_keywords 	= {};
+	
+	private FrequencyLimitedDispatcher	refilter_dispatcher =
+			new FrequencyLimitedDispatcher( 
+				new AERunnable() {
+					
+					@Override
+					public void runSupport() 
+					{
+						refilter();
+					}
+				}, 250 );
 	
 	private final CopyOnWriteSet<String>	deselected_engines = new CopyOnWriteSet<String>( false );
 	
@@ -221,6 +241,7 @@ SBC_SearchResultsView
 			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0; 
 			filter_area.setLayout(layout);
 			
+			Label label;
 			int sepHeight = 20;
 			
 			Composite cRow = new Composite(filter_area, SWT.NONE);
@@ -231,15 +252,73 @@ SBC_SearchResultsView
 			rowLayout.marginBottom = rowLayout.marginTop = rowLayout.marginLeft = rowLayout.marginRight = 0; 
 			rowLayout.center = true;
 			cRow.setLayout(rowLayout);
-			
-			
+					
 
-			/////
+				// with/without keywords
 			
+			ImageLoader imageLoader = ImageLoader.getInstance();
+
+			for ( int i=0;i<2;i++){
+				
+				final boolean with = i == 0;
 		
+				if ( !with ){
+					
+					label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
+					label.setLayoutData(new RowData(-1, sepHeight));
+				}
+				
+				Composite cWithKW = new Composite(cRow, SWT.NONE);
+				layout = new GridLayout(2, false);
+				layout.marginWidth = 0;
+				layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+				cWithKW.setLayout(layout);
+				//Label lblWithKW = new Label(cWithKW, SWT.NONE);
+				//lblWithKW.setText(MessageText.getString(with?"SubscriptionResults.filter.with.words":"SubscriptionResults.filter.without.words"));
+				Label lblWithKWImg = new Label(cWithKW, SWT.NONE);
+				lblWithKWImg.setImage( imageLoader.getImage( with?"icon_filter_plus":"icon_filter_minus"));
+				
+				final Text textWithKW = new Text(cWithKW, SWT.BORDER);
+				textWithKW.setMessage(MessageText.getString(with?"SubscriptionResults.filter.with.words":"SubscriptionResults.filter.without.words"));
+				GridData gd = new GridData();
+				gd.widthHint = Utils.adjustPXForDPI( 100 );
+				textWithKW.setLayoutData( gd );
+				textWithKW.addModifyListener(
+					new ModifyListener() {
+						
+						public void modifyText(ModifyEvent e) {
+							String text = textWithKW.getText().toLowerCase( Locale.US );
+							String[] bits = text.split( "\\s+");
+							
+							Set<String>	temp = new HashSet<String>();
+							
+							for ( String bit: bits ){
+							
+								bit = bit.trim();
+								if ( bit.length() > 0 ){
+									temp.add( bit );
+								}
+							}
+							
+							String[] words = temp.toArray( new String[temp.size()] );
+							synchronized( filter_lock ){
+								if ( with ){
+									with_keywords = words;
+								}else{
+									without_keywords = words;
+								}
+							}
+							refilter_dispatcher.dispatch();
+						}
+					});
+			}
+					
 
 				// min size
 			
+			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
+			label.setLayoutData(new RowData(-1, sepHeight));
+
 			Composite cMinSize = new Composite(cRow, SWT.NONE);
 			layout = new GridLayout(2, false);
 			layout.marginWidth = 0;
@@ -260,7 +339,7 @@ SBC_SearchResultsView
 			
 			// max size
 			
-			Label label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
+			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
 			label.setLayoutData(new RowData(-1, sepHeight));
 
 			Composite cMaxSize = new Composite(cRow, SWT.NONE);
@@ -598,16 +677,40 @@ SBC_SearchResultsView
 	{
 		long	size = result.getSize();
 		
-		boolean show = 
+		boolean size_ok = 
 			
 			(size==-1||(size >= 1024L*1024*minSize)) &&
 			(size==-1||(maxSize ==0 || size <= 1024L*1024*maxSize));
 		
-		if ( !show ){
+		if ( !size_ok ){
 			
 			return( false );
 		}
 		
+		if ( with_keywords.length > 0 || without_keywords.length > 0 ){
+			
+			synchronized( filter_lock ){
+				
+				String name = result.getName().toLowerCase( Locale.US );
+				
+				for ( int i=0;i<with_keywords.length;i++){
+					
+					if ( !name.contains( with_keywords[i] )){
+						
+						return( false );
+					}
+				}
+				
+				for ( int i=0;i<without_keywords.length;i++){
+					
+					if ( name.contains( without_keywords[i] )){
+						
+						return( false );
+					}
+				}
+			}
+		}
+				
 		String engine_id = result.getEngine().getUID();
 		
 		if ( deselected_engines.contains( engine_id )){
@@ -993,6 +1096,14 @@ SBC_SearchResultsView
 					item.setEnabled( results.length > 0 );
 					
 					new MenuItem(menu, SWT.SEPARATOR );
+					
+					if ( results.length == 1 ){
+						
+						if ( SearchSubsUtils.addMenu( results[0], menu )){
+							
+							new MenuItem(menu, SWT.SEPARATOR );
+						}
+					}
 				}
 
 				public void 

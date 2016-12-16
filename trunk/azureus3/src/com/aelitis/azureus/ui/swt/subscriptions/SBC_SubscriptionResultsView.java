@@ -19,13 +19,16 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -34,6 +37,7 @@ import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -65,8 +69,11 @@ import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultSeedsP
 import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultSize;
 import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultType;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultNew;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
+import com.aelitis.azureus.ui.swt.utils.SearchSubsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 
 public class 
@@ -86,10 +93,24 @@ SBC_SubscriptionResultsView
 	
 	private Text txtFilter;
 
+	private final Object filter_lock = new Object();
 
 	private int minSize;
 	private int maxSize;
 	
+	private String[]	with_keywords 		= {};
+	private String[]	without_keywords 	= {};
+	
+	private FrequencyLimitedDispatcher	refilter_dispatcher =
+			new FrequencyLimitedDispatcher( 
+				new AERunnable() {
+					
+					@Override
+					public void runSupport() 
+					{
+						refilter();
+					}
+				}, 250 );
 	
 	private Subscription	 ds;
 
@@ -149,13 +170,24 @@ SBC_SubscriptionResultsView
 			
 			SWTSkinObjectToggle soFilterButton = (SWTSkinObjectToggle) getSkinObject("filter-button");
 			if (soFilterButton != null) {
+				boolean toggled = COConfigurationManager.getBooleanParameter( "Subscription View Filter Options Expanded", false );
+				
+				if ( toggled ){
+					
+					soFilterButton.setToggled( true );
+					
+					soFilterArea.setVisible( true );
+				}
+				
 				soFilterButton.addSelectionListener(new SWTSkinToggleListener() {
 					public void toggleChanged(SWTSkinObjectToggle so, boolean toggled) {
+						
+						COConfigurationManager.setParameter( "Subscription View Filter Options Expanded", toggled );
+						
 						soFilterArea.setVisible(toggled);
 						Utils.relayout(soFilterArea.getControl().getParent());
 					}
-				});
-			}
+				});			}
 			
 			Composite parent = (Composite) soFilterArea.getControl();
 	
@@ -174,13 +206,71 @@ SBC_SubscriptionResultsView
 			cRow.setLayout(rowLayout);
 			
 			
-
-			/////
+			// with/without keywords
 			
-		
+			ImageLoader imageLoader = ImageLoader.getInstance();
 
+			for ( int i=0;i<2;i++){
+				
+				final boolean with = i == 0;
+		
+				if ( !with ){
+					
+					label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
+					label.setLayoutData(new RowData(-1, sepHeight));
+				}
+				
+				Composite cWithKW = new Composite(cRow, SWT.NONE);
+				layout = new GridLayout(2, false);
+				layout.marginWidth = 0;
+				layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+				cWithKW.setLayout(layout);
+				//Label lblWithKW = new Label(cWithKW, SWT.NONE);
+				//lblWithKW.setText(MessageText.getString(with?"SubscriptionResults.filter.with.words":"SubscriptionResults.filter.without.words"));
+				Label lblWithKWImg = new Label(cWithKW, SWT.NONE);
+				lblWithKWImg.setImage( imageLoader.getImage( with?"icon_filter_plus":"icon_filter_minus"));
+				
+				final Text textWithKW = new Text(cWithKW, SWT.BORDER);
+				textWithKW.setMessage(MessageText.getString(with?"SubscriptionResults.filter.with.words":"SubscriptionResults.filter.without.words"));
+				GridData gd = new GridData();
+				gd.widthHint = Utils.adjustPXForDPI( 100 );
+				textWithKW.setLayoutData( gd );
+				textWithKW.addModifyListener(
+					new ModifyListener() {
+						
+						public void modifyText(ModifyEvent e) {
+							String text = textWithKW.getText().toLowerCase( Locale.US );
+							String[] bits = text.split( "\\s+");
+							
+							Set<String>	temp = new HashSet<String>();
+							
+							for ( String bit: bits ){
+							
+								bit = bit.trim();
+								if ( bit.length() > 0 ){
+									temp.add( bit );
+								}
+							}
+							
+							String[] words = temp.toArray( new String[temp.size()] );
+							synchronized( filter_lock ){
+								if ( with ){
+									with_keywords = words;
+								}else{
+									without_keywords = words;
+								}
+							}
+							refilter_dispatcher.dispatch();
+						}
+					});
+			}
+			
+					
 				// min size
 			
+			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
+			label.setLayoutData(new RowData(-1, sepHeight));
+
 			Composite cMinSize = new Composite(cRow, SWT.NONE);
 			layout = new GridLayout(2, false);
 			layout.marginWidth = 0;
@@ -222,7 +312,8 @@ SBC_SubscriptionResultsView
 				}
 			});
 			
-			
+	
+
 			parent.layout(true);
 		}
 
@@ -235,12 +326,41 @@ SBC_SubscriptionResultsView
 	{
 		long	size = result.getSize();
 		
-		boolean show = 
+		boolean size_ok = 
 			
 			(size==-1||(size >= 1024L*1024*minSize)) &&
 			(size==-1||(maxSize ==0 || size <= 1024L*1024*maxSize));
 		
-		return( show );
+		if ( !size_ok ){
+			
+			return( false );
+		}
+		
+		if ( with_keywords.length > 0 || without_keywords.length > 0 ){
+			
+			synchronized( filter_lock ){
+				
+				String name = result.getName().toLowerCase( Locale.US );
+				
+				for ( int i=0;i<with_keywords.length;i++){
+					
+					if ( !name.contains( with_keywords[i] )){
+						
+						return( false );
+					}
+				}
+				
+				for ( int i=0;i<without_keywords.length;i++){
+					
+					if ( name.contains( without_keywords[i] )){
+						
+						return( false );
+					}
+				}
+			}
+		}
+		
+		return( true );
 	}
 
 
@@ -745,6 +865,14 @@ SBC_SubscriptionResultsView
 					
 					new MenuItem(menu, SWT.SEPARATOR );
 
+					if ( results.length == 1 ){
+						
+						if ( SearchSubsUtils.addMenu( results[0], menu )){
+							
+							new MenuItem(menu, SWT.SEPARATOR );
+						}
+					}
+					
 					final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 
 					remove_item.setText(MessageText.getString("azbuddy.ui.menu.remove"));
