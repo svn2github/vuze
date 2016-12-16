@@ -234,7 +234,7 @@ public class SWTSkinObjectText2
 		if (false && font == null) {
 			Display display = createOn.getDisplay();
 			FontData fd = new FontData("Arial", Utils.pixelsToPoint(10,
-					display.getDPI().y), SWT.NORMAL);
+					Utils.getDPIRaw(display).y), SWT.NORMAL);
 			font = new Font(display, fd);
 		}
 

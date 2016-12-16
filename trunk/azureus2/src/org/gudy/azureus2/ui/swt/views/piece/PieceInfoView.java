@@ -472,7 +472,7 @@ public class PieceInfoView
 
 		int iFontPixelsHeight = 10;
 		int iFontPointHeight = (iFontPixelsHeight * 72)
-				/ pieceInfoCanvas.getDisplay().getDPI().y;
+				/ Utils.getDPIRaw( pieceInfoCanvas.getDisplay()).y;
 		Font f = pieceInfoCanvas.getFont();
 		FontData[] fontData = f.getFontData();
 		fontData[0].setHeight(iFontPointHeight);

@@ -325,7 +325,7 @@ public class PeerInfoView
 
 		int iFontPixelsHeight = 10;
 		int iFontPointHeight = (iFontPixelsHeight * 72)
-				/ peerInfoCanvas.getDisplay().getDPI().y;
+				/ Utils.getDPIRaw( peerInfoCanvas.getDisplay()).y;
 		Font f = peerInfoCanvas.getFont();
 		FontData[] fontData = f.getFontData();
 		fontData[0].setHeight(iFontPointHeight);

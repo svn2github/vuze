@@ -840,7 +840,7 @@ public class MyTorrentsView
 		}
 		
 		int iFontPixelsHeight = Utils.adjustPXForDPI(10);
-		int iFontPointHeight = (iFontPixelsHeight * 72)	/ cCategoriesAndTags.getDisplay().getDPI().y;
+		int iFontPointHeight = (iFontPixelsHeight * 72)	/ Utils.getDPIRaw( cCategoriesAndTags.getDisplay()).y;
 
 		Label spacer = null;
 		

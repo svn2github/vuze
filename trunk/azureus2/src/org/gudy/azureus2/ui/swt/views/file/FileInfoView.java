@@ -377,7 +377,7 @@ public class FileInfoView
 
 		int iFontPixelsHeight = 10;
 		int iFontPointHeight = (iFontPixelsHeight * 72)
-				/ fileInfoCanvas.getDisplay().getDPI().y;
+				/ Utils.getDPIRaw( fileInfoCanvas.getDisplay()).y;
 		Font f = fileInfoCanvas.getFont();
 		FontData[] fontData = f.getFontData();
 		fontData[0].setHeight(iFontPointHeight);

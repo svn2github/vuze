@@ -3835,7 +3835,7 @@ public class Utils
 			if (display == null) {
 				return new Point(0, 0);
 			}
-			dpi = display.getDPI();
+			dpi = getDPIRaw( display );
 			COConfigurationManager.setIntDefault("Force DPI", dpi.x);
 			if (dpi.x <= 96 || dpi.y <= 96) {
 				dpi = new Point(0, 0);
@@ -3843,7 +3843,31 @@ public class Utils
 		}
 		return dpi;
 	}
-
+	
+	private static boolean logged_invalid_dpi = false;
+	
+	public static Point
+	getDPIRaw(
+		Device		device )
+	{
+		Point p = device.getDPI();
+		
+		if ( p.x < 0 || p.y < 0 || p.x > 8192 || p.y > 8192 ){
+			
+			if ( !logged_invalid_dpi ){
+				
+				logged_invalid_dpi = true;
+				
+				Debug.outNoStack( "Invalid DPI: " + p );
+			}
+			
+			return( new Point( 96, 96 ));
+		}
+		
+		return( p );
+	}
+	
+	
 	public static int adjustPXForDPI(int unadjustedPX) {
 		if (unadjustedPX == 0) {
 			return unadjustedPX;
@@ -3987,30 +4011,36 @@ public class Utils
 		
 		if (dpi.x > 0) {
 
-			Rectangle bounds = image.getBounds();
-			Rectangle newBounds = Utils.adjustPXForDPI(bounds);
+			try{
+				Rectangle bounds = image.getBounds();
+				Rectangle newBounds = Utils.adjustPXForDPI(bounds);
+				
+				ImageData scaledTo = image.getImageData().scaledTo(newBounds.width, newBounds.height);
+				
+				Image newImage = new Image(display, scaledTo);
 			
-			ImageData scaledTo = image.getImageData().scaledTo(newBounds.width, newBounds.height);
-			
-			Image newImage = new Image(display, scaledTo);
-		
-			if ( scaled_imaged_check_count++ % 100 == 0 ){
-				Iterator<Image> it = scaled_images.keySet().iterator();
-				while( it.hasNext()){
-					if ( it.next().isDisposed()){
-						it.remove();
+				if ( scaled_imaged_check_count++ % 100 == 0 ){
+					Iterator<Image> it = scaled_images.keySet().iterator();
+					while( it.hasNext()){
+						if ( it.next().isDisposed()){
+							it.remove();
+						}
 					}
 				}
+				
+				scaled_images.put( newImage, "" );
+				
+				image.dispose();
+				
+				return( newImage );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Image DPI adjustment failed: " + Debug.getNestedExceptionMessage(e));
 			}
-			
-			scaled_images.put( newImage, "" );
-			
-			image.dispose();
-			
-			return( newImage );
-		}else{
-			return( image );
 		}
+		
+		return( image );
 	}
 
 	public static void setLayout(Composite composite, GridLayout layout) {

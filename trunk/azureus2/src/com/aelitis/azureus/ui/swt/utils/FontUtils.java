@@ -82,7 +82,7 @@ public class FontUtils
 
 		// This isn't accurate, but gets us close
 		float[] size = {
-			Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1
+			Utils.pixelsToPoint(heightInPixels, Utils.getDPIRaw( device ).y) + 1
 		};
 		if (size[0] <= 0) {
 			return 0;
@@ -117,7 +117,7 @@ public class FontUtils
 
 		// This isn't accurate, but gets us close
 		float[] size = {
-			Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1
+			Utils.pixelsToPoint(heightInPixels, Utils.getDPIRaw( device ).y) + 1
 		};
 		if (size[0] <= 0) {
 			return 0;
@@ -156,7 +156,7 @@ public class FontUtils
 
 		// This isn't accurate, but gets us close
 		float[] size = {
-			Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1
+			Utils.pixelsToPoint(heightInPixels, Utils.getDPIRaw( device ).y) + 1
 		};
 		if (size[0] <= 0) {
 			size[0] = 2;
