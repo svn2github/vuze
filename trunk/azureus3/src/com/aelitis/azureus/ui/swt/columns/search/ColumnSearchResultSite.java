@@ -69,9 +69,22 @@ public class ColumnSearchResultSite
 
 		if (img != null && !img.isDisposed()) {
 			Rectangle imgBounds = img.getBounds();
-			gc.drawImage(img, cellBounds.x
-					+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y
-					+ ((cellBounds.height - imgBounds.height) / 2));
+			if (cellBounds.width < imgBounds.width || cellBounds.height < imgBounds.height) {
+				float dx = (float) cellBounds.width / imgBounds.width;
+				float dy = (float) cellBounds.height / imgBounds.height;
+				float d = Math.min(dx, dy);
+				int newWidth = (int) (imgBounds.width * d);
+				int newHeight = (int) (imgBounds.height * d);
+				
+				gc.drawImage(img, 0, 0, imgBounds.width, imgBounds.height,
+						cellBounds.x + (cellBounds.width - newWidth) / 2,
+						cellBounds.y + (cellBounds.height - newHeight) / 2, newWidth,
+						newHeight);
+			} else {
+  			gc.drawImage(img, cellBounds.x
+  					+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y
+  					+ ((cellBounds.height - imgBounds.height) / 2));
+			}
 		}
 	}
 
@@ -90,8 +103,14 @@ public class ColumnSearchResultSite
 			if (!cell.setSortValue(sortVal) && cell.isValid()) {
 				return;
 			}
+
+			String name = entry.getEngine().getName();
+
+			Image img = entry.getIcon();
 			
-			cell.setToolTip( entry.getEngine().getName());
+			cell.setText(img == null || img.isDisposed() ? name : null);
+			
+			cell.setToolTip( name);
 		}
 	}
 }
