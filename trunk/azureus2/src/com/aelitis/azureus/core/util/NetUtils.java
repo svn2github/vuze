@@ -20,6 +20,8 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.*;
 import java.util.*;
 
@@ -97,7 +99,7 @@ NetUtils
 							
 							long	start 	= SystemTime.getHighPrecisionCounter();
 							
-							Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
+							Enumeration<NetworkInterface> nis = NetworkInterface_getNetworkInterfaces();
 							
 							long	elapsed_millis = ( SystemTime.getHighPrecisionCounter() - start ) / 1000000;
 								
@@ -375,5 +377,109 @@ NetUtils
 				}
 			}
 		}
+	}
+
+
+	/**
+	 * Calls NetworkInterface.getNetworkInterface, tries to recover from
+	 * SocketException on some Android devices
+	 */
+	private static Enumeration<NetworkInterface> NetworkInterface_getNetworkInterfaces()
+			throws SocketException {
+		SocketException se;
+		try {
+			return NetworkInterface.getNetworkInterfaces();
+		} catch (SocketException e) {
+			/*
+			Found on Android API 22 (Sony Bravia Android TV):
+			java.net.SocketException
+			     at java.net.NetworkInterface.rethrowAsSocketException(NetworkInterface.java:248)
+			     at java.net.NetworkInterface.readIntFile(NetworkInterface.java:243)
+			     at java.net.NetworkInterface.getByNameInternal(NetworkInterface.java:121)
+			     at java.net.NetworkInterface.getNetworkInterfacesList(NetworkInterface.java:309)
+			     at java.net.NetworkInterface.getNetworkInterfaces(NetworkInterface.java:298)
+			     at whatevercalled getNetworkInterfaces()
+			 Caused by: java.io.FileNotFoundException: /sys/class/net/p2p1/ifindex: open failed: ENOENT (No such file or directory)
+			     at libcore.io.IoBridge.open(IoBridge.java:456)
+			     at libcore.io.IoUtils$FileReader.<init>(IoUtils.java:209)
+			     at libcore.io.IoUtils.readFileAsString(IoUtils.java:116)
+			     at java.net.NetworkInterface.readIntFile(NetworkInterface.java:236)
+			 	... 18 more
+			 Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+			     at libcore.io.Posix.open(Native Method)
+			     at libcore.io.BlockGuardOs.open(BlockGuardOs.java:186)
+			     at libcore.io.IoBridge.open(IoBridge.java:442)
+			 	... 21 more
+			 	*/
+			se = e;
+		}
+
+		// Java 7 has getByIndex
+		try {
+			Method mGetByIndex = NetworkInterface.class.getDeclaredMethod(
+					"getByIndex", int.class);
+			List<NetworkInterface> list = new ArrayList<>();
+			int i = 0;
+			do {
+				//NetworkInterface nif = NetworkInterface.getByIndex(i);
+				NetworkInterface nif = null;
+				try {
+					nif = (NetworkInterface) mGetByIndex.invoke(null, i);
+				} catch (IllegalAccessException e) {
+					break;
+				} catch (InvocationTargetException ignore) {
+					// getByIndex throws SocketException
+				}
+				if (nif != null) {
+					list.add(nif);
+				} else if (i > 0) {
+					break;
+				}
+				i++;
+			} while (true);
+			if (list.size() > 0) {
+				return Collections.enumeration(list);
+			}
+		} catch (NoSuchMethodException ignore) {
+		}
+
+		// Worst case, try some common interface names
+		List<NetworkInterface> list = new ArrayList<>();
+		final String[] commonNames = {
+			"lo",
+			"eth",
+			"lan",
+			"wlan",
+			"en", // Some Android's Ethernet
+			"p2p", // Android
+			"net", // Windows, usually TAP
+			"ppp" // Windows
+		};
+		for (String commonName : commonNames) {
+			try {
+				NetworkInterface nif = NetworkInterface.getByName(commonName);
+				if (nif != null) {
+					list.add(nif);
+				}
+
+				// Could interfaces skip numbers?  Oh well..
+				int i = 0;
+				while (true) {
+					nif = NetworkInterface.getByName(commonName + i);
+					if (nif != null) {
+						list.add(nif);
+					} else {
+						break;
+					}
+					i++;
+				}
+			} catch (Throwable ignore) {
+			}
+		}
+		if (list.size() > 0) {
+			return Collections.enumeration(list);
+		}
+
+		throw se;
 	}
 }
