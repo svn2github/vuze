@@ -418,7 +418,7 @@ NetUtils
 		try {
 			Method mGetByIndex = NetworkInterface.class.getDeclaredMethod(
 					"getByIndex", int.class);
-			List<NetworkInterface> list = new ArrayList<>();
+			List<NetworkInterface> list = new ArrayList<NetworkInterface>();
 			int i = 0;
 			do {
 				//NetworkInterface nif = NetworkInterface.getByIndex(i);
@@ -444,7 +444,7 @@ NetUtils
 		}
 
 		// Worst case, try some common interface names
-		List<NetworkInterface> list = new ArrayList<>();
+		List<NetworkInterface> list = new ArrayList<NetworkInterface>();
 		final String[] commonNames = {
 			"lo",
 			"eth",
