@@ -32,6 +32,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
@@ -52,7 +54,7 @@ public class TorrentFolderWatcher {
 
 	private volatile boolean running = false;
 
-	private final ArrayList to_delete = new ArrayList();
+	private final ArrayList<TOTorrent> to_delete = new ArrayList<TOTorrent>();
 
 	protected final AEMonitor this_mon = new AEMonitor("TorrentFolderWatcher");
 
@@ -194,6 +196,10 @@ public class TorrentFolderWatcher {
 
 	private void importAddedFiles() {
 
+		AzureusCore core = AzureusCoreFactory.getSingleton();
+		
+		org.gudy.azureus2.plugins.download.DownloadManager plugin_dm = core.getPluginManager().getDefaultPluginInterface().getDownloadManager();
+		
 		try {
 			this_mon.enter();
 
@@ -367,7 +373,25 @@ public class TorrentFolderWatcher {
 		
 								// we can't touch the torrent file as it is (probably) 
 								// being used for the download
+							}else if ( plugin_dm.lookupDownloadStub( torrent.getHash()) != null ){
+								
+								// archived download
+							
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(LOGID, file.getAbsolutePath()
+											+ " is an archived download"));
+								
+								if ( !save_torrents ){
+									
+									File imported = new File(folder, file.getName() + ".imported");
 		
+									TorrentUtils.move(file, imported);
+									
+								}else{
+									
+									to_delete.add(torrent);
+								}
+								
 							} else {
 								
 								final DownloadManagerInitialisationAdapter dmia = new DownloadManagerInitialisationAdapter() {
