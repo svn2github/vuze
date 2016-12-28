@@ -24,7 +24,6 @@ package com.aelitis.azureus.ui.swt.search;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -60,7 +59,6 @@ import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -844,6 +842,16 @@ SBC_SearchResultsView
 						new ColumnSearchResultSite(column);
 					}
 				});
+		
+		tableManager.registerColumn(
+			SBC_SearchResult.class, 
+			ColumnSearchSubResultHash.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSearchSubResultHash(column);
+					}
+				});
 	}
 	
 	public void
@@ -953,6 +961,7 @@ SBC_SearchResultsView
 				ColumnSearchSubResultRank.COLUMN_ID,
 				ColumnSearchSubResultCategory.COLUMN_ID,
 				ColumnSearchResultSite.COLUMN_ID,
+				ColumnSearchSubResultHash.COLUMN_ID,
 			});
 		
 		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultRank.COLUMN_ID);
@@ -1144,64 +1153,7 @@ SBC_SearchResultsView
 			return false;
 		}
 
-		if ( filter == null || filter.length() == 0 ){
-			
-			return( true );
-		}
-
-		try{
-			boolean	hash_filter = filter.startsWith( "t:" );
-			
-			if ( hash_filter ){
-				
-				filter = filter.substring( 2 );
-			}
-						
-			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
-			
-			boolean	match_result = true;
-			
-			if ( regex && s.startsWith( "!" )){
-				
-				s = s.substring(1);
-				
-				match_result = false;
-			}
-			
-			Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
-  
-			if ( hash_filter ){
-				
-				byte[] hash = ds.getHash();
-				
-				if ( hash == null ){
-					
-					return( false );
-				}
-				
-				String[] names = { ByteFormatter.encodeString( hash ), Base32.encode( hash )};
-				
-				for ( String name: names ){
-					
-					if ( pattern.matcher(name).find() == match_result ){
-						
-						return( true );
-					}
-				}
-				
-				return( false );
-				
-			}else{
-				
-				String name = ds.getName();
-
-				return( pattern.matcher(name).find() == match_result );
-			}
-			
-		}catch(Exception e ){
-			
-			return true;
-		}
+		return( SearchSubsUtils.filterCheck( ds, filter, regex ));
 	}
 	
 	public void filterSet(String filter) {

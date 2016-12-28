@@ -21,8 +21,6 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.util.*;
 import java.util.List;
-import java.util.regex.Pattern;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
@@ -55,15 +53,7 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultName;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultActions;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultAge;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultCategory;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultRank;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultRatings;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultSeedsPeers;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultSize;
-import com.aelitis.azureus.ui.swt.columns.searchsubs.ColumnSearchSubResultType;
+import com.aelitis.azureus.ui.swt.columns.searchsubs.*;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultNew;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
@@ -481,6 +471,16 @@ SBC_SubscriptionResultsView
 						new ColumnSearchSubResultCategory(column);
 					}
 				});
+		
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
+			ColumnSearchSubResultHash.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSearchSubResultHash(column);
+					}
+				});
 	}
 
 	public Object 
@@ -708,6 +708,7 @@ SBC_SubscriptionResultsView
 					ColumnSearchSubResultAge.COLUMN_ID,
 					ColumnSearchSubResultRank.COLUMN_ID,
 					ColumnSearchSubResultCategory.COLUMN_ID,
+					ColumnSearchSubResultHash.COLUMN_ID,
 				});
 		
 		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultAge.COLUMN_ID);
@@ -1019,64 +1020,7 @@ SBC_SubscriptionResultsView
 			return false;
 		}
 
-		if ( filter == null || filter.length() == 0 ){
-			
-			return( true );
-		}
-
-		try{
-			boolean	hash_filter = filter.startsWith( "t:" );
-			
-			if ( hash_filter ){
-				
-				filter = filter.substring( 2 );
-			}
-						
-			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
-			
-			boolean	match_result = true;
-			
-			if ( regex && s.startsWith( "!" )){
-				
-				s = s.substring(1);
-				
-				match_result = false;
-			}
-			
-			Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
-  
-			if ( hash_filter ){
-				
-				byte[] hash = ds.getHash();
-				
-				if ( hash == null ){
-					
-					return( false );
-				}
-				
-				String[] names = { ByteFormatter.encodeString( hash ), Base32.encode( hash )};
-				
-				for ( String name: names ){
-					
-					if ( pattern.matcher(name).find() == match_result ){
-						
-						return( true );
-					}
-				}
-				
-				return( false );
-				
-			}else{
-				
-				String name = ds.getName();
-
-				return( pattern.matcher(name).find() == match_result );
-			}
-			
-		}catch(Exception e ){
-			
-			return true;
-		}
+		return( SearchSubsUtils.filterCheck( ds, filter, regex ));
 	}
 	
 	public void filterSet(String filter) {

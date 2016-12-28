@@ -23,6 +23,7 @@
 package com.aelitis.azureus.ui.swt.utils;
 
 import java.lang.reflect.Field;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -31,6 +32,7 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -171,4 +173,69 @@ SearchSubsUtils
 		}
 	};
 	
+	public static boolean
+	filterCheck(
+		SearchSubsResultBase 	ds, 
+		String 					filter, 
+		boolean 				regex)
+	{
+		if ( filter == null || filter.length() == 0 ){
+			
+			return( true );
+		}
+
+		try{
+			boolean	hash_filter = filter.startsWith( "t:" );
+			
+			if ( hash_filter ){
+				
+				filter = filter.substring( 2 );
+			}
+						
+			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+			
+			boolean	match_result = true;
+			
+			if ( regex && s.startsWith( "!" )){
+				
+				s = s.substring(1);
+				
+				match_result = false;
+			}
+			
+			Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+  
+			if ( hash_filter ){
+				
+				byte[] hash = ds.getHash();
+				
+				if ( hash == null ){
+					
+					return( false );
+				}
+				
+				String[] names = { ByteFormatter.encodeString( hash ), Base32.encode( hash )};
+				
+				for ( String name: names ){
+					
+					if ( pattern.matcher(name).find() == match_result ){
+						
+						return( true );
+					}
+				}
+				
+				return( false );
+				
+			}else{
+				
+				String name = ds.getName();
+
+				return( pattern.matcher(name).find() == match_result );
+			}
+			
+		}catch(Exception e ){
+			
+			return true;
+		}
+	}
 }
