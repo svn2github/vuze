@@ -35,6 +35,9 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
+
+import com.aelitis.azureus.ui.swt.search.SBC_SearchResult;
 
 public class 
 SearchSubsUtils 
@@ -93,6 +96,60 @@ SearchSubsUtils
 		});
 		
 		return( true );
+	}
+	
+	public static void
+	addMenu(
+		final SearchSubsResultBase[]	results,
+		Menu							menu )
+	{		
+		boolean	has_hash = false;
+		
+		for ( SearchSubsResultBase result: results ){
+			
+			byte[] hash = result.getHash();
+			
+			if ( hash != null ){
+				
+				has_hash = true;
+				
+				break;
+			}
+		}
+		
+		MenuItem item = new MenuItem(menu, SWT.PUSH);
+		item.setText(MessageText.getString("MagnetPlugin.contextmenu.exporturi"));
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				
+				StringBuffer buffer = new StringBuffer(1024);
+				
+				for ( SearchSubsResultBase result: results ){
+					
+					byte[] hash = result.getHash();
+					
+					if ( hash != null ){
+						if ( buffer.length() > 0 ){
+							buffer.append( "\r\n" );
+						}
+						
+						String torrent_link = result.getTorrentLink();
+						
+						String str = UrlUtils.getMagnetURI( hash, result.getName(), null );
+						
+						if ( torrent_link != null ){
+							
+							str += "&fl=" + UrlUtils.encode( torrent_link );
+						}
+						
+						buffer.append( str );
+					}
+				}
+				ClipboardCopy.copyToClipBoard( buffer.toString());
+			};
+		});
+		
+		item.setEnabled( has_hash );
 	}
 	
 	private static void launchURL(String s) {

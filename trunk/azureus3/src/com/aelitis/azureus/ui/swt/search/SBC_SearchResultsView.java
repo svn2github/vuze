@@ -1095,6 +1095,8 @@ SBC_SearchResultsView
 					
 					item.setEnabled( results.length > 0 );
 					
+					SearchSubsUtils.addMenu( results, menu );
+					
 					new MenuItem(menu, SWT.SEPARATOR );
 					
 					if ( results.length == 1 ){

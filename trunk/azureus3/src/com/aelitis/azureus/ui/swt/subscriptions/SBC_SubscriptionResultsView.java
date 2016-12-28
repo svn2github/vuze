@@ -19,16 +19,13 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -37,7 +34,6 @@ import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -72,7 +68,6 @@ import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultNew;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.utils.SearchSubsResultBase;
 import com.aelitis.azureus.ui.swt.utils.SearchSubsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 
@@ -862,6 +857,8 @@ SBC_SubscriptionResultsView
 					});
 					
 					item.setEnabled( results.length > 0 );
+					
+					SearchSubsUtils.addMenu( results, menu );
 					
 					new MenuItem(menu, SWT.SEPARATOR );
 
