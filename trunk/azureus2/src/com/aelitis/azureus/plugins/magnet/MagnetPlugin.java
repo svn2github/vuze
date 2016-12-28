@@ -1046,7 +1046,7 @@ MagnetPlugin
 					
 					String	lhs = x[0].toLowerCase();
 					
-					if ( lhs.equals( "fl" )){
+					if ( lhs.equals( "fl" ) || lhs.equals( "xs" ) || lhs.equals( "as" )){
 						
 						try{
 							URL url = new URL( UrlUtils.decode( x[1] ));
