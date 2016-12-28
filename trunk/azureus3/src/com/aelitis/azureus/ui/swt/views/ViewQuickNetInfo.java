@@ -126,8 +126,17 @@ public class ViewQuickNetInfo
 		}
 		
 		InetAddress ip = NetworkAdmin.getSingleton().getDefaultPublicAddress();
+		
+		InetAddress ip_v6 = NetworkAdmin.getSingleton().getDefaultPublicAddressV6();
 
-		current_ip.setText(ip==null?"":ip.getHostAddress() );
+		String str = ip==null?"":ip.getHostAddress();
+		
+		if ( ip_v6 != null && !ip_v6.equals( ip )){
+			
+			str += (str.isEmpty()?"":", ") + ip_v6.getHostAddress();
+		}
+		
+		current_ip.setText( str );
 	}
 
 	public boolean eventOccurred(UISWTViewEvent event) {
