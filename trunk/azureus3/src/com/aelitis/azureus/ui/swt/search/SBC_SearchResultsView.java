@@ -60,6 +60,7 @@ import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -1134,9 +1135,9 @@ SBC_SearchResultsView
 	
 	public boolean 
 	filterCheck(
-		SBC_SearchResult ds, 
-		String filter, 
-		boolean regex)
+		SBC_SearchResult 	ds, 
+		String 				filter, 
+		boolean 			regex)
 	{	
 		if (!isOurContent(ds)){
 			
@@ -1149,8 +1150,13 @@ SBC_SearchResultsView
 		}
 
 		try{
-			String name = ds.getName();
+			boolean	hash_filter = filter.startsWith( "t:" );
 			
+			if ( hash_filter ){
+				
+				filter = filter.substring( 2 );
+			}
+						
 			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
 			
 			boolean	match_result = true;
@@ -1164,7 +1170,33 @@ SBC_SearchResultsView
 			
 			Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
   
-			return( pattern.matcher(name).find() == match_result );
+			if ( hash_filter ){
+				
+				byte[] hash = ds.getHash();
+				
+				if ( hash == null ){
+					
+					return( false );
+				}
+				
+				String[] names = { ByteFormatter.encodeString( hash ), Base32.encode( hash )};
+				
+				for ( String name: names ){
+					
+					if ( pattern.matcher(name).find() == match_result ){
+						
+						return( true );
+					}
+				}
+				
+				return( false );
+				
+			}else{
+				
+				String name = ds.getName();
+
+				return( pattern.matcher(name).find() == match_result );
+			}
 			
 		}catch(Exception e ){
 			
