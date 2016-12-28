@@ -366,6 +366,20 @@ public class ColumnSearchSubResultActions
 								}
 							}
 							
+							byte[] torrent_hash = entry.getHash();
+							
+							if ( torrent_hash != null ){
+								
+								if ( torrent_hash != null && !torrentUrl.toLowerCase().startsWith( "magnet" )){
+									
+									String title = entry.getName();
+									
+									String magnet = UrlUtils.getMagnetURI( torrent_hash, title, null );
+									
+									headers.put( "X-Alternative-URI-1", magnet );
+								}
+							}
+							
 							PluginInitializer.getDefaultInterface().getDownloadManager().addDownload(
 									new URL(torrentUrl), 
 									headers );

@@ -32,7 +32,6 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -328,12 +327,61 @@ UISWTInstanceImpl
 						
 						// programmatic request to add a torrent, make sure az is visible
 
-						if (auto_download) {
-							Shell shell = uiFunctions.getMainShell();
-							if (shell != null) {
-								new FileDownloadWindow(shell, target.toString(),
-										referrer == null ? null : referrer.toString(),
-										request_properties );
+						if ( auto_download ){
+							
+							final Shell shell = uiFunctions.getMainShell();
+							
+							if ( shell != null ){
+								
+								final List<String>	alt_uris = new ArrayList<String>();
+								
+								if ( request_properties != null ){
+									
+									request_properties = new HashMap(request_properties);
+								
+									for ( int i=1; i<16;i++){
+										
+										String key = "X-Alternative-URI-" + i;
+										
+										String uri = (String)request_properties.remove( key );
+										
+										if ( uri != null ){
+											
+											alt_uris.add( uri );
+											
+										}else{
+											
+											break;
+										}
+									}
+								}
+								
+								final Map<?, ?> f_request_properties = request_properties;
+								
+								new FileDownloadWindow(
+									shell, 
+									target.toString(),
+									referrer == null ? null : referrer.toString(),
+									request_properties,
+									new Runnable()
+									{
+										int alt_index = 0;
+										
+										public void run()
+										{
+											if ( alt_index < alt_uris.size()){
+												
+												String alt_target = alt_uris.get( alt_index++  );
+												
+												new FileDownloadWindow(
+														shell, 
+														alt_target,
+														null,
+														f_request_properties,
+														this );
+											}
+										}
+									});
 							}
 						} else {
 

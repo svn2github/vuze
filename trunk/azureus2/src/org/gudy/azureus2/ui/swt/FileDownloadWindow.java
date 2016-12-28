@@ -60,6 +60,8 @@ public class FileDownloadWindow
 	TorrentDownloaderCallBackInterface listener;
 	boolean	force_dialog;
 	
+	private final Runnable callOnError;
+	
 	IProgressReporter pReporter;
 
 	Shell parent;
@@ -90,8 +92,8 @@ public class FileDownloadWindow
 	 * @param referrer
 	 */
 	public FileDownloadWindow(Shell parent, final String url,
-			final String referrer, Map request_properties) {
-		this(parent, url, referrer, request_properties, null, null);
+			final String referrer, Map request_properties, Runnable runOnError ) {
+		this(parent, url, referrer, request_properties, null, null, runOnError );
 	}
 
 	/**
@@ -105,10 +107,19 @@ public class FileDownloadWindow
 	 * @param referrer
 	 * @param listener
 	 */
+	
 	public FileDownloadWindow(final Shell parent, final String url,
 			final String referrer, final Map request_properties,
 			TorrentOpenOptions torrentOptions,
 			final TorrentDownloaderCallBackInterface listener) {
+		
+		this( parent, url, referrer, request_properties, torrentOptions, listener, null );
+	}
+	
+	private FileDownloadWindow(final Shell parent, final String url,
+			final String referrer, final Map request_properties,
+			TorrentOpenOptions torrentOptions,
+			final TorrentDownloaderCallBackInterface listener, Runnable callOnError) {
 		
 		this.parent = parent;
 		this.original_url = url;
@@ -116,7 +127,8 @@ public class FileDownloadWindow
 		this.torrentOptions = torrentOptions;
 		this.listener = listener;
 		this.request_properties = request_properties;
-
+		this.callOnError = callOnError;
+		
 		decoded_url = UrlUtils.decodeIfNeeded( original_url );
 		
 		Utils.execSWTThread(new AERunnable() {
@@ -135,7 +147,8 @@ public class FileDownloadWindow
 		this.referrer = referrer;
 		this.force_dialog = force_dialog;
 		this.request_properties = request_properties;
-
+		this.callOnError = null;
+		
 		decoded_url = UrlUtils.decodeIfNeeded( original_url );
 		
 		Utils.execSWTThread(new AERunnable() {
@@ -295,6 +308,11 @@ public class FileDownloadWindow
 				}else{
 					pReporter.setErrorMessage(MessageText.getString("fileDownloadWindow.state_error")
 							+ downloader.getError());
+				}
+				
+				if ( callOnError != null ){
+					
+					callOnError.run();
 				}
 				return;
 			case TorrentDownloader.STATE_FINISHED:
