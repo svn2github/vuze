@@ -50,6 +50,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -107,6 +108,11 @@ public class PeersSuperView
   	System.arraycopy(items, 0, basicItems, 0, items.length);
   	basicItems[items.length] = new DownloadNameItem(TableManager.TABLE_ALL_PEERS);
 
+	TableColumnManager tcManager = TableColumnManager.getInstance();
+
+	tcManager.setDefaultColumnNames( TableManager.TABLE_ALL_PEERS, basicItems );
+
+	
   	tv = TableViewFactory.createTableViewSWT(Peer.class, TableManager.TABLE_ALL_PEERS,
 				getPropertiesPrefix(), basicItems, "connected_time", SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
