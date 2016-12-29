@@ -325,6 +325,12 @@ PeerForeignNetworkConnection
 			return( false );
 		}
 		  
+		public Message 
+		peekFirstMessage() 
+		{
+			return null;
+		}
+		
 		public void 
 		addMessage( 
 			Message message, 

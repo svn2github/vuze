@@ -182,6 +182,20 @@ OutgoingMessageQueueImpl
   public boolean hasUrgentMessage() {  return urgent_message == null ? false : true;  }
   
   
+  public Message 
+  peekFirstMessage() 
+  {
+	  try{
+	      queue_mon.enter();
+	      
+	      return( queue.peek());
+	      
+	  }finally{
+		  
+		  queue_mon.exit();
+	  }
+  }
+	
   /**
    * Add a message to the message queue.
    * NOTE: Allows for manual listener notification at some later time,
@@ -515,8 +529,9 @@ OutgoingMessageQueueImpl
 			  
 			  int buffer_count	= 0;
 			  
-			  int total_sofar_excluding_free = 0;
-
+			  int total_sofar_excluding_free 	= 0;
+			  int total_to_write				= 0;
+			  
 outer:
 			  for( Iterator<RawMessage> i = queue.iterator(); i.hasNext(); ){
 				  
@@ -534,21 +549,21 @@ outer:
 					  
 					  orig_positions[buffer_count] = buff.position();
 					  
+					  buffer_count++;
+
+					  int rem = buff.remaining();
+					  
+					  total_to_write += rem;
+					  
 					  if ( !msg_is_free ){
 						  
-						  total_sofar_excluding_free += buff.remaining();
+						  total_sofar_excluding_free += rem;
 						  
-					  }else{
-						  
-						  // System.out.println( "free: " + buff.remaining());
-					  }
-
-					  buffer_count++;
-					  
-					  if ( total_sofar_excluding_free >= max_bytes ){
+						  if ( total_sofar_excluding_free >= max_bytes ){
 							  
-						  break outer;
-					  }
+							  break outer;
+						  }
+					  }	
 					  
 					  if ( buffer_count == buffer_limit ) {
 							
@@ -574,9 +589,20 @@ outer:
 			  
 			  if ( total_sofar_excluding_free > max_bytes ){
 				  
-				  last_buff.limit( orig_last_limit - (total_sofar_excluding_free - max_bytes) );
+				  int reduce_by = total_sofar_excluding_free - max_bytes;
+				  
+				  last_buff.limit( orig_last_limit - reduce_by );
+				  
+				  total_to_write -= reduce_by;
 			  }
 
+			  if ( total_to_write <= 0 ){
+								  
+				  last_buff.limit( orig_last_limit );
+				  
+				  return( new int[2] );
+			  }
+			  
 			  transport.write( raw_buffers, 0, buffer_count );
 
 			  last_buff.limit( orig_last_limit );

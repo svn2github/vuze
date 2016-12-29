@@ -91,6 +91,9 @@ OutgoingMessageQueue
   public boolean hasUrgentMessage();
   
   
+  public Message
+  peekFirstMessage();
+  
   /**
    * Add a message to the message queue.
    * NOTE: Allows for manual listener notification at some later time,

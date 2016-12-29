@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
 import com.aelitis.azureus.core.networkmanager.RateHandler;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 
 /**
@@ -59,8 +60,26 @@ public class SinglePeerUploader implements RateControlledEntity {
     }
     int[] allowed = rate_handler.getCurrentNumBytesAllowed();
     
-    if( allowed[0] < 1 && allowed[1] == 0 ) {
-      return false;  //not allowed to send any bytes
+    if( allowed[0] < 1 ){
+    	
+    	boolean protocol_is_free = allowed[1] > 0;
+    	
+    	if ( protocol_is_free ){
+    		
+    		Message first = connection.getOutgoingMessageQueue().peekFirstMessage();
+    		
+    		if ( first != null && first.getType() == Message.TYPE_PROTOCOL_PAYLOAD ){
+    			
+    			return( true );
+    			
+    		}else{
+    			
+    			return( false );
+    		}
+    	}else{
+    		
+    		return( false );
+    	}
     }
     return true;
   }
