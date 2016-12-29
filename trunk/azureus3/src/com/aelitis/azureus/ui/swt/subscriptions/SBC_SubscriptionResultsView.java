@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.util.*;
 import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
@@ -481,6 +482,16 @@ SBC_SubscriptionResultsView
 						new ColumnSearchSubResultHash(column);
 					}
 				});
+		
+		tableManager.registerColumn(
+			SBC_SubscriptionResult.class, 
+			ColumnSearchSubResultExisting.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSearchSubResultExisting(column);
+					}
+				});	
 	}
 
 	public Object 
@@ -709,6 +720,7 @@ SBC_SubscriptionResultsView
 					ColumnSearchSubResultRank.COLUMN_ID,
 					ColumnSearchSubResultCategory.COLUMN_ID,
 					ColumnSearchSubResultHash.COLUMN_ID,
+					ColumnSearchSubResultExisting.COLUMN_ID,
 				});
 		
 		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultAge.COLUMN_ID);

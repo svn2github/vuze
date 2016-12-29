@@ -71,4 +71,13 @@ SearchSubsResultBase
 	public void
 	setRead(
 		boolean		read );
+	
+	public void
+	setUserData(
+		Object	key,
+		Object	data );
+	
+	public Object
+	getUserData(
+		Object	key );
 }

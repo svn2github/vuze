@@ -31,15 +31,22 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.history.DownloadHistoryManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.RandomUtils;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 
-import com.aelitis.azureus.ui.swt.search.SBC_SearchResult;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 public class 
 SearchSubsUtils 
@@ -237,5 +244,83 @@ SearchSubsUtils
 			
 			return true;
 		}
+	}
+	
+	private static final Object	HS_KEY = new Object();
+	
+	public static final int HS_NONE			= 0;
+	public static final int HS_LIBRARY		= 1;
+	public static final int HS_ARCHIVE		= 2;
+	public static final int HS_HISTORY		= 3;
+	public static final int HS_UNKNOWN		= 4;
+	
+	private static GlobalManager 			gm;
+	private static DownloadManager			dm;
+	private static DownloadHistoryManager	hm;
+	
+	public static int
+	getHashStatus(
+		SearchSubsResultBase	result )
+	{
+		if ( result == null ){
+			
+			return( HS_NONE );
+		}
+	
+		byte[] hash = result.getHash();
+		
+		if ( hash == null || hash.length != 20 ){
+			
+			return( HS_UNKNOWN );
+		}
+	
+		long	now = SystemTime.getMonotonousTime();
+		
+		Object[] entry = (Object[])result.getUserData( HS_KEY );
+		
+		if ( entry != null ){
+			
+			long time = (Long)entry[0];
+			
+			if ( now - time < 10*1000 ){
+				
+				return((Integer)entry[1] );
+			}
+		}
+				
+		synchronized( HS_KEY ){
+			
+			if ( gm == null ){
+		
+				AzureusCore core = AzureusCoreFactory.getSingleton();
+		
+				gm = core.getGlobalManager();
+				dm = core.getPluginManager().getDefaultPluginInterface().getDownloadManager();
+				hm = (DownloadHistoryManager)gm.getDownloadHistoryManager();
+			}
+		}
+				
+		int hs_result;
+		
+		if ( gm.getDownloadManager( new HashWrapper( hash )) != null ){
+			
+			hs_result = HS_LIBRARY;
+			
+		}else if (dm.lookupDownloadStub( hash ) != null ){
+			
+			hs_result = HS_ARCHIVE;
+			
+		}else if ( hm.getDates(hash) != null ){
+			
+			hs_result = HS_HISTORY;
+			
+		}else{
+			
+			hs_result = HS_NONE;
+		}
+		
+		result.setUserData( HS_KEY, new Object[]{ now + RandomUtils.nextInt( 2500 ), hs_result });
+		
+		return( hs_result );
 	}
 }

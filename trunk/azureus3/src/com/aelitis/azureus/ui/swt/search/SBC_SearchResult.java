@@ -27,6 +27,7 @@ import java.util.Date;
 
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.LightHashMap;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
@@ -46,6 +47,8 @@ SBC_SearchResult
 	private final long				seeds_peers_sort;
 	private final long				votes_comments_sort;
 	private final String			votes_comments;
+
+	private LightHashMap<Object,Object>	user_data;
 
 	public
 	SBC_SearchResult(
@@ -248,5 +251,30 @@ SBC_SearchResult
 		Image		image )
 	{
 		view.invalidate( this );
+	}
+	
+	public void
+	setUserData(
+		Object	key,
+		Object	data )
+	{
+		synchronized( this ){
+			if ( user_data == null ){
+				user_data = new LightHashMap<Object,Object>();
+			}
+			user_data.put( key, data );
+		}
+	}
+	
+	public Object
+	getUserData(
+		Object	key )
+	{
+		synchronized( this ){
+			if ( user_data == null ){
+				return( null );
+			}
+			return( user_data.get( key ));
+		}
 	}
 }

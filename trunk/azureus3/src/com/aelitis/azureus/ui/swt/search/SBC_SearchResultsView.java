@@ -852,6 +852,16 @@ SBC_SearchResultsView
 						new ColumnSearchSubResultHash(column);
 					}
 				});
+		
+		tableManager.registerColumn(
+			SBC_SearchResult.class, 
+			ColumnSearchSubResultExisting.COLUMN_ID,
+				new TableColumnCreationListener() {
+					
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnSearchSubResultExisting(column);
+					}
+				});	
 	}
 	
 	public void
@@ -962,6 +972,7 @@ SBC_SearchResultsView
 				ColumnSearchSubResultCategory.COLUMN_ID,
 				ColumnSearchResultSite.COLUMN_ID,
 				ColumnSearchSubResultHash.COLUMN_ID,
+				ColumnSearchSubResultExisting.COLUMN_ID,
 			});
 		
 		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultRank.COLUMN_ID);
