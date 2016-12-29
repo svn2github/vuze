@@ -971,8 +971,6 @@ SBC_SearchResultsView
 				ColumnSearchSubResultRank.COLUMN_ID,
 				ColumnSearchSubResultCategory.COLUMN_ID,
 				ColumnSearchResultSite.COLUMN_ID,
-				ColumnSearchSubResultHash.COLUMN_ID,
-				ColumnSearchSubResultExisting.COLUMN_ID,
 			});
 		
 		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultRank.COLUMN_ID);

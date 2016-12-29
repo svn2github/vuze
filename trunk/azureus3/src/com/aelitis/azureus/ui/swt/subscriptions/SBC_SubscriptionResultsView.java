@@ -719,8 +719,6 @@ SBC_SubscriptionResultsView
 					ColumnSearchSubResultAge.COLUMN_ID,
 					ColumnSearchSubResultRank.COLUMN_ID,
 					ColumnSearchSubResultCategory.COLUMN_ID,
-					ColumnSearchSubResultHash.COLUMN_ID,
-					ColumnSearchSubResultExisting.COLUMN_ID,
 				});
 		
 		tableManager.setDefaultSortColumnName(TABLE_SR, ColumnSearchSubResultAge.COLUMN_ID);
