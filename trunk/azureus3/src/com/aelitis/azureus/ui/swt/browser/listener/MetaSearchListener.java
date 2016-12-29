@@ -1162,6 +1162,19 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					}
 				}
 				
+				try{
+					String hash = (String)decodedMap.get( "hash" );
+					
+					if ( hash != null ){
+						
+						if ( !torrentUrl.toLowerCase( Locale.US ).startsWith( "magnet:" )){
+							
+							headers.put( "X-Alternative-URI-1", UrlUtils.getMagnetURI( Base32.decode( hash )));
+						}
+					}
+				}catch( Throwable e ){	
+				}
+				
 				Boolean	play_now = (Boolean)decodedMap.get( "play-now" );
 				
 				if ( play_now != null && play_now.booleanValue()){
