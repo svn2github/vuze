@@ -108,11 +108,15 @@ public class SearchResultsTabArea
 			
 			Utils.disposeComposite( control_area, false );
 			
-			control_area.setLayout( new GridLayout());
+			GridLayout layout = new GridLayout();
+			 
+			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+			
+			control_area.setLayout( layout );
 			
 			final Button button = new Button( control_area, SWT.TOGGLE );
 			
-			button.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ));
+			button.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, false ));
 			
 			button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
 			
