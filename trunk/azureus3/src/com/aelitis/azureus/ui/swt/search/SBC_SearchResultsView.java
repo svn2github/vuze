@@ -30,6 +30,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -541,6 +542,64 @@ SBC_SearchResultsView
 			ImageLabel indicator = new ImageLabel( engine_comp, vitality_images[0] );
 			
 			indicators.add( indicator );
+			
+			indicator.addMouseListener(
+				new MouseAdapter(){
+					
+					@Override
+					public void 
+					mouseDown(
+						MouseEvent e ) 
+					{
+						deselected_engines.clear();
+						
+						boolean	only_me_selected = button.getSelection();
+						
+						if ( only_me_selected ){
+							
+							for ( Button b: buttons ){
+								
+								if ( b != button ){
+									
+									if ( b.getSelection()){
+										
+										only_me_selected = false;
+									}
+								}
+							}
+						}
+						
+						if ( only_me_selected ){
+							
+							button.setSelection( false );
+							
+							deselected_engines.add( engine.getUID());
+							
+							for ( Button b: buttons ){
+								
+								if ( b != button ){
+									
+									b.setSelection( true );
+								}
+							}
+						}else{
+						
+							button.setSelection( true );
+							
+							for ( Button b: buttons ){
+								
+								if ( b != button ){
+									
+									b.setSelection( false );
+								
+									deselected_engines.add(((Engine)b.getData()).getUID());
+								}
+							}
+						}
+						
+						refilter();
+					}
+				});
 		}
 		
 		if ( engines.length > 0 ){
