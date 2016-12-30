@@ -312,10 +312,13 @@ SBC_SubscriptionResultsView
 	{
 		long	size = result.getSize();
 		
+		long kInB = DisplayFormatters.getKinB();
+		long mInB = kInB*kInB;
+
 		boolean size_ok = 
 			
-			(size==-1||(size >= 1024L*1024*minSize)) &&
-			(size==-1||(maxSize ==0 || size <= 1024L*1024*maxSize));
+			(size==-1||(size >= mInB*minSize)) &&
+			(size==-1||(maxSize ==0 || size <= mInB*maxSize));
 		
 		if ( !size_ok ){
 			

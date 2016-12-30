@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt.views.columnsetup;
 
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -39,12 +40,14 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BubbleTextBox;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
+import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -67,7 +70,7 @@ public class TableColumnSetupWindow
 
 	private Shell shell;
 
-	private TableViewSWT tvAvail;
+	private TableViewSWT<TableColumn> tvAvail;
 
 	private final String forTableID;
 
@@ -264,6 +267,77 @@ public class TableColumnSetupWindow
 		gridLayout.marginWidth = gridLayout.marginHeight = 0;
 		cTableAvail.setLayout(gridLayout);
 
+		BubbleTextBox bubbleTextBox = new BubbleTextBox(cTableAvail, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL | SWT.SINGLE);
+		bubbleTextBox.getTextWidget().setMessage(MessageText.getString("column.setup.search"));
+		GridData gd = new GridData(SWT.RIGHT,SWT.CENTER,true,false);
+		bubbleTextBox.getParent().setLayoutData( gd );
+		
+		tvAvail.enableFilterCheck(
+			bubbleTextBox.getTextWidget(),
+			new TableViewFilterCheck<TableColumn>()
+			{
+				@Override
+				public boolean 
+				filterCheck(
+					TableColumn 	ds, 
+					String 			filter,
+					boolean 		regex ) 
+				{
+					TableColumnCore core = (TableColumnCore)ds;
+					
+					String raw_key 		= core.getTitleLanguageKey( false );
+					String current_key 	= core.getTitleLanguageKey( true );
+
+					String name1 = MessageText.getString(raw_key, core.getName());
+					String name2 = null;
+							
+					if ( !raw_key.equals( current_key )){
+						String rename = MessageText.getString(current_key, "");
+						if ( rename.length() > 0 ){
+							name2 = rename;
+						}
+					}
+					String[] names = {
+						name1,
+						name2,
+						MessageText.getString( core.getTitleLanguageKey() + ".info" )
+					};
+					
+					for ( String name: names ){
+						
+						if ( name == null ){
+							
+							continue;
+						}
+						
+						String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+						
+						boolean	match_result = true;
+						
+						if ( regex && s.startsWith( "!" )){
+							
+							s = s.substring(1);
+							
+							match_result = false;
+						}
+						
+						Pattern pattern = RegExUtil.getCachedPattern( "tcs:search", s, Pattern.CASE_INSENSITIVE);
+			  
+						if ( pattern.matcher(name).find() == match_result ){
+			
+							return( true );
+						}
+
+					}
+					
+					return( false );
+				}
+				
+				@Override
+				public void filterSet(String filter) {
+				}
+			});
+		
 		tvAvail.initialize(cTableAvail);
 
 		TableColumnCore[] datasources = tcm.getAllTableColumnCoreAsArray(
@@ -837,7 +911,7 @@ public class TableColumnSetupWindow
 		tvChosen.removeDataSources(datasources);
 		tvChosen.processDataSourceQueue();
 		for (int i = 0; i < datasources.length; i++) {
-			TableRowSWT row = (TableRowSWT) tvAvail.getRow(datasources[i]);
+			TableRowSWT row = (TableRowSWT) tvAvail.getRow((TableColumn)datasources[i]);
 			if (row != null) {
 				row.redraw();
 			}
@@ -1078,7 +1152,7 @@ public class TableColumnSetupWindow
 	 *
 	 * @since 4.0.0.5
 	 */
-	private TableViewSWT<?> createTVAvail() {
+	private TableViewSWT<TableColumn> createTVAvail() {
 		final TableColumnManager tcm = TableColumnManager.getInstance();
 		Map<String, TableColumnCore> mapColumns = tcm.getTableColumnsAsMap(
 				TableColumn.class, TABLEID_AVAIL);
@@ -1104,7 +1178,7 @@ public class TableColumnSetupWindow
 			}
 		}
 
-		final TableViewSWT<?> tvAvail = TableViewFactory.createTableViewSWT(
+		final TableViewSWT<TableColumn> tvAvail = TableViewFactory.createTableViewSWT(
 				TableColumn.class, TABLEID_AVAIL, TABLEID_AVAIL, columns,
 				ColumnTC_NameInfo.COLUMN_ID, SWT.FULL_SELECTION | SWT.VIRTUAL
 						| SWT.SINGLE);

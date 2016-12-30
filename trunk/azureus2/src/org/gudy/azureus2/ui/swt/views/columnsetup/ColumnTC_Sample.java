@@ -99,6 +99,9 @@ public class ColumnTC_Sample
 
 		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
 		public void cellPaint(GC gc, TableCellSWT cell) {
+			
+			FakeTableCell sampleCell = this.sampleCell;
+			
 			if (sampleCell == null) {
 				return;
 			}
@@ -114,6 +117,9 @@ public class ColumnTC_Sample
 
 		// @see org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener#cellVisibilityChanged(org.gudy.azureus2.plugins.ui.tables.TableCell, int)
 		public void cellVisibilityChanged(TableCell cell, int visibility) {
+			
+			FakeTableCell sampleCell = this.sampleCell;
+
 			if (sampleCell == null) {
 				return;
 			}
@@ -126,6 +132,9 @@ public class ColumnTC_Sample
 
 		// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 		public void refresh(TableCell cell) {
+			
+			FakeTableCell sampleCell = this.sampleCell;
+
 			if (sampleCell == null) {
 				return;
 			}

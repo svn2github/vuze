@@ -61,6 +61,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -735,10 +736,13 @@ SBC_SearchResultsView
 	{
 		long	size = result.getSize();
 		
+		long kInB = DisplayFormatters.getKinB();
+		long mInB = kInB*kInB;
+		
 		boolean size_ok = 
 			
-			(size==-1||(size >= 1024L*1024*minSize)) &&
-			(size==-1||(maxSize ==0 || size <= 1024L*1024*maxSize));
+			(size==-1||(size >= mInB*minSize)) &&
+			(size==-1||(maxSize ==0 || size <= mInB*maxSize));
 		
 		if ( !size_ok ){
 			
