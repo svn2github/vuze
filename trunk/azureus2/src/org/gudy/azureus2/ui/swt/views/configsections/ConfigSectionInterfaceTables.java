@@ -457,6 +457,17 @@ public class ConfigSectionInterfaceTables
 			layout.numColumns = 2;
 			cSeachSubs.setLayout(layout);
 			Utils.setLayoutData(cSeachSubs, new GridData( GridData.FILL_HORIZONTAL ));
+			
+			
+			new BooleanParameter(
+				cSeachSubs, 
+				"Search View Is Web View", 
+				MSG_PREFIX + "search.is.web.view").setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false, 2, 1));
+
+			new BooleanParameter(
+					cSeachSubs, 
+					"Search View Switch Hidden", 
+					MSG_PREFIX + "search.hide.view.switch").setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false, 2, 1));
 
 			label = new Label(cSeachSubs, SWT.NULL);
 			Messages.setLanguageText(label, MSG_PREFIX + "searchsubs.row.height");

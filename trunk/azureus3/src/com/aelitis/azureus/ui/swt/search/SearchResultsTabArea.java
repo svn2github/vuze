@@ -56,7 +56,8 @@ public class SearchResultsTabArea
 	extends SkinView
 	implements ViewTitleInfo
 {	
-	private boolean					isBrowserView	= COConfigurationManager.getBooleanParameter( "Search View Is Web View", true );
+	private boolean					isBrowserView		= COConfigurationManager.getBooleanParameter( "Search View Is Web View", true );
+	private boolean					isViewSwitchHidden	= COConfigurationManager.getBooleanParameter( "Search View Switch Hidden", false );
 
 	
 	private SWTSkinObjectBrowser 	browserSkinObject;
@@ -104,39 +105,45 @@ public class SearchResultsTabArea
 
 		if ( controlArea != null ){
 			
-			Composite control_area = controlArea.getComposite();
-			
-			Utils.disposeComposite( control_area, false );
-			
-			GridLayout layout = new GridLayout();
-			 
-			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
-			
-			control_area.setLayout( layout );
-			
-			final Button button = new Button( control_area, SWT.TOGGLE );
-			
-			button.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, false ));
-			
-			button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
-			
-			button.setSelection( !isBrowserView );
-			
-			button.addSelectionListener(
-				new SelectionAdapter(){
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						isBrowserView = !button.getSelection();
-						
-						button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
-
-						button.getParent().layout();
-						
-						COConfigurationManager.setParameter( "Search View Is Web View", isBrowserView );
-						
-						selectView( skinObject );
-					}
-				});
+			if ( isViewSwitchHidden ){
+				
+				controlArea.setVisible( false );
+				
+			}else{
+				Composite control_area = controlArea.getComposite();
+				
+				Utils.disposeComposite( control_area, false );
+				
+				GridLayout layout = new GridLayout();
+				 
+				layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+				
+				control_area.setLayout( layout );
+				
+				final Button button = new Button( control_area, SWT.TOGGLE );
+				
+				button.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, false ));
+				
+				button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
+				
+				button.setSelection( !isBrowserView );
+				
+				button.addSelectionListener(
+					new SelectionAdapter(){
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							isBrowserView = !button.getSelection();
+							
+							button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
+	
+							button.getParent().layout();
+							
+							COConfigurationManager.setParameter( "Search View Is Web View", isBrowserView );
+							
+							selectView( skinObject );
+						}
+					});
+			}
 		}
 		
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();

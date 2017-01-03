@@ -173,5 +173,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter( "ui.scaled.graphics.binary.based", false );
 		
 		def.addParameter( "Search Subs Row Height", 20 );
+		def.addParameter( "Search View Is Web View", true );
+		def.addParameter( "Search View Switch Hidden", false );
 	}
 }

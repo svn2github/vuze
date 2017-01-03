@@ -40,8 +40,6 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
-import com.aelitis.azureus.core.subs.SubscriptionManager;
-import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 
 public class 
 SearchUI 
