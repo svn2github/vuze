@@ -32,14 +32,14 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.PopupShell;
-
 import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareManagerListener;
@@ -49,6 +49,20 @@ public class
 ProgressWindow
 	implements ShareManagerListener
 {
+	private static boolean window_disabled;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Suppress Sharing Dialog",
+			new ParameterListener() {
+				
+				@Override
+				public void parameterChanged(String parameterName) {
+					window_disabled = COConfigurationManager.getBooleanParameter( "Suppress Sharing Dialog" );
+				}
+			});
+	}
+	
 	private ShareManager	share_manager;
 	private progressDialog	dialog = null;
 	
@@ -256,6 +270,11 @@ ProgressWindow
 	reportProgress(
 		final int		percent_complete )
 	{
+		if ( window_disabled ){
+			
+			return;
+		}
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (progress != null && !progress.isDisposed()) {
@@ -288,6 +307,11 @@ ProgressWindow
 	reportCurrentTask(
 		final String	task_description )
 	{
+		if ( window_disabled ){
+			
+			return;
+		}
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 

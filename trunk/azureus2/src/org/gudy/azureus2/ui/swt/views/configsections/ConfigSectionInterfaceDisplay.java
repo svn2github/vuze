@@ -108,6 +108,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		new BooleanParameter(gVarious, "suppress_file_download_dialog", "ConfigView.section.interface.display.suppress.file.download.dialog");
 
+		new BooleanParameter(gVarious, "Suppress Sharing Dialog", "ConfigView.section.interface.display.suppress.sharing.dialog");
+
 		new BooleanParameter(gVarious, "show_torrents_menu", "Menu.show.torrent.menu");
 
 		if ( !Constants.isLinux ){
