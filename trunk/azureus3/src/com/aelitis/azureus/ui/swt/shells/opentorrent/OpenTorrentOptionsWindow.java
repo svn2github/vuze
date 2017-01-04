@@ -4272,7 +4272,7 @@ public class OpenTorrentOptionsWindow
 				tagLeft.setLayout(layout);
 				
 				layout = new GridLayout();
-				layout.numColumns = 2;
+				layout.numColumns = 1;
 				layout.marginWidth  = 0;
 				layout.marginHeight = 0;
 				tagRight.setLayout(layout);
@@ -4293,9 +4293,9 @@ public class OpenTorrentOptionsWindow
 				
 				buildTagButtonPanel( tagButtonsArea );
 				
-				Button addTag = new Button( tagRight, SWT.NULL );
+				Button addTag = new Button( tagLeft, SWT.NULL );
 				Utils.setLayoutData(addTag,  new GridData(GridData.VERTICAL_ALIGN_CENTER ));
-				Messages.setLanguageText( addTag, "label.add.tag" );
+				addTag.setText("+");
 				
 				addTag.addSelectionListener(
 					new SelectionAdapter() {
