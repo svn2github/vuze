@@ -3240,6 +3240,118 @@ RelatedContentManager
 		
 	public SearchInstance
 	searchRCM(
+		final Map<String,Object>		search_parameters,
+		final SearchObserver			observer )
+	
+		throws SearchException
+	{
+		if ( !initialisation_complete_sem.isReleasedForever()){
+		
+			AsyncDispatcher dispatcher = new AsyncDispatcher();
+			
+			final boolean[] 		cancelled 	= { false };
+			final boolean[] 		went_async 	= { false };
+			final SearchInstance[]	si 			= { null };
+			final SearchException[]	error 		= { null };
+						
+			final AESemaphore temp_sem = new AESemaphore( "" );
+			
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{				
+							si[0] = searchRCMSupport( search_parameters, observer );
+			
+							synchronized( cancelled ){
+								
+								if ( cancelled[0] ){
+									
+									si[0].cancel();
+								}
+							}
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+							
+							SearchException se;
+							
+							if ( e instanceof SearchException ){
+								
+								se = (SearchException)e;
+								
+							}else{
+								
+								se = new SearchException( "Search failed", e );
+							}
+							
+							synchronized( cancelled ){
+								
+								error[0] = se;
+								
+								if ( went_async[0] ){
+									
+										// error won't be returned to caller, signify that things
+										// ain't going anywhere
+									
+									observer.complete();
+								}
+							}
+						}finally{
+							
+							temp_sem.release();
+						}
+					}
+				});
+			
+			temp_sem.reserve( 500 );
+				
+			synchronized( cancelled ){
+					
+				if ( si[0] != null ){
+					
+					return( si[0] );
+				}
+				
+				if ( error[0] != null ){
+					
+					throw( error[0] );
+				}
+				
+				went_async[0] = true;
+			}
+			
+			SearchInstance	result = 
+				new SearchInstance()
+				{
+					@Override
+					public void 
+					cancel() 
+					{
+						synchronized( cancelled ){
+							
+							if ( si[0] != null ){
+								
+								si[0].cancel();
+							}
+							
+							cancelled[0] = true;
+						}
+					}
+				};
+
+			return( result );
+			
+		}else{
+			
+			return( searchRCMSupport( search_parameters, observer ));
+		}
+	}
+	
+	private SearchInstance
+	searchRCMSupport(
 		Map<String,Object>		search_parameters,
 		SearchObserver			observer )
 	
