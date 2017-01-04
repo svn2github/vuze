@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
@@ -360,7 +361,8 @@ public abstract class ColumnDateSizer
 			if ( timestamp > 0 ){
 				long eta = (SystemTime.getCurrentTime() - timestamp) / 1000;
 				if (eta > 0) {
-					cell.setToolTip(DisplayFormatters.formatETA(eta, false));
+					cell.setToolTip(DisplayFormatters.formatETA(eta, false) + " "
+							+ MessageText.getString("label.ago"));
 				}
 			}
 		}
