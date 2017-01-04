@@ -19,6 +19,7 @@
 
 package com.aelitis.azureus.core.metasearch.impl.web;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.StringTokenizer;
@@ -232,7 +233,7 @@ public class WebResult extends Result {
 	}
 	
 	public void setPublishedDateFromHTML(String publishedDate) {
-		if(publishedDate != null) {
+		if(publishedDate != null && publishedDate.length() > 0) {
 			publishedDate = removeHTMLTags(publishedDate);
 			String publishedDateS = Entities.HTML40.unescape(publishedDate).replace((char)160,(char)32);
 			this.publishedDate = dateParser.parseDate(publishedDateS);
