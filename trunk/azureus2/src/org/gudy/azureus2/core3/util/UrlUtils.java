@@ -419,7 +419,7 @@ public class UrlUtils
 		return( null );
 	}
 	
-	public byte[] getHashFromMagnetURI(String magnetURI) {
+	public static byte[] getHashFromMagnetURI(String magnetURI) {
 		Matcher matcher = patMagnetHashFinder.matcher(magnetURI);
 		if (matcher.find()) {
 			return UrlUtils.decodeSHA1Hash(matcher.group(1));
