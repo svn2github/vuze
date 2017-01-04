@@ -94,6 +94,7 @@ WebEngine
 	private String iconUrl;
 	private String[] requiredCookies;
 	
+	private String fullCookies;
 	private String local_cookies;
 	
 
@@ -152,6 +153,7 @@ WebEngine
 		authMethod			= ImportExportUtils.importString( map, "web.auth_method", WebEngine.AM_TRANSPARENT );
 		loginPageUrl 		= ImportExportUtils.importString( map, "web.login_page" );
 		requiredCookies 	= ImportExportUtils.importStringArray( map, "web.required_cookies" );
+		fullCookies 	= ImportExportUtils.importString( map, "web.full_cookies" );
 
 		automaticDateParser	= ImportExportUtils.importBoolean( map, "web.auto_date", AUTOMATIC_DATE_PARSER_DEFAULT );
 		iconUrl 		= ImportExportUtils.importString( map, "web.icon_url" );
@@ -227,6 +229,7 @@ WebEngine
 			ImportExportUtils.exportString( map, "web.login_page",				loginPageUrl );
 			ImportExportUtils.exportString( map, "web.icon_url", iconUrl);
 			ImportExportUtils.exportStringArray( map, "web.required_cookies",	requiredCookies );
+			ImportExportUtils.exportJSONString( map, "web.full_cookies",				fullCookies );
 	
 			ImportExportUtils.exportBoolean( map, "web.auto_date", automaticDateParser );
 		}
@@ -276,7 +279,9 @@ WebEngine
 		iconUrl 		= ImportExportUtils.importURL( map, "icon_url" );
 		
 		requiredCookies 	= ImportExportUtils.importStringArray( map, "required_cookies" );
-		
+
+		fullCookies 	= ImportExportUtils.importString( map, "full_cookies" );
+
 		automaticDateParser	= userDateFormat == null || userDateFormat.trim().length() == 0;
 
 		List	maps = (List)map.get( "column_map" );
@@ -357,6 +362,7 @@ WebEngine
 		ImportExportUtils.exportJSONURL( res, "login_page",					loginPageUrl );
 		ImportExportUtils.exportJSONURL( res, "icon_url",					iconUrl );
 		ImportExportUtils.exportJSONStringArray( res, "required_cookies",	requiredCookies );
+		ImportExportUtils.exportJSONString( res, "full_cookies",				fullCookies );
  
 		if ( !automaticDateParser ){
 			
@@ -858,7 +864,10 @@ WebEngine
 			if ( needsAuth && local_cookies != null ){
 				
 				initial_url_rd.setProperty( "URL_Cookie", local_cookies );				
+			} else if (fullCookies != null && fullCookies.length() > 0) {
+				initial_url_rd.setProperty( "URL_Cookie", fullCookies );				
 			}
+			
 				
 			if ( only_if_modified ){
 				
