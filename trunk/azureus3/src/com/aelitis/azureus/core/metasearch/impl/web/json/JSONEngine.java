@@ -20,26 +20,18 @@
 package com.aelitis.azureus.core.metasearch.impl.web.json;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.Result;
-import com.aelitis.azureus.core.metasearch.ResultListener;
-import com.aelitis.azureus.core.metasearch.SearchException;
-import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.metasearch.impl.EngineImpl;
 import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
@@ -53,6 +45,7 @@ JSONEngine
 {
 	private final static String variablePattern = "\\$\\{[^}]+\\}";
 	private final static Pattern patternVariable = Pattern.compile(variablePattern);
+	private static final boolean DEBUG_MAPPINGS = false;
 
 	public static EngineImpl
 	importFromBEncodedMap(
@@ -374,92 +367,152 @@ JSONEngine
 						try{
 							for(int j = 0 ; j < mappings.length ; j++) {
 								String fieldFrom = mappings[j].getName();
-								if(fieldFrom != null) {
-									int fieldTo = mappings[j].getField();
-									
-									String fieldContent = null;
-									Matcher matcher = patternVariable.matcher(fieldFrom);
-									if (matcher.find()) {
-										fieldContent = fieldFrom;
-										do {
-											String key = matcher.group();
-											key = key.substring(2, key.length() - 1);
-											Object replaceValObject = jsonEntry.get(key);
-											String replaceVal = replaceValObject == null ? ""
-													: replaceValObject.toString();
+								if(fieldFrom == null) {
+									continue;
+								}
+
+								int fieldTo = mappings[j].getField();
+								
+								String fieldContent = null;
+								Matcher matcher = patternVariable.matcher(fieldFrom);
+								if (matcher.find()) {
+									fieldContent = fieldFrom;
+									do {
+										String key = matcher.group();
+										key = key.substring(2, key.length() - 1);
+
+										String[] keys = key.split(",", -1);
+										try {
+											Object replaceWithObject = jsonEntry.get(keys[0]);
+											String replaceWith = replaceWithObject == null ? ""
+													: replaceWithObject.toString();
+											
+											if (keys.length > 1) {
+												String[] commands = keys[1].split("\\+");
+												int keyPos = 2;
+												for (String command : commands) {
+													try {
+														if (DEBUG_MAPPINGS) {
+															System.out.println("command " + command);
+														}
+														if (command.equals("replace")) {
+															if (keyPos + 2 > keys.length) {
+	  														if (DEBUG_MAPPINGS) {
+	  															System.out.println("not enough keys. have " + keys.length + "; need " + (keyPos + 3));
+	  														}
+																break;
+															}
+															String simpleReplace = keys[keyPos];
+															keyPos++;
+															String simpleReplacement = keys[keyPos];
+															keyPos++;
+															
+															replaceWith = replaceWith.replaceAll(simpleReplace, simpleReplacement); 
+														} else if (command.equals("ucase")) {
+															replaceWith = replaceWith.toUpperCase();
+														} else if (command.equals("lcase")) {
+															replaceWith = replaceWith.toLowerCase();
+														} else if (command.equals("urldecode")) {
+															replaceWith = UrlUtils.decode(replaceWith);
+														}
+														if (DEBUG_MAPPINGS) {
+															System.out.println("replaceWith now " + replaceWith);
+														}
+													} catch (Exception e) {
+														if (DEBUG_MAPPINGS) {
+															System.out.println(e.toString());
+														}
+													}
+												}
+											}
+											
 											fieldContent = fieldContent.replaceFirst(variablePattern,
-													replaceVal);
-										} while (matcher.find());
-									} else {
-										Object fieldContentObj = jsonEntry.get(fieldFrom);
-										fieldContent = fieldContentObj == null ? ""
-												: fieldContentObj.toString();
-									}
-									if(fieldContent != null) {
-										
-										switch(fieldTo) {
-										case FIELD_NAME :
-											result.setNameFromHTML(fieldContent);
-											break;
-										case FIELD_SIZE :
-											result.setSizeFromHTML(fieldContent);
-											break;
-										case FIELD_PEERS :
-											result.setNbPeersFromHTML(fieldContent);
-											break;
-										case FIELD_SEEDS :
-											result.setNbSeedsFromHTML(fieldContent);
-											break;
-										case FIELD_CATEGORY :
-											result.setCategoryFromHTML(fieldContent);
-											break;
-										case FIELD_DATE :
-											result.setPublishedDateFromHTML(fieldContent);
-											break;
-										case FIELD_COMMENTS :
-											result.setCommentsFromHTML(fieldContent);
-											break;
-										case FIELD_CDPLINK :
-											result.setCDPLink(fieldContent);
-											break;
-										case FIELD_TORRENTLINK :
-											result.setTorrentLink(fieldContent);
-											break;
-										case FIELD_PLAYLINK :
-											result.setPlayLink(fieldContent);
-											break;
-										case FIELD_DOWNLOADBTNLINK :
-											result.setDownloadButtonLink(fieldContent);
-											break;
-										case FIELD_VOTES :
-											result.setVotesFromHTML(fieldContent);
-											break;
-										case FIELD_SUPERSEEDS :
-											result.setNbSuperSeedsFromHTML(fieldContent);
-											break;
-										case FIELD_PRIVATE :
-											result.setPrivateFromHTML(fieldContent);
-											break;
-										case FIELD_DRMKEY :
-											result.setDrmKey(fieldContent);
-											break;
-										case FIELD_VOTES_DOWN :
-											result.setVotesDownFromHTML(fieldContent);
-											break;
-										case FIELD_HASH :
-											result.setHash(fieldContent);
-											break;
-										case FIELD_RANK : {
-											result.setRankFromHTML(fieldContent, rankDivisor);
-											break;
+													replaceWith);
+											
+										} catch (Exception e) {
+											
 										}
-										default:
-											break;
-										}
+									} while (matcher.find());
+								} else {
+									Object fieldContentObj = jsonEntry.get(fieldFrom);
+									fieldContent = fieldContentObj == null ? ""
+											: fieldContentObj.toString();
+								}
+
+								if(fieldContent == null) {
+									continue;
+								}
+									
+								switch(fieldTo) {
+									case FIELD_NAME :
+										result.setNameFromHTML(fieldContent);
+										break;
+									case FIELD_SIZE :
+										result.setSizeFromHTML(fieldContent);
+										break;
+									case FIELD_PEERS :
+										result.setNbPeersFromHTML(fieldContent);
+										break;
+									case FIELD_SEEDS :
+										result.setNbSeedsFromHTML(fieldContent);
+										break;
+									case FIELD_CATEGORY :
+										result.setCategoryFromHTML(fieldContent);
+										break;
+									case FIELD_DATE :
+										result.setPublishedDateFromHTML(fieldContent);
+										break;
+									case FIELD_COMMENTS :
+										result.setCommentsFromHTML(fieldContent);
+										break;
+									case FIELD_CDPLINK :
+										result.setCDPLink(fieldContent);
+										break;
+									case FIELD_TORRENTLINK :
+										result.setTorrentLink(fieldContent);
+										break;
+									case FIELD_PLAYLINK :
+										result.setPlayLink(fieldContent);
+										break;
+									case FIELD_DOWNLOADBTNLINK :
+										result.setDownloadButtonLink(fieldContent);
+										break;
+									case FIELD_VOTES :
+										result.setVotesFromHTML(fieldContent);
+										break;
+									case FIELD_SUPERSEEDS :
+										result.setNbSuperSeedsFromHTML(fieldContent);
+										break;
+									case FIELD_PRIVATE :
+										result.setPrivateFromHTML(fieldContent);
+										break;
+									case FIELD_DRMKEY :
+										result.setDrmKey(fieldContent);
+										break;
+									case FIELD_VOTES_DOWN :
+										result.setVotesDownFromHTML(fieldContent);
+										break;
+									case FIELD_HASH :
+										result.setHash(fieldContent);
+										break;
+									case FIELD_RANK : {
+										result.setRankFromHTML(fieldContent, rankDivisor);
+										break;
 									}
+									default:
+										break;
 								}
 							}
-														
+
+							if (result.getHash() == null) {
+								String downloadLink = result.getDownloadLink();
+								String possibleMagnet = UrlUtils.parseTextForMagnets(downloadLink);
+								byte[] hash = UrlUtils.getHashFromMagnetURI(possibleMagnet);
+								if (hash != null) {
+									result.setHash(ByteFormatter.nicePrint(hash, true));
+								}
+							}
+
 							results.add(result);
 							
 						}catch( Throwable e ){
