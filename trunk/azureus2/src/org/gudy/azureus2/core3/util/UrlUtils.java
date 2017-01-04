@@ -1857,7 +1857,6 @@ public class UrlUtils
 					
 					if ( unconnected_socket_hack ){
 					
-	    			System.out.println("bind " + bindIP + " in factory.createSocket");
 						if ( bindIP == null ){
 							
 							target = factory.createSocket(targetSockAddress.getAddress(), targetSockAddress.getPort());
@@ -1874,7 +1873,6 @@ public class UrlUtils
 					
 					if ( unconnected_socket_hack ){
 						
-	    			System.out.println("bind " + bindIP + " in UrlUtils, new Socket");
 						if ( bindIP == null ){
 							
 							target = new Socket(targetSockAddress.getAddress(), targetSockAddress.getPort());
@@ -1902,9 +1900,6 @@ public class UrlUtils
 			        	
 			        	target.bind( new InetSocketAddress( bindIP, 0 ) );
 			        }
-						  if (!bindIP.getHostAddress().startsWith("10.")) {
-						  	System.err.println("bind " + bindIP + " in UrlUtils " + Debug.getCompressedStackTrace());
-						  }
 					        
 			        target.connect( targetSockAddress, connect_timeout );
 				}
