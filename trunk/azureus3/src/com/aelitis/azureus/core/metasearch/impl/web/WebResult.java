@@ -19,9 +19,7 @@
 
 package com.aelitis.azureus.core.metasearch.impl.web;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.StringTokenizer;
 
 import org.apache.commons.lang.*;
