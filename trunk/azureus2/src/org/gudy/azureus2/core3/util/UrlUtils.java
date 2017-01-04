@@ -420,6 +420,9 @@ public class UrlUtils
 	}
 	
 	public static byte[] getHashFromMagnetURI(String magnetURI) {
+		if (magnetURI == null) {
+			return null;
+		}
 		Matcher matcher = patMagnetHashFinder.matcher(magnetURI);
 		if (matcher.find()) {
 			return UrlUtils.decodeSHA1Hash(matcher.group(1));
