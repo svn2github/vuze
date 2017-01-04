@@ -65,7 +65,9 @@ public class UrlUtils
 	static{
 		connect_pool.setWarnWhenFull();
 	}
-	
+
+	private static Pattern patMagnetHashFinder = Pattern.compile("xt=urn:(?:btih|sha1):([^&]+)");
+
 	private static final String[] prefixes = new String[] {
 			"http://",
 			"https://",
@@ -416,6 +418,15 @@ public class UrlUtils
 		
 		return( null );
 	}
+	
+	public byte[] getHashFromMagnetURI(String magnetURI) {
+		Matcher matcher = patMagnetHashFinder.matcher(magnetURI);
+		if (matcher.find()) {
+			return UrlUtils.decodeSHA1Hash(matcher.group(1));
+		}
+		return null;
+	}
+
 	
 	public static byte[]
 	decodeSHA1Hash(
@@ -1843,6 +1854,7 @@ public class UrlUtils
 					
 					if ( unconnected_socket_hack ){
 					
+	    			System.out.println("bind " + bindIP + " in factory.createSocket");
 						if ( bindIP == null ){
 							
 							target = factory.createSocket(targetSockAddress.getAddress(), targetSockAddress.getPort());
@@ -1859,6 +1871,7 @@ public class UrlUtils
 					
 					if ( unconnected_socket_hack ){
 						
+	    			System.out.println("bind " + bindIP + " in UrlUtils, new Socket");
 						if ( bindIP == null ){
 							
 							target = new Socket(targetSockAddress.getAddress(), targetSockAddress.getPort());
@@ -1886,6 +1899,9 @@ public class UrlUtils
 			        	
 			        	target.bind( new InetSocketAddress( bindIP, 0 ) );
 			        }
+						  if (!bindIP.getHostAddress().startsWith("10.")) {
+						  	System.err.println("bind " + bindIP + " in UrlUtils " + Debug.getCompressedStackTrace());
+						  }
 					        
 			        target.connect( targetSockAddress, connect_timeout );
 				}
