@@ -342,7 +342,7 @@ public class TaggingView
 					}
 					g.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 					RowLayout rowLayout = new RowLayout();
-					rowLayout.pack = false;
+					rowLayout.pack = true;
 					rowLayout.spacing = 5;
 					Utils.setLayout(g, rowLayout);
 				}
