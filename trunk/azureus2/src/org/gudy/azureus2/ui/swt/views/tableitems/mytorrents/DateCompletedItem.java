@@ -22,14 +22,14 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
-import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
-
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
 public class DateCompletedItem
 	extends ColumnDateSizer
@@ -109,5 +109,26 @@ public class DateCompletedItem
 		}
 
 		super.refresh(cell, value);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	 */
+	@Override
+	public void cellHover(TableCell cell) {
+		super.cellHover(cell);
+		Object oTooltip = cell.getToolTip();
+		String s = (oTooltip instanceof String) ? (String) oTooltip + "\n" : "";
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		long dateAdded = (dm == null) ? 0 : dm.getDownloadState().getLongParameter(
+				DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+		if (dateAdded != 0) {
+			s += MessageText.getString("TableColumn.header.date_added") + ": "
+					+ DisplayFormatters.formatDate(dateAdded) + " ("
+					+ DisplayFormatters.formatETA((SystemTime.getCurrentTime() - dateAdded) / 1000,
+							false)
+					+ ")";
+			cell.setToolTip(s);
+		}
 	}
 }
