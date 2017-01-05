@@ -5726,17 +5726,21 @@ public class OpenTorrentOptionsWindow
 			parent.setBackgroundMode( SWT.INHERIT_FORCE );	// win 7 classic theme shows grey background without this
 
 		
-			Group peer_sources_group = new Group(parent, SWT.NULL);
+			Composite peer_sources_composite = new Composite(parent, SWT.NULL);
 			
 			{
+				peer_sources_composite.setLayout(new RowLayout(SWT.HORIZONTAL));
+				Group peer_sources_group = new Group(peer_sources_composite, SWT.NULL);
 				Messages.setLanguageText(peer_sources_group,
 						"ConfigView.section.connection.group.peersources");
-				GridLayout peer_sources_layout = new GridLayout(3, true);
+				RowLayout peer_sources_layout = new RowLayout();
+				peer_sources_layout.pack = true;
+				peer_sources_layout.spacing = 10;
 				peer_sources_group.setLayout(peer_sources_layout);
 				
 				FormData form_data = Utils.getFilledFormData();
 				form_data.bottom = null;
-				Utils.setLayoutData(peer_sources_group, form_data);
+				Utils.setLayoutData(peer_sources_composite, form_data);
 		
 				//		Label label = new Label(peer_sources_group, SWT.WRAP);
 				//		Messages.setLanguageText(label,
@@ -5761,24 +5765,26 @@ public class OpenTorrentOptionsWindow
 							torrentOptions.peerSource.put(p, ((Button)e.widget).getSelection());
 						}
 					});
-		
-					GridData gridData = new GridData();
-					Utils.setLayoutData(button, gridData);
 				}
 			}
 	
 				// networks
 			
 			{				
-				Group network_group = new Group(parent, SWT.NULL);
+				Composite network_group_parent = new Composite(parent, SWT.NULL);
+				network_group_parent.setLayout(new RowLayout(SWT.HORIZONTAL));
+
+				Group network_group = new Group(network_group_parent, SWT.NULL);
 				Messages.setLanguageText(network_group,
 						"ConfigView.section.connection.group.networks");
-				GridLayout network_layout = new GridLayout(3, true);
+				RowLayout network_layout = new RowLayout();
+				network_layout.pack = true;
+				network_layout.spacing = 10;
 				network_group.setLayout(network_layout);
-		
+
 				FormData form_data = Utils.getFilledFormData();
-				form_data.top = new FormAttachment( peer_sources_group );
-				Utils.setLayoutData(network_group, form_data);
+				form_data.top = new FormAttachment( peer_sources_composite );
+				Utils.setLayoutData(network_group_parent, form_data);
 		
 				for (int i = 0; i < AENetworkClassifier.AT_NETWORKS.length; i++) {
 		
@@ -5800,9 +5806,6 @@ public class OpenTorrentOptionsWindow
 							torrentOptions.setNetworkEnabled(nn, ((Button)e.widget).getSelection());
 						}
 					});
-		
-					GridData gridData = new GridData();
-					Utils.setLayoutData(button, gridData);
 				}
 			}
 		}
