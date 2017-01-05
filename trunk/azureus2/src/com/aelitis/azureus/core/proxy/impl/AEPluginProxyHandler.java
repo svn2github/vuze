@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.proxy.impl;
 import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.net.SocketAddress;
 import java.net.URL;
 import java.util.*;
 
@@ -47,6 +48,7 @@ import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginHTTPProxy;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.CopyOnWriteSet;
 import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
 
 public class 
@@ -158,7 +160,8 @@ AEPluginProxyHandler
 		return( plugin_init_complete.reserve( max_wait ));
 	}
 	
-	private static final Map<Proxy,WeakReference<PluginProxyImpl>>	proxy_map = new IdentityHashMap<Proxy,WeakReference<PluginProxyImpl>>();
+	private static final Map<Proxy,WeakReference<PluginProxyImpl>>	proxy_map 	= new IdentityHashMap<Proxy,WeakReference<PluginProxyImpl>>();
+	private static final CopyOnWriteSet<SocketAddress>				proxy_list	= new CopyOnWriteSet<SocketAddress>( false );
 	
 	public static boolean
 	hasPluginProxyForNetwork(
@@ -387,6 +390,13 @@ AEPluginProxyHandler
 		return( null );
 	}
 	
+	public static boolean
+	isPluginProxy(
+		SocketAddress		address )
+	{
+		return( proxy_list.contains( address ));
+	}
+	
 	public static Boolean
 	testPluginHTTPProxy(
 		URL			url,
@@ -577,7 +587,16 @@ AEPluginProxyHandler
 			
 			synchronized( proxy_map ){
 				
-				proxy_map.put( getProxy(), my_ref );
+				Proxy proxy = getProxy();
+				
+				SocketAddress address = proxy.address();
+				
+				if ( !proxy_list.contains( address )){
+					
+					proxy_list.add( address );
+				}
+				
+				proxy_map.put( proxy, my_ref );
 				
 				if ( proxy_map.size() > 1024 ){
 					

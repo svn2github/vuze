@@ -19,7 +19,9 @@
 
 package com.aelitis.azureus.core.proxy;
 
+import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.net.SocketAddress;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -116,6 +118,13 @@ AEProxyFactory
 		Proxy		proxy )
 	{
 		return( AEPluginProxyHandler.getPluginProxy( proxy ));
+	}
+	
+	public static boolean
+	isPluginProxy(
+		SocketAddress		address )
+	{
+		return( AEPluginProxyHandler.isPluginProxy( address ));
 	}
 	
 	public static Boolean

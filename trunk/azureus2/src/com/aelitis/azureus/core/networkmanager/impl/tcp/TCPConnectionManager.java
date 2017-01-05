@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
@@ -370,8 +371,13 @@ public class TCPConnectionManager {
 			  try {
 				  bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(request.address.getAddress());
 				  if ( bindIP != null ) {
-					  if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP+":"+local_bind_port));
-					  request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );
+					  	// ignore bind for plugin proxies as we connect directly to them - if they need to
+					  	// enforce any bindings on delegated connections then that is their job to implement
+					  
+					  if ( bindIP.isAnyLocalAddress() || !AEProxyFactory.isPluginProxy( request.address )){
+						  if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP+":"+local_bind_port));
+						  request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );
+					  }
 				  }
 				  else if( local_bind_port > 0 ) {       
 					  if (Logger.isEnabled()) Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local port #: " +local_bind_port));
