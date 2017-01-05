@@ -77,7 +77,7 @@ DirectByteBufferPoolReal
 	  // into smaller chunks, but that's more work.
 	
 	private static final int START_POWER = 12;    // 4096
-	private static final int END_POWER   = 25;    // 33554432
+	private static final int END_POWER   = 28;    // 25=32MB, 28=256MB - yes, there is a 500GB torrent out there with 128MB pieces :(
   
   		// without an extra bucket here we get lots of wastage with the file cache as typically
   		// 16K data reads result in a buffer slightly bigger than 16K due to protocol header

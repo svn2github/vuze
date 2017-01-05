@@ -148,7 +148,9 @@ RDResumeHandler
 				
 		DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager, false );
 
-        final AESemaphore	 run_sem = new AESemaphore( "RDResumeHandler::checkAllPieces:runsem", 2 );
+		int overall_piece_size = disk_manager.getPieceLength();
+		
+        final AESemaphore	 run_sem = new AESemaphore( "RDResumeHandler::checkAllPieces:runsem", overall_piece_size>32*1024*1024?1:2 );
 
         final List<DiskManagerCheckRequest>	failed_pieces = new ArrayList<DiskManagerCheckRequest>();
         
