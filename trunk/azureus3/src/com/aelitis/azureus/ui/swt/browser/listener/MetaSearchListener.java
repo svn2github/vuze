@@ -732,7 +732,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					Map params = new HashMap();
 					params.put("id", new Long(engine.getId()));
 					params.put("name", engine.getName());
-					params.put("type", Engine.ENGINE_TYPE_STRS[ engine.getType()]);
+					int type = engine.getType();
+					params.put("type", type < Engine.ENGINE_TYPE_STRS.length ? Engine.ENGINE_TYPE_STRS[type] : type);
 					params.put("value", JSONObject.escape( engine.exportToJSONString()));
 					params.put("shareable", Boolean.valueOf(engine.isShareable()));
 					
