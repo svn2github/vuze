@@ -29,6 +29,9 @@ package org.gudy.azureus2.core3.global;
 public interface 
 GlobalManagerStats 
 {
+	/**
+	 * Data Receive Rate over the last 10s
+	 */
 	public int getDataReceiveRate();
 	public int getDataReceiveRateNoLAN();
 	public int getDataReceiveRateNoLAN(int average_period);
@@ -39,6 +42,9 @@ GlobalManagerStats
 	
 	public int getDataAndProtocolReceiveRate();
 		
+	/**
+	 * Data Send Rate over the last 10s
+	 */
 	public int getDataSendRate();
 	public int getDataSendRateNoLAN();
 	public int getDataSendRateNoLAN(int average_period);
@@ -49,7 +55,15 @@ GlobalManagerStats
 	  
 	public int getDataAndProtocolSendRate();
 	
+	/**
+	 * Smoothed Send Rate, including data and protocol, based on 
+	 * "Stats Smoothing Secs" (default to 60s, min 30s)
+	 */
 	public long	getSmoothedSendRate();
+	/**
+	 * Smoothed Receive Rate, including data and protocol, based on 
+	 * "Stats Smoothing Secs" (default to 60s, min 30s)
+	 */
 	public long	getSmoothedReceiveRate();
 	
 	public int getDataSendRateAtClose();
