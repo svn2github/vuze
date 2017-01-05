@@ -27,25 +27,28 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Layout;
+
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.MenuBuildUtils;
-import org.gudy.azureus2.ui.swt.MenuBuildUtils.MenuBuilder;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.views.utils.TagButtonsUI;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
+import org.gudy.azureus2.ui.swt.views.utils.TagButtonsUI.TagButtonTrigger;
 
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.ui.UIFunctions.TagReturner;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
  * View showing tags set on selected taggable item(s).  Sometimes easier than
@@ -68,9 +71,9 @@ public class TaggingView
 
 	private List<Taggable> taggables;
 
-	private List<Button> buttons;
-
 	private Composite parent;
+
+	private TagButtonsUI tagButtonsUI;
 
 	public TaggingView() {
 	}
@@ -146,12 +149,11 @@ public class TaggingView
 					if ( !taggables.contains( taggable )){
 						taggables.add(taggable);
 					}
-				}else if ( o instanceof DiskManagerFileInfo ){
-					DownloadManager temp = ((DiskManagerFileInfo)o).getDownloadManager();
-					if (temp instanceof Taggable) {
-						Taggable taggable = (Taggable)temp;
-						if ( !taggables.contains( taggable )){
-							taggables.add(taggable);
+				} else if (o instanceof DiskManagerFileInfo) {
+					DownloadManager temp = ((DiskManagerFileInfo) o).getDownloadManager();
+					if (temp != null) {
+						if (!taggables.contains(temp)) {
+							taggables.add(temp);
 						}
 					}
 				}
@@ -221,162 +223,30 @@ public class TaggingView
 			TagType.TT_DOWNLOAD_MANUAL,
 		//TagType.TT_DOWNLOAD_CATEGORY
 		};
-
-		SelectionListener selectionListener = new SelectionListener() {
-
-			public void widgetSelected(SelectionEvent e) {
-				Button button = (Button) e.widget;
-				Tag tag = (Tag) button.getData("Tag");
-				if (button.getGrayed()) {
-					button.setGrayed(false);
-					button.setSelection(!button.getSelection());
-					button.getParent().redraw();
-				}
-				boolean doTag = button.getSelection();
-				for (Taggable taggable : taggables) {
-					if (doTag) {
-						tag.addTaggable(taggable);
-					} else {
-						tag.removeTaggable(taggable);
-					}
-				}
-				
-				updateButtonState(tag, button);
-				
-				button.getParent().redraw();
-				button.getParent().update();
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		};
-
-		Listener menuDetectListener = new Listener() {
-			public void handleEvent(Event event) {
-
-				final Button button = (Button) event.widget;
-				Menu menu = new Menu(button);
-				button.setMenu(menu);
-				
-				MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuilder() {
-					public void buildMenu(final Menu menu, MenuEvent menuEvent) {
-						Tag tag = (Tag) button.getData("Tag");
-						TagUIUtils.createSideBarMenuItems(menu, tag);
-					}
-				});
-			}
-		};
 		
-		PaintListener paintListener = new PaintListener() {
-			
-			public void paintControl(PaintEvent e) {
-				Button button;
-				Composite c = null;
-				if (e.widget instanceof Composite) {
-					c = (Composite) e.widget;
-					button = (Button) c.getChildren()[0];
-				} else {
-					button = (Button) e.widget;
-				}
-				Tag tag = (Tag) button.getData("Tag");
-				if (tag == null) {
-					return;
-				}
-
-				
-				
-				//ImageLoader.getInstance().getImage(? "check_yes" : "check_no");
-
-				if (c != null) {
-					boolean checked = button.getSelection();
-  				Point size = c.getSize();
-  				Point sizeButton = button.getSize();
-  				e.gc.setAntialias(SWT.ON);
-  				e.gc.setForeground(ColorCache.getColor(e.display, tag.getColor()));
-  				int lineWidth = button.getSelection() ? 2 : 1;
-  				e.gc.setLineWidth(lineWidth);
-
-  				int curve = 20;
-  				int width = sizeButton.x + lineWidth + 1;
-  				width += Constants.isOSX ? 5 : curve / 2;
-  				if (checked) {
-    				e.gc.setAlpha(0x20);
-    				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
-    				e.gc.fillRoundRectangle(-curve, lineWidth - 1, width + curve, size.y - lineWidth, curve, curve);
-    				e.gc.setAlpha(0xff);
-  				}
-  				if (!checked) {
-    				e.gc.setAlpha(0x80);
-  				}
-  				e.gc.drawRoundRectangle(-curve, lineWidth - 1, width + curve, size.y - lineWidth, curve, curve);
-  				e.gc.drawLine(lineWidth - 1, lineWidth, lineWidth - 1, size.y - lineWidth);
-				} else {
-  				if (!Constants.isOSX && button.getSelection()) {
-    				Point size = button.getSize();
-    				e.gc.setBackground(ColorCache.getColor(e.display, tag.getColor()));
-    				e.gc.setAlpha(20);
-    				e.gc.fillRectangle(0, 0, size.x, size.y);
-  				}
-				}
-			}
-		};
-
-		buttons = new ArrayList<Button>();
+		tagButtonsUI = new TagButtonsUI();
+		
+		List<Tag> listAllTags = new ArrayList<Tag>();
+		
 		for (int tagType : tagTypesWanted) {
 			
 			TagType tt = tm.getTagType(tagType);
 			List<Tag> tags = tt.getTags();
-			tags = TagUIUtils.sortTags(tags);
-			Composite g = null;
-			String group = null;
-			for (Tag tag : tags) {
-				String newGroup = tag.getGroup();
-				if (g == null || (group != null && !group.equals(newGroup))
-						|| (group == null && newGroup != null)) {
-					group = newGroup;
-
-					g = group == null ? new Composite(cMainComposite, SWT.DOUBLE_BUFFERED)
-							: new Group(cMainComposite, SWT.DOUBLE_BUFFERED);
-					if (group != null) {
-						((Group) g).setText(group);
-					}
-					g.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-					RowLayout rowLayout = new RowLayout();
-					rowLayout.pack = true;
-					rowLayout.spacing = 5;
-					Utils.setLayout(g, rowLayout);
-				}
-
-				Composite p = new Composite(g, SWT.DOUBLE_BUFFERED);
-				GridLayout layout = new GridLayout(1, false);
-				layout.marginHeight = 3;
-				if (Constants.isWindows) {
-					layout.marginWidth = 6;
-					layout.marginLeft = 2;
-					layout.marginTop = 1;
-				} else {
-					layout.marginWidth = 0;
-					layout.marginLeft = 3;
-					layout.marginRight = 11;
-				}
-				p.setLayout(layout);
-				p.addPaintListener(paintListener);
-				
-				Button button = new Button(p, SWT.CHECK);
-				buttons.add(button);
-				boolean[] auto = tag.isTagAuto();
-				
-				if ( auto[0] && auto[1] ){
-					button.setEnabled( false );
-				}else{
-					button.addSelectionListener(selectionListener);
-				}
-				button.setData("Tag", tag);
-
-				button.addListener(SWT.MenuDetect, menuDetectListener);
-				button.addPaintListener(paintListener);
-			}
+			listAllTags.addAll(tags);
 		}
+		tagButtonsUI.buildTagGroup(listAllTags, cMainComposite,
+				new TagButtonTrigger() {
+					public void tagButtonTriggered(Tag tag, boolean doTag) {
+						for (Taggable taggable : taggables) {
+							if (doTag) {
+								tag.addTaggable(taggable);
+							} else {
+								tag.removeTaggable(taggable);
+							}
+							swt_updateFields();
+						}
+					}
+				});
 		
 		Button buttonAdd = new Button(cMainComposite, SWT.PUSH);
 		buttonAdd.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, false, false));
@@ -426,88 +296,11 @@ public class TaggingView
 			return;
 		}
 		
-
-		List<Control> layoutChanges = new ArrayList<Control>();
-		for (Button button : buttons) {
-
-			Tag tag = (Tag) button.getData("Tag");
-			if (tag == null) {
-				continue;
-			}
-			String name = tag.getTagName(true);
-			if (!button.getText().equals(name)) {
-				button.setText(name);
-				layoutChanges.add(button);
-			}
-
-			updateButtonState(tag, button);
-			
-			button.getParent().redraw();
-		}
-
-		if (layoutChanges.size() > 0) {
-			cMainComposite.layout(layoutChanges.toArray(new Control[0]));
+		if (tagButtonsUI.updateFields(taggables)) {
 			parent.layout();
 		}
 	}
 
-	private void
-	updateButtonState(
-		Tag			tag,
-		Button		button )
-	{
-		if (taggables == null) {
-			button.setSelection(false);
-			button.setEnabled(false);
-			button.getParent().redraw();
-			return;
-		}
-
-		boolean hasTag = false;
-		boolean hasNoTag = false;
-
-		for (Taggable taggable : taggables) {
-			boolean curHasTag = tag.hasTaggable(taggable);
-			if (!hasTag && curHasTag) {
-				hasTag = true;
-				if (hasNoTag) {
-					break;
-				}
-			} else if (!hasNoTag && !curHasTag) {
-				hasNoTag = true;
-				if (hasTag) {
-					break;
-				}
-			}
-		}
-		
-		boolean[] auto = tag.isTagAuto();
-		
-		boolean	auto_add 	= auto[0];
-		boolean auto_rem	= auto[1];
-
-		if (hasTag && hasNoTag) {
-			
-			button.setEnabled( !auto_add );
-			
-			button.setGrayed(true);
-			button.setSelection(true);
-		} else {
-			
-			if ( auto_add && auto_rem ){
-				
-				button.setEnabled( false );
-			}else{
-				button.setEnabled(
-					( hasTag ) ||
-					( !hasTag && !auto_add ));
-			}
-			
-			button.setGrayed(false);
-			button.setSelection(hasTag);
-		}
-	}
-		
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagTypeChanged(com.aelitis.azureus.core.tag.TagType)
 	public void tagTypeChanged(TagType tag_type) {
 		// TODO Auto-generated method stub
