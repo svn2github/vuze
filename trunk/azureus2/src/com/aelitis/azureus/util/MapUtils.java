@@ -100,10 +100,11 @@ public class MapUtils
 		String		key,
 		String[]	def )
 	{
-		List list = (List)map.get( key );
-		if ( list == null ){
-			return( def );
+		Object o = map.get( key );
+		if (!(o instanceof List)) {
+			return def;
 		}
+		List list = (List) o;
 		String[] result = new String[list.size()];
 		for (int i=0;i<result.length;i++){
 			result[i] = getString( list.get(i));
