@@ -97,6 +97,7 @@ public class FilesView
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
     new PathItem(),
+    new PathNameItem(),
     new SizeItem(),
     new DoneItem(),
     new PercentItem(),

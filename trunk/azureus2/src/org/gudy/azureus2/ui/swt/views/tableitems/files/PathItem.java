@@ -56,7 +56,7 @@ public class PathItem
     cell.setText(determinePath(fileInfo));
   }
   
-  private static String determinePath(DiskManagerFileInfo fileInfo) {
+  protected static String determinePath(DiskManagerFileInfo fileInfo) {
     
     if( fileInfo == null ) {
     	return "";
