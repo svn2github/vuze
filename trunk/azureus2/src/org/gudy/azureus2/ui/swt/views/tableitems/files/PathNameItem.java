@@ -74,7 +74,12 @@ public class PathNameItem extends CoreTableColumnSWT implements
 		
 		if ( !file_path.isEmpty()){
 		
-			file_name = file_path + File.separator + file_name;
+			if ( !file_path.endsWith( File.separator )){
+				
+				file_path += File.separator;
+			}
+			
+			file_name = file_path + file_name;
 		}
 		//setText returns true only if the text is updated
 		if (cell.setText(file_name) || !cell.isValid()) {
