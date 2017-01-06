@@ -30,9 +30,12 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -122,11 +125,11 @@ SBC_SubscriptionResultsView
 				}
 			});
 
-		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-				
-		if ( mdi != null && ds != null ){
+		String mdi_key = "Subscription_" + ByteFormatter.encodeString(ds.getPublicKey());
 
-			String mdi_key = "Subscription_" + ByteFormatter.encodeString(ds.getPublicKey());
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+
+		if ( mdi != null && ds != null ){
 			
 			mdi_entry = mdi.getEntry( mdi_key );
 			
@@ -143,6 +146,36 @@ SBC_SubscriptionResultsView
 			if ( title != null ){
 				
 				title.setText( MessageText.getString( "subs.results.view.title", new String[]{ ds.getName() }));
+				
+				Control control = title.getControl();
+				
+				final Menu menu = new Menu( control );
+				
+				control.setMenu( menu );
+				
+				final String menu_key = SubscriptionMDIEntry.setupMenus( ds, null );
+
+				menu.addMenuListener(
+					new MenuListener() {
+						
+						@Override
+						public void menuShown(MenuEvent e) {
+							for ( MenuItem mi: menu.getItems()){
+								mi.dispose();
+							}
+							
+							org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items = MenuItemManager.getInstance().getAllAsArray( menu_key );							
+							
+							MenuBuildUtils.addPluginMenuItems(menu_items, menu, true, true,
+									new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[]{ ds }));
+						}
+						
+						@Override
+						public void menuHidden(MenuEvent e) {
+							// TODO Auto-generated method stub
+							
+						}
+					});
 			}
 		}
 		

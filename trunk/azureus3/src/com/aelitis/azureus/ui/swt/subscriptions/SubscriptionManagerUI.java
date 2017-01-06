@@ -3009,6 +3009,8 @@ SubscriptionManagerUI
 					}
 				}
 				selected(subs.toArray( new Subscription[0]));
+			}else if ( target instanceof Subscription ){
+				selected((Subscription)target);
 			}
 		}
 

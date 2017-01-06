@@ -77,7 +77,7 @@ public class SubscriptionsView
 	implements SubscriptionManagerListener, UIPluginViewToolBarListener,
 	UISWTViewCoreEventListener
 {
-	private static final String TABLE_ID = "subscriptions";
+	protected static final String TABLE_ID = "subscriptions";
 
 	private TableViewSWT view;
 

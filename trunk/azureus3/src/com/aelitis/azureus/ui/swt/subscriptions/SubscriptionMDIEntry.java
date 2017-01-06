@@ -47,13 +47,11 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 
 	private MdiEntryVitalityImage warningImage;
 	private final Subscription subs;
-	private String key;
 	private String current_parent;
 	
 	public SubscriptionMDIEntry(Subscription subs, MdiEntry entry) {
 		this.subs = subs;
 		this.mdiEntry = entry;
-		key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
 		current_parent = subs.getParent();
 		if ( current_parent != null && current_parent.length() == 0 ){
 			current_parent = null;
@@ -80,11 +78,30 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 		
 		setWarning();
 
+		setupMenus( 
+			subs,
+			new Runnable(){
+				@Override
+				public void run() {
+					SubscriptionMDIEntry.this.refreshView();
+				}
+			});
+		
+		subs.addListener(this); 
+	}
+
+	protected static String
+	setupMenus(
+		Subscription		subs,
+		final Runnable		refresher )
+	{
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();
 		
 		final MenuManager menu_manager = uim.getMenuManager();
 				
+		final String key = "sidebar.Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
+		
 		SubscriptionManagerUI.MenuCreator menu_creator = 
 			new SubscriptionManagerUI.MenuCreator()
 			{
@@ -92,19 +109,20 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 				createMenu(
 					String 	resource_id )
 				{
-					return( menu_manager.addMenuItem("sidebar." + key, resource_id ));
+					return( menu_manager.addMenuItem( key, resource_id ));
 				}
 				
 				public void refreshView() {
-					SubscriptionMDIEntry.this.refreshView();
+					if ( refresher != null ){
+						refresher.run();
+					}
 				}
 			};
 			
-		SubscriptionManagerUI.createMenus( menu_manager, menu_creator, new Subscription[]{ subs });
+		SubscriptionManagerUI.createMenus( menu_manager, menu_creator, new Subscription[]{ subs });	
 		
-		subs.addListener(this); 
+		return( key );
 	}
-
 	protected String
 	getCurrentParent()
 	{
