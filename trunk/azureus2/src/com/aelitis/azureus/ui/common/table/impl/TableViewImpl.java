@@ -918,6 +918,18 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		}
 	}
 
+	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSources()
+	public ArrayList<DATASOURCETYPE> getDataSources( boolean include_filtered) {
+		synchronized (rows_sync) {
+			if ( include_filtered ){
+				return new ArrayList<DATASOURCETYPE>(listUnfilteredDataSources.keySet());
+
+			}else{
+				return new ArrayList<DATASOURCETYPE>(mapDataSourceToRow.keySet());
+			}
+		}
+	}
+	
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object)
 	public void removeDataSource(final DATASOURCETYPE dataSource) {
 		if (dataSource == null) {

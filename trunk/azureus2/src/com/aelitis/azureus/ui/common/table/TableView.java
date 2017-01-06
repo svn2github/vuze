@@ -117,6 +117,11 @@ public interface TableView<DATASOURCETYPE>
 	List<DATASOURCETYPE> getDataSources();
 
 	/**
+	 * @return not sorted
+	 */
+	List<DATASOURCETYPE> getDataSources( boolean include_filtered );
+	
+	/**
 	 * @note May not necessarily return DATASOURCETYPE if table has subrows
 	 */
 	Object getFirstSelectedDataSource();

@@ -600,7 +600,7 @@ SBC_SubscriptionResultsView
 			
 			tv_subs_results.processDataSourceQueueSync();
 			
-			List<SBC_SubscriptionResult> existing_results = tv_subs_results.getDataSources();
+			List<SBC_SubscriptionResult> existing_results = tv_subs_results.getDataSources( true );
 						
 			Map<String,SBC_SubscriptionResult>	existing_map = new HashMap<String, SBC_SubscriptionResult>();
 			
