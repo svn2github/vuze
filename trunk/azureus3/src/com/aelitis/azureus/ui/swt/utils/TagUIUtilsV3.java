@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
@@ -51,7 +53,10 @@ public class TagUIUtilsV3
 		final SWTSkinObjectCheckbox cb = (SWTSkinObjectCheckbox) skin.getSkinObject(
 				"tag-share");
 
-		if (tb == null || cb == null) {
+		final SWTSkinObjectCheckbox ss = (SWTSkinObjectCheckbox) skin.getSkinObject(
+				"tag-customize");
+
+		if (tb == null || cb == null){
 			return;
 		}
 
@@ -80,6 +85,22 @@ public class TagUIUtilsV3
 		cb.setChecked(COConfigurationManager.getBooleanParameter(
 				"tag.sharing.default.checked"));
 
+		if ( ss != null ){
+			
+			ss.setChecked(COConfigurationManager.getBooleanParameter(
+					"tag.add.customize.default.checked"));
+			
+			ss.addSelectionListener(
+				new SWTSkinCheckboxListener() {
+					
+					@Override
+					public void checkboxChanged(SWTSkinObjectCheckbox so, boolean checked) {
+						COConfigurationManager.setParameter(
+								"tag.add.customize.default.checked", checked);
+					}
+				});
+		}
+		
 		SWTSkinObject soButtonArea = skin.getSkinObject("bottom-area");
 		if (soButtonArea instanceof SWTSkinObjectContainer) {
 			StandardButtonsArea buttonsArea = new StandardButtonsArea() {
@@ -123,6 +144,12 @@ public class TagUIUtilsV3
 							});
 						}
 
+						if ( ss.isChecked()){
+							tag.setTransientProperty( Tag.TP_SETTINGS_REQUESTED, true );
+							
+							UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+									MultipleDocumentInterface.SIDEBAR_SECTION_TAGS);
+						}
 					}
 
 					dialog.close();

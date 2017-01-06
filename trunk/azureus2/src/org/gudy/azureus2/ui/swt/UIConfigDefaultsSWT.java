@@ -176,5 +176,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter( "Search Subs Row Height", 20 );
 		def.addParameter( "Search View Is Web View", true );
 		def.addParameter( "Search View Switch Hidden", false );
+		
+		def.addParameter( "tag.add.customize.default.checked", true );
 	}
 }

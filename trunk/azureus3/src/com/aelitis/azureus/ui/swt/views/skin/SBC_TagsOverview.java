@@ -30,6 +30,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -855,6 +856,8 @@ public class SBC_TagsOverview
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagAdded(com.aelitis.azureus.core.tag.Tag)
 	public void tagAdded(Tag tag) {
 		tv.addDataSource(tag);
+		
+		handleProps( tag );
 	}
 
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagChanged(com.aelitis.azureus.core.tag.Tag)
@@ -866,8 +869,35 @@ public class SBC_TagsOverview
 		if (row != null) {
 			row.invalidate(true);
 		}
+		
+		handleProps( tag );
 	}
 
+	private void
+	handleProps(
+		Tag		tag )
+	{
+		Boolean b = (Boolean)tag.getTransientProperty( Tag.TP_SETTINGS_REQUESTED );
+		
+		if ( b != null && b ){
+			
+			tag.setTransientProperty( Tag.TP_SETTINGS_REQUESTED, null );
+		
+			tv.processDataSourceQueueSync();
+			
+			TableRowCore row = tv.getRow(tag);
+			
+			if ( row == null ){
+				
+				Debug.out( "Can't select settings view for " + tag.getTagName( true ) + " as row not found" );
+				
+			}else{
+				
+				tv.setSelectedRows(new TableRowCore[] { row });
+			}
+		}
+	}
+	
 	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagRemoved(com.aelitis.azureus.core.tag.Tag)
 	public void tagRemoved(Tag tag) {
 		tv.removeDataSource(tag);

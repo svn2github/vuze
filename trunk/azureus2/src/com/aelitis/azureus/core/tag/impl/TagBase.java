@@ -136,6 +136,7 @@ TagBase
 	private TagFeatureFileLocation	tag_fl;
 	private TagFeatureLimits		tag_limits;
 	
+	private HashMap<String,Object>		transient_properties;
 	
 	protected
 	TagBase(
@@ -1053,6 +1054,51 @@ TagBase
 		writeStringAttribute( AT_DESCRIPTION, str );
 		
 		tag_type.fireChanged( this );
+	}
+	
+	@Override
+	public void 
+	setTransientProperty(
+		String property, Object value ) 
+	{
+		synchronized( this ){
+			
+			if ( transient_properties == null ){
+				
+				if ( value == null ){
+					
+					return;
+				}
+				
+				transient_properties = new HashMap<String, Object>();
+			}		
+			
+			if ( value == null ){
+				
+				transient_properties.remove( property );
+				
+			}else{
+				
+				transient_properties.put( property, value );
+			}
+			
+			tag_type.fireChanged( this );
+		}
+	}
+	
+	@Override
+	public Object 
+	getTransientProperty(String property) 
+	{
+		synchronized( this ){
+			
+			if ( transient_properties == null ){
+				
+				return( null );
+			}
+			
+			return( transient_properties.get( property ));
+		}
 	}
 	
 	public void

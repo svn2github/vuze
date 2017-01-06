@@ -27,6 +27,8 @@ public interface
 Tag 
 	extends org.gudy.azureus2.plugins.tag.Tag
 {
+	public static final String	TP_SETTINGS_REQUESTED	= "Settings Requested";	// Boolean
+	
 		/**
 		 * Unique type denoting this species of tag
 		 * @return
@@ -140,6 +142,15 @@ Tag
 	public void
 	setDescription(
 		String		desc );
+	
+	public void
+	setTransientProperty(
+		String		property,
+		Object		value );
+	
+	public Object
+	getTransientProperty(
+		String		property );
 	
 	public void
 	addTagListener(
