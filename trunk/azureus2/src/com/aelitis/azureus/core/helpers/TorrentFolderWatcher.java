@@ -197,9 +197,7 @@ public class TorrentFolderWatcher {
 	private void importAddedFiles() {
 
 		AzureusCore core = AzureusCoreFactory.getSingleton();
-		
-		org.gudy.azureus2.plugins.download.DownloadManager plugin_dm = core.getPluginManager().getDefaultPluginInterface().getDownloadManager();
-		
+				
 		try {
 			this_mon.enter();
 
@@ -209,11 +207,13 @@ public class TorrentFolderWatcher {
 			
 			GlobalManager global_manager = _global_manager;
 			
-			if ( global_manager == null ){
+			if ( global_manager == null || !core.isStarted()){
 				
 				return;
 			}
 			
+			org.gudy.azureus2.plugins.download.DownloadManager plugin_dm = core.getPluginManager().getDefaultPluginInterface().getDownloadManager();
+
 			boolean save_torrents_default = COConfigurationManager.getBooleanParameter("Save Torrent Files");
 
 			String torrent_save_path = COConfigurationManager

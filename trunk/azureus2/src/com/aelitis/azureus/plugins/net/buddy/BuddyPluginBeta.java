@@ -81,6 +81,7 @@ import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.I2PHelpers;
 
@@ -2288,6 +2289,56 @@ BuddyPluginBeta
 	getChats()
 	{
 		return( chat_instances_list.getList());
+	}
+	
+	private void
+	addChatActivity(
+		ChatInstance		inst,
+		ChatMessage			message )
+	{
+		if ( message != null ){
+			
+			AZ3Functions.provider provider = AZ3Functions.getProvider();
+			
+			if ( provider == null ){
+				
+				return;
+			}
+			
+			String str = inst.getName() + ": " + message.getMessage();
+			
+			Map<String,String>	cb_data = new HashMap<String, String>();
+			
+			cb_data.put( "allowReAdd", "true" );
+			cb_data.put( "net", inst.getNetwork());
+			cb_data.put( "key", inst.getKey());
+			
+			provider.addLocalActivity(
+				inst.getNetAndKey(),
+				"image.sidebar.chat-overview",
+				str,
+				new String[]{ "View" },
+				ActivityCallback.class,
+				cb_data );
+		}
+	}
+	
+	public static class
+	ActivityCallback
+		implements AZ3Functions.provider.LocalActivityCallback
+	{
+		public void 
+		actionSelected(
+			String action, Map<String, String> data) 
+		{
+			String	net = data.get( "net" );
+			String	key = data.get( "key" );
+			
+			if ( net != null && key != null ){
+				
+				BuddyPluginUtils.createBetaChat( net, key, null );
+			}
+		}
 	}
 	
 	public void
@@ -4838,22 +4889,26 @@ BuddyPluginBeta
 		
 		public void
 		setMessageOutstanding( 
-			boolean		b )
+			ChatMessage		message  )
 		{
+			boolean	outstanding = message != null;
+			
 			boolean changed = false;
+			
+			addChatActivity( this, message );
 			
 			synchronized( chat_lock ){
 			
-				if ( message_outstanding == b ){
+				if ( message_outstanding == outstanding ){
 					
 					return;
 				}
 				
-				message_outstanding = b;
+				message_outstanding = outstanding;
 				
 				changed = true;
 				
-				if ( !b ){
+				if ( !outstanding ){
 					
 					if ( messages.size() > 0 ){
 						

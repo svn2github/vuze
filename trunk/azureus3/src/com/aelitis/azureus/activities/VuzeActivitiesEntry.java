@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
@@ -117,6 +118,32 @@ public class VuzeActivitiesEntry
 		this.timestamp = SystemTime.getCurrentTime();
 	}
 
+	protected void
+	updateFrom(
+		VuzeActivitiesEntry	other )
+	{
+		text				= other.text;
+		iconID				= other.iconID;
+		id					= other.id;
+		timestamp			= other.timestamp;
+		typeID				= other.typeID;
+		assetHash			= other.assetHash;
+		assetImageURL		= other.assetImageURL;
+		dm					= other.dm;
+		urlInfo				= other.urlInfo;
+		tableColumn			= other.tableColumn;
+		imageBytes			= other.imageBytes;
+		showThumb			= other.showThumb;
+		torrentName			= other.torrentName;
+		torrent				= other.torrent;
+		playable			= other.playable;
+		readOn				= 0; // other.readOn;
+		actions				= other.actions;
+		callback_class		= other.callback_class;
+		callback_data		= other.callback_data;
+		viewed				= false; // other.viewed;
+	}
+	
 	/**
 	 * @param platformEntry
 	 */
@@ -251,9 +278,15 @@ public class VuzeActivitiesEntry
 		return( actions==null?new String[0]:actions );
 	}
 	
+	public boolean
+	allowReAdd()
+	{
+		return( callback_data != null && callback_data.containsKey( "allowReAdd" ));
+	}
+	
 	public void
 	setCallback(
-		Class<? extends LocalActivityManager.LocalActivityCallback>		_callback,
+		Class<? extends AZ3Functions.provider.LocalActivityCallback>	_callback,
 		Map<String,String>												_callback_data )
 	{
 		callback_class	= _callback.getName();
@@ -265,7 +298,7 @@ public class VuzeActivitiesEntry
 		String		action )
 	{
 		try{
-			Class<? extends LocalActivityManager.LocalActivityCallback> cb = (Class<? extends LocalActivityManager.LocalActivityCallback>)getClass().forName( callback_class );
+			Class<? extends AZ3Functions.provider.LocalActivityCallback> cb = (Class<? extends AZ3Functions.provider.LocalActivityCallback>)getClass().forName( callback_class );
 			
 			cb.newInstance().actionSelected( action, callback_data );
 			

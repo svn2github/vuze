@@ -46,6 +46,8 @@ public class ColumnActivityDate
 	 */
 	public ColumnActivityDate(String tableID) {
 		super(null, COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, tableID);
+		
+		setMultiline(false);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)

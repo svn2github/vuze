@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
+import com.aelitis.azureus.activities.LocalActivityManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
@@ -382,7 +384,16 @@ public class InitialisationFunctions
 					
 					return( result.toArray( new TranscodeTarget[result.size()]));
 				}
-				               		
+				  
+				
+				@Override
+				public void addLocalActivity(String uid, String icon_id,
+						String name, String[] actions,
+						Class<? extends LocalActivityCallback> callback,
+						Map<String, String> callback_data) {
+				
+					LocalActivityManager.addLocalActivity(uid, icon_id, name, actions, callback, callback_data );
+				}
 
 			});
 	}

@@ -21,6 +21,7 @@
 package com.aelitis.azureus.core.util;
 
 import java.net.URL;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 
@@ -116,5 +117,23 @@ AZ3Functions
 		getDefaultContentNetworkURL(
 				int type, 
 				Object[] params);
+		
+		public void
+		addLocalActivity(
+			String									uid,
+			String									icon_id,
+			String									name,
+			String[]								actions,
+			Class<? extends LocalActivityCallback>	callback,
+			Map<String,String>						callback_data );
+		
+		public interface
+		LocalActivityCallback
+		{
+			public void
+			actionSelected(
+				String				action,
+				Map<String,String>	data );
+		}
 	}
 }

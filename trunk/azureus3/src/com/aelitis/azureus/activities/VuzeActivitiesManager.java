@@ -476,8 +476,11 @@ public class VuzeActivitiesManager
 				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 				if ((entry.getTimestamp() >= cutoffTime || isHeader)
 						&& !removedEntries.contains(entry)) {
-					if (allEntries.contains(entry)) {
-						existingEntries.add(entry);
+					
+					VuzeActivitiesEntry existing_entry = allEntries.get( entry );
+					if (existing_entry != null) {
+						existingEntries.add(existing_entry);
+						existing_entry.updateFrom( entry );
 					} else {
 						newEntries.add(entry);
 						allEntries.add(entry);
@@ -532,7 +535,10 @@ public class VuzeActivitiesManager
 				allEntries.remove(entry);
 				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 				if (!allowReAdd && entry.getTimestamp() > cutoffTime && !isHeader) {
-					removedEntries.add(entry);
+					if ( !entry.allowReAdd()){ 
+						
+						removedEntries.add(entry);
+					}
 				}
 			}
 		} finally {

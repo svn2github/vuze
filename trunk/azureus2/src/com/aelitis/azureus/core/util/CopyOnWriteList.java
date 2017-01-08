@@ -175,6 +175,24 @@ implements Iterable<T>
 		}
 	}
 	
+	public T
+	get(
+		T	entry )
+	{
+		synchronized( this ){
+			
+			for ( T e: list ){
+				
+				if ( e.equals( entry )){
+					
+					return( e );
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	public void
 	add(
 		int	index,

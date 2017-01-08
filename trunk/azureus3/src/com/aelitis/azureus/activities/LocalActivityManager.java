@@ -26,6 +26,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.util.AZ3Functions;
+
 public class 
 LocalActivityManager 
 {
@@ -55,12 +57,12 @@ LocalActivityManager
 	
 	public static void
 	addLocalActivity(
-		String									uid,
-		String									icon_id,
-		String									name,
-		String									action,
-		Class<? extends LocalActivityCallback>	callback,
-		Map<String,String>						callback_data )
+		String															uid,
+		String															icon_id,
+		String															name,
+		String[]														actions,
+		Class<? extends AZ3Functions.provider.LocalActivityCallback>	callback,
+		Map<String,String>												callback_data )
 	{
 		VuzeActivitiesEntry entry = 
 			new VuzeActivitiesEntry(
@@ -72,7 +74,7 @@ LocalActivityManager
 		
 		entry.setIconIDRaw( icon_id );
 		
-		entry.setActions( new String[]{ action });
+		entry.setActions( actions );
 		
 		entry.setCallback( callback,  callback_data );
 		
@@ -93,10 +95,7 @@ LocalActivityManager
 	
 	public interface
 	LocalActivityCallback
+		extends AZ3Functions.provider.LocalActivityCallback
 	{
-		public void
-		actionSelected(
-			String				action,
-			Map<String,String>	data );
 	}
 }

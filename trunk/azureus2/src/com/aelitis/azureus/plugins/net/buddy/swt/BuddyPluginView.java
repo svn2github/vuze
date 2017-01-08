@@ -1059,7 +1059,7 @@ BuddyPluginView
 					return;
 				}
 				
-				chat.setMessageOutstanding( true );
+				chat.setMessageOutstanding( pending_message );
 				
 				if ( entry == null ){
 					
@@ -1201,7 +1201,7 @@ BuddyPluginView
 
 				chat.setUserData( CHAT_LM_KEY, chat.getLastMessageRequiringAttention());
 
-				chat.setMessageOutstanding( false );
+				chat.setMessageOutstanding( null );
 				
 				if ( entry != null ){
 					

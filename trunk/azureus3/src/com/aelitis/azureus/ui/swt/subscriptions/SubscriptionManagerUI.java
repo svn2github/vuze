@@ -601,7 +601,7 @@ SubscriptionManagerUI
 									MessageText.getString(
 										"subs.activity.website.found",
 										new String[]{ sub.getName() }),
-									MessageText.getString( "subscriptions.listwindow.subscribe" ),
+									new String[]{ MessageText.getString( "subscriptions.listwindow.subscribe" )},
 									ActivityCallback.class,
 									cb_data );
 							}
