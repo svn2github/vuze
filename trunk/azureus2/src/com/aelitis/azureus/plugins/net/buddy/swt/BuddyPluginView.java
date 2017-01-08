@@ -40,6 +40,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -1236,6 +1237,14 @@ BuddyPluginView
 					}
 				});
 		}
+	}
+	
+	public String
+	renderMessage(
+		ChatInstance	chat,
+		ChatMessage		message )
+	{
+		return( BuddyPluginViewBetaChat.renderMessage(null, chat, message.getMessage(), message.getMessageType(), 0, new ArrayList<StyleRange>(), null, null, null));
 	}
 	
 	private List<MenuItem>		menu_items = new ArrayList<MenuItem>();

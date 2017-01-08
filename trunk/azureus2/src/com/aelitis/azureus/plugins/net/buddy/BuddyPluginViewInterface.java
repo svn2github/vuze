@@ -27,6 +27,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatMessage;
 
 public interface 
 BuddyPluginViewInterface 
@@ -43,6 +44,11 @@ BuddyPluginViewInterface
 	buildView(
 		Map<String,Object>	properties,
 		ViewListener		listener );
+	
+	public String
+	renderMessage(
+		ChatInstance	chat,
+		ChatMessage		message );
 	
 	public interface
 	DownloadAdapter

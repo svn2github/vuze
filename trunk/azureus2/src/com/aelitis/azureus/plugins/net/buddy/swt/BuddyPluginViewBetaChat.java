@@ -3564,7 +3564,7 @@ BuddyPluginViewBetaChat
 		chat.sendMessage( text, new HashMap<String, Object>());
 	}
 	
-	private String
+	private static String
 	expand(
 		Map<String,String>	params,
 		String				str,
@@ -3957,550 +3957,10 @@ BuddyPluginViewBetaChat
 				}
 				
 				final int start = initial_log_length + appended.length();
-				
-				String	msg = original_msg;
-				
-				try{
-					{
-						List<Object>		segments = new ArrayList<Object>();
-						
-						int	pos = 0;
-						
-						while( true ){
-							
-							int old_pos = pos;
-							
-							pos = original_msg.indexOf( ':', old_pos );
-							
-							if ( pos == -1 ){
 								
-								String tail = original_msg.substring( old_pos );
+				String rendered_msg = renderMessage( beta, chat, original_msg, message_type, start, new_ranges, info_font, info_colour, bold_font );
 								
-								if ( tail.length() > 0 ){
-									
-									segments.add( tail );
-								}
-								
-								break;
-							}
-							
-							boolean	was_url = false;
-							
-							String	protocol = "";
-							
-							for (int i=pos-1; i>=0; i-- ){
-								
-								char c = original_msg.charAt(i);
-								
-								if ( !Character.isLetterOrDigit( c )){
-									
-									if ( c == '"' ){
-										
-										protocol = c + protocol;
-									}
-									
-									break;
-								}
-								
-								protocol = c + protocol;
-							}
-							
-							if ( protocol.length() > 0 ){
-								
-								char term_char = ' ';
-								
-								if ( protocol.startsWith( "\"" )){
-									
-									term_char = '"';
-								}
-								
-								int	url_start 	= pos - protocol.length();
-								int	url_end 	= original_msg.length();
-								
-								for ( int i=pos+1;i<url_end;i++){
-									
-									char c = original_msg.charAt( i );
-									
-									if ( c == term_char || ( term_char == ' ' && Character.isWhitespace( c ))){
-										
-										url_end = term_char==' '?i:(i+1);
-										
-										break;
-									}
-								}
-									
-								if ( url_end > pos+1 && !Character.isDigit( protocol.charAt(0))){
-									
-									try{									
-										String url_str = protocol + original_msg.substring( pos, url_end );
-								
-										if ( url_str.startsWith( "\"" ) && url_str.endsWith( "\"" )){
-											
-											url_str = url_str.substring( 1, url_str.length()-1 );
-											
-											protocol = protocol.substring(1);
-										}
-										
-										URL	url = new URL( url_str );
-										
-										if ( url_start > old_pos ){
-											
-											segments.add( original_msg.substring( old_pos, url_start ));
-										}
-										
-										segments.add( url );
-										
-										was_url = true;
-										
-										pos	= url_end;
-										
-									}catch( Throwable e ){
-										
-									}
-								}
-							}
-							
-							if ( !was_url ){
-								
-								pos++;
-								
-								segments.add( original_msg.substring( old_pos, pos ) );
-							}
-						}
-						
-						if ( segments.size() > 1 ){
-							
-							List<Object>	temp = new ArrayList<Object>( segments.size());
-						
-							String	str = "";
-							
-							for ( Object obj: segments ){
-								
-								if ( obj instanceof String ){
-							
-									str += obj;
-									
-								}else{
-									
-									if ( str.length() > 0 ){
-										
-										temp.add( str );
-									}
-									
-									str = "";
-									
-									temp.add( obj );
-								}
-							}
-						
-							if ( str.length() > 0 ){
-								
-								temp.add( str );
-							}
-							
-							segments = temp;
-						}
-											
-						Map<String,String>	params = new HashMap<String,String>();
-						
-						for ( int i=0;i<segments.size(); i++ ){
-							
-							Object obj = segments.get(i);
-						
-							if ( obj instanceof URL ){
-								
-								params.clear();
-								
-								String str = ((URL)obj).toExternalForm();
-								
-								int	qpos = str.indexOf( '?' );
-								
-								if ( qpos > 0 ){
-									
-									int	hpos = str.lastIndexOf( "[[" );
-	
-									String[]	bits = str.substring( qpos+1, hpos==-1?str.length():hpos ).split( "&" );
-									
-									for ( String bit: bits ){
-										
-										String[] temp = bit.split( "=", 2 );
-										
-										if ( temp.length == 2 ){
-											
-											params.put( temp[0], temp[1] );
-										}
-									}
-																
-									if ( hpos > 0 && str.endsWith( "]]" )){
-										
-										str = 	str.substring( 0, hpos ) + 
-												"[[" +
-												expand( params, str.substring( hpos+2, str.length()-2 ), false ) +
-												"]]";
-										
-										try{
-											segments.set( i, new URL( str ));
-											
-										}catch( Throwable e ){
-											
-											Debug.out( e );
-										}
-									}
-								}else{
-									
-									int	hpos = str.lastIndexOf( "[[" );
-																								
-									if ( hpos > 0 && str.endsWith( "]]" )){
-										
-										str = 	str.substring( 0, hpos ) + 
-												"[[" +
-												str.substring( hpos+2, str.length()-2 ) +
-												"]]";
-										
-										try{
-											segments.set( i, new URL( str ));
-											
-										}catch( Throwable e ){
-											
-											Debug.out( e );
-										}
-									}
-								}
-							}else{
-								
-								String str = (String)obj;
-								
-								if ( params.size() > 0 ){
-									
-									segments.set( i, expand( params, str, true ));
-								}
-							}
-						}
-							
-						StringBuilder sb = new StringBuilder( 1024 );
-						
-						for ( Object obj: segments ){
-							
-							if ( obj instanceof URL ){
-							
-								sb.append("\"").append(((URL) obj).toExternalForm()).append("\"");
-								
-							}else{
-								
-								String segment_str = (String)obj;
-								
-								try{
-									String my_nick = chat.getNickname( true );
-									
-									if ( 	my_nick.length() > 0 && 
-											segment_str.contains( my_nick ) &&
-											message_type ==  ChatMessage.MT_NORMAL ){
-										
-										StringBuilder temp = new StringBuilder( segment_str.length() + 1024 );
-										
-										int	nick_len = my_nick.length();
-																			
-										int	segment_len = segment_str.length();
-										
-										int	segment_pos = 0;
-																			
-										while( segment_pos < segment_len ){
-											
-											int next_pos = segment_str.indexOf( my_nick, segment_pos );
-											
-											if ( next_pos >= 0 ){
-												
-												temp.append( segment_str.substring( segment_pos, next_pos ));
-												
-												boolean	match = true;
-												
-												if ( next_pos > 0 ){
-													
-													if ( Character.isLetterOrDigit( segment_str.charAt( next_pos-1 ))){
-														
-														match = false;
-													}
-												}
-												
-												int nick_end = next_pos + nick_len;
-												
-												if ( nick_end < segment_len ){
-													
-													if ( Character.isLetterOrDigit( segment_str.charAt(nick_end ))){
-														
-														match = false;
-													}
-												}
-												
-												if ( match ){
-												
-													temp.append("\"chat:nick[[").append(UrlUtils.encode(my_nick)).append("]]\"");
-	
-												}else{
-													
-													temp.append( my_nick );
-												}
-												
-												segment_pos = next_pos + nick_len;
-											
-											}else{
-												
-												temp.append( segment_str.substring(segment_pos));
-												
-												break;
-											}
-										}
-										
-										segment_str = temp.toString();
-									}
-								}catch( Throwable e ){
-								
-									Debug.out( e );
-								}
-								
-								sb.append( segment_str );
-							}
-						}
-						
-						msg = sb.toString();
-					}
-					
-					{	
-							// should rewrite this one day to use the segments above directly... We'd need to handle URLs in expansions though
-						
-						int	next_style_start = start;
-						
-						int	pos = 0;
-						
-						while( pos < msg.length()){
-							
-							pos = msg.indexOf( ':', pos );
-							
-							if ( pos == -1 ){
-								
-								break;
-							}
-							
-							String	protocol = "";
-							
-							for (int i=pos-1; i>=0; i-- ){
-								
-								char c = msg.charAt(i);
-								
-								if ( !Character.isLetterOrDigit( c )){
-									
-									if ( c == '"' ){
-										
-										protocol = c + protocol;
-									}
-									
-									break;
-								}
-								
-								protocol = c + protocol;
-							}
-							
-							if ( protocol.length() > 0 ){
-								
-								char term_char = ' ';
-								
-								if ( protocol.startsWith( "\"" )){
-									
-									term_char = '"';
-								}
-								
-								int	url_start 	= pos - protocol.length();
-								int	url_end 	= msg.length();
-								
-								for ( int i=pos+1;i<url_end;i++){
-									
-									char c = msg.charAt( i );
-									
-									if ( c == term_char || ( term_char == ' ' && Character.isWhitespace( c ))){
-										
-										url_end = term_char==' '?i:(i+1);
-										
-										break;
-									}
-								}
-									
-								if ( url_end > pos+1 && !Character.isDigit( protocol.charAt(0))){
-									
-									try{									
-										String url_str = protocol + msg.substring( pos, url_end );
-								
-										if ( url_str.startsWith( "\"" ) && url_str.endsWith( "\"" )){
-											
-											url_str = url_str.substring( 1, url_str.length()-1 );
-											
-											protocol = protocol.substring(1);
-										}
-	
-										if ( protocol.equalsIgnoreCase( "chat" )){
-											
-											if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
-												
-												if ( !beta.isI2PAvailable()){
-													
-													throw( new Exception( "Anonymous chat unavailable" ));
-												}
-											}
-										}else{
-										
-												// test that it is a valid URL
-											
-											URL	url = new URL( url_str );
-										}
-										
-										String original_url_str = url_str;
-										
-										String display_url = UrlUtils.decode( url_str );
-
-											// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
-																				
-										int hack_pos = url_str.lastIndexOf( "[[" );
-										
-										if ( hack_pos > 0 && url_str.endsWith( "]]" )){
-											
-											String substitution = url_str.substring( hack_pos + 2, url_str.length() - 2  ).trim();
-											
-											url_str = url_str.substring( 0, hack_pos );
-											
-												// prevent anything that looks like a URL from being used as the display
-												// text to avoid 'confusion'
-	
-											if ( UrlUtils.parseTextForURL( substitution, true ) == null ){
-												
-												display_url = UrlUtils.decode( substitution );
-												
-											}else{
-												
-												display_url = UrlUtils.decode( url_str );
-											}										
-										}
-										
-										if ( term_char != ' ' || !display_url.equals( original_url_str )){
-											
-											int	old_len = msg.length();
-											
-											msg = msg.substring( 0, url_start ) + display_url + msg.substring( url_end );
-											
-												// msg has probably changed length, update the end-pointer accordingly
-											
-											url_end += (msg.length() - old_len );
-										}
-										
-										int	this_style_start 	= start + url_start;
-										int this_style_length	= display_url.length();
-										
-										if ( this_style_start > next_style_start ){
-											
-											if ( message_type ==  ChatMessage.MT_INFO ){
-												
-												StyleRange styleRange 	= new StyleRange();
-												styleRange.start 		= next_style_start;
-												styleRange.length 		= this_style_start - next_style_start;
-												styleRange.foreground 	= info_colour;
-												styleRange.font			= info_font;
-											
-												new_ranges.add( styleRange);
-												
-												next_style_start = this_style_start + this_style_length;
-											}
-										}
-										
-											/* Check that the URL is actually going tobe useful. IN particular, if it is a magnet URI with
-											 * no hash and no &fl links then it ain't gonna work
-											 */
-										
-										boolean	will_work = true;
-										
-										try{
-											
-											String lc_url = url_str.toLowerCase( Locale.US );
-											
-											if ( lc_url.startsWith( "magnet" )){
-												
-												if ( 	( !lc_url.contains( "btih:" )) ||
-														lc_url.contains( "btih:&" ) ||
-														lc_url.endsWith( "btih:" )){
-													
-														// no hash
-													
-													if ( !lc_url.contains( "&fl=" )){
-														
-															// no direct link
-															
-														will_work = false;
-													}
-												}
-											}else if ( lc_url.startsWith( "chat:nick" )){
-												
-												will_work = false;
-											}
-										}catch( Throwable e ){
-											
-										}
-										
-										if ( will_work ){
-											
-											StyleRange styleRange 	= new StyleRange();
-											styleRange.start 		= this_style_start;
-											styleRange.length 		= this_style_length;
-											styleRange.foreground 	= Colors.blue;
-											styleRange.underline 	= true;
-											
-												// DON'T store the URL object because in their wisdom SWT invokes the .equals method
-												// on data objects when trying to find 'similar' ones, and for URLs this causes
-												// a name service lookup...
-											
-											styleRange.data = url_str;
-											
-											new_ranges.add( styleRange);
-											
-										}else{
-											
-											StyleRange styleRange 	= new StyleRange();
-											styleRange.start 		= this_style_start;
-											styleRange.length 		= this_style_length;
-											styleRange.font 		= bold_font;
-											
-											new_ranges.add( styleRange);
-										}
-									}catch( Throwable e ){
-										
-										//e.printStackTrace();
-									}
-								}
-								
-								pos = url_end;
-		
-							}else{
-								
-								pos = pos+1;
-							}		
-						}
-					
-						if ( next_style_start < start + msg.length() ){
-							
-							if ( message_type ==  ChatMessage.MT_INFO ){
-								
-								StyleRange styleRange 	= new StyleRange();
-								styleRange.start 		= next_style_start;
-								styleRange.length 		= start + msg.length() - next_style_start;
-								styleRange.foreground 	= info_colour;
-								styleRange.font			= info_font;
-								
-								new_ranges.add( styleRange);
-							}
-						}
-					}
-				}catch( Throwable e ){
-					
-					Debug.out( e );
-				}
-								
-				appended.append( msg ); 
+				appended.append( rendered_msg ); 
 
 					// apply any default styles
 
@@ -4675,6 +4135,563 @@ BuddyPluginViewBetaChat
 				}
 			}
 		}
+	}
+	
+	protected static String
+	renderMessage(
+		BuddyPluginBeta		beta,
+		ChatInstance		chat,
+		String				original_msg,
+		int					message_type,
+		int					start,
+		List<StyleRange>	new_ranges,
+		Font				info_font,
+		Color				info_colour,
+		Font				bold_font )
+	{
+		String msg = original_msg;
+		
+		try{
+			{
+				List<Object>		segments = new ArrayList<Object>();
+				
+				int	pos = 0;
+				
+				while( true ){
+					
+					int old_pos = pos;
+					
+					pos = original_msg.indexOf( ':', old_pos );
+					
+					if ( pos == -1 ){
+						
+						String tail = original_msg.substring( old_pos );
+						
+						if ( tail.length() > 0 ){
+							
+							segments.add( tail );
+						}
+						
+						break;
+					}
+					
+					boolean	was_url = false;
+					
+					String	protocol = "";
+					
+					for (int i=pos-1; i>=0; i-- ){
+						
+						char c = original_msg.charAt(i);
+						
+						if ( !Character.isLetterOrDigit( c )){
+							
+							if ( c == '"' ){
+								
+								protocol = c + protocol;
+							}
+							
+							break;
+						}
+						
+						protocol = c + protocol;
+					}
+					
+					if ( protocol.length() > 0 ){
+						
+						char term_char = ' ';
+						
+						if ( protocol.startsWith( "\"" )){
+							
+							term_char = '"';
+						}
+						
+						int	url_start 	= pos - protocol.length();
+						int	url_end 	= original_msg.length();
+						
+						for ( int i=pos+1;i<url_end;i++){
+							
+							char c = original_msg.charAt( i );
+							
+							if ( c == term_char || ( term_char == ' ' && Character.isWhitespace( c ))){
+								
+								url_end = term_char==' '?i:(i+1);
+								
+								break;
+							}
+						}
+							
+						if ( url_end > pos+1 && !Character.isDigit( protocol.charAt(0))){
+							
+							try{									
+								String url_str = protocol + original_msg.substring( pos, url_end );
+						
+								if ( url_str.startsWith( "\"" ) && url_str.endsWith( "\"" )){
+									
+									url_str = url_str.substring( 1, url_str.length()-1 );
+									
+									protocol = protocol.substring(1);
+								}
+								
+								URL	url = new URL( url_str );
+								
+								if ( url_start > old_pos ){
+									
+									segments.add( original_msg.substring( old_pos, url_start ));
+								}
+								
+								segments.add( url );
+								
+								was_url = true;
+								
+								pos	= url_end;
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}
+					
+					if ( !was_url ){
+						
+						pos++;
+						
+						segments.add( original_msg.substring( old_pos, pos ) );
+					}
+				}
+				
+				if ( segments.size() > 1 ){
+					
+					List<Object>	temp = new ArrayList<Object>( segments.size());
+				
+					String	str = "";
+					
+					for ( Object obj: segments ){
+						
+						if ( obj instanceof String ){
+					
+							str += obj;
+							
+						}else{
+							
+							if ( str.length() > 0 ){
+								
+								temp.add( str );
+							}
+							
+							str = "";
+							
+							temp.add( obj );
+						}
+					}
+				
+					if ( str.length() > 0 ){
+						
+						temp.add( str );
+					}
+					
+					segments = temp;
+				}
+									
+				Map<String,String>	params = new HashMap<String,String>();
+				
+				for ( int i=0;i<segments.size(); i++ ){
+					
+					Object obj = segments.get(i);
+				
+					if ( obj instanceof URL ){
+						
+						params.clear();
+						
+						String str = ((URL)obj).toExternalForm();
+						
+						int	qpos = str.indexOf( '?' );
+						
+						if ( qpos > 0 ){
+							
+							int	hpos = str.lastIndexOf( "[[" );
+
+							String[]	bits = str.substring( qpos+1, hpos==-1?str.length():hpos ).split( "&" );
+							
+							for ( String bit: bits ){
+								
+								String[] temp = bit.split( "=", 2 );
+								
+								if ( temp.length == 2 ){
+									
+									params.put( temp[0], temp[1] );
+								}
+							}
+														
+							if ( hpos > 0 && str.endsWith( "]]" )){
+								
+								str = 	str.substring( 0, hpos ) + 
+										"[[" +
+										expand( params, str.substring( hpos+2, str.length()-2 ), false ) +
+										"]]";
+								
+								try{
+									segments.set( i, new URL( str ));
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}else{
+							
+							int	hpos = str.lastIndexOf( "[[" );
+																						
+							if ( hpos > 0 && str.endsWith( "]]" )){
+								
+								str = 	str.substring( 0, hpos ) + 
+										"[[" +
+										str.substring( hpos+2, str.length()-2 ) +
+										"]]";
+								
+								try{
+									segments.set( i, new URL( str ));
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+					}else{
+						
+						String str = (String)obj;
+						
+						if ( params.size() > 0 ){
+							
+							segments.set( i, expand( params, str, true ));
+						}
+					}
+				}
+					
+				StringBuilder sb = new StringBuilder( 1024 );
+				
+				for ( Object obj: segments ){
+					
+					if ( obj instanceof URL ){
+					
+						sb.append("\"").append(((URL) obj).toExternalForm()).append("\"");
+						
+					}else{
+						
+						String segment_str = (String)obj;
+						
+						try{
+							String my_nick = chat.getNickname( true );
+							
+							if ( 	my_nick.length() > 0 && 
+									segment_str.contains( my_nick ) &&
+									message_type ==  ChatMessage.MT_NORMAL ){
+								
+								StringBuilder temp = new StringBuilder( segment_str.length() + 1024 );
+								
+								int	nick_len = my_nick.length();
+																	
+								int	segment_len = segment_str.length();
+								
+								int	segment_pos = 0;
+																	
+								while( segment_pos < segment_len ){
+									
+									int next_pos = segment_str.indexOf( my_nick, segment_pos );
+									
+									if ( next_pos >= 0 ){
+										
+										temp.append( segment_str.substring( segment_pos, next_pos ));
+										
+										boolean	match = true;
+										
+										if ( next_pos > 0 ){
+											
+											if ( Character.isLetterOrDigit( segment_str.charAt( next_pos-1 ))){
+												
+												match = false;
+											}
+										}
+										
+										int nick_end = next_pos + nick_len;
+										
+										if ( nick_end < segment_len ){
+											
+											if ( Character.isLetterOrDigit( segment_str.charAt(nick_end ))){
+												
+												match = false;
+											}
+										}
+										
+										if ( match ){
+										
+											temp.append("\"chat:nick[[").append(UrlUtils.encode(my_nick)).append("]]\"");
+
+										}else{
+											
+											temp.append( my_nick );
+										}
+										
+										segment_pos = next_pos + nick_len;
+									
+									}else{
+										
+										temp.append( segment_str.substring(segment_pos));
+										
+										break;
+									}
+								}
+								
+								segment_str = temp.toString();
+							}
+						}catch( Throwable e ){
+						
+							Debug.out( e );
+						}
+						
+						sb.append( segment_str );
+					}
+				}
+				
+				msg = sb.toString();
+			}
+			
+			{	
+					// should rewrite this one day to use the segments above directly... We'd need to handle URLs in expansions though
+				
+				int	next_style_start = start;
+				
+				int	pos = 0;
+				
+				while( pos < msg.length()){
+					
+					pos = msg.indexOf( ':', pos );
+					
+					if ( pos == -1 ){
+						
+						break;
+					}
+					
+					String	protocol = "";
+					
+					for (int i=pos-1; i>=0; i-- ){
+						
+						char c = msg.charAt(i);
+						
+						if ( !Character.isLetterOrDigit( c )){
+							
+							if ( c == '"' ){
+								
+								protocol = c + protocol;
+							}
+							
+							break;
+						}
+						
+						protocol = c + protocol;
+					}
+					
+					if ( protocol.length() > 0 ){
+						
+						char term_char = ' ';
+						
+						if ( protocol.startsWith( "\"" )){
+							
+							term_char = '"';
+						}
+						
+						int	url_start 	= pos - protocol.length();
+						int	url_end 	= msg.length();
+						
+						for ( int i=pos+1;i<url_end;i++){
+							
+							char c = msg.charAt( i );
+							
+							if ( c == term_char || ( term_char == ' ' && Character.isWhitespace( c ))){
+								
+								url_end = term_char==' '?i:(i+1);
+								
+								break;
+							}
+						}
+							
+						if ( url_end > pos+1 && !Character.isDigit( protocol.charAt(0))){
+							
+							try{									
+								String url_str = protocol + msg.substring( pos, url_end );
+						
+								if ( url_str.startsWith( "\"" ) && url_str.endsWith( "\"" )){
+									
+									url_str = url_str.substring( 1, url_str.length()-1 );
+									
+									protocol = protocol.substring(1);
+								}
+
+								if ( protocol.equalsIgnoreCase( "chat" )){
+									
+									if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
+										
+										if ( beta != null && !beta.isI2PAvailable()){
+											
+											throw( new Exception( "Anonymous chat unavailable" ));
+										}
+									}
+								}else{
+								
+										// test that it is a valid URL
+									
+									URL	url = new URL( url_str );
+								}
+								
+								String original_url_str = url_str;
+								
+								String display_url = UrlUtils.decode( url_str );
+
+									// support a lame way of naming links - just append [[<url-encoded desc>]] to the URL
+																		
+								int hack_pos = url_str.lastIndexOf( "[[" );
+								
+								if ( hack_pos > 0 && url_str.endsWith( "]]" )){
+									
+									String substitution = url_str.substring( hack_pos + 2, url_str.length() - 2  ).trim();
+									
+									url_str = url_str.substring( 0, hack_pos );
+									
+										// prevent anything that looks like a URL from being used as the display
+										// text to avoid 'confusion'
+
+									if ( UrlUtils.parseTextForURL( substitution, true ) == null ){
+										
+										display_url = UrlUtils.decode( substitution );
+										
+									}else{
+										
+										display_url = UrlUtils.decode( url_str );
+									}										
+								}
+								
+								if ( term_char != ' ' || !display_url.equals( original_url_str )){
+									
+									int	old_len = msg.length();
+									
+									msg = msg.substring( 0, url_start ) + display_url + msg.substring( url_end );
+									
+										// msg has probably changed length, update the end-pointer accordingly
+									
+									url_end += (msg.length() - old_len );
+								}
+								
+								int	this_style_start 	= start + url_start;
+								int this_style_length	= display_url.length();
+								
+								if ( this_style_start > next_style_start ){
+									
+									if ( message_type ==  ChatMessage.MT_INFO ){
+										
+										StyleRange styleRange 	= new StyleRange();
+										styleRange.start 		= next_style_start;
+										styleRange.length 		= this_style_start - next_style_start;
+										styleRange.foreground 	= info_colour;
+										styleRange.font			= info_font;
+									
+										new_ranges.add( styleRange);
+										
+										next_style_start = this_style_start + this_style_length;
+									}
+								}
+								
+									/* Check that the URL is actually going tobe useful. IN particular, if it is a magnet URI with
+									 * no hash and no &fl links then it ain't gonna work
+									 */
+								
+								boolean	will_work = true;
+								
+								try{
+									
+									String lc_url = url_str.toLowerCase( Locale.US );
+									
+									if ( lc_url.startsWith( "magnet" )){
+										
+										if ( 	( !lc_url.contains( "btih:" )) ||
+												lc_url.contains( "btih:&" ) ||
+												lc_url.endsWith( "btih:" )){
+											
+												// no hash
+											
+											if ( !lc_url.contains( "&fl=" )){
+												
+													// no direct link
+													
+												will_work = false;
+											}
+										}
+									}else if ( lc_url.startsWith( "chat:nick" )){
+										
+										will_work = false;
+									}
+								}catch( Throwable e ){
+									
+								}
+								
+								if ( will_work ){
+									
+									StyleRange styleRange 	= new StyleRange();
+									styleRange.start 		= this_style_start;
+									styleRange.length 		= this_style_length;
+									styleRange.foreground 	= Colors.blue;
+									styleRange.underline 	= true;
+									
+										// DON'T store the URL object because in their wisdom SWT invokes the .equals method
+										// on data objects when trying to find 'similar' ones, and for URLs this causes
+										// a name service lookup...
+									
+									styleRange.data = url_str;
+									
+									new_ranges.add( styleRange);
+									
+								}else{
+									
+									StyleRange styleRange 	= new StyleRange();
+									styleRange.start 		= this_style_start;
+									styleRange.length 		= this_style_length;
+									styleRange.font 		= bold_font;
+									
+									new_ranges.add( styleRange);
+								}
+							}catch( Throwable e ){
+								
+								//e.printStackTrace();
+							}
+						}
+						
+						pos = url_end;
+
+					}else{
+						
+						pos = pos+1;
+					}		
+				}
+			
+				if ( next_style_start < start + msg.length() ){
+					
+					if ( message_type ==  ChatMessage.MT_INFO ){
+						
+						StyleRange styleRange 	= new StyleRange();
+						styleRange.start 		= next_style_start;
+						styleRange.length 		= start + msg.length() - next_style_start;
+						styleRange.foreground 	= info_colour;
+						styleRange.font			= info_font;
+						
+						new_ranges.add( styleRange);
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( msg );
 	}
 	
 	public void

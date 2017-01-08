@@ -2304,8 +2304,20 @@ BuddyPluginBeta
 				
 				return;
 			}
+						
+			BuddyPluginViewInterface ui = plugin.getSWTUI();
 			
-			String str = inst.getName() + ": " + message.getMessage();
+			String	str;
+			
+			if ( ui != null ){
+				
+				str = ui.renderMessage( inst, message );
+			}else{
+				
+				str = message.getMessage();
+			}
+			
+			str = inst.getName() + ": " + str;
 			
 			Map<String,String>	cb_data = new HashMap<String, String>();
 			
