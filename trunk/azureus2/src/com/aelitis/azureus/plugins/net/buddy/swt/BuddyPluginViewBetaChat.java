@@ -888,7 +888,9 @@ BuddyPluginViewBetaChat
 							log_mi.setSelection( chat.getLogMessages());
 							automute_mi.setSelection( chat.getAutoMute());
 							postnotifications_mi.setSelection( chat.getEnableNotificationsPost());
-							disableindicators_mi.setSelection( chat.getDisableNewMsgIndications());
+							boolean disable_indications = chat.getDisableNewMsgIndications();
+							disableindicators_mi.setSelection( disable_indications );
+							postnotifications_mi.setEnabled( !disable_indications );
 						}
 					});
 		}else{
