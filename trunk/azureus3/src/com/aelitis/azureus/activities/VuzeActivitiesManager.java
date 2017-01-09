@@ -480,7 +480,9 @@ public class VuzeActivitiesManager
 					VuzeActivitiesEntry existing_entry = allEntries.get( entry );
 					if (existing_entry != null) {
 						existingEntries.add(existing_entry);
-						existing_entry.updateFrom( entry );
+						if ( existing_entry.getTimestamp() < entry.getTimestamp()){
+							existing_entry.updateFrom( entry );
+						}
 					} else {
 						newEntries.add(entry);
 						allEntries.add(entry);
@@ -585,6 +587,29 @@ public class VuzeActivitiesManager
 
 	public static List<VuzeActivitiesEntry> getAllEntries() {
 		return allEntries.getList();
+	}
+	
+	public static VuzeActivitiesEntry
+	getMostRecentUnseen()
+	{
+		VuzeActivitiesEntry		newest		= null;
+		long					newest_time	= 0;
+		
+		for ( VuzeActivitiesEntry entry: allEntries ){
+			
+			if ( !entry.getViewed()){
+				
+				long t = entry.getTimestamp();
+				
+				if ( t > newest_time ){
+					
+					newest		= entry;
+					newest_time	= t;
+				}
+			}
+		}
+		
+		return( newest );
 	}
 	
 	public static int getNumEntries() {

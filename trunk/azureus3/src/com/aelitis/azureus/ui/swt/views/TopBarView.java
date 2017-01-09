@@ -353,10 +353,9 @@ public class TopBarView
 						new ViewQuickConfig());
 				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewQuickNetInfo",
 						new ViewQuickNetInfo());
-				/* derp
-				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "VivaldiView",
-						new VivaldiView(false));
-				*/
+				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewQuickNotifications",
+						new ViewQuickNotifications());
+
 				
 				registeredCoreSubViews = true;
 			}
