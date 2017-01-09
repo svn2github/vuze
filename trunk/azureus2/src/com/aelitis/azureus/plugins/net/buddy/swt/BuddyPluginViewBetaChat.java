@@ -848,16 +848,29 @@ BuddyPluginViewBetaChat
 						}
 					});		
 			
-			final MenuItem disablenotifications_mi = new MenuItem( advanced_menu, SWT.CHECK );
-			disablenotifications_mi.setText( MessageText.getString( "azbuddy.dchat.disable.notifications" ));
+			final MenuItem postnotifications_mi = new MenuItem( advanced_menu, SWT.CHECK );
+			postnotifications_mi.setText( MessageText.getString( "azbuddy.dchat.post.to.notifcations" ));
 			
-			disablenotifications_mi.addSelectionListener(
+			postnotifications_mi.addSelectionListener(
 					new SelectionAdapter() {				
 						public void 
 						widgetSelected(
 							SelectionEvent e ) 
 						{
-							chat.setDisableNotifications( disablenotifications_mi.getSelection());
+							chat.setEnableNotificationsPost( postnotifications_mi.getSelection());
+						}
+					});	
+			
+			final MenuItem disableindicators_mi = new MenuItem( advanced_menu, SWT.CHECK );
+			disableindicators_mi.setText( MessageText.getString( "azbuddy.dchat.disable.msg.indicators" ));
+			
+			disableindicators_mi.addSelectionListener(
+					new SelectionAdapter() {				
+						public void 
+						widgetSelected(
+							SelectionEvent e ) 
+						{
+							chat.setDisableNewMsgIndications( disableindicators_mi.getSelection());
 						}
 					});	
 			
@@ -874,7 +887,8 @@ BuddyPluginViewBetaChat
 							persist_mi.setSelection( chat.getSaveMessages());
 							log_mi.setSelection( chat.getLogMessages());
 							automute_mi.setSelection( chat.getAutoMute());
-							disablenotifications_mi.setSelection( chat.getDisableNotifications());
+							postnotifications_mi.setSelection( chat.getEnableNotificationsPost());
+							disableindicators_mi.setSelection( chat.getDisableNewMsgIndications());
 						}
 					});
 		}else{

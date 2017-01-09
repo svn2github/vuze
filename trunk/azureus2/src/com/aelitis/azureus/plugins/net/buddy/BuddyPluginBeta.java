@@ -620,10 +620,10 @@ BuddyPluginBeta
 		setBooleanOption( net, key, "automute", b );
 	}
 	
-		// disable notifications
+		// disable new msg indications indications
 		
 	private boolean
-	getDisableNotifications(
+	getDisableNewMsgIndications(
 		String		net,
 		String		key )
 	{
@@ -631,7 +631,7 @@ BuddyPluginBeta
 	}
 	
 	private void
-	setDisableNotifications(
+	setDisableNewMsgIndications(
 		String		net,
 		String		key,
 		boolean		b )
@@ -639,6 +639,25 @@ BuddyPluginBeta
 		setBooleanOption( net, key, "disnot", b );
 	}
 
+		// notification posting
+	
+	private boolean
+	getEnableNotificationsPost(
+		String		net,
+		String		key )
+	{
+		return( getBooleanOption( net, key, "notipost", false ));
+	}
+	
+	private void
+	setEnableNotificationsPost(
+		String		net,
+		String		key,
+		boolean		b )
+	{
+		setBooleanOption( net, key, "notipost", b );
+	}
+	
 		// last message info
 	
 	public String
@@ -2296,42 +2315,55 @@ BuddyPluginBeta
 		ChatInstance		inst,
 		ChatMessage			message )
 	{
-		if ( message != null ){
+		if ( inst.getEnableNotificationsPost()){
 			
-			AZ3Functions.provider provider = AZ3Functions.getProvider();
-			
-			if ( provider == null ){
+			if ( message != null ){
 				
-				return;
+				AZ3Functions.provider provider = AZ3Functions.getProvider();
+				
+				if ( provider == null ){
+					
+					return;
+				}
+							
+				BuddyPluginViewInterface ui = plugin.getSWTUI();
+				
+				String	str;
+				
+				if ( ui != null ){
+					
+					str = ui.renderMessage( inst, message );
+					
+				}else{
+					
+					str = message.getMessage();
+				}
+				
+				String chan_name = inst.getName(true);
+				
+				int pos = chan_name.lastIndexOf( '[' );
+				
+				if ( pos != -1 && chan_name.endsWith( "]" )){
+					
+					chan_name = chan_name.substring( 0, pos );
+				}
+				
+				str = chan_name + ": " + str;
+				
+				Map<String,String>	cb_data = new HashMap<String, String>();
+				
+				cb_data.put( "allowReAdd", "true" );
+				cb_data.put( "net", inst.getNetwork());
+				cb_data.put( "key", inst.getKey());
+				
+				provider.addLocalActivity(
+					inst.getNetAndKey(),
+					"image.sidebar.chat-overview",
+					str,
+					new String[]{ MessageText.getString( "label.view" )},
+					ActivityCallback.class,
+					cb_data );
 			}
-						
-			BuddyPluginViewInterface ui = plugin.getSWTUI();
-			
-			String	str;
-			
-			if ( ui != null ){
-				
-				str = ui.renderMessage( inst, message );
-			}else{
-				
-				str = message.getMessage();
-			}
-			
-			str = inst.getName() + ": " + str;
-			
-			Map<String,String>	cb_data = new HashMap<String, String>();
-			
-			cb_data.put( "allowReAdd", "true" );
-			cb_data.put( "net", inst.getNetwork());
-			cb_data.put( "key", inst.getKey());
-			
-			provider.addLocalActivity(
-				inst.getNetAndKey(),
-				"image.sidebar.chat-overview",
-				str,
-				new String[]{ "View" },
-				ActivityCallback.class,
-				cb_data );
 		}
 	}
 	
@@ -2456,7 +2488,8 @@ BuddyPluginBeta
 		private boolean		save_messages;
 		private boolean		log_messages;
 		private boolean		auto_mute;
-		private boolean		disable_notifications;
+		private boolean 	enable_notification_posts;
+		private boolean		disable_new_msg_indications;
 		
 		private boolean		destroyed;
 		
@@ -2481,12 +2514,14 @@ BuddyPluginBeta
 			
 			if ( !is_private_chat ){
 			
-				is_favourite 			= getFavourite( network, key );
-				save_messages 			= BuddyPluginBeta.this.getSaveMessages( network, key );
-				log_messages 			= BuddyPluginBeta.this.getLogMessages( network, key );
-				auto_mute 				= BuddyPluginBeta.this.getAutoMute( network, key );
-				disable_notifications 	= BuddyPluginBeta.this.getDisableNotifications( network, key );
+				is_favourite 				= getFavourite( network, key );
+				save_messages 				= BuddyPluginBeta.this.getSaveMessages( network, key );
+				log_messages 				= BuddyPluginBeta.this.getLogMessages( network, key );
+				auto_mute 					= BuddyPluginBeta.this.getAutoMute( network, key );
+				disable_new_msg_indications = BuddyPluginBeta.this.getDisableNewMsgIndications( network, key );
 			}
+			
+			enable_notification_posts = BuddyPluginBeta.this.getEnableNotificationsPost( network, key );
 			
 			if ( _options != null ){
 				
@@ -2731,24 +2766,41 @@ BuddyPluginBeta
 		}
 		
 		public boolean
-		getDisableNotifications()
+		getDisableNewMsgIndications()
 		{
-			return( disable_notifications );
+			return( disable_new_msg_indications );
 		}
 		
 		public void
-		setDisableNotifications(
+		setDisableNewMsgIndications(
 			boolean		b )
 		{
 			if ( !is_private_chat ){
 				
-				if ( b != disable_notifications ){
+				if ( b != disable_new_msg_indications ){
 					
-					disable_notifications = b;
+					disable_new_msg_indications = b;
 					
-					BuddyPluginBeta.this.setDisableNotifications( network, key, b );
-					
+					BuddyPluginBeta.this.setDisableNewMsgIndications( network, key, b );
 				}
+			}
+		}
+		
+		public boolean
+		getEnableNotificationsPost()
+		{
+			return( enable_notification_posts );
+		}
+		
+		public void
+		setEnableNotificationsPost(
+			boolean		b )
+		{
+			if ( b != enable_notification_posts ){
+					
+				enable_notification_posts = b;
+					
+				BuddyPluginBeta.this.setEnableNotificationsPost( network, key, b );
 			}
 		}
 		

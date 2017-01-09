@@ -954,7 +954,7 @@ BuddyPluginView
 				
 				ChatInstance chat = (ChatInstance)entry[2];
 				
-				if ( !chat.getDisableNotifications()){
+				if ( !chat.getDisableNewMsgIndications()){
 					
 					has_pending = true;
 					
@@ -1143,7 +1143,7 @@ BuddyPluginView
 													
 												}else{
 												
-													if ( !chat.getDisableNotifications()){
+													if ( !chat.getDisableNewMsgIndications()){
 														
 														current_instances.add( chat );
 														
