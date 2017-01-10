@@ -47,7 +47,6 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 
 /**
@@ -58,6 +57,8 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 public class TopBarView
 	extends SkinView
 {
+	private static final Object	view_name_key	= new Object();
+	
 	private List<UISWTViewCore> topbarViews = new ArrayList<UISWTViewCore>();
 
 	private UISWTViewCore activeTopBar;
@@ -182,6 +183,7 @@ public class TopBarView
 				}
 			});
 
+			/*
 			SWTSkinObject soPrev = skin.getSkinObject("topbar-plugin-prev");
 			if (soPrev != null) {
 				SWTSkinButtonUtility btnPrev = new SWTSkinButtonUtility(soPrev);
@@ -255,7 +257,8 @@ public class TopBarView
 					}
 				});
 			}
-
+			*/
+			
 			SWTSkinObject soList = skin.getSkinObject("topbar-plugin-list");
 			if (soList != null) {
 				final Composite cList = (Composite) soList.getControl();
@@ -265,16 +268,86 @@ public class TopBarView
 				listPlugins.setForeground(cList.getForeground());
 				listPlugins.addSelectionListener(new SelectionListener() {
 					public void widgetSelected(SelectionEvent e) {
-						int i = listPlugins.getSelectionIndex();
-						if (i >= 0 && i < topbarViews.size()) {
-							activateTopBar((UISWTViewCore) topbarViews.get(i));
-							COConfigurationManager.setParameter("topbar.viewindex", i);
+						String[] selection = listPlugins.getSelection();
+						
+						if ( selection.length > 0 ){
+							
+							String name = selection[0];
+						
+							for ( UISWTViewCore view: topbarViews ){
+							
+								if ( getViewName(view).equals( name )){
+								
+									activateTopBar( view );
+								}
+							}
 						}
 					}
 
 					public void widgetDefaultSelected(SelectionEvent e) {
 					}
 				});
+				
+				final Menu menu = new Menu( listPlugins );
+				
+				listPlugins.setMenu( menu );
+				
+				menu.addMenuListener(
+					new MenuListener() {
+						
+						@Override
+						public void menuShown(MenuEvent e) {
+							for ( MenuItem mi: menu.getItems()){
+								mi.dispose();
+							}
+							
+							for ( final UISWTViewCore view: topbarViews ){
+								
+								final String id = view.getViewID();
+								
+								final String name = getViewName( view );
+								
+								final MenuItem mi = new MenuItem( menu, SWT.CHECK );
+								
+								mi.setText( name );
+								
+								boolean enabled = isEnabled( view );
+								
+								mi.setSelection( enabled );
+								
+								mi.addSelectionListener(
+									new SelectionAdapter() {
+										@Override
+										public void 
+										widgetSelected(
+											SelectionEvent e )
+										{
+											boolean sel = mi.getSelection();
+											
+											COConfigurationManager.setParameter( "topbar.view." + id + ".enabled", sel );
+								
+											view.getComposite().setVisible( sel );
+											
+											if ( sel ){
+												
+												listPlugins.add( name );
+												
+											}else{
+												
+												listPlugins.remove( name );
+											}
+											
+											Utils.relayout( cPluginArea );
+										}
+									});
+							
+							}
+						}
+						
+						@Override
+						public void menuHidden(MenuEvent e) {
+						}
+					});
 			}
 
 			skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
@@ -338,10 +411,6 @@ public class TopBarView
 				});
 			}
 
-			int toActiveView = COConfigurationManager.getIntParameter(
-					"topbar.viewindex", 0);
-			int viewIndex = toActiveView;
-
 			UISWTInstanceImpl uiSWTinstance = (UISWTInstanceImpl) UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
 			
 			if (uiSWTinstance != null && !registeredCoreSubViews ) {
@@ -361,68 +430,188 @@ public class TopBarView
 			}
 
 			if ( uiSWTinstance != null ){
+				
 				UISWTViewEventListenerHolder[] pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_TOPBAR);
+				
 				for (UISWTViewEventListenerHolder l : pluginViews) {
-					if (l != null) {
-						try {
+					
+					if ( l != null ){
+						
+						try{
 							UISWTViewImpl view = new UISWTViewImpl(l.getViewID(), UISWTInstance.VIEW_TOPBAR, false);
+							
 							view.setEventListener(l, true);
+							
 							addTopBarView(view, cPluginArea);
-							if (toActiveView-- == 0) {
-								activateTopBar(view);
-								if (listPlugins != null) {
-									listPlugins.setSelection(viewIndex);
-								}
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-							// skip, plugin probably specifically asked to not be added
+
+						}catch ( Throwable e ){
+							
+							Debug.out( e );
 						}
 					}
 				}
 			}
 			
-			if (toActiveView >= 0 && topbarViews.size() > 0) {
-				activeTopBar = topbarViews.get(0);
-				activeTopBar.getComposite().setVisible(true);
+			String active_view_id = COConfigurationManager.getStringParameter( "topbar.active.view.id", "" );
+
+			boolean			activated 		= false;
+			UISWTViewCore	first_enabled 	= null;
+			
+			for ( UISWTViewCore view: topbarViews ){
+				
+				if ( isEnabled( view )){
+					
+					if ( first_enabled == null ){
+						
+						first_enabled = view;
+					}
+					
+					if ( active_view_id.equals( view.getViewID())){
+					
+						activateTopBar( view );
+						
+						activated = true;
+						
+						break;
+					}
+				}
 			}
 
+			if ( !activated && first_enabled != null ){
+				
+				activateTopBar( first_enabled );
+				
+				activated = true;
+			}
+			
+			if ( !activated && topbarViews.size() > 0 ){
+				
+				UISWTViewCore view = topbarViews.get( 0 );
+				
+				setEnabled( view, true );
+				
+				activateTopBar( view );
+			}
+			
 			if ( skinObject != null ){
 			
 				skinObject.getControl().getParent().layout(true);
 			}
-		} catch (Exception e) {
-			Debug.out(e);
+		}catch( Throwable e ){
+			
+			Debug.out( e );
 		}
 	}
 
-	/**
-	 * @param view
-	 *
-	 * @since 3.0.1.1
-	 */
-	protected void activateTopBar(UISWTViewCore view) {
-		if (activeTopBar != null) {
-			Composite c = activeTopBar.getComposite();
-			while (c.getParent() != cPluginArea) {
-				c = c.getParent();
-			}
-			c.setVisible(false);
-		}
-		activeTopBar = view;
-		Composite c = activeTopBar.getComposite();
-		while (c.getParent() != cPluginArea) {
-			c = c.getParent();
-		}
-		c.setVisible(true);
+	private boolean
+	isEnabled(
+		UISWTViewCore 		view )
+	{
+		return( COConfigurationManager.getBooleanParameter( "topbar.view." + view.getViewID() + ".enabled", true ));
+	}
+	
+	private boolean
+	setEnabled(
+		UISWTViewCore 		view,
+		boolean				enabled )
+	{
+		return( COConfigurationManager.setParameter( "topbar.view." + view.getViewID() + ".enabled", enabled ));
+	}
 
-		SWTSkinObject soTitle = skin.getSkinObject("topbar-plugin-title");
-		//System.out.println("Hello" + soTitle);
-		if (soTitle != null) {
-			soTitle.getControl().redraw();
+	private String
+	getViewName(
+		UISWTViewCore		view )
+	{
+			// no locale switching support, la de da
+		
+		String s = (String)view.getUserData( view_name_key );
+		
+		if ( s != null ){
+			
+			return( s );
 		}
 		
-		Utils.relayout(c);
+		s = view.getFullTitle();
+		
+		if ( MessageText.keyExists(s)){
+			
+			s = MessageText.getString(s);
+		}
+
+		view.setUserData( view_name_key, s );
+		
+		return( s );
+	}
+	
+	protected void 
+	activateTopBar(
+		UISWTViewCore view ) 
+	{
+
+		if ( !isEnabled( view  )){
+			
+			Debug.out( "Attempt to activate disabled view" );
+			
+			return;
+		}
+		
+		if ( view == activeTopBar ){
+			
+			return;
+		}
+		
+		if ( activeTopBar != null ){
+			
+			Composite c = activeTopBar.getComposite();
+			
+			while (c.getParent() != cPluginArea ){
+				
+				c = c.getParent();
+			}
+			
+			c.setVisible(false);
+		}
+		
+		activeTopBar = view;
+		
+		COConfigurationManager.setParameter( "topbar.active.view.id", view.getViewID());
+
+		if ( listPlugins != null ){
+					
+			String name = getViewName( view );
+			
+			int index = listPlugins.indexOf( name );
+			
+			if ( index == -1 ){
+				
+				listPlugins.add( name );
+				
+				index = listPlugins.indexOf( name );
+			}
+			
+			listPlugins.setSelection( new String[0]);	// hide selection state as distracting
+
+		}
+		
+		Composite c = activeTopBar.getComposite();
+		
+		while (c.getParent() != cPluginArea ){
+			
+			c = c.getParent();
+		}
+		
+		c.setVisible(true);
+
+		/*
+		SWTSkinObject soTitle = skin.getSkinObject("topbar-plugin-title");
+				
+		if (soTitle != null) {
+			
+			soTitle.getControl().redraw();
+		}
+		*/
+		
+		Utils.relayout(cPluginArea);
 		
 		activeTopBar.triggerEvent( UISWTViewEvent.TYPE_FOCUSGAINED, null );
 	}
@@ -459,12 +648,13 @@ public class TopBarView
 		}
 
 		topbarViews.add(view);
-		if (listPlugins != null) {
-			String s = view.getFullTitle();
-			if (MessageText.keyExists(s)) {
-				s = MessageText.getString(s);
+		
+		if ( listPlugins != null ){
+						
+			if ( isEnabled( view )){
+				
+				listPlugins.add( getViewName( view ));
 			}
-			listPlugins.add(s);
 		}
 	}
 

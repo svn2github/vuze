@@ -17,8 +17,6 @@
 
 package com.aelitis.azureus.ui.swt.views;
 
-import java.net.InetAddress;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -36,8 +34,6 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -51,6 +47,7 @@ public class ViewQuickNotifications
 	private Composite			composite;
 	private Label				notification_icon;
 	private BufferedLabel		notification_text;
+	private BufferedLabel		more_text;
 		
 	public 
 	ViewQuickNotifications() 
@@ -71,6 +68,7 @@ public class ViewQuickNotifications
 		Utils.setLayoutData(composite, gridData);
 		
 		GridLayout layout = new GridLayout(2, false);
+		layout.marginLeft = layout.marginRight = layout.marginTop = layout.marginBottom = 0;
 		
 		composite.setLayout(layout);
 		
@@ -100,9 +98,20 @@ public class ViewQuickNotifications
 					}
 				}
 			};
+		
+			// text
 			
+		more_text = new BufferedLabel(composite,SWT.NONE);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 2;
+		Utils.setLayoutData(more_text, gridData);
+
+		
+		composite.addMouseListener( listener );
+		
 		notification_icon.addMouseListener( listener );
 		notification_text.addMouseListener( listener );
+		more_text.addMouseListener( listener );
 	}
 
 	private void 
@@ -125,13 +134,17 @@ public class ViewQuickNotifications
 
 	private void refresh()
 	{
-		VuzeActivitiesEntry 	entry = VuzeActivitiesManager.getMostRecentUnseen();
+		Object[] 	temp = VuzeActivitiesManager.getMostRecentUnseen();
+		
+		VuzeActivitiesEntry entry = (VuzeActivitiesEntry)temp[0];
 		
 		if ( entry == null ){
 			
 			notification_icon.setImage( null );
 			
 			notification_text.setText( "" );
+			
+			more_text.setText( "" );
 			
 		}else{
 			
@@ -156,6 +169,20 @@ public class ViewQuickNotifications
 			}else{
 				
 				notification_icon.setImage( null );
+			}
+			
+			int	num = (Integer)temp[1];
+			
+			if ( num <= 1 ){
+				
+				more_text.setText( "" );
+				
+			}else{
+				
+				more_text.setText(
+					MessageText.getString(
+						"popup.more.waiting",
+						new String[]{ String.valueOf( num-1 )} ));
 			}
 		}
 	}

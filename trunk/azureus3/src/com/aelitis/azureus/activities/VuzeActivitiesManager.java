@@ -589,15 +589,19 @@ public class VuzeActivitiesManager
 		return allEntries.getList();
 	}
 	
-	public static VuzeActivitiesEntry
+	public static Object[]
 	getMostRecentUnseen()
 	{
 		VuzeActivitiesEntry		newest		= null;
 		long					newest_time	= 0;
 		
+		int	num_unseen = 0;
+		
 		for ( VuzeActivitiesEntry entry: allEntries ){
 			
 			if ( !entry.getViewed()){
+				
+				num_unseen++;
 				
 				long t = entry.getTimestamp();
 				
@@ -609,7 +613,7 @@ public class VuzeActivitiesManager
 			}
 		}
 		
-		return( newest );
+		return( new Object[]{ newest, num_unseen });
 	}
 	
 	public static int getNumEntries() {
