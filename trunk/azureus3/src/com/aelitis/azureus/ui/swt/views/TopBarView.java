@@ -302,9 +302,7 @@ public class TopBarView
 							}
 							
 							for ( final UISWTViewCore view: topbarViews ){
-								
-								final String id = view.getViewID();
-								
+																
 								final String name = getViewName( view );
 								
 								final MenuItem mi = new MenuItem( menu, SWT.CHECK );
@@ -322,19 +320,19 @@ public class TopBarView
 										widgetSelected(
 											SelectionEvent e )
 										{
-											boolean sel = mi.getSelection();
+											boolean enabled = mi.getSelection();
 											
-											COConfigurationManager.setParameter( "topbar.view." + id + ".enabled", sel );
-								
-											view.getComposite().setVisible( sel );
-											
-											if ( sel ){
+											setEnabled( view, enabled );
+																			
+											if ( enabled ){
 												
-												listPlugins.add( name );
+												activateTopBar( view );
 												
 											}else{
 												
 												listPlugins.remove( name );
+												
+												activateTopBar( null );
 											}
 											
 											Utils.relayout( cPluginArea );
@@ -547,7 +545,45 @@ public class TopBarView
 	activateTopBar(
 		UISWTViewCore view ) 
 	{
-
+		if ( view == null ){
+		
+				// indicates that a view has been disabled and we need to maybe tidy up
+			
+			if ( activeTopBar != null ){
+				
+				if ( !isEnabled( activeTopBar )){
+					
+					Composite c = activeTopBar.getComposite();
+					
+					while (c.getParent() != cPluginArea ){
+						
+						c = c.getParent();
+					}
+					
+					c.setVisible(false);
+					
+					activeTopBar = null;
+					
+					for ( UISWTViewCore v: topbarViews ){
+					
+						if ( isEnabled( v )){
+							
+								// switch to first enabled found, if any
+							
+							view = v;
+						}
+					}
+				}
+			}
+			
+			if ( view == null ){
+			
+					// no enabled views, bail
+				
+				return;
+			}
+		}
+		
 		if ( !isEnabled( view  )){
 			
 			Debug.out( "Attempt to activate disabled view" );

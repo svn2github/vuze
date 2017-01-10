@@ -20,7 +20,10 @@ package com.aelitis.azureus.ui.swt.views;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -31,6 +34,7 @@ import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
@@ -46,7 +50,7 @@ public class ViewQuickNotifications
 	
 	private Composite			composite;
 	private Label				notification_icon;
-	private BufferedLabel		notification_text;
+	private Label				notification_text;
 	private BufferedLabel		more_text;
 		
 	public 
@@ -81,7 +85,7 @@ public class ViewQuickNotifications
 		
 			// text
 		
-		notification_text = new BufferedLabel(composite,SWT.NONE);
+		notification_text = new Label(composite,SWT.DOUBLE_BUFFERED);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		Utils.setLayoutData(notification_text, gridData);
 
@@ -105,6 +109,7 @@ public class ViewQuickNotifications
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
 		Utils.setLayoutData(more_text, gridData);
+		notification_text.setData( "" );
 
 		
 		composite.addMouseListener( listener );
@@ -112,6 +117,29 @@ public class ViewQuickNotifications
 		notification_icon.addMouseListener( listener );
 		notification_text.addMouseListener( listener );
 		more_text.addMouseListener( listener );
+		
+		notification_text.addPaintListener(
+			new PaintListener() {
+				
+				@Override
+				public void paintControl(PaintEvent e) {
+					String text = (String)notification_text.getData();
+					
+					int style = SWT.LEFT;
+
+					Rectangle bounds = notification_text.getBounds();
+					
+					bounds.x		= 4;
+					bounds.y		= 0;
+					bounds.width 	-= 8;
+					
+					GCStringPrinter sp = new GCStringPrinter(e.gc, text, bounds, true, true, style );
+
+					sp.calculateMetrics();
+					
+					sp.printString();
+				}
+			});
 	}
 
 	private void 
@@ -138,17 +166,31 @@ public class ViewQuickNotifications
 		
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry)temp[0];
 		
+		String old_text = (String)notification_text.getData();
+
 		if ( entry == null ){
 			
 			notification_icon.setImage( null );
-			
-			notification_text.setText( "" );
+						
+			if ( old_text.length() > 0 ){
+				
+				notification_text.setData( "" );
+				
+				notification_text.redraw();
+			}
 			
 			more_text.setText( "" );
 			
 		}else{
 			
-			notification_text.setText( entry.getText());
+			String cur_text = entry.getText();
+			
+			if ( !old_text.equals( cur_text )){
+			
+				notification_text.setData(cur_text );
+				
+				notification_text.redraw();
+			}
 			
 			String icon_id = entry.getIconID();
 			
