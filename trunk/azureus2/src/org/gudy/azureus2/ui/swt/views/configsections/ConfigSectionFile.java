@@ -300,7 +300,10 @@ public class ConfigSectionFile
 			clear_history_button.setEnabled( dirList.size() > 0 );
 		}
 
-		new Label(gFile, SWT.NONE);
+		label = new Label(gFile, SWT.NONE);
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		label.setLayoutData(gridData);
 
 		////////////////////
 
