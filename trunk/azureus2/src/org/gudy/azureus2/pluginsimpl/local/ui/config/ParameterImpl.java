@@ -53,27 +53,26 @@ ParameterImpl
 	private boolean	visible							= true;
 	private boolean generate_intermediate_events	= true;
 	
-	private List toDisable	= new ArrayList();
-	private List toEnable	= new ArrayList();
-	  
-	private List	listeners		= new ArrayList();
-	private List	impl_listeners	= new ArrayList();
-	
+	private List<Parameter> toDisable;
+	private List<Parameter> toEnable;
+
+	private List listeners;
+	private List<ParameterImplListener> impl_listeners;
+
 	private ParameterGroupImpl	parameter_group;
 	
 	public 
 	ParameterImpl(
 		PluginConfigImpl	_config,
 		String 			_key, 
-		String 			_label )
+		String 			_labelKey )
 	{
 		config	= _config;
 		key		= _key;
-		labelKey 	= _label;
+		labelKey 	= _labelKey;
 		if ("_blank".equals(labelKey)) {
 			labelKey = "!!";
 		}
-		label = MessageText.getString(labelKey);
 	}
 	/**
 	 * @return Returns the key.
@@ -82,33 +81,39 @@ ParameterImpl
 	{
 		return key;
 	}
-	
-	 public void addDisabledOnSelection(Parameter parameter) {
-	  	if (parameter instanceof ParameterGroupImpl) {
-	  		ParameterImpl[] parameters = ((ParameterGroupImpl) parameter).getParameters();
-			  Collections.addAll(toDisable, parameters);
-	  		return;
-	  	}
-	    toDisable.add(parameter);
-	  }
-	  
-	  public void addEnabledOnSelection(Parameter parameter) {
-	  	if (parameter instanceof ParameterGroupImpl) {
-	  		ParameterImpl[] parameters = ((ParameterGroupImpl) parameter).getParameters();
-			  Collections.addAll(toEnable, parameters);
-	  		return;
-	  	}
-	    toEnable.add(parameter);
-	  }
-	  
-	  public List getDisabledOnSelectionParameters() {
-	    return toDisable;
-	  }
-	  
-	  public List getEnabledOnSelectionParameters() {
-	    return toEnable;
-	  }
-		
+
+	public void addDisabledOnSelection(Parameter parameter) {
+		if (toDisable == null) {
+			toDisable = new ArrayList<Parameter>(1);
+		}
+		if (parameter instanceof ParameterGroupImpl) {
+			ParameterImpl[] parameters = ((ParameterGroupImpl) parameter).getParameters();
+			Collections.addAll(toDisable, parameters);
+			return;
+		}
+		toDisable.add(parameter);
+	}
+
+	public void addEnabledOnSelection(Parameter parameter) {
+		if (toEnable == null) {
+			toEnable = new ArrayList<Parameter>(1);
+		}
+		if (parameter instanceof ParameterGroupImpl) {
+			ParameterImpl[] parameters = ((ParameterGroupImpl) parameter).getParameters();
+			Collections.addAll(toEnable, parameters);
+			return;
+		}
+		toEnable.add(parameter);
+	}
+
+	public List getDisabledOnSelectionParameters() {
+		return toDisable == null ? Collections.EMPTY_LIST : toDisable;
+	}
+
+	public List getEnabledOnSelectionParameters() {
+		return toEnable == null ? Collections.EMPTY_LIST : toEnable;
+	}
+
 	public void
 	parameterChanged(
 		String		key )
@@ -119,6 +124,9 @@ ParameterImpl
 	protected void
 	fireParameterChanged()
 	{
+		if (listeners == null) {
+			return;
+		}
 		// toArray() since listener trigger may remove listeners
 		Object[] listenerArray = listeners.toArray();
 		for (int i = 0; i < listenerArray.length; i++) {
@@ -145,6 +153,9 @@ ParameterImpl
 	{
 		enabled = e;
 
+		if (impl_listeners == null) {
+			return;
+		}
 		// toArray() since listener trigger may remove listeners
 		Object[] listenersArray = impl_listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
@@ -220,6 +231,9 @@ ParameterImpl
 	addListener(
 		ParameterListener	l )
 	{
+		if (listeners == null) {
+			listeners = new ArrayList(1);
+		}
 		listeners.add(l);
 		
 		if ( listeners.size() == 1 ){
@@ -232,6 +246,9 @@ ParameterImpl
 	removeListener(
 		ParameterListener	l )
 	{
+		if (listeners == null) {
+			return;
+		}
 		listeners.remove(l);
 		
 		if ( listeners.size() == 0 ){
@@ -244,13 +261,19 @@ ParameterImpl
 	addImplListener(
 		ParameterImplListener	l )
 	{
+		if (impl_listeners == null) {
+			impl_listeners = new ArrayList<ParameterImplListener>(1);
+		}
 		impl_listeners.add(l);
 	}
-				
+
 	public void
 	removeImplListener(
 		ParameterImplListener	l )
 	{
+		if (impl_listeners == null) {
+			return;
+		}
 		impl_listeners.remove(l);
 	}
 		
@@ -258,6 +281,9 @@ ParameterImpl
 	addConfigParameterListener(
 		ConfigParameterListener	l )
 	{
+		if (listeners == null) {
+			listeners = new ArrayList(1);
+		}
 		listeners.add(l);
 		
 		if ( listeners.size() == 1 ){
@@ -270,6 +296,9 @@ ParameterImpl
 	removeConfigParameterListener(
 		ConfigParameterListener	l )
 	{
+		if (listeners == null) {
+			return;
+		}
 		listeners.remove(l);
 		
 		if ( listeners.size() == 0 ){
@@ -279,6 +308,9 @@ ParameterImpl
 	}
 	
 	public String getLabelText() {
+		if (label == null) {
+			label = MessageText.getString(labelKey);
+		}
 		return label;
 	}
 
@@ -295,7 +327,7 @@ ParameterImpl
 	
 	public void setLabelKey(String sLabelKey) {
 		labelKey = sLabelKey;
-		label = MessageText.getString(sLabelKey);
+		label = null;
 
 		triggerLabelChanged(labelKey, true);
 	}
@@ -313,6 +345,9 @@ ParameterImpl
 	}
 	
 	private void triggerLabelChanged(String text, boolean isKey) {
+		if (impl_listeners == null) {
+			return;
+		}
 		// toArray() since listener trigger may remove listeners
 		Object[] listenersArray = impl_listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
@@ -330,11 +365,11 @@ ParameterImpl
 	public void
 	destroy()
 	{
-		listeners.clear();
-		impl_listeners.clear();
-		toDisable.clear();
-		toEnable.clear();
-		
+		listeners = null;
+		impl_listeners = null;
+		toDisable = null;
+		toEnable = null;
+
 		COConfigurationManager.removeParameterListener( key, this );
 	}
 }
