@@ -527,7 +527,9 @@ public class ConfigSectionFile
 			// resume data
 			final BooleanParameter OOSDRE = new BooleanParameter(gFile,
 					sCurConfigID, "ConfigView.label.restart.no.space.dls");
-			OOSDRE.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			gridData.horizontalSpan = 2;
+			OOSDRE.setLayoutData(gridData);
 
 			Composite cOOSDGroup = new Composite(gFile, SWT.NULL);
 			layout = new GridLayout();
