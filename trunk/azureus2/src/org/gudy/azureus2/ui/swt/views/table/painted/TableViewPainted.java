@@ -189,13 +189,54 @@ public class TableViewPainted
 	
 	private RefreshTableRunnable refreshTableRunnable = new RefreshTableRunnable();
 
-	private FrequencyLimitedDispatcher	dispatcher = 
+	private FrequencyLimitedDispatcher	refresh_dispatcher = 
 			new FrequencyLimitedDispatcher( refreshTableRunnable, 250 );
 
 	{
-		dispatcher.setSingleThreaded();
+		refresh_dispatcher.setSingleThreaded();
 	}
 
+	private class 
+	RedrawTableRunnable 
+		extends AERunnable 
+	{
+		private AERunnable target = 
+			new AERunnable() {
+				public void runSupport() {
+					synchronized (TableViewPainted.this) {
+						redrawTableScheduled = false;
+					}
+	
+					visibleRowsChanged();
+	
+					if (DIRECT_DRAW) {
+						if (cTable != null && !cTable.isDisposed()) {
+							cTable.redraw();
+						}
+					} else {
+						if (canvasImage != null && !canvasImage.isDisposed()) {
+							canvasImage.dispose();
+							canvasImage = null;
+						}
+						swt_calculateClientArea();
+					}
+				}
+			};
+		
+		public void runSupport() {
+	
+			Utils.execSWTThread( target );
+		}
+	}
+	
+	private FrequencyLimitedDispatcher	redraw_dispatcher = 
+			new FrequencyLimitedDispatcher( new RedrawTableRunnable(), 100 );
+
+	{
+		redraw_dispatcher.setSingleThreaded();
+	}
+	
+	
 	protected boolean isFocused;
 
 	protected float iHeightEM = -1;
@@ -643,7 +684,7 @@ public class TableViewPainted
 
 	public void refreshTable(final boolean bForceSort) {
 		refreshTableRunnable.setForceSort(bForceSort);
-		dispatcher.dispatch();
+		refresh_dispatcher.dispatch();
 	}
 
 	private void __refreshTable(boolean bForceSort) {
@@ -3058,27 +3099,8 @@ public class TableViewPainted
 			}
 			redrawTableScheduled = true;
 		}
-
-		visibleRowsChanged();
-		Utils.execSWTThreadLater(0, new AERunnable() {
-			public void runSupport() {
-				synchronized (TableViewPainted.this) {
-					redrawTableScheduled = false;
-				}
-
-				if (DIRECT_DRAW) {
-					if (cTable != null && !cTable.isDisposed()) {
-						cTable.redraw();
-					}
-				} else {
-  				if (canvasImage != null && !canvasImage.isDisposed()) {
-  					canvasImage.dispose();
-  					canvasImage = null;
-  				}
-  				swt_calculateClientArea();
-				}
-			}
-		});
+			
+		redraw_dispatcher.dispatch();
 	}
 	
 	private String prettyIndex(TableRowCore row) {
