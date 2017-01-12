@@ -38,7 +38,9 @@ LocaleUtilDecoderReal
 {
 	protected final CharsetDecoder	decoder;
 	protected final int				index;
-	
+
+	private AEMonitor this_mon = new AEMonitor("LUDR");
+
 	protected
 	LocaleUtilDecoderReal(
 		int				_index,
@@ -69,9 +71,15 @@ LocaleUtilDecoderReal
 			ByteBuffer bb = ByteBuffer.wrap(array);
 				
 			CharBuffer cb = CharBuffer.allocate(array.length);
-				
-			CoderResult cr = decoder.decode(bb,cb, true);
-			
+
+			CoderResult cr;
+			this_mon.enter();
+			try {
+				cr = decoder.decode(bb, cb, true);
+			} finally {
+				this_mon.exit();
+			}
+
 			if ( !cr.isError() ){
 							
 				cb.flip();
@@ -131,9 +139,15 @@ LocaleUtilDecoderReal
 			ByteBuffer bb = ByteBuffer.wrap(bytes);
       		
 			CharBuffer cb = CharBuffer.allocate(bytes.length);
-	      		
-			CoderResult cr = decoder.decode(bb,cb, true);
-				
+
+			CoderResult cr;
+			this_mon.enter();
+			try {
+				cr = decoder.decode(bb, cb, true);
+			} finally {
+				this_mon.exit();
+			}
+
 			if ( !cr.isError() ){
 								
 				cb.flip();
