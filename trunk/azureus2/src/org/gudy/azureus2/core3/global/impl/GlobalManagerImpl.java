@@ -65,6 +65,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
+import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
@@ -3961,7 +3962,7 @@ public class GlobalManagerImpl
 		DownloadStateTagger(
 			GlobalManagerImpl		_gm )
 		{
-			super( TagType.TT_DOWNLOAD_STATE, TagDownload.FEATURES, "tag.type.ds" );
+			super( TagType.TT_DOWNLOAD_STATE, TagDownload.FEATURES & ~TagFeature.TF_NOTIFICATIONS, "tag.type.ds" );
 				
 			addTagType();
 			
