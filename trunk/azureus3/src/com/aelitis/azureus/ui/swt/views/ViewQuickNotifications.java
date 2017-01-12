@@ -111,12 +111,14 @@ public class ViewQuickNotifications
 		Utils.setLayoutData(more_text, gridData);
 		notification_text.setData( "" );
 
+		Control[] controls = { composite, notification_icon, notification_text, more_text.getControl() };
 		
-		composite.addMouseListener( listener );
-		
-		notification_icon.addMouseListener( listener );
-		notification_text.addMouseListener( listener );
-		more_text.addMouseListener( listener );
+		for( Control c: controls ){
+			
+			c.addMouseListener( listener );
+			
+			Messages.setLanguageTooltip( c, "label.click.to.view" );
+		}	
 		
 		notification_text.addPaintListener(
 			new PaintListener() {
