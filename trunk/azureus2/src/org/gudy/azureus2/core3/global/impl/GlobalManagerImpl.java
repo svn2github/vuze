@@ -2883,6 +2883,14 @@ public class GlobalManagerImpl
 		return( new ArrayList<Taggable>( getDownloadManagers()));
 	}
 	
+	@Override
+	public String 
+	getDisplayName(
+		Taggable taggable) 
+	{
+		return(((DownloadManager)taggable).getDisplayName());
+	}
+	
   protected void  informDestroyed() {
   		if ( destroyed )
   		{

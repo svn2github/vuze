@@ -21,18 +21,23 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureNotifications;
 import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.TaggableResolver;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.CopyOnWriteSet;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ActivityCallback;
 import com.aelitis.azureus.util.MapUtils;
 
 public abstract class 
@@ -198,8 +203,53 @@ TagWithState
 		Taggable		taggable,
 		boolean			is_add )
 	{
+		int flags = getPostingNotifications();
 		
-		System.out.println( "check: " + getTagName() + "/" + taggable.getTaggableID() + ", add=" + is_add );
+		if ( flags != 0 ){
+			
+			boolean	add = ( flags & TagFeatureNotifications.NOTIFY_ON_ADD ) != 0;
+			boolean	rem = ( flags & TagFeatureNotifications.NOTIFY_ON_REMOVE ) != 0;
+			
+			if ( add == is_add || rem == !is_add ){
+				
+				AZ3Functions.provider provider = AZ3Functions.getProvider();
+				
+				if ( provider != null ){
+					
+					String name;
+					
+					TaggableResolver resolver = taggable.getTaggableResolver();
+					
+					if ( resolver != null ){
+						
+						name = resolver.getDisplayName( taggable );
+						
+					}else{
+						
+						name = taggable.toString();
+					}
+					
+					name = MessageText.getString(
+								is_add?"tag.notification.added":"tag.notification.removed",
+								new String[]{
+									name,
+									getTagName( true ),
+								});
+					
+					Map<String,String>	cb_data = new HashMap<String, String>();
+					
+					cb_data.put( "allowReAdd", "true" );
+					
+					provider.addLocalActivity(
+						getTagUID() + ":" + taggable.getTaggableID() + ":" + is_add,
+						"image.sidebar.tag-green",
+						name,
+						new String[]{},
+						null,
+						cb_data );
+				}
+			}
+		}
 	}
 
 	

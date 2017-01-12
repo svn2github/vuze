@@ -289,7 +289,7 @@ public class VuzeActivitiesEntry
 		Class<? extends AZ3Functions.provider.LocalActivityCallback>	_callback,
 		Map<String,String>												_callback_data )
 	{
-		callback_class	= _callback.getName();
+		callback_class	= _callback==null?null:_callback.getName();
 		callback_data	= _callback_data;
 	}
 	

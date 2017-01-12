@@ -34,4 +34,8 @@ TaggableResolver
 	public Taggable
 	resolveTaggable(
 		String		id );
+	
+	public String
+	getDisplayName(
+		Taggable	taggable );
 }
