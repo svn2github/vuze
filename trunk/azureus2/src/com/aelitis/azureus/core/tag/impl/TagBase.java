@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagFeatureExecOnAssign;
 import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
 import com.aelitis.azureus.core.tag.TagFeatureLimits;
+import com.aelitis.azureus.core.tag.TagFeatureNotifications;
 import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
@@ -83,6 +84,7 @@ TagBase
 	protected static final String	AT_MAX_TAGGABLES				= "max.t";
 	protected static final String	AT_REMOVAL_STRATEGY				= "max.t.r";
 	protected static final String	AT_EOS_SCRIPT					= "eos.scr";
+	protected static final String	AT_NOTIFICATION_POST			= "noti.post";
 
 
 	private static final String[] EMPTY_STRING_LIST = {};
@@ -178,7 +180,7 @@ TagBase
 			if ( this instanceof TagFeatureLimits ){
 				
 				tag_limits = (TagFeatureLimits)this;
-			}	
+			}
 		}
 	}
 		
@@ -966,6 +968,21 @@ TagBase
 		setActionEnabled( TagFeatureExecOnAssign.ACTION_SCRIPT, script.length() > 0 );
 	}
 	
+		// notifications
+	
+	public int
+	getPostingNotifications()
+	{
+		return( readLongAttribute( AT_NOTIFICATION_POST, (long)TagFeatureNotifications.NOTIFY_NONE ).intValue());
+	}
+	
+	public void
+	setPostingNotifications(
+		int		flags )
+	{
+		writeLongAttribute( AT_NOTIFICATION_POST, flags );
+	}
+	
 		// others
 	
 	public void
@@ -993,6 +1010,7 @@ TagBase
 		tag_type.taggableRemoved( this, t );
 
 		tag_type.fireChanged( this );
+
 	}
 	
 	protected void

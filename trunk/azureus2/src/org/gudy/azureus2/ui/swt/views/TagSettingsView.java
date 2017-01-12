@@ -53,6 +53,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.bouncycastle.util.Arrays;
 
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
 import com.aelitis.azureus.core.util.GeneralUtils;
@@ -118,6 +119,10 @@ public class TagSettingsView
 		private GenericStringListParameter constraintMode;
 
 		public GenericIntParameter tfl_max_taggables;
+		
+		public GenericBooleanParameter	notification_post_add;
+		
+		public GenericBooleanParameter	notification_post_remove;
 	}
 
 	private Params params = null;
@@ -1038,6 +1043,63 @@ public class TagSettingsView
 				}
 			}
 
+			if ( 	numTags == 1 && 
+					tags[0].getTagType().hasTagTypeFeature(TagFeature.TF_NOTIFICATIONS )){
+				
+				final TagFeatureNotifications tfn = (TagFeatureNotifications)tags[0];
+						
+					// notifications
+				
+				Group gNotifications = new Group(cMainComposite, SWT.NONE);
+				gNotifications.setText(MessageText.getString("v3.MainWindow.tab.events"));
+				gridLayout = new GridLayout(6, false);
+				gNotifications.setLayout(gridLayout);
+	
+				gd = new GridData(SWT.FILL, SWT.NONE, false, false, 4, 1);
+				gNotifications.setLayoutData(gd);
+					
+				label = new Label(gNotifications, SWT.NONE);
+				label.setText( MessageText.getString( "tag.notification.post" ) + ":" );
+				
+				params.notification_post_add = new GenericBooleanParameter(
+						new BooleanParameterAdapter() {
+							@Override
+							public Boolean getBooleanValue(String key) {
+								return(( tfn.getPostingNotifications() & TagFeatureNotifications.NOTIFY_ON_ADD ) != 0);
+							}
+							
+							@Override
+							public void setBooleanValue(String key, boolean value) {
+								int flags = tfn.getPostingNotifications();
+								if ( value ){
+									flags |= TagFeatureNotifications.NOTIFY_ON_ADD;
+								}else{
+									flags &= ~TagFeatureNotifications.NOTIFY_ON_ADD;
+								}
+								tfn.setPostingNotifications(flags);
+							}
+						}, gNotifications, null, "label.on.addition");
+				
+				params.notification_post_remove = new GenericBooleanParameter(
+						new BooleanParameterAdapter() {
+							@Override
+							public Boolean getBooleanValue(String key) {
+								return(( tfn.getPostingNotifications() & TagFeatureNotifications.NOTIFY_ON_REMOVE ) != 0 );
+							}
+							
+							@Override
+							public void setBooleanValue(String key, boolean value) {
+								int flags = tfn.getPostingNotifications();
+								if ( value ){
+									flags |= TagFeatureNotifications.NOTIFY_ON_REMOVE;
+								}else{
+									flags &= ~TagFeatureNotifications.NOTIFY_ON_REMOVE;
+								}
+								tfn.setPostingNotifications(flags);
+							}
+						}, gNotifications, null, "label.on.removal");
+			}
+			
 			swt_updateFields();
 		}
 		cMainComposite.layout();

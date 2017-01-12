@@ -49,10 +49,12 @@ CopyOnWriteSet<T>
 		}
 	}
 	
-	public void
+	public boolean
 	add(
 		T		o )
 	{
+		boolean	result;
+		
 		synchronized( this ){
 			
 			if ( visible ){
@@ -68,7 +70,7 @@ CopyOnWriteSet<T>
 					new_set = new HashSet<T>( set );
 				}
 			
-				new_set.add( o );
+				result = new_set.add( o );
 			
 				set = new_set;
 				
@@ -76,9 +78,11 @@ CopyOnWriteSet<T>
 				
 			}else{
 				
-				set.add( o );
+				result = set.add( o );
 			}
 		}
+		
+		return( result );
 	}
 	
 	public boolean

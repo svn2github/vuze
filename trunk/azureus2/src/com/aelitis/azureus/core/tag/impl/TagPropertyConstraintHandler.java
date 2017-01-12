@@ -399,14 +399,16 @@ TagPropertyConstraintHandler
 					
 					return;
 				}
-									
+					
+				/*
 				Set<Taggable> existing = tag.getTagged();
 					
 				for ( Taggable e: existing ){
 						
 					tag.removeTaggable( e );
 				}
-			
+				*/
+				
 				con = new TagConstraint( this, tag, constraint, options );
 				
 				constrained_tags.put( tag, con );

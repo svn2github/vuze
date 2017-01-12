@@ -29,6 +29,8 @@ import java.util.Set;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.tag.TagException;
+import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureNotifications;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.CopyOnWriteSet;
 import com.aelitis.azureus.util.MapUtils;
@@ -39,6 +41,8 @@ TagWithState
 {
 	private final CopyOnWriteSet<Taggable>	objects = new CopyOnWriteSet<Taggable>( true );
 	
+	private TagFeatureNotifications	tag_notifications;
+
 	private boolean	removed;
 	
 	public
@@ -48,6 +52,11 @@ TagWithState
 		String				name )
 	{
 		super( tt, tag_id, name );		
+		
+		if ( tt.hasTagTypeFeature( TagFeature.TF_NOTIFICATIONS )){
+			
+			tag_notifications = (TagFeatureNotifications)this;
+		}
 	}
 	
 	protected
@@ -57,7 +66,12 @@ TagWithState
 		Map					map )
 	{
 		super( tt, tag_id, MapUtils.getMapString( map, "n", "" ));
-				
+		
+		if ( tt.hasTagTypeFeature( TagFeature.TF_NOTIFICATIONS )){
+			
+			tag_notifications = (TagFeatureNotifications)this;
+		}
+		
 		if ( map != null ){
 			
 			List<byte[]> list = (List<byte[]>)map.get( "o" );
@@ -145,11 +159,19 @@ TagWithState
 			return;
 		}
 		
-		objects.add( t );
+		boolean added = objects.add( t );
 		
 		super.addTaggable( t );
-		
-		getManager().tagContentsChanged( this );
+
+		if ( added ){
+				
+			getManager().tagContentsChanged( this );
+			
+			if ( tag_notifications != null ){
+				
+				checkNotifications( t, true );
+			}
+		}
 	}
 	
 	public void
@@ -163,8 +185,23 @@ TagWithState
 		if ( removed ){
 		
 			getManager().tagContentsChanged( this );
+			
+			if ( tag_notifications != null ){
+				
+				checkNotifications( t, false );
+			}
 		}
 	}
+	
+	protected void
+	checkNotifications(
+		Taggable		taggable,
+		boolean			is_add )
+	{
+		
+		System.out.println( "check: " + getTagName() + "/" + taggable.getTaggableID() + ", add=" + is_add );
+	}
+
 	
 	@Override
 	public void 
