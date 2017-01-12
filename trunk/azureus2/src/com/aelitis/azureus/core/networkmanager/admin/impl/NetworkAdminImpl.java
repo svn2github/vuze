@@ -250,8 +250,10 @@ NetworkAdminImpl
 		checkDefaultBindAddress( true );
 		
 		AEDiagnostics.addEvidenceGenerator( this );
-		
-		checkDNSSPI();
+
+		if (System.getProperty("skip.dns.spi.test", "0").equals("0")) {
+			checkDNSSPI();
+		}
 		
 		AzureusCoreFactory.addCoreRunningListener(
 			new AzureusCoreRunningListener()
