@@ -44,6 +44,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagFeatureProperties;
@@ -64,6 +65,7 @@ TagPropertyConstraintHandler
 		
 	private boolean		initialised;
 	private boolean 	initial_assignment_complete;
+	private boolean		stopping;
 	
 	final Map<Tag,TagConstraint>	constrained_tags 	= new HashMap<Tag,TagConstraint>();
 	
@@ -104,6 +106,20 @@ TagPropertyConstraintHandler
 	{
 		azureus_core	= _core;
 		tag_manager		= _tm;
+		
+		if( azureus_core != null ){
+			
+			azureus_core.addLifecycleListener(
+				new AzureusCoreLifecycleAdapter()
+				{
+					@Override
+					public void 
+					stopping(AzureusCore core) 
+					{
+						stopping	= true;
+					}
+				});
+		}
 		
 		tag_manager.addTaggableLifecycleListener(
 			Taggable.TT_DOWNLOAD,
@@ -361,6 +377,12 @@ TagPropertyConstraintHandler
 		}
 	}
 	
+	private boolean
+	isStopping()
+	{
+		return( stopping );
+	}
+	
 	private void
 	handleProperty(
 		TagProperty		property )
@@ -399,15 +421,6 @@ TagPropertyConstraintHandler
 					
 					return;
 				}
-					
-				/*
-				Set<Taggable> existing = tag.getTagged();
-					
-				for ( Taggable e: existing ){
-						
-					tag.removeTaggable( e );
-				}
-				*/
 				
 				con = new TagConstraint( this, tag, constraint, options );
 				
@@ -809,12 +822,6 @@ TagPropertyConstraintHandler
 			return( res );
 		}
 		
-		private Tag
-		getTag()
-		{
-			return( tag );
-		}
-		
 		private String
 		getConstraint()
 		{
@@ -847,6 +854,11 @@ TagPropertyConstraintHandler
 				return;
 			}
 			
+			if ( handler.isStopping()){
+				
+				return;
+			}
+			
 			Set<Taggable>	existing = tag.getTagged();
 						
 			if ( testConstraint( dm )){
@@ -857,6 +869,11 @@ TagPropertyConstraintHandler
 						
 						if( canAddTaggable( dm )){
 						
+							if ( handler.isStopping()){
+								
+								return;
+							}
+							
 							tag.addTaggable( dm );
 						}
 					}
@@ -867,6 +884,11 @@ TagPropertyConstraintHandler
 				
 					if ( existing.contains( dm )){
 					
+						if ( handler.isStopping()){
+							
+							return;
+						}
+						
 						tag.removeTaggable( dm );
 					}
 				}
@@ -882,6 +904,11 @@ TagPropertyConstraintHandler
 				return;
 			}
 
+			if ( handler.isStopping()){
+				
+				return;
+			}
+			
 			Set<Taggable>	existing = tag.getTagged();
 			
 			for ( DownloadManager dm: dms ){
@@ -899,6 +926,11 @@ TagPropertyConstraintHandler
 							
 							if ( canAddTaggable( dm )){
 							
+								if ( handler.isStopping()){
+									
+									return;
+								}
+								
 								tag.addTaggable( dm );
 							}
 						}
@@ -908,6 +940,11 @@ TagPropertyConstraintHandler
 					if ( auto_remove ){
 						
 						if ( existing.contains( dm )){
+							
+							if ( handler.isStopping()){
+								
+								return;
+							}
 							
 							tag.removeTaggable( dm );
 						}
