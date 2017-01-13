@@ -124,4 +124,11 @@ SubscriptionHistory
 	public void
 	setDownloadNetworks(
 		String[]	nets );
+	
+	public boolean
+	getNotificationPostEnabled();
+	
+	public void
+	setNotificationPostEnabled(
+		boolean	enabled );
 }

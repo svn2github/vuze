@@ -25,6 +25,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.Debug;
@@ -42,11 +44,14 @@ public class
 SubscriptionHistoryImpl
 	implements SubscriptionHistory
 {
+	private static AsyncDispatcher	dispatcher = new AsyncDispatcher( "subspost" );
+	
 	private final SubscriptionManagerImpl		manager;
 	private final SubscriptionImpl				subs;
 	
 	private boolean		enabled;
 	private boolean		auto_dl;
+	private boolean		post_notifications;
 	
 	private long		last_scan;
 	private long		last_new_result;
@@ -134,6 +139,8 @@ SubscriptionHistoryImpl
 			max_results = manager.getMaxNonDeletedResults();
 		}
 		
+		SubscriptionResultImpl	first_new_result = null;
+		
 		synchronized( this ){
 			
 			boolean	got_new_or_changed_result	= false;
@@ -199,7 +206,7 @@ SubscriptionHistoryImpl
 				if ( existing == null ){
 					
 					last_new_result = now;
-					
+										
 					new_results.add( r );
 					
 					result_key_map.put( r.getKey1(), r );
@@ -220,6 +227,11 @@ SubscriptionHistoryImpl
 					}else{
 					
 						new_unread++;
+						
+						if ( first_new_result == null ){
+							
+							first_new_result = r;
+						}
 					}
 				}else{
 					
@@ -280,6 +292,20 @@ SubscriptionHistoryImpl
 			// always save config as we have a new scan time
 		
 		saveConfig( SubscriptionListener.CR_RESULTS );
+		
+		if ( post_notifications && first_new_result != null ){
+		
+			dispatcher.dispatch(
+				new AERunnable() {
+					
+					@Override
+					public void 
+					runSupport()
+					{
+						System.out.println( "Post Post" );
+					}
+				});
+		}
 		
 		return( result );
 	}
@@ -358,6 +384,23 @@ SubscriptionHistoryImpl
 		saveConfig(SubscriptionListener.CR_METADATA);
 	}
 	
+	public boolean
+	getNotificationPostEnabled()
+	{
+		return( post_notifications );
+	}
+	
+	public void
+	setNotificationPostEnabled(
+		boolean	enabled )
+	{
+		if ( enabled != post_notifications ){
+			
+			post_notifications = enabled;
+			
+			saveConfig(SubscriptionListener.CR_METADATA);
+		}
+	}
 	
 	public void 
 	setDetails(
@@ -1054,6 +1097,10 @@ SubscriptionHistoryImpl
 				networks[i] = AENetworkClassifier.internalise( networks[i] );
 			}
 		}
+		
+		Long	l_post_noto	= (Long)map.get( "post_noti" );		
+		post_notifications	= l_post_noto==null?false:l_post_noto.longValue()==1;
+
 	}
 	
 	protected void
@@ -1081,6 +1128,9 @@ SubscriptionHistoryImpl
 				str += (str.length()==0?"":",") + net;
 			}
 			map.put( "nets", str );
+		}
+		if (post_notifications ){
+			map.put( "post_noti", 1);
 		}
 		subs.updateHistoryConfig( map, reason );
 	}

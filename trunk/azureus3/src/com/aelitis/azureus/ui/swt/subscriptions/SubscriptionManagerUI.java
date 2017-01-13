@@ -2335,6 +2335,25 @@ SubscriptionManagerUI
 				}
 			});
 			
+				// post notification
+			
+			menuItem = menu_creator.createMenu( "subs.noti.post");
+			menuItem.setStyle( MenuItem.STYLE_CHECK );
+			
+			menuItem.addFillListener( new MenuItemFillListener(){
+				public void menuWillBeShown( MenuItem menu, Object data ){
+					menu.setData( subs.getHistory().getNotificationPostEnabled());
+				}});
+			
+			menuItem.addListener(new SubsMenuItemListener() {
+				public void selected( Subscription subs) {
+					try{
+						subs.getHistory().setNotificationPostEnabled(!subs.getHistory().getNotificationPostEnabled());
+					}catch( Throwable e ){
+						Debug.out(e);
+					}
+				}
+			});
 				// max results
 				
 			menuItem = menu_creator.createMenu( "label.set.max.results" );
