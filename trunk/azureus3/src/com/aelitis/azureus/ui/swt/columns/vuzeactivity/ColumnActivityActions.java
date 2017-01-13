@@ -23,7 +23,6 @@ package com.aelitis.azureus.ui.swt.columns.vuzeactivity;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -34,6 +33,7 @@ import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 
+import com.aelitis.azureus.activities.VuzeActivitiesConstants;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -139,9 +139,23 @@ public class ColumnActivityActions
 	public void refresh(TableCell cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
 		
-		if(entry == null) return;
+		if( entry == null) return;
 		
-		if (!cell.setSortValue(entry.getTypeID()) && cell.isValid()) {
+		String[] actions = entry.getActions();
+			
+		String sort_value = "";
+		
+		for ( String action: actions ){
+				
+			sort_value += "," + action;
+		}
+		
+		if ( sort_value.isEmpty()){
+			
+			sort_value = entry.getTypeID();
+		}
+		
+		if (!cell.setSortValue( sort_value ) && cell.isValid()) {
 			return;
 		}
 
@@ -175,8 +189,6 @@ public class ColumnActivityActions
 			}
 			sb.append("<A HREF=\"launch\">Launch</A>");
 		}
-
-		String[] actions = entry.getActions();
 		
 		for ( String action: actions ){
 			if (sb.length() > 0) {
