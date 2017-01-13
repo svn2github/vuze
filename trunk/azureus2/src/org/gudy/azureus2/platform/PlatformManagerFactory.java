@@ -19,6 +19,9 @@
 
 package org.gudy.azureus2.platform;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -47,31 +50,45 @@ PlatformManagerFactory
 				try{
 					String cla = System.getProperty( "az.factory.platformmanager.impl", "" );
 
-					if ( cla.length()> 0 ){
-						
-						platform_manager = (PlatformManager)Class.forName( cla ).newInstance();
-						
-					}else{
-						if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
-							
-							platform_manager = org.gudy.azureus2.platform.win32.PlatformManagerImpl.getSingleton();
-							
-						}else if( getPlatformType() == PlatformManager.PT_MACOSX ){
-							
-		                    platform_manager = org.gudy.azureus2.platform.macosx.PlatformManagerImpl.getSingleton();
-		                    
-						}else if( getPlatformType() == PlatformManager.PT_UNIX ){
-							
-							platform_manager = org.gudy.azureus2.platform.unix.PlatformManagerImpl.getSingleton();
+					if ( cla.length() == 0 ){
+						int platformType = getPlatformType();
+						switch (platformType) {
+							case PlatformManager.PT_WINDOWS:
+								cla = "org.gudy.azureus2.platform.win32.PlatformManagerImpl";
+								break;
+							case PlatformManager.PT_MACOSX:
+								cla = "org.gudy.azureus2.platform.macosx.PlatformManagerImpl";
+								break;
+							case PlatformManager.PT_UNIX:
+								cla = "org.gudy.azureus2.platform.unix.PlatformManagerImpl";
+								break;
+							default:
+								cla = "org.gudy.azureus2.platform.dummy.PlatformManagerImpl";
+								break;
 						}
 					}
-				}catch( PlatformManagerException e ){
 					
-						// exception will already have been logged
+					Class<?> platform_manager_class = Class.forName( cla );
+					try {
+						Method methGetSingleton = platform_manager_class.getMethod("getSingleton");
+						platform_manager = (PlatformManager) methGetSingleton.invoke(null);
+					} catch (NoSuchMethodException e) {
+					} catch (SecurityException e) {
+					} catch (IllegalAccessException e) {
+					} catch (IllegalArgumentException e) {
+					} catch (InvocationTargetException e) {
+					}
+
+					if (platform_manager_class == null) {
+						platform_manager = (PlatformManager)Class.forName( cla ).newInstance();
+					}
 					
 				}catch( Throwable e ){
+					// exception will already have been logged
 					
-					Debug.printStackTrace(e);
+					if (!(e instanceof PlatformManagerException)) {
+						Debug.printStackTrace(e);
+					}
 				}
 			}
 			
