@@ -301,11 +301,6 @@ public class SplashWindow
 		});
 	}
 
-	/*
-	 * STProgressListener implementation
-	 */
-
-	// AzureusCoreListener
 	public void reportCurrentTask(final String task) {
 		//Ensure that display is set and not disposed
 		if (display == null || display.isDisposed())
@@ -346,7 +341,6 @@ public class SplashWindow
 		return percent;
 	}
 
-	// AzureusCoreListener
 	public void reportPercent(final int percent) {
 		//System.out.println("splash: " + percent + " via " + Debug.getCompressedStackTrace());
 		//Ensure that display is set and not disposed
