@@ -368,9 +368,9 @@ public class MainWindowImpl
 			return;
 		}
 
-		if (!Utils.isAZ2UI()) {
+		//if (!Utils.isAZ2UI()) {
 			VuzeActivitiesManager.initialize(core);
-		}
+		//}
 
 		LocProvUtils.initialise( core );
 		

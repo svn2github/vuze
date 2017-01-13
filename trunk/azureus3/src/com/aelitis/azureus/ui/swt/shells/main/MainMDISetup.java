@@ -801,6 +801,8 @@ public class MainMDISetup
 			}
 		});
 
+		SBC_ActivityTableView.setupSidebarEntry(mdi);
+
 		mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
 	}
 

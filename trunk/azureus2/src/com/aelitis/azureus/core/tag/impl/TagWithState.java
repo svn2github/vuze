@@ -44,7 +44,6 @@ import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableResolver;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.CopyOnWriteSet;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 public abstract class 

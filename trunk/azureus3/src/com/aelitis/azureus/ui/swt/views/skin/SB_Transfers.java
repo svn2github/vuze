@@ -51,7 +51,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.tag.*;
-import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -545,9 +544,9 @@ public class SB_Transfers
 					private TagTypeListener 	tagTypeListenerListener;
 
 					public void parameterChanged(String parameterName) {
-						if (Utils.isAZ2UI()) {
-							return;
-						}
+						//if (Utils.isAZ2UI()) {
+						//	return;
+						//}
 
 						boolean tagInSidebar = COConfigurationManager.getBooleanParameter("Library.TagInSideBar");
 						
