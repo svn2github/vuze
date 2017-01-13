@@ -205,7 +205,6 @@ AzureusCoreImpl
 	private volatile boolean				stopped;
 	private volatile boolean				restarting;
 	
-	private final CopyOnWriteList		listeners				= new CopyOnWriteList();
 	final CopyOnWriteList		lifecycle_listeners		= new CopyOnWriteList();
 	private final List				operation_listeners		= new ArrayList();
 	
@@ -2923,19 +2922,6 @@ AzureusCoreImpl
 			
 			PluginInitializer.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_TASK, currentTask );
 		}
-		
-		Iterator it = listeners.iterator();
-		
-		while( it.hasNext()){
-			
-			try{
-				((AzureusCoreListener)it.next()).reportCurrentTask( op, currentTask );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}
 	}
 	  
 	protected void 
@@ -2946,19 +2932,6 @@ AzureusCoreImpl
 		if ( op.getOperationType() == AzureusCoreOperation.OP_INITIALISATION ){
 
 			PluginInitializer.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_PERCENT, new Integer( percent ));
-		}
-
-		Iterator it = listeners.iterator();
-		
-		while( it.hasNext()){
-			
-			try{
-				((AzureusCoreListener)it.next()).reportPercent( op, percent );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
 		}
 	}
 	
@@ -2979,20 +2952,6 @@ AzureusCoreImpl
 		AzureusCoreLifecycleListener	l )
 	{
 		lifecycle_listeners.remove(l);
-	}
-	
-	public void
-	addListener(
-		AzureusCoreListener	l )
-	{
-		listeners.add( l );
-	}
-	
-	public void
-	removeListener(
-		AzureusCoreListener	l )
-	{
-		listeners.remove( l );
 	}
 	
 	public void

@@ -189,14 +189,6 @@ AzureusCore
 		AzureusCoreLifecycleListener	l );
 	
 	public void
-	addListener(
-		AzureusCoreListener	l );
-	
-	public void
-	removeListener(
-		AzureusCoreListener	l );
-
-	public void
 	addOperationListener(
 		AzureusCoreOperationListener	l );
 	
