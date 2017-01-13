@@ -79,7 +79,7 @@ PlatformManagerFactory
 					} catch (InvocationTargetException e) {
 					}
 
-					if (platform_manager_class == null) {
+					if (platform_manager == null) {
 						platform_manager = (PlatformManager)Class.forName( cla ).newInstance();
 					}
 					
