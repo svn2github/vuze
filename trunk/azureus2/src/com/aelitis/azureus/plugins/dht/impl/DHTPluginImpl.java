@@ -1305,6 +1305,7 @@ outer:
 	{
 		try{
 			return( dht.getTransport().readTransfer(
+					listener == null ? null :
 						new DHTTransportProgressListener()
 						{
 							public void
@@ -1350,6 +1351,7 @@ outer:
 	{
 		try{
 			dht.getTransport().writeTransfer(
+					listener == null ? null :
 					new DHTTransportProgressListener()
 					{
 						public void
@@ -1396,6 +1398,7 @@ outer:
 		try{
 			return( 
 				dht.getTransport().writeReadTransfer(
+					listener == null ? null :
 					new DHTTransportProgressListener()
 					{
 						public void

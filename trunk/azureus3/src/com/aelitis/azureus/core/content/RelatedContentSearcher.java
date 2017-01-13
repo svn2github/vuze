@@ -61,7 +61,6 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseProgressListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferHandler;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
@@ -1162,26 +1161,7 @@ RelatedContentSearcher
 			
 			DistributedDatabaseValue value = 
 				contact.read( 
-					new DistributedDatabaseProgressListener()
-					{
-						public void
-						reportSize(
-							long	size )
-						{	
-						}
-						
-						public void
-						reportActivity(
-							String	str )
-						{	
-						}
-						
-						public void
-						reportCompleteness(
-							int		percent )
-						{
-						}
-					},
+					null,
 					transfer_type,
 					key,
 					contact.getAddress().isUnresolved()?20000:10000 );
@@ -1401,26 +1381,7 @@ RelatedContentSearcher
 			
 			DistributedDatabaseValue value = 
 				contact.read( 
-					new DistributedDatabaseProgressListener()
-					{
-						public void
-						reportSize(
-							long	size )
-						{	
-						}
-						
-						public void
-						reportActivity(
-							String	str )
-						{	
-						}
-						
-						public void
-						reportCompleteness(
-							int		percent )
-						{
-						}
-					},
+					null,
 					transfer_type,
 					key,
 					contact.getAddress().isUnresolved()?15000:5000 );
@@ -1460,26 +1421,7 @@ RelatedContentSearcher
 			
 			DistributedDatabaseValue value = 
 				contact.read( 
-					new DistributedDatabaseProgressListener()
-					{
-						public void
-						reportSize(
-							long	size )
-						{	
-						}
-						
-						public void
-						reportActivity(
-							String	str )
-						{	
-						}
-						
-						public void
-						reportCompleteness(
-							int		percent )
-						{
-						}
-					},
+					null,
 					transfer_type,
 					key,
 					contact.getAddress().isUnresolved()?15000:5000 );

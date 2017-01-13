@@ -943,7 +943,7 @@ DDBaseImpl
 			DHTPluginContact plugin_contact = contact.getContact();
 			
 			byte[]	data = plugin_contact.read( 
-								new DHTPluginProgressListener()
+								listener == null ? null : new DHTPluginProgressListener()
 								{
 									public void
 									reportSize(
@@ -993,6 +993,7 @@ DDBaseImpl
 		DHTPluginContact plugin_contact = contact.getContact();
 		
 		plugin_contact.write( 
+			listener == null ? null :
 			new DHTPluginProgressListener()
 			{
 				public void
@@ -1035,6 +1036,7 @@ DDBaseImpl
 		DHTPluginContact plugin_contact = contact.getContact();
 		
 		byte[]	data = plugin_contact.call( 
+				listener == null ? null :
 							new DHTPluginProgressListener()
 							{
 								public void

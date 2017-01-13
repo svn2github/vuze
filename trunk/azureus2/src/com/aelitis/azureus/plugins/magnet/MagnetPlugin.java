@@ -403,7 +403,7 @@ MagnetPlugin
 					}
 					
 					return( MagnetPlugin.this.download(
-							new MagnetPluginProgressListener()
+							muh_listener == null ? null : new MagnetPluginProgressListener()
 							{
 								public void
 								reportSize(
@@ -1212,7 +1212,9 @@ MagnetPlugin
 								md_downloader[0] = mdd = new MagnetPluginMDDownloader( MagnetPlugin.this, plugin_interface, hash, networks_enabled, sources, args );
 							}
 							
-							listener.reportActivity( getMessageText( "report.md.starts" ));
+							if ( listener != null ){
+								listener.reportActivity( getMessageText( "report.md.starts" ));
+							}
 							
 							mdd.start(
 								new MagnetPluginMDDownloader.DownloadListener()
@@ -1222,9 +1224,11 @@ MagnetPlugin
 										int		downloaded,
 										int		total_size )
 									{
-										listener.reportActivity( getMessageText( "report.md.progress", String.valueOf( downloaded + "/" + total_size ) ));
-										
-										listener.reportCompleteness( 100*downloaded/total_size );
+										if ( listener != null ){
+  										listener.reportActivity( getMessageText( "report.md.progress", String.valueOf( downloaded + "/" + total_size ) ));
+  										
+  										listener.reportCompleteness( 100*downloaded/total_size );
+										}
 									}
 									
 									public void
@@ -1232,7 +1236,9 @@ MagnetPlugin
 										TOTorrent		torrent,
 										Set<String>		peer_networks )
 									{
-										listener.reportActivity( getMessageText( "report.md.done" ));
+										if ( listener != null ){
+											listener.reportActivity( getMessageText( "report.md.done" ));
+										}
 										
 										synchronized( result_holder ){
 										
@@ -1252,7 +1258,9 @@ MagnetPlugin
 									failed(
 										Throwable e )
 									{
-										listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
+										if ( listener != null ){
+											listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
+										}
 										
 										synchronized( result_holder ){
 											
@@ -1283,7 +1291,9 @@ MagnetPlugin
 					
 					if ( is_first_download ){
 					
-						listener.reportActivity( getMessageText( "report.waiting_ddb" ));
+						if ( listener != null ){
+							listener.reportActivity( getMessageText( "report.waiting_ddb" ));
+						}
 						
 						first_download = false;
 					}
@@ -1299,7 +1309,9 @@ MagnetPlugin
 						final int[]			outstanding		= {0};
 						final boolean[]		lookup_complete	= {false};
 						
-						listener.reportActivity(  getMessageText( "report.searching" ));
+						if ( listener != null ){
+							listener.reportActivity(  getMessageText( "report.searching" ));
+						}
 						
 						DistributedDatabaseListener	ddb_listener = 
 							new DistributedDatabaseListener()
@@ -1338,7 +1350,9 @@ MagnetPlugin
 									}else if (	type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ||
 												type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ){
 											
-										listener.reportActivity( getMessageText( "report.found", String.valueOf( found_set.size())));
+										if ( listener != null ){
+											listener.reportActivity( getMessageText( "report.found", String.valueOf( found_set.size())));
+										}
 										
 											// now inject any explicit sources
 			
@@ -1389,7 +1403,7 @@ MagnetPlugin
 										found_set.add( key );
 									}
 									
-									if ( listener.verbose()){
+									if ( listener != null && listener.verbose()){
 									
 										listener.reportActivity( getMessageText( "report.found", contact.getName()));
 									}
@@ -1415,7 +1429,7 @@ MagnetPlugin
 												try{
 													boolean	alive = event.getType() == DistributedDatabaseEvent.ET_OPERATION_COMPLETE;
 														
-													if ( listener.verbose()){
+													if ( listener != null && listener.verbose()){
 													
 														listener.reportActivity( 
 															getMessageText( alive?"report.alive":"report.dead",	contact.getName()));
@@ -1503,7 +1517,7 @@ MagnetPlugin
 							
 							while( remaining > 0 ){
 							
-								if ( listener.cancelled()){
+								if ( listener != null && listener.cancelled()){
 									
 									return( null );
 								}
@@ -1638,17 +1652,21 @@ MagnetPlugin
 										try{
 											if ( !live_contact ){
 												
-												listener.reportActivity( getMessageText( "report.tunnel", contact.getName()));
+												if ( listener != null ){
+													listener.reportActivity( getMessageText( "report.tunnel", contact.getName()));
+												}
 							
 												contact.openTunnel();
 											}
 											
 											try{
-												listener.reportActivity( getMessageText( "report.downloading", contact.getName()));
+												if ( listener != null ){
+													listener.reportActivity( getMessageText( "report.downloading", contact.getName()));
+												}
 												
 												DistributedDatabaseValue	value = 
 													contact.read( 
-															new DistributedDatabaseProgressListener()
+															listener == null ? null : new DistributedDatabaseProgressListener()
 															{
 																public void
 																reportSize(
@@ -1685,7 +1703,9 @@ MagnetPlugin
 														
 														if ( Arrays.equals( hash, torrent.getHash())){
 														
-															listener.reportContributor( contact.getAddress());
+															if ( listener != null ){
+																listener.reportContributor( contact.getAddress());
+															}
 													
 															synchronized( result_holder ){
 																
@@ -1693,16 +1713,22 @@ MagnetPlugin
 															}												
 														}else{
 															
-															listener.reportActivity( getMessageText( "report.error", "torrent invalid (hash mismatch)" ));
+															if ( listener != null ){
+																listener.reportActivity( getMessageText( "report.error", "torrent invalid (hash mismatch)" ));
+															}
 														}
 													}catch( Throwable e ){
 														
-														listener.reportActivity( getMessageText( "report.error", "torrent invalid (decode failed)" ));
+														if ( listener != null ){
+															listener.reportActivity( getMessageText( "report.error", "torrent invalid (decode failed)" ));
+														}
 													}
 												}
 											}catch( Throwable e ){
 												
-												listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
+												if ( listener != null ){
+													listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
+												}
 												
 												Debug.printStackTrace(e);
 											}
@@ -1715,7 +1741,7 @@ MagnetPlugin
 							
 							while( true ){
 								
-								if ( listener.cancelled()){
+								if ( listener != null && listener.cancelled()){
 									
 									return( null );
 								}
@@ -1740,7 +1766,9 @@ MagnetPlugin
 						
 						if ( is_first_download ){
 						
-							listener.reportActivity( getMessageText( "report.ddb_disabled" ));
+							if ( listener != null ){
+								listener.reportActivity( getMessageText( "report.ddb_disabled" ));
+							}
 						}
 					}
 				}
@@ -1759,7 +1787,7 @@ MagnetPlugin
 					
 					while( SystemTime.getMonotonousTime() - secondary_lookup_time < SECONDARY_LOOKUP_MAX_TIME ){
 						
-						if ( listener.cancelled()){
+						if ( listener != null && listener.cancelled()){
 							
 							return( null );
 						}
@@ -1799,7 +1827,7 @@ MagnetPlugin
 				
 					while( remaining > 0 ){
 
-						if ( listener.cancelled()){
+						if ( listener != null && listener.cancelled()){
 							
 							return( null );
 						}
@@ -1846,7 +1874,9 @@ MagnetPlugin
 				
 				Debug.printStackTrace(e);
 				
-				listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
+				if ( listener != null ){
+					listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
+				}
 	
 				throw( new MagnetURIHandlerException( "MagnetURIHandler failed", e ));
 			}
@@ -1875,7 +1905,9 @@ MagnetPlugin
 		Set<String>								networks_enabled,
 		String									args )	
 	{
-		listener.reportActivity( getMessageText( "report.secondarylookup", null ));
+		if ( listener != null ){
+			listener.reportActivity( getMessageText( "report.secondarylookup", null ));
+		}
 		
 		PluginProxy	plugin_proxy = null;
 
@@ -1926,7 +1958,9 @@ MagnetPlugin
 						InputStream			data )
 					{
 						try{
-							listener.reportActivity( getMessageText( "report.secondarylookup.ok", null ));
+							if ( listener != null ){
+								listener.reportActivity( getMessageText( "report.secondarylookup.ok", null ));
+							}
 	
 							synchronized( result ){
 							
@@ -1952,7 +1986,9 @@ MagnetPlugin
 								result[0] = e;
 							}
 							
-							listener.reportActivity( getMessageText( "report.secondarylookup.fail" ));
+							if ( listener != null ){
+								listener.reportActivity( getMessageText( "report.secondarylookup.fail" ));
+							}
 							
 						}finally{
 							
@@ -1979,7 +2015,9 @@ MagnetPlugin
 				plugin_proxy.setOK( true );		// tidy up, no indication of proxy badness here so say its ok
 			}
 			
-			listener.reportActivity( getMessageText( "report.secondarylookup.fail", Debug.getNestedExceptionMessage( e ) ));
+			if ( listener != null ){
+				listener.reportActivity( getMessageText( "report.secondarylookup.fail", Debug.getNestedExceptionMessage( e ) ));
+			}
 		}
 	}
 	
@@ -2026,18 +2064,11 @@ MagnetPlugin
 	
 	protected String
 	getMessageText(
-		String	resource )
-	{
-		return( plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( "MagnetPlugin." + resource ));
-	}
-	
-	protected String
-	getMessageText(
 		String	resource,
-		String	param )
+		String...	params )
 	{
 		return( plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( 
-				"MagnetPlugin." + resource, new String[]{ param }));
+				"MagnetPlugin." + resource, params ));
 	}
 	
 	public void

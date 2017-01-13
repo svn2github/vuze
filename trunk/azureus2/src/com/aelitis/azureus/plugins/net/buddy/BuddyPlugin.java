@@ -3800,7 +3800,7 @@ BuddyPlugin
 						}
 						
 						byte[] torrent_data = magnet_plugin.download(
-							new MagnetPluginProgressListener()
+								!logger.isEnabled() ? null : new MagnetPluginProgressListener()
 							{
 								public void
 								reportSize(

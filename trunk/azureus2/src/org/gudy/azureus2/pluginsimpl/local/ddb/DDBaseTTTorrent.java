@@ -392,7 +392,7 @@ DDBaseTTTorrent
 		}
 		
 		byte[]	data = contact.getContact().read( 
-							new DHTPluginProgressListener()
+							listener == null ? null : new DHTPluginProgressListener()
 							{
 								public void
 								reportSize(

@@ -1106,26 +1106,7 @@ DHTNATPuncherImpl
 		try{
 			return(
 				dht.getTransport().writeReadTransfer(
-					new DHTTransportProgressListener()
-					{
-						public void
-						reportSize(
-							long	size )
-						{
-						}
-						
-						public void
-						reportActivity(
-							String	str )
-						{
-						}
-						
-						public void
-						reportCompleteness(
-							int		percent )
-						{						
-						}
-					},
+					null,
 					target,
 					transfer_handler_key,
 					data,
@@ -1312,26 +1293,7 @@ DHTNATPuncherImpl
    	{
    		try{
 			dht.getTransport().writeTransfer(
-				new DHTTransportProgressListener()
-				{
-					public void
-					reportSize(
-						long	size )
-					{
-					}
-					
-					public void
-					reportActivity(
-						String	str )
-					{
-					}
-					
-					public void
-					reportCompleteness(
-						int		percent )
-					{						
-					}
-				},
+				null,
 				target,
 				transfer_handler_key,
 				new byte[0],

@@ -468,35 +468,7 @@ DHTTransferHandler
 												try{
 
 													writeTransfer(
-															new DHTTransportProgressListener()
-															{
-																public void
-																reportSize(
-																	long	size )
-																{
-																	if ( XFER_TRACE ){
-																		System.out.println( "writeXferReply: size=" + size );
-																	}
-																}
-																
-																public void
-																reportActivity(
-																	String	str )
-																{
-																	if ( XFER_TRACE ){
-																		System.out.println( "writeXferReply: act=" + str );
-																	}
-																}
-																
-																public void
-																reportCompleteness(
-																	int		percent )
-																{
-																	if ( XFER_TRACE ){
-																		System.out.println( "writeXferReply: %=" + percent );
-																	}
-																}
-															},
+															XFER_TRACE ? new DHTTransportProgressListenerTRACE("writeXferReply") : null,
 															originator,
 															req.getTransferKey(),
 															req.getRequestKey(),
@@ -575,35 +547,7 @@ DHTTransferHandler
 												byte[] write_data = 
 													runTransferQueue( 
 														new_queue, 
-														new DHTTransportProgressListener()
-														{
-															public void
-															reportSize(
-																long	size )
-															{
-																if ( XFER_TRACE ){
-																	System.out.println( "writeXfer: size=" + size );
-																}
-															}
-															
-															public void
-															reportActivity(
-																String	str )
-															{
-																if ( XFER_TRACE ){
-																	System.out.println( "writeXfer: act=" + str );
-																}
-															}
-															
-															public void
-															reportCompleteness(
-																int		percent )
-															{
-																if ( XFER_TRACE ){
-																	System.out.println( "writeXfer: %=" + percent );
-																}
-															}
-														},
+														XFER_TRACE ? new DHTTransportProgressListenerTRACE("writeXfer") : null,
 														originator,
 														req.getTransferKey(),
 														req.getRequestKey(),
@@ -631,36 +575,8 @@ DHTTransferHandler
 													
 													if ( reply_data != null ){
 														
-														writeTransfer(
-																new DHTTransportProgressListener()
-																{
-																	public void
-																	reportSize(
-																		long	size )
-																	{
-																		if ( XFER_TRACE ){
-																			System.out.println( "writeXferReply: size=" + size );
-																		}
-																	}
-																	
-																	public void
-																	reportActivity(
-																		String	str )
-																	{
-																		if ( XFER_TRACE ){
-																			System.out.println( "writeXferReply: act=" + str );
-																		}
-																	}
-																	
-																	public void
-																	reportCompleteness(
-																		int		percent )
-																	{
-																		if ( XFER_TRACE ){
-																			System.out.println( "writeXferReply: %=" + percent );
-																		}
-																	}
-																},
+														writeTransfer( 
+																XFER_TRACE ? new DHTTransportProgressListenerTRACE("writeXferReply") : null,
 																originator,
 																req.getTransferKey(),
 																req.getRequestKey(),
@@ -775,7 +691,9 @@ DHTTransferHandler
 			
 			if ( read_transfer ){
 			
-				listener.reportActivity( getMessageText( "request_all", target_name ));
+				if ( listener != null ) {
+					listener.reportActivity( getMessageText( "request_all", target_name ));
+				}
 
 				entire_request_count++;
 			
@@ -794,7 +712,7 @@ DHTTransferHandler
 				
 				if ( reply != null ){
 	
-					if ( transfer_size == -1 ){
+					if ( listener != null && transfer_size == -1 ){
 						
 						transfer_size = reply.getTotalLength();
 						
@@ -822,16 +740,20 @@ DHTTransferHandler
 					
 					if ( !duplicate ){
 						
-						listener.reportActivity( 
-								getMessageText( "received_bit", 
-								new String[]{ 
-										String.valueOf( reply.getStartPosition()),
-										String.valueOf(reply.getStartPosition() + reply.getLength()),
-										target_name }));
+						if ( listener != null ) {
+  						listener.reportActivity( 
+  								getMessageText( "received_bit", 
+  								new String[]{ 
+  										String.valueOf( reply.getStartPosition()),
+  										String.valueOf(reply.getStartPosition() + reply.getLength()),
+  										target_name }));
+						}
 
 						transferred += reply.getLength();
 						
-						listener.reportCompleteness( transfer_size==0?100: ( 100 * transferred / transfer_size ));
+						if ( listener != null ) {
+							listener.reportCompleteness( transfer_size==0?100: ( 100 * transferred / transfer_size ));
+						}
 						
 						packets.add( reply );
 						
@@ -864,7 +786,9 @@ DHTTransferHandler
 							
 									// huzzah, we got the lot
 							
-								listener.reportActivity( getMessageText( "complete" ));
+								if ( listener != null ) {
+									listener.reportActivity( getMessageText( "complete" ));
+								}
 								
 								byte[]	result = new byte[actual_end];
 								
@@ -893,14 +817,18 @@ DHTTransferHandler
 						
 						if ( entire_request_count == 2 ){
 						
-							listener.reportActivity( getMessageText( "timeout", target_name ));
+							if ( listener != null ) {
+								listener.reportActivity( getMessageText( "timeout", target_name ));
+							}
 							
 							return( null );
 						}
 						
 						entire_request_count++;
 						
-						listener.reportActivity( getMessageText( "rerequest_all", target_name ));
+						if ( listener != null ) {
+							listener.reportActivity( getMessageText( "rerequest_all", target_name ));
+						}
 						
 						sendReadRequest( transfer_queue.getConnectionID(), target, handler_key, key, 0, 0 );
 						
@@ -922,12 +850,14 @@ DHTTransferHandler
 							
 							if ( p.getStartPosition() != pos ){
 								
-								listener.reportActivity( 
-										getMessageText( "rerequest_bit",
-												new String[]{
-													String.valueOf( pos ),
-													String.valueOf( p.getStartPosition()),
-													target_name }));
+								if ( listener != null ) {
+  								listener.reportActivity( 
+  										getMessageText( "rerequest_bit",
+  												new String[]{
+  													String.valueOf( pos ),
+  													String.valueOf( p.getStartPosition()),
+  													target_name }));
+								}
 								
 								sendReadRequest( 
 										transfer_queue.getConnectionID(), 
@@ -944,12 +874,14 @@ DHTTransferHandler
 						
 						if ( pos != actual_end ){
 							
-							listener.reportActivity( 
-									getMessageText( "rerequest_bit",
-											new String[]{
-												String.valueOf( pos ),
-												String.valueOf( actual_end ),
-												target_name }));
+							if ( listener != null ) {
+  							listener.reportActivity( 
+  									getMessageText( "rerequest_bit",
+  											new String[]{
+  												String.valueOf( pos ),
+  												String.valueOf( actual_end ),
+  												target_name }));
+							}
 			
 							sendReadRequest( 
 									transfer_queue.getConnectionID(), 
@@ -963,17 +895,19 @@ DHTTransferHandler
 				}
 			}
 			
-			if ( packets.size()==0 ){
-				
-				listener.reportActivity( getMessageText( "timeout", target_name ));
-				
-			}else{
-				
-				listener.reportActivity( 
-						getMessageText( 
-							"timeout_some", 
-							new String[]{ String.valueOf( packets.size()), target_name }));
-							
+			if ( listener != null ) {
+  			if ( packets.size()==0 ){
+  				
+  				listener.reportActivity( getMessageText( "timeout", target_name ));
+  				
+  			}else{
+  				
+  				listener.reportActivity( 
+  						getMessageText( 
+  							"timeout_some", 
+  							new String[]{ String.valueOf( packets.size()), target_name }));
+  							
+  			}
 			}
 			
 			return( null );
@@ -1049,7 +983,9 @@ DHTTransferHandler
 				
 				if ( time_since_last_packet >= WRITE_XFER_RESEND_DELAY ){
 					
-					listener.reportActivity( getMessageText( loop==0?"sending":"resending" ));
+					if ( listener != null ) {
+						listener.reportActivity( getMessageText( loop==0?"sending":"resending" ));
+					}
 				
 					loop++;
 				
@@ -1086,13 +1022,17 @@ DHTTransferHandler
 			
 			if ( ok ){
 				
-				listener.reportCompleteness( 100 );
-				
-				listener.reportActivity( getMessageText( "send_complete" ));
+				if ( listener != null ) {
+  				listener.reportCompleteness( 100 );
+  				
+  				listener.reportActivity( getMessageText( "send_complete" ));
+				}
 				
 			}else{
 				
-				listener.reportActivity( getMessageText( "send_timeout" ));
+				if ( listener != null ) {
+					listener.reportActivity( getMessageText( "send_timeout" ));
+				}
 				
 				throw( new DHTTransportException( "Timeout" ));
 			}
@@ -1269,27 +1209,54 @@ DHTTransferHandler
 	
 	protected String
 	getMessageText(
-		String	resource )
-	{
-		return( MessageText.getString( "DHTTransport.report." + resource ));
-	}
-	
-	protected String
-	getMessageText(
-		String	resource,
-		String	param )
-	{
-		return( MessageText.getString( "DHTTransport.report." + resource, new String[]{ param }));
-	}
-	
-	protected String
-	getMessageText(
 		String		resource,
-		String[]	params )
+		String...	params )
 	{
 		return( MessageText.getString( "DHTTransport.report." + resource, params));
 	}
 	
+	/**
+	 * @author TuxPaper
+	 * @created Jan 13, 2017
+	 *
+	 */
+	private final class DHTTransportProgressListenerTRACE
+		implements DHTTransportProgressListener
+	{
+		private String prefix;
+
+		public DHTTransportProgressListenerTRACE(String prefix) {
+			this.prefix = prefix;
+		}
+		
+		public void
+		reportSize(
+			long	size )
+		{
+			if ( XFER_TRACE ){
+				System.out.println( prefix + ": size=" + size );
+			}
+		}
+
+		public void
+		reportActivity(
+			String	str )
+		{
+			if ( XFER_TRACE ){
+				System.out.println( prefix + ": act=" + str );
+			}
+		}
+
+		public void
+		reportCompleteness(
+			int		percent )
+		{
+			if ( XFER_TRACE ){
+				System.out.println( prefix + ": %=" + percent );
+			}
+		}
+	}
+
 	protected class
 	transferQueue
 	{
