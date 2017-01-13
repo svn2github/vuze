@@ -51,14 +51,14 @@ AddressUtils
 	
 	static{
 		COConfigurationManager.addAndFireParameterListener(
-			"Plugin.azi2phelper.azi2phelper.rates.use.lan",
+			"Plugin.azneti2phelper.azi2phelper.rates.use.lan",
 			new ParameterListener()
 			{	
 				public void 
 				parameterChanged(
 					String parameterName ) 
 				{
-					i2p_is_lan_limit = COConfigurationManager.getBooleanParameter( "Plugin.azi2phelper.azi2phelper.rates.use.lan", false );
+					i2p_is_lan_limit = COConfigurationManager.getBooleanParameter( "Plugin.azneti2phelper.azi2phelper.rates.use.lan", false );
 				}
 			});
 	}
