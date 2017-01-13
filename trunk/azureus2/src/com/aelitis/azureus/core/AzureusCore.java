@@ -171,10 +171,6 @@ AzureusCore
 	public File
 	getLockFile();
 	
-	public AzureusCoreOperation
-	createOperation(
-		int		type );
-	
 	public void
 	createOperation(
 		int							type,

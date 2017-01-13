@@ -38,7 +38,13 @@ PluginEvent
 	 * Not guaranteed to trigger.  Used to be triggered at startup
 	 */
 	public static final int	PEV_CONFIGURATION_WIZARD_COMPLETES		= 2;
+	/**
+	 * No longer triggered.  Used to be core tasks
+	 */
 	public static final int	PEV_INITIALISATION_PROGRESS_TASK		= 3;
+	/**
+	 * No longer triggered.  Used to be core tasks
+	 */
 	public static final int	PEV_INITIALISATION_PROGRESS_PERCENT		= 4;
 		/**
 		 * @since 2403

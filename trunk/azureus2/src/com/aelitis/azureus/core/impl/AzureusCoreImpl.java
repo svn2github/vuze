@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.global.GlobalMangerProgressListener;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.ipfilter.*;
@@ -214,8 +213,6 @@ AzureusCoreImpl
 	
 	private final AEMonitor			this_mon		= new AEMonitor( "AzureusCore" );
 
-	final AzureusCoreOperation	initialisation_op = createOperation( AzureusCoreOperation.OP_INITIALISATION );
-	
 	public static boolean SUPPRESS_CLASSLOADER_ERRORS = true;
 	
 	private boolean ca_shutdown_computer_after_stop	= false;
@@ -311,7 +308,7 @@ AzureusCoreImpl
 		
 		ClientIDPlugin.initialize( this );
 		
-		pi = PluginInitializer.getSingleton( this, initialisation_op );
+		pi = PluginInitializer.getSingleton( this );
 		
 		
 		instance_manager = 
@@ -925,24 +922,7 @@ AzureusCoreImpl
 		// Other example is the tracker plugin that is coded in a way where it must 
 		// always publish a complete rss feed
 		
-		global_manager = GlobalManagerFactory.create(
-				this,
-				new GlobalMangerProgressListener()
-				{
-					public void 
-					reportCurrentTask(
-						String currentTask )
-					{
-						initialisation_op.reportCurrentTask( currentTask );
-					}
-					  
-					public void 
-					reportPercent(
-						int percent )
-					{
-						initialisation_op.reportPercent( percent );
-					}
-				}, 0);
+		global_manager = GlobalManagerFactory.create(this, null, 0);
 		
 		if (stopped) {
 			System.err.println("Core stopped while starting");
@@ -2808,54 +2788,6 @@ AzureusCoreImpl
 		}	
 	}
 	
-	public AzureusCoreOperation
-	createOperation(
-		final int		type )
-	{
-		AzureusCoreOperation	op =
-			new AzureusCoreOperation()
-			{
-				public int
-				getOperationType()
-				{
-					return( type );
-				}
-				
-				public AzureusCoreOperationTask 
-				getTask() 
-				{
-					return null;
-				}
-				
-				public void 
-				reportCurrentTask(
-					String task )
-				{
-					AzureusCoreImpl.this.reportCurrentTask( this, task );
-				}
-				  
-				public void 
-				reportPercent(
-					int percent )
-				{
-					AzureusCoreImpl.this.reportPercent( this, percent );
-				}
-			};
-			
-		for (int i=0;i<operation_listeners.size();i++){
-			
-			try{
-				((AzureusCoreOperationListener)operation_listeners.get(i)).operationCreated( op );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}
-		
-		return( op );
-	}
-	
 	public void
 	createOperation(
 		final int					type,
@@ -2877,20 +2809,6 @@ AzureusCoreImpl
 					{
 						return( f_task[0] );
 					}
-					
-					public void 
-					reportCurrentTask(
-						String task )
-					{
-						AzureusCoreImpl.this.reportCurrentTask( this, task );
-					}
-					  
-					public void 
-					reportPercent(
-						int percent )
-					{
-						AzureusCoreImpl.this.reportPercent( this, percent );
-					}
 				};
 				
 
@@ -2910,28 +2828,6 @@ AzureusCoreImpl
 		if ( f_task[0] != null ){
 			
 			task.run( op );
-		}
-	}
-	
-	protected void 
-	reportCurrentTask(
-		AzureusCoreOperation		op,			
-		String 						currentTask )
-	{
-		if ( op.getOperationType() == AzureusCoreOperation.OP_INITIALISATION ){
-			
-			PluginInitializer.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_TASK, currentTask );
-		}
-	}
-	  
-	protected void 
-	reportPercent(
-		AzureusCoreOperation		op,	
-		int 						percent )
-	{
-		if ( op.getOperationType() == AzureusCoreOperation.OP_INITIALISATION ){
-
-			PluginInitializer.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_PERCENT, new Integer( percent ));
 		}
 	}
 	

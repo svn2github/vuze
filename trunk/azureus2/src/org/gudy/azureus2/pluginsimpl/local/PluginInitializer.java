@@ -223,8 +223,6 @@ PluginInitializer
   
   
   
-  private AzureusCoreOperation core_operation;
-  
   private AzureusCore		azureus_core;
   
   private PluginInterfaceImpl	default_plugin;
@@ -247,15 +245,14 @@ PluginInitializer
     
   public static PluginInitializer
   getSingleton(
-  	AzureusCore		 		azureus_core,
-  	AzureusCoreOperation 	core_operation )
+  	AzureusCore		 		azureus_core )
   {
   	try{
   		class_mon.enter();
   	
 	  	if ( singleton == null ){
 	  		
-	  		singleton = new PluginInitializer( azureus_core, core_operation );
+	  		singleton = new PluginInitializer( azureus_core );
 	  	}
 	 	
 	  	return( singleton );
@@ -436,8 +433,7 @@ PluginInitializer
   
   protected 
   PluginInitializer(
-  	AzureusCore 			_azureus_core,
-  	AzureusCoreOperation	_core_operation ) 
+  	AzureusCore 			_azureus_core ) 
   {
   	azureus_core	= _azureus_core;
   	
@@ -460,8 +456,6 @@ PluginInitializer
 	    		}
 			});
   	
-  	core_operation 	= _core_operation;
-    
     UpdateManagerImpl.getSingleton( azureus_core );	// initialise the update manager
        
     plugin_manager = PluginManagerImpl.getSingleton( this );
@@ -627,11 +621,6 @@ PluginInitializer
     		
   			if ( def.isDefaultPluginEnabled( builtin_plugins[i][0])){
     		
-  			    if (core_operation != null) {
-  			    	core_operation.reportCurrentTask(MessageText.getString("splash.plugin")
-  			    			+ builtin_plugins[i][0]);
-  			    }
-
   				try{
   					loading_builtin	= true;
   					
@@ -802,11 +791,6 @@ PluginInitializer
 				Logger.log(new LogEvent(LOGID, "Loading plugin "
 						+ pluginsDirectory[i].getName()));
 
-	    if(core_operation != null) {
-  	      	
-	    	core_operation.reportCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
-	    }
-	      
 	    try{
 	    
 	    	List	loaded_pis = loadPluginFromDir(pluginsDirectory[i], bSkipAlreadyLoaded, loading_for_startup, initialise);
@@ -821,10 +805,6 @@ PluginInitializer
 	      		// already handled
 	      }
 	      
-	      if( core_operation != null ){
-	      	
-	    	  core_operation.reportPercent( (100 * (i + plugin_offset)) / plugin_total );
-	      }
 	    }
     } 
     return dirLoadedPIs;
@@ -1403,12 +1383,6 @@ PluginInitializer
 									Logger.log(new LogEvent(LOGID, "Initializing plugin '"
 											+ plugin_interface.getPluginName() + "'"));
 			
-								if (core_operation != null) {
-									core_operation.reportCurrentTask(MessageText
-											.getString("splash.plugin.init")
-											+ " " + plugin_interface.getPluginName());
-								}
-			
 								initialisePlugin(l);
 								
 								if (Logger.isEnabled())
@@ -1419,10 +1393,6 @@ PluginInitializer
 			
 						} catch ( Throwable e ){
 							// already handled
-						} finally {
-							if (core_operation != null) {
-								core_operation.reportPercent((100 * (idx + 1)) / loaded_pi_list.size());
-							}
 						}
 						
 						// some plugins try and steal the logger stdout redirects. 
@@ -1812,11 +1782,6 @@ PluginInitializer
 	    				 }
 
 	    				 if (f_enabled) {
-
-	    					 if ( core_operation != null ){
-
-	    						 core_operation.reportCurrentTask(MessageText.getString("splash.plugin.init") + " " + plugin_interface.getPluginName());
-	    					 }
 
 	    					 fireCreated( plugin_interface );
 
