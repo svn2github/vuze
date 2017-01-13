@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -34,6 +35,7 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
@@ -58,11 +60,7 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClientListener;
-import com.aelitis.azureus.ui.IUIIntializer;
-import com.aelitis.azureus.ui.InitializerListener;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
@@ -345,58 +343,6 @@ public class Initializer
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		startTime = SystemTime.getCurrentTime();
 
-		core.addListener(new AzureusCoreListener() {
-			int fakePercent = Math.min(70, 100 - curPercent);
-
-			long startTime = SystemTime.getCurrentTime();
-			long lastTaskTimeSecs = startTime / 500;
-
-			String sLastTask;
-
-			public void reportCurrentTask(AzureusCoreOperation op, String currentTask) {
-				if (op.getOperationType() != AzureusCoreOperation.OP_INITIALISATION) {
-					return;
-				}
-
-				Initializer.this.reportCurrentTask(currentTask);
-
-				long now = SystemTime.getCurrentTime();
-				if (fakePercent > 0 && lastTaskTimeSecs != now / 200) {
-					lastTaskTimeSecs = SystemTime.getCurrentTime() / 200;
-					fakePercent--;
-					Initializer.this.reportPercent(curPercent + 1);
-				}
-
-				if (Constants.IS_CVS_VERSION && sLastTask != null && !sLastTask.startsWith("Loading Torrent")) {
-						
-					long diff = now - startTime;
-					if (diff > 10 && diff < 1000 * 60 * 5) {
-						System.out.println(TimeFormatter.milliStamp() + "   Core: " + diff + "ms for activity between '" + sLastTask + "' and '" + currentTask + "'");
-					}
-					startTime = SystemTime.getCurrentTime();
-				}
-				sLastTask = currentTask;
-				//System.out.println(currentTask);
-			}
-
-			public void reportPercent(AzureusCoreOperation op, int percent) {
-				/*
-				if (op.getOperationType() != AzureusCoreOperation.OP_INITIALISATION) {
-					return;
-				}
-				if (percent == 100) {
-					long now = SystemTime.getCurrentTime();
-					long diff = now - startTime;
-					if (diff > 10 && diff < 1000 * 60 * 5) {
-						System.out.println("   Core: " + diff + "ms for " + sLastTask);
-					}
-				}
-				*/
-				// TODO Auto-generated method stub
-			}
-
-		});
-
 		core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
 			private GlobalManager gm;
 
@@ -406,6 +352,7 @@ public class Initializer
 				AzureusCoreComponent 	component )
 			{
 				Initializer.this.reportPercent(curPercent + 1);
+
 				
 				if (component instanceof GlobalManager){
 					
@@ -415,6 +362,12 @@ public class Initializer
 
 					InitialisationFunctions.earlyInitialisation(core);
 					
+				} else if (component instanceof PluginInterface) {
+					PluginInterface pi = (PluginInterface) component;
+					// text says initializing, but it's actually initialized.  close enough
+					String s = MessageText.getString("splash.plugin.init") + " "
+							+ pi.getPluginName() + " v" + pi.getPluginVersion();
+					reportCurrentTask(s);
 				}
 			}
 
