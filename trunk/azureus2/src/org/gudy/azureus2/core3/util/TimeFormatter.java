@@ -25,6 +25,7 @@ import java.util.TimeZone;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 
 /**
  * @author Olivier
@@ -69,17 +70,11 @@ public class TimeFormatter {
 	}
 	
 	static{
-		COConfigurationManager.addListener(
-    		new COConfigurationListener()
-    		{
-    			public void 
-    			configurationSaved() 
-    			{
-    				loadMessages();
-    			}
-    		});
-		
-		loadMessages();
+		MessageText.addAndFireListener(new MessageTextListener() {
+			public void localeChanged(Locale old_locale, Locale new_locale) {
+				loadMessages();
+			}
+		});
 	}
 	
 	private static void

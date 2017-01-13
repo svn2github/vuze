@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 
 
 
@@ -126,19 +127,6 @@ DisplayFormatters
 					}
 				});
 
-    	COConfigurationManager.addListener(
-    		new COConfigurationListener()
-    		{
-    			public void 
-    			configurationSaved() 
-    			{
-    				setUnits();
-    				loadMessages();
-    				
-    			}
-
-    		});
-		
 		COConfigurationManager.addAndFireParameterListeners( 
 				new String[]{ 
 						"config.style.dataStatsOnly", 
@@ -155,9 +143,13 @@ DisplayFormatters
 					}
 				});
 
-		setUnits();
+		MessageText.addAndFireListener(new MessageTextListener() {
+			public void localeChanged(Locale old_locale, Locale new_locale) {
+				setUnits();
+				loadMessages();
+			}
+		});
 		
-		loadMessages();
 	}
 	
   public static void
