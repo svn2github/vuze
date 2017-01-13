@@ -33,7 +33,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Layout;
-
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -48,6 +47,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 import org.gudy.azureus2.ui.swt.views.utils.TagButtonsUI.TagButtonTrigger;
 
 import com.aelitis.azureus.core.tag.*;
+import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.ui.UIFunctions.TagReturner;
 
 /**
@@ -306,7 +306,19 @@ public class TaggingView
 		// TODO Auto-generated method stub
 	}
 
-	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagAdded(com.aelitis.azureus.core.tag.Tag)
+	@Override
+	public void tagEventOccurred(TagEvent event ) {
+		int	type = event.getEventType();
+		Tag	tag = event.getTag();
+		if ( type == TagEvent.ET_TAG_ADDED ){
+			tagAdded( tag );
+		}else if ( type == TagEvent.ET_TAG_CHANGED ){
+			tagChanged( tag );
+		}else if ( type == TagEvent.ET_TAG_REMOVED ){
+			tagRemoved( tag );
+		}
+	}
+	
 	public void tagAdded(Tag tag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -315,7 +327,6 @@ public class TaggingView
 		});
 	}
 
-	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagChanged(com.aelitis.azureus.core.tag.Tag)
 	public void tagChanged(final Tag changedTag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -324,7 +335,6 @@ public class TaggingView
 		});
 	}
 
-	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagRemoved(com.aelitis.azureus.core.tag.Tag)
 	public void tagRemoved(Tag tag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {

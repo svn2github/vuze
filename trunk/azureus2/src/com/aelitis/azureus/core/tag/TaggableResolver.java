@@ -38,4 +38,8 @@ TaggableResolver
 	public String
 	getDisplayName(
 		Taggable	taggable );
+	
+	public void
+	requestAttention(
+		String		id );
 }

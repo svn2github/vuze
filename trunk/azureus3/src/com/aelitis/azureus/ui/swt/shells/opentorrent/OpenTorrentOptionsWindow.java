@@ -82,6 +82,7 @@ import com.aelitis.azureus.core.content.ContentException;
 import com.aelitis.azureus.core.content.RelatedAttributeLookupListener;
 import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.core.tag.*;
+import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
@@ -4626,6 +4627,17 @@ public class OpenTorrentOptionsWindow
 						{					
 						}
 						
+						@Override
+						public void tagEventOccurred(TagEvent event ) {
+							int	type = event.getEventType();
+							Tag	tag = event.getTag();
+							if ( type == TagEvent.ET_TAG_ADDED ){
+								tagAdded( tag );
+							}else if ( type == TagEvent.ET_TAG_REMOVED ){
+								tagRemoved( tag );
+							}
+						}
+						
 						public void 
 						tagRemoved(
 							Tag tag ) 
@@ -4642,13 +4654,6 @@ public class OpenTorrentOptionsWindow
 							}
 							
 							rebuild();
-						}
-						
-						public void 
-						tagChanged(
-							Tag tag) 
-						{
-							//rebuild();
 						}
 						
 						public void 

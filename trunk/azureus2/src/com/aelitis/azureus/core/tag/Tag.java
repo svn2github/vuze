@@ -153,6 +153,9 @@ Tag
 		String		property );
 	
 	public void
+	requestAttention();
+	
+	public void
 	addTagListener(
 		TagListener	listener,
 		boolean		fire_for_existing );

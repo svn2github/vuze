@@ -2275,10 +2275,21 @@ public class MyTorrentsView
   }
 
 
-	public void
-	tagTypeChanged(
-		TagType		tag_type )
-	{	
+	@Override
+	public void tagEventOccurred(TagEvent event ) {
+		int	type = event.getEventType();
+		Tag	tag = event.getTag();
+		if ( type == TagEvent.ET_TAG_ADDED ){
+			tagAdded( tag );
+		}else if ( type == TagEvent.ET_TAG_CHANGED ){
+			tagChanged( tag );
+		}else if ( type == TagEvent.ET_TAG_REMOVED ){
+			tagRemoved( tag );
+		}
+	}
+	
+	@Override
+	public void tagTypeChanged(TagType tag_type) {		
 	}
 	
 	public void

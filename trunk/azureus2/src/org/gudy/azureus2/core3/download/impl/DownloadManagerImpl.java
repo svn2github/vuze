@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerUtil;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerEvent;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
@@ -5640,6 +5641,13 @@ DownloadManagerImpl
 		this.renameTorrent(new_path.getName());
 	}
 
+	@Override
+	public void 
+	requestAttention() 
+	{
+		fireGlobalManagerEvent(GlobalManagerEvent.ET_REQUEST_ATTENTION);
+	}
+	
 	public void 
 	fireGlobalManagerEvent(
 		int eventType ) 

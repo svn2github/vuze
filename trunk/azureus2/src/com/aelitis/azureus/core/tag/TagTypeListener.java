@@ -32,14 +32,21 @@ TagTypeListener
 		TagType		tag_type );
 	
 	public void
-	tagAdded(
-		Tag			tag );
-	
-	public void
-	tagChanged(
-		Tag			tag );
-	
-	public void
-	tagRemoved(
-		Tag			tag );
+	tagEventOccurred(
+		TagEvent			event );
+		
+	public interface
+	TagEvent
+	{
+		public int ET_TAG_ADDED						= 0;
+		public int ET_TAG_CHANGED					= 1;
+		public int ET_TAG_REMOVED					= 2;
+		public int ET_TAG_ATTENTION_REQUESTED		= 3;
+		
+		public Tag
+		getTag();
+		
+		public int
+		getEventType();
+	}
 }

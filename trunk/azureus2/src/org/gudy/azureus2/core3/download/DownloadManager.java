@@ -795,5 +795,8 @@ DownloadManager
 		 * @param type
 		 * @since 5.6.2.1
 		 */
-		public void setFilePriorities(DiskManagerFileInfo[] fileInfos, int type);
+	public void setFilePriorities(DiskManagerFileInfo[] fileInfos, int type);
+	
+	public void
+	requestAttention();
 }

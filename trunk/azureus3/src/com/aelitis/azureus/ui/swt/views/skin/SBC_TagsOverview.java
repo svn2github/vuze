@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.tag.*;
+import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -853,14 +854,25 @@ public class SBC_TagsOverview
 		tv.tableInvalidate();
 	}
 
-	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagAdded(com.aelitis.azureus.core.tag.Tag)
+	@Override
+	public void tagEventOccurred(TagEvent event ) {
+		int	type = event.getEventType();
+		Tag	tag = event.getTag();
+		if ( type == TagEvent.ET_TAG_ADDED ){
+			tagAdded( tag );
+		}else if ( type == TagEvent.ET_TAG_CHANGED ){
+			tagChanged( tag );
+		}else if ( type == TagEvent.ET_TAG_REMOVED ){
+			tagRemoved( tag );
+		}
+	}
+	
 	public void tagAdded(Tag tag) {
 		tv.addDataSource(tag);
 		
 		handleProps( tag );
 	}
 
-	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagChanged(com.aelitis.azureus.core.tag.Tag)
 	public void tagChanged(Tag tag) {
 		if (tv == null || tv.isDisposed()) {
 			return;

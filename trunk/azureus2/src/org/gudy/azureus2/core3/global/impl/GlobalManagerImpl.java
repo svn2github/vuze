@@ -2891,6 +2891,19 @@ public class GlobalManagerImpl
 		return(((DownloadManager)taggable).getDisplayName());
 	}
 	
+	@Override
+	public void 
+	requestAttention(
+		String id ) 
+	{
+		DownloadManager dm =  getDownloadManager( new HashWrapper( Base32.decode( id )));
+		
+		if ( dm != null ){
+			
+			dm.requestAttention();
+		}
+	}
+	
   protected void  informDestroyed() {
   		if ( destroyed )
   		{

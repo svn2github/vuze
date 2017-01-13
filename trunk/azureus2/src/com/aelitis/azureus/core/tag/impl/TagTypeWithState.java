@@ -68,6 +68,12 @@ TagTypeWithState
 		return( resolver.resolveTaggable( id ));
 	}
 	
+	protected TaggableResolver
+	getResolver()
+	{
+		return( resolver );
+	}
+	
 	protected void
 	removeTaggable(
 		TaggableResolver	_resolver,

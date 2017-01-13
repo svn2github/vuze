@@ -56,6 +56,7 @@ import org.gudy.bouncycastle.util.Arrays;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
+import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
@@ -1309,11 +1310,15 @@ public class TagSettingsView
 	public void tagTypeChanged(TagType tag_type) {
 	}
 
-	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagAdded(com.aelitis.azureus.core.tag.Tag)
-	public void tagAdded(Tag tag) {
+	@Override
+	public void tagEventOccurred(TagEvent event ) {
+		int	type = event.getEventType();
+		Tag	tag = event.getTag();
+		if ( type == TagEvent.ET_TAG_CHANGED ){
+			tagChanged( tag );
+		}
 	}
-
-	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagChanged(com.aelitis.azureus.core.tag.Tag)
+	
 	public void tagChanged(final Tag changedTag) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -1330,9 +1335,6 @@ public class TagSettingsView
 		});
 	}
 
-	// @see com.aelitis.azureus.core.tag.TagTypeListener#tagRemoved(com.aelitis.azureus.core.tag.Tag)
-	public void tagRemoved(Tag tag) {
-	}
 
 	private static abstract class BooleanParameterAdapter extends GenericParameterAdapter {
 		@Override

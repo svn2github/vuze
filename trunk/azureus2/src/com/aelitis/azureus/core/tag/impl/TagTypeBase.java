@@ -43,10 +43,11 @@ TagTypeBase
 	private final int		tag_type_features;
 	private final String	tag_type_name;
 		
-	private static final int TTL_ADD 			= 1;
-	private static final int TTL_CHANGE 		= 2;
-	private static final int TTL_REMOVE 		= 3;
-	private static final int TTL_TYPE_CHANGE 	= 4;
+	private static final int TTL_ADD 					= 1;
+	private static final int TTL_CHANGE 				= 2;
+	private static final int TTL_REMOVE 				= 3;
+	private static final int TTL_TYPE_CHANGE 			= 4;
+	private static final int TTL_ATTENTION_REQUESTED 	= 5;
 	
 	private static final TagManagerImpl manager = TagManagerImpl.getSingleton();
 	
@@ -60,22 +61,50 @@ TagTypeBase
 					TagTypeListener		listener,
 					int					type,
 					Object				value )
-				{					
-					if ( type == TTL_ADD ){
-						
-						listener.tagAdded((Tag)value);
-						
-					}else if ( type == TTL_CHANGE ){
-						
-						listener.tagChanged((Tag)value);
-						
-					}else if ( type == TTL_REMOVE ){
-						
-						listener.tagRemoved((Tag)value);
-						
-					}else if ( type == TTL_TYPE_CHANGE ){
-						
+				{
+					if ( type == TTL_TYPE_CHANGE ){
+					
 						listener.tagTypeChanged( TagTypeBase.this );
+						
+					}else{
+						
+						final Tag		tag			= (Tag)value;
+						final int		event_type;
+						
+						if ( type == TTL_ADD ){
+							
+							event_type	= TagTypeListener.TagEvent.ET_TAG_ADDED;
+							
+						}else if ( type == TTL_CHANGE ){
+							
+							event_type	= TagTypeListener.TagEvent.ET_TAG_CHANGED;
+							
+						}else if ( type == TTL_REMOVE ){
+							
+							event_type	= TagTypeListener.TagEvent.ET_TAG_REMOVED;
+							
+						}else if ( type == TTL_ATTENTION_REQUESTED ){
+							
+							event_type	= TagTypeListener.TagEvent.ET_TAG_ATTENTION_REQUESTED;
+							
+						}else{
+							
+							return;
+						}
+						
+						listener.tagEventOccurred( 
+							new TagTypeListener.TagEvent()
+							{
+								@Override
+								public Tag getTag() {
+									return( tag );
+								}
+								
+								@Override
+								public int getEventType() {
+									return( event_type );
+								}
+							});
 					}
 				}
 			});	
@@ -220,6 +249,13 @@ TagTypeBase
 		manager.removeConfig( t );
 	}
 	
+	public void
+	requestAttention(
+		Tag	t )
+	{
+		tt_listeners.dispatch( TTL_ATTENTION_REQUESTED, t );
+	}
+	
 	public int[]
 	getColorDefault()
 	{
@@ -323,10 +359,22 @@ TagTypeBase
 		
 		if ( fire_for_existing ){
 			
-			for ( Tag t: getTags()){
+			for ( final Tag t: getTags()){
 				
 				try{
-					listener.tagAdded( t );
+					listener.tagEventOccurred(
+						new TagTypeListener.TagEvent() {
+							
+							@Override
+							public Tag getTag() {
+								return( t );
+							}
+							
+							@Override
+							public int getEventType() {
+								return( ET_TAG_ADDED );
+							}
+						});
 					
 				}catch( Throwable e ){
 					

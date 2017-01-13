@@ -1175,6 +1175,13 @@ TagBase
 		return( result );
 	}
 	
+	@Override
+	public void 
+	requestAttention()
+	{
+		tag_type.requestAttention( this );
+	}
+	
 	public void 
 	addListener(
 		final org.gudy.azureus2.plugins.tag.TagListener listener ) 

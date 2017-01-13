@@ -42,6 +42,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.*;
+import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 
 
 public class 
@@ -154,6 +155,17 @@ TagPropertyUntaggedHandler
 		TagType		tag_type )
 	{
 		
+	}
+	
+	@Override
+	public void tagEventOccurred(TagEvent event ) {
+		int	type = event.getEventType();
+		Tag	tag = event.getTag();
+		if ( type == TagEvent.ET_TAG_ADDED ){
+			tagAdded( tag );
+		}else if ( type == TagEvent.ET_TAG_REMOVED ){
+			tagRemoved( tag );
+		}
 	}
 	
 	public void
@@ -275,12 +287,6 @@ TagPropertyUntaggedHandler
 				}	
 			}
 		}
-	}
-	
-	public void
-	tagChanged(
-		Tag			tag )
-	{
 	}
 	
 	public void

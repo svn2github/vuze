@@ -50,6 +50,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagPropertyListener;
+import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
@@ -169,6 +170,17 @@ TagPropertyConstraintHandler
 	{
 	}
 	
+	@Override
+	public void tagEventOccurred(TagEvent event ) {
+		int	type = event.getEventType();
+		Tag	tag = event.getTag();
+		if ( type == TagEvent.ET_TAG_ADDED ){
+			tagAdded( tag );
+		}else if ( type == TagEvent.ET_TAG_REMOVED ){
+			tagRemoved( tag );
+		}
+	}
+	
 	public void
 	tagAdded(
 		Tag			tag )
@@ -224,12 +236,6 @@ TagPropertyConstraintHandler
 					apply((DownloadManager)tagged, tag, true );
 				}
 			}, false );
-	}
-	
-	public void
-	tagChanged(
-		Tag			tag )
-	{
 	}
 	
 	private void

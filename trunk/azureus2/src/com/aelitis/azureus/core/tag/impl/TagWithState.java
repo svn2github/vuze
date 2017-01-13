@@ -29,14 +29,22 @@ import java.util.Set;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
+import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureNotifications;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableResolver;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.CopyOnWriteSet;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 public abstract class 
@@ -238,19 +246,79 @@ TagWithState
 					Map<String,String>	cb_data = new HashMap<String, String>();
 					
 					cb_data.put( "allowReAdd", "true" );
+					cb_data.put( "taguid", String.valueOf( getTagUID() ));
+					cb_data.put( "id", String.valueOf( taggable.getTaggableID()));
 					
 					provider.addLocalActivity(
 						getTagUID() + ":" + taggable.getTaggableID() + ":" + is_add,
 						"image.sidebar.tag-green",
 						name,
-						new String[]{},
-						null,
+						new String[]{ MessageText.getString( "label.view" )},
+						ActivityCallback.class,
 						cb_data );
 				}
 			}
 		}
 	}
-
+	
+	public static class
+	ActivityCallback
+		implements AZ3Functions.provider.LocalActivityCallback
+	{
+		public void 
+		actionSelected(
+			String action, Map<String, String> data) 
+		{
+			String	taguid 	= data.get( "taguid" );
+			
+			final String	id 		= data.get( "id" );
+			
+			if ( taguid != null && id != null ){
+				
+				try{
+					Tag tag = TagManagerFactory.getTagManager().lookupTagByUID( Long.parseLong( taguid ));
+					
+					if ( tag != null ){
+						
+						TagType tt = tag.getTagType();
+						
+						if ( tt instanceof TagTypeWithState ){
+							
+							final TaggableResolver resolver = ((TagTypeWithState)tt).getResolver();
+							
+							if ( resolver != null ){
+								
+								if ( !tag.isVisible()){
+									
+									tag.setVisible( true );
+								}
+								
+								tag.requestAttention();
+								
+									// things are somewhat async - too much effort to try and add some callback
+									// structure to ensure tag is vsible before showing download...
+								
+								SimpleTimer.addEvent(
+									"async",
+									SystemTime.getOffsetTime( 500 ),
+									new TimerEventPerformer() {
+										
+										@Override
+										public void perform(TimerEvent event) {
+											resolver.requestAttention( id );
+										}
+									});
+							
+							}
+						}
+					}
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+	}
 	
 	@Override
 	public void 

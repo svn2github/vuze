@@ -51,6 +51,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.tag.*;
+import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -577,6 +578,30 @@ public class SB_Transfers
 										}
 									}
 										
+									@Override
+									public void tagEventOccurred(TagEvent event ) {
+										int	type = event.getEventType();
+										Tag	tag = event.getTag();
+										if ( type == TagEvent.ET_TAG_ADDED ){
+											tagAdded( tag );
+										}else if ( type == TagEvent.ET_TAG_CHANGED ){
+											tagChanged( tag );
+										}else if ( type == TagEvent.ET_TAG_REMOVED ){
+											tagRemoved( tag );
+										}else if ( type == TagEvent.ET_TAG_ATTENTION_REQUESTED ){
+											MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+											if (mdi == null) {
+												return;
+											}
+
+											MdiEntry entry = mdi.getEntry("Tag." + tag.getTagType().getTagType() + "." + tag.getTagID());
+
+											if (entry != null) {
+												mdi.showEntry( entry );
+											}
+										}
+									}
+									
 									public void
 									tagAdded(
 										Tag			tag )
