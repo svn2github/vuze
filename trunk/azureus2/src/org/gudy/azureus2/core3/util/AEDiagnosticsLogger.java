@@ -108,7 +108,9 @@ AEDiagnosticsLogger
 	setForced(
 		boolean		_force )
 	{
-		force = _force;
+		if (System.getProperty("skip.loggers.setforced", "0").equals("0")) {
+			force = _force;
+		}
 	}
 	
 	public boolean

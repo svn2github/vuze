@@ -171,8 +171,9 @@ AEDiagnostics
 						loggers_enabled = logging_enabled && COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled");
 						
 						if ( !loggers_enabled ){
-							
-							loggers_enabled = Constants.IS_CVS_VERSION || COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled.Force" );
+
+							boolean skipCVSCheck = System.getProperty("skip.loggers.enabled.cvscheck", "0").equals("1");
+							loggers_enabled = (!skipCVSCheck && Constants.IS_CVS_VERSION) || COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled.Force" );
 						}
 					}
 				});
