@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -35,7 +36,9 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
+import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -58,9 +61,9 @@ public class UIDebugGenerator
 {
 	public static class GeneratedResults
 	{
-		File file;
+		public File file;
 
-		String message;
+		public String message;
 		
 		boolean sendNow;
 
@@ -68,26 +71,22 @@ public class UIDebugGenerator
 	}
 
 	public static void generate(final String sourceRef, String additionalText) {
-		final GeneratedResults gr = generate(null, false,
-				"UIDebugGenerator.messageask");
+		final GeneratedResults gr = generate(null,
+				new DebugPrompterListener() {
+					public boolean promptUser(GeneratedResults gr) {
+						UIDebugGenerator.promptUser(false, gr);
+						if (gr.message == null) {
+							return false;
+						}
+						return true;
+					}
+				});
 		if (gr != null) {
 			AZ3Functions.provider az3 = AZ3Functions.getProvider();
 
 			if (az3 != null && gr.sendNow) {
-				
-				if (gr.email != null && gr.email.length() > 0) {
-					additionalText += "\n" + gr.email;
-				}
-				
-				ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
-				String url = az3.getDefaultContentNetworkURL(az3.SERVICE_SITE_RELATIVE,
-						new Object[] {
-							"/debugSender.start",
-							true
-						});
-				StringBuilder postData = new StringBuilder();
-
-				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+				Licence fullLicence = null;
+				PluginInterface pi = PluginInitializer.getDefaultInterface();
 				FeatureManager featman = pi.getUtilities().getFeatureManager();
 
 				if (featman != null) {
@@ -96,65 +95,10 @@ public class UIDebugGenerator
 						// Could walk through details and find the most valid..
 
 						FeatureDetails bestDetails = featureDetails[0];
-						postData.append("license=");
-						postData.append(UrlUtils.encode(bestDetails.getLicence().getKey()));
-						postData.append("&");
+						fullLicence = bestDetails.getLicence();
 					}
 				}
-
-				postData.append("message=");
-				postData.append(UrlUtils.encode(gr.message));
-				postData.append("&error=");
-				postData.append(UrlUtils.encode(additionalText));
-				postData.append("&sourceRef=");
-				postData.append(UrlUtils.encode(sourceRef));
-				if (gr.email != null && gr.email.length() > 0) {
-					postData.append("&email=");
-					postData.append(UrlUtils.encode(gr.email));
-				}
-				postData.append("&debug_zip=");
-				try {
-					byte[] fileArray = FileUtil.readFileAsByteArray(gr.file);
-					postData.append(UrlUtils.encode(new String(Base64.encode(fileArray))));
-
-					ResourceDownloader rd = rdf.create(new URL(url), postData.toString());
-
-					rd.addListener(new ResourceDownloaderListener() {
-
-						public void reportPercentComplete(ResourceDownloader downloader,
-								int percentage) {
-						}
-
-						public void reportAmountComplete(ResourceDownloader downloader,
-								long amount) {
-						}
-
-						public void reportActivity(ResourceDownloader downloader,
-								String activity) {
-						}
-
-						public void failed(ResourceDownloader downloader,
-								ResourceDownloaderException e) {
-							Debug.out(e);
-						}
-
-						public boolean completed(ResourceDownloader downloader,
-								InputStream data) {
-							try {
-								int i = data.available();
-								byte[] b = new byte[i];
-								data.read(b);
-							} catch (Throwable t) {
-
-							}
-							return true;
-						}
-					});
-
-					rd.asyncDownload();
-				} catch (Exception e) {
-					Debug.out(e);
-				}
+				sendNow(gr, sourceRef, additionalText, fullLicence);
 			} else {
 
 				MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.CANCEL
@@ -179,8 +123,92 @@ public class UIDebugGenerator
 		}
 	}
 
+	public static void sendNow(GeneratedResults gr, String sourceRef,
+			String additionalText, Licence fullLicence) {
+
+		AZ3Functions.provider az3 = AZ3Functions.getProvider();
+		if (az3 == null) {
+			return;
+		}
+		
+		if (gr.email != null && gr.email.length() > 0) {
+			additionalText += "\n" + gr.email;
+		}
+		
+		ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
+		String url = az3.getDefaultContentNetworkURL(az3.SERVICE_SITE_RELATIVE,
+				new Object[] {
+					"/debugSender.start",
+					true
+				});
+		StringBuilder postData = new StringBuilder();
+
+		if (fullLicence != null) {
+			postData.append("license=");
+			postData.append(UrlUtils.encode(fullLicence.getKey()));
+			postData.append("&");
+		}
+		postData.append("message=");
+		postData.append(UrlUtils.encode(gr.message));
+		postData.append("&error=");
+		postData.append(UrlUtils.encode(additionalText));
+		postData.append("&sourceRef=");
+		postData.append(UrlUtils.encode(sourceRef));
+		if (gr.email != null && gr.email.length() > 0) {
+			postData.append("&email=");
+			postData.append(UrlUtils.encode(gr.email));
+		}
+		postData.append("&debug_zip=");
+		try {
+			byte[] fileArray = FileUtil.readFileAsByteArray(gr.file);
+			postData.append(UrlUtils.encode(new String(Base64.encode(fileArray))));
+
+			ResourceDownloader rd = rdf.create(new URL(url), postData.toString());
+
+			rd.addListener(new ResourceDownloaderListener() {
+
+				public void reportPercentComplete(ResourceDownloader downloader,
+						int percentage) {
+				}
+
+				public void reportAmountComplete(ResourceDownloader downloader,
+						long amount) {
+				}
+
+				public void reportActivity(ResourceDownloader downloader,
+						String activity) {
+				}
+
+				public void failed(ResourceDownloader downloader,
+						ResourceDownloaderException e) {
+					Debug.out(e);
+				}
+
+				public boolean completed(ResourceDownloader downloader,
+						InputStream data) {
+					try {
+						int i = data.available();
+						byte[] b = new byte[i];
+						data.read(b);
+					} catch (Throwable t) {
+
+					}
+					return true;
+				}
+			});
+
+			rd.asyncDownload();
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
+
+	public interface DebugPrompterListener {
+		public boolean promptUser(GeneratedResults gr);
+	}
+	
 	public static GeneratedResults generate(File[] extraLogDirs,
-			boolean allowEmpty, String msgPrefix) {
+			DebugPrompterListener debugPrompterListener) {
 		Display display = Display.getCurrent();
 		if (display == null) {
 			return null;
@@ -264,9 +292,11 @@ public class UIDebugGenerator
 		if (activeShell != null) {
 			activeShell.setCursor(null);
 		}
-		promptUser(allowEmpty, gr);
-		if (gr.message == null) {
-			return null;
+
+		if (debugPrompterListener != null) {
+			if (!debugPrompterListener.promptUser(gr)) {
+				return null;
+			}
 		}
 
 		FileWriter fw = null;
@@ -412,6 +442,9 @@ public class UIDebugGenerator
 
 			if (extraLogDirs != null) {
 				for (File file : extraLogDirs) {
+					if (!file.isDirectory()) {
+						continue;
+					}
 					files = file.listFiles(new FileFilter() {
 						public boolean accept(File pathname) {
 							return pathname.getName().endsWith("stackdump")
