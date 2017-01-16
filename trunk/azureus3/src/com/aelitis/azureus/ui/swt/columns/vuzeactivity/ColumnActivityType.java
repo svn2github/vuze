@@ -107,7 +107,9 @@ public class ColumnActivityType
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
-		if (cell.setSortValue(entry.getTypeID()) || !cell.isValid()) {
+		String sort = entry.getTypeID() + entry.getIconID();
+		
+		if (cell.setSortValue(sort) || !cell.isValid()) {
 			String ts = timeFormat.format(new Date(entry.getTimestamp()));
 			cell.setToolTip("Activity occurred on " + ts);
 		}
