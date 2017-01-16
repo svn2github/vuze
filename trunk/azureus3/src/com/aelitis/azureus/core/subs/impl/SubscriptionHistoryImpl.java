@@ -24,6 +24,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
@@ -33,10 +34,14 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.activities.LocalActivityManager;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
+import com.aelitis.azureus.core.subs.SubscriptionManager;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.util.ImportExportUtils;
 
@@ -302,12 +307,47 @@ SubscriptionHistoryImpl
 					public void 
 					runSupport()
 					{
-						System.out.println( "Post Post" );
+						Map<String,String>	cb_data = new HashMap<String, String>();
+						
+						cb_data.put( "subname", subs.getName());
+						
+						cb_data.put( "subid", subs.getID());
+						
+						LocalActivityManager.addLocalActivity(
+							"NewResults:" + subs.getID(),
+							"rss",
+							MessageText.getString(
+								"subs.activity.new.results",
+								new String[]{ subs.getName(), String.valueOf( num_unread )}),
+							new String[]{ MessageText.getString( "label.view" )},
+							ActivityCallback.class,
+							cb_data );
 					}
 				});
 		}
 		
 		return( result );
+	}
+	
+	public static class
+	ActivityCallback
+		implements LocalActivityManager.LocalActivityCallback
+	{
+		public void 
+		actionSelected(
+			String action, Map<String, String> data) 
+		{
+			SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+			
+			String sub_id = (String)data.get( "subid" );
+			
+			final Subscription sub = subs_man.getSubscriptionByID( sub_id );
+			
+			if ( sub != null ){
+				
+				sub.requestAttention();
+			}
+		}
 	}
 	
 	public boolean
