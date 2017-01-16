@@ -26,21 +26,10 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.platform.PlatformManagerListener;
-import org.gudy.azureus2.platform.PlatformManagerPingCallback;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
@@ -172,11 +161,9 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	        	// likely java.lang.UnsatisfiedLinkError -- older version
 	        }
         }
- 
-        if ( checkPList()){
-        	
-            // one day soon...
-            // capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions);
+        
+        if (hasVMOptions()) {
+          capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions);
         }
         
         capabilitySet.add(PlatformManagerCapabilities.RunAtLogin);
@@ -251,7 +238,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         AEDiagnostics.addEvidenceGenerator(this);
     }
 
-    /**
+		/**
      * {@inheritDoc}
      */
     public int getPlatformType()
@@ -352,26 +339,226 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	
 		throws PlatformManagerException 
 	{
-        throw new PlatformManagerException("Unsupported capability called on platform manager");
+		checkCapability( PlatformManagerCapabilities.AccessExplicitVMOptions );
+		
+		File local_options = checkAndGetLocalVMOptionFile();
+
+		if ( !local_options.exists()){
+			
+			try{
+				local_options.createNewFile();
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		return( local_options );
 	}
-	
+
+  private void
+  checkCapability(
+  	PlatformManagerCapabilities capability )
+  
+  	throws PlatformManagerException
+  {
+  	if ( !hasCapability(capability)){
+  		
+  		throw( new PlatformManagerException( "Capability " + capability + " not supported" ));
+  	}
+  }
+
 	public String[]
    	getExplicitVMOptions()
   	          	
      	throws PlatformManagerException
-  	{
-        throw new PlatformManagerException("Unsupported capability called on platform manager");
+  {
+  	checkCapability( PlatformManagerCapabilities.AccessExplicitVMOptions );
+  		
+  	
+  	File local_options = checkAndGetLocalVMOptionFile();
+  
+  	try{
+  				
+  		List<String>	list = new ArrayList<String>();
+  		
+  		if ( local_options.exists()){
+  			
+  			LineNumberReader lnr = new LineNumberReader( new InputStreamReader( new FileInputStream( local_options ), "UTF-8" ));
+  				
+  			try{
+  				while( true ){
+  					
+  					String	line = lnr.readLine();
+  					
+  					if ( line == null ){
+  						
+  						break;
+  					}
+  					
+  					line = line.trim();
+  					
+  					if ( line.length() > 0 ){
+  						
+  						list.add( line );
+  					}
+  				}
+  				
+  			}finally{
+  				
+  				lnr.close();
+  			}
+  		}
+  		
+  		return( list.toArray( new String[list.size()]));
+  				
+  	}catch( Throwable e ){
+  		
+  		throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.accesserror", new String[]{ Debug.getNestedExceptionMessage(e) } )));
   	}
+  }
   	 
-  	public void
+  public void
   	setExplicitVMOptions(
   		String[]		options )
   	          	
   		throws PlatformManagerException
-  	{
-        throw new PlatformManagerException("Unsupported capability called on platform manager");	
-  	}
-  	
+ 	{
+
+  	checkCapability( PlatformManagerCapabilities.AccessExplicitVMOptions );
+
+		File local_options = checkAndGetLocalVMOptionFile();
+
+		try{							
+			if ( local_options.exists()){
+				
+				File backup = new File( local_options.getParentFile(), local_options.getName() + ".bak" );
+				
+				if ( backup.exists()){
+					
+					backup.delete();
+				}
+				
+				if ( !local_options.renameTo( backup )){
+				
+					throw( new Exception( "Failed to move " + local_options + " to " + backup ));
+				}
+				
+				boolean	ok = false;
+				
+				try{
+					
+					PrintWriter pw = new PrintWriter( new OutputStreamWriter( new FileOutputStream( local_options ), "UTF-8" ));
+					
+					try{
+						for ( String option: options ){
+							
+							pw.println( option );
+						}
+					
+						ok = true;
+						
+					}finally{
+						
+						pw.close();
+					}
+				}finally{
+					
+					if ( !ok ){
+						
+						local_options.delete();
+						
+						backup.renameTo( local_options );
+					}
+				}
+			}					
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.accesserror", new String[]{ Debug.getNestedExceptionMessage(e) } )));
+		}
+  }
+
+	private File
+	checkAndGetLocalVMOptionFile()
+	
+		throws PlatformManagerException
+	{
+		String vendor = System.getProperty( "java.vendor", "<unknown>" );
+		
+		if ( !vendor.toLowerCase().startsWith( "sun " ) && !vendor.toLowerCase().startsWith( "oracle " )){
+			
+			throw( new PlatformManagerException( 
+						MessageText.getString( 
+							"platform.jvmopt.sunonly",
+							new String[]{ vendor })));
+		}
+		
+		File[] option_files = getJVMOptionFiles();
+		
+		if ( option_files.length != 2 ){
+			
+			throw( new PlatformManagerException( 
+					MessageText.getString( "platform.jvmopt.configerror" )));
+		}
+		
+		File shared_options = option_files[0];
+		
+		if ( shared_options.exists()){
+
+			try{
+				String s_options = FileUtil.readFileAsString( shared_options, -1 );
+	
+				if ( s_options.contains( getJVMOptionRedirect() )){
+									
+					File local_options = option_files[1];
+					
+					return( local_options );
+					
+				}else{
+					
+					throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.nolink" )));
+				}
+			}catch( Throwable e ){
+				
+				throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.accesserror", new String[]{ Debug.getNestedExceptionMessage(e) } )));
+			}
+		}else{
+			
+			throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.nolinkfile" )));
+		}			
+  }
+
+	private String
+	getJVMOptionRedirect()
+	{
+		return ("-include-options ${HOME}/Library/Application Support/"
+				+ SystemProperties.getApplicationName() + "/java.vmoptions");
+	}
+	
+  private boolean hasVMOptions() {
+		File fileVMOption = FileUtil.getApplicationFile("java.vmoptions");
+		return fileVMOption.exists();
+	}
+
+	private File[]
+	getJVMOptionFiles()
+	{
+		try{
+	
+			File shared_options 		= FileUtil.getApplicationFile("java.vmoptions");
+			// use LOC_USER_DATA instead of SystemProperties.getUserPath(),
+			// since we assume in getJVMOptionRedirect that the shared_options'
+			// include points to LOC_USER_DATA.
+			File local_options 			= new File( getLocation(LOC_USER_DATA), "java.vmoptions" );
+			
+			return( new File[]{ shared_options, local_options });
+			
+		}catch( Throwable e ){
+			
+			return( new File[0] );
+		}
+	}
+
+ 
 	public void
 	startup(
 		AzureusCore		_azureus_core )
