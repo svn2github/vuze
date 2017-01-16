@@ -116,6 +116,16 @@ public class SystemProperties {
 				
 				if ( dot_pos == -1 ){
 					
+					// When running in eclipse, there is no .app, so use
+					// "Working Directory" aka "user.dir" as the app name
+					// if there's a Azureus2.jar in there
+					// ie. Working Directory = /Users/Shared/Library/Application Support/Vuze
+					File fileUserDir = new File(System.getProperty("user.dir", ""));
+					if (new File(fileUserDir, "Azureus2.jar").exists()) {
+						setApplicationName(fileUserDir.getName());
+						return;
+					}
+					
 					// probably console UI
 					// System.out.println( "SystemProperties: determineApplicationName -  can't determine application name from " + classpath );
 					
