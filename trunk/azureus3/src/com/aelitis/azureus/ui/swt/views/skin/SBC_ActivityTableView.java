@@ -158,8 +158,21 @@ public class SBC_ActivityTableView
 
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				if (rows.length == 1) {
-					TorrentListViewsUtils.playOrStreamDataSource(rows[0].getDataSource(),
-							false);
+					
+					VuzeActivitiesEntry ds = (VuzeActivitiesEntry)rows[0].getDataSource();
+					
+					if ( ds.getTypeID() == VuzeActivitiesConstants.TYPEID_LOCALNEWS ){
+						
+						String[] actions = ds.getActions();
+						
+						if ( actions.length == 1 ){
+							
+							ds.invokeCallback( actions[0] );
+						}
+					}else{
+						
+						TorrentListViewsUtils.playOrStreamDataSource( ds, false );
+					}
 				}
 			}
 

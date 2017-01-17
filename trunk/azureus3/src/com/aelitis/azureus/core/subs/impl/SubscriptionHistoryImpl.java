@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.core.subs.impl;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -310,15 +311,18 @@ SubscriptionHistoryImpl
 						Map<String,String>	cb_data = new HashMap<String, String>();
 						
 						cb_data.put( "subname", subs.getName());
-						
 						cb_data.put( "subid", subs.getID());
+
+						cb_data.put( "allowReAdd", "true" );
+						
+						String date_str = new SimpleDateFormat( "yyyy/MM/dd HH:mm:ss" ).format( new Date( SystemTime.getCurrentTime()));
 						
 						LocalActivityManager.addLocalActivity(
 							"NewResults:" + subs.getID(),
 							"rss",
 							MessageText.getString(
 								"subs.activity.new.results",
-								new String[]{ subs.getName(), String.valueOf( num_unread )}),
+								new String[]{ subs.getName(), String.valueOf( num_unread )}) + ": " + date_str,
 							new String[]{ MessageText.getString( "label.view" )},
 							ActivityCallback.class,
 							cb_data );
