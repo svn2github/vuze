@@ -493,6 +493,20 @@ public class UrlUtils
 		return( parseTextForURL(text, false, false ));
 	}
 	
+	public static boolean
+	isInternalProtocol(
+		String		url )
+	{
+		url = url.toLowerCase();
+		
+		return(
+			url.startsWith( "magnet:" ) || 
+			url.startsWith( "chat:") ||
+			url.startsWith( "azplug:") ||
+			url.startsWith( "vuze:") ||
+			url.startsWith( "tor:" ));
+	}
+	
 	public static String parseTextForURL(String text, boolean accept_magnets,
 			boolean guess) {
 

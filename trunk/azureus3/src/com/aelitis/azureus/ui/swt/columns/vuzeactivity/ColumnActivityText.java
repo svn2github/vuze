@@ -21,13 +21,14 @@
 package com.aelitis.azureus.ui.swt.columns.vuzeactivity;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLDecoder;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
-
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
@@ -166,11 +167,22 @@ public class ColumnActivityText
 			URLInfo hitUrl = sp.getHitUrl(event.x + bounds.x, event.y + bounds.y);
 			int newCursor;
 			if (hitUrl != null) {
-				boolean ourUrl = UrlFilter.getInstance().urlCanRPC(hitUrl.url)
-						|| hitUrl.url.startsWith("/") || hitUrl.url.startsWith("#");
-				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
-					if (!ourUrl) {
-						Utils.launch(hitUrl.url);
+				String url = hitUrl.url;
+				boolean ourUrl = UrlFilter.getInstance().urlCanRPC(url)
+						|| url.startsWith("/") || url.startsWith("#");
+				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN && event.button == 1 ) {
+					if (!ourUrl){
+						if ( UrlUtils.isInternalProtocol( url )){
+							try{
+								UIFunctionsManagerSWT.getUIFunctionsSWT().doSearch( url );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}else{
+							Utils.launch(url);
+						}
 					} else {
 						UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 						if (uif != null) {

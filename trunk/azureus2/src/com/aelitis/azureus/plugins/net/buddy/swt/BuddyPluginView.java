@@ -1244,7 +1244,50 @@ BuddyPluginView
 		ChatInstance	chat,
 		ChatMessage		message )
 	{
-		return( BuddyPluginViewBetaChat.renderMessage(null, chat, message.getMessage(), message.getMessageType(), 0, new ArrayList<StyleRange>(), null, null, null));
+		List<StyleRange>	ranges = new ArrayList<StyleRange>();
+		
+		String msg = BuddyPluginViewBetaChat.renderMessage(null, chat, message.getMessage(), message.getMessageType(), 0, ranges, null, null, null);
+		
+		StringBuilder new_msg = new StringBuilder();
+		
+		int	pos = 0;
+		
+		for ( StyleRange range: ranges ){
+			
+			Object data = range.data;
+			
+			if ( range.underline && data instanceof String ){
+
+				int start 	= range.start;
+				int	length	= range.length;
+				
+				String link_text 	= msg.substring( start, start+length-1 );
+				String link_url		= (String)data;
+				
+				if ( start > pos ){
+					
+					new_msg.append( msg, pos, start );
+				}
+				
+				new_msg.append( "<A HREF=\"" + link_url + "\">" + link_text + "</A>" );
+				
+				pos = start+length;
+			}			
+		}
+		
+		if ( pos == 0 ){
+			
+			return( msg );
+			
+		}else{
+			
+			if ( pos < msg.length()){
+				
+				new_msg.append( msg.substring( pos ));
+			}
+			
+			return( new_msg.toString());
+		}
 	}
 	
 	private List<MenuItem>		menu_items = new ArrayList<MenuItem>();
