@@ -1218,6 +1218,8 @@ SESecurityManagerImpl
 					
 					int	count = 0;
 					
+					boolean	already_trusted = false;
+					
 					while( count < 256 ){
 						
 						String	test_alias = count==0?alias:(alias + "." + count );
@@ -1229,6 +1231,8 @@ SESecurityManagerImpl
 							if ( Arrays.equals( new_encoded, existing.getEncoded())){
 							
 								alias = test_alias;
+								
+								already_trusted = true;
 								
 								break;
 							}
@@ -1242,7 +1246,7 @@ SESecurityManagerImpl
 						count++;
 					}
 	
-					if ( auto_install_certs || result != null ){
+					if ( auto_install_certs || already_trusted || result != null ){
 						
 						result = addCertToTrustStore( alias, cert, true );
 	
