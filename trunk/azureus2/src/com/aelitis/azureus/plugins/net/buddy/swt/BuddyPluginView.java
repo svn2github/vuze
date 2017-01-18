@@ -1261,7 +1261,7 @@ BuddyPluginView
 				int start 	= range.start;
 				int	length	= range.length;
 				
-				String link_text 	= msg.substring( start, start+length-1 );
+				String link_text 	= msg.substring( start, start+length );
 				String link_url		= (String)data;
 				
 				if ( start > pos ){
