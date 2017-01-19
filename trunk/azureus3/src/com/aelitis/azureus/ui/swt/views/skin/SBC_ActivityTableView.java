@@ -161,7 +161,7 @@ public class SBC_ActivityTableView
 					
 					VuzeActivitiesEntry ds = (VuzeActivitiesEntry)rows[0].getDataSource();
 					
-					if ( ds.getTypeID() == VuzeActivitiesConstants.TYPEID_LOCALNEWS ){
+					if ( ds.getTypeID().equals( VuzeActivitiesConstants.TYPEID_LOCALNEWS )){
 						
 						String[] actions = ds.getActions();
 						
