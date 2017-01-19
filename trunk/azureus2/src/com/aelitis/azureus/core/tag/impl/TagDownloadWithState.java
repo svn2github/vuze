@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -1710,37 +1712,49 @@ TagDownloadWithState
 			while( it.hasNext() && sorted_dms.size() > max ){
 				
 				DownloadManager dm = it.next();
+												
+				if ( dm.isPersistent()){
 				
-				it.remove();
-				
-				try{
-					if ( removal_strategy == RS_ARCHIVE ){
-						
-						Download download = PluginCoreUtils.wrap( dm );
-						
-						if ( download.canStubbify()){
+					it.remove();
+
+					try{
+						if ( removal_strategy == RS_ARCHIVE ){
 							
-								// have to remove from tag otherwise when it is restored it will no doubt get re-archived!
+							Download download = PluginCoreUtils.wrap( dm );
 							
-							removeTaggable( dm );
+							if ( download.canStubbify()){
+								
+									// have to remove from tag otherwise when it is restored it will no doubt get re-archived!
+								
+								removeTaggable( dm );
+								
+								download.stubbify();
+							}
+						}else if ( removal_strategy == RS_REMOVE_FROM_LIBRARY ){
+			
+								dm.getGlobalManager().removeDownloadManager( dm, false, false );
+								
+							}else if ( removal_strategy == RS_DELETE_FROM_COMPUTER ){
 							
-							download.stubbify();
-						}
-					}else if ( removal_strategy == RS_REMOVE_FROM_LIBRARY ){
+							boolean reallyDeleteData =  !dm.getDownloadState().getFlag(	Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE );
 		
-							dm.getGlobalManager().removeDownloadManager( dm, false, false );
+							dm.getGlobalManager().removeDownloadManager( dm, true, reallyDeleteData);
 							
-						}else if ( removal_strategy == RS_DELETE_FROM_COMPUTER ){
-						
-						boolean reallyDeleteData =  !dm.getDownloadState().getFlag(	Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE );
-	
-						dm.getGlobalManager().removeDownloadManager( dm, true, reallyDeleteData);
-						
-					}
-				
-				}catch( Throwable e ){
+						}
 					
-					Debug.out( e );
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}else{
+					
+					// can't remove/archive non-persistent downloads here so just ignore them
+
+					Logger.log(
+						new LogAlert(
+							LogAlert.UNREPEATABLE, 
+							LogAlert.AT_WARNING,
+							"Non-persistent downloads (e.g. shares) can't be automatically deleted or archived. Maximum entries not enforced for Tag '" + getTagName( true ) + "'" ));
 				}
 			}
 		}
