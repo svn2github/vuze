@@ -204,6 +204,11 @@ public class ViewQuickNotifications
 					
 					ImageLoader imageLoader = ImageLoader.getInstance();
 					
+					if ( existing != null){
+						
+						imageLoader.releaseImage( existing );
+					}
+					
 					Image image = imageLoader.getImage(icon_id);
 					
 					notification_icon.setImage( image );

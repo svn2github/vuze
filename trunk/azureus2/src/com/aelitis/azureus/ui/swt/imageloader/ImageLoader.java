@@ -26,7 +26,6 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -718,7 +717,208 @@ public class ImageLoader
 		return images;
 	}
 
-	public Image getImage(String sKey) {
+	
+	public Image
+	getImage( String sKey )
+	{
+			// hack to allow main color to be replaced by another in an image
+		
+		int	pos = sKey.indexOf( '#' );
+		
+		if ( pos == -1 ){
+		
+			return( getImageSupport( sKey ));
+			
+		}else{
+			
+			ImageLoaderRefInfo existing = getRefInfoFromImageMap( sKey );
+			
+			if ( existing != null ){
+				
+					// already computed and cached
+				
+				return( getImageSupport(sKey));
+			}
+			
+			String basisKey = sKey.substring( 0,  pos );
+			
+			Image basis = getImageSupport( basisKey);
+			
+			Image result = null;
+			
+			if ( isRealImage( basis )){
+								
+				try{
+					long l = Long.parseLong(sKey.substring(pos+1), 16);
+					
+					int	to_red 		= (int)((l >> 16) & 0xff);
+					int to_green 	= (int)((l >> 8) & 0xff);
+					int	to_blue		= (int)(l & 0xff);
+				
+					ImageData original_id = basis.getImageData();
+					
+					Image tempImg = new Image( basis.getDevice(), basis.getBounds());
+					
+					GC tempGC = new GC( tempImg );
+					
+					tempGC.drawImage( basis, 0, 0 );
+					
+					tempGC.dispose();
+					
+					ImageData id = tempImg.getImageData();
+					
+					tempImg.dispose();
+					
+					int[] pixels = new int[id.width*id.height];
+					
+					id.getPixels( 0, 0, pixels.length, pixels, 0 );
+					
+					PaletteData palette = id.palette;;
+					
+						// should be direct!
+					
+					if ( palette.isDirect ){
+						
+						int redMask 	= palette.redMask;
+						int greenMask 	= palette.greenMask;
+						int blueMask 	= palette.blueMask;
+						int redShift 	= palette.redShift;
+						int greenShift 	= palette.greenShift;
+						int blueShift 	= palette.blueShift;
+						
+						int[] rgbs = new int[id.width*id.height];
+						
+						for ( int i=0;i<pixels.length;i++){
+						
+							int pixel = pixels[i];
+							
+							int red = pixel & redMask;
+							red = (redShift < 0) ? red >>> -redShift : red << redShift;
+							int green = pixel & greenMask;
+							green = (greenShift < 0) ? green >>> -greenShift : green << greenShift;
+							int blue = pixel & blueMask;
+							blue = (blueShift < 0) ? blue >>> -blueShift : blue << blueShift;
+													
+							rgbs[i] = (red<<16)|(green<<8)|blue;
+						}
+					
+						Arrays.sort( rgbs );
+						
+						int	curr 	= -1;
+						int len		= 0;
+						
+						int	max_len = -1;
+						int max_rgb	= 0;
+						
+						for ( int i=0;i<rgbs.length;i++){
+						
+							int x = rgbs[i];
+							
+							if ( x == 0 || x == 0x00ffffff ){
+								continue;
+							}
+							
+							if ( x == curr ){
+								len++;
+								if ( len > max_len ){
+									max_rgb = x;
+									max_len	= len;
+								}
+							}else{
+								curr = x;
+								len = 1;
+							}
+						}
+						
+						to_red = (redShift < 0) ? to_red << -redShift : to_red >>> -redShift;
+						to_red = to_red & redMask;
+						to_green = (greenShift < 0) ? to_green << -greenShift : to_green >>> -greenShift;
+						to_green = to_green & greenMask;
+						to_blue = (blueShift < 0) ? to_blue << -blueShift : to_blue >>> -blueShift;
+						to_blue = to_blue & blueMask;
+						
+						int to_rgb = to_red | to_green | to_blue;
+						
+						
+						byte[] 	alphaData 		= null;
+						
+						if ( original_id.alphaData != null ){
+							
+							id.alphaData	= original_id.alphaData;
+							
+						}else if ( original_id.transparentPixel >= 0 ){
+							
+							alphaData = new byte[pixels.length];
+							
+							Arrays.fill( alphaData, (byte)0xff );
+							
+							id.alphaData = alphaData;
+							
+							int[] original_pixels = new int[id.width*id.height];
+							
+							original_id.getPixels( 0, 0, original_pixels.length, original_pixels, 0 );
+							
+							for ( int i=0;i<original_pixels.length;i++){
+								
+								if ( original_pixels[i] == original_id.transparentPixel ){
+									
+									alphaData[i] = 0;
+								}
+							}
+						}
+						
+						for ( int i=0;i<pixels.length;i++){
+							
+							int pixel = pixels[i];
+															
+							int red = pixel & redMask;
+							red = (redShift < 0) ? red >>> -redShift : red << redShift;
+							int green = pixel & greenMask;
+							green = (greenShift < 0) ? green >>> -greenShift : green << greenShift;
+							int blue = pixel & blueMask;
+							blue = (blueShift < 0) ? blue >>> -blueShift : blue << blueShift;
+									
+							int rgb = (red<<16)|(green<<8)|blue;
+							
+							if ( rgb == max_rgb ){
+								
+								pixels[i] = to_rgb;
+							}
+						}
+
+						id.setPixels( 0, 0, pixels.length, pixels, 0 );
+													
+						result = new Image( basis.getDevice(), id );
+					}
+				}catch( Throwable e ){
+			
+					Debug.out( e );
+					
+				}finally{
+					
+					releaseImage( basisKey );
+				}
+			}
+			
+			if ( result == null ){
+				
+				result = getNoImage( sKey );
+			}
+			
+			ImageLoaderRefInfo info = new ImageLoaderRefInfo(new Image[]{ result });
+			
+			putRefInfoToImageMap(sKey, info );
+			
+			if (DEBUG_REFCOUNT) {
+				
+				logRefCount( sKey, info, true );
+			}
+			
+			return( result );
+		}
+	}
+	
+	private Image getImageSupport(String sKey) {
 		Image[] images = getImages(sKey);
 		if (images == null || images.length == 0 || images[0] == null || images[0].isDisposed()) {
 			return getNoImage( sKey );

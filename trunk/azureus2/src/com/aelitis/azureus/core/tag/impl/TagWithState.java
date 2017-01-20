@@ -248,9 +248,27 @@ TagWithState
 					cb_data.put( "taguid", String.valueOf( getTagUID() ));
 					cb_data.put( "id", String.valueOf( taggable.getTaggableID()));
 					
+					String icon_id = "image.sidebar.tag-green";
+					
+					int[] color = getColor();
+					
+					if ( color != null && color.length == 3 ){
+						
+						long rgb = (color[0]<<16)|(color[1]<<8)|color[2];
+						
+						String hex = Long.toHexString( rgb );
+						
+						while( hex.length() < 6 ){
+							
+							hex = "0"+ hex;
+						}
+						
+						icon_id += "#" + hex;
+					}
+					
 					provider.addLocalActivity(
 						getTagUID() + ":" + taggable.getTaggableID() + ":" + is_add,
-						"image.sidebar.tag-green",
+						icon_id,
 						name,
 						new String[]{ MessageText.getString( "label.view" )},
 						ActivityCallback.class,
