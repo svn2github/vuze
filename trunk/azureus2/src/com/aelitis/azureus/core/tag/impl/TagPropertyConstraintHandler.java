@@ -50,7 +50,6 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagPropertyListener;
-import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
@@ -1297,6 +1296,7 @@ TagPropertyConstraintHandler
 		private static final int FT_IS_CHECKING		= 16;
 		private static final int FT_IS_STOPPED		= 17;
 		private static final int FT_IS_PAUSED		= 18;
+		private static final int FT_IS_ERROR		= 19;
 
 		
 		static final Map<String,Integer>	keyword_map = new HashMap<String, Integer>();
@@ -1408,13 +1408,21 @@ TagPropertyConstraintHandler
 					params_ok = params.length == 0;
 					
 				}else if ( func_name.equals( "isStopped" )){
+						
+						fn_type = FT_IS_STOPPED;
+		
+						depends_on_download_state = true;
+						
+						params_ok = params.length == 0;
+						
+				}else if ( func_name.equals( "isError" )){
 					
-					fn_type = FT_IS_STOPPED;
+					fn_type = FT_IS_ERROR;
 	
 					depends_on_download_state = true;
 					
 					params_ok = params.length == 0;
-					
+				
 				}else if ( func_name.equals( "isPaused" )){
 					
 					fn_type = FT_IS_PAUSED;
@@ -1578,6 +1586,12 @@ TagPropertyConstraintHandler
 						int state = dm.getState();
 						
 						return( state == DownloadManager.STATE_STOPPED && !dm.isPaused());
+					}
+					case FT_IS_ERROR:{
+						
+						int state = dm.getState();
+						
+						return( state == DownloadManager.STATE_ERROR );
 					}
 					case FT_IS_PAUSED:{
 						
