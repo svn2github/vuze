@@ -1312,6 +1312,9 @@ TagPropertyConstraintHandler
 		private static final int	KW_PEER_COUNT 		= 8;
 		private static final int	KW_SEED_PEER_RATIO 	= 9;
 		private static final int	KW_RESUME_IN 		= 10;
+		private static final int	KW_MIN_OF_HOUR 		= 11;
+		private static final int	KW_HOUR_OF_DAY 		= 12;
+		private static final int	KW_DAY_OF_WEEK 		= 13;
 		
 		static{
 			keyword_map.put( "shareratio", KW_SHARE_RATIO );
@@ -1334,6 +1337,14 @@ TagPropertyConstraintHandler
 			keyword_map.put( "seed_peer_ratio", KW_SEED_PEER_RATIO );
 			keyword_map.put( "resumein", KW_RESUME_IN );
 			keyword_map.put( "resume_in", KW_RESUME_IN );
+			
+			keyword_map.put( "minofhour", KW_MIN_OF_HOUR );
+			keyword_map.put( "min_of_hour", KW_MIN_OF_HOUR );
+			keyword_map.put( "hourofday", KW_HOUR_OF_DAY );
+			keyword_map.put( "hour_of_day", KW_HOUR_OF_DAY );
+			keyword_map.put( "dayofweek", KW_DAY_OF_WEEK );
+			keyword_map.put( "day_of_week", KW_DAY_OF_WEEK );
+
 		}
 		
 		private class
@@ -1861,7 +1872,42 @@ TagPropertyConstraintHandler
 								
 								return(( resume_millis - now )/1000 );
 							}
-
+							case KW_MIN_OF_HOUR:{
+								
+								result = null;	// don't cache this!
+								
+								long	now = SystemTime.getCurrentTime();
+								
+								GregorianCalendar cal = new GregorianCalendar();
+								
+								cal.setTime( new Date( now ));
+								
+								return( cal.get( Calendar.MINUTE ));
+							}
+							case KW_HOUR_OF_DAY:{
+								
+								result = null;	// don't cache this!
+								
+								long	now = SystemTime.getCurrentTime();
+								
+								GregorianCalendar cal = new GregorianCalendar();
+								
+								cal.setTime( new Date( now ));
+								
+								return( cal.get( Calendar.HOUR_OF_DAY ));
+							}
+							case KW_DAY_OF_WEEK:{
+								
+								result = null;	// don't cache this!
+								
+								long	now = SystemTime.getCurrentTime();
+								
+								GregorianCalendar cal = new GregorianCalendar();
+								
+								cal.setTime( new Date( now ));
+								
+								return( cal.get( Calendar.DAY_OF_WEEK ));
+							}
 							case KW_SWARM_MERGE:{
 								
 								result = null;	// don't cache this!
