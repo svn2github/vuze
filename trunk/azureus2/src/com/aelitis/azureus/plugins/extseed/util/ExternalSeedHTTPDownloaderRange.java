@@ -35,13 +35,17 @@ import java.util.StringTokenizer;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 
 import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
@@ -196,6 +200,16 @@ redirect_loop:
 										return( true );
 									}
 								});
+							
+							TrustManager[] tms_delegate = SESecurityManager.getAllTrustingTrustManager();
+							
+							SSLContext sc = SSLContext.getInstance("SSL");
+							
+							sc.init( null, tms_delegate, RandomUtils.SECURE_RANDOM );
+							
+							SSLSocketFactory factory = sc.getSocketFactory();
+							
+							ssl_con.setSSLSocketFactory(factory);
 						}
 						
 						connection.setRequestProperty( "Connection", "Keep-Alive" );
