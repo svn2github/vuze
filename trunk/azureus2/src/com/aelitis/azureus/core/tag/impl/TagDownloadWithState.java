@@ -419,7 +419,8 @@ TagDownloadWithState
 				
 				if ( actions != TagFeatureExecOnAssign.ACTION_NONE ){
 					
-					if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_START )){
+					if ( 	isActionEnabled( TagFeatureExecOnAssign.ACTION_START ) || 
+							isActionEnabled( TagFeatureExecOnAssign.ACTION_RESUME )){
 												
 						int	dm_state = dm.getState();
 							
@@ -432,12 +433,20 @@ TagDownloadWithState
 									public void
 									runSupport()
 									{
-										dm.setStateQueued();
+										if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_START )){
+										
+											dm.setStateQueued();
+											
+										}else{
+											
+											dm.resume();
+										}
 									}
 								});
 						}
 
-					}else if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_STOP )){
+					}else if ( 	isActionEnabled( TagFeatureExecOnAssign.ACTION_STOP ) || 
+								isActionEnabled( TagFeatureExecOnAssign.ACTION_PAUSE )){
 						
 						int	dm_state = dm.getState();
 							
@@ -451,7 +460,14 @@ TagDownloadWithState
 									public void
 									runSupport()
 									{
-										dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
+										if ( isActionEnabled( TagFeatureExecOnAssign.ACTION_STOP )){
+										
+											dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
+											
+										}else{
+											
+											dm.pause();
+										}
 									}
 								});
 						}
@@ -1475,9 +1491,11 @@ TagDownloadWithState
 		if ( getTagType().getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
 			
 			return( TagFeatureExecOnAssign.ACTION_START | 
+					TagFeatureExecOnAssign.ACTION_RESUME | 
 					TagFeatureExecOnAssign.ACTION_FORCE_START | 
 					TagFeatureExecOnAssign.ACTION_NOT_FORCE_START | 
 					TagFeatureExecOnAssign.ACTION_STOP |
+					TagFeatureExecOnAssign.ACTION_PAUSE |
 					TagFeatureExecOnAssign.ACTION_SCRIPT );
 			
 		}else if ( getTagType().getTagType() == TagType.TT_DOWNLOAD_STATE ){

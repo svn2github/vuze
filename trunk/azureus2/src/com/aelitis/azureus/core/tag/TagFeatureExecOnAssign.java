@@ -33,6 +33,8 @@ TagFeatureExecOnAssign
 	public static final int ACTION_FORCE_START		= 0x0008;
 	public static final int ACTION_NOT_FORCE_START	= 0x0010;
 	public static final int ACTION_SCRIPT			= 0x0020;
+	public static final int ACTION_PAUSE			= 0x0040;
+	public static final int ACTION_RESUME			= 0x0080;
 	
 	public int
 	getSupportedActions();

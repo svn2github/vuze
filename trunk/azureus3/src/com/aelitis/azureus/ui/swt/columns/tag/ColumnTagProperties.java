@@ -102,7 +102,9 @@ ColumnTagProperties
 						TagFeatureExecOnAssign.ACTION_FORCE_START,
 						TagFeatureExecOnAssign.ACTION_NOT_FORCE_START,
 						TagFeatureExecOnAssign.ACTION_STOP,
-						TagFeatureExecOnAssign.ACTION_SCRIPT};
+						TagFeatureExecOnAssign.ACTION_SCRIPT,
+						TagFeatureExecOnAssign.ACTION_PAUSE,
+						TagFeatureExecOnAssign.ACTION_RESUME };
 				
 				String[] action_keys = 
 					{ 	"v3.MainWindow.button.delete", 
@@ -110,7 +112,9 @@ ColumnTagProperties
 						"v3.MainWindow.button.forcestart",
 						"v3.MainWindow.button.notforcestart",
 						"v3.MainWindow.button.stop",
-						"label.script"};
+						"label.script",
+						"v3.MainWindow.button.pause",
+						"v3.MainWindow.button.resume"};
 					
 				for ( int i=0; i<action_ids.length;i++ ){
 					

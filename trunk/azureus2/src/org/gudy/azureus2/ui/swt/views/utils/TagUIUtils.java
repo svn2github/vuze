@@ -633,8 +633,11 @@ public class TagUIUtils
 						TagFeatureExecOnAssign.ACTION_START,
 						TagFeatureExecOnAssign.ACTION_FORCE_START,
 						TagFeatureExecOnAssign.ACTION_NOT_FORCE_START,
-						TagFeatureExecOnAssign.ACTION_STOP ,
+						TagFeatureExecOnAssign.ACTION_STOP,
+						TagFeatureExecOnAssign.ACTION_PAUSE,
+						TagFeatureExecOnAssign.ACTION_RESUME,
 						TagFeatureExecOnAssign.ACTION_SCRIPT };
+						
 				
 				String[] action_keys = 
 					{ 	"v3.MainWindow.button.delete", 
@@ -642,6 +645,8 @@ public class TagUIUtils
 						"v3.MainWindow.button.forcestart",
 						"v3.MainWindow.button.notforcestart",
 						"v3.MainWindow.button.stop",
+						"v3.MainWindow.button.pause",
+						"v3.MainWindow.button.resume",
 						"label.script" };
 
 				for ( int i=0;i<action_ids.length;i++ ){				
