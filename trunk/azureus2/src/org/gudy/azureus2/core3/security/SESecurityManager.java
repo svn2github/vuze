@@ -115,7 +115,7 @@ SESecurityManager
 	getAllTrustingTrustManager(
 		X509TrustManager delegate )
 	{
-		return( SESecurityManagerImpl.getSingleton().getAllTrustingTrustManager());
+		return( SESecurityManagerImpl.getSingleton().getAllTrustingTrustManager( delegate ));
 	}
 	
 	public static SSLSocketFactory

@@ -1107,7 +1107,61 @@ SESecurityManagerImpl
 		
 					// to get the server certs we have to use an "all trusting" trust manager
 				
-				TrustManager[] trustAllCerts = getAllTrustingTrustManager();
+				TrustManagerFactory tmf = getTrustManagerFactory();
+				
+				final List<X509TrustManager>	default_tms = new ArrayList<X509TrustManager>();
+				
+				if ( tmf != null ){
+					
+					for ( TrustManager tm: tmf.getTrustManagers()){
+															
+						if ( tm instanceof X509TrustManager ){
+							
+							default_tms.add((X509TrustManager)tm);
+						}
+					}
+				}
+				
+				final List<Object>	trustedChains = new ArrayList<Object>();
+								
+				TrustManager[] trustAllCerts = 
+					SESecurityManager.getAllTrustingTrustManager(
+						new X509TrustManager() {
+							public X509Certificate[] 
+							getAcceptedIssuers() 
+							{
+								return( null );
+							}
+							
+							public void 
+							checkClientTrusted(
+								java.security.cert.X509Certificate[] 	chain, 
+								String 									authType) 
+								
+								throws CertificateException
+							{
+							}
+							
+							public void 
+							checkServerTrusted(
+								java.security.cert.X509Certificate[] 	chain, 
+								String 									authType) 
+								
+								throws CertificateException
+							{
+								try{									
+									for ( X509TrustManager tm: default_tms ){
+										
+										tm.checkServerTrusted(chain, authType);
+										
+										trustedChains.add( chain );
+										
+										break;
+									}
+								}catch( Throwable e ){
+								}
+							}
+						});	
 				
 				SSLContext sc = SSLContext.getInstance("SSL");
 				
@@ -1170,9 +1224,9 @@ SESecurityManagerImpl
 				socket.startHandshake();
 				
 				java.security.cert.Certificate[] serverCerts = socket.getSession().getPeerCertificates();
-								
-				SSLSocketFactory	result = null;
-				
+					
+				java.security.cert.X509Certificate[] x509_certs = new java.security.cert.X509Certificate[serverCerts.length];
+
 				for (int i=0;i<serverCerts.length;i++){
 					
 					java.security.cert.Certificate	cert = serverCerts[i];
@@ -1189,7 +1243,50 @@ SESecurityManagerImpl
 						
 						x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
 					}
+					
+					x509_certs[i] = x509_cert;
+				}			
+				
+				boolean chain_trusted = false;
+				
+				if ( trustedChains.size() > 0 ){
+					
+					for ( Object ochain: trustedChains ){
 						
+						java.security.cert.X509Certificate[] chain = (java.security.cert.X509Certificate[])ochain;
+						
+						if ( chain.length == x509_certs.length ){
+							
+							boolean	match = true;
+									
+							for ( int i=0;i<chain.length;i++){
+								
+								if ( !chain[i].equals( x509_certs[i] )){
+									
+									match = false;
+									
+									break;
+								}
+							}
+							
+							if ( match ){
+								
+								chain_trusted = true;
+								
+								break;
+							}
+						}
+					}
+				}
+				
+				SSLSocketFactory	result = null;
+				
+				for (int i=0;i<serverCerts.length;i++){
+					
+					java.security.cert.Certificate	cert = serverCerts[i];
+								
+					java.security.cert.X509Certificate x509_cert = x509_certs[i];
+										
 					String	resource = https_url.toString();
 					
 					int	param_pos = resource.indexOf("?");
@@ -1246,7 +1343,7 @@ SESecurityManagerImpl
 						count++;
 					}
 	
-					if ( auto_install_certs || already_trusted || result != null ){
+					if ( auto_install_certs || chain_trusted || already_trusted || result != null ){
 						
 						result = addCertToTrustStore( alias, cert, true );
 	
@@ -1344,8 +1441,8 @@ SESecurityManagerImpl
 			try{
 		
 					// to get the server certs we have to use an "all trusting" trust manager
-				
-				TrustManager[] trustAllCerts = getAllTrustingTrustManager();
+												
+				TrustManager[] trustAllCerts = SESecurityManager.getAllTrustingTrustManager();	
 				
 				SSLContext sc = SSLContext.getInstance("SSL");
 				
