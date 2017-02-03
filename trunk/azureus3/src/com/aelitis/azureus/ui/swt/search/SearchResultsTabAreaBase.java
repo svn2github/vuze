@@ -38,5 +38,8 @@ SearchResultsTabAreaBase
 	showView();
 	
 	public void
+	refreshView();
+	
+	public void
 	hideView();
 }

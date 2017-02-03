@@ -30,7 +30,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -939,6 +938,15 @@ SBC_SearchResultsView
 			so_list.setVisible(true);
 			
 			initTable((Composite) so_list.getControl());
+		}
+	}
+	
+	public void
+	refreshView()
+	{
+		if ( tv_subs_results != null ){
+			
+			tv_subs_results.refreshTable( false );
 		}
 	}
 	

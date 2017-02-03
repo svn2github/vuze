@@ -105,7 +105,8 @@ BuddyPluginBeta
 	public static final int 	FLAGS_MSG_ORIGIN_USER 		= 0;		// def
 	public static final int 	FLAGS_MSG_ORIGIN_RATINGS 	= 1;
 	public static final int 	FLAGS_MSG_ORIGIN_SEED_REQ 	= 2;
-	
+	public static final int 	FLAGS_MSG_ORIGIN_SUBS	 	= 3;
+
 	public static final String 	FLAGS_MSG_FLASH_OVERRIDE	= "f";
 	public static final int		FLAGS_MSG_FLASH_NO 			= 0;		// def
 	public static final int		FLAGS_MSG_FLASH_YES 		= 1;

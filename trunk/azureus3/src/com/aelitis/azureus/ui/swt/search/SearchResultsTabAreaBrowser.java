@@ -528,6 +528,11 @@ SearchResultsTabAreaBrowser
 	{
 	}
 	
+	public void
+	refreshView()
+	{	
+	}
+	
 	public void 
 	hideView() 
 	{

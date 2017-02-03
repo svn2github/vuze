@@ -85,6 +85,10 @@ import com.aelitis.azureus.core.vuzefile.*;
 import com.aelitis.azureus.plugins.dht.*;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatMessage;
 import com.aelitis.azureus.util.ImportExportUtils;
 import com.aelitis.azureus.util.UrlFilter;
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -5170,6 +5174,11 @@ SubscriptionManagerImpl
 				
 					download.setMapAttribute( ta_subscription_info, map );
 				}
+				
+				if ( subscriptions.length == 1 && subscriptions[0].isSearchTemplate() && !full_lookup ){
+					
+					searchTemplateOK( subscriptions[0] );
+				}
 			}
 		}catch( Throwable e ){
 			
@@ -5200,6 +5209,167 @@ SubscriptionManagerImpl
 		return( download_found );
 	}
 	
+	private AsyncDispatcher		chat_write_dispatcher 	= new AsyncDispatcher( "Subscriptions:cwd" );
+	private Set<String>			chat_done = new HashSet<String>();
+	
+	private void
+	searchTemplateOK(
+		final SubscriptionImpl	subs )
+	{
+		if ( BuddyPluginUtils.isBetaChatAvailable()){
+			
+			chat_write_dispatcher.dispatch(
+				new AERunnable() {
+					
+					@Override
+					public void 
+					runSupport() 
+					{
+						String name = subs.getName();
+						
+						int pos = name.indexOf( ':' );
+						
+						if ( pos != -1 ){
+							
+							name = name.substring( pos+1 ).trim();
+						}
+						
+						if ( chat_done.contains( name )){
+							
+							return;
+						}
+
+						chat_done.add( name );
+						
+						final BuddyPluginBeta.ChatInstance chat = BuddyPluginUtils.getChat( AENetworkClassifier.AT_PUBLIC, "Search Templates" );
+							
+						if ( chat != null ){
+								
+							chat.setSharedNickname( false );
+								
+							chat.setSaveMessages( false );
+							
+							final String f_msg = subs.getURI() + "[[" + UrlUtils.encode( name ) + "]]";
+							
+							final Runnable do_write = 
+								new Runnable()
+								{
+									public void
+									run()
+									{		
+										Map<String,Object>	flags 	= new HashMap<String, Object>();
+										
+										flags.put( BuddyPluginBeta.FLAGS_MSG_ORIGIN_KEY, BuddyPluginBeta.FLAGS_MSG_ORIGIN_SUBS );
+										
+										Map<String,Object>	options = new HashMap<String, Object>();
+										
+										chat.sendMessage( f_msg, flags, options );
+									}
+								};
+																
+							waitForChat(
+								chat, 
+								new AERunnable()
+								{
+									public void 
+									runSupport() 
+									{
+										List<ChatMessage>	messages = chat.getMessages();
+																				
+										for ( ChatMessage message: messages ){
+																									
+											if ( message.getMessage().equals( f_msg )){
+																												
+												return;
+											}
+										}
+										
+										do_write.run();
+									};
+								});
+						
+						}
+					}
+				});
+		}
+	}
+	
+	private void
+	waitForChat(
+			final ChatInstance		chat,
+			final AERunnable		runnable )
+	{
+			// wait for chat to synchronize and then run 
+
+		final TimerEventPeriodic[] event = { null };
+
+		synchronized( event ){
+
+			event[0] = 
+				SimpleTimer.addPeriodicEvent(
+					"Subs:chat:checker",
+					30*1000,
+					new TimerEventPerformer()
+					{
+						private int elapsed_time;
+
+						public void 
+						perform(
+							TimerEvent e ) 
+						{
+							elapsed_time += 30*1000;
+
+							if ( chat.isDestroyed()){
+
+								synchronized( event ){
+
+									event[0].cancel();
+								}
+
+							}else{
+
+								if ( 	chat.getIncomingSyncState() == 0 ||
+										elapsed_time >= 5*60*1000 ){
+
+									synchronized( event ){
+
+										event[0].cancel();
+									}
+
+									SimpleTimer.addEvent(
+										"Subs:chat:checker",
+										SystemTime.getOffsetTime( 2*60*1000 ),
+										new TimerEventPerformer()
+										{	
+											public void 
+											perform(
+												TimerEvent event ) 
+											{
+												if ( !chat.isDestroyed()){
+
+													chat_write_dispatcher.dispatch( 
+														new AERunnable() {
+
+															@Override
+															public void 
+															runSupport() 
+															{
+																if ( !chat.isDestroyed()){
+
+																	runnable.runSupport();
+																}
+															}
+														});
+												}
+											}
+										});
+								}
+							}
+						}
+					});	
+		}
+	}
+
 	private boolean
 	publishAssociations()
 	{

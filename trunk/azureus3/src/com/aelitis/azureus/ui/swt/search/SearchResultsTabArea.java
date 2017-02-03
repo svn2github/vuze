@@ -194,6 +194,15 @@ public class SearchResultsTabArea
 		return null;
 	}
 
+	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		if ( activeImpl != null ){
+			
+			activeImpl.refreshView();
+		}
+		
+		return( super.skinObjectShown(skinObject, params));
+	}
+	
 	private void
 	selectView(
 		SWTSkinObject		parent )
