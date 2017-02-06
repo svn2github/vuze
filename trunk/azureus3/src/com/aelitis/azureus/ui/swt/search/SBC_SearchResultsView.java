@@ -134,6 +134,11 @@ SBC_SearchResultsView
 
 	private final Object filter_lock = new Object();
 
+	private Spinner spinMinSize;
+	private Spinner spinMaxSize;
+	private Text textWithKW;
+	private Text textWithoutKW;
+	
 	private int minSize;
 	private int maxSize;
 	
@@ -278,16 +283,21 @@ SBC_SearchResultsView
 				Label lblWithKWImg = new Label(cWithKW, SWT.NONE);
 				lblWithKWImg.setImage( imageLoader.getImage( with?"icon_filter_plus":"icon_filter_minus"));
 				
-				final Text textWithKW = new Text(cWithKW, SWT.BORDER);
-				textWithKW.setMessage(MessageText.getString(with?"SubscriptionResults.filter.with.words":"SubscriptionResults.filter.without.words"));
+				final Text textWidget = new Text(cWithKW, SWT.BORDER);
+				if ( with ){
+					textWithKW = textWidget;
+				}else{
+					textWithoutKW = textWidget;
+				}
+				textWidget.setMessage(MessageText.getString(with?"SubscriptionResults.filter.with.words":"SubscriptionResults.filter.without.words"));
 				GridData gd = new GridData();
 				gd.widthHint = Utils.adjustPXForDPI( 100 );
-				textWithKW.setLayoutData( gd );
-				textWithKW.addModifyListener(
+				textWidget.setLayoutData( gd );
+				textWidget.addModifyListener(
 					new ModifyListener() {
 						
 						public void modifyText(ModifyEvent e) {
-							String text = textWithKW.getText().toLowerCase( Locale.US );
+							String text = textWidget.getText().toLowerCase( Locale.US );
 							String[] bits = text.split( "\\s+");
 							
 							Set<String>	temp = new HashSet<String>();
@@ -326,7 +336,7 @@ SBC_SearchResultsView
 			cMinSize.setLayout(layout);
 			Label lblMinSize = new Label(cMinSize, SWT.NONE);
 			lblMinSize.setText(MessageText.getString("SubscriptionResults.filter.min_size"));
-			Spinner spinMinSize = new Spinner(cMinSize, SWT.BORDER);
+			spinMinSize = new Spinner(cMinSize, SWT.BORDER);
 			spinMinSize.setMinimum(0);
 			spinMinSize.setMaximum(100*1024*1024);	// 100 TB should do...
 			spinMinSize.setSelection(minSize);
@@ -349,7 +359,7 @@ SBC_SearchResultsView
 			cMaxSize.setLayout(layout);
 			Label lblMaxSize = new Label(cMaxSize, SWT.NONE);
 			lblMaxSize.setText(MessageText.getString("SubscriptionResults.filter.max_size"));
-			Spinner spinMaxSize = new Spinner(cMaxSize, SWT.BORDER);
+			spinMaxSize = new Spinner(cMaxSize, SWT.BORDER);
 			spinMaxSize.setMinimum(0);
 			spinMaxSize.setMaximum(100*1024*1024);	// 100 TB should do...
 			spinMaxSize.setSelection(maxSize);
@@ -717,6 +727,42 @@ SBC_SearchResultsView
 			}.start();
 		}
 		engine_area.layout( true );
+	}
+	
+	private void
+	resetFilters()
+	{
+		synchronized( filter_lock ){
+			
+			minSize		= 0;
+			maxSize		= 0;
+			
+			with_keywords 		= new String[0];
+			without_keywords 	= new String[0];
+			
+			deselected_engines.clear();
+		}
+		
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void 
+				run() 
+				{
+					if ( spinMinSize != null && !spinMinSize.isDisposed()){
+						spinMinSize.setSelection(0);
+					}
+					if ( spinMaxSize != null && !spinMaxSize.isDisposed()){
+						spinMaxSize.setSelection(0);
+					}
+					if ( textWithKW != null && !textWithKW.isDisposed()){
+						textWithKW.setText("");
+					}
+					if ( textWithoutKW != null && !textWithoutKW.isDisposed()){
+						textWithoutKW.setText("");
+					}
+				}
+			});
 	}
 	
 	private void
@@ -1265,6 +1311,8 @@ SBC_SearchResultsView
 				
 				current_search.cancel();
 			}
+			
+			resetFilters();
 			
 			current_search = new SearchInstance( sq );
 		}
