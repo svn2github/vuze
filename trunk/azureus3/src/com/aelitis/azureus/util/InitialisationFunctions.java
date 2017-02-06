@@ -152,41 +152,35 @@ public class InitialisationFunctions
 					if ( !subs.isSubscribed()){
 							
 						subs.setSubscribed( true );
+					}
+					
+					if ( subs.isSearchTemplate()){
 						
-						if ( subs.isSearchTemplate()){
+						try{
+							VuzeFile vf = subs.getSearchTemplateVuzeFile();
 							
-							try{
-								VuzeFile vf = subs.getSearchTemplateVuzeFile();
-								
-								if ( vf != null ){
-								
-									subs.setSubscribed( true );
+							if ( vf != null ){
+																
+								VuzeFileHandler.getSingleton().handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+																	
+								for ( VuzeFileComponent comp: vf.getComponents()){
 									
-									VuzeFileHandler.getSingleton().handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+									Engine engine = (Engine)comp.getData( Engine.VUZE_FILE_COMPONENT_ENGINE_KEY );
 									
-									
-									for ( VuzeFileComponent comp: vf.getComponents()){
+									if ( 	engine != null && 
+											(	engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ||
+												engine.getSelectionState() == Engine.SEL_STATE_FORCE_DESELECTED )){
 										
-										Engine engine = (Engine)comp.getData( Engine.VUZE_FILE_COMPONENT_ENGINE_KEY );
-										
-										if ( 	engine != null && 
-												(	engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ||
-													engine.getSelectionState() == Engine.SEL_STATE_FORCE_DESELECTED )){
-											
-											engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
-										}
+										engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
 									}
 								}
-							}catch( Throwable e ){
-								
-								Debug.out( e );
 							}
-						}else{
-						
-							subs.requestAttention();
+						}catch( Throwable e ){
+							
+							Debug.out( e );
 						}
 					}else{
-						
+					
 						subs.requestAttention();
 					}
 				}

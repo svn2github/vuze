@@ -375,6 +375,11 @@ SBC_SearchResultsView
 	buildEngineArea(
 		final SearchInstance		search )
 	{
+		if ( engine_area.isDisposed()){
+			
+			return;
+		}
+		
 		final Engine[]	engines = search==null?new Engine[0]:search.getEngines();
 		
 		Utils.disposeComposite( engine_area, false );
