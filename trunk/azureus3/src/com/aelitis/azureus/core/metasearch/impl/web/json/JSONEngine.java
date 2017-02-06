@@ -493,7 +493,18 @@ JSONEngine
 										result.setVotesDownFromHTML(fieldContent);
 										break;
 									case FIELD_HASH :
-										result.setHash(fieldContent);
+											// seen a magnet being returned as hash!
+										if ( fieldContent.startsWith( "magnet:")){
+											byte[] hash = UrlUtils.getHashFromMagnetURI(fieldContent);
+											if ( hash != null ){
+												fieldContent = ByteFormatter.encodeString( hash );
+											}else{
+												fieldContent = null;
+											}
+										}
+										if ( fieldContent != null ){
+											result.setHash(fieldContent);
+										}
 										break;
 									case FIELD_RANK : {
 										result.setRankFromHTML(fieldContent, rankDivisor);
