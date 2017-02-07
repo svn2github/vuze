@@ -1473,95 +1473,130 @@ BuddyPluginBeta
 		
 			for ( ChatMessage message: messages ){
 								
-				List<Map<String,Object>>	magnets = extractMagnets( message.getMessage());
+				List<Map<String,Object>>	message_links = extractLinks( message.getMessage());
 				
-				if ( magnets.size() == 0 ){
+				if ( message_links.size() == 0 ){
 					
 					continue;
 				}
 				
 				String item_date = TimeFormatter.getHTTPDate( message.getTimeStamp());
 
-				for ( Map<String,Object> magnet: magnets ){
+				for ( Map<String,Object> message_link: message_links ){
 					
-					String	hash 	= (String)magnet.get( "hash" );
-					
-					if ( hash == null ){
+					if ( message_link.containsKey( "magnet" )){
 						
-						continue;
-					}
-					
-					String	title 	= (String)magnet.get( "title" );
-					
-					if ( title == null ){
+						Map<String,Object> magnet = message_link;
 						
-						title = hash;
-					}
-				
-					String	link	= (String)magnet.get( "link" );
-					
-					if ( link == null ){
+						String	hash 	= (String)magnet.get( "hash" );
 						
-						link = (String)magnet.get( "magnet" );
-					}
-					
-					pw.println( "<item>" );
-				
-					pw.println( "<title>" + escape( title ) + "</title>" );
-				
-					pw.println( "<guid>" + hash + "</guid>" );
-				
-					String	cdp	= (String)magnet.get( "cdp" );
-
-					if ( cdp != null ){
-						
-						pw.println( "<link>" + escape( cdp ) + "</link>" );
-					}
-					
-					Long	size 		= (Long)magnet.get( "size" );
-					Long	seeds 		= (Long)magnet.get( "seeds" );
-					Long	leechers 	= (Long)magnet.get( "leechers" );
-					Long	date	 	= (Long)magnet.get( "date" );
-
-					String enclosure = 
-							"<enclosure " + 
-								"type=\"application/x-bittorrent\" " +
-								"url=\"" + escape( link ) + "\"";
-					
-					if ( size != null ){
-						
-						enclosure += " length=\"" + size + "\"";
-					}
-					
-					enclosure += " />";
-					
-					pw.println( enclosure );
+						if ( hash == null ){
 							
-					String date_str = (date==null||date<=0)?item_date:TimeFormatter.getHTTPDate( date );
-					
-					pw.println(	"<pubDate>" + date_str + "</pubDate>" );
-				
-					
-					if ( size != null ){
+							continue;
+						}
 						
-						pw.println(	"<vuze:size>" + size + "</vuze:size>" );
-					}
-					
-					if ( seeds != null ){
+						String	title 	= (String)magnet.get( "title" );
 						
-						pw.println(	"<vuze:seeds>" + seeds + "</vuze:seeds>" );
-					}
+						if ( title == null ){
+							
+							title = hash;
+						}
 					
-					if ( leechers != null ){
+						String	link	= (String)magnet.get( "link" );
 						
-						pw.println(	"<vuze:peers>" + leechers + "</vuze:peers>" );
-					}
+						if ( link == null ){
+							
+							link = (String)magnet.get( "magnet" );
+						}
+						
+						pw.println( "<item>" );
 					
-					pw.println(	"<vuze:assethash>" + hash + "</vuze:assethash>" );
+						pw.println( "<title>" + escape( title ) + "</title>" );
+					
+						pw.println( "<guid>" + hash + "</guid>" );
+					
+						String	cdp	= (String)magnet.get( "cdp" );
+	
+						if ( cdp != null ){
+							
+							pw.println( "<link>" + escape( cdp ) + "</link>" );
+						}
+						
+						Long	size 		= (Long)magnet.get( "size" );
+						Long	seeds 		= (Long)magnet.get( "seeds" );
+						Long	leechers 	= (Long)magnet.get( "leechers" );
+						Long	date	 	= (Long)magnet.get( "date" );
+	
+						String enclosure = 
+								"<enclosure " + 
+									"type=\"application/x-bittorrent\" " +
+									"url=\"" + escape( link ) + "\"";
+						
+						if ( size != null ){
+							
+							enclosure += " length=\"" + size + "\"";
+						}
+						
+						enclosure += " />";
+						
+						pw.println( enclosure );
+								
+						String date_str = (date==null||date<=0)?item_date:TimeFormatter.getHTTPDate( date );
+						
+						pw.println(	"<pubDate>" + date_str + "</pubDate>" );
+					
+						
+						if ( size != null ){
+							
+							pw.println(	"<vuze:size>" + size + "</vuze:size>" );
+						}
+						
+						if ( seeds != null ){
+							
+							pw.println(	"<vuze:seeds>" + seeds + "</vuze:seeds>" );
+						}
+						
+						if ( leechers != null ){
+							
+							pw.println(	"<vuze:peers>" + leechers + "</vuze:peers>" );
+						}
+						
+						pw.println(	"<vuze:assethash>" + hash + "</vuze:assethash>" );
+													
+						pw.println( "<vuze:downloadurl>" + escape( link ) + "</vuze:downloadurl>" );
+					
+						pw.println( "</item>" );
+						
+					}else{
+						
+						String	title 	= (String)message_link.get( "title" );
+						String 	link	= (String)message_link.get( "link" );
+						
+						pw.println( "<item>" );
+						
+						pw.println( "<title>" + escape( title ) + "</title>" );
+					
+						pw.println( "<guid>" + escape( link ) + "</guid>" );
 												
-					pw.println( "<vuze:downloadurl>" + escape( link ) + "</vuze:downloadurl>" );
-				
-					pw.println( "</item>" );
+						pw.println( "<link>" + escape( link ) + "</link>" );
+											
+						pw.println(	"<pubDate>" + item_date + "</pubDate>" );
+
+						pw.println(	"<vuze:rank></vuze:rank>" );
+						
+						String enclosure = 
+								"<enclosure " + 
+									"type=\"application/x-bittorrent\" " +
+									"url=\"" + escape( link ) + "\"";
+						
+						
+						enclosure += " />";
+						
+						pw.println( enclosure );
+						
+						pw.println( "</item>" );
+						
+					}
 				}
 			}
 			
@@ -1576,7 +1611,7 @@ BuddyPluginBeta
 	}
 	
 	private List<Map<String,Object>>
-	extractMagnets(
+	extractLinks(
 		String		str )
 	{
 		List<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
@@ -1591,9 +1626,24 @@ BuddyPluginBeta
 			
 			pos = lc_str.indexOf( "magnet:", pos );
 			
-			if ( pos == -1 ){
+			int	type;
+			
+			if ( pos != -1 ){
 				
-				break;
+				type = 0;
+				
+			}else{ 
+				
+				pos = lc_str.indexOf( "azplug:", pos );
+				
+				if ( pos != -1 ){
+					
+					type = 1;
+					
+				}else{
+					
+					break;
+				}
 			}
 			
 			int	start = pos;
@@ -1612,103 +1662,128 @@ BuddyPluginBeta
 				}
 			}
 			
-			String magnet = str.substring( start, pos );
-			
-			int x = magnet.indexOf( '?' );
-			
-			if ( x != -1 ){
-			
+			String link = str.substring( start, pos );
+				
+			if ( type == 0 ){
+				
+				String magnet = link;
+				
+				int x = magnet.indexOf( '?' );
+				
+				if ( x != -1 ){
+				
+					Map<String,Object> map = new HashMap<String,Object>();
+					
+						// remove any trailing ui name hack
+					
+					int	p1 = magnet.lastIndexOf( "[[" );
+					
+					if ( p1 != -1 && magnet.endsWith( "]]" )){
+						
+						magnet = magnet.substring( 0, p1 );
+					}
+					
+					map.put( "magnet", magnet );
+					
+					List<String>	trackers = new ArrayList<String>();
+					
+					map.put( "trackers", trackers );
+					
+					String[] bits = magnet.substring( x+1 ).split( "&" );
+					
+					for ( String bit: bits ){
+						
+						String[] temp = bit.split( "=" );
+						
+						if ( temp.length == 2 ){
+							
+							try{
+	
+								String	lhs = temp[0].toLowerCase( Locale.US );
+								String	rhs = UrlUtils.decode( temp[1] );
+								
+								if ( lhs.equals( "xt" )){
+									
+									String lc_rhs = rhs.toLowerCase( Locale.US );
+									
+									int p = lc_rhs.indexOf( "btih:" );
+									
+									if ( p >= 0 ){
+										
+										map.put( "hash", lc_rhs.substring( p+5 ).toUpperCase( Locale.US ));
+									}
+									
+								}else if ( lhs.equals( "dn" )){
+									
+									map.put( "title", rhs );
+									
+								}else if ( lhs.equals( "tr" )){
+									
+									trackers.add( rhs );
+									
+								}else if ( lhs.equals( "fl" )){
+									
+									map.put( "link", rhs );
+									
+								}else if ( lhs.equals( "xl" )){
+									
+									long size = Long.parseLong( rhs );
+									
+									map.put( "size", size );
+									
+								}else if ( lhs.equals( "_d" )){
+									
+									long date = Long.parseLong( rhs );
+									
+									map.put( "date", date );
+	
+								}else if ( lhs.equals( "_s" )){
+									
+									long seeds = Long.parseLong( rhs );
+									
+									map.put( "seeds", seeds );
+									
+								}else if ( lhs.equals( "_l" )){
+									
+									long leechers = Long.parseLong( rhs );
+									
+									map.put( "leechers", leechers );
+									
+								}else if ( lhs.equals( "_c" )){
+								
+									map.put( "cdp", rhs );
+								}
+							}catch( Throwable e ){
+								
+							}
+	
+						}
+					}
+				
+					//System.out.println( magnet + " -> " + map );
+					
+					result.add( map );
+				}
+			}else{
+								
 				Map<String,Object> map = new HashMap<String,Object>();
 				
 					// remove any trailing ui name hack
 				
-				int	p1 = magnet.lastIndexOf( "[[" );
+				int	p1 = link.lastIndexOf( "[[" );
 				
-				if ( p1 != -1 && magnet.endsWith( "]]" )){
+				if ( p1 != -1 && link.endsWith( "]]" )){
 					
-					magnet = magnet.substring( 0, p1 );
+					String title = UrlUtils.decode( link.substring( p1+2, link.length() - 2 ));
+					
+					map.put( "title", title );
+					
+					link = link.substring( 0, p1 );
+				
+					map.put( "link", link );
+				
+					result.add( map );
 				}
-				
-				map.put( "magnet", magnet );
-				
-				List<String>	trackers = new ArrayList<String>();
-				
-				map.put( "trackers", trackers );
-				
-				String[] bits = magnet.substring( x+1 ).split( "&" );
-				
-				for ( String bit: bits ){
-					
-					String[] temp = bit.split( "=" );
-					
-					if ( temp.length == 2 ){
-						
-						try{
-
-							String	lhs = temp[0].toLowerCase( Locale.US );
-							String	rhs = UrlUtils.decode( temp[1] );
-							
-							if ( lhs.equals( "xt" )){
-								
-								String lc_rhs = rhs.toLowerCase( Locale.US );
-								
-								int p = lc_rhs.indexOf( "btih:" );
-								
-								if ( p >= 0 ){
-									
-									map.put( "hash", lc_rhs.substring( p+5 ).toUpperCase( Locale.US ));
-								}
-								
-							}else if ( lhs.equals( "dn" )){
-								
-								map.put( "title", rhs );
-								
-							}else if ( lhs.equals( "tr" )){
-								
-								trackers.add( rhs );
-								
-							}else if ( lhs.equals( "fl" )){
-								
-								map.put( "link", rhs );
-								
-							}else if ( lhs.equals( "xl" )){
-								
-								long size = Long.parseLong( rhs );
-								
-								map.put( "size", size );
-								
-							}else if ( lhs.equals( "_d" )){
-								
-								long date = Long.parseLong( rhs );
-								
-								map.put( "date", date );
-
-							}else if ( lhs.equals( "_s" )){
-								
-								long seeds = Long.parseLong( rhs );
-								
-								map.put( "seeds", seeds );
-								
-							}else if ( lhs.equals( "_l" )){
-								
-								long leechers = Long.parseLong( rhs );
-								
-								map.put( "leechers", leechers );
-								
-							}else if ( lhs.equals( "_c" )){
-							
-								map.put( "cdp", rhs );
-							}
-						}catch( Throwable e ){
-							
-						}
-
-					}
-				}
-			
-				//System.out.println( magnet + " -> " + map );
-				
-				result.add( map );
 			}
 		}
 		

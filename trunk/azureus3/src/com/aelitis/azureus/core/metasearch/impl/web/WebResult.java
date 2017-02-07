@@ -182,35 +182,43 @@ public class WebResult extends Result {
 		if (rank_str == null) {
 			return;
 		}
-		try{
-			float f = Float.parseFloat( rank_str.trim() );
-			
-			rank = f / divisor;
-		}catch( Throwable e ){
+		if ( rank_str.isEmpty()){
+			rank = -2; // explicit 'no rank'
+		}else{
+			try{
+				float f = Float.parseFloat( rank_str.trim() );
+				
+				rank = f / divisor;
+			}catch( Throwable e ){
+			}
 		}
 	}
 
 	public void setRankFromHTML( String rank_str ){
 		if ( rank_str != null ){
-			try{
-					// either a float 0->1 or integer 0->100
-				
-				float f = Float.parseFloat( rank_str.trim() );
-				
-				if (!rank_str.contains(".")){
+			if ( rank_str.isEmpty()){
+				rank = -2;	// explicit 'no rank'
+			}else{
+				try{
+						// either a float 0->1 or integer 0->100
 					
-					if ( f >= 0 &&  f <= 100 ){
-						
-						rank = f/100;
-					}
-				}else{
+					float f = Float.parseFloat( rank_str.trim() );
 					
-					if ( f >= 0 &&  f <= 1 ){
+					if (!rank_str.contains(".")){
 						
-						rank = f;
+						if ( f >= 0 &&  f <= 100 ){
+							
+							rank = f/100;
+						}
+					}else{
+						
+						if ( f >= 0 &&  f <= 1 ){
+							
+							rank = f;
+						}
 					}
+				}catch( Throwable e ){
 				}
-			}catch( Throwable e ){
 			}
 		}
 	}
@@ -220,7 +228,14 @@ public class WebResult extends Result {
 	{
 		if ( rank != -1 ){
 			
-			return( applyRankBias( rank ));
+			if ( rank == -2 ){
+				
+				return( -1 );	// no rank -> turn into -1 
+				
+			}else{
+			
+				return( applyRankBias( rank ));
+			}
 		}
 		
 		return( super.getRank());
