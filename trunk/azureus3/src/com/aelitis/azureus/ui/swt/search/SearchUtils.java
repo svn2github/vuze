@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -172,6 +173,8 @@ SearchUtils
 				}
 			});
 	
+		MenuBuildUtils.addChatMenu( menu, "label.chat", "Search Templates" );
+		
 		MenuItem itemExport = new MenuItem(menu, SWT.PUSH);
 		
 		Messages.setLanguageText(itemExport, "search.export.all");
@@ -458,7 +461,19 @@ SearchUtils
 				}
 			});
 		
-		
+		org.gudy.azureus2.plugins.ui.menus.MenuItem chat_menu = menuManager.addMenuItem("sidebar.Search","label.chat");
+
+		MenuBuildUtils.addChatMenu(
+			menuManager, 
+			chat_menu,  
+			new MenuBuildUtils.ChatKeyResolver() {
+				
+				@Override
+				public String getChatKey(Object object) {
+					return( "Search Templates" );
+				}
+			});
+
 		org.gudy.azureus2.plugins.ui.menus.MenuItem export_menu = menuManager.addMenuItem("sidebar.Search","search.export.all");
 		
 		export_menu.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_PUSH );
