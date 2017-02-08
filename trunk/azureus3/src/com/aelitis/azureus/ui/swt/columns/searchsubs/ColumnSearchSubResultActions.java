@@ -30,7 +30,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -179,7 +178,22 @@ public class ColumnSearchSubResultActions
 			if (sb.length() > 0) {
 				sb.append(" | ");
 			}
-			sb.append("<A HREF=\"download\">" + MessageText.getString( "label.download" ) + "</A>");
+			String action;
+			
+			if ( link.startsWith( "chat:" )){
+				
+				action = MessageText.getString( "label.view" );
+				
+			}else if ( link.startsWith( "azplug:?id=subscription" )){
+				
+				action = MessageText.getString( "subscriptions.listwindow.subscribe" );
+				
+			}else{
+				
+				action = MessageText.getString( "label.download" );
+			}
+			
+			sb.append("<A HREF=\"download\">" + action + "</A>");
 		}
 		
 		if (canDetails) {
@@ -293,6 +307,15 @@ public class ColumnSearchSubResultActions
 	downloadAction(
 		final SearchSubsResultBase	entry )
 	{
+		String link = entry.getTorrentLink();
+		
+		if ( link.startsWith( "chat:" )){
+		
+			Utils.launch( link );
+			
+			return;
+		}
+		
 		showDownloadFTUX(
 			entry,
 			new UserPrompterResultListener() 

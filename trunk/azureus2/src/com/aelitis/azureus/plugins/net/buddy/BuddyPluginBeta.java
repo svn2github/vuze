@@ -1626,7 +1626,7 @@ BuddyPluginBeta
 			
 			pos = lc_str.indexOf( "magnet:", pos );
 			
-			int	type;
+			int	type = -1;
 			
 			if ( pos != -1 ){
 				
@@ -1634,13 +1634,21 @@ BuddyPluginBeta
 				
 			}else{ 
 				
-				pos = lc_str.indexOf( "azplug:", pos );
+				String[] protocols = { "azplug:", "chat:" };
 				
-				if ( pos != -1 ){
+				for ( String p: protocols ){
+				
+					pos = lc_str.indexOf( p, pos );
+				
+					if ( pos != -1 ){
 					
-					type = 1;
-					
-				}else{
+						type = 1;
+						
+						break;
+					}	
+				}
+				
+				if ( type == -1 ){
 					
 					break;
 				}
