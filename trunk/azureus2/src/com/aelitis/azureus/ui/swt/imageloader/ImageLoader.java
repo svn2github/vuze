@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
@@ -1109,11 +1110,16 @@ public class ImageLoader
 		return 100;
 	}
 
+	public Image getUrlImage(String url, ImageDownloaderListener l) {
+		return getUrlImage(url, null, l);
+	}
+
 	/**
 	 * Get an {@link Image} from an url.  URL will be the key, which you 
 	 * can use later to {@link #releaseImage(String)}
 	 */
-	public Image getUrlImage(final String url, final ImageDownloaderListener l) {
+	public Image getUrlImage(String url, final Point maxSize,
+			final ImageDownloaderListener l) {
 		if (!Utils.isThisThreadSWT()) {
 			Debug.out("getUrlImage called on non-SWT thread");
 			return null;
@@ -1121,9 +1127,16 @@ public class ImageLoader
 		if (l == null || url == null) {
 			return null;
 		}
+		
+		String imageKey;
+		if (maxSize == null) {
+			imageKey = url;
+		} else {
+			imageKey = maxSize.x + "x" + maxSize.y + ";" + url;
+		}
 
-		if (imageExists(url)) {
-			Image image = getImage(url);
+		if (imageExists(imageKey)) {
+			Image image = getImage(imageKey);
 			l.imageDownloaded(image, true);
 			return image;
 		}
@@ -1146,13 +1159,21 @@ public class ImageLoader
 							is.close();
 						} catch (IOException e) {
 						}
-						putRefInfoToImageMap(url, new ImageLoaderRefInfo(image));
+						if (maxSize != null) {
+							Image newImage = resizeImageIfLarger(image, maxSize);
+							if (newImage != null) {
+								image.dispose();
+								image = newImage;
+							}
+						}
+						putRefInfoToImageMap(imageKey, new ImageLoaderRefInfo(image));
 						l.imageDownloaded(image, true);
 						return image;
 					} finally {
 						fis.close();
 					}
 				} catch (Throwable e) {
+					System.err.println(e.getMessage() + " for " + url + " at " + cache_file);
 					Debug.printStackTrace(e);
 				}
 			}else{
@@ -1161,6 +1182,7 @@ public class ImageLoader
 			}
 		}
 
+		final String f_imageKey = imageKey;
 		ImageBytesDownloader.loadImage(url,
 				new ImageBytesDownloader.ImageDownloaderListener() {
 					public void imageDownloaded(final byte[] imageBytes) {
@@ -1168,25 +1190,61 @@ public class ImageLoader
 							public void runSupport() {
 									// no synchronization here - might have already been
 									// downloaded
-								if (imageExists(url)) {
-									Image image = getImage(url);
+								if (imageExists(f_imageKey)) {
+									Image image = getImage(f_imageKey);
 									l.imageDownloaded(image, false);
 									return;
 								}
 								FileUtil.writeBytesAsFile(cache_file.getAbsolutePath(), imageBytes);
 								cached_resources.add( cache_key );
 								InputStream is = new ByteArrayInputStream(imageBytes);
-								Image image = new Image(Display.getCurrent(), is);
 								try {
-									is.close();
-								} catch (IOException e) {
+  								Image image = new Image(Display.getCurrent(), is);
+  								try {
+  									is.close();
+  								} catch (IOException e) {
+  								}
+  								if (maxSize != null) {
+  									Image newImage = resizeImageIfLarger(image, maxSize);
+  									if (newImage != null) {
+  										image.dispose();
+  										image = newImage;
+  									}
+  								}
+  								putRefInfoToImageMap(f_imageKey, new ImageLoaderRefInfo(image));
+  								l.imageDownloaded(image, false);
+								} catch (SWTException swte) {
+									//  org.eclipse.swt.SWTException: Unsupported or unrecognized format
+									System.err.println(swte.getMessage() + " for " + f_imageKey + " at " + cache_file);
 								}
-								putRefInfoToImageMap(url, new ImageLoaderRefInfo(image));
-								l.imageDownloaded(image, false);
 							}
 						});
 					}
 				});
+		return null;
+	}
+
+	private Image resizeImageIfLarger(Image image, Point maxSize) {
+		
+		if (image == null || image.isDisposed()) {
+			return null;
+		}
+
+		Rectangle bounds = image.getBounds();
+		if (maxSize.y > 0 && bounds.height > maxSize.y) {
+			int newX = bounds.width * maxSize.y / bounds.height;
+			if (maxSize.x <= 0 || newX <= maxSize.x) {
+				ImageData scaledTo = image.getImageData().scaledTo(newX, maxSize.y);
+				Device device = image.getDevice();
+				return new Image(device, scaledTo);
+			}
+		}
+		if (maxSize.x > 0 && bounds.width > maxSize.x) {
+			int newY = bounds.height * maxSize.x / bounds.width;
+			ImageData scaledTo = image.getImageData().scaledTo(maxSize.x, newY);
+			Device device = image.getDevice();
+			return new Image(device, scaledTo);
+		}
 		return null;
 	}
 
