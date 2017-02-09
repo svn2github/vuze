@@ -34,10 +34,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -1408,6 +1405,17 @@ SBC_SearchResultsView
 					}
 				}
 			}
+		}
+		
+		if (img != null) {
+			int maxHeight = Utils.adjustPXForDPI(16);
+			Rectangle bounds = img.getBounds();
+  		if (bounds.height > maxHeight) {
+  			ImageData scaledTo = img.getImageData().scaledTo(bounds.width * maxHeight / bounds.height, maxHeight);
+  			Device device = img.getDevice();
+  			img.dispose();
+				img = new Image(device, scaledTo);
+  		}
 		}
 		
 		return( img );
