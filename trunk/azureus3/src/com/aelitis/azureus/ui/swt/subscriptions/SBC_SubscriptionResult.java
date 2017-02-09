@@ -42,16 +42,17 @@ SBC_SubscriptionResult
 	private final byte[]			hash;
 	private final int				content_type;
 	private final long				size;
-	private final long				seeds_peers_sort;
-	private final String			seeds_peers;
-	private final long				votes_comments_sort;
-	private final String			votes_comments;
-	private final int				rank;
-	private final long				time;
 	private final String			torrent_link;
 	private final String			details_link;
 	private final String			category;
 	
+	private long				time;
+	private long				seeds_peers_sort;
+	private String				seeds_peers;
+	private long				votes_comments_sort;
+	private String				votes_comments;
+	private int					rank;
+
 	private LightHashMap<Object,Object>	user_data;
 	
 	protected
@@ -88,6 +89,20 @@ SBC_SubscriptionResult
 		
 		size = (Long)properties.get( SearchResult.PR_SIZE );
 		
+		torrent_link = (String)properties.get( SearchResult.PR_TORRENT_LINK );
+		details_link = (String)properties.get( SearchResult.PR_DETAILS_LINK );
+		
+		
+		category = (String)properties.get( SearchResult.PR_CATEGORY );
+		
+		updateMutables( _result, properties );
+	}
+	
+	private void
+	updateMutables(
+		SubscriptionResult		_result,
+		Map<Integer,Object>		properties	)
+	{
 		Date pub_date = (Date)properties.get( SearchResult.PR_PUB_DATE );
 		
 		if ( pub_date == null ){
@@ -107,9 +122,6 @@ SBC_SubscriptionResult
 				time = pt;
 			};
 		}
-		
-		torrent_link = (String)properties.get( SearchResult.PR_TORRENT_LINK );
-		details_link = (String)properties.get( SearchResult.PR_DETAILS_LINK );
 		
 		long seeds 		= (Long)properties.get( SearchResult.PR_SEED_COUNT );
 		long leechers 	= (Long)properties.get( SearchResult.PR_LEECHER_COUNT );
@@ -157,8 +169,13 @@ SBC_SubscriptionResult
 		}
 		
 		rank	 	= ((Long)properties.get( SearchResult.PR_RANK )).intValue();
-		
-		category = (String)properties.get( SearchResult.PR_CATEGORY );
+	}
+	
+	protected void
+	updateFrom(
+		SubscriptionResult		other )
+	{
+		updateMutables( other, other.toPropertyMap());
 	}
 	
 	public Subscription

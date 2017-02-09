@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
@@ -615,9 +614,15 @@ SBC_SubscriptionResultsView
 			
 			for ( SubscriptionResult result: current_results ){
 				
-				if ( existing_map.remove( result.getID()) == null ){
+				SBC_SubscriptionResult existing = existing_map.remove( result.getID());
+				
+				if ( existing == null ){
 					
 					new_results.add( new SBC_SubscriptionResult( ds, result));
+					
+				}else{
+					
+					existing.updateFrom( result );
 				}
 			}
 		
