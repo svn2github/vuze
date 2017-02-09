@@ -1367,6 +1367,7 @@ SBC_SearchResultsView
 				
 				image_loader.getUrlImage( 
 					icon, 
+					new Point(0, Utils.adjustPXForDPI(16)),
 					new ImageDownloaderListener() {
 						
 						public void imageDownloaded(Image image, boolean returnedImmediately) {
