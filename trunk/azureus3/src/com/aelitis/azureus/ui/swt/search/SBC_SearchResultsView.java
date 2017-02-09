@@ -1407,17 +1407,6 @@ SBC_SearchResultsView
 			}
 		}
 		
-		if (img != null) {
-			int maxHeight = Utils.adjustPXForDPI(16);
-			Rectangle bounds = img.getBounds();
-  		if (bounds.height > maxHeight) {
-  			ImageData scaledTo = img.getImageData().scaledTo(bounds.width * maxHeight / bounds.height, maxHeight);
-  			Device device = img.getDevice();
-  			img.dispose();
-				img = new Image(device, scaledTo);
-  		}
-		}
-		
 		return( img );
 	}
 	
