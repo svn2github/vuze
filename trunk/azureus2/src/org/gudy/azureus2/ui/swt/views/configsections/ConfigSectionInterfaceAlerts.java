@@ -103,295 +103,49 @@ public class ConfigSectionInterfaceAlerts
 
 		// DOWNLOAD FINISHED
 		
-		// OS X counterpart for alerts (see below for what is disabled)
-		if (Constants.isOSX) {
-			// download info 
-
-			new BooleanParameter(
-					cArea, "Play Download Finished Announcement", LBLKEY_PREFIX
-							+ "playdownloadspeech");
-
-			final StringParameter d_speechParameter = new StringParameter(cArea,
-					"Play Download Finished Announcement Text");
-			gridData = new GridData();
-			gridData.horizontalSpan = 3;
-			gridData.widthHint = 150;
-			d_speechParameter.setLayoutData(gridData);
-			((Text) d_speechParameter.getControl()).setTextLimit(40);
-
-			/* we support per-download speech now so leave sound selection always available
-			d_speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-					d_speechParameter.getControls()));
-			*/
-		}
-
-		new BooleanParameter(cArea,
-				"Play Download Finished", LBLKEY_PREFIX + "playdownloadfinished");
-
-		// download info
-
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-
-		final StringParameter d_pathParameter = new StringParameter(cArea,
-				"Play Download Finished File", "");
-
-		if (d_pathParameter.getValue().length() == 0) {
-
-			d_pathParameter.setValue("<default>");
-		}
-
-		d_pathParameter.setLayoutData(gridData);
-
-		Button d_browse = new Button(cArea, SWT.PUSH);
-
-		d_browse.setImage(imgOpenFolder);
-
-		imgOpenFolder.setBackground(d_browse.getBackground());
-
-		d_browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-
-		d_browse.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				FileDialog dialog = new FileDialog(parent.getShell(),
-						SWT.APPLICATION_MODAL);
-				dialog.setFilterExtensions(new String[] {
-					"*.wav"
-				});
-				dialog.setFilterNames(new String[] {
-					"*.wav"
-				});
-
-				dialog.setText(MessageText.getString(INTERFACE_PREFIX + "wavlocation"));
-
-				final String path = dialog.open();
-
-				if (path != null) {
-
-					d_pathParameter.setValue(path);
-
-					new AEThread2("SoundTest") {
-						public void run() {
-							try {
-								Applet.newAudioClip(new File(path).toURI().toURL()).play();
-
-								Thread.sleep(2500);
-
-							} catch (Throwable e) {
-
-							}
-						}
-					}.start();
-				}
-			}
-		});
-
-		Label d_sound_info = new Label(cArea, SWT.WRAP);
-		Messages.setLanguageText(d_sound_info, INTERFACE_PREFIX
-				+ "wavlocation.info");
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.widthHint = 100;
-		Utils.setLayoutData(d_sound_info, gridData);
-
-		/* we support per-download alerts now so leave sound selection always available
-		d_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-				d_pathParameter.getControls()));
-		d_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-				new Control[] {
-					d_browse,
-					d_sound_info
-				}));
-		*/ 
-
+		playSoundWhen(
+				cArea, imgOpenFolder, 
+				"Play Download Finished Announcement",
+				"Play Download Finished Announcement Text",
+				"playdownloadspeech",
+				"Play Download Finished",
+				"Play Download Finished File",
+				"playdownloadfinished" );
+		
 		// DOWNLOAD ERROR
-		// OS X counterpart for alerts (see below for what is disabled)
-		if (Constants.isOSX) {
-			// download info 
+		
+		playSoundWhen(
+			cArea, imgOpenFolder, 
+			"Play Download Error Announcement",
+			"Play Download Error Announcement Text",
+			"playdownloaderrorspeech",
+			"Play Download Error",
+			"Play Download Error File",
+			"playdownloaderror" );
 
-			new BooleanParameter(
-					cArea, "Play Download Error Announcement", LBLKEY_PREFIX
-							+ "playdownloaderrorspeech");
-
-			final StringParameter d_speechParameter = new StringParameter(cArea,
-					"Play Download Error Announcement Text");
-			gridData = new GridData();
-			gridData.horizontalSpan = 3;
-			gridData.widthHint = 150;
-			d_speechParameter.setLayoutData(gridData);
-			((Text) d_speechParameter.getControl()).setTextLimit(40);
-
-			/* we support per-download speech now so leave sound selection always available
-			d_speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-					d_speechParameter.getControls()));
-			*/
-		}
-
-		new BooleanParameter(cArea,
-				"Play Download Error", LBLKEY_PREFIX + "playdownloaderror");
-
-		// download info
-
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-
-		final StringParameter e_pathParameter = new StringParameter(cArea,
-				"Play Download Error File", "");
-
-		if (e_pathParameter.getValue().length() == 0) {
-
-			e_pathParameter.setValue("<default>");
-		}
-
-		e_pathParameter.setLayoutData(gridData);
-
-		d_browse = new Button(cArea, SWT.PUSH);
-
-		d_browse.setImage(imgOpenFolder);
-
-		imgOpenFolder.setBackground(d_browse.getBackground());
-
-		d_browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-
-		d_browse.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				FileDialog dialog = new FileDialog(parent.getShell(),
-						SWT.APPLICATION_MODAL);
-				dialog.setFilterExtensions(new String[] {
-					"*.wav"
-				});
-				dialog.setFilterNames(new String[] {
-					"*.wav"
-				});
-
-				dialog.setText(MessageText.getString(INTERFACE_PREFIX + "wavlocation"));
-
-				final String path = dialog.open();
-
-				if (path != null) {
-
-					e_pathParameter.setValue(path);
-
-					new AEThread2("SoundTest") {
-						public void run() {
-							try {
-								Applet.newAudioClip(new File(path).toURI().toURL()).play();
-
-								Thread.sleep(2500);
-
-							} catch (Throwable e) {
-
-							}
-						}
-					}.start();
-				}
-			}
-		});
-
-		d_sound_info = new Label(cArea, SWT.WRAP);
-		Messages.setLanguageText(d_sound_info, INTERFACE_PREFIX
-				+ "wavlocation.info");
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.widthHint = 100;
-		Utils.setLayoutData(d_sound_info, gridData);
 		
 		// FILE FINISHED
-		// OS X counterpart for alerts
-		if (Constants.isOSX) {
+		
+		playSoundWhen(
+				cArea, imgOpenFolder, 
+				"Play File Finished Announcement",
+				"Play File Finished Announcement Text",
+				"playfilespeech",
+				"Play File Finished",
+				"Play File Finished File",
+				"playfilefinished" );
+		
 
-			// per-file info
-
-			final BooleanParameter f_speechEnabledParameter = new BooleanParameter(
-					cArea, "Play File Finished Announcement", LBLKEY_PREFIX
-							+ "playfilespeech");
-
-			final StringParameter f_speechParameter = new StringParameter(cArea,
-					"Play File Finished Announcement Text");
-			gridData = new GridData();
-			gridData.horizontalSpan = 3;
-			gridData.widthHint = 150;
-			f_speechParameter.setLayoutData(gridData);
-			((Text) f_speechParameter.getControl()).setTextLimit(40);
-
-			/* we support per-file alerts now so leave speech selection always available
-			f_speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-					f_speechParameter.getControls()));
-			*/
-		}
-
-		BooleanParameter f_play_sound = new BooleanParameter(cArea,
-				"Play File Finished", LBLKEY_PREFIX + "playfilefinished");
-
-		// file info
-
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-
-		final StringParameter f_pathParameter = new StringParameter(cArea,
-				"Play File Finished File", "");
-
-		if (f_pathParameter.getValue().length() == 0) {
-
-			f_pathParameter.setValue("<default>");
-		}
-
-		f_pathParameter.setLayoutData(gridData);
-
-		Button f_browse = new Button(cArea, SWT.PUSH);
-
-		f_browse.setImage(imgOpenFolder);
-
-		imgOpenFolder.setBackground(f_browse.getBackground());
-
-		f_browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-
-		f_browse.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				FileDialog dialog = new FileDialog(parent.getShell(),
-						SWT.APPLICATION_MODAL);
-				dialog.setFilterExtensions(new String[] {
-					"*.wav"
-				});
-				dialog.setFilterNames(new String[] {
-					"*.wav"
-				});
-
-				dialog.setText(MessageText.getString(INTERFACE_PREFIX + "wavlocation"));
-
-				final String path = dialog.open();
-
-				if (path != null) {
-
-					f_pathParameter.setValue(path);
-
-					new AEThread2("SoundTest") {
-						public void run() {
-							try {
-								Applet.newAudioClip(new File(path).toURI().toURL()).play();
-
-								Thread.sleep(2500);
-
-							} catch (Throwable e) {
-
-							}
-						}
-					}.start();
-				}
-			}
-		});
-
-		Label f_sound_info = new Label(cArea, SWT.WRAP);
-		Messages.setLanguageText(f_sound_info, INTERFACE_PREFIX
-				+ "wavlocation.info");
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.widthHint = 100;
-		Utils.setLayoutData(f_sound_info, gridData);
-
-		/* we support per-file alerts now so leave sound selection always available
-		f_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-				f_pathParameter.getControls()));
-		f_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-				new Control[] {
-					f_browse,
-					f_sound_info
-				}));
-		*/		
+		// NOTIFICATION ADDED
+		
+		playSoundWhen(
+				cArea, imgOpenFolder, 
+				"Play Notification Added Announcement",
+				"Play Notification Added Announcement Text",
+				"playnotificationaddedspeech",
+				"Play Notification Added",
+				"Play Notification Added File",
+				"playnotificationadded" );
 		
 			// xxxxxxxxxxxxxxxx
 		
@@ -476,5 +230,96 @@ public class ConfigSectionInterfaceAlerts
 		auto_hide_alert.setLayoutData(gridData);
 
 		return cSection;
+	}
+	
+	private void
+	playSoundWhen(
+		final Composite 	cArea,
+		Image				imgOpenFolder,
+		String				announceEnableConfig,
+		String				announceKeyConfig,
+		String				announceResource,
+		String				playEnableConfig,
+		String				playKeyConfig,
+		String				playResource )
+	{
+		if (Constants.isOSX) {
+			// download info 
+
+			new BooleanParameter(
+					cArea, announceEnableConfig, LBLKEY_PREFIX + announceResource );
+
+			final StringParameter d_speechParameter = new StringParameter(cArea,announceKeyConfig);
+			GridData gridData = new GridData();
+			gridData.horizontalSpan = 3;
+			gridData.widthHint = 150;
+			d_speechParameter.setLayoutData(gridData);
+			((Text) d_speechParameter.getControl()).setTextLimit(40);
+		}
+
+		new BooleanParameter(cArea,playEnableConfig, LBLKEY_PREFIX +playResource );
+
+		// download info
+
+		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+
+		final StringParameter e_pathParameter = new StringParameter(cArea,playKeyConfig, "");
+
+		if (e_pathParameter.getValue().length() == 0) {
+
+			e_pathParameter.setValue("<default>");
+		}
+
+		e_pathParameter.setLayoutData(gridData);
+
+		Button d_browse = new Button(cArea, SWT.PUSH);
+
+		d_browse.setImage(imgOpenFolder);
+
+		imgOpenFolder.setBackground(d_browse.getBackground());
+
+		d_browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+
+		d_browse.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				FileDialog dialog = new FileDialog(cArea.getShell(),
+						SWT.APPLICATION_MODAL);
+				dialog.setFilterExtensions(new String[] {
+					"*.wav"
+				});
+				dialog.setFilterNames(new String[] {
+					"*.wav"
+				});
+
+				dialog.setText(MessageText.getString(INTERFACE_PREFIX + "wavlocation"));
+
+				final String path = dialog.open();
+
+				if (path != null) {
+
+					e_pathParameter.setValue(path);
+
+					new AEThread2("SoundTest") {
+						public void run() {
+							try {
+								Applet.newAudioClip(new File(path).toURI().toURL()).play();
+
+								Thread.sleep(2500);
+
+							} catch (Throwable e) {
+
+							}
+						}
+					}.start();
+				}
+			}
+		});
+
+		Label d_sound_info = new Label(cArea, SWT.WRAP);
+		Messages.setLanguageText(d_sound_info, INTERFACE_PREFIX
+				+ "wavlocation.info");
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.widthHint = 100;
+		Utils.setLayoutData(d_sound_info, gridData);
 	}
 }

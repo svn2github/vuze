@@ -53,6 +53,14 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 public class 
 UserAlerts 
 {
+	private static UserAlerts	singleton;
+	
+	public static UserAlerts
+	getSingleton()
+	{
+		return( singleton );
+	}
+	
   	private AudioClip 	audio_clip 		= null;
   	private String		audio_resource	= "";
   	
@@ -64,6 +72,8 @@ UserAlerts
 	UserAlerts(
 		GlobalManager	global_manager ) 
  	{	
+		singleton = this;
+		
 		final DownloadManagerAdapter download_manager_listener = 
 			new DownloadManagerAdapter()
 			{
@@ -272,7 +282,6 @@ UserAlerts
 		
   		final String sound_enabler;
   		final String sound_file;
-  		final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
   		
   		final String speech_enabler;
   		final String speech_text;
@@ -304,20 +313,106 @@ UserAlerts
   		Map 	dl_file_alerts = dm_state.getMapAttribute( DownloadManagerState.AT_DL_FILE_ALERTS );
   		String 	dlf_prefix = download?"":(String.valueOf(dm_file.getIndex()) + "." );
   		
+  		boolean do_popup 	= COConfigurationManager.getBooleanParameter(popup_enabler) || isDLFEnabled( dl_file_alerts, dlf_prefix, popup_enabler );
+  		boolean do_speech 	= Constants.isOSX	&& ( COConfigurationManager.getBooleanParameter(speech_enabler) || isDLFEnabled( dl_file_alerts, dlf_prefix, speech_enabler ));
+  		boolean do_sound 	= COConfigurationManager.getBooleanParameter( sound_enabler, false) || isDLFEnabled( dl_file_alerts, dlf_prefix, sound_enabler );
+
+  		doStuff(
+  			relatedObject, item_name,
+  			do_popup, popup_def_text, false,
+  			do_speech, speech_text,
+  			do_sound, sound_file );
+  	}
+  	
+  	private long	last_error_speech;
+  	private long	last_error_sound;
+  	
+  	private void 
+  	reportError(
+  		DownloadManager			manager )
+  	{  							
+		final Object relatedObject 	= manager;
+		final String item_name		= manager.getDisplayName();
+						  		
+  		
+  		final String sound_enabler 	= "Play Download Error";
+  		final String sound_file		= "Play Download Error File";
+	  		
+  		final String speech_enabler 	= "Play Download Error Announcement";
+  		final String speech_text		= "Play Download Error Announcement Text";
+	  		
+  		final String popup_enabler   = "Popup Download Error";
+  		final String popup_def_text  = "popup.download.error";
+	  		
+		long now = SystemTime.getMonotonousTime();
+
+    	boolean do_popup 	= 	COConfigurationManager.getBooleanParameter(popup_enabler);
+    	
+    	boolean do_speech	= 	Constants.isOSX && 
+    							COConfigurationManager.getBooleanParameter(speech_enabler) && 
+    							( last_error_speech == 0 || now - last_error_speech > 5000 );
+    	
+    	boolean do_sound	= 	COConfigurationManager.getBooleanParameter( sound_enabler, false) && 
+    							( last_error_sound == 0 || now - last_error_sound > 5000 );
+    	
+    	if ( do_speech ){
+    		last_error_speech = now;
+    	}
+       	if ( do_sound ){
+       		last_error_sound = now;
+    	}
+ 
+ 		doStuff(
+  			relatedObject, item_name,
+  			do_popup, popup_def_text, true,
+  			do_speech, speech_text,
+  			do_sound, sound_file );
+  	}
+  	
+  	public void
+  	notificationAdded()
+  	{
+  		boolean do_popup 	= 	false;
+    	
+    	boolean do_speech	= 	Constants.isOSX && 
+    							COConfigurationManager.getBooleanParameter("Play Notification Added Announcement");
+    	
+    	boolean do_sound	= 	COConfigurationManager.getBooleanParameter( "Play Notification Added", false); 
+    	
+		doStuff(
+  			null, null,
+  			do_popup, null, false,
+  			do_speech, "Play Notification Added Announcement Text",
+  			do_sound, "Play Notification Added File" );	
+  	}
+  	
+  	private void
+  	doStuff(
+  		Object			relatedObject,
+  		String			item_name,
+  		boolean			do_popup,
+  		String			popup_def_text,
+  		boolean			popup_is_error,
+  		boolean			do_speech,
+  		final String	speech_text,
+  		boolean			do_sound,
+  		String			sound_file )
+  	{
+  		final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
+
   		try{
   			this_mon.enter();
-  			
-  			if ( COConfigurationManager.getBooleanParameter(popup_enabler) || isDLFEnabled( dl_file_alerts, dlf_prefix, popup_enabler )) {
+  			  			
+  			if (  do_popup ) {
   				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
 					UIFunctionsManager.getUIFunctions().forceNotify(
-							UIFunctions.STATUSICON_NONE, null, popup_text, null,
+							popup_is_error?UIFunctions.STATUSICON_ERROR:UIFunctions.STATUSICON_NONE, null, popup_text, null,
 							new Object[] {
 								relatedObject
 							}, -1);
   			}
 
-			if (Constants.isOSX
-					&&  ( COConfigurationManager.getBooleanParameter(speech_enabler) || isDLFEnabled( dl_file_alerts, dlf_prefix, speech_enabler ))) {
+			if ( do_speech ) {
 				new AEThread2("SaySound") {
 					public void run() {
 						try {
@@ -333,7 +428,7 @@ UserAlerts
 				}.start();
 			}
 
-        if ( COConfigurationManager.getBooleanParameter( sound_enabler, false) || isDLFEnabled( dl_file_alerts, dlf_prefix, sound_enabler )){
+			if ( do_sound ){
 
 	    		String	file = COConfigurationManager.getStringParameter( sound_file );
 
@@ -419,164 +514,6 @@ UserAlerts
   		}
   	}
   	
-  	private long	last_error_speech;
-  	private long	last_error_sound;
-  	
-  	private void 
-  	reportError(
-  		DownloadManager			manager )
-  	{  							
-		final Object relatedObject 	= manager;
-		final String item_name		= manager.getDisplayName();
-						
-  		final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
-  		
-  		
-  		final String sound_enabler 	= "Play Download Error";
-  		final String sound_file		= "Play Download Error File";
-	  		
-  		final String speech_enabler 	= "Play Download Error Announcement";
-  		final String speech_text		= "Play Download Error Announcement Text";
-	  		
-  		final String popup_enabler   = "Popup Download Error";
-  		final String popup_def_text  = "popup.download.error";
-	  		
-    		
-  		try{
-  			this_mon.enter();
-  			
-  			if ( COConfigurationManager.getBooleanParameter(popup_enabler)) {
-   					UIFunctionsManager.execWithUIFunctions(
-  							new UIFunctionsManager.UIFCallback() {
-								
-								public void run(UIFunctions functions) {
-									
-					 				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
-
-									functions.forceNotify(
-											UIFunctions.STATUSICON_ERROR, null, popup_text, null,
-											new Object[] {
-												relatedObject
-											}, -1);
-								}
-							});
-  			}
-
-  			long now = SystemTime.getMonotonousTime();
-  			
-			if (	Constants.isOSX
-					&&  COConfigurationManager.getBooleanParameter(speech_enabler)){
-				
-				if ( last_error_speech == 0 || now - last_error_speech > 5000 ){
-					
-					last_error_speech = now;
-							
-					new AEThread2("SaySound") {
-						public void run() {
-							try {
-								Runtime.getRuntime().exec(new String[] {
-									"say",
-									COConfigurationManager.getStringParameter(speech_text)
-								}); // Speech Synthesis services
-	
-								Thread.sleep(2500);
-							} catch (Throwable e) {
-							}
-						}
-					}.start();
-				}
-			}
-
-	        if ( COConfigurationManager.getBooleanParameter( sound_enabler, false)){
-	
-				if ( last_error_sound == 0 || now - last_error_sound > 5000 ){
-					
-					last_error_sound = now;
-					
-		    		String	file = COConfigurationManager.getStringParameter( sound_file );
-	
-	    			file = file.trim();
-	
-		    			// turn "<default>" into blank
-	
-		    		if ( file.startsWith( "<" )){
-	
-		    			file	= "";
-		    		}
-	
-		    		if ( audio_clip == null || !file.equals( audio_resource )){
-	
-		    			audio_clip	= null;
-	
-		    				// try explicit file
-	
-		    			if ( file.length() != 0 ){
-	
-		    				File	f = new File( file );
-	
-		    				try{
-	
-				    			if ( f.exists()){
-	
-			    					URL	file_url = f.toURI().toURL();
-	
-			    					audio_clip = Applet.newAudioClip( file_url );
-				    			}
-	
-		    				}catch( Throwable  e ){
-	
-		    					Debug.printStackTrace(e);
-	
-		    				}finally{
-	
-		    					if ( audio_clip == null ){
-		    						Logger.log(new LogAlert(relatedObject, LogAlert.UNREPEATABLE,
-											LogAlert.AT_ERROR, "Failed to load audio file '" + file
-													+ "'"));
-		    					}
-		    				}
-		    			}
-	
-		    				// either non-explicit or explicit missing
-	
-		    			if ( audio_clip == null ){
-	
-		    				audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource( default_sound ));
-	
-		    			}
-	
-		    			audio_resource	= file;
-		    		}
-	
-		    		if ( audio_clip != null ){
-	
-		            	new AEThread2("DownloadSound")
-						{
-			        		public void
-							run()
-			        		{
-			        			try{
-			        				audio_clip.play();
-	
-			        				Thread.sleep(2500);
-	
-			        			}catch( Throwable e ){
-	
-			        			}
-			        		}
-			        	}.start();
-			        }
-				}
-	    	}
-  		}catch( Throwable e ){
-  			
-  			Debug.printStackTrace( e );
-  			
-  		}finally{
-  			
-  			this_mon.exit();
-  		}
-  	}
   	
   	private boolean
   	isDLFEnabled(

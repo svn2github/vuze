@@ -387,6 +387,11 @@ public class ConfigurationDefaults {
     def.put( "Play Download Error Announcement Text", "Download Error");
     def.put( "Popup Download Error", FALSE);
 
+    def.put( "Play Notification Added Announcement", FALSE );
+    def.put( "Play Notification Added Announcement Text", "Notification Added" );
+    def.put( "Play Notification Added", FALSE );
+    def.put( "Play Notification Added File", "" );
+
     
     //default torrent directory option
     def.put( "Save Torrent Files", TRUE );

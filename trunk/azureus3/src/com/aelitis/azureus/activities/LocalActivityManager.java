@@ -25,6 +25,7 @@ package com.aelitis.azureus.activities;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.ui.swt.UserAlerts;
 
 import com.aelitis.azureus.core.util.AZ3Functions;
 
@@ -50,6 +51,35 @@ LocalActivityManager
 						}
 						
 						pending = null;
+					}
+				}
+			});
+		
+		VuzeActivitiesManager.addListener(
+			new VuzeActivitiesListener() {
+				
+				@Override
+				public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry) {
+				}
+				
+				@Override
+				public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
+				}
+				
+				@Override
+				public void vuzeNewsEntriesAdded(VuzeActivitiesEntry[] entries) {
+					boolean	local_added = false;
+					for ( VuzeActivitiesEntry entry: entries ){
+						if ( entry.getTypeID().equals( VuzeActivitiesConstants.TYPEID_LOCALNEWS )){
+							local_added = true;
+						}
+					}
+					if ( local_added ){
+						UserAlerts ua = UserAlerts.getSingleton();
+						
+						if ( ua != null ){
+							ua.notificationAdded();
+						}
 					}
 				}
 			});
