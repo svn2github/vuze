@@ -155,7 +155,11 @@ public class Utils
 					writer.println("SWT Queue:");
 					writer.indent();
 					for (Runnable r : queue) {
-						writer.println(r.toString());
+						if (r == null) {
+							writer.println("NULL");
+						} else {
+							writer.println(r.toString());
+						}
 					}
 					writer.exdent();
 				}
@@ -897,7 +901,7 @@ public class Utils
 					queue.add(code);
 
 					diag_logger.log(SystemTime.getCurrentTime() + "] + Q. size= "
-							+ queue.size() + "; add " + code + " via "
+							+ queue.size() + ";in=" + msLater + "; add " + code + " via "
 							+ Debug.getCompressedStackTrace(-5));
 					final long lStart = SystemTime.getCurrentTime();
 
@@ -2055,8 +2059,16 @@ public class Utils
 	 * @param listener
 	 */
 	public static boolean verifyShellRect(Shell shell, boolean bAdjustIfInvalid) {
+		return verifyShellRect(shell, bAdjustIfInvalid, true);
+	}
+
+	private static boolean verifyShellRect(Shell shell, boolean bAdjustIfInvalid,
+			boolean reverifyOnChange) {
 		boolean bMetricsOk;
 		try {
+			if (shell.getMaximized()) {
+				return true;
+			}
 			bMetricsOk = false;
 			Point ptTopLeft = shell.getLocation();
 			Point size = shell.getSize();
@@ -2142,9 +2154,9 @@ public class Utils
 					shell.setSize(ptBottomRight.x - ptTopLeft.x + 1,
 							ptBottomRight.y - ptTopLeft.y + 1);
 				}
-				if ( needsMove || needsResize ){
+				if (reverifyOnChange && (needsMove || needsResize)){
 					
-					return verifyShellRect(shell, bAdjustIfInvalid);
+					return verifyShellRect(shell, bAdjustIfInvalid, false);
 					
 				}else{
 					
