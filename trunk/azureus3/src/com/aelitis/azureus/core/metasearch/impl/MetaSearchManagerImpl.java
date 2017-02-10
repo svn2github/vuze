@@ -1176,6 +1176,8 @@ MetaSearchManagerImpl
 		return( false );
 	}
 	
+	private static Object import_lock = new Object();
+	
 	public Engine
 	importEngine(
 		Map			map,
@@ -1183,117 +1185,119 @@ MetaSearchManagerImpl
 	
 		throws MetaSearchException
 	{
-		try{
-			EngineImpl engine = (EngineImpl)meta_search.importFromBEncodedMap(map);
-			
-			long	id = engine.getId();
-			
-			Engine existing = meta_search.getEngine( id );
-			
-			if ( existing != null ){
+		synchronized( import_lock ){
+			try{
+				EngineImpl engine = (EngineImpl)meta_search.importFromBEncodedMap(map);
 				
-				if ( existing.sameLogicAs( engine )){
+				long	id = engine.getId();
+				
+				Engine existing = meta_search.getEngine( id );
+				
+				if ( existing != null ){
 					
-					if ( warn_user ){
+					if ( existing.sameLogicAs( engine )){
 						
-						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-						
-						String details = MessageText.getString(
-								"metasearch.addtemplate.dup.desc",
-								new String[]{ engine.getName() });
-						
-						ui_manager.showMessageBox(
-								"metasearch.addtemplate.dup.title",
-								"!" + details + "!",
-								UIManagerEvent.MT_OK );
-					}
-					
-					return( existing );
-				}
-			}else{
-									
-				try{						
-					Engine[] engines = meta_search.getEngines( false, false );
-						
-					for ( Engine e: engines ){
+						if ( warn_user ){
 							
-						if ( e.sameLogicAs( engine )){
-								
-							return( e );
+							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+							
+							String details = MessageText.getString(
+									"metasearch.addtemplate.dup.desc",
+									new String[]{ engine.getName() });
+							
+							ui_manager.showMessageBox(
+									"metasearch.addtemplate.dup.title",
+									"!" + details + "!",
+									UIManagerEvent.MT_OK );
 						}
+						
+						return( existing );
 					}
-				}catch( Throwable e ){
-					
+				}else{
+										
+					try{						
+						Engine[] engines = meta_search.getEngines( false, false );
+							
+						for ( Engine e: engines ){
+								
+							if ( e.sameLogicAs( engine )){
+									
+								return( e );
+							}
+						}
+					}catch( Throwable e ){
+						
+					}
 				}
-			}
-			
-			if ( warn_user ){
 				
-				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-				
-				String details = MessageText.getString(
-						"metasearch.addtemplate.desc",
-						new String[]{ engine.getName() });
-				
-				long res = ui_manager.showMessageBox(
-						"metasearch.addtemplate.title",
-						"!" + details + "!",
-						UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-				
-				if ( res != UIManagerEvent.MT_YES ){
+				if ( warn_user ){
 					
-					throw( new MetaSearchException( "User declined the template" ));
+					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+					
+					String details = MessageText.getString(
+							"metasearch.addtemplate.desc",
+							new String[]{ engine.getName() });
+					
+					long res = ui_manager.showMessageBox(
+							"metasearch.addtemplate.title",
+							"!" + details + "!",
+							UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+					
+					if ( res != UIManagerEvent.MT_YES ){
+						
+						throw( new MetaSearchException( "User declined the template" ));
+					}
 				}
+					// if local template then we try to use the id as is otherwise we emsure that
+					// it is a local one
+				
+				if ( id >= 0 && id < Integer.MAX_VALUE ){
+					
+					id = getLocalTemplateID();
+					
+					engine.setId( id );
+				}
+				
+				engine.setSource( Engine.ENGINE_SOURCE_LOCAL );
+				
+				engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
+				
+				meta_search.addEngine( engine );
+				
+				if ( warn_user ){
+					
+					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+					
+					String details = MessageText.getString(
+							"metasearch.addtemplate.done.desc",
+							new String[]{ engine.getName() });
+					
+					ui_manager.showMessageBox(
+							"metasearch.addtemplate.done.title",
+							"!" + details + "!",
+							UIManagerEvent.MT_OK );
+				}
+				
+				return( engine );
+				
+			}catch( Throwable e ){
+				
+				if ( warn_user ){
+					
+					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+					
+					String details = MessageText.getString(
+							"metasearch.addtemplate.failed.desc",
+							new String[]{ Debug.getNestedExceptionMessage(e) });
+					
+					ui_manager.showMessageBox(
+							"metasearch.addtemplate.failed.title",
+							"!" + details + "!",
+							UIManagerEvent.MT_OK );
+				}
+				
+				throw( new MetaSearchException( "Failed to add engine", e ));
 			}
-				// if local template then we try to use the id as is otherwise we emsure that
-				// it is a local one
-			
-			if ( id >= 0 && id < Integer.MAX_VALUE ){
-				
-				id = getLocalTemplateID();
-				
-				engine.setId( id );
-			}
-			
-			engine.setSource( Engine.ENGINE_SOURCE_LOCAL );
-			
-			engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
-			
-			meta_search.addEngine( engine );
-			
-			if ( warn_user ){
-				
-				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-				
-				String details = MessageText.getString(
-						"metasearch.addtemplate.done.desc",
-						new String[]{ engine.getName() });
-				
-				ui_manager.showMessageBox(
-						"metasearch.addtemplate.done.title",
-						"!" + details + "!",
-						UIManagerEvent.MT_OK );
-			}
-			
-			return( engine );
-			
-		}catch( Throwable e ){
-			
-			if ( warn_user ){
-				
-				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-				
-				String details = MessageText.getString(
-						"metasearch.addtemplate.failed.desc",
-						new String[]{ Debug.getNestedExceptionMessage(e) });
-				
-				ui_manager.showMessageBox(
-						"metasearch.addtemplate.failed.title",
-						"!" + details + "!",
-						UIManagerEvent.MT_OK );
-			}
-			
-			throw( new MetaSearchException( "Failed to add engine", e ));
 		}
 	}
 	
