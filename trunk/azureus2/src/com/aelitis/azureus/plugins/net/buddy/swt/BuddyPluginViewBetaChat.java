@@ -1286,7 +1286,7 @@ BuddyPluginViewBetaChat
 						
 						int offset = log.getOffsetAtLocation( mapped );
 						
-						StyleRange sr = log.getStyleRangeAtOffset(  offset );
+						final StyleRange sr = log.getStyleRangeAtOffset(  offset );
 												
 						if ( sr != null ){
 
@@ -1538,6 +1538,33 @@ BuddyPluginViewBetaChat
 								}
 																
 								handled = true;
+							}else{
+								
+								if ( Constants.isCVSVersion()){
+									
+									if ( sr instanceof MyStyleRange ){
+										
+										final MyStyleRange msr = (MyStyleRange)sr;
+										
+										MenuItem   item = new MenuItem( log_menu, SWT.NONE );
+
+										item.setText( MessageText.getString( "label.copy.to.clipboard"));
+
+										item.addSelectionListener(
+											new SelectionAdapter()
+											{
+												@Override
+												public void 
+												widgetSelected(
+													SelectionEvent e ) 
+												{
+													ClipboardCopy.copyToClipBoard( msr.message.getMessage());
+												}
+											});
+										
+										handled = true;
+									}
+								}
 							}
 						}
 					}catch( Throwable f ){
@@ -2867,7 +2894,22 @@ BuddyPluginViewBetaChat
 					widgetSelected(
 						SelectionEvent e ) 
 					{
-						ClipboardCopy.copyToClipBoard( participants.get(0).getName( true ));
+						StringBuffer sb = new StringBuffer();
+						
+						sb.append( participants.get(0).getName( true ));
+						
+						if ( Constants.isCVSVersion()){
+							
+							List<ChatMessage>	messages = participants.get(0).getMessages();
+							
+							for ( ChatMessage msg: messages ){
+								
+								sb.append( "\r\n" + msg.getMessage());
+							}
+
+						}
+						
+						ClipboardCopy.copyToClipBoard( sb.toString());
 					}
 				});
 		}
@@ -3937,7 +3979,7 @@ BuddyPluginViewBetaChat
 					appended.append( says );
 					
 					{
-						StyleRange styleRange = new StyleRange();
+						StyleRange styleRange = new MyStyleRange(message);
 						styleRange.start = start;
 						styleRange.length = stamp_len;
 						styleRange.foreground = Colors.grey;
@@ -3956,7 +3998,7 @@ BuddyPluginViewBetaChat
 						
 						if ( rem > 0 ){
 							
-							StyleRange styleRange = new StyleRange();
+							StyleRange styleRange = new MyStyleRange(message);
 							styleRange.start = start + stamp_len;
 							styleRange.length = rem - was_len;
 							styleRange.foreground = colour;
@@ -3974,7 +4016,7 @@ BuddyPluginViewBetaChat
 				
 				final int start = initial_log_length + appended.length();
 								
-				String rendered_msg = renderMessage( beta, chat, original_msg, message_type, start, new_ranges, info_font, info_colour, bold_font );
+				String rendered_msg = renderMessage( beta, chat, message, original_msg, message_type, start, new_ranges, info_font, info_colour, bold_font );
 								
 				appended.append( rendered_msg ); 
 
@@ -3997,7 +4039,7 @@ BuddyPluginViewBetaChat
 							
 							//System.out.println( "    " + pos + "-" + (style_start-1 ));
 							
-							StyleRange styleRange 	= new StyleRange();
+							StyleRange styleRange 	= new MyStyleRange(message);
 							styleRange.start 		= pos;
 							styleRange.length 		= style_start - pos;
 							
@@ -4022,7 +4064,7 @@ BuddyPluginViewBetaChat
 						
 						//System.out.println( "    " + pos + "-" + (message_end_log_length-1) );
 	
-						StyleRange styleRange 	= new StyleRange();
+						StyleRange styleRange 	= new MyStyleRange(message);
 						styleRange.start 		= pos;
 						styleRange.length 		= message_end_log_length - pos;
 						
@@ -4157,6 +4199,7 @@ BuddyPluginViewBetaChat
 	renderMessage(
 		BuddyPluginBeta		beta,
 		ChatInstance		chat,
+		ChatMessage			message,
 		String				original_msg,
 		int					message_type,
 		int					start,
@@ -4604,7 +4647,7 @@ BuddyPluginViewBetaChat
 									
 									if ( message_type ==  ChatMessage.MT_INFO ){
 										
-										StyleRange styleRange 	= new StyleRange();
+										StyleRange styleRange 	= new MyStyleRange(message);
 										styleRange.start 		= next_style_start;
 										styleRange.length 		= this_style_start - next_style_start;
 										styleRange.foreground 	= info_colour;
@@ -4651,7 +4694,7 @@ BuddyPluginViewBetaChat
 								
 								if ( will_work ){
 									
-									StyleRange styleRange 	= new StyleRange();
+									StyleRange styleRange 	= new MyStyleRange( message );
 									styleRange.start 		= this_style_start;
 									styleRange.length 		= this_style_length;
 									styleRange.foreground 	= Colors.blue;
@@ -4667,7 +4710,7 @@ BuddyPluginViewBetaChat
 									
 								}else{
 									
-									StyleRange styleRange 	= new StyleRange();
+									StyleRange styleRange 	= new MyStyleRange( message );
 									styleRange.start 		= this_style_start;
 									styleRange.length 		= this_style_length;
 									styleRange.font 		= bold_font;
@@ -4692,7 +4735,7 @@ BuddyPluginViewBetaChat
 					
 					if ( message_type ==  ChatMessage.MT_INFO ){
 						
-						StyleRange styleRange 	= new StyleRange();
+						StyleRange styleRange 	= new MyStyleRange( message );
 						styleRange.start 		= next_style_start;
 						styleRange.length 		= start + msg.length() - next_style_start;
 						styleRange.foreground 	= info_colour;
@@ -4725,6 +4768,19 @@ BuddyPluginViewBetaChat
 		for ( ChatMessage msg: unseen ){
 			
 			msg.setSeen( true );
+		}
+	}
+	
+	private static class
+	MyStyleRange
+		extends StyleRange
+	{
+		private ChatMessage	message;
+		
+		MyStyleRange(
+			ChatMessage		_msg )
+		{
+			message = _msg;
 		}
 	}
 }

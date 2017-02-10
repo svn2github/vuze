@@ -1246,7 +1246,7 @@ BuddyPluginView
 	{
 		List<StyleRange>	ranges = new ArrayList<StyleRange>();
 		
-		String msg = BuddyPluginViewBetaChat.renderMessage(null, chat, message.getMessage(), message.getMessageType(), 0, ranges, null, null, null);
+		String msg = BuddyPluginViewBetaChat.renderMessage(null, chat, message, message.getMessage(), message.getMessageType(), 0, ranges, null, null, null);
 		
 		StringBuilder new_msg = new StringBuilder();
 		
