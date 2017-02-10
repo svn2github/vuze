@@ -4799,8 +4799,6 @@ BuddyPluginViewBetaChat
 			super( other );
 			
 			message = other.message;
-			
-			data = message;
 		}
 	}
 }
