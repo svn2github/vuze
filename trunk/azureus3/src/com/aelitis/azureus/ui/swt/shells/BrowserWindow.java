@@ -17,6 +17,8 @@
 
 package com.aelitis.azureus.ui.swt.shells;
 
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.TitleListener;
 import org.eclipse.swt.browser.TitleEvent;
@@ -38,10 +40,8 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
-import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
-import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
-import com.aelitis.azureus.ui.swt.browser.listener.VuzeListener;
+import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
+import com.aelitis.azureus.ui.swt.browser.listener.*;
 
 /**
  * @author TuxPaper
@@ -133,6 +133,25 @@ public class BrowserWindow
 		context.addMessageListener(new VuzeListener());
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
+		context.addMessageListener(
+				new MetaSearchListener( new OpenCloseSearchDetailsListener() {
+					public void resizeSecondaryBrowser() {
+					}
+					
+					public void resizeMainBrowser() {
+					}
+					
+					public void openSearchResults(Map params) {
+					}
+					
+					public void closeSearchResults(Map params) {
+						if (browser.isDisposed() || browser.getShell().isDisposed()) {
+							return;
+						}
+						shell.dispose();
+					}
+				} ));
+
 
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
