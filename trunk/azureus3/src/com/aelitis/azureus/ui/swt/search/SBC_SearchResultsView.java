@@ -26,14 +26,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
@@ -613,6 +606,23 @@ SBC_SearchResultsView
 					}
 				});
 		}
+
+		Composite cAddEdit = new Composite(engine_area, SWT.NONE);
+		cAddEdit.setLayout(new GridLayout());
+		Button btnAddEdit = new Button(cAddEdit, SWT.PUSH);
+		Messages.setLanguageText(btnAddEdit, "button.add.edit.search.templates");
+		btnAddEdit.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				UIFunctions functions = UIFunctionsManager.getUIFunctions();
+				if (functions != null) {
+					functions.viewURL("/xsearch/addedit.php", null, "");
+				}
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+
 		
 		if ( engines.length > 0 ){
 			
