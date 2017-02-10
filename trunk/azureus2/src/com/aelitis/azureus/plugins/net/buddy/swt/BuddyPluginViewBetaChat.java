@@ -1803,7 +1803,15 @@ BuddyPluginViewBetaChat
 								log.setToolTipText( MessageText.getString( "label.right.click.for.options" ) + tt_extra );
 								
 									
-								StyleRange derp = new StyleRange( sr );
+								StyleRange derp;
+								
+								if ( sr instanceof MyStyleRange ){
+									
+									derp = new MyStyleRange((MyStyleRange)sr );
+								}else{
+									
+									derp = new StyleRange( sr );
+								}
 									
 								derp.start = sr.start;
 								derp.length = sr.length;
@@ -4781,6 +4789,18 @@ BuddyPluginViewBetaChat
 			ChatMessage		_msg )
 		{
 			message = _msg;
+			
+			data = message;
+		}
+		
+		MyStyleRange(
+			MyStyleRange	other )
+		{	
+			super( other );
+			
+			message = other.message;
+			
+			data = message;
 		}
 	}
 }
