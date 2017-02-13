@@ -1450,7 +1450,7 @@ SBC_SearchResultsView
 		private final Engine[]			engines;
 		private final Object[][]		engine_status;
 		
-		private volatile boolean	cancelled;
+		private boolean	_cancelled;
 		
 		private Set<Engine>	pending = new HashSet<Engine>();
 		
@@ -1560,12 +1560,22 @@ SBC_SearchResultsView
 				return( null );
 			}
 		}
+		
 		protected void
 		cancel()
 		{
-			cancelled	= true;
+			_cancelled	= true;
 			
 			parent.setBusy( false );
+		}
+		
+		private boolean
+		isCancelled()
+		{
+			synchronized( search_lock ){
+				
+				return( _cancelled );
+			}
 		}
 		
 		public void 
@@ -1587,7 +1597,7 @@ SBC_SearchResultsView
 			Engine 		engine, 
 			Throwable 	e ) 
 		{	
-			if ( cancelled ){
+			if ( isCancelled()){
 				
 				return;
 			}
@@ -1600,7 +1610,7 @@ SBC_SearchResultsView
 			Engine 		engine, 
 			Throwable 	e ) 
 		{
-			if ( cancelled ){
+			if ( isCancelled()){
 				
 				return;
 			}
@@ -1612,7 +1622,7 @@ SBC_SearchResultsView
 		resultsComplete(
 			Engine engine ) 
 		{
-			if ( cancelled ){
+			if ( isCancelled()){
 				
 				return;
 			}
@@ -1650,32 +1660,37 @@ SBC_SearchResultsView
 			Engine 		engine,
 			Result[] 	results) 
 		{
-			if ( cancelled ){
+			synchronized( search_lock ){
 				
-				return;
+				if ( isCancelled()){
+					
+					return;
+				}
+				
+				int	index = getEngineIndex( engine );
+				
+				if ( index >= 0 ){
+					
+					int count = (Integer)engine_status[index][1];
+					
+					engine_status[index][1] = count + results.length;
+				}
+				
+				SBC_SearchResult[]	data_sources = new  SBC_SearchResult[ results.length ];
+				
+				for ( int i=0;i<results.length;i++){
+					
+					data_sources[i] = new SBC_SearchResult( SBC_SearchResultsView.this, engine, results[i] );
+				}
+				
+				tv_subs_results.addDataSources( data_sources );
+				
+				tv_subs_results.processDataSourceQueueSync();
+				
+				result_count.addAndGet( results.length );
+				
+				parent.resultsFound();
 			}
-			
-			int	index = getEngineIndex( engine );
-			
-			if ( index >= 0 ){
-				
-				int count = (Integer)engine_status[index][1];
-				
-				engine_status[index][1] = count + results.length;
-			}
-			
-			SBC_SearchResult[]	data_sources = new  SBC_SearchResult[ results.length ];
-			
-			for ( int i=0;i<results.length;i++){
-				
-				data_sources[i] = new SBC_SearchResult( SBC_SearchResultsView.this, engine, results[i] );
-			}
-			
-			tv_subs_results.addDataSources( data_sources );
-			
-			result_count.addAndGet( results.length );
-			
-			parent.resultsFound();
 		}
 		
 		protected int
