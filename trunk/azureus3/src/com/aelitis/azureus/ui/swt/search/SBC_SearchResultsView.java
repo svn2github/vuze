@@ -533,7 +533,8 @@ SBC_SearchResultsView
 			miCreateSubscription.addSelectionListener(new SelectionListener() {
 				
 				public void widgetSelected(SelectionEvent e) {
-					SearchUtils.showCreateSubscriptionDialog(engine.getId(), current_search.sq.term);
+					SearchUtils.showCreateSubscriptionDialog(engine.getId(),
+							current_search.sq.term, null);
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
@@ -622,6 +623,7 @@ SBC_SearchResultsView
 		Composite cAddEdit = new Composite(engine_area, SWT.NONE);
 		cAddEdit.setLayout(new GridLayout());
 		Button btnAddEdit = new Button(cAddEdit, SWT.PUSH);
+		btnAddEdit.setLayoutData(new GridData(SWT.CENTER,0, true, true));
 		Messages.setLanguageText(btnAddEdit, "button.add.edit.search.templates");
 		btnAddEdit.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -634,6 +636,23 @@ SBC_SearchResultsView
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
+
+		Composite cCreateTemplate = new Composite(engine_area, SWT.NONE);
+		cCreateTemplate.setLayout(new GridLayout());
+		Button btnCreateTemplate = new Button(cCreateTemplate, SWT.PUSH);
+		btnCreateTemplate.setLayoutData(new GridData(SWT.CENTER,0, true, true));
+		Messages.setLanguageText(btnCreateTemplate, "menu.search.create.subscription");
+		btnCreateTemplate.addSelectionListener(new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent e) {
+				SearchUtils.showCreateSubscriptionDialog(-1,
+						current_search.sq.term, null);
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+					
 
 		
 		if ( engines.length > 0 ){

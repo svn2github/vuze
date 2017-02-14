@@ -500,7 +500,7 @@ SearchUtils
 	}
 
 	public static void showCreateSubscriptionDialog(final long engineID,
-			final String searchTerm) {
+			final String searchTerm, final Map optionalFilters) {
 		final SkinnedDialog dialog = new SkinnedDialog(
 				"skin3_dlg_create_search_subscription", "shell", SWT.DIALOG_TRIM);
 		SWTSkin skin = dialog.getSkin();
@@ -512,9 +512,28 @@ SearchUtils
 
 		final SWTSkinObjectCheckbox cbAutoDL = (SWTSkinObjectCheckbox) skin.getSkinObject(
 				"sub-autodl");
+		
+		SWTSkinObject soEngineArea = skin.getSkinObject("sub-engine-area");
+		SWTSkinObjectCombo soEngines = (SWTSkinObjectCombo) skin.getSkinObject("sub-engine");
 
 		if (tb == null || cbShare == null || cbAutoDL == null) {
 			return;
+		}
+		
+		boolean hasEngineID = engineID >= 0;
+		soEngineArea.setVisible(!hasEngineID);
+		
+		final Map<Integer, Engine> mapEngines = new HashMap<Integer, Engine>();
+		if (!hasEngineID) {
+			Engine[] engines = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngines(true, false);
+			List<String> list = new ArrayList<String>();
+			int pos = 0;
+			
+			for (Engine engine : engines) {
+				mapEngines.put(pos++, engine);
+				list.add(engine.getName());
+			}
+			soEngines.setList(list.toArray(new String[list.size()]));
 		}
 
 		cbShare.setChecked(COConfigurationManager.getBooleanParameter(
@@ -532,9 +551,19 @@ SearchUtils
 						String name = tb.getText().trim();
 						boolean isShared = cbShare.isChecked();
 						boolean autoDL = cbAutoDL.isChecked();
+						
+						long realEngineID = engineID;
+						if (engineID <= 0) {
+							int engineIndex = soEngines.getComboControl().getSelectionIndex();
+							if (engineIndex < 0) {
+								// TODO: Flicker combobox
+								return;
+							}
+							realEngineID = mapEngines.get(engineIndex).getId();
+						}
 
 						Map<String, Object> payload = new HashMap<String, Object>();
-						payload.put("engine_id", engineID);
+						payload.put("engine_id", realEngineID);
 						payload.put("search_term", searchTerm);
 
 						Map<String, Object> mapSchedule = new HashMap<String, Object>();
@@ -546,14 +575,17 @@ SearchUtils
 						mapOptions.put("auto_dl", autoDL);
 						payload.put("options", mapOptions);
 
-						Map<String, Object> mapFilter = new HashMap<String, Object>();
+						Map<String, Object> mapFilters = new HashMap<String, Object>();
+						if (optionalFilters != null) {
+							mapFilters.putAll(optionalFilters);
+						}
 						//mapFilter.put("text_filter_out", "");
 						//mapFilter.put("text_filter", "");
 						//mapFilter.put("max_size", -1);
 						//mapFilter.put("min_size", -1);
 						//mapFilter.put("category", "");
 						
-						payload.put("filters", mapFilter);
+						payload.put("filters", mapFilters);
 
 						try {
 							Subscription subs;
