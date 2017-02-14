@@ -527,6 +527,18 @@ SBC_SearchResultsView
 						refilter();
 					}
 				});
+			
+			MenuItem miCreateSubscription = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(miCreateSubscription, "menu.search.create.subscription");
+			miCreateSubscription.addSelectionListener(new SelectionListener() {
+				
+				public void widgetSelected(SelectionEvent e) {
+					SearchUtils.showCreateSubscriptionDialog(engine.getId(), current_search.sq.term);
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
 						
 			SearchUtils.addMenus( menu, engine, true );
 			

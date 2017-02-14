@@ -23,8 +23,7 @@
 package com.aelitis.azureus.ui.swt.search;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuAdapter;
@@ -35,6 +34,8 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -53,6 +54,16 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
+import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
+import com.aelitis.azureus.util.JSONUtils;
 
 public class 
 SearchUtils 
@@ -489,5 +500,92 @@ SearchUtils
 					exportAll();
 				}
 			});	
+	}
+
+	public static void showCreateSubscriptionDialog(final long engineID,
+			final String searchTerm) {
+		final SkinnedDialog dialog = new SkinnedDialog(
+				"skin3_dlg_create_search_subscription", "shell", SWT.DIALOG_TRIM);
+		SWTSkin skin = dialog.getSkin();
+
+		final SWTSkinObjectTextbox tb = (SWTSkinObjectTextbox) skin.getSkinObject(
+				"sub-name");
+		final SWTSkinObjectCheckbox cbShare = (SWTSkinObjectCheckbox) skin.getSkinObject(
+				"sub-share");
+
+		final SWTSkinObjectCheckbox cbAutoDL = (SWTSkinObjectCheckbox) skin.getSkinObject(
+				"sub-autodl");
+
+		if (tb == null || cbShare == null || cbAutoDL == null) {
+			return;
+		}
+
+		cbShare.setChecked(COConfigurationManager.getBooleanParameter(
+				"sub.sharing.default.checked"));
+		cbAutoDL.setChecked(COConfigurationManager.getBooleanParameter(
+				"sub.autodl.default.checked"));
+
+		SWTSkinObject soButtonArea = skin.getSkinObject("bottom-area");
+		if (soButtonArea instanceof SWTSkinObjectContainer) {
+			StandardButtonsArea buttonsArea = new StandardButtonsArea() {
+				// @see com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea#clicked(int)
+				protected void clicked(int buttonValue) {
+					if (buttonValue == SWT.OK) {
+
+						String name = tb.getText().trim();
+						boolean isShared = cbShare.isChecked();
+						boolean autoDL = cbAutoDL.isChecked();
+
+						Map<String, Object> payload = new HashMap<String, Object>();
+						payload.put("engine_id", engineID);
+						payload.put("search_term", searchTerm);
+
+						Map<String, Object> mapSchedule = new HashMap<String, Object>();
+						mapSchedule.put("days", Collections.EMPTY_LIST);
+						mapSchedule.put("interval", 120); // minutes
+						payload.put("schedule", mapSchedule);
+
+						Map<String, Object> mapOptions = new HashMap<String, Object>();
+						mapOptions.put("auto_dl", autoDL);
+						payload.put("options", mapOptions);
+
+						Map<String, Object> mapFilter = new HashMap<String, Object>();
+						//mapFilter.put("text_filter_out", "");
+						//mapFilter.put("text_filter", "");
+						//mapFilter.put("max_size", -1);
+						//mapFilter.put("min_size", -1);
+						//mapFilter.put("category", "");
+						
+						payload.put("filters", mapFilter);
+
+						try {
+							Subscription subs;
+							subs = SubscriptionManagerFactory.getSingleton().create(name,
+									isShared, JSONUtils.encodeToJSON(payload));
+
+							subs.getHistory().setDetails(true, autoDL);
+
+							subs.requestAttention();
+						} catch (SubscriptionException e) {
+						}
+
+					}
+
+					dialog.close();
+				}
+			};
+			buttonsArea.setButtonIDs(new String[] {
+				MessageText.getString("Button.add"),
+				MessageText.getString("Button.cancel")
+			});
+			buttonsArea.setButtonVals(new Integer[] {
+				SWT.OK,
+				SWT.CANCEL
+			});
+			buttonsArea.swt_createButtons(
+					((SWTSkinObjectContainer) soButtonArea).getComposite());
+		}
+
+		dialog.open();
 	}
 }
