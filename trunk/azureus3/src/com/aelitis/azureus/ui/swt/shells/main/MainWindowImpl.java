@@ -2278,11 +2278,16 @@ public class MainWindowImpl
 			btnSearchDD.setTooltipID( "v3.MainWindow.search.tooltip" );
 			btnSearchDD.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility,
-						SWTSkinObject skinObject, int stateMask) {
-					String sSearchText = text.getText().trim();
-					uiFunctions.doSearch(sSearchText);
+						SWTSkinObject skinObject, int button, int stateMask) {
 					
-					twh.addHistory( sSearchText );
+					if ( button == 1 ){
+					
+						String sSearchText = text.getText().trim();
+						
+						uiFunctions.doSearch(sSearchText);
+						
+						twh.addHistory( sSearchText );
+					}
 				}
 			});
 		}

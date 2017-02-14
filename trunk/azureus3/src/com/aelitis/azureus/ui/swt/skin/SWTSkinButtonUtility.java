@@ -48,6 +48,11 @@ public class SWTSkinButtonUtility
 				SWTSkinObject skinObject, int stateMask) {
 		}
 
+		public void pressed(SWTSkinButtonUtility buttonUtility,
+				SWTSkinObject skinObject, int button, int stateMask) {
+			pressed( buttonUtility, skinObject, stateMask );
+		}
+		
 		public boolean held(SWTSkinButtonUtility buttonUtility) {
 			return false;
 		}
@@ -124,7 +129,7 @@ public class SWTSkinButtonUtility
 
 				for (ButtonListenerAdapter l : listeners) {
 					l.pressed(SWTSkinButtonUtility.this,
-							SWTSkinButtonUtility.this.skinObject, event.stateMask);
+							SWTSkinButtonUtility.this.skinObject, event.button, event.stateMask);
 				}
 			}
 		};
