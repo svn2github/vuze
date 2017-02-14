@@ -4625,9 +4625,11 @@ BuddyPluginViewBetaChat
 									url_str = url_str.substring( 0, hack_pos );
 									
 										// prevent anything that looks like a URL from being used as the display
-										// text to avoid 'confusion'
+										// text to avoid 'confusion' but be lenient for safe protocols
 
-									if ( UrlUtils.parseTextForURL( substitution, true ) == null ){
+									boolean safe = protocol.equals( "azplug" ) || protocol.equals( "chat" );
+										
+									if ( safe || UrlUtils.parseTextForURL( substitution, true ) == null ){
 										
 										display_url = UrlUtils.decode( substitution );
 										
