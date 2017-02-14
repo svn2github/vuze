@@ -514,7 +514,7 @@ SearchUtils
 				"sub-autodl");
 		
 		SWTSkinObject soEngineArea = skin.getSkinObject("sub-engine-area");
-		SWTSkinObjectCombo soEngines = (SWTSkinObjectCombo) skin.getSkinObject("sub-engine");
+		final SWTSkinObjectCombo soEngines = (SWTSkinObjectCombo) skin.getSkinObject("sub-engine");
 
 		if (tb == null || cbShare == null || cbAutoDL == null) {
 			return;
