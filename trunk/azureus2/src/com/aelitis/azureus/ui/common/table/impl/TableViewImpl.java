@@ -569,6 +569,8 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		}
 		if (filter.eventUpdate != null) {
 			filter.eventUpdate.cancel();
+			filter.text = filter.nextText;
+			filter.checker.filterSet(filter.text);
 		}
 		filter.eventUpdate = null;
 
@@ -812,7 +814,8 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			if (DEBUGADDREMOVE) {
 				debug("Queued " + count + " of " + dataSources.length
 						+ " dataSources to add.  Total Qd: " + dataSourcesToAdd.size()
-						+ ";Unfiltered: " + listUnfilteredDataSources.size() + " via "
+						+ ";Unfiltered: " + listUnfilteredDataSources.size() + 
+						"; skipFilterCheck? " + skipFilterCheck + "; via "
 						+ Debug.getCompressedStackTrace(5));
 			}
 
