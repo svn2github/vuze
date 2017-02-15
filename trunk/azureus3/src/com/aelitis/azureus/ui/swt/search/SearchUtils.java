@@ -579,11 +579,6 @@ SearchUtils
 						if (optionalFilters != null) {
 							mapFilters.putAll(optionalFilters);
 						}
-						//mapFilter.put("text_filter_out", "");
-						//mapFilter.put("text_filter", "");
-						//mapFilter.put("max_size", -1);
-						//mapFilter.put("min_size", -1);
-						//mapFilter.put("category", "");
 						
 						payload.put("filters", mapFilters);
 
