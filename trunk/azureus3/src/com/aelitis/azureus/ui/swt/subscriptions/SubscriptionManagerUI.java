@@ -2894,6 +2894,7 @@ SubscriptionManagerUI
 				"subs.prop.auth",
 				"TableColumn.header.category",
 				"TableColumn.header.tag.name",
+				"subs.prop.query"
 			};
 		
 		String	category_str;
@@ -2950,6 +2951,7 @@ SubscriptionManagerUI
 				auth_str,
 				category_str,
 				tag_str,
+				subs.getQueryKey(),
 			};
 		
 		final PropertiesWindow pw = new PropertiesWindow( subs.getName(), keys, values );
