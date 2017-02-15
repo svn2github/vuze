@@ -75,6 +75,7 @@ import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.util.CopyOnWriteSet;
+import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -533,8 +534,9 @@ SBC_SearchResultsView
 			miCreateSubscription.addSelectionListener(new SelectionListener() {
 				
 				public void widgetSelected(SelectionEvent e) {
+					Map filterMap = buildFilterMap();
 					SearchUtils.showCreateSubscriptionDialog(engine.getId(),
-							current_search.sq.term, null);
+							current_search.sq.term, filterMap);
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
@@ -645,8 +647,9 @@ SBC_SearchResultsView
 		btnCreateTemplate.addSelectionListener(new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent e) {
+				Map filterMap = buildFilterMap();
 				SearchUtils.showCreateSubscriptionDialog(-1,
-						current_search.sq.term, null);
+						current_search.sq.term, buildFilterMap());
 			}
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -767,6 +770,24 @@ SBC_SearchResultsView
 		engine_area.layout( true );
 	}
 	
+	protected Map buildFilterMap() {
+		Map<String, Object> mapFilter = new HashMap<String, Object>();
+		if (without_keywords != null && without_keywords.length > 0) {
+			mapFilter.put("text_filter_out", GeneralUtils.stringJoin(Arrays.asList(without_keywords), " "));
+		}
+		if (with_keywords != null && with_keywords.length > 0) {
+			mapFilter.put("text_filter", GeneralUtils.stringJoin(Arrays.asList(with_keywords), " "));
+		}
+		if (maxSize > 0) {
+			mapFilter.put("max_size", maxSize * 1024 * 1024L);
+		}
+		if (minSize > 0) {
+			mapFilter.put("min_size", minSize * 1024 * 1024L);
+		}
+		//mapFilter.put("category", "");
+		return mapFilter;
+	}
+
 	private void
 	resetFilters()
 	{
