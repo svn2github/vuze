@@ -799,6 +799,10 @@ SBC_SearchResultsView
 					if ( textWithoutKW != null && !textWithoutKW.isDisposed()){
 						textWithoutKW.setText("");
 					}
+
+					if ( tv_subs_results != null) {
+						tv_subs_results.setFilterText("");
+					}
 				}
 			});
 	}
