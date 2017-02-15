@@ -180,6 +180,9 @@ Subscription
 	setCategory(
 		String	category );
 	
+	/**
+	 * Tag UID
+	 */
 	public long
 	getTagID();
 	
