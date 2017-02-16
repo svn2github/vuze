@@ -66,21 +66,23 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
     layout.numColumns = 1;
     cStart.setLayout(layout);
 
-		int userMode = COConfigurationManager.getIntParameter("User Mode");
-		boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+    boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
 
-		if (userMode >= 2) {
-			new BooleanParameter(cStart, "ui.startfirst", "ConfigView.label.StartUIBeforeCore");
-		}
+    if (userMode >= 2) {
+    	new BooleanParameter(cStart, "ui.startfirst", "ConfigView.label.StartUIBeforeCore");
+    }
     new BooleanParameter(cStart, "Show Splash", "ConfigView.label.showsplash");
     new BooleanParameter(cStart, "update.start", "ConfigView.label.checkonstart");
     new BooleanParameter(cStart, "update.periodic", "ConfigView.label.periodiccheck");
     BooleanParameter autoDownload = new BooleanParameter(cStart, "update.autodownload", "ConfigView.section.update.autodownload");
     BooleanParameter openDialog = new BooleanParameter(cStart, "update.opendialog", "ConfigView.label.opendialog");
     
-		autoDownload.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-				new Control[] { openDialog.getControl() }, true ));
-    
+    autoDownload.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+    		new Control[] { openDialog.getControl() }, true ));
+
+    new BooleanParameter(cStart, "update.anonymous", "ConfigView.label.update.anonymous");
+
     new Label(cStart,SWT.NULL);
     new BooleanParameter(cStart, "Open Transfer Bar On Start", "ConfigView.label.open_transfer_bar_on_start");
     new BooleanParameter(cStart, "Start Minimized", "ConfigView.label.startminimized");

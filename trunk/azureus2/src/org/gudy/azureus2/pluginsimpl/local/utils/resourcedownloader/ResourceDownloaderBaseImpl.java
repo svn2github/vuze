@@ -46,8 +46,8 @@ ResourceDownloaderBaseImpl
 	private boolean		result_informed;
 	private Object		result_informed_data;
 	
-	private ResourceDownloaderBaseImpl		parent;
-	private List							children = new ArrayList();
+	private ResourceDownloaderBaseImpl			parent;
+	private List<ResourceDownloaderBaseImpl>	children = new ArrayList<ResourceDownloaderBaseImpl>();
 	
 	private boolean		download_cancelled;
 	
@@ -87,7 +87,17 @@ ResourceDownloaderBaseImpl
 	
 		throws ResourceDownloaderException
 	{
-		Object obj = getProperty( key );
+		return( getBooleanProperty( key, true ));
+	}
+	
+	public boolean
+	getBooleanProperty(
+		String		key,
+		boolean		maybe_delayed )
+	
+		throws ResourceDownloaderException
+	{
+		Object obj = getProperty( key, maybe_delayed );
 	
 		if ( obj instanceof Boolean ){
 			
@@ -152,6 +162,16 @@ ResourceDownloaderBaseImpl
 	
 		throws ResourceDownloaderException
 	{
+		return( getProperty( name, true ));
+	}
+	
+	protected Object
+	getProperty(
+		String		name,
+		boolean		maybe_delayed )
+	
+		throws ResourceDownloaderException
+	{
 		Object res = getPropertySupport( name );
 		
 		if ( 	res != null || 
@@ -165,12 +185,19 @@ ResourceDownloaderBaseImpl
 			return( res );
 		}
 		
-			// hack this, properties are read during size acquisition - should treat size as a property
-			// too....
+		if ( maybe_delayed ){
 		
-		getSize();
-		
-		return( getPropertySupport( name ));
+				// hack this, properties are read during size acquisition - should treat size as a property
+				// too....
+			
+			getSize();
+			
+			return( getPropertySupport( name ));
+			
+		}else{
+			
+			return( res );
+		}
 	}
 	
 	protected Object
@@ -250,6 +277,35 @@ ResourceDownloaderBaseImpl
 	}
 
 	protected void
+	setPropertyRecursive(
+		String		name, 
+		Object		value )
+		
+		throws ResourceDownloaderException
+	{
+		setProperty(name, value);
+		
+		for ( ResourceDownloaderBaseImpl kid: getChildren()){
+			
+			kid.setPropertyRecursive(name, value);
+		}
+	}
+	
+	protected boolean
+	isAnonymous()
+	{
+		try{
+			return( getBooleanProperty( PR_BOOLEAN_ANONYMOUS, false ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( false );
+	}
+	
+	protected void
 	setParent(
 		ResourceDownloader		_parent )
 	{
@@ -288,7 +344,7 @@ ResourceDownloaderBaseImpl
 		children.remove( kid );
 	}
 	
-	protected List
+	protected List<ResourceDownloaderBaseImpl>
 	getChildren()
 	{
 		return( children );

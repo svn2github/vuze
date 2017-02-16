@@ -19,7 +19,6 @@
 
 package com.aelitis.azureus.core.proxy;
 
-import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.SocketAddress;
 import java.net.URL;

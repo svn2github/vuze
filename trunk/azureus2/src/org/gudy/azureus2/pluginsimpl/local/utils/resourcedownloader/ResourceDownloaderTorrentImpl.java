@@ -25,12 +25,13 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  */
 
 import java.io.*;
+import java.util.Arrays;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
-
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
@@ -301,6 +302,15 @@ ResourceDownloaderTorrentImpl
 			
 			TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
 
+			boolean anon = isAnonymous();
+			
+			if ( anon ){
+				
+					// meh, add in I2P update tracker...
+				
+				TorrentUtils.announceGroupsInsertFirst(torrent, "http://crs2nugpvoqygnpabqbopwyjqettwszth6ubr2fh7whstlos3a6q.b32.i2p:17979/announce" );
+			}
+			
 			torrent.serialiseToBEncodedFile( torrent_file );
 			
 				// see if already there in an error state and delete if so
@@ -322,13 +332,50 @@ ResourceDownloaderTorrentImpl
 			}catch( Throwable e ){	
 			}
 			
-			if ( persistent ){
+			DownloadWillBeAddedListener dwbal = null;
+			
+			try{
+				Torrent t = new TorrentImpl(torrent);
 				
-				download = download_manager.addDownload( new TorrentImpl(torrent), torrent_file, data_dir );
+				if ( anon ){
+					
+					dwbal = 
+						new DownloadWillBeAddedListener()
+						{		
+								public void 
+								initialised(
+									Download download )
+								{
+									try{
+										if ( Arrays.equals( download.getTorrentHash(), torrent.getHash())){ 
+										
+											PluginCoreUtils.unwrap( download ).getDownloadState().setNetworks( AENetworkClassifier.AT_NON_PUBLIC );
+										}
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							};
+							
+					download_manager.addDownloadWillBeAddedListener( dwbal );	
+				}
+					
+				if ( persistent ){
+					
+					download = download_manager.addDownload( t, torrent_file, data_dir );
+					
+				}else{
+					
+					download = download_manager.addNonPersistentDownload( t, torrent_file, data_dir );
+				}
+			}finally{
 				
-			}else{
-				
-				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent), torrent_file, data_dir );
+				if ( dwbal != null ){
+					
+					download_manager.removeDownloadWillBeAddedListener( dwbal );	
+
+				}
 			}
 			
 			download.moveTo(1);		

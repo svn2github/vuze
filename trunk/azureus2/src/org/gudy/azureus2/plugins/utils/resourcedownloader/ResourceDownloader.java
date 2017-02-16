@@ -33,6 +33,7 @@ public interface
 ResourceDownloader 
 {
 	public static final String	PR_STRING_CONTENT_TYPE		= "ContentType";
+	public static final String	PR_BOOLEAN_ANONYMOUS		= "Anonymous";
 
 		// Properties prefixed with URL_ will be passed directly to URL connections. For example
 		// URL_User-Agent will be passed as User-Agent

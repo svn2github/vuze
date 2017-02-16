@@ -870,6 +870,11 @@ public class VersionCheckClient {
 
 		throws Exception
 	{
+		if ( COConfigurationManager.getBooleanParameter( "update.anonymous")){
+			
+			throw( new Exception( "AZ Messaging disabled for anonymous updates" ));
+		}
+		
 		if ( v6 && !enable_v6 ){
 
 			throw( new Exception( "IPv6 is disabled" ));
@@ -929,6 +934,11 @@ public class VersionCheckClient {
 		URL	url = new URL( url_str );
 
 		try{
+			if ( COConfigurationManager.getBooleanParameter( "update.anonymous")){
+				
+				throw( new Exception( "Direct HTTP disabled for anonymous updates" ));
+			}
+			
 			Properties	http_properties = new Properties();
 	 		
 	 		http_properties.put( ClientIDGenerator.PR_URL, url );
@@ -1052,6 +1062,11 @@ public class VersionCheckClient {
 
 		throws Exception
 	{
+		if ( COConfigurationManager.getBooleanParameter( "update.anonymous")){
+			
+			throw( new Exception( "TCP disabled for anonymous updates" ));
+		}
+	
 		if ( v6 && !enable_v6 ){
 
 			throw( new Exception( "IPv6 is disabled" ));
@@ -1195,6 +1210,11 @@ public class VersionCheckClient {
 
 		throws Exception
 	{
+		if ( COConfigurationManager.getBooleanParameter( "update.anonymous")){
+			
+			throw( new Exception( "UDP disabled for anonymous updates" ));
+		}
+	
 		if ( v6 && !enable_v6 ){
 
 			throw( new Exception( "IPv6 is disabled" ));

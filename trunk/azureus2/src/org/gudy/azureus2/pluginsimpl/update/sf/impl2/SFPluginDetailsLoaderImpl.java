@@ -205,6 +205,23 @@ SFPluginDetailsLoaderImpl
 			boolean tried_proxy = false;
 			boolean	ok			= false;
 			
+			if ( COConfigurationManager.getBooleanParameter( "update.anonymous")){
+				
+				tried_proxy = true;
+				
+				plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", url );
+				
+				if ( plugin_proxy == null ){
+					
+					throw( new SFPluginDetailsException( "Proxy not available" ));
+					
+				}else{
+					
+					url		= plugin_proxy.getURL();
+					proxy	= plugin_proxy.getProxy();
+				}
+			}
+			
 			try{
 				while( true ){
 					
@@ -402,6 +419,23 @@ SFPluginDetailsLoaderImpl
 			
 			boolean tried_proxy = false;
 			boolean	ok			= false;
+			
+			if ( COConfigurationManager.getBooleanParameter( "update.anonymous")){
+				
+				tried_proxy = true;
+				
+				plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", url );
+				
+				if ( plugin_proxy == null ){
+					
+					throw( new SFPluginDetailsException( "Proxy not available" ));
+					
+				}else{
+					
+					url		= plugin_proxy.getURL();
+					proxy	= plugin_proxy.getProxy();
+				}
+			}
 			
 			try{
 				while( true ){

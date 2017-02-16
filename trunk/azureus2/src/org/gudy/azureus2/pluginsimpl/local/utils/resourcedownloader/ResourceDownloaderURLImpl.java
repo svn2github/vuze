@@ -269,7 +269,7 @@ ResourceDownloaderURLImpl
 				
 				boolean		ok = false;
 				
-				if ( auto_plugin_proxy ){
+				if ( auto_plugin_proxy || isAnonymous()){
 					
 					plugin_proxy = AEProxyFactory.getPluginProxy( "downloading resource", url );
 	
@@ -702,7 +702,7 @@ redirect_label:
 						
 						boolean		ok = false;
 						
-						if ( auto_plugin_proxy ){
+						if ( auto_plugin_proxy || isAnonymous()){
 							
 							plugin_proxy_auto = AEProxyFactory.getPluginProxy( "downloading resource", current_url );
 			

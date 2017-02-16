@@ -32,7 +32,9 @@ import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 ResourceDownloaderFactoryImpl
@@ -205,8 +207,29 @@ ResourceDownloaderFactoryImpl
 		int							max_to_try,
 		boolean						random )
 	{
-		ResourceDownloader res = new ResourceDownloaderAlternateImpl( null, downloaders, max_to_try, random );
+		ResourceDownloaderBaseImpl res = new ResourceDownloaderAlternateImpl( null, downloaders, max_to_try, random );
 				
+		boolean	anon = false;
+		
+		for ( ResourceDownloaderBaseImpl kid: res.getChildren()){
+			
+			if ( kid.isAnonymous()){
+				
+				anon = true;
+			}
+		}
+		
+		if ( anon ){
+			
+			try{
+				res.setPropertyRecursive( ResourceDownloader.PR_BOOLEAN_ANONYMOUS, true );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
 		return( res );
 	}
 	
@@ -241,7 +264,7 @@ ResourceDownloaderFactoryImpl
 		ResourceDownloader			_downloader )
 	{
 		ResourceDownloaderBaseImpl	dl = (ResourceDownloaderBaseImpl)_downloader;
-		
+				
 		URL	target = null;
 		
 		while( true ){
@@ -258,23 +281,42 @@ ResourceDownloaderFactoryImpl
 			dl = (ResourceDownloaderBaseImpl)kids.get(0);
 		}
 		
+		ResourceDownloader result;
+		
 		if ( target == null ){
 			
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "ResourceDownloader: suffix "
 						+ "based downloader failed to find leaf"));
 			
-			return( _downloader );
+			result = _downloader;
+		}else{
+		
+			if ( target.getPath().toLowerCase().endsWith(".torrent")){
+			
+				result = getTorrentDownloader( _downloader, true );
+			
+			}else{
+			
+				result = _downloader;
+			}
 		}
 		
-		if ( target.getPath().toLowerCase().endsWith(".torrent")){
+		if ( COConfigurationManager.getBooleanParameter( "update.anonymous")){
 			
-			return( getTorrentDownloader( _downloader, true ));
+				// assumption (well currently fact) is that all suffix based downloaders are
+				// the result of an update request
 			
-		}else{
-			
-			return( _downloader );
+			try{
+				((ResourceDownloaderBaseImpl)result).setPropertyRecursive( ResourceDownloader.PR_BOOLEAN_ANONYMOUS, true );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
+		
+		return( result );
 	}
 	
 	public ResourceDownloader[] getSourceforgeDownloaders(String project_name, String filename) {

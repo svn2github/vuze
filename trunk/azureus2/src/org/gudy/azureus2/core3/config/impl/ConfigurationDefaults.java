@@ -294,6 +294,7 @@ public class ConfigurationDefaults {
     def.put("update.periodic",TRUE);
     def.put("update.opendialog",TRUE);
     def.put("update.autodownload", FALSE);
+    def.put("update.anonymous", FALSE);
 
     def.put( "Config Verify Frequency", new Long( 30*60*1000 ));
     
