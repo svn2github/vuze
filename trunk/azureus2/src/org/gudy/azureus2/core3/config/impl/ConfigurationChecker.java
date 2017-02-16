@@ -242,6 +242,8 @@ ConfigurationChecker
 	  			if (user.length() > 0) {
 	  				System.setProperty("http.proxyUser", user);
 	  				System.setProperty("http.proxyPassword", pass);
+	  				System.setProperty("https.proxyUser", user);
+	  				System.setProperty("https.proxyPassword", pass);
 	  			}
 	  		}
 	  	}
