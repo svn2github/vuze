@@ -5209,8 +5209,9 @@ SubscriptionManagerImpl
 		return( download_found );
 	}
 	
-	private AsyncDispatcher		chat_write_dispatcher 	= new AsyncDispatcher( "Subscriptions:cwd" );
-	private Set<String>			chat_done = new HashSet<String>();
+	private AsyncDispatcher				chat_write_dispatcher 	= new AsyncDispatcher( "Subscriptions:cwd" );
+	private Set<String>					chat_st_done = new HashSet<String>();
+	private LinkedList<ChatInstance>	chat_assoc_done	= new LinkedList<ChatInstance>();
 	
 	private void
 	searchTemplateOK(
@@ -5234,12 +5235,12 @@ SubscriptionManagerImpl
 							name = name.substring( pos+1 ).trim();
 						}
 						
-						if ( chat_done.contains( name )){
+						if ( chat_st_done.contains( name )){
 							
 							return;
 						}
 
-						chat_done.add( name );
+						chat_st_done.add( name );
 						
 						final BuddyPluginBeta.ChatInstance chat = BuddyPluginUtils.getChat( AENetworkClassifier.AT_PUBLIC, "Search Templates" );
 							
@@ -5287,7 +5288,112 @@ SubscriptionManagerImpl
 										do_write.run();
 									};
 								});
-						
+						}
+					}
+				});
+		}
+	}
+	
+	private void
+	assocOK(
+		final SubscriptionImpl					subs,
+		final SubscriptionImpl.association		assoc )
+	{
+		if ( BuddyPluginUtils.isBetaChatAvailable()){
+	
+			if ( subs.isAnonymous()){
+				
+				return;	// ignore for the moment
+			}
+			
+			chat_write_dispatcher.dispatch(
+				new AERunnable() {
+					
+					@Override
+					public void 
+					runSupport() 
+					{
+						try{
+							Download download = azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload( assoc.getHash());
+							
+							if ( download != null ){
+								
+								final ChatInstance chat = BuddyPluginUtils.getChat( download );
+								
+								if ( chat.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
+									
+									synchronized( chat_assoc_done ){
+										
+										if ( !chat_assoc_done.contains( chat )){
+											
+											chat_assoc_done.add( chat );
+										}
+									}
+									
+									String name = subs.getName();
+									
+									if ( subs.isSearchTemplate()){
+									
+										int pos = name.indexOf( ':' );
+									
+										if ( pos != -1 ){
+											
+											name = name.substring( pos+1 ).trim();
+										}
+									}
+									
+									final String f_msg = (subs.isSearchTemplate()?"Search Template":"Subscription" ) + " " + subs.getURI() + "[[" + UrlUtils.encode( name ) + "]]";
+																		
+									final Runnable do_write = 
+											new Runnable()
+											{
+												public void
+												run()
+												{		
+													Map<String,Object>	flags 	= new HashMap<String, Object>();
+													
+													flags.put( BuddyPluginBeta.FLAGS_MSG_ORIGIN_KEY, BuddyPluginBeta.FLAGS_MSG_ORIGIN_SUBS );
+													
+													Map<String,Object>	options = new HashMap<String, Object>();
+													
+													chat.sendMessage( f_msg, flags, options );
+													
+													synchronized( chat_assoc_done ){
+														
+														if ( chat_assoc_done.size() > 50 ){
+															
+															ChatInstance c = chat_assoc_done.removeFirst();
+															
+															c.destroy();
+														}
+													}
+												}
+											};
+																			
+									waitForChat(
+										chat, 
+										new AERunnable()
+										{
+											public void 
+											runSupport() 
+											{
+												List<ChatMessage>	messages = chat.getMessages();
+																						
+												for ( ChatMessage message: messages ){
+																											
+													if ( message.getMessage().equals( f_msg )){
+																														
+														return;
+													}
+												}
+												
+												do_write.run();
+											};
+										});
+								}
+							}
+						}catch( Throwable e ){
+							
 						}
 					}
 				});
@@ -5626,6 +5732,9 @@ SubscriptionManagerImpl
 									publishNext();
 								}
 							});
+						
+						assocOK( subs, assoc );
+								
 					}else{
 						
 						log( "    Not publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing =" + hits );
