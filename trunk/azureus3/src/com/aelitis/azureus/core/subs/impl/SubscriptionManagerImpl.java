@@ -5327,6 +5327,13 @@ SubscriptionManagerImpl
 										if ( !chat_assoc_done.contains( chat )){
 											
 											chat_assoc_done.add( chat );
+																							
+											if ( chat_assoc_done.size() > 50 ){
+													
+												ChatInstance c = chat_assoc_done.removeFirst();
+													
+												c.destroy();
+											}
 										}
 									}
 									
@@ -5357,16 +5364,6 @@ SubscriptionManagerImpl
 													Map<String,Object>	options = new HashMap<String, Object>();
 													
 													chat.sendMessage( f_msg, flags, options );
-													
-													synchronized( chat_assoc_done ){
-														
-														if ( chat_assoc_done.size() > 50 ){
-															
-															ChatInstance c = chat_assoc_done.removeFirst();
-															
-															c.destroy();
-														}
-													}
 												}
 											};
 																			
@@ -5390,6 +5387,9 @@ SubscriptionManagerImpl
 												do_write.run();
 											};
 										});
+								}else{
+									
+									chat.destroy();
 								}
 							}
 						}catch( Throwable e ){
