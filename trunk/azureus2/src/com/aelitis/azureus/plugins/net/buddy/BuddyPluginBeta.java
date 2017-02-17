@@ -2751,6 +2751,13 @@ BuddyPluginBeta
 			return( have_interest );
 		}
 		
+		public void
+		setInteresting(
+			boolean	b )
+		{
+			have_interest = b;
+		}
+		
 		public boolean
 		isStatistics()
 		{

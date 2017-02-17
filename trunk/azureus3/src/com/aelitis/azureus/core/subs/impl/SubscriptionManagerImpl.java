@@ -5332,6 +5332,8 @@ SubscriptionManagerImpl
 													
 												ChatInstance c = chat_assoc_done.removeFirst();
 													
+												c.setInteresting( false );
+												
 												c.destroy();
 											}
 										}
@@ -5350,23 +5352,7 @@ SubscriptionManagerImpl
 									}
 									
 									final String f_msg = (subs.isSearchTemplate()?"Search Template":"Subscription" ) + " " + subs.getURI() + "[[" + UrlUtils.encode( name ) + "]]";
-																		
-									final Runnable do_write = 
-											new Runnable()
-											{
-												public void
-												run()
-												{		
-													Map<String,Object>	flags 	= new HashMap<String, Object>();
-													
-													flags.put( BuddyPluginBeta.FLAGS_MSG_ORIGIN_KEY, BuddyPluginBeta.FLAGS_MSG_ORIGIN_SUBS );
-													
-													Map<String,Object>	options = new HashMap<String, Object>();
-													
-													chat.sendMessage( f_msg, flags, options );
-												}
-											};
-																			
+																																					
 									waitForChat(
 										chat, 
 										new AERunnable()
@@ -5379,12 +5365,27 @@ SubscriptionManagerImpl
 												for ( ChatMessage message: messages ){
 																											
 													if ( message.getMessage().equals( f_msg )){
-																														
+															
+														synchronized( chat_assoc_done ){
+															
+															if ( chat_assoc_done.remove( chat )){
+														
+																chat.destroy();
+															}
+														}
+														
 														return;
 													}
 												}
 												
-												do_write.run();
+												Map<String,Object>	flags 	= new HashMap<String, Object>();
+												
+												flags.put( BuddyPluginBeta.FLAGS_MSG_ORIGIN_KEY, BuddyPluginBeta.FLAGS_MSG_ORIGIN_SUBS );
+												
+												Map<String,Object>	options = new HashMap<String, Object>();
+												
+												chat.sendMessage( f_msg, flags, options );
+
 											};
 										});
 								}else{

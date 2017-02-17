@@ -93,6 +93,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.common"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.util.http"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.category"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.chat"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.platform"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.upnp"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.bouncycastle.crypto.paddings"/>
