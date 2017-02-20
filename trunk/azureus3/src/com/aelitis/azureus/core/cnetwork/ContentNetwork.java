@@ -39,7 +39,6 @@ ContentNetwork
 	public static final long	CONTENT_NETWORK_VHDNL		= 3;
 
 
-	public static final int		SERVICE_SEARCH				= 1;	// String - query text
 	public static final int		SERVICE_XSEARCH				= 2;	// String - query text; Boolean - toSubscribe
 	public static final int		SERVICE_RPC					= 3;
 	public static final int		SERVICE_RELAY_RPC			= 4;
@@ -146,17 +145,6 @@ ContentNetwork
 	getServiceURL(
 		int			service_type,
 		Object[]	params );
-	
-		/**
-		 * search service helper method
-		 * @param query
-		 * @return
-		 */
-	
-	public String
-	getSearchService(
-		String		query );
-	
 	
 	public String
 	getXSearchService(

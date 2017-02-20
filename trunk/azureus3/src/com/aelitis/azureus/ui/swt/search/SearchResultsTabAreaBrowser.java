@@ -49,6 +49,7 @@ import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.BrowserWrapper;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
@@ -73,7 +74,7 @@ import com.aelitis.azureus.util.UrlFilter;
 
 public class 
 SearchResultsTabAreaBrowser 
-	implements SearchResultsTabAreaBase, OpenCloseSearchDetailsListener
+	implements SearchResultsTabAreaBase
 {
 	private static boolean							search_proxy_init_done;
 	private static AEProxyFactory.PluginHTTPProxy	search_proxy;
@@ -102,16 +103,7 @@ SearchResultsTabAreaBrowser
 			{	
 				try{
 			
-					String test_url;
-					
-					if ( System.getProperty("metasearch", "1").equals("1")){
-						
-						test_url = ConstantsVuze.getDefaultContentNetwork().getXSearchService( "derp", false );
-						
-					}else{
-						
-						test_url = ConstantsVuze.getDefaultContentNetwork().getSearchService( "derp" );
-					}
+					String test_url = PlatformConfigMessenger.getWebSearchUrl().replaceAll("%s", "derp");
 					
 					try{
 						URL url = new URL( test_url );
@@ -247,10 +239,6 @@ SearchResultsTabAreaBrowser
 	
 	private SWTSkinObjectBrowser	browserSkinObject;
 	
-	private boolean searchResultsInitialized = false;
-
-	private	String title;
-
 	private SearchQuery		sq;
 	
 	protected
@@ -285,8 +273,6 @@ SearchResultsTabAreaBrowser
 	 */
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
 		this.browserSkinObject = browserSkinObject;
-		browserSkinObject.getContext().addMessageListener(
-				new MetaSearchListener(this));
 		
 
 		browserSkinObject.addListener(new loadingListener() {
@@ -294,129 +280,8 @@ SearchResultsTabAreaBrowser
 				parent.setBusy( loading );
 			}
 		});
-
-		SWTSkinObject soSearchResults = parent.getSkinObject("searchresults-search-results");
-		if (soSearchResults instanceof SWTSkinObjectBrowser) {
-			SWTSkinObjectBrowser browserSearchResults = (SWTSkinObjectBrowser) soSearchResults;
-			browserSearchResults.addListener(new loadingListener() {
-				public void browserLoadingChanged(boolean loading, String url) {
-					parent.setBusy( loading );
-				}
-			});
-		}
 	}
 
-	/*
-	public void restart() {
-		if (browserSkinObject != null) {
-			browserSkinObject.restart();
-		}
-	}
-	*/
-	
-	public void openSearchResults(final Map params) {
-		if (!searchResultsInitialized) {
-			searchResultsInitialized = true;
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					SWTSkinObject soSearchResults = parent.getSkinObject("searchresults-search-results");
-					if (soSearchResults != null) {
-						SWTSkinObjectBrowser browserSkinObject = (SWTSkinObjectBrowser) soSearchResults;
-
-						final BrowserWrapper browser = browserSkinObject.getBrowser();
-						
-						browser.addTitleListener(new TitleListener() {
-							public void changed(TitleEvent event) {
-								if (event.widget.isDisposed()
-										|| browser.getShell().isDisposed()) {
-									return;
-								}
-								title = event.title;
-								int i = title.toLowerCase().indexOf("details:");
-								if (i > 0) {
-									title = title.substring(i + 9);
-								}
-							}
-						});
-
-						final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
-							public void cookiesFound(String cookies) {
-								browser.setData("current-cookies", cookies);
-							}
-						},browser);
-						
-						cookieListener.hook();
-					}
-				}
-			});
-
-		}
-		Utils.execSWTThread(new AERunnable() {
-
-			public void runSupport() {
-				SWTSkinObject soSearchResults = parent.getSkinObject("searchresults-search-results");
-				if (soSearchResults == null) {
-					return;
-				}
-
-				Control controlTop = browserSkinObject.getControl();
-				Control controlBottom = soSearchResults.getControl();
-				final BrowserWrapper search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
-				String url = MapUtils.getMapString(params, "url",
-						"http://google.com/search?q=" + Math.random());
-				if (UrlFilter.getInstance().urlCanRPC(url)) {
-					url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, true);
-				}
-
-				//Gudy, Not Tux, Listener Added
-				String listenerAdded = (String) search.getData("g.nt.la");
-				if (listenerAdded == null) {
-					search.setData("g.nt.la", "");
-					search.addProgressListener(new ProgressListener() {
-						public void changed(ProgressEvent event) {
-						}
-
-						public void completed(ProgressEvent event) {
-							
-							String execAfterLoad = (String) search.getData("execAfterLoad");
-							//Erase it, so that it's only used once after the page loads
-							search.setData("execAfterLoad", null);
-							if (execAfterLoad != null && !execAfterLoad.equals("")) {
-								//String execAfterLoadDisplay = execAfterLoad.replaceAll("'","\\\\'");
-								//search.execute("alert('injecting script : " + execAfterLoadDisplay + "');");
-								boolean result = search.execute(execAfterLoad);
-								//System.out.println("Injection : " + execAfterLoad + " (" + result + ")");
-							}
-
-						}
-					});
-				}
-
-				//Store the "css" match string in the search cdp browser object
-				String execAfterLoad = MapUtils.getMapString(params, "execAfterLoad",
-						null);
-				search.setData("execAfterLoad", execAfterLoad);
-
-				search.setUrl(url);
-
-				FormData gd = (FormData) controlBottom.getLayoutData();
-				gd.top = new FormAttachment(controlTop, 0);
-				gd.height = SWT.DEFAULT;
-				controlBottom.setLayoutData(gd);
-
-				gd = (FormData) controlTop.getLayoutData();
-				gd.bottom = null;
-				gd.height = MapUtils.getMapInt(params, "top-height", 120);
-				controlTop.setLayoutData(gd);
-
-				soSearchResults.setVisible(true);
-				controlBottom.setVisible(true);
-				search.setVisible(true);
-
-				controlTop.getParent().layout(true);
-			}
-		});
-	}
 
 	public void 
 	anotherSearch(
@@ -424,16 +289,7 @@ SearchResultsTabAreaBrowser
 	{
 		this.sq	= sq;
 		
-		String url;
-
-		if ( System.getProperty("metasearch", "1").equals("1")){
-			
-			url = ConstantsVuze.getDefaultContentNetwork().getXSearchService( sq.term, sq.toSubscribe );
-			
-		}else{
-			
-			url = ConstantsVuze.getDefaultContentNetwork().getSearchService( sq.term );
-		}
+		String url = PlatformConfigMessenger.getWebSearchUrl().replaceAll("%s", UrlUtils.encode(sq.term));
 
 		AEProxyFactory.PluginHTTPProxy proxy = getSearchProxy( this );
 			
@@ -441,8 +297,6 @@ SearchResultsTabAreaBrowser
 			
 			url = proxy.proxifyURL( url );
 		}
-		
-		closeSearchResults(null);
 		
 		if (Utils.isThisThreadSWT()) {
 			try {
@@ -477,77 +331,22 @@ SearchResultsTabAreaBrowser
 		
 		browserSkinObject.setURL(url);
 	}
-	
-	public void 
-	closeSearchResults(
-		Map	params )
-	{
-		Utils.execSWTThread(new AERunnable() {
 
-			public void runSupport() {
+	// @see com.aelitis.azureus.ui.swt.search.SearchResultsTabAreaBase#getResultCount()
+	public int getResultCount() {
+		return 0;
+	}
 
-				SWTSkinObject soSearchResults = parent.getSkinObject("searchresults-search-results");
-				if (soSearchResults == null) {
-					return;
-				}
+	// @see com.aelitis.azureus.ui.swt.search.SearchResultsTabAreaBase#showView()
+	public void showView() {
+	}
 
-				Control controlTop = browserSkinObject.getControl();
-				Control controlBottom = soSearchResults.getControl();
-				BrowserWrapper search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
+	// @see com.aelitis.azureus.ui.swt.search.SearchResultsTabAreaBase#refreshView()
+	public void refreshView() {
+	}
 
-				soSearchResults.setVisible(false);
-
-				FormData gd = (FormData) controlBottom.getLayoutData();
-				if (gd == null) {
-					return;
-				}
-				gd.top = null;
-				gd.height = 0;
-				controlBottom.setLayoutData(gd);
-
-				gd = (FormData) controlTop.getLayoutData();
-				gd.bottom = new FormAttachment(controlBottom, 0);
-				gd.height = SWT.DEFAULT;
-				controlTop.setLayoutData(gd);
-
-				controlBottom.getParent().layout(true);
-				if (search != null) {
-					search.setUrl("about:blank");
-				}
-				
-				BrowserContext context = browserSkinObject.getContext();
-				if (context != null) {
-					context.executeInBrowser("searchResultsClosed()");
-				}
-			}
-		});
+	// @see com.aelitis.azureus.ui.swt.search.SearchResultsTabAreaBase#hideView()
+	public void hideView() {
 	}
 	
-	public void 
-	showView() 
-	{
-	}
-	
-	public void
-	refreshView()
-	{	
-	}
-	
-	public void 
-	hideView() 
-	{
-		closeSearchResults( null );
-	}
-	
-	public int
-	getResultCount()
-	{
-		return( -1 );
-	}
-	
-	public void resizeMainBrowser() {
-	}
-	
-	public void resizeSecondaryBrowser() {
-	}
 }

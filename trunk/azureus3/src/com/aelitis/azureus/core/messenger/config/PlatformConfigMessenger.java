@@ -48,6 +48,8 @@ public class PlatformConfigMessenger
 
 	private static boolean platformLoginComplete = false;
 
+	private static String webSearchUrl = "https://www.google.com/search?q=%s";
+
 	protected static List platformLoginCompleteListeners = Collections.EMPTY_LIST;
 
 	private static CopyOnWriteList<String> externalLinks = new CopyOnWriteList<String>();
@@ -116,6 +118,8 @@ public class PlatformConfigMessenger
 					sendStats = MapUtils.getMapBoolean(reply, "send-stats", false);
 				} catch (Exception e) {
 				}
+				
+				webSearchUrl = MapUtils.getMapString(reply, "web-search-url", webSearchUrl);
 				
 				
 				platformLoginComplete = true;
@@ -209,6 +213,10 @@ public class PlatformConfigMessenger
 	
 	public static boolean allowSendStats() {
 		return sendStats;
+	}
+	
+	public static String getWebSearchUrl() {
+		return webSearchUrl;
 	}
 
 	

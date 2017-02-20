@@ -41,6 +41,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -78,6 +79,8 @@ public class SearchResultsTabArea
 	
 	private SearchResultsTabAreaBrowser	browserImpl = new SearchResultsTabAreaBrowser( this );
 	private SBC_SearchResultsView	nativeImpl 	= new SBC_SearchResultsView( this );
+	private SWTSkinObject soButtonWeb;
+	private SWTSkinObject soButtonMeta;
 	
 	public
 	SearchResultsTabArea()
@@ -112,37 +115,29 @@ public class SearchResultsTabArea
 			}else{
 				Composite control_area = controlArea.getComposite();
 				
-				Utils.disposeComposite( control_area, false );
+				soButtonWeb = skin.getSkinObject( "searchresults-button-web", controlArea);
+				soButtonMeta = skin.getSkinObject( "searchresults-button-meta", controlArea);
+
+				SWTSkinButtonUtility btnWeb = new SWTSkinButtonUtility(soButtonWeb);
+				btnWeb.addSelectionListener(new ButtonListenerAdapter() {
+					public void pressed(SWTSkinButtonUtility buttonUtility,
+							SWTSkinObject skinObject, int stateMask) {
+						isBrowserView = true;
+						COConfigurationManager.setParameter( "Search View Is Web View", isBrowserView );
+						selectView( skinObject );
+					}
+				});
+
+				SWTSkinButtonUtility btnMeta = new SWTSkinButtonUtility(soButtonMeta);
+				btnMeta.addSelectionListener(new ButtonListenerAdapter() {
+					public void pressed(SWTSkinButtonUtility buttonUtility,
+							SWTSkinObject skinObject, int stateMask) {
+						isBrowserView = false;
+						COConfigurationManager.setParameter( "Search View Is Web View", isBrowserView );
+						selectView( skinObject );
+					}
+				});
 				
-				GridLayout layout = new GridLayout();
-				 
-				layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
-				
-				control_area.setLayout( layout );
-				
-				final Button button = new Button( control_area, SWT.TOGGLE );
-				
-				button.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, false ));
-				
-				button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
-				
-				button.setSelection( !isBrowserView );
-				
-				button.addSelectionListener(
-					new SelectionAdapter(){
-						@Override
-						public void widgetSelected(SelectionEvent e) {
-							isBrowserView = !button.getSelection();
-							
-							button.setText( MessageText.getString( isBrowserView?"label.switch.to.native":"label.switch.to.web" ));
-	
-							button.getParent().layout();
-							
-							COConfigurationManager.setParameter( "Search View Is Web View", isBrowserView );
-							
-							selectView( skinObject );
-						}
-					});
 			}
 		}
 		
@@ -165,11 +160,11 @@ public class SearchResultsTabArea
 			}
 		}
 		
-		browserSkinObject 	= (SWTSkinObjectBrowser)skin.getSkinObject(SkinConstants.VIEWID_BROWSER_SEARCHRESULTS, skinObject);
+		browserSkinObject 	= (SWTSkinObjectBrowser)skin.getSkinObject("web-search-results", skinObject);
 		
 		browserImpl.init( browserSkinObject );
 
-		nativeSkinObject 	= (SWTSkinObjectContainer)skin.getSkinObject( "searchresults2", skinObject);
+		nativeSkinObject 	= (SWTSkinObjectContainer)skin.getSkinObject( "meta-search-results", skinObject);
 		
 		nativeImpl.skinObjectInitialShow( skinObject, params );
 		
@@ -219,6 +214,14 @@ public class SearchResultsTabArea
 		browserSkinObject.setVisible( isBrowserView );
 		nativeSkinObject.setVisible( !isBrowserView );	
 
+		if (soButtonWeb != null) {
+			soButtonWeb.switchSuffix(isBrowserView ? "-selected" : "");
+		}
+		if (soButtonMeta != null) {
+			soButtonMeta.switchSuffix(isBrowserView ? "" : "-selected");
+		}
+
+		
 		parent.relayout();	
 		
 		if ( activeImpl != null ){

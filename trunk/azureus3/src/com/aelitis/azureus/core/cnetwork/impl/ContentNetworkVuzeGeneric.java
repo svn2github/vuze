@@ -211,7 +211,6 @@ ContentNetworkVuzeGeneric
 	{
 		service_map.clear();
 		
-		addService( SERVICE_SEARCH, 			URL_PREFIX + "search?q=" );
 		addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch/index.php?q=" );
 		addService( SERVICE_RPC, 				RPC_ADDRESS );
 		addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" );
@@ -357,16 +356,6 @@ ContentNetworkVuzeGeneric
 		
 		switch( service_type ){
 		
-			case SERVICE_SEARCH:{
-				
-				String	query = (String)params[0];
-				
-				return(	base +
-						UrlUtils.encode(query) + 
-						"&" + URL_SUFFIX + 
-						"&rand=" + SystemTime.getCurrentTime());
-			}
-			
 			case SERVICE_XSEARCH:{
 				
 				String	query 			= (String)params[0];
