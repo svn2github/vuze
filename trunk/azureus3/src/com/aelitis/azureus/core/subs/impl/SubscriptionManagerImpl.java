@@ -5318,6 +5318,11 @@ SubscriptionManagerImpl
 							
 							if ( download != null ){
 								
+								if ( TorrentUtils.isReallyPrivate( PluginCoreUtils.unwrap( download.getTorrent()))){
+									
+									return;
+								}
+								
 								final ChatInstance chat = BuddyPluginUtils.getChat( download );
 								
 								if ( chat.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
