@@ -202,6 +202,11 @@ public class SearchResultsTabArea
 	selectView(
 		SWTSkinObject		parent )
 	{		
+		SearchResultsTabAreaBase newImpl = isBrowserView?browserImpl:nativeImpl;
+		
+		if (newImpl == activeImpl) {
+			return;
+		}
 
 		Control[] kids = ((Composite)nativeSkinObject.getControl().getParent()).getChildren();
 			
@@ -229,7 +234,7 @@ public class SearchResultsTabArea
 			activeImpl.hideView();
 		}
 		
-		activeImpl = isBrowserView?browserImpl:nativeImpl;
+		activeImpl = newImpl;
 			
 		activeImpl.showView();
 		
