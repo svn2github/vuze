@@ -569,21 +569,30 @@ SubscriptionSchedulerImpl
 							try{
 								if ( !success ){
 									
-									int rad = manager.getAutoDownloadMarkReadAfterDays();
-
-									if ( rad > 0 ){
+									if ( dl.startsWith( "azplug:" ) || dl.startsWith( "chat:" )){
 										
-										long rad_millis = rad*24*60*60*1000L;
+											// whatever the outcome these have been handled async
 										
-										long	time_found = result.getTimeFound();
-									
-										// log( "found=" + new SimpleDateFormat().format(new Date( time_found)) + ", ago=" + ((SystemTime.getCurrentTime()-time_found )) + ", rad=" + rad_millis );
+										result.setRead( true );
 										
-										if ( time_found > 0 && time_found + rad_millis < SystemTime.getCurrentTime()){
+									}else{
 										
-											log( subs.getName() + ": result expired, marking as read - " + result.getID());
-
-											result.setRead( true );
+										int rad = manager.getAutoDownloadMarkReadAfterDays();
+	
+										if ( rad > 0 ){
+											
+											long rad_millis = rad*24*60*60*1000L;
+											
+											long	time_found = result.getTimeFound();
+										
+											// log( "found=" + new SimpleDateFormat().format(new Date( time_found)) + ", ago=" + ((SystemTime.getCurrentTime()-time_found )) + ", rad=" + rad_millis );
+											
+											if ( time_found > 0 && time_found + rad_millis < SystemTime.getCurrentTime()){
+											
+												log( subs.getName() + ": result expired, marking as read - " + result.getID());
+	
+												result.setRead( true );
+											}
 										}
 									}
 								}
