@@ -3,6 +3,57 @@ VUZE CHANGELOG
 
 2017.xx.yy | Vuze 5.7.4.1
 
+FEATURE: UI   | Native search results view [Parg;TuxPaper]
+FEATURE: UI   | Native subscription results view [Parg]
+FEATURE: UI   | Search results now show if result already in Vuze where possible [Parg]
+FEATURE: UI   | Column Setup dialog now has a filter box [Parg]
+FEATURE: UI   | Sharing Progress popups can now be supressed [Parg]
+FEATURE: UI   | New Files View column to show entire file path [Parg]
+FEATURE: UI   | Option to switch to Tag Settings view after tag creation to allow customisation [Parg]
+FEATURE: UI   | Quick 'notification view' added to the Plugin Bar (Top Bar) [Parg]
+FEATURE: UI   | Plugin bar now has right-click menu to select the sub-views of interest [Parg]
+FEATURE: UI   | Sound/speech noifications added to notifications [Parg]
+FEATURE: UI   | Option added to create a notification when a download added to/removed from a tag [Parg]
+FEATURE: UI   | Option added to create a notification when a subscription has new results [Parg]
+
+FEATURE: Core | Added search option to always route through a proxy [Parg]
+FEATURE: Core | Search templates now support full cookies [TuxPaper]
+FEATURE: Core | New isError tag constraint [Parg]
+FEATURE: Core | Extentended tag execute-on-assign actions to include pause and resume [Parg]
+FEATURE: Core | Added some time-related tag constraint expressions to support time-based automatic tag assignment [Parg]
+FEATURE: Core | Support for anonymous updating [Parg]
+
+CHANGE: UI    | Recent SWT updates require minimum of Java 8 - introduced Java version specific updates [Parg;TuxPaer]
+CHANGE: UI    | Keep track of custom colors and pass existing to color-chooser dialog [Parg]
+CHANGE: UI    | Added colors to the tags in open-torrent-options [Parg]
+CHANGE: UI    | Auto-select newly created tags in open-torrent-options and handle deletion beter [Parg]
+CHANGE: UI    | Warn when retargetting to a file of different size [Parg]
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Spanish translation update [Valtiel]
+CHANGE: UI    | Relative dates now have 'ago' added [TuxPaper]
+CHANGE: UI    | Java options editting now available for OSX [TuxPaper]
+
+CHANGE: Core  | Various optmizations such as StringBuffer->StringBuilder [TuxPaper]
+CHANGE: Core  | Support as/xs in magnet links [Parg]
+CHANGE: Core  | Automatic JVM memory increase now more aggressive [Parg]
+CHANGE: Core  | Explicitly check if SSL certificates are trusted as relying on the Java runtime to do it sometimes results in excess prompts [Parg]
+CHANGE: Core  | Prevent erroneous attempt to auto-remove non-persistent downloads from tags [Parg]
+
+BUGFIX: UI    | Fix restoration of tag views in classic UI [Parg]
+BUGFIX: UI    | Scope display for tag add/remove was broken [Parg]
+BUGFIX: UI    | Changes to ip-filter from privacy tab were not being recorded [Parg]
+BUGFIX: UI    | Handle invalid DPI [Parg]
+BUGFIX: UI    | Column-reset was broken for All Peers view [Parg]
+
+BUGFIX: Core  | Don't auto-import torrents for archived downloads [Parg]
+BUGFIX: Core  | Large web-page responses broke strict clients by returning incorrect content-length [TuxPaper]
+BUGFIX: Core  | Handle chunked transfer-encoding [TuxPaper]
+BUGFIX: Core  | Initial download for new subscriptions not always occurring [Parg]
+BUGFIX: Core  | Handler network interface enumeration exception during initialization [Parg]
+BUGFIX: Core  | Reduce opportunity for blocking when searching at startup [Parg]
+BUGFIX: Core  | Support bigger maximum piece sizes [Parg]
+BUGFIX: Core  | Don't attempt to apply tag constrains when Vuze is closing [Parg]
+
 2016.11.21 | Vuze 5.7.4.0
 
 FEATURE: UI   | Option to filter by hash in torrent views via 't:' prefix [Parg]
