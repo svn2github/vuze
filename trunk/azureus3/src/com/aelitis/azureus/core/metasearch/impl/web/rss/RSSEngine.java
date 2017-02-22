@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -815,6 +816,34 @@ RSSEngine
 							
 							result.setSizeFromHTML( desc_size );
 							
+						}
+					}
+					
+					if ( result.getHash() == null ){
+						
+						if ( dlink != null ){
+							
+							String mag = UrlUtils.parseTextForMagnets(dlink);
+							
+							if ( mag == null ){
+								
+								String tlink = result.getTorrentLink();
+								
+								if ( tlink != null ){
+									
+									mag = UrlUtils.parseTextForMagnets(tlink);
+								}
+							}
+							
+							if ( mag != null ){
+								
+								byte[] hash = UrlUtils.getHashFromMagnetURI( mag );
+								
+								if ( hash != null ){
+									
+									result.setHash( ByteFormatter.encodeString( hash ));
+								}
+							}
 						}
 					}
 					results.add(result);
