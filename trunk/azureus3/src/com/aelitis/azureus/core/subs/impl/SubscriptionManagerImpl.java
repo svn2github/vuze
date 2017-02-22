@@ -4814,6 +4814,11 @@ SubscriptionManagerImpl
 							
 							String url = (String)props.get( SearchResult.PR_TORRENT_LINK );
 							
+							if ( url == null ){
+								
+								url = (String)props.get( SearchResult.PR_DOWNLOAD_LINK );
+							}
+							
 							if ( url != null ){
 								
 								String lc_url = url.toLowerCase( Locale.US );

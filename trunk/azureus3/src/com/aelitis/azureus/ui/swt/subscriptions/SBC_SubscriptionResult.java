@@ -89,9 +89,16 @@ SBC_SubscriptionResult
 		
 		size = (Long)properties.get( SearchResult.PR_SIZE );
 		
-		torrent_link = (String)properties.get( SearchResult.PR_TORRENT_LINK );
-		details_link = (String)properties.get( SearchResult.PR_DETAILS_LINK );
+		String tl = (String)properties.get( SearchResult.PR_TORRENT_LINK );
 		
+		if ( tl == null ){
+			
+			tl = (String)properties.get( SearchResult.PR_DOWNLOAD_LINK );
+		}
+		
+		torrent_link = tl;
+		
+		details_link = (String)properties.get( SearchResult.PR_DETAILS_LINK );
 		
 		category = (String)properties.get( SearchResult.PR_CATEGORY );
 		
