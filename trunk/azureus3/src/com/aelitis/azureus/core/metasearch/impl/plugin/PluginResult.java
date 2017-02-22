@@ -176,6 +176,12 @@ PluginResult
 		return( adjustLink( getStringProperty( SearchResult.PR_PLAY_LINK )));
 	}
 	
+	public String
+	getTorrentLink()
+	{
+		return( adjustLink( getStringProperty( SearchResult.PR_TORRENT_LINK )));	
+	}
+	
 	public String 
 	getUID() 
 	{

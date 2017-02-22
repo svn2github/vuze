@@ -2072,7 +2072,7 @@ MetaSearchManagerImpl
 	     			}
 	     			case PR_TORRENT_LINK:{
 	     				
-	     				return( result.getDownloadLink());
+	     				return( result.getTorrentLink());
 	     			}
 	     			case PR_PLAY_LINK:{
 	     				

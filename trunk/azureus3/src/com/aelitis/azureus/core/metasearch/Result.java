@@ -66,6 +66,7 @@ public abstract class Result {
 	
 	//Links
 	public abstract String getDownloadLink();
+	public abstract String getTorrentLink();
 	public abstract String getDownloadButtonLink();
 	public abstract String getCDPLink();
 	public abstract String getPlayLink();

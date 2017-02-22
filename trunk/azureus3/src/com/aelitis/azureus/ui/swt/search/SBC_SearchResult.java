@@ -200,7 +200,14 @@ SBC_SearchResult
 	public String
 	getTorrentLink()
 	{
-		return( result.getDownloadLink() );
+		String r = result.getTorrentLink();
+		
+		if ( r == null ){
+			
+			r = result.getDownloadLink();
+		}
+		
+		return( r );
 	}
 	
 	public String
