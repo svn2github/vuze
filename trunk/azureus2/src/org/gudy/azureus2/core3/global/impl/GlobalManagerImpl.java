@@ -241,7 +241,8 @@ public class GlobalManagerImpl
 	
 	private final TorrentFolderWatcher torrent_folder_watcher;
   
-	private final ArrayList paused_list = new ArrayList();
+	private final ArrayList<Object[]> paused_list = new ArrayList<Object[]>();
+	
 	private final AEMonitor paused_list_mon = new AEMonitor( "GlobalManager:PL" );
   
 	private final GlobalManagerFileMerger	file_merger;
@@ -2004,38 +2005,51 @@ public class GlobalManagerImpl
   }
 
 	
-  public void resumeDownloads() {
+  public void 
+  resumeDownloads() 
+  {
 	  auto_resume_disabled = false;
-	  
-	  try {  paused_list_mon.enter();
 
-	  if ( auto_resume_timer != null ){
+	  try{  
+		  paused_list_mon.enter();
 
-		  auto_resume_timer.cancel();
-
-		  auto_resume_timer = null;
-	  }
-	  for( int i=0; i < paused_list.size(); i++ ) {     
-		  Object[]	data = (Object[])paused_list.get(i);
-
-		  HashWrapper hash = (HashWrapper)data[0];
-		  boolean		force = ((Boolean)data[1]).booleanValue();
-
-		  DownloadManager manager = getDownloadManager( hash );
-
-		  if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
-
-			  if ( force ){
-				  manager.setForceStart(true);
-			  }else{
-
-				  manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
+		  if ( auto_resume_timer != null ){
+	
+			  auto_resume_timer.cancel();
+	
+			  auto_resume_timer = null;
+		  }
+		  
+		  	// copy the list as the act of resuming entries causes entries to be removed from the
+		  	// list and therefore borkerage
+		  
+		  ArrayList<Object[]> copy = new ArrayList<Object[]>(paused_list);
+		  
+		  for( Object[] data: copy ){   
+	
+			  HashWrapper 	hash = (HashWrapper)data[0];
+			  boolean		force = ((Boolean)data[1]).booleanValue();
+	
+			  DownloadManager manager = getDownloadManager( hash );
+	
+			  if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
+	
+				  if ( force ){
+					  
+					  manager.setForceStart(true);
+					  
+				  }else{
+					 
+					  manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
+				  }
 			  }
 		  }
+		  paused_list.clear();
+		  
+	  }finally{
+		  
+		  paused_list_mon.exit();  
 	  }
-	  paused_list.clear();
-	  }
-	  finally {  paused_list_mon.exit();  }
   }
 
   public boolean 
