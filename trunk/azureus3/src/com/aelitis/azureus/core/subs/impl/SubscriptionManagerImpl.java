@@ -5330,77 +5330,80 @@ SubscriptionManagerImpl
 								
 								final ChatInstance chat = BuddyPluginUtils.getChat( download );
 								
-								if ( chat != null && chat.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
+								if ( chat != null ){
 									
-									synchronized( chat_assoc_done ){
-										
-										if ( !chat_assoc_done.contains( chat )){
+									if ( chat.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
+									
+										synchronized( chat_assoc_done ){
 											
-											chat_assoc_done.add( chat );
-																							
-											if ( chat_assoc_done.size() > 50 ){
-													
-												ChatInstance c = chat_assoc_done.removeFirst();
-													
-												c.setInteresting( false );
+											if ( !chat_assoc_done.contains( chat )){
 												
-												c.destroy();
+												chat_assoc_done.add( chat );
+																								
+												if ( chat_assoc_done.size() > 50 ){
+														
+													ChatInstance c = chat_assoc_done.removeFirst();
+														
+													c.setInteresting( false );
+													
+													c.destroy();
+												}
 											}
 										}
-									}
-									
-									String name = subs.getName();
-									
-									if ( subs.isSearchTemplate()){
-									
-										int pos = name.indexOf( ':' );
-									
-										if ( pos != -1 ){
-											
-											name = name.substring( pos+1 ).trim();
+										
+										String name = subs.getName();
+										
+										if ( subs.isSearchTemplate()){
+										
+											int pos = name.indexOf( ':' );
+										
+											if ( pos != -1 ){
+												
+												name = name.substring( pos+1 ).trim();
+											}
 										}
-									}
-									
-									final String f_msg = (subs.isSearchTemplate()?"Search Template":"Subscription" ) + " " + subs.getURI() + "[[" + UrlUtils.encode( name ) + "]]";
-																																					
-									waitForChat(
-										chat, 
-										new AERunnable()
-										{
-											public void 
-											runSupport() 
+										
+										final String f_msg = (subs.isSearchTemplate()?"Search Template":"Subscription" ) + " " + subs.getURI() + "[[" + UrlUtils.encode( name ) + "]]";
+																																						
+										waitForChat(
+											chat, 
+											new AERunnable()
 											{
-												List<ChatMessage>	messages = chat.getMessages();
-																						
-												for ( ChatMessage message: messages ){
-																											
-													if ( message.getMessage().equals( f_msg )){
+												public void 
+												runSupport() 
+												{
+													List<ChatMessage>	messages = chat.getMessages();
+																							
+													for ( ChatMessage message: messages ){
+																												
+														if ( message.getMessage().equals( f_msg )){
+																
+															synchronized( chat_assoc_done ){
+																
+																if ( chat_assoc_done.remove( chat )){
 															
-														synchronized( chat_assoc_done ){
-															
-															if ( chat_assoc_done.remove( chat )){
-														
-																chat.destroy();
+																	chat.destroy();
+																}
 															}
+															
+															return;
 														}
-														
-														return;
 													}
-												}
-												
-												Map<String,Object>	flags 	= new HashMap<String, Object>();
-												
-												flags.put( BuddyPluginBeta.FLAGS_MSG_ORIGIN_KEY, BuddyPluginBeta.FLAGS_MSG_ORIGIN_SUBS );
-												
-												Map<String,Object>	options = new HashMap<String, Object>();
-												
-												chat.sendMessage( f_msg, flags, options );
-
-											};
-										});
-								}else{
-									
-									chat.destroy();
+													
+													Map<String,Object>	flags 	= new HashMap<String, Object>();
+													
+													flags.put( BuddyPluginBeta.FLAGS_MSG_ORIGIN_KEY, BuddyPluginBeta.FLAGS_MSG_ORIGIN_SUBS );
+													
+													Map<String,Object>	options = new HashMap<String, Object>();
+													
+													chat.sendMessage( f_msg, flags, options );
+	
+												};
+											});
+									}else{
+										
+										chat.destroy();
+									}
 								}
 							}
 						}catch( Throwable e ){
