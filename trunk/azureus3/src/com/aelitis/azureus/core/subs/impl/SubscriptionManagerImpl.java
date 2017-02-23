@@ -5330,7 +5330,7 @@ SubscriptionManagerImpl
 								
 								final ChatInstance chat = BuddyPluginUtils.getChat( download );
 								
-								if ( chat.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
+								if ( chat != null && chat.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
 									
 									synchronized( chat_assoc_done ){
 										
