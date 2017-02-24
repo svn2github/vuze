@@ -737,6 +737,14 @@ public class MainWindowImpl
 							UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentWindow();
 							event.doit = false;
 						}
+						
+					}else if (key == 'd' && (event.stateMask & SWT.MOD1) != 0) {
+
+							// dump
+						if ( Constants.isCVSVersion()){
+						
+							Utils.dump( shell );
+						}
 					} else if (key == 'f'
 							&& (event.stateMask & (SWT.MOD1 + SWT.SHIFT)) == SWT.MOD1
 									+ SWT.SHIFT) {

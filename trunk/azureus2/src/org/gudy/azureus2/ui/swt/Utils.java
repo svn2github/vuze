@@ -23,6 +23,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -1952,54 +1953,85 @@ public class Utils
 	dump(
 		Control	comp )
 	{
-		StringBuffer sb = new StringBuffer( 4096 );
+		PrintWriter pw = new PrintWriter( System.out );
 		
-		Set<Object>		done = new HashSet<Object>();
+		IndentWriter iw = new IndentWriter( pw );
 		
-		dump( comp, done, sb );
+		dump( iw, comp, new HashSet<Object>());
 		
-		Debug.out( sb.toString());
+		pw.flush();
 	}
 	
 	private static void
 	dump(
+		IndentWriter	iw,
 		Control			comp,
-		Set<Object>		done,
-		StringBuffer	sb )
+		Set<Object>		done )
 	{
 		if ( done.contains( comp )){
 			
-			sb.append("<recursive: ").append(comp);
+			iw.println( "<RECURSIVE!>" );
 			
 			return;
 		}	
 		
 		done.add( comp );
 		
-		sb.append(comp).append("[").append(comp.isVisible()).append(",").append(comp.getBounds()).append("]");
+		String str = comp.getClass().getName();
 		
-		if ( comp instanceof Composite ){
+		int	pos = str.lastIndexOf( "." );
+		
+		if ( pos != -1 ){
 			
-			Control[] children = ((Composite)comp).getChildren();
+			str = str.substring( pos+1 );
+		}
+		
+		try{
+			Field f = Widget.class.getDeclaredField( "data" );
 			
-			if ( children.length > 0 ){
-				
-				sb.append( "{" );
-	
-				int	num = 0;
-				
-				for ( Control kid: children ){
-						
-					if ( num++ > 0 ){
-						
-						sb.append( "," );
-					}
-					
-					dump( kid, done, sb );
+			f.setAccessible( true );
+			
+			Object data = f.get( comp );
+			
+			if ( data instanceof Object[]){
+				Object[] temp = (Object[])data;
+				String s = "";
+				for ( Object t: temp ){
+					s += (s==""?"":",") + t;
 				}
-				
-				sb.append( "}" );
+				data = s;
 			}
+			
+			String lay = "" + comp.getLayoutData();
+			
+			if ( comp instanceof Composite ){
+			
+				lay += "/" + ((Composite)comp).getLayoutData();
+			}
+			
+			iw.println( str + ",vis=" + comp.isVisible() + ",data=" + data + ",layout=" + lay + ",size=" + comp.getBounds());
+			
+			if ( comp instanceof Composite ){
+				
+				try{
+					iw.indent();
+					
+					Control[] children = ((Composite)comp).getChildren();
+										
+					for ( Control kid: children ){
+								
+	
+							
+						dump( iw, kid, done );
+					}
+				}finally{
+					
+					iw.exdent();
+				}
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
 		}
 	}
 	
