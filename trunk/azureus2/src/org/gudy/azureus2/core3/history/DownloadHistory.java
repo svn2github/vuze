@@ -34,6 +34,9 @@ DownloadHistory
 	public String
 	getName();
 	
+	public long
+	getSize();
+	
 	public String
 	getSaveLocation();
 	

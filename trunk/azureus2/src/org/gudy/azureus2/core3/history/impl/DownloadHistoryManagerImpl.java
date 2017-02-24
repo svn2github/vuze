@@ -862,6 +862,7 @@ DownloadHistoryManagerImpl
 	{
 		private final long 		uid;
 		private final byte[]	hash;
+		private final long		size;
 		private String			name 			= "test test test";
 		private String			save_location	= "somewhere or other";
 		private long			add_time		= -1;
@@ -896,6 +897,8 @@ DownloadHistoryManagerImpl
 			
 			name	= dm.getDisplayName();
 			
+			size	= dm.getSize();
+			
 			save_location	= dm.getSaveLocation().getAbsolutePath();
 			
 			DownloadManagerState	dms = dm.getDownloadState();
@@ -920,6 +923,10 @@ DownloadHistoryManagerImpl
 				
 				name 			= new String((byte[])map.get( "n"), "UTF-8" );
 				save_location 	= new String((byte[])map.get( "s"), "UTF-8" );
+				
+				Long l_size		= (Long)map.get( "z" );
+
+				size = l_size==null?0:l_size;
 				
 				add_time 		= (Long)map.get( "a" );
 				complete_time 	= (Long)map.get( "c" );
@@ -952,6 +959,7 @@ DownloadHistoryManagerImpl
 			map.put( "u", uid );
 			map.put( "h", hash );
 			map.put( "n", name.getBytes( "UTF-8" ));
+			map.put( "z", size );
 			map.put( "s", save_location.getBytes( "UTF-8" ));
 			map.put( "a", add_time );
 			map.put( "c", complete_time );
@@ -1016,6 +1024,12 @@ DownloadHistoryManagerImpl
 		getName()
 		{
 			return( name );
+		}
+		
+		public long 
+		getSize() 
+		{
+			return( size );
 		}
 		
 		public String

@@ -180,6 +180,13 @@ public class SBC_DownloadHistoryView
 					}
 				});
 		
+		tableManager.registerColumn(DownloadHistory.class, ColumnDLHistorySize.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnDLHistorySize(column);
+					}
+				});
+
 		tableManager.registerColumn(DownloadHistory.class, ColumnDLHistorySaveLocation.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
