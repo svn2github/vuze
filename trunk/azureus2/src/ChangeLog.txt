@@ -15,6 +15,7 @@ FEATURE: UI   | Plugin bar now has right-click menu to select the sub-views of i
 FEATURE: UI   | Sound/speech notifications added to notifications [Parg]
 FEATURE: UI   | Option added to create a notification when a download added to/removed from a tag [Parg]
 FEATURE: UI   | Option added to create a notification when a subscription has new results [Parg]
+FEATURE: UI   | Added size column to download history [Parg]
 
 FEATURE: Core | Added search option to always route through a proxy [Parg]
 FEATURE: Core | Search templates now support full cookies [TuxPaper]
