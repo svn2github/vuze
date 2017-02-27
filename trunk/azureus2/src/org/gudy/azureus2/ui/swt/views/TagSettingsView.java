@@ -53,10 +53,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.bouncycastle.util.Arrays;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
-import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
@@ -1035,12 +1033,14 @@ public class TagSettingsView
 							MessageText.getString( "MyTorrentsView.menu.archive" ),
 							MessageText.getString( "Button.deleteContent.fromLibrary" ),
 							MessageText.getString( "Button.deleteContent.fromComputer" ),
+							MessageText.getString( "label.move.to.old.tag" ),
 						}, 
 						new String[]{ 
 							"0",
 							"1", 
 							"2", 
-							"3" });
+							"3",
+							"4"});
 				}
 			}
 

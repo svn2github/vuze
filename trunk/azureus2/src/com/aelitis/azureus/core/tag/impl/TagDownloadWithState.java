@@ -1750,14 +1750,36 @@ TagDownloadWithState
 							}
 						}else if ( removal_strategy == RS_REMOVE_FROM_LIBRARY ){
 			
-								dm.getGlobalManager().removeDownloadManager( dm, false, false );
-								
-							}else if ( removal_strategy == RS_DELETE_FROM_COMPUTER ){
-							
+							dm.getGlobalManager().removeDownloadManager( dm, false, false );
+
+						}else if ( removal_strategy == RS_DELETE_FROM_COMPUTER ){
+
 							boolean reallyDeleteData =  !dm.getDownloadState().getFlag(	Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE );
-		
+
 							dm.getGlobalManager().removeDownloadManager( dm, true, reallyDeleteData);
 							
+						}else if ( removal_strategy == RS_MOVE_TO_OLD_TAG ){
+
+							String old_tag = getTagName( true ) + "_";
+							
+							if ( Character.isUpperCase( old_tag.charAt(0))){
+								
+								old_tag += "Old";
+							}else{
+								
+								old_tag += "old";
+							}
+							
+							Tag ot = getTagType().getTag( old_tag, true );
+							
+							if ( ot == null ){
+								
+								ot = getTagType().createTag( old_tag, true );
+							}
+							
+							ot.addTaggable( dm );
+							
+							removeTaggable( dm );
 						}
 					
 					}catch( Throwable e ){

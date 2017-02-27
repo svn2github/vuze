@@ -29,6 +29,7 @@ TagFeatureLimits
 	public static final int RS_ARCHIVE					= 1;
 	public static final int RS_REMOVE_FROM_LIBRARY		= 2;
 	public static final int RS_DELETE_FROM_COMPUTER		= 3;
+	public static final int RS_MOVE_TO_OLD_TAG			= 4;
 	
 	public static final int RS_DEFAULT		= RS_NONE;
 	

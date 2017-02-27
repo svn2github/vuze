@@ -68,6 +68,9 @@ public class ColumnTagLimits
 					case TagFeatureLimits.RS_DELETE_FROM_COMPUTER:
 						policy = "Button.deleteContent.fromComputer";
 						break;
+					case TagFeatureLimits.RS_MOVE_TO_OLD_TAG:
+						policy = "label.move.to.old.tag";
+						break;
 				}
 				
 				if ( policy != null ){
