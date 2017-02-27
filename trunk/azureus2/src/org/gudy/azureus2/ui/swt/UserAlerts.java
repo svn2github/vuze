@@ -221,7 +221,7 @@ UserAlerts
 							String popup_text = MessageText.getString("popup.download.added",
 										new String[] { manager.getDisplayName()
 									});
-							UIFunctionsManager.getUIFunctions().forceNotify(
+							forceNotify(
 									UIFunctions.STATUSICON_NONE, null, popup_text, null,
 									new Object[] {
 										manager
@@ -405,11 +405,12 @@ UserAlerts
   			  			
   			if (  do_popup ) {
   				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
-					UIFunctionsManager.getUIFunctions().forceNotify(
-							popup_is_error?UIFunctions.STATUSICON_ERROR:UIFunctions.STATUSICON_NONE, null, popup_text, null,
-							new Object[] {
-								relatedObject
-							}, -1);
+				
+  				forceNotify(
+						popup_is_error?UIFunctions.STATUSICON_ERROR:UIFunctions.STATUSICON_NONE, null, popup_text, null,
+						new Object[] {
+							relatedObject
+						}, -1);
   			}
 
 			if ( do_speech ) {
@@ -531,6 +532,22 @@ UserAlerts
   		return( map.containsKey( key ));
   	}
   	
+	private void 
+	forceNotify(
+		final int iconID, final String title, final String text, final String details,
+		final Object[] relatedObjects, final int timeoutSecs)
+	{
+		UIFunctionsManager.execWithUIFunctions(
+			new UIFunctionsManager.UIFCallback() {
+				
+				@Override
+				public void run(UIFunctions uif) {
+					uif.forceNotify(iconID, title, text, details, relatedObjects, timeoutSecs);
+				}
+			});
+	}
+
+	
   	protected void
   	tidyUp()
   	{
