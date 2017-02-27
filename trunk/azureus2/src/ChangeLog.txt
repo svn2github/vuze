@@ -24,6 +24,7 @@ FEATURE: Core | New isError tag constraint [Parg]
 FEATURE: Core | Extended tag execute-on-assign actions to include pause and resume [Parg]
 FEATURE: Core | Added some time-related tag constraint expressions to support time-based automatic tag assignment [Parg]
 FEATURE: Core | Support for anonymous updating [Parg]
+FEATURE: Core | New tag removal policy of 'move to old tag' [Parg]
 
 CHANGE: UI    | Recent SWT updates require minimum of Java 8 - introduced Java version specific updates [Parg;TuxPaper]
 CHANGE: UI    | Keep track of custom colors and pass existing to color-chooser dialog [Parg]
