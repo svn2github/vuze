@@ -1190,8 +1190,6 @@ SubscriptionManagerUI
 	setupSideBar(
 		final UISWTInstance		swt_ui )		
 	{
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		
 		if (mdi == null) {
@@ -1227,34 +1225,64 @@ SubscriptionManagerUI
 
 		setupHeader(mdi, mdiEntryOverview);
 
-//		MdiEntry headerEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY);
-//		if (headerEntry != null) {
-//			setupHeader(mdi, headerEntry);
-//		}
-
-		String parentID = "sidebar." + MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY;
+		String parentID = "sidebar." + MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS;
 
 		MenuManager menu_manager = ui_manager.getMenuManager();
 		
-		MenuItem mi = menu_manager.addMenuItem( parentID, "MainWindow.menu.view.configuration" );
+		MenuItem mi = menu_manager.addMenuItem( parentID, "menu.update.all.now" );
 		
 		mi.addListener( 
-				new MenuItemListener() 
+			new MenuItemListener() 
+			{
+				public void 
+				selected(
+					MenuItem menu, Object target ) 
 				{
-					public void 
-					selected(
-						MenuItem menu, Object target ) 
-					{
-				      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
-				      	 
-				      	 if ( uif != null ){
-				      		 
-				      		 uif.getMDI().showEntryByID(
-				      				 MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
-				      				 CONFIG_SECTION_ID);
-				      	 }
+					SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+					
+					SubscriptionScheduler sched = subs_man.getScheduler();
+					
+					Subscription[] subs = subs_man.getSubscriptions( true );
+					
+					for ( Subscription sub: subs ){
+					
+						if ( !sub.isSearchTemplate()){
+										
+							try{
+								sched.downloadAsync( sub, true );
+
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
 					}
-				});
+				}
+			});
+		
+		mi = menu_manager.addMenuItem( parentID, "sep1" );
+
+		mi.setStyle( MenuItem.STYLE_SEPARATOR );
+		
+		mi = menu_manager.addMenuItem( parentID, "MainWindow.menu.view.configuration" );
+		
+		mi.addListener( 
+			new MenuItemListener() 
+			{
+				public void 
+				selected(
+					MenuItem menu, Object target ) 
+				{
+			      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
+			      	 
+			      	 if ( uif != null ){
+			      		 
+			      		 uif.getMDI().showEntryByID(
+			      				 MultipleDocumentInterface.SIDEBAR_SECTION_CONFIG,
+			      				 CONFIG_SECTION_ID);
+			      	 }
+				}
+			});
 	}
 
 	private void setupHeader(MultipleDocumentInterface mdi,
