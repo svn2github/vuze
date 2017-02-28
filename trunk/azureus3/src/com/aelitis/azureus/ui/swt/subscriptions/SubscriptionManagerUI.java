@@ -1247,13 +1247,16 @@ SubscriptionManagerUI
 					for ( Subscription sub: subs ){
 					
 						if ( !sub.isSearchTemplate()){
-										
-							try{
-								sched.downloadAsync( sub, true );
-
-							}catch( Throwable e ){
 								
-								Debug.out( e );
+							if ( sub.getHistory().isEnabled()){
+								
+								try{
+									sched.downloadAsync( sub, true );
+	
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
 							}
 						}
 					}
