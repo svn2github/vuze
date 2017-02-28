@@ -1,6 +1,8 @@
 VUZE CHANGELOG
 -----------------
 
+2017.xx.yy | Vuze 5.7.5.1
+
 2017.02.28 | Vuze 5.7.5.0
 
 FEATURE: UI   | Native search results view [Parg;TuxPaper]
