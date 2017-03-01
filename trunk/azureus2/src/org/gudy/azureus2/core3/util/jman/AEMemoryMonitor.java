@@ -172,7 +172,7 @@ AEMemoryMonitor
 		 											max_mem = getMaxHeapMB()*MB;
 		 										}
 		 										
-		 										final long HEAP_AUTO_INCREASE_MAX 	= (Constants.isJava64Bit?2048:768)*MB;
+		 										final long HEAP_AUTO_INCREASE_MAX 	= (Constants.is64Bit?2048:768)*MB;
 		 										final long HEAP_AUTO_INCREASE_BY	= 64*MB;
 		 										
 		 										if ( max_mem > 0 && max_mem < HEAP_AUTO_INCREASE_MAX ){
