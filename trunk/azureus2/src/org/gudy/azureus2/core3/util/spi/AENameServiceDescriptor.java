@@ -27,8 +27,16 @@ import java.net.UnknownHostException;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.plugins.PluginAdapter;
+import org.gudy.azureus2.plugins.PluginInterface;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.plugins.I2PHelpers;
 
 import sun.net.spi.nameservice.*;
 import sun.net.spi.nameservice.dns.*;
@@ -306,10 +314,18 @@ AENameServiceDescriptor
 					// get quite a few of these from 3rd party libs :(
 					// new Exception("Bad DNS lookup: " + host_name).printStackTrace();
 										
-				}else if ( host_name.endsWith( ".i2p" ) || host_name.endsWith( ".onion" )){
+				}else if ( host_name.endsWith( ".i2p" )){
 					
 					//new Exception( "Prevented DNS leak for " + host_name ).printStackTrace();
 					
+					checkI2PInstall( host_name );
+					
+					throw( new UnknownHostException( host_name ));
+							
+				}else if ( host_name.endsWith( ".onion" )){
+					
+					//new Exception( "Prevented DNS leak for " + host_name ).printStackTrace();
+												
 					throw( new UnknownHostException( host_name ));
 				}
 				
@@ -335,6 +351,68 @@ AENameServiceDescriptor
 			}else{		
 			
 				throw( new IllegalArgumentException( "Unknown method '" + method_name + "'" ));
+			}
+		}
+	}
+	
+	private static boolean i2p_checked = false;
+	
+	private static void
+	checkI2PInstall(
+		final String	host_name )
+	{
+		synchronized( AENameServiceDescriptor.class ){
+			
+			if ( i2p_checked ){
+				
+				return;
+			}
+			
+		
+			try{
+				AzureusCore core = AzureusCoreFactory.getSingleton();
+			
+				if ( core != null ){
+				
+					i2p_checked = true;
+	
+					PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
+								
+					pi.addListener(
+						new PluginAdapter()
+						{
+							public void
+							initializationComplete()
+							{
+								if ( I2PHelpers.isI2PInstalled()){
+									
+									return;
+								}
+								
+								final boolean[]	install_outcome = { false };
+								
+								String enable_i2p_reason = 
+									MessageText.getString( "azneti2phelper.install.reason.dns", new String[]{ host_name });
+								
+								I2PHelpers.installI2PHelper(
+										enable_i2p_reason,
+										"azneti2phelper.install.dns.resolve",
+										install_outcome,
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												if ( !install_outcome[0] ){
+																									
+												}
+											}
+										});
+							}
+						});
+				}
+			}catch( Throwable e ){
+				
 			}
 		}
 	}
