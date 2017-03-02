@@ -3850,7 +3850,66 @@ DownloadManagerImpl
 		}
 	}
   
-  
+	private static Object	TTP_KEY = new Object();
+	
+	@Override
+	public Object 
+	getTaggableTransientProperty(
+		String key) 
+	{
+		synchronized( TTP_KEY ){
+			
+			LightHashMap<String,Object>	map = (LightHashMap<String,Object>)getUserData( TTP_KEY );
+			
+			if ( map == null ){
+				
+				return( null );
+				
+			}else{
+				
+				return( map.get( key ));
+			}
+		}
+	}
+	@Override
+	public void 
+	setTaggableTransientProperty(String key, Object value) 
+	{
+		synchronized( TTP_KEY ){
+			
+			LightHashMap<String,Object>	map = (LightHashMap<String,Object>)getUserData( TTP_KEY );
+			
+			if ( map == null ){
+				
+				if ( value == null ){
+					
+					return;
+				}
+				
+				map = new LightHashMap<String, Object>();
+				
+				map.put( key, value );
+				
+				setUserData( TTP_KEY, map );
+				
+			}else{
+				
+				if ( value == null ){
+					
+					map.remove( key );
+					
+					if ( map.size() == 0 ){
+						
+						setUserData( TTP_KEY, null );
+					}
+				}else{
+					
+					map.put( key, value );
+				}
+			}
+		}
+	}
+	
   public boolean 
   isDataAlreadyAllocated() 
   {  

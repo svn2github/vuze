@@ -5541,7 +5541,14 @@ implements PEPeerTransport
 	public int getTaggableType() {return TT_PEER;}
    	public String getTaggableID(){ return( null ); }
 	public TaggableResolver	getTaggableResolver(){ return( null ); }
-
+	@Override
+	public Object getTaggableTransientProperty(String key) {
+		return null;
+	}
+	@Override
+	public void setTaggableTransientProperty(String key, Object value) {
+	}
+	
 	public void
 	generateEvidence(
 			IndentWriter	writer )

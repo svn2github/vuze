@@ -50,12 +50,16 @@ public abstract class
 TagWithState 
 	extends TagBase
 {
+	private static final String TP_KEY = "TagWithState:tp_key";
+
 	private final CopyOnWriteSet<Taggable>	objects = new CopyOnWriteSet<Taggable>( true );
+
+	private final String	TP_KEY_TAG_ADDED_TIME;
 	
 	private TagFeatureNotifications	tag_notifications;
 
 	private boolean	removed;
-	
+		
 	public
 	TagWithState(
 		TagTypeBase			tt,
@@ -63,6 +67,8 @@ TagWithState
 		String				name )
 	{
 		super( tt, tag_id, name );		
+		
+		TP_KEY_TAG_ADDED_TIME = "ta:" + getTagUID();
 		
 		if ( tt.hasTagTypeFeature( TagFeature.TF_NOTIFICATIONS )){
 			
@@ -78,6 +84,8 @@ TagWithState
 	{
 		super( tt, tag_id, MapUtils.getMapString( map, "n", "" ));
 		
+		TP_KEY_TAG_ADDED_TIME = "ta:" + getTagUID();
+
 		if ( tt.hasTagTypeFeature( TagFeature.TF_NOTIFICATIONS )){
 			
 			tag_notifications = (TagFeatureNotifications)this;
@@ -85,9 +93,12 @@ TagWithState
 		
 		if ( map != null ){
 			
-			List<byte[]> list = (List<byte[]>)map.get( "o" );
+			List<byte[]> 	list 	= (List<byte[]>)map.get( "o" );
+			List<Map> 		props 	= (List<Map>)map.get( "p" );
 			
 			if ( list != null ){
+				
+				int	pos = 0;
 				
 				for ( byte[] b: list ){
 					
@@ -97,6 +108,28 @@ TagWithState
 						Taggable taggable = tt.resolveTaggable( id );
 						
 						if ( taggable != null ){
+														
+							if ( props != null ){
+								
+								Long time_added = (Long)props.get(pos).get("a");
+								
+								if ( time_added != null ){
+									
+									synchronized( TP_KEY ){
+										
+										Map all_props = (Map)taggable.getTaggableTransientProperty( TP_KEY );
+										
+										if ( all_props == null ){
+											
+											all_props = new HashMap();
+										}
+										
+										all_props.put( TP_KEY_TAG_ADDED_TIME, time_added );
+										
+										taggable.setTaggableTransientProperty( TP_KEY, all_props );
+									}
+								}
+							}
 							
 							objects.add( taggable );
 						}
@@ -104,6 +137,8 @@ TagWithState
 						
 						Debug.out( e );
 					}
+					
+					pos++;
 				}
 			}
 		}
@@ -120,7 +155,8 @@ TagWithState
 			
 			Iterator<Taggable> it = objects.iterator();
 			
-			List<byte[]> l = new ArrayList<byte[]>( objects.size());
+			List<byte[]> 	l = new ArrayList<byte[]>( objects.size());
+			List<Map> 		p = new ArrayList<Map>( objects.size());
 			
 			while( it.hasNext()){
 				
@@ -132,6 +168,22 @@ TagWithState
 					if ( id != null ){
 					
 						l.add( id.getBytes( "UTF-8" ));
+						
+						Map all_props = (Map)taggable.getTaggableTransientProperty( TP_KEY );
+						
+						Map props = new HashMap();
+						
+						if ( all_props != null ){
+							
+							Long time_added = (Long)all_props.get( TP_KEY_TAG_ADDED_TIME );
+							
+							if ( time_added != null ){
+								
+								props.put( "a", time_added );
+							}
+						}
+						
+						p.add( props );
 						
 					}else{
 						
@@ -145,6 +197,7 @@ TagWithState
 			}
 			
 			map.put( "o", l );
+			map.put( "p", p );
 		}
 	}
 	
@@ -159,6 +212,26 @@ TagWithState
 		getManager().tagChanged( this );
 	}
 	
+	@Override
+	public long 
+	getTaggableAddedTime(
+		Taggable taggble ) 
+	{
+		Map all_props = (Map)taggble.getTaggableTransientProperty( TP_KEY );
+		
+		if ( all_props != null ){
+			
+			Long added_time = (Long)all_props.get( TP_KEY_TAG_ADDED_TIME );
+			
+			if ( added_time != null ){
+				
+				return( added_time*1000 );
+			}
+		}
+		
+		return( -1 );
+	}
+	
 	public void
 	addTaggable(
 		Taggable	t )
@@ -171,6 +244,26 @@ TagWithState
 		}
 		
 		boolean added = objects.add( t );
+		
+		if ( added ){
+			
+				// do this before calling super.addTaggable so that the addition time is
+				// available to any actions that result from it
+			
+			synchronized( TP_KEY ){
+				
+				Map all_props = (Map)t.getTaggableTransientProperty( TP_KEY );
+				
+				if ( all_props == null ){
+					
+					all_props = new HashMap();
+				}
+				
+				all_props.put( TP_KEY_TAG_ADDED_TIME, SystemTime.getCurrentTime()/1000);
+			
+				t.setTaggableTransientProperty( TP_KEY, all_props );
+			}
+		}
 		
 		super.addTaggable( t );
 

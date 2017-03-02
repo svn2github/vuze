@@ -20,11 +20,13 @@ package org.gudy.azureus2.ui.swt.views.table;
 
 import org.eclipse.swt.widgets.Composite;
 
+import com.aelitis.azureus.ui.common.table.TableViewCreator;
+
 /**
  * @author TuxPaper
  *
  */
-public interface TableViewSWTPanelCreator
+public interface TableViewSWTPanelCreator extends TableViewCreator
 {
 	public Composite createTableViewPanel(Composite parent);
 }

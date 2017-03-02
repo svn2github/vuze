@@ -2416,7 +2416,7 @@ public class MyTorrentsView
 
 			// tags 
 	
-	protected Tag[] getCurrentTags() {
+	public Tag[] getCurrentTags() {
 		return currentTags;
 	}
 

@@ -273,6 +273,9 @@ public interface TableView<DATASOURCETYPE>
 	 */
 	String getTableID();
 
+	public TableViewCreator
+	getTableViewCreator();
+	
 	/**
 	 * @param x
 	 * @param y

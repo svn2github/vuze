@@ -2903,6 +2903,7 @@ public class MenuFactory
 			  }
 
 			  // Everything below is unsupported.
+			  public com.aelitis.azureus.ui.common.table.TableView<?> getView() {return( null);};
 			  public int getIndex() {notSupported(); return 0;}
 			  public void setForeground(int red, int green, int blue) {setForegroundDebug(); notSupported();}
 			  public void setForeground(int[] rgb) {setForegroundDebug(); notSupported();}

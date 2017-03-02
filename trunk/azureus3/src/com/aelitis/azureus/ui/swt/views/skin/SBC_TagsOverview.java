@@ -50,7 +50,6 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.tag.*;
-import com.aelitis.azureus.core.tag.TagTypeListener.TagEvent;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;

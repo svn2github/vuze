@@ -1696,7 +1696,7 @@ TagDownloadWithState
 			
 			List<DownloadManager>	sorted_dms = new ArrayList<DownloadManager>( dms );
 			
-				// oldest first
+			final int	order = getOrdering();
 			
 			Collections.sort(
 				sorted_dms,
@@ -1707,20 +1707,40 @@ TagDownloadWithState
 						DownloadManager dm1,
 						DownloadManager dm2) 
 					{
-						long t1 = dm1.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
-						long t2 = dm2.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
-						
-						if ( t1 < t2 ){
+						if ( order == OP_ADDED_TO_VUZE ){
 							
-							return( -1 );
+							long t1 = dm1.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+							long t2 = dm2.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
 							
-						}else if ( t1 > t2 ){
-							
-							return( 1 );
-							
+							if ( t1 < t2 ){
+								
+								return( -1 );
+								
+							}else if ( t1 > t2 ){
+								
+								return( 1 );
+								
+							}else{
+								
+								return( dm1.getInternalName().compareTo( dm2.getInternalName()));
+							}
 						}else{
 							
-							return( dm1.getInternalName().compareTo( dm2.getInternalName()));
+							long t1 = getTaggableAddedTime( dm1 );
+							long t2 = getTaggableAddedTime( dm2 );
+							
+							if ( t1 < t2 ){
+								
+								return( -1 );
+								
+							}else if ( t1 > t2 ){
+								
+								return( 1 );
+								
+							}else{
+								
+								return( dm1.getInternalName().compareTo( dm2.getInternalName()));
+							}
 						}
 					}
 				});

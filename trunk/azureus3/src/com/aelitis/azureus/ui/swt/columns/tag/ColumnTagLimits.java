@@ -76,6 +76,20 @@ public class ColumnTagLimits
 				if ( policy != null ){
 					tag_limits += "; " + MessageText.getString( policy );
 				}
+				
+				String order = null;
+				switch( tfl.getOrdering()){
+					case TagFeatureLimits.OP_ADDED_TO_VUZE:
+						order = "label.time.added.to.vuze";
+						break;
+					case TagFeatureLimits.OP_ADED_TO_TAG:
+						order = "label.time.added.to.tag";
+						break;
+				}
+				
+				if ( order != null ){
+					tag_limits += "; " + MessageText.getString( order );
+				}
 			}
 		}	
 		

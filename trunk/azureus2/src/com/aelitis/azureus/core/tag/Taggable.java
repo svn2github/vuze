@@ -35,4 +35,13 @@ Taggable
 	
 	public TaggableResolver 
 	getTaggableResolver();
+	
+	public void
+	setTaggableTransientProperty(
+		String		key,
+		Object		value );
+	
+	public Object
+	getTaggableTransientProperty(
+		String		key );
 }

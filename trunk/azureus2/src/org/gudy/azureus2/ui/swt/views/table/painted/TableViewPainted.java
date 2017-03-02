@@ -1929,6 +1929,12 @@ public class TableViewPainted
 		return mainPanelCreator;
 	}
 
+	@Override
+	public TableViewCreator getTableViewCreator() {
+		// TODO Auto-generated method stub
+		return mainPanelCreator;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#setMainPanelCreator(org.gudy.azureus2.ui.swt.views.table.TableViewSWTPanelCreator)
 	 */

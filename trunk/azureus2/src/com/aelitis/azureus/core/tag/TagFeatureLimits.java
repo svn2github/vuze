@@ -33,6 +33,11 @@ TagFeatureLimits
 	
 	public static final int RS_DEFAULT		= RS_NONE;
 	
+	public static final int OP_ADDED_TO_VUZE			= 0;
+	public static final int OP_ADED_TO_TAG				= 1;
+	
+	public static final int OP_DEFAULT					= OP_ADDED_TO_VUZE;
+
 	public int
 	getMaximumTaggables();
 	
@@ -45,5 +50,12 @@ TagFeatureLimits
 	
 	public void
 	setRemovalStrategy(
+		int		id );
+	
+	public int
+	getOrdering();
+	
+	public void
+	setOrdering(
 		int		id );
 }

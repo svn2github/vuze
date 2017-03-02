@@ -21,6 +21,8 @@
  
 package org.gudy.azureus2.plugins.ui.tables;
 
+import com.aelitis.azureus.ui.common.table.TableView;
+
 
 /**
  * This interface provides access to an Azureus table row.
@@ -52,6 +54,8 @@ public interface TableRow {
    */
   String getTableID();
 
+  public TableView<?> getView();
+  
   public int
   getIndex();
   

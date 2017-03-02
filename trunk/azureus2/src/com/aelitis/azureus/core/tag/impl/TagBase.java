@@ -85,7 +85,7 @@ TagBase
 	protected static final String	AT_REMOVAL_STRATEGY				= "max.t.r";
 	protected static final String	AT_EOS_SCRIPT					= "eos.scr";
 	protected static final String	AT_NOTIFICATION_POST			= "noti.post";
-
+	protected static final String	AT_LIMIT_ORDERING				= "max.t.o";
 
 	private static final String[] EMPTY_STRING_LIST = {};
 	
@@ -857,6 +857,32 @@ TagBase
 			if ( getRemovalStrategy() != id ){
 			
 				writeLongAttribute( AT_REMOVAL_STRATEGY, id );
+				
+				tag_type.fireChanged( this );
+			}
+		}	
+	}
+	
+	public int
+	getOrdering()
+	{
+		if ( tag_limits != null ){
+		
+			return( readLongAttribute( AT_LIMIT_ORDERING, (long)TagFeatureLimits.OP_DEFAULT ).intValue());
+		}
+		
+		return( -1 );
+	}
+	
+	public void
+	setOrdering(
+		int		id )
+	{
+		if ( tag_limits != null ){
+			
+			if ( getOrdering() != id ){
+			
+				writeLongAttribute( AT_LIMIT_ORDERING, id );
 				
 				tag_type.fireChanged( this );
 			}
@@ -1680,6 +1706,15 @@ TagBase
  			}
  		}
  	}
+	
+	@Override
+	public long 
+	getTaggableAddedTime(
+		Taggable taggble ) 
+	{
+		return( -1 );
+	}
+	
  	
  	public void
  	tick(

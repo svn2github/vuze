@@ -119,6 +119,10 @@ public class TagSettingsView
 
 		public GenericIntParameter tfl_max_taggables;
 		
+		public GenericStringListParameter	tfl_removal_policy;
+		
+		public GenericStringListParameter	tfl_ordering;
+		
 		public GenericBooleanParameter	notification_post_add;
 		
 		public GenericBooleanParameter	notification_post_remove;
@@ -973,20 +977,20 @@ public class TagSettingsView
 					Utils.setLayoutData(label, gd);
 
 					params.tfl_max_taggables = new GenericIntParameter(
-							new GenericParameterAdapter() {
-								@Override
-								public int getIntValue(String key) {
-									return tfl.getMaximumTaggables();
-								}
-								@Override
-								public int getIntValue(String key, int def) {
-									return getIntValue(key);
-								}
-								@Override
-								public void setIntValue(String key, int value) {
-									tfl.setMaximumTaggables( value );
-								}
-							}, gLimits, null, 0, Integer.MAX_VALUE );
+						new GenericParameterAdapter() {
+							@Override
+							public int getIntValue(String key) {
+								return tfl.getMaximumTaggables();
+							}
+							@Override
+							public int getIntValue(String key, int def) {
+								return getIntValue(key);
+							}
+							@Override
+							public void setIntValue(String key, int value) {
+								tfl.setMaximumTaggables( value );
+							}
+						}, gLimits, null, 0, Integer.MAX_VALUE );
 					
 						// we really don't want partial values to be set as the consequences may be very
 						// unwanted if a removal policy is already set...
@@ -1001,46 +1005,87 @@ public class TagSettingsView
 					label = new Label(gLimits, SWT.NONE);
 					Messages.setLanguageText(label, "label.removal.policy");
 					
-					new GenericStringListParameter( 
-						new GenericParameterAdapter() 
-						{
-							public String
-							getStringListValue(
-								String		key )
+					params.tfl_removal_policy = 
+						new GenericStringListParameter( 
+							new GenericParameterAdapter() 
 							{
-								return( String.valueOf( tfl.getRemovalStrategy()));
-							}
-							
-							public String
-							getStringListValue(
-								String		key,
-								String		def )
+								public String
+								getStringListValue(
+									String		key )
+								{
+									return( String.valueOf( tfl.getRemovalStrategy()));
+								}
+								
+								public String
+								getStringListValue(
+									String		key,
+									String		def )
+								{
+									return( getStringListValue( key ));
+								}
+								
+								public void
+								setStringListValue(
+									String		key,
+									String		value )
+								{
+									tfl.setRemovalStrategy( value==null?TagFeatureLimits.RS_DEFAULT:Integer.parseInt( value ));
+								}
+							},
+							gLimits, null, 
+							new String[]{
+								"",
+								MessageText.getString( "MyTorrentsView.menu.archive" ),
+								MessageText.getString( "Button.deleteContent.fromLibrary" ),
+								MessageText.getString( "Button.deleteContent.fromComputer" ),
+								MessageText.getString( "label.move.to.old.tag" ),
+							}, 
+							new String[]{ 
+								"0",
+								"1", 
+								"2", 
+								"3",
+								"4"});
+					
+					label = new Label(gLimits, SWT.NONE);
+					Messages.setLanguageText(label, "label.ordering");
+					
+					params.tfl_ordering = 
+						new GenericStringListParameter( 
+							new GenericParameterAdapter() 
 							{
-								return( getStringListValue( key ));
-							}
-							
-							public void
-							setStringListValue(
-								String		key,
-								String		value )
-							{
-								tfl.setRemovalStrategy( value==null?TagFeatureLimits.RS_DEFAULT:Integer.parseInt( value ));
-							}
-						},
-						gLimits, null, 
-						new String[]{
-							"",
-							MessageText.getString( "MyTorrentsView.menu.archive" ),
-							MessageText.getString( "Button.deleteContent.fromLibrary" ),
-							MessageText.getString( "Button.deleteContent.fromComputer" ),
-							MessageText.getString( "label.move.to.old.tag" ),
-						}, 
-						new String[]{ 
-							"0",
-							"1", 
-							"2", 
-							"3",
-							"4"});
+								public String
+								getStringListValue(
+									String		key )
+								{
+									return( String.valueOf( tfl.getOrdering()));
+								}
+								
+								public String
+								getStringListValue(
+									String		key,
+									String		def )
+								{
+									return( getStringListValue( key ));
+								}
+								
+								public void
+								setStringListValue(
+									String		key,
+									String		value )
+								{
+									tfl.setOrdering( value==null?TagFeatureLimits.OP_DEFAULT:Integer.parseInt( value ));
+								}
+							},
+							gLimits, null, 
+							new String[]{
+								MessageText.getString( "label.time.added.to.vuze" ),
+								MessageText.getString( "label.time.added.to.tag" ),
+							}, 
+							new String[]{ 
+								"0",
+								"1", 
+								});
 				}
 			}
 

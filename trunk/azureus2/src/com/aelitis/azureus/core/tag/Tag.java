@@ -152,6 +152,10 @@ Tag
 	getTransientProperty(
 		String		property );
 	
+	public long
+	getTaggableAddedTime(
+		Taggable	taggble );
+	
 	public void
 	requestAttention();
 	
