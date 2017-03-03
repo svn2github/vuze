@@ -247,21 +247,24 @@ TagWithState
 		
 		if ( added ){
 			
-				// do this before calling super.addTaggable so that the addition time is
-				// available to any actions that result from it
-			
-			synchronized( TP_KEY ){
+			if ( getTagType().isTagTypePersistent()){
 				
-				Map all_props = (Map)t.getTaggableTransientProperty( TP_KEY );
+					// do this before calling super.addTaggable so that the addition time is
+					// available to any actions that result from it
 				
-				if ( all_props == null ){
+				synchronized( TP_KEY ){
 					
-					all_props = new HashMap();
-				}
+					Map all_props = (Map)t.getTaggableTransientProperty( TP_KEY );
+					
+					if ( all_props == null ){
+						
+						all_props = new HashMap();
+					}
+					
+					all_props.put( TP_KEY_TAG_ADDED_TIME, SystemTime.getCurrentTime()/1000);
 				
-				all_props.put( TP_KEY_TAG_ADDED_TIME, SystemTime.getCurrentTime()/1000);
-			
-				t.setTaggableTransientProperty( TP_KEY, all_props );
+					t.setTaggableTransientProperty( TP_KEY, all_props );
+				}
 			}
 		}
 		
