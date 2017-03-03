@@ -170,13 +170,13 @@ public class AboutWindow {
     
     String about_text = 
     		
-    		"Java " + System.getProperty("java.version") + "\n "
+    		"Java " + System.getProperty("java.version") + " (" + (Constants.is64Bit?64:32) + " bit)\n  "
     				+ System.getProperty("java.vendor") + "\n"
     				+ System.getProperty("java.home") + "\n\n" 
     				+ "SWT v" + SWT.getVersion() + ", " + SWT.getPlatform() + swt + "\n"
     				+ System.getProperty("os.name") + " v"
     				+ System.getProperty("os.version") + ", "
-    				+ System.getProperty("os.arch") + "(OS=" + (Constants.isOS64Bit?64:32) + " bit) \n"
+    				+ System.getProperty("os.arch") + " (" + (Constants.isOS64Bit?64:32) + " bit)\n"
     				+ Constants.APP_NAME.charAt(0) + Constants.getCurrentVersion() + (Constants.AZUREUS_SUBVER.length()==0?"":("-"+Constants.AZUREUS_SUBVER)) + "/" + CorePatchLevel.getCurrentPatchLevel() + " " 
     				+ COConfigurationManager.getStringParameter("ui");
     
