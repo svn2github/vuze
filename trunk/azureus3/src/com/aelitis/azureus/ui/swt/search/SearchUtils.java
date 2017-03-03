@@ -768,6 +768,8 @@ SearchUtils
 		
 		engine_str = engine.getNameEx();
 		
+		String url_str = null;
+		
 		if ( engine instanceof WebEngine ){
 		
 			WebEngine web_engine = (WebEngine)engine;
@@ -776,17 +778,21 @@ SearchUtils
 				
 				auth_str = String.valueOf(true) + ": cookies=" + toString( web_engine.getRequiredCookies());
 			}
+			
+			url_str = web_engine.getSearchUrl();
 		}
 		
 		String[] keys = {
 				"subs.prop.template",
 				"subs.prop.auth",
+				"subs.prop.query",
 				"subs.prop.version",
 			};
 		
 		String[] values = { 
 				engine_str,
 				auth_str,
+				url_str,
 				String.valueOf( engine.getVersion()),
 			};
 		
