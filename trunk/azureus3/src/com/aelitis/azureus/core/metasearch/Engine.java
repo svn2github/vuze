@@ -22,6 +22,7 @@ package com.aelitis.azureus.core.metasearch;
 import java.io.*;
 import java.util.Map;
 
+import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 
 
@@ -241,6 +242,9 @@ Engine
 	public void
 	addPotentialAssociation(
 		String		key );
+	
+	public Subscription
+	getSubscription();
 	
 	public Map<String,Object> 
 	exportToBencodedMap() 

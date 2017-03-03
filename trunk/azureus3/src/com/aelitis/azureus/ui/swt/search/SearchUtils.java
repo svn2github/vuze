@@ -22,23 +22,26 @@
 
 package com.aelitis.azureus.ui.swt.search;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
@@ -57,6 +60,9 @@ import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
@@ -65,58 +71,6 @@ import com.aelitis.azureus.util.JSONUtils;
 public class 
 SearchUtils 
 {
-	private static void
-	exportAll()
-	{
-		final Shell shell = Utils.findAnyShell();
-		
-		shell.getDisplay().asyncExec(
-			new AERunnable() 
-			{
-				public void 
-				runSupport()
-				{
-					FileDialog dialog = 
-						new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
-					
-					dialog.setFilterPath( TorrentOpener.getFilterPathData() );
-											
-					dialog.setText(MessageText.getString("metasearch.export.select.template.file"));
-					
-					dialog.setFilterExtensions(new String[] {
-							"*.vuze",
-							"*.vuz",
-							org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
-						});
-					dialog.setFilterNames(new String[] {
-							"*.vuze",
-							"*.vuz",
-							org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
-						});
-					
-					String path = TorrentOpener.setFilterPathData( dialog.open());
-
-					if ( path != null ){
-						
-						String lc = path.toLowerCase();
-						
-						if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
-							
-							path += ".vuze";
-						}
-						
-						try{
-							MetaSearchManagerFactory.getSingleton().getMetaSearch().exportEngines(  new File( path ));
-							
-						}catch( Throwable e ){
-							
-							Debug.out( e );
-						}
-					}
-				}
-			});	
-	}
-	
 	public static void
 	addMenus(
 		Menu		menu )
@@ -140,6 +94,17 @@ SearchUtils
 						
 						mi.dispose();
 					}
+					
+					MenuItem import_mi = new MenuItem( template_menu, SWT.PUSH );
+
+					Messages.setLanguageText( import_mi, "menu.import.json.from.clipboard" );
+					
+					import_mi.addSelectionListener(new SelectionAdapter(){
+						public void widgetSelected(SelectionEvent e) {
+							importFromClipboard();
+						}});
+					
+					new MenuItem( template_menu, SWT.SEPARATOR );
 					
 					Engine[] engines = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngines( true, false );
 					
@@ -168,15 +133,7 @@ SearchUtils
 						
 						engine_menu_item.setText( engine.getName());
 
-						MenuItem remove_item = new MenuItem( engine_menu, SWT.PUSH );
-						
-						Messages.setLanguageText( remove_item, "Button.remove" );
-						
-						remove_item.addSelectionListener(new SelectionAdapter(){
-							public void widgetSelected(SelectionEvent e) {
-								engine.setSelectionState( Engine.SEL_STATE_FORCE_DESELECTED );
-							}
-						});	
+						addMenus( engine_menu, engine, false );
 					}
 				}
 			});
@@ -196,31 +153,107 @@ SearchUtils
 	
 	public static void
 	addMenus(
-		Menu				menu,
+		Menu				engine_menu,
 		final Engine		engine,
 		boolean				separator_required )
 	{
-		if ( engine instanceof PluginEngine ){
+		if ( separator_required ){
 			
-			return;
+			new MenuItem( engine_menu, SWT.SEPARATOR );
+			
+			separator_required = false;
+		}
+
+		if ( !( engine instanceof PluginEngine )){
+
+			MenuItem export_json = new MenuItem( engine_menu, SWT.PUSH );
+	
+			Messages.setLanguageText( export_json, "menu.export.json.to.clipboard" );
+			
+			export_json.addSelectionListener(new SelectionAdapter(){
+				public void widgetSelected(SelectionEvent e) {
+					final Shell shell = Utils.findAnyShell();
+					
+					shell.getDisplay().asyncExec(
+						new AERunnable() 
+						{
+							public void 
+							runSupport()
+							{
+								try{
+									ClipboardCopy.copyToClipBoard( engine.exportToVuzeFile().exportToJSON());
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						});
+				}});
+			
+	
+			final Subscription subs = engine.getSubscription();
+			
+			if ( subs != null ){
+				
+				MenuItem export_uri = new MenuItem( engine_menu, SWT.PUSH );
+	
+				Messages.setLanguageText( export_uri, "label.copy.uri.to.clip" );
+				
+				export_uri.addSelectionListener(new SelectionAdapter(){
+					public void widgetSelected(SelectionEvent e) {
+						final Shell shell = Utils.findAnyShell();
+						
+						shell.getDisplay().asyncExec(
+							new AERunnable() 
+							{
+								public void 
+								runSupport()
+								{
+									try{
+										ClipboardCopy.copyToClipBoard( subs.getURI());
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							});
+					}});
+			}
+					
+			new MenuItem( engine_menu, SWT.SEPARATOR );
+			
+			MenuItem remove_item = new MenuItem( engine_menu, SWT.PUSH );
+			
+			Messages.setLanguageText( remove_item, "Button.remove" );
+			
+			Utils.setMenuItemImage( remove_item, "delete" );
+			
+			remove_item.addSelectionListener(new SelectionAdapter(){
+				public void widgetSelected(SelectionEvent e) {
+					engine.setSelectionState( Engine.SEL_STATE_FORCE_DESELECTED );
+				}
+			});	
+			
+			separator_required = true;
 		}
 		
 		if ( separator_required ){
 			
-			new MenuItem( menu, SWT.SEPARATOR );
+			new MenuItem( engine_menu, SWT.SEPARATOR );
+			
+			separator_required = false;
 		}
 		
-		MenuItem remove_item = new MenuItem( menu, SWT.PUSH );
+		MenuItem show_props = new MenuItem( engine_menu, SWT.PUSH );
 		
-		Messages.setLanguageText( remove_item, "Button.remove" );
+		Messages.setLanguageText( show_props, "Subscription.menu.properties" );
 		
-		Utils.setMenuItemImage( remove_item, "delete" );
-		
-		remove_item.addSelectionListener(new SelectionAdapter(){
+		show_props.addSelectionListener(new SelectionAdapter(){
 			public void widgetSelected(SelectionEvent e) {
-				engine.setSelectionState( Engine.SEL_STATE_FORCE_DESELECTED );
-			}
-		});	
+				showProperties(engine);
+			}});
 	}
 	
 	public static void
@@ -253,6 +286,24 @@ SearchUtils
 								}
 							});
 						
+					org.gudy.azureus2.plugins.ui.menus.MenuItem import_menu = menuManager.addMenuItem( template_menu, "menu.import.json.from.clipboard" );
+
+					import_menu.addListener(
+						new MenuItemListener()
+						{
+							public void 
+							selected(
+								org.gudy.azureus2.plugins.ui.menus.MenuItem 	menu, 
+								Object 											target) 
+							{
+								importFromClipboard();
+							}
+						});
+					
+					org.gudy.azureus2.plugins.ui.menus.MenuItem sep = menuManager.addMenuItem( template_menu, "!sep!" );
+					
+					sep.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_SEPARATOR );
+					
 					for (int i=0;i<engines.length;i++){
 						
 						final Engine engine = engines[i];
@@ -261,7 +312,7 @@ SearchUtils
 						
 						engine_menu.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_MENU );
 
-						if ( true || engine.getSource() != Engine.ENGINE_SOURCE_VUZE ){
+						if (  !( engine instanceof PluginEngine )){
 							
 							org.gudy.azureus2.plugins.ui.menus.MenuItem mi = menuManager.addMenuItem( engine_menu, "MyTorrentsView.menu.exportmenu" );
 
@@ -321,20 +372,17 @@ SearchUtils
 												}
 											});						
 									}
-								});
-						}
-						
-						if ( Constants.IS_CVS_VERSION ){
-							
-							org.gudy.azureus2.plugins.ui.menus.MenuItem copy_mi = menuManager.addMenuItem( engine_menu, "ConfigView.copy.to.clipboard.tooltip" );
-
+								});				
+										
+							org.gudy.azureus2.plugins.ui.menus.MenuItem copy_mi = menuManager.addMenuItem( engine_menu, "menu.export.json.to.clipboard" );
+	
 							copy_mi.addListener(
 								new MenuItemListener()
 								{
 									public void 
 									selected(
-											org.gudy.azureus2.plugins.ui.menus.MenuItem menu, 
-										Object target) 
+										org.gudy.azureus2.plugins.ui.menus.MenuItem 	menu, 
+										Object 											target) 
 									{
 										final Shell shell = Utils.findAnyShell();
 										
@@ -355,61 +403,106 @@ SearchUtils
 											});
 									}
 								});
-						}
-						
-						if ( engine instanceof WebEngine ){
 							
-							final WebEngine we = (WebEngine)engine;
+							final Subscription subs = engine.getSubscription();
 							
-							if ( we.isNeedsAuth()){
+							if ( subs != null ){
 								
-								String cookies = we.getCookies();
-								
-								if ( cookies != null && cookies.length() > 0 ){
-									
-									org.gudy.azureus2.plugins.ui.menus.MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.resetauth" );
-
-									mi.addListener(
-										new MenuItemListener()
+								org.gudy.azureus2.plugins.ui.menus.MenuItem copy_uri = menuManager.addMenuItem( engine_menu, "label.copy.uri.to.clip" );
+	
+								copy_uri.addListener(
+									new MenuItemListener()
+									{
+										public void 
+										selected(
+											org.gudy.azureus2.plugins.ui.menus.MenuItem 	menu, 
+											Object 											target) 
 										{
-											public void 
-											selected(
-													org.gudy.azureus2.plugins.ui.menus.MenuItem menu, 
-												Object target) 
+											final Shell shell = Utils.findAnyShell();
+											
+											shell.getDisplay().asyncExec(
+												new AERunnable() 
+												{
+													public void 
+													runSupport()
+													{
+														try{
+															ClipboardCopy.copyToClipBoard( subs.getURI());
+															
+														}catch( Throwable e ){
+															
+															Debug.out( e );
+														}
+													}
+												});
+										}
+									});
+							}
+							
+							if ( engine instanceof WebEngine ){
+								
+								final WebEngine we = (WebEngine)engine;
+								
+								if ( we.isNeedsAuth()){
+									
+									String cookies = we.getCookies();
+									
+									if ( cookies != null && cookies.length() > 0 ){
+										
+										mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.resetauth" );
+	
+										mi.addListener(
+											new MenuItemListener()
 											{
-												we.setCookies( null );
-											}
-										});
+												public void 
+												selected(
+														org.gudy.azureus2.plugins.ui.menus.MenuItem menu, 
+													Object target) 
+												{
+													we.setCookies( null );
+												}
+											});
+									}
 								}
 							}
+						}
+													
+						if (  !( engine instanceof PluginEngine )){
+							
+							if ( engine_menu.getItems().length > 0 ){
+								
+								org.gudy.azureus2.plugins.ui.menus.MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.sep" );
+
+								mi.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_SEPARATOR );
+							}		
+
+							org.gudy.azureus2.plugins.ui.menus.MenuItem mi = menuManager.addMenuItem( engine_menu, "Button.remove" );
+	
+							mi.addListener(
+								new MenuItemListener()
+								{
+									public void 
+									selected(
+											org.gudy.azureus2.plugins.ui.menus.MenuItem menu, 
+										Object target) 
+									{
+										engine.setSelectionState( Engine.SEL_STATE_FORCE_DESELECTED );
+									}
+								});
+							
+							mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.sep2" );
+	
+							mi.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_SEPARATOR );
 						}
 						
 						if ( engine_menu.getItems().length > 0 ){
 							
-							org.gudy.azureus2.plugins.ui.menus.MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.sep" );
+							org.gudy.azureus2.plugins.ui.menus.MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.sep2" );
 
 							mi.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_SEPARATOR );
 						}		
-														
-						org.gudy.azureus2.plugins.ui.menus.MenuItem mi = menuManager.addMenuItem( engine_menu, "Button.remove" );
-
-						mi.addListener(
-							new MenuItemListener()
-							{
-								public void 
-								selected(
-										org.gudy.azureus2.plugins.ui.menus.MenuItem menu, 
-									Object target) 
-								{
-									engine.setSelectionState( Engine.SEL_STATE_FORCE_DESELECTED );
-								}
-							});
 						
-						mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.sep2" );
-
-						mi.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_SEPARATOR );
-						
-						mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.properties" );
+						org.gudy.azureus2.plugins.ui.menus.MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.properties" );
 
 						mi.addListener(
 							new MenuItemListener()
@@ -419,52 +512,9 @@ SearchUtils
 									org.gudy.azureus2.plugins.ui.menus.MenuItem menu, 
 									Object target) 
 								{
-									String	engine_str;
-									String	auth_str	= String.valueOf(false);
-									
-									engine_str = engine.getNameEx();
-									
-									if ( engine instanceof WebEngine ){
-									
-										WebEngine web_engine = (WebEngine)engine;
-										
-										if ( web_engine.isNeedsAuth()){
-											
-											auth_str = String.valueOf(true) + ": cookies=" + toString( web_engine.getRequiredCookies());
-										}
-									}
-									
-									String[] keys = {
-											"subs.prop.template",
-											"subs.prop.auth",
-										};
-									
-									String[] values = { 
-											engine_str,
-											auth_str,
-										};
-									
-									new PropertiesWindow( engine.getName(), keys, values );
-								}
-								
-								private String
-								toString(
-									String[]	strs )
-								{
-									String	res = "";
-									
-									for(int i=0;i<strs.length;i++){
-										res += (i==0?"":",") + strs[i];
-									}
-									
-									return( res );
+									showProperties( engine );
 								}
 							});
-						
-						if ( engine_menu.getItems().length == 0 ){
-							
-							engine_menu.setEnabled( false );
-						}
 					}
 				}
 			});
@@ -611,5 +661,149 @@ SearchUtils
 		}
 
 		dialog.open();
+	}
+	
+	private static void
+	importFromClipboard()
+	{
+		final Shell shell = Utils.findAnyShell();
+		
+		shell.getDisplay().asyncExec(
+			new AERunnable() 
+			{
+				public void 
+				runSupport()
+				{
+					try{
+						Clipboard clipboard = new Clipboard(Display.getDefault());
+						
+						String text = (String)clipboard.getContents(TextTransfer.getInstance());
+						
+						clipboard.dispose();
+						
+						if ( text != null ){
+							
+							InputStream is = new ByteArrayInputStream( text.getBytes( "UTF-8" ));
+							
+							try{
+								VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+								
+								VuzeFile vf = vfh.loadVuzeFile( is );
+								
+								if ( vf != null ){
+									
+									vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+								}
+							}finally{
+								
+								is.close();
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			});	
+	}
+	
+	private static void
+	exportAll()
+	{
+		final Shell shell = Utils.findAnyShell();
+		
+		shell.getDisplay().asyncExec(
+			new AERunnable() 
+			{
+				public void 
+				runSupport()
+				{
+					FileDialog dialog = 
+						new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
+					
+					dialog.setFilterPath( TorrentOpener.getFilterPathData() );
+											
+					dialog.setText(MessageText.getString("metasearch.export.select.template.file"));
+					
+					dialog.setFilterExtensions(new String[] {
+							"*.vuze",
+							"*.vuz",
+							org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
+						});
+					dialog.setFilterNames(new String[] {
+							"*.vuze",
+							"*.vuz",
+							org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
+						});
+					
+					String path = TorrentOpener.setFilterPathData( dialog.open());
+
+					if ( path != null ){
+						
+						String lc = path.toLowerCase();
+						
+						if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
+							
+							path += ".vuze";
+						}
+						
+						try{
+							MetaSearchManagerFactory.getSingleton().getMetaSearch().exportEngines(  new File( path ));
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});	
+	}
+	
+	private static void
+	showProperties(
+		Engine		engine )
+	{
+		String	engine_str;
+		String	auth_str	= String.valueOf(false);
+		
+		engine_str = engine.getNameEx();
+		
+		if ( engine instanceof WebEngine ){
+		
+			WebEngine web_engine = (WebEngine)engine;
+			
+			if ( web_engine.isNeedsAuth()){
+				
+				auth_str = String.valueOf(true) + ": cookies=" + toString( web_engine.getRequiredCookies());
+			}
+		}
+		
+		String[] keys = {
+				"subs.prop.template",
+				"subs.prop.auth",
+				"subs.prop.version",
+			};
+		
+		String[] values = { 
+				engine_str,
+				auth_str,
+				String.valueOf( engine.getVersion()),
+			};
+		
+		new PropertiesWindow( engine.getName(), keys, values );	
+	}
+	
+	
+	private static String
+	toString(
+		String[]	strs )
+	{
+		String	res = "";
+		
+		for(int i=0;i<strs.length;i++){
+			res += (i==0?"":",") + strs[i];
+		}
+		
+		return( res );
 	}
 }

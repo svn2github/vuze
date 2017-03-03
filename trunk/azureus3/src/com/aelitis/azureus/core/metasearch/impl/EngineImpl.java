@@ -24,9 +24,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
-
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -51,6 +52,9 @@ import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionManager;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -1316,6 +1320,35 @@ EngineImpl
 		String	key )
 	{
 		meta_search.addPotentialAssociation( this, key );
+	}
+	
+	@Override
+	public Subscription 
+	getSubscription() 
+	{
+		try{
+			VuzeFile vf = exportToVuzeFile( true );
+			
+			byte[] bytes = vf.exportToBytes();
+											
+			String url_str = "vuze://?body=" + new String( bytes, Constants.BYTE_ENCODING );
+							
+			SubscriptionManager sub_man = SubscriptionManagerFactory.getSingleton();
+	
+			Subscription subs =
+				sub_man.createSingletonRSS(
+					vf.getName() + ": " + getName() + " (v" + getVersion() + ")",
+					new URL( url_str ),
+					Integer.MAX_VALUE );
+		
+			return( subs );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( null );
 	}
 	
 	public void

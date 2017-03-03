@@ -1329,28 +1329,13 @@ MetaSearchManagerImpl
 	
 		if ( engine != null ){
 	
-			try{
-				VuzeFile vf = engine.exportToVuzeFile( true );
-				
-				byte[] bytes = vf.exportToBytes();
-												
-				String url_str = "vuze://?body=" + new String( bytes, Constants.BYTE_ENCODING );
-								
-				SubscriptionManager sub_man = SubscriptionManagerFactory.getSingleton();
-		
-				Subscription subs =
-					sub_man.createSingletonRSS(
-						vf.getName() + ": " + engine.getName() + " (v" + engine.getVersion() + ")",
-						new URL( url_str ),
-						Integer.MAX_VALUE );
+			Subscription subs = engine.getSubscription();
+			
+			if ( subs != null ){
 			
 				subs.setSubscribed( true );
 			
 				subs.addAssociation( hash );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
 			}
 		}
 	}
