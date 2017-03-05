@@ -50,6 +50,7 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.search.SBC_SearchResult;
+import com.aelitis.azureus.ui.swt.search.SBC_SearchResultsView;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinCheckboxListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
@@ -241,7 +242,7 @@ public class ColumnSearchSubResultActions
 				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP && event.button == 1 ){
 					if (hitUrl.url.equals("download")){
 						
-						downloadAction( entry );
+						SBC_SearchResultsView.downloadAction( entry );
 						
 					}else if ( hitUrl.url.equals("details")){
 						
@@ -303,192 +304,5 @@ public class ColumnSearchSubResultActions
 		return bounds;
 	}
 	
-	private static void
-	downloadAction(
-		final SearchSubsResultBase	entry )
-	{
-		String link = entry.getTorrentLink();
-		
-		if ( link.startsWith( "chat:" )){
-		
-			Utils.launch( link );
-			
-			return;
-		}
-		
-		showDownloadFTUX(
-			entry,
-			new UserPrompterResultListener() 
-			{
-				public void prompterClosed(int result) {
-		
-					if ( result == 0 ){
-						String referer_str = null;
-						
-						String torrentUrl = entry.getTorrentLink();
-				
-						if ( UrlFilter.getInstance().isWhitelisted( torrentUrl )){
-							
-							ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL( torrentUrl );
-							
-							if ( cn == null ){
-								
-								cn = ConstantsVuze.getDefaultContentNetwork();
-							}
-							
-							torrentUrl = cn.appendURLSuffix( torrentUrl, false, true );
-						}
-						
-						try{
-							Map headers = UrlUtils.getBrowserHeaders( referer_str );
-						
-							if ( entry instanceof SBC_SubscriptionResult ){					
-							
-								SBC_SubscriptionResult sub_entry = (SBC_SubscriptionResult)entry;
-								
-								Subscription subs = sub_entry.getSubscription();
-														
-								try{
-									Engine engine = subs.getEngine();
-									
-									if ( engine != null && engine instanceof WebEngine ){
-										
-										WebEngine webEngine = (WebEngine) engine;
-										
-										if ( webEngine.isNeedsAuth()){
-											
-											headers.put( "Cookie",webEngine.getCookies());
-										}
-									}
-								}catch( Throwable e ){
-								
-									Debug.out( e );
-								}
-													
-								subs.addPotentialAssociation( sub_entry.getID(), torrentUrl );
-								
-							}else{
-								
-								SBC_SearchResult	search_entry = (SBC_SearchResult)entry;
-				
-								Engine engine = search_entry.getEngine();
-								
-								if ( engine != null ){
-									
-									engine.addPotentialAssociation( torrentUrl );
-								
-									if ( engine instanceof WebEngine ){
-									
-										WebEngine webEngine = (WebEngine) engine;
-										
-										if ( webEngine.isNeedsAuth()){
-											
-											headers.put( "Cookie",webEngine.getCookies());
-										}
-									}
-								}
-							}
-							
-							byte[] torrent_hash = entry.getHash();
-							
-							if ( torrent_hash != null ){
-								
-								if ( torrent_hash != null && !torrentUrl.toLowerCase().startsWith( "magnet" )){
-									
-									String title = entry.getName();
-									
-									String magnet = UrlUtils.getMagnetURI( torrent_hash, title, null );
-									
-									headers.put( "X-Alternative-URI-1", magnet );
-								}
-							}
-							
-							PluginInitializer.getDefaultInterface().getDownloadManager().addDownload(
-									new URL(torrentUrl), 
-									headers );
-						
-						}catch( Throwable e ){
-							
-							Debug.out( e );
-						}
-					}		
-				}
-		});
-	}
-	
-	protected static void 
-	showDownloadFTUX(
-		SearchSubsResultBase				entry,
-		final UserPrompterResultListener 	listener ) 
-	{
-		if ( entry instanceof SBC_SubscriptionResult ){
-			
-			listener.prompterClosed( 0 );
-			
-			return;
-		}
-				
-		if ( RememberedDecisionsManager.getRememberedDecision( "searchsubs.dl.ftux" ) == 1 ){
-			
-			listener.prompterClosed( 0 );
-			
-			return;
-		}
-		
-		final VuzeMessageBox box = new VuzeMessageBox(
-				MessageText.getString("searchsubs.dl.ftux.title"), null, new String[] {
-					MessageText.getString("Button.ok"),
-					MessageText.getString("Button.cancel"),
-				}, 0);
-		box.setSubTitle(MessageText.getString("searchsubs.dl.ftux.heading"));
-			
-		final boolean[]	check_state = new boolean[]{ true };
 
-		box.setListener(new VuzeMessageBoxListener() {
-			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
-				SWTSkin skin = soExtra.getSkin();
-				addResourceBundle(skin, "com/aelitis/azureus/ui/swt/columns/searchsubs/",
-						"skin3_dl_ftux");
-
-				String id = "searchsubs.dlftux.shell";
-				skin.createSkinObject(id, id, soExtra);
-
-				final SWTSkinObjectCheckbox cb = (SWTSkinObjectCheckbox) skin.getSkinObject("agree-checkbox");
-				cb.setChecked( true );
-				cb.addSelectionListener(new SWTSkinCheckboxListener() {
-					public void checkboxChanged(SWTSkinObjectCheckbox so, boolean checked) {
-						check_state[0] = checked;
-					}
-				});
-			}
-		});
-		
-		box.open(
-			new UserPrompterResultListener()
-			{
-				public void prompterClosed(int result){
-					
-					if ( result == 0 && check_state[0] ){
-						
-						RememberedDecisionsManager.setRemembered( "searchsubs.dl.ftux", 1 ); 
-					}
-					
-					listener.prompterClosed(result);
-				}
-		 
-			});
-	}
-	
-	private static void addResourceBundle(SWTSkin skin, String path, String name) {
-		String sFile = path + name;
-		ClassLoader loader = ColumnSearchSubResultActions.class.getClassLoader();
-		SWTSkinProperties skinProperties = skin.getSkinProperties();
-		try {
-			ResourceBundle subBundle = ResourceBundle.getBundle(sFile,
-					Locale.getDefault(), loader);
-			skinProperties.addResourceBundle(subBundle, path, loader);
-		} catch (MissingResourceException mre) {
-			Debug.out(mre);
-		}
-	}
 }
