@@ -1315,6 +1315,7 @@ TagPropertyConstraintHandler
 		private static final int	KW_MIN_OF_HOUR 		= 11;
 		private static final int	KW_HOUR_OF_DAY 		= 12;
 		private static final int	KW_DAY_OF_WEEK 		= 13;
+		private static final int	KW_TAG_AGE 			= 14;
 		
 		static{
 			keyword_map.put( "shareratio", KW_SHARE_RATIO );
@@ -1344,6 +1345,8 @@ TagPropertyConstraintHandler
 			keyword_map.put( "hour_of_day", KW_HOUR_OF_DAY );
 			keyword_map.put( "dayofweek", KW_DAY_OF_WEEK );
 			keyword_map.put( "day_of_week", KW_DAY_OF_WEEK );
+			keyword_map.put( "tagage", KW_TAG_AGE );
+			keyword_map.put( "tag_age", KW_TAG_AGE );
 
 		}
 		
@@ -1985,6 +1988,27 @@ TagPropertyConstraintHandler
 								
 								return( ratio );
 							}
+							case KW_TAG_AGE:{
+								
+								result = null;	// don't cache this!
+									
+								long tag_added = tag.getTaggableAddedTime( dm );
+								
+								if ( tag_added <= 0 ){
+									
+									return( 0 );
+								}
+								
+								long age = (( SystemTime.getCurrentTime() - tag_added )/1000 );		// secs
+								
+								if ( age < 0 ){
+									
+									age = 0;
+								}
+								
+								return( age );
+							}
+
 							default:{
 							
 								Debug.out( "Invalid constraint keyword: " + str );
