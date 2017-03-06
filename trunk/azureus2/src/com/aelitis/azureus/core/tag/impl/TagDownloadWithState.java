@@ -468,6 +468,12 @@ TagDownloadWithState
 											
 											dm.pause();
 										}
+										
+										// recheck here in case it is an 'archive' action that requires
+										// download to be stopped
+									
+										checkMaximumTaggables();
+
 									}
 								});
 						}
@@ -1320,6 +1326,8 @@ TagDownloadWithState
 		
 		checkAggregateShareRatio();
 		
+		checkMaximumTaggables();
+
 		super.sync();
 	}
 	
@@ -1448,6 +1456,11 @@ TagDownloadWithState
 							runSupport()
 							{
 								dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
+								
+									// recheck here in case it is an 'archive' action that requires
+									// download to be stopped
+								
+								checkMaximumTaggables();
 							}
 						});
 				}
@@ -1681,6 +1694,11 @@ TagDownloadWithState
 		if ( max <= 0 ){
 			
 			return;
+		}
+		
+		if ( max == 999999 ){
+			
+			max = 0;
 		}
 				
 		int removal_strategy = getRemovalStrategy();
