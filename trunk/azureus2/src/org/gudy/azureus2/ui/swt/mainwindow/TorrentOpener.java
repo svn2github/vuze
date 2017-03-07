@@ -792,7 +792,7 @@ public class TorrentOpener {
 			}
 		}
 		// Do a quick check to see if it's a torrent
-		if (!TorrentUtil.isFileTorrent(torrentFile, torrentFile.getName(), !torrentOptions.getHideErrors())) {
+		if (!TorrentUtil.isFileTorrent(sOriginatingLocation, torrentFile, torrentFile.getName(), !torrentOptions.getHideErrors())) {
 			if (bDeleteFileOnCancel) {
 				torrentFile.delete();
 			}

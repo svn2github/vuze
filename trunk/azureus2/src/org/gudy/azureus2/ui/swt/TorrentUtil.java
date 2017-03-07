@@ -77,9 +77,11 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.speedmanager.SpeedLimitHandler;
+import com.aelitis.azureus.core.util.DNSUtils;
 import com.aelitis.azureus.core.util.HTTPUtils;
 import com.aelitis.azureus.core.util.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
@@ -2723,7 +2725,7 @@ public class TorrentUtil
 	 *
 	 * @since 3.0.2.3
 	 */
-	public static boolean isFileTorrent(File torrentFile, String torrentName, boolean warnOnError ) {
+	public static boolean isFileTorrent( String originatingLocation, File torrentFile, String torrentName, boolean warnOnError ) {
 		String sFirstChunk = null;
 		try {
 			sFirstChunk = FileUtil.readFileAsString(torrentFile, 16384).toLowerCase();
@@ -2759,10 +2761,49 @@ public class TorrentUtil
 			if ( warnOnError ){
 				String[] buttons;
 	
-				buttons = new String[] {
-					MessageText.getString("Button.ok")
-				};
-	
+				String	chat_key	= null;
+				String	chat_net	= null;
+				
+				if ( originatingLocation != null && originatingLocation.toLowerCase(Locale.US).startsWith( "http" )){
+					
+					try{
+						URL url = new URL( originatingLocation );
+						
+						String host = url.getHost();
+						
+						String interesting = DNSUtils.getInterestingHostSuffix( host );
+						
+						if ( interesting != null ){
+							
+							String net = AENetworkClassifier.categoriseAddress( host );
+							
+							if ( 	( net == AENetworkClassifier.AT_PUBLIC && BuddyPluginUtils.isBetaChatAvailable()) ||
+									( net == AENetworkClassifier.AT_I2P && BuddyPluginUtils.isBetaChatAnonAvailable())){
+								
+								chat_key	= "Torrent Error: " + interesting;
+								chat_net	= net;
+							}
+						}
+					}catch( Throwable e ){
+						
+					}
+				}
+				
+				if ( chat_key == null ){
+					
+					buttons = new String[] {
+						MessageText.getString("Button.ok")
+					};
+					
+				}else{
+					
+					buttons = new String[] {
+							MessageText.getString("label.chat"),
+							MessageText.getString("Button.ok"),
+							
+						};
+				}
+				
 				MessageBoxShell boxShell = new MessageBoxShell(
 						MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
 						MessageText.getString(
@@ -2772,13 +2813,34 @@ public class TorrentUtil
 									isHTML
 											? ""
 											: MessageText.getString("OpenTorrentWindow.mb.notTorrent.cannot.display")
-								}), buttons, 0);
+								}), buttons, buttons.length-1);
 	
 				if (isHTML) {
 					boxShell.setHtml(sFirstChunk);
 				}
 				
-				boxShell.open(null);
+				final String	f_chat_key = chat_key;
+				final String	f_chat_net = chat_net;
+				
+				boxShell.open(
+					new UserPrompterResultListener() {
+						
+						@Override
+						public void prompterClosed(int result) {
+							if ( f_chat_key != null && result == 0 ){
+								BuddyPluginUtils.createBetaChat( 
+										f_chat_net, 
+										f_chat_key,
+										new Runnable()
+										{
+											public void
+											run()
+											{
+											}
+										});
+							}
+						}
+					});
 			}
 			
 			return false;

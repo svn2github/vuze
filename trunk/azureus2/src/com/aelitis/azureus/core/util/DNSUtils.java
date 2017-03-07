@@ -26,6 +26,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 
+
 import org.gudy.azureus2.core3.util.Debug;
 
 
@@ -101,5 +102,62 @@ DNSUtils
 	{
 		public String
 		getString();
+	}
+	
+	public static String
+	getInterestingHostSuffix(
+		String		host )
+	{
+		if ( host == null ){
+			
+			return( null );
+		}
+		
+		String[] bits = host.split( "\\." );
+		
+		int	num_bits = bits.length;
+		
+		if ( bits[num_bits-1].equals( "dht" )){
+			
+			return( null );
+		}
+		
+		if ( bits.length > 2 ){
+			
+			// We want to find the most sensible name for the host, <prefix>+"."+ TLD
+			// Unfortuantely the TLD list is large and ever growing (see http://data.iana.org/TLD/tlds-alpha-by-domain.txt)
+			// and the rules for identifying valid ones even worse (see https://www.publicsuffix.org/list/public_suffix_list.dat)
+			
+			// so we assume that the host has its own dns prefix, e.g. tracker01.a.s.d.f, and want to drop the prefix
+			// to turn tracker.a.com -> a.com
+			// but also tracker.fred.org.uk -> fred.org.uk
+			// so.... gonna assume that a 2/3 character components from the right are boring
+			
+			int	hit = -1;
+			
+			for ( int i=num_bits-1;i>=0;i--){
+				
+				String bit = bits[i];
+				
+				if ( bit.length() > 3 ){
+					
+					hit = i;
+					
+					break;
+				}
+			}
+			
+			if ( hit > 0 ){
+				
+				host = "";
+				
+				for ( int i=hit;i<num_bits;i++){
+					
+					host += (host==""?"":".") + bits[i];
+				}
+			}
+		}
+		
+		return( host );
 	}
 }

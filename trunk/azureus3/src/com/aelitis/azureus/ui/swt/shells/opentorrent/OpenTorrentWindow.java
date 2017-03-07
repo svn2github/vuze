@@ -565,7 +565,7 @@ public class OpenTorrentWindow
 			}
 			
 			if ( !done ){
-				TorrentUtil.isFileTorrent(file, inf.getURL(), true );
+				TorrentUtil.isFileTorrent(inf.getURL(), file, inf.getURL(), true );
 			}
 			
 			if (file.exists()) {

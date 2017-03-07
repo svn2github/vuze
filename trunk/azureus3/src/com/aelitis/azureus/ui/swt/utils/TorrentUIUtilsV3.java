@@ -171,7 +171,7 @@ public class TorrentUIUtilsV3
 										file.deleteOnExit();
 
 										// Do a quick check to see if it's a torrent
-										if (!TorrentUtil.isFileTorrent(file, file.getName(), true)) {
+										if (!TorrentUtil.isFileTorrent(dlInfo.getDownloadURL(), file, file.getName(), true)) {
 											return;
 										}
 
