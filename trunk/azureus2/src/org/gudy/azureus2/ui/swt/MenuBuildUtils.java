@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.plugins.I2PHelpers;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 
 
 /**
@@ -502,10 +503,11 @@ public class MenuBuildUtils {
 							BuddyPluginUtils.createBetaChat(
 								AENetworkClassifier.AT_PUBLIC, 
 								chat_key,
-								new Runnable()
+								new BuddyPluginUtils.CreateChatCallback()
 								{
 									public void
-									run()
+									complete(
+										ChatInstance	chat )
 									{
 										pub_chat_pending.set( false );
 									}
@@ -532,10 +534,11 @@ public class MenuBuildUtils {
 								BuddyPluginUtils.createBetaChat( 
 									AENetworkClassifier.AT_I2P, 
 									chat_key,
-									new Runnable()
+									new BuddyPluginUtils.CreateChatCallback()
 									{
 										public void
-										run()
+										complete(
+											ChatInstance	chat )
 										{
 											anon_chat_pending.set( false );
 										}
@@ -626,10 +629,11 @@ public class MenuBuildUtils {
 													BuddyPluginUtils.createBetaChat(
 														AENetworkClassifier.AT_PUBLIC, 
 														chat_key,
-														new Runnable()
+														new BuddyPluginUtils.CreateChatCallback()
 														{
 															public void
-															run()
+															complete(
+																ChatInstance	chat )
 															{
 																if ( count.decrementAndGet() == 0 ){
 																
@@ -679,10 +683,11 @@ public class MenuBuildUtils {
 												BuddyPluginUtils.createBetaChat(
 													AENetworkClassifier.AT_I2P, 
 													chat_key,
-													new Runnable()
+													new BuddyPluginUtils.CreateChatCallback()
 													{
 														public void
-														run()
+														complete(
+															ChatInstance	chat )
 														{
 															if ( count.decrementAndGet() == 0 ){
 															

@@ -1903,7 +1903,7 @@ BuddyPluginBeta
 		}
 	}
 	
-	public void
+	public ChatInstance
 	getAndShowChat(
 		String		network,
 		String		key )
@@ -1920,9 +1920,11 @@ BuddyPluginBeta
 		ChatInstance chat = getChat( network, key) ;
 			
 		ui.openChat( chat );
+		
+		return( chat );
 	}
 	
-	public void
+	public ChatInstance
 	showChat(
 		ChatInstance	inst )
 		
@@ -1936,6 +1938,8 @@ BuddyPluginBeta
 		}
 							
 		ui.openChat( inst );
+		
+		return( inst );
 	}
 	
 	private String

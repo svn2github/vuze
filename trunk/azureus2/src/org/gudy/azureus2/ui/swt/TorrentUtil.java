@@ -82,6 +82,7 @@ import com.aelitis.azureus.core.util.HTTPUtils;
 import com.aelitis.azureus.core.util.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginUtils;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
@@ -2831,11 +2832,16 @@ public class TorrentUtil
 								BuddyPluginUtils.createBetaChat( 
 										f_chat_net, 
 										f_chat_key,
-										new Runnable()
+										new BuddyPluginUtils.CreateChatCallback()
 										{
 											public void
-											run()
+											complete(
+												ChatInstance	chat )
 											{
+												if ( chat != null ){
+												
+													chat.setInteresting( true );
+												}
 											}
 										});
 							}

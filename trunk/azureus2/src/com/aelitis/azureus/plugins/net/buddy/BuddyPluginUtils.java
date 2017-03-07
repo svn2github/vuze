@@ -103,19 +103,21 @@ BuddyPluginUtils
 	
 	public static void
 	createBetaChat(
-		final String		network,
-		final String		key,
-		final Runnable		callback )
+		final String				network,
+		final String				key,
+		final CreateChatCallback	callback )
 	{
 		new AEThread2( "Chat create async" )
 		{
 			public void
 			run()
 			{
+				ChatInstance	result = null;
+				
 				try{
 					BuddyPlugin bp = getPlugin();
 					
-					bp.getBeta().getAndShowChat( network, key );
+					result = bp.getBeta().getAndShowChat( network, key );
 					
 				}catch( Throwable e ){
 					
@@ -125,11 +127,19 @@ BuddyPluginUtils
 					
 					if ( callback != null ){
 					
-						callback.run();
+						callback.complete( result );
 					}
 				}
 			}
 		}.start();
+	}
+	
+	public interface
+	CreateChatCallback
+	{
+		public void
+		complete(
+			ChatInstance	chat );
 	}
 	
 	public static Map<String,Object>
