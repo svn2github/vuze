@@ -109,8 +109,9 @@ public class TagSettingsView
 
 		public folderOption initalSaveFolder;
 
-		public folderOption moveOnCompleteFolder;
-
+		public folderOption 			moveOnCompleteFolder;
+		public GenericBooleanParameter	moveOnCompleteOptions;
+		
 		public folderOption copyOnCompleteFolder;
 
 		public Text constraints;
@@ -758,7 +759,7 @@ public class TagSettingsView
 
 					Group gFiles = new Group(cMainComposite, SWT.NONE);
 					gFiles.setText(MessageText.getString( "label.file.settings"));
-					gridLayout = new GridLayout(4, false);
+					gridLayout = new GridLayout(5, false);
 					gFiles.setLayout(gridLayout);
 
 					gd = new GridData(SWT.FILL, SWT.NONE, true, false, 4, 1);
@@ -775,19 +776,49 @@ public class TagSettingsView
 								return fl.getTagInitialSaveFolder();
 							}
 						};
+
+						new Label( gFiles, SWT.NULL );
+
 					}
 
 					if (fl.supportsTagMoveOnComplete()) {
-						params.moveOnCompleteFolder = new folderOption(gFiles,
-								"label.move.on.comp") {
-							public void setFolder(File folder) {
-								fl.setTagMoveOnCompleteFolder(folder);
-							}
+						params.moveOnCompleteFolder = 
+							new folderOption(gFiles,
+								"label.move.on.comp") 
+							{
+								public void setFolder(File folder) {
+									
+									params.moveOnCompleteOptions.setEnabled( folder != null );
+									fl.setTagMoveOnCompleteFolder(folder);
+								}
 
-							public File getFolder() {
-								return fl.getTagMoveOnCompleteFolder();
-							}
-						};
+								public File getFolder() {
+									File result = fl.getTagMoveOnCompleteFolder();
+									
+									params.moveOnCompleteOptions.setEnabled( result != null );
+									
+									return( result );
+								}	
+							};
+							
+						params.moveOnCompleteOptions = new GenericBooleanParameter(
+								new BooleanParameterAdapter() {
+									@Override
+									public Boolean getBooleanValue(String key) {
+										return(( fl.getTagMoveOnCompleteOptions() & TagFeatureFileLocation.FL_TORRENT ) != 0);
+									}
+
+									@Override
+									public void setBooleanValue(String key, boolean value) {
+										long flags = fl.getTagMoveOnCompleteOptions();
+										if ( value ){
+											flags |= TagFeatureFileLocation.FL_TORRENT;
+										}else{
+											flags &= ~TagFeatureFileLocation.FL_TORRENT;
+										}
+										fl.setTagMoveOnCompleteOptions(flags);
+									}
+								}, gFiles, null, "label.move.torrent");						
 					}
 
 					if (fl.supportsTagCopyOnComplete()) {
@@ -801,6 +832,8 @@ public class TagSettingsView
 								return fl.getTagCopyOnCompleteFolder();
 							}
 						};
+					
+						new Label( gFiles, SWT.NULL );
 					}
 				}
 			}

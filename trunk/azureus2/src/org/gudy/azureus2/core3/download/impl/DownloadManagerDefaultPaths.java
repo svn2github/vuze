@@ -266,6 +266,11 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 
 		if ( move_to != null ){
 			
+			long	options = fl.getTagMoveOnCompleteOptions();
+			
+			boolean	move_data 		= ( options&TagFeatureFileLocation.FL_DATA ) != 0;
+			boolean	move_torrent 	= ( options&TagFeatureFileLocation.FL_TORRENT ) != 0;
+			
 	    	SourceSpecification source = new SourceSpecification();
 	    	
 	    		// we want to ignore the 'move only in def folder' constraint if the user hasn't
@@ -286,9 +291,18 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 			dest.setContext( "Tag '" + tag_target.getTagName( true ) + "' move-on-complete directory" );
 	
 			TransferSpecification trans = new TransferSpecification();
-			trans.setBoolean("torrent", "Move Torrent When Done");
-			trans.setString("torrent_path", "Move Torrent When Done Directory");
-	
+			
+			if ( move_torrent ){
+				
+				trans.setBoolean("torrent", true );
+				trans.setString("torrent_path_raw", move_to.getAbsolutePath());
+
+			}else{
+				
+				trans.setBoolean("torrent", "Move Torrent When Done");
+				trans.setString("torrent_path", "Move Torrent When Done Directory");
+			}
+			
 			MovementInformation tag_mi = new MovementInformation(source, dest, trans, "Tag Move on Completion");
 			
 	    	return( tag_mi );
@@ -558,7 +572,12 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 				
 					// update if needed
 				
-				String torrent_path = this.getString( "torrent_path" );
+				String torrent_path = this.getStringRaw( "torrent_path_raw" );
+				
+				if ( torrent_path == null ){
+					
+					torrent_path = this.getString( "torrent_path" );
+				}
 				
 				if ( torrent_path != null && torrent_path.trim().length() > 0 ){
 					

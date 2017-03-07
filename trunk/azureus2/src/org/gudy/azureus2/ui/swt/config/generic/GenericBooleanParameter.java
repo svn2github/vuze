@@ -129,6 +129,19 @@ public class GenericBooleanParameter
 		return adapter.getBooleanValue(name);
 	}
 
+	public void
+	setEnabled(
+		final boolean	enabled )
+	{
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (!checkBox.isDisposed()) {
+					checkBox.setEnabled(enabled);
+				}
+			}
+		});
+	}
+	
 	public void setSelected(final boolean selected) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {

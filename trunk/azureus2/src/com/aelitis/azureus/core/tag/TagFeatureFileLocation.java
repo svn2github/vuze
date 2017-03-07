@@ -25,6 +25,11 @@ import java.io.File;
 public interface 
 TagFeatureFileLocation 
 {
+	public static final long	FL_NONE			= 0x00;
+	public static final long	FL_DATA			= 0x01;
+	public static final long	FL_TORRENT		= 0x02;
+	public static final long	FL_BOTH			= 0xff;
+	
 		// initial location
 	
 	public boolean
@@ -48,6 +53,13 @@ TagFeatureFileLocation
 	public void
 	setTagMoveOnCompleteFolder(
 		File		folder );
+	
+	public long
+	getTagMoveOnCompleteOptions();
+	
+	public void
+	setTagMoveOnCompleteOptions(
+		long		opions );
 	
 		// copy 
 	

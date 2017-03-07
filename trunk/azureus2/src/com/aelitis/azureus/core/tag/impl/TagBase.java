@@ -68,6 +68,7 @@ TagBase
 	protected static final String	AT_RATELIMIT_UP_PRI				= "rl.uppri";
 	protected static final String	AT_XCODE_TARGET					= "xcode.to";
 	protected static final String	AT_FL_MOVE_COMP					= "fl.comp";
+	protected static final String	AT_FL_MOVE_COMP_OPT				= "fl.comp.o";
 	protected static final String	AT_FL_COPY_COMP					= "fl.copy";
 	protected static final String	AT_FL_INIT_LOC					= "fl.init";
 	protected static final String	AT_RATELIMIT_MIN_SR				= "rl.minsr";
@@ -661,6 +662,35 @@ TagBase
 			}
 		}
 	}
+	
+	public long
+	getTagMoveOnCompleteOptions()
+	{
+		if ( tag_fl != null ){
+			
+			return( readLongAttribute( AT_FL_MOVE_COMP_OPT, TagFeatureFileLocation.FL_DATA ));
+		}
+		
+		return( TagFeatureFileLocation.FL_NONE );
+	}
+	
+	public void
+	setTagMoveOnCompleteOptions(
+		long		options )
+	{
+		if ( tag_fl != null ){
+			
+			long	existing = getTagMoveOnCompleteOptions();
+			
+			if ( existing != options ){
+				
+				writeLongAttribute( AT_FL_MOVE_COMP_OPT, options );
+				
+				tag_type.fireChanged( this );
+			}
+		}	
+	}
+	
 	
 		// copy on complete
 		
