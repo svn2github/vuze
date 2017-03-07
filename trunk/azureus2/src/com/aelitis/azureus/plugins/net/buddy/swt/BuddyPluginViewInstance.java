@@ -369,6 +369,30 @@ BuddyPluginViewInstance
 		grid_data.horizontalSpan = 2;
 		Utils.setLayoutData(label, grid_data);
 		
+			// hide search/subcriptions
+		
+		final Button hide_search_subs = new Button( ui_area, SWT.CHECK );
+		
+		hide_search_subs.setText( lu.getLocalisedMessageText( "azbuddy.dchat.ui.hide.search_subs" ));
+				
+		hide_search_subs.setSelection( plugin_beta.getHideSearchSubs());
+		
+		hide_search_subs.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						plugin_beta.setHideSearchSubs( hide_search_subs.getSelection());
+					}
+				});	
+		
+		label = new Label( ui_area, SWT.NULL );
+		grid_data = new GridData();
+		grid_data.horizontalSpan = 2;
+		Utils.setLayoutData(label, grid_data);
+		
 			// standalone windows
 		
 		final Button stand_alone = new Button( ui_area, SWT.CHECK );

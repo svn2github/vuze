@@ -136,6 +136,7 @@ BuddyPluginBeta
 	private boolean					standalone_windows;
 	private boolean					windows_to_sidebar;
 	private boolean					hide_ratings;
+	private boolean					hide_search_subs;
 	
 	private int						private_chat_state;
 	private boolean					shared_anon_endpoint;
@@ -223,6 +224,7 @@ BuddyPluginBeta
 		standalone_windows		= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.standalone.windows", false );
 		windows_to_sidebar		= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.windows.to.sidebar", false );
 		hide_ratings			= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.hide.ratings", false );
+		hide_search_subs		= COConfigurationManager.getBooleanParameter( "azbuddy.dchat.ui.hide.search_subs", false );
 		
 		SimpleTimer.addPeriodicEvent(
 			"BPB:checkfave",
@@ -355,6 +357,23 @@ BuddyPluginBeta
 		hide_ratings			= b;
 		
 		COConfigurationManager.setParameter( "azbuddy.dchat.ui.hide.ratings", b );
+
+		COConfigurationManager.setDirty();
+	}
+	
+	public boolean
+	getHideSearchSubs()
+	{
+		return( hide_search_subs );
+	}
+	
+	public void
+	setHideSearchSubs(
+		boolean		b )
+	{
+		hide_search_subs			= b;
+		
+		COConfigurationManager.setParameter( "azbuddy.dchat.ui.hide.search_subs", b );
 
 		COConfigurationManager.setDirty();
 	}
@@ -4132,7 +4151,9 @@ BuddyPluginBeta
 					if ( msg.getFlagFlashOverride()){
 					
 						if ( getHideRatings() && msg.getFlagOrigin() == FLAGS_MSG_ORIGIN_RATINGS ){
-
+							
+						}else if ( getHideSearchSubs() && msg.getFlagOrigin() == FLAGS_MSG_ORIGIN_SUBS ){
+							
 						}else{
 							
 							last_message_requiring_attention = msg;
@@ -4143,6 +4164,8 @@ BuddyPluginBeta
 					if ( !msg.isIgnored()){
 					
 						if ( getHideRatings() && msg.getFlagOrigin() == FLAGS_MSG_ORIGIN_RATINGS ){
+						
+						}else if ( getHideSearchSubs() && msg.getFlagOrigin() == FLAGS_MSG_ORIGIN_SUBS ){
 						
 							// don't mark as requiring attention else icon will end up flashing with no visible message
 							

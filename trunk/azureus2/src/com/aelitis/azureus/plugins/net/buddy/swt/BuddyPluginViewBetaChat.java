@@ -3826,7 +3826,8 @@ BuddyPluginViewBetaChat
 		
 		ChatMessage	last_message_not_ours 		= null;
 		
-		boolean	ignore_ratings = beta.getHideRatings();
+		boolean	ignore_ratings 		= beta.getHideRatings();
+		boolean	ignore_search_subs 	= beta.getHideSearchSubs();
 		
 		for ( ChatMessage message: all_messages ){
 			
@@ -3839,11 +3840,15 @@ BuddyPluginViewBetaChat
 
 			if ( !message.isIgnored() && original_msg.length() > 0 ){
 				
-				if ( ignore_ratings ){
+				if ( ignore_ratings || ignore_search_subs ){
 					
 					int origin = message.getFlagOrigin();
 					
-					if ( origin == BuddyPluginBeta.FLAGS_MSG_ORIGIN_RATINGS ){
+					if ( origin == BuddyPluginBeta.FLAGS_MSG_ORIGIN_RATINGS && ignore_ratings ){
+						
+						continue;
+						
+					}else if ( origin == BuddyPluginBeta.FLAGS_MSG_ORIGIN_SUBS && ignore_search_subs ){
 						
 						continue;
 					}
