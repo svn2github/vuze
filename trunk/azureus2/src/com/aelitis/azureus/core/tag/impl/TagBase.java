@@ -70,7 +70,9 @@ TagBase
 	protected static final String	AT_FL_MOVE_COMP					= "fl.comp";
 	protected static final String	AT_FL_MOVE_COMP_OPT				= "fl.comp.o";
 	protected static final String	AT_FL_COPY_COMP					= "fl.copy";
+	protected static final String	AT_FL_COPY_COMP_OPT				= "fl.copy.o";
 	protected static final String	AT_FL_INIT_LOC					= "fl.init";
+	protected static final String	AT_FL_INIT_LOC_OPT				= "fl.init.o";
 	protected static final String	AT_RATELIMIT_MIN_SR				= "rl.minsr";
 	protected static final String	AT_RATELIMIT_MAX_SR				= "rl.maxsr";
 	protected static final String	AT_RATELIMIT_MAX_SR_ACTION		= "rl.maxsr.a";
@@ -614,6 +616,34 @@ TagBase
 		}
 	}
 	
+	public long
+	getTagInitialSaveOptions()
+	{
+		if ( tag_fl != null ){
+			
+			return( readLongAttribute( AT_FL_INIT_LOC_OPT, TagFeatureFileLocation.FL_DATA ));
+		}
+		
+		return( TagFeatureFileLocation.FL_NONE );
+	}
+	
+	public void
+	setTagInitialSaveOptions(
+		long		options )
+	{
+		if ( tag_fl != null ){
+			
+			long	existing = getTagInitialSaveOptions();
+			
+			if ( existing != options ){
+				
+				writeLongAttribute( AT_FL_INIT_LOC_OPT, options );
+				
+				tag_type.fireChanged( this );
+			}
+		}	
+	}
+	
 		// move on complete
 	
 	public boolean
@@ -691,7 +721,6 @@ TagBase
 		}	
 	}
 	
-	
 		// copy on complete
 		
 	public boolean
@@ -741,6 +770,33 @@ TagBase
 		}
 	}
 
+	public long
+	getTagCopyOnCompleteOptions()
+	{
+		if ( tag_fl != null ){
+			
+			return( readLongAttribute( AT_FL_COPY_COMP_OPT, TagFeatureFileLocation.FL_DATA ));
+		}
+		
+		return( TagFeatureFileLocation.FL_NONE );
+	}
+	
+	public void
+	setTagCopyOnCompleteOptions(
+		long		options )
+	{
+		if ( tag_fl != null ){
+			
+			long	existing = getTagCopyOnCompleteOptions();
+			
+			if ( existing != options ){
+				
+				writeLongAttribute( AT_FL_COPY_COMP_OPT, options );
+				
+				tag_type.fireChanged( this );
+			}
+		}	
+	}
 	
 		// min ratio
 	

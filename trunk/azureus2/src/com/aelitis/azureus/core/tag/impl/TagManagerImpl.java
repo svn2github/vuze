@@ -891,13 +891,39 @@ TagManagerImpl
 													});
 											}
 											
-											File new_loc = ((TagFeatureFileLocation)sl_tags.get(0)).getTagInitialSaveFolder();
+											TagFeatureFileLocation tag = (TagFeatureFileLocation)sl_tags.get(0);
 											
-											File old_loc = manager.getSaveLocation();
+											long	options = tag.getTagInitialSaveOptions();
 											
-											if ( !new_loc.equals( old_loc )){
+											boolean set_data 	= (options&TagFeatureFileLocation.FL_DATA) != 0;
+											boolean set_torrent = (options&TagFeatureFileLocation.FL_TORRENT) != 0;
+											
+											File new_loc = tag.getTagInitialSaveFolder();
+
+											if ( set_data ){
+																								
+												File old_loc = manager.getSaveLocation();
 												
-												manager.setTorrentSaveDir( new_loc.getAbsolutePath());
+												if ( !new_loc.equals( old_loc )){
+													
+													manager.setTorrentSaveDir( new_loc.getAbsolutePath());
+												}
+											}
+											
+											if ( set_torrent ){
+												
+												File old_torrent_file = new File( manager.getTorrentFileName());
+												
+												if ( old_torrent_file.exists()){
+																
+													try{
+														manager.setTorrentFile( new_loc,  old_torrent_file.getName());
+														
+													}catch( Throwable e ){
+														
+														Debug.out( e );
+													}
+												}
 											}
 										}
 									}
@@ -976,128 +1002,150 @@ TagManagerImpl
 					});
 			}
 			
-			final File new_loc = ((TagFeatureFileLocation)cc_tags.get(0)).getTagCopyOnCompleteFolder();
+			TagFeatureFileLocation fl = (TagFeatureFileLocation)cc_tags.get(0);
 			
-			File old_loc = manager.getSaveLocation();
+			final File new_loc = fl.getTagCopyOnCompleteFolder();
 			
-			if ( !new_loc.equals( old_loc )){
+			long	options = fl.getTagCopyOnCompleteOptions();
+			
+			boolean copy_data 		= (options&TagFeatureFileLocation.FL_DATA) != 0;
+			boolean copy_torrent 	= (options&TagFeatureFileLocation.FL_TORRENT) != 0;
+
+			if ( copy_data ){
 				
-				boolean do_it;
+				File old_loc = manager.getSaveLocation();
 				
-				synchronized( active_copy_on_complete ){
+				if ( !new_loc.equals( old_loc )){
 					
-					if ( active_copy_on_complete.contains( manager )){
+					boolean do_it;
+					
+					synchronized( active_copy_on_complete ){
 						
-						do_it = false;
-						
-					}else{
-						
-						active_copy_on_complete.add( manager );
-						
-						do_it = true;
+						if ( active_copy_on_complete.contains( manager )){
+							
+							do_it = false;
+							
+						}else{
+							
+							active_copy_on_complete.add( manager );
+							
+							do_it = true;
+						}
 					}
-				}
-				
-				if ( do_it ){
 					
-					new AEThread2( "tm:copy")
-					{
-						public void
-						run()
+					if ( do_it ){
+						
+						new AEThread2( "tm:copy")
 						{
-							try{
-								long stopped_and_incomplete_start 	= 0;
-								long looks_good_start 				= 0;
-								
-								while( true ){
+							public void
+							run()
+							{
+								try{
+									long stopped_and_incomplete_start 	= 0;
+									long looks_good_start 				= 0;
 									
-									if ( manager.isDestroyed()){
+									while( true ){
 										
-										throw( new Exception( "Download has been removed" ));
-									}
-									
-									DiskManager dm = manager.getDiskManager();
-								
-									if ( dm == null ){
-										
-										looks_good_start = 0;
-										
-										if ( !manager.getAssumedComplete()){
+										if ( manager.isDestroyed()){
 											
-											long	now = SystemTime.getMonotonousTime();
-											
-											if ( stopped_and_incomplete_start == 0 ){
-											
-												stopped_and_incomplete_start = now;
-												
-											}else if ( now - stopped_and_incomplete_start > 30*1000 ){
-												
-												throw( new Exception( "Download is stopped and incomplete" ));
-											}
-										}else{
-											
-											break;
+											throw( new Exception( "Download has been removed" ));
 										}
-									}else{
 										
-										stopped_and_incomplete_start = 0;
-										
-										if ( manager.getAssumedComplete()){
+										DiskManager dm = manager.getDiskManager();
+									
+										if ( dm == null ){
 											
-											if ( dm.getMoveProgress() == -1 && dm.getCompleteRecheckStatus() == -1 ){
+											looks_good_start = 0;
+											
+											if ( !manager.getAssumedComplete()){
 												
 												long	now = SystemTime.getMonotonousTime();
 												
-												if ( looks_good_start == 0 ){
+												if ( stopped_and_incomplete_start == 0 ){
 												
-													looks_good_start = now;
+													stopped_and_incomplete_start = now;
 													
-												}else if ( now - looks_good_start > 5*1000 ){
+												}else if ( now - stopped_and_incomplete_start > 30*1000 ){
 													
-													break;
+													throw( new Exception( "Download is stopped and incomplete" ));
 												}
+											}else{
+												
+												break;
 											}
 										}else{
 											
-											looks_good_start = 0;
+											stopped_and_incomplete_start = 0;
+											
+											if ( manager.getAssumedComplete()){
+												
+												if ( dm.getMoveProgress() == -1 && dm.getCompleteRecheckStatus() == -1 ){
+													
+													long	now = SystemTime.getMonotonousTime();
+													
+													if ( looks_good_start == 0 ){
+													
+														looks_good_start = now;
+														
+													}else if ( now - looks_good_start > 5*1000 ){
+														
+														break;
+													}
+												}
+											}else{
+												
+												looks_good_start = 0;
+											}
 										}
+										
+										//System.out.println( "Waiting" );
+										
+										Thread.sleep( 1000 );
 									}
 									
-									//System.out.println( "Waiting" );
+									manager.copyDataFiles( new_loc );
 									
-									Thread.sleep( 1000 );
-								}
-								
-								manager.copyDataFiles( new_loc );
-								
-								Logger.logTextResource(
-									new LogAlert(
-										manager, 
-										LogAlert.REPEATABLE,
-										LogAlert.AT_INFORMATION, 
-										"alert.copy.on.comp.done"),
-									new String[]{ manager.getDisplayName(), new_loc.toString()});
-								 
-							}catch( Throwable e ){
-								
-								 Logger.logTextResource(
-									new LogAlert(
-										manager, 
-										LogAlert.REPEATABLE,
-										LogAlert.AT_ERROR, 
-										"alert.copy.on.comp.fail"),
-									new String[]{ manager.getDisplayName(), new_loc.toString(), Debug.getNestedExceptionMessage(e)});
-								 
-							}finally{
-								
-								synchronized( active_copy_on_complete ){
+									Logger.logTextResource(
+										new LogAlert(
+											manager, 
+											LogAlert.REPEATABLE,
+											LogAlert.AT_INFORMATION, 
+											"alert.copy.on.comp.done"),
+										new String[]{ manager.getDisplayName(), new_loc.toString()});
+									 
+								}catch( Throwable e ){
 									
-									active_copy_on_complete.remove( manager );
+									 Logger.logTextResource(
+										new LogAlert(
+											manager, 
+											LogAlert.REPEATABLE,
+											LogAlert.AT_ERROR, 
+											"alert.copy.on.comp.fail"),
+										new String[]{ manager.getDisplayName(), new_loc.toString(), Debug.getNestedExceptionMessage(e)});
+									 
+								}finally{
+									
+									synchronized( active_copy_on_complete ){
+										
+										active_copy_on_complete.remove( manager );
+									}
+									
 								}
-								
 							}
-						}
-					}.start();
+						}.start();
+					}
+				}
+			}
+			
+			if ( copy_torrent ){
+				
+				File old_file = new File( manager.getTorrentFileName());
+				
+				if ( old_file.exists()){
+					
+					File new_file = new File( new_loc, old_file.getName());
+					
+					FileUtil.copyFile( old_file, new_file );
 				}
 			}
 		}
@@ -1369,11 +1417,35 @@ TagManagerImpl
 								
 								if ( dm.getGlobalManager().getDownloadManager( torrent.getHashWrapper()) != null ){
 									
-									File existing_save_loc = dm.getSaveLocation();
+									long	options = fl.getTagInitialSaveOptions();
 									
-									if ( ! ( existing_save_loc.equals( save_loc ) || existing_save_loc.exists())){
+									boolean set_data 	= (options&TagFeatureFileLocation.FL_DATA) != 0;
+									boolean set_torrent = (options&TagFeatureFileLocation.FL_TORRENT) != 0;
+
+									if ( set_data ){
+									
+										File existing_save_loc = dm.getSaveLocation();
 										
-										dm.setTorrentSaveDir( save_loc.getAbsolutePath());
+										if ( ! ( existing_save_loc.equals( save_loc ) || existing_save_loc.exists())){
+											
+											dm.setTorrentSaveDir( save_loc.getAbsolutePath());
+										}
+									}
+									
+									if ( set_torrent ){
+										
+										File old_torrent_file = new File( dm.getTorrentFileName());
+										
+										if ( old_torrent_file.exists()){
+														
+											try{
+												dm.setTorrentFile( save_loc, old_torrent_file.getName());
+												
+											}catch( Throwable e ){
+												
+												Debug.out( e );
+											}
+										}
 									}
 								}
 							}

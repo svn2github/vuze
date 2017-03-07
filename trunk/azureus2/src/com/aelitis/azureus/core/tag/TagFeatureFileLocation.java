@@ -42,6 +42,13 @@ TagFeatureFileLocation
 	setTagInitialSaveFolder(
 		File		folder );
 	
+	public long
+	getTagInitialSaveOptions();
+	
+	public void
+	setTagInitialSaveOptions(
+		long		opions );
+	
 		// move 
 	
 	public boolean
@@ -72,4 +79,11 @@ TagFeatureFileLocation
 	public void
 	setTagCopyOnCompleteFolder(
 		File		folder );
+	
+	public long
+	getTagCopyOnCompleteOptions();
+	
+	public void
+	setTagCopyOnCompleteOptions(
+		long		opions );
 }
