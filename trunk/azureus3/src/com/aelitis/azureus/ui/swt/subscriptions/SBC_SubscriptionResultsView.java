@@ -60,7 +60,6 @@ import com.aelitis.azureus.ui.swt.columns.searchsubs.*;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubResultNew;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.search.SBC_SearchResult;
 import com.aelitis.azureus.ui.swt.search.SBC_SearchResultsView;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.SearchSubsUtils;
@@ -822,7 +821,7 @@ SBC_SubscriptionResultsView
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				if ( rows.length == 1 ){
 					
-					SBC_SearchResult rc = (SBC_SearchResult)rows[0].getDataSource();
+					SBC_SubscriptionResult rc = (SBC_SubscriptionResult)rows[0].getDataSource();
 					
 					SBC_SearchResultsView.downloadAction( rc );
 				}
