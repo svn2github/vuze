@@ -44,7 +44,6 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
@@ -66,7 +65,6 @@ import com.aelitis.azureus.ui.swt.search.SBC_SearchResultsView;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.SearchSubsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.sun.org.apache.xml.internal.serializer.utils.Messages;
 
 public class 
 SBC_SubscriptionResultsView
