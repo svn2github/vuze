@@ -252,7 +252,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("CB", "Shareaza Plus");
 		addAzStyle("CD", "Enhanced CTorrent", VER_AZ_TWO_MAJ_TWO_MIN);      
 		addAzStyle("CT", "CTorrent", "1.2.34");
-		addAzStyle("DP", "Propogate Data Client");
+		addAzStyle("DP", "Propagate Data Client");
 		addAzStyle("DE", "Deluge", VER_AZ_FOUR_DIGITS);
 		addAzStyle("EB", "EBit");
 		addAzStyle("ES", "Electric Sheep", VER_AZ_THREE_DIGITS);
