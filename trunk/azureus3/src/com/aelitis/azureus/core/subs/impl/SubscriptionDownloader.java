@@ -104,7 +104,7 @@ SubscriptionDownloader
 		
 			log( "    Got " + results.length + " results" );
 			
-			SubscriptionResultFilter result_filter = new SubscriptionResultFilter(filters );
+			SubscriptionResultFilterImpl result_filter = new SubscriptionResultFilterImpl( subs, filters );
 
 			results = result_filter.filter( results );
 			

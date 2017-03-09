@@ -61,6 +61,7 @@ import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
+import com.aelitis.azureus.core.subs.SubscriptionResultFilter;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -822,7 +823,7 @@ SubscriptionImpl
 				
 				if ( filters != null && filters.size() > 0 ){
 					
-					name_ex += ", filters=" + new SubscriptionResultFilter(filters).getString();
+					name_ex += ", filters=" + new SubscriptionResultFilterImpl(this,filters).getString();
 				}
 				
 			}catch( Throwable e ){
@@ -854,7 +855,7 @@ SubscriptionImpl
 			
 			if ( filters != null && filters.size() > 0 ){
 				
-				name += ", filters=" + new SubscriptionResultFilter(filters).getString();
+				name += ", filters=" + new SubscriptionResultFilterImpl(this,filters).getString();
 			}
 			
 			return( name );
@@ -2204,6 +2205,19 @@ SubscriptionImpl
   		boolean		include_deleted )
 	{
 		return( getHistory().getResults( include_deleted ));
+	}
+	
+	@Override
+	public SubscriptionResultFilter 
+	getFilters() 
+	
+		throws SubscriptionException
+	{
+		Map map = JSONUtils.decodeJSON( getJSON());
+
+		Map		filters		= (Map)map.get( "filters" );
+
+		return( new SubscriptionResultFilterImpl( this, filters ));
 	}
 	
 	public void

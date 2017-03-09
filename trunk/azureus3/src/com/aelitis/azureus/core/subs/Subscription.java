@@ -247,6 +247,11 @@ Subscription
 	public String
 	getURI();
 	
+	public SubscriptionResultFilter
+	getFilters()
+	
+		throws SubscriptionException;
+	
 	public void
 	requestAttention();
 	
@@ -269,4 +274,6 @@ Subscription
 	
 	public String
 	getString();
+	
+		// fil
 }

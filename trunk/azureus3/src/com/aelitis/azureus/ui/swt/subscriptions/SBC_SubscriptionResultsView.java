@@ -44,9 +44,11 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
+import com.aelitis.azureus.core.subs.SubscriptionResultFilter;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
@@ -64,6 +66,7 @@ import com.aelitis.azureus.ui.swt.search.SBC_SearchResultsView;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.SearchSubsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.sun.org.apache.xml.internal.serializer.utils.Messages;
 
 public class 
 SBC_SubscriptionResultsView
@@ -214,15 +217,82 @@ SBC_SubscriptionResultsView
 			FormData fd;
 			GridLayout layout;
 			int sepHeight = 20;
-			
-			Composite cRow = new Composite(parent, SWT.NONE);
+						
+			Composite cFilters = new Composite(parent, SWT.NONE);
 			fd = Utils.getFilledFormData();
-			cRow.setLayoutData(fd);
+			cFilters.setLayoutData(fd);
+			
+			layout = new GridLayout( 1, true );
+			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+			layout.marginWidth = layout.marginHeight = 0;
+			
+			cFilters.setLayout( layout );
+			
+			SubscriptionResultFilter filters = null;
+			
+			Runnable pFilterUpdater = null;
+			
+			if ( ds.isUpdateable()){
+				
+				try{
+					filters = ds.getFilters();
+
+					Composite pFilters = new Composite(cFilters, SWT.NONE);
+					pFilters.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+					
+					layout = new GridLayout( 1, false );
+					layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
+					layout.marginWidth = layout.marginHeight = 0;
+					
+					pFilters.setLayout( layout );
+					
+					final Label pflabel = new Label( pFilters, SWT.NONE );
+					pflabel.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+					
+					final SubscriptionResultFilter f_filters = filters;
+
+					
+					pFilterUpdater = new Runnable()
+					{
+						public void
+						run()
+						{
+							long kInB = DisplayFormatters.getKinB();
+							long mInB = kInB*kInB;
+
+							long	min_size = f_filters.getMinSze()/mInB;
+							long	max_size = f_filters.getMaxSize()/mInB;
+							
+							
+							pflabel.setText( 
+								MessageText.getString( 
+									"subs.persistent.filters",
+									new String[]{
+										getString( f_filters.getWithWords()),	
+										getString( f_filters.getWithoutWords()),
+										String.valueOf(min_size<0?0:min_size ),
+										String.valueOf( max_size<0?0:max_size )
+									}));
+						}
+					};
+					
+					pFilterUpdater.run();
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+			
+			Composite vFilters = new Composite(cFilters, SWT.NONE);
+			vFilters.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+			
+			
 			RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
 			rowLayout.spacing = 5;
 			rowLayout.marginBottom = rowLayout.marginTop = rowLayout.marginLeft = rowLayout.marginRight = 0; 
 			rowLayout.center = true;
-			cRow.setLayout(rowLayout);
+			vFilters.setLayout(rowLayout);
 			
 			
 			// with/without keywords
@@ -235,11 +305,11 @@ SBC_SubscriptionResultsView
 		
 				if ( !with ){
 					
-					label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
+					label = new Label(vFilters, SWT.VERTICAL | SWT.SEPARATOR);
 					label.setLayoutData(new RowData(-1, sepHeight));
 				}
 				
-				Composite cWithKW = new Composite(cRow, SWT.NONE);
+				Composite cWithKW = new Composite(vFilters, SWT.NONE);
 				layout = new GridLayout(2, false);
 				layout.marginWidth = 0;
 				layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
@@ -287,10 +357,10 @@ SBC_SubscriptionResultsView
 					
 				// min size
 			
-			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
+			label = new Label(vFilters, SWT.VERTICAL | SWT.SEPARATOR);
 			label.setLayoutData(new RowData(-1, sepHeight));
 
-			Composite cMinSize = new Composite(cRow, SWT.NONE);
+			Composite cMinSize = new Composite(vFilters, SWT.NONE);
 			layout = new GridLayout(2, false);
 			layout.marginWidth = 0;
 			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
@@ -304,16 +374,16 @@ SBC_SubscriptionResultsView
 			spinMinSize.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
 					minSize = ((Spinner) event.widget).getSelection();
-					refilter();
+					refilter_dispatcher.dispatch();
 				}
 			});
 			
 			// max size
 			
-			label = new Label(cRow, SWT.VERTICAL | SWT.SEPARATOR);
+			label = new Label(vFilters, SWT.VERTICAL | SWT.SEPARATOR);
 			label.setLayoutData(new RowData(-1, sepHeight));
 
-			Composite cMaxSize = new Composite(cRow, SWT.NONE);
+			Composite cMaxSize = new Composite(vFilters, SWT.NONE);
 			layout = new GridLayout(2, false);
 			layout.marginWidth = 0;
 			layout.marginBottom = layout.marginTop = layout.marginLeft = layout.marginRight = 0;
@@ -327,16 +397,63 @@ SBC_SubscriptionResultsView
 			spinMaxSize.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
 					maxSize = ((Spinner) event.widget).getSelection();
-					refilter();
+					refilter_dispatcher.dispatch();
 				}
 			});
 			
-	
+			if ( filters != null ){
+				
+				label = new Label(vFilters, SWT.VERTICAL | SWT.SEPARATOR);
+				label.setLayoutData(new RowData(-1, sepHeight));
+				
+				final SubscriptionResultFilter 	f_filters 			= filters;
+				final Runnable					f_pFilterUpdater 	= pFilterUpdater;
+				
+				Button save = new Button( vFilters,SWT.PUSH );
+				save.setText( MessageText.getString( "ConfigView.button.save" ));
+				save.addListener(SWT.Selection, new Listener() {
+					@Override
+					public void handleEvent(Event event) {
+						
+						try{
+							long kInB = DisplayFormatters.getKinB();
+							long mInB = kInB*kInB;
+
+							f_filters.update(
+								with_keywords, without_keywords,
+								minSize*mInB, maxSize*mInB );
+							
+							f_pFilterUpdater.run();
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				});
+			}
 
 			parent.layout(true);
 		}
 
 		return null;
+	}
+	
+	private String
+	getString(
+		String[]	strs )
+	{
+		String result = "";
+		
+		if ( strs != null ){
+			
+			for ( String str: strs ){
+				
+				result += (result==""?"":", ") + str;
+			}
+		}
+		
+		return( result );
 	}
 	
 	private boolean 

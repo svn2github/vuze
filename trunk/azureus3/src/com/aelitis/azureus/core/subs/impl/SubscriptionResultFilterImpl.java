@@ -7,8 +7,14 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import com.aelitis.azureus.core.metasearch.Result;
+import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionResultFilter;
 import com.aelitis.azureus.util.ImportExportUtils;
+import com.aelitis.azureus.util.JSONUtils;
 
 /**
  * Copyright (C) Azureus Software, Inc, All Rights Reserved.
@@ -28,8 +34,10 @@ import com.aelitis.azureus.util.ImportExportUtils;
  */
 
 public class 
-SubscriptionResultFilter
+SubscriptionResultFilterImpl
+	implements SubscriptionResultFilter
 {
+	private final SubscriptionImpl		subs;
 	
 	private String[] 	textFilters;
 	private Pattern[]	textFilterPatterns;
@@ -43,6 +51,105 @@ SubscriptionResultFilter
 	private long minSize = -1;
 	private long maxSize = -1;
 	private String categoryFilter = null;
+	
+	public SubscriptionResultFilterImpl(SubscriptionImpl	_subs, Map filters) {
+		subs	= _subs;
+		
+		try {
+			textFilters = importStrings(filters,"text_filter"," ");
+			
+			textFilterPatterns = getPatterns( textFilters );
+			
+			excludeTextFilters = importStrings(filters,"text_filter_out"," ");
+			
+			excludeTextFilterPatterns = getPatterns( excludeTextFilters );
+
+			
+			regexFilter = ImportExportUtils.importString(filters, "text_filter_regex");
+			
+			minSize = ImportExportUtils.importLong(filters,"min_size",-1l);
+			
+			maxSize = ImportExportUtils.importLong(filters,"max_size",-1l);
+			
+			minSeeds = ImportExportUtils.importLong(filters, "min_seeds",-1l);
+			
+			String rawCategory = ImportExportUtils.importString(filters,"category");
+			if(rawCategory != null) {
+				categoryFilter = rawCategory.toLowerCase();
+			}
+			
+		} catch(Exception e) {
+			//Invalid filters array
+		}
+	}
+
+	
+	public long
+	getMinSze()
+	{
+		return( minSize );
+	}
+	
+	public long
+	getMaxSize()
+	{
+		return( maxSize );
+	}
+	
+	public String[]
+	getWithWords()
+	{
+		return( textFilters );
+	}
+	
+	public String[]
+	getWithoutWords()
+	{
+		return( excludeTextFilters );
+	}
+	
+	@Override
+	public void 
+	update(
+		String[] with_words, 
+		String[] without_words,
+		long min_size, long max_size )
+		
+		throws SubscriptionException
+	{
+		Map map = JSONUtils.decodeJSON( subs.getJSON());
+
+		Map filters = new JSONObject();
+		
+		map.put( "filters", filters );
+		
+		exportStrings( filters, "text_filter", with_words );
+		exportStrings( filters, "text_filter_out", without_words );
+		
+		if ( min_size <= 0 ){
+			min_size = -1;
+		}
+		
+		if ( max_size <= 0 ){
+			max_size = -1;
+		}
+		
+		filters.put( "min_size", min_size );
+		filters.put( "max_size", max_size );
+		
+		subs.setDetails( subs.getName( false ), subs.isPublic(), map.toString());
+		
+		textFilters	= with_words;
+		
+		textFilterPatterns = getPatterns( textFilters );
+
+		excludeTextFilters = without_words;
+		
+		excludeTextFilterPatterns = getPatterns( excludeTextFilters );
+
+		minSize = min_size;
+		maxSize = max_size;
+	}
 	
 	public String
 	getString()
@@ -92,34 +199,6 @@ SubscriptionResultFilter
 		return( res );
 	}
 	
-	public SubscriptionResultFilter(Map filters) {
-		try {
-			textFilters = importStrings(filters,"text_filter"," ");
-			
-			textFilterPatterns = getPatterns( textFilters );
-			
-			excludeTextFilters = importStrings(filters,"text_filter_out"," ");
-			
-			excludeTextFilterPatterns = getPatterns( excludeTextFilters );
-
-			
-			regexFilter = ImportExportUtils.importString(filters, "text_filter_regex");
-			
-			minSize = ImportExportUtils.importLong(filters,"min_size",-1l);
-			
-			maxSize = ImportExportUtils.importLong(filters,"max_size",-1l);
-			
-			minSeeds = ImportExportUtils.importLong(filters, "min_seeds",-1l);
-			
-			String rawCategory = ImportExportUtils.importString(filters,"category");
-			if(rawCategory != null) {
-				categoryFilter = rawCategory.toLowerCase();
-			}
-			
-		} catch(Exception e) {
-			//Invalid filters array
-		}
-	}
 
 	private static Pattern[] NO_PATTERNS = {};
 	
@@ -159,6 +238,27 @@ SubscriptionResultFilter
 			return stringFilter;
 		}
 		return new String[0];
+	}
+	
+	private void
+	exportStrings(
+		Map			map,
+		String		key,
+		String[]	values )
+	{
+		if ( values == null || values.length == 0 ){
+			
+			return;
+		}
+		
+		String encoded = "";
+		
+		for ( String value: values ){
+			
+			encoded += (encoded==""?"":" ") + value;
+		}
+		
+		map.put( key, encoded );
 	}
 	
 	public Result[] filter(Result[] results) {
