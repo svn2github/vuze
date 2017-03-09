@@ -773,7 +773,7 @@ RSSEngine
 					
 					if ( item_magnet != null ){
 						
-						String existing = result.getTorrentLink();
+						String existing = result.getTorrentLinkRaw();
 						
 						if ( existing == null || existing.length() == 0 ){
 						
@@ -827,7 +827,7 @@ RSSEngine
 							
 							if ( mag == null ){
 								
-								String tlink = result.getTorrentLink();
+								String tlink = result.getTorrentLinkRaw();
 								
 								if ( tlink != null ){
 									

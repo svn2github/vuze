@@ -364,10 +364,10 @@ public class WebResult extends Result {
 	 * @return
 	 */
 	
-	public String getTorrentLink(){
-		return( adjustLink( torrentLink ));
+	public String getTorrentLinkRaw(){
+		return( torrentLink );
 	}
-	
+		
 	public void setPlayLink(String playLink) {
 		this.playLink = playLink;
 	}
@@ -460,7 +460,10 @@ public class WebResult extends Result {
 		} else {
 			return getDownloadLink();
 		}
-		
+	}
+	
+	public String getTorrentLink(){
+		return( reConstructLink( torrentLink ));
 	}
 	
 	private String 

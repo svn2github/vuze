@@ -69,6 +69,8 @@ import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginHTTPProxy;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.table.TableView;
@@ -112,6 +114,8 @@ import com.aelitis.azureus.util.UrlFilter;
 public class UIFunctionsImpl
 	implements UIFunctionsSWT
 {
+	private static final boolean PROXY_VIEW_URL	= false;
+	
 	private final static String MSG_ALREADY_EXISTS = "OpenTorrentWindow.mb.alreadyExists";
 
 	private final static String MSG_ALREADY_EXISTS_NAME = MSG_ALREADY_EXISTS
@@ -499,9 +503,31 @@ public class UIFunctionsImpl
 					if (UrlFilter.getInstance().urlCanRPC(realURL)) {
 						realURL = cn.appendURLSuffix(realURL, false, true);
 					}
-					BrowserWindow window = new BrowserWindow( mainWindow.getShell(), realURL,
+					
+					PluginHTTPProxy proxy = null;
+					
+					try{
+						if ( PROXY_VIEW_URL ){
+							
+							proxy = AEProxyFactory.getPluginHTTPProxy( "viewURL", new URL( realURL ), true );
+						
+							realURL = proxy.proxifyURL( realURL );
+						}
+						
+						BrowserWindow window = new BrowserWindow( mainWindow.getShell(), realURL,
 							w, h, allowResize, isModal);
-					window.waitUntilClosed();
+						
+						window.waitUntilClosed();
+						
+					}catch( Throwable e ){
+						
+					}finally{
+						
+						if ( proxy != null ){
+						
+							proxy.destroy();
+						}
+					}
 				} else {
 					showURL(realURL, target);
 				}
@@ -528,9 +554,30 @@ public class UIFunctionsImpl
 					if (UrlFilter.getInstance().urlCanRPC(realURL)) {
 						realURL = cn.appendURLSuffix(realURL, false, true);
 					}
-					BrowserWindow window = new BrowserWindow( mainWindow.getShell(), realURL,
+					
+					PluginHTTPProxy proxy = null;
+					
+					try{
+						if ( PROXY_VIEW_URL ){
+						
+							proxy = AEProxyFactory.getPluginHTTPProxy( "viewURL", new URL( realURL ), true );
+					
+							realURL = proxy.proxifyURL( realURL );
+						}
+						
+						BrowserWindow window = new BrowserWindow( mainWindow.getShell(), realURL,
 							w, h, allowResize, isModal);
-					window.waitUntilClosed();
+						window.waitUntilClosed();
+						
+					}catch( Throwable e ){
+						
+					}finally{
+						
+						if ( proxy != null ){
+						
+							proxy.destroy();
+						}
+					}
 				} else {
 					showURL(realURL, target);
 				}
