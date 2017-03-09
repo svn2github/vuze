@@ -5182,7 +5182,7 @@ SubscriptionManagerImpl
 				
 				if ( subscriptions.length == 1 && subscriptions[0].isSearchTemplate() && !full_lookup ){
 					
-					searchTemplateOK( subscriptions[0] );
+					searchTemplateOK( subscriptions[0], download );
 				}
 			}
 		}catch( Throwable e ){
@@ -5220,7 +5220,8 @@ SubscriptionManagerImpl
 	
 	private void
 	searchTemplateOK(
-		final SubscriptionImpl	subs )
+		final SubscriptionImpl	subs,
+		final Download			download )
 	{
 		if ( BuddyPluginUtils.isBetaChatAvailable()){
 			
@@ -5231,6 +5232,25 @@ SubscriptionManagerImpl
 					public void 
 					runSupport() 
 					{
+						DHTPluginInterface dht = selectDHTPlugin( download );
+						
+						if ( dht == null ){
+							
+							return;
+						}
+						
+						String target_net = dht.getNetwork();
+						
+						if ( target_net != AENetworkClassifier.AT_PUBLIC ){
+							
+							if ( !BuddyPluginUtils.isBetaChatAnonAvailable()){
+								
+								return;
+							}
+							
+							target_net = AENetworkClassifier.AT_I2P;
+						}
+						
 						String name = subs.getName();
 						
 						int pos = name.indexOf( ':' );
@@ -5247,7 +5267,7 @@ SubscriptionManagerImpl
 
 						chat_st_done.add( name );
 						
-						final BuddyPluginBeta.ChatInstance chat = BuddyPluginUtils.getChat( AENetworkClassifier.AT_PUBLIC, "Search Templates" );
+						final BuddyPluginBeta.ChatInstance chat = BuddyPluginUtils.getChat( target_net, "Search Templates" );
 							
 						if ( chat != null ){
 								
@@ -5305,12 +5325,7 @@ SubscriptionManagerImpl
 		final SubscriptionImpl.association		assoc )
 	{
 		if ( BuddyPluginUtils.isBetaChatAvailable()){
-	
-			if ( subs.isAnonymous()){
 				
-				return;	// ignore for the moment
-			}
-			
 			chat_write_dispatcher.dispatch(
 				new AERunnable() {
 					
@@ -5332,8 +5347,10 @@ SubscriptionManagerImpl
 								
 								if ( chat != null ){
 									
-									if ( chat.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
+									String net = chat.getNetwork();
 									
+									if ( net == AENetworkClassifier.AT_PUBLIC || subs.isAnonymous()){
+																			
 										synchronized( chat_assoc_done ){
 											
 											if ( !chat_assoc_done.contains( chat )){
