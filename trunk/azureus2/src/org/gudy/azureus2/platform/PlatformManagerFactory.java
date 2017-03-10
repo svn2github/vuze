@@ -50,7 +50,9 @@ PlatformManagerFactory
 				try{
 					String cla = System.getProperty( "az.factory.platformmanager.impl", "" );
 
-					if ( cla.length() == 0 ){
+					boolean	explicit_class = cla.length() > 0;
+					
+					if ( !explicit_class ){
 						int platformType = getPlatformType();
 						switch (platformType) {
 							case PlatformManager.PT_WINDOWS:
@@ -79,8 +81,13 @@ PlatformManagerFactory
 					} catch (InvocationTargetException e) {
 					}
 
-					if (platform_manager == null) {
-						platform_manager = (PlatformManager)Class.forName( cla ).newInstance();
+					if ( explicit_class ){
+							// try default constructor as getSingleton method missing (but guaranteed
+							// to be there for built-in platform managers )
+						
+						if (platform_manager == null) {
+							platform_manager = (PlatformManager)Class.forName( cla ).newInstance();
+						}
 					}
 					
 				}catch( Throwable e ){
