@@ -118,7 +118,7 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     Messages.setLanguageText(label, "ConfigView.label.seeding.rankType.seed.fallback");
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    IntParameter intParamFallBack = new IntParameter(gSeedCount, "StartStopManager_iRankTypeSeedFallback");
+    IntParameter intParamFallBack = new IntParameter(gSeedCount, "StartStopManager_iRankTypeSeedFallback", 0, Integer.MAX_VALUE);
     intParamFallBack.setLayoutData(gridData);
 
     Label labelFallBackSeeds = new Label(gSeedCount, SWT.NULL);
@@ -162,7 +162,7 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     Messages.setLanguageText(label, "ConfigView.label.seeding.rankType.timed.minTimeWithPeers");
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    IntParameter intParamTimedPeersMinTime = new IntParameter(gTimed, "StartStopManager_iTimed_MinSeedingTimeWithPeers");
+    IntParameter intParamTimedPeersMinTime = new IntParameter(gTimed, "StartStopManager_iTimed_MinSeedingTimeWithPeers", 0, Integer.MAX_VALUE);
     intParamTimedPeersMinTime.setLayoutData(gridData);
 
     Control[] controlsTimed = { gTimed };

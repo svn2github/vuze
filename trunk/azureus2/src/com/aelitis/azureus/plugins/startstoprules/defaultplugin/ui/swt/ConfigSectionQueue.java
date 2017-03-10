@@ -75,7 +75,7 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		label = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.label.maxdownloads");
 		gridData = new GridData();
-		final IntParameter maxDLs = new IntParameter(cSection, "max downloads");
+		final IntParameter maxDLs = new IntParameter(cSection, "max downloads", 0, Integer.MAX_VALUE );
 		maxDLs.setLayoutData(gridData);
 
 			// subrow - ignore checking downloads 
@@ -111,7 +111,7 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents");
 		gridData = new GridData();
 		final IntParameter maxActiv = new IntParameter(cSection,
-				"max active torrents");
+				"max active torrents", 0, Integer.MAX_VALUE);
 		maxActiv.setLayoutData(gridData);
 
 		final Composite cMaxActiveOptionsArea = new Composite(cSection, SWT.NULL);
@@ -140,7 +140,7 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		gridData = new GridData();
 
 		final IntParameter maxActivWhenSeeding = new IntParameter(
-				cMaxActiveOptionsArea, "StartStopManager_iMaxActiveTorrentsWhenSeeding");
+				cMaxActiveOptionsArea, "StartStopManager_iMaxActiveTorrentsWhenSeeding", 0, Integer.MAX_VALUE);
 		maxActivWhenSeeding.setLayoutData(gridData);
 
 		// row
@@ -148,7 +148,7 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		label = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.label.mindownloads");
 		gridData = new GridData();
-		final IntParameter minDLs = new IntParameter(cSection, "min downloads");
+		final IntParameter minDLs = new IntParameter(cSection, "min downloads", 0, Integer.MAX_VALUE);
 		minDLs.setLayoutData(gridData);
 		minDLs.setMaximumValue(maxDLs.getValue() / 2);
 		
@@ -251,7 +251,7 @@ public class ConfigSectionQueue implements UISWTConfigSection
 
 		gridData = new GridData();
 		final IntParameter maxStalledSeeding = new IntParameter(
-				cMinSpeedActiveCDing, "StartStopManager_iMaxStalledSeeding");
+				cMinSpeedActiveCDing, "StartStopManager_iMaxStalledSeeding", 0, Integer.MAX_VALUE);
 		maxStalledSeeding.setMinimumValue(0);
 		maxStalledSeeding.setLayoutData(gridData);
 
