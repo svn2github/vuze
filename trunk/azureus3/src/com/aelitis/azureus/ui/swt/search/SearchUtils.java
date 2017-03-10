@@ -786,6 +786,7 @@ SearchUtils
 				"subs.prop.template",
 				"subs.prop.auth",
 				"subs.prop.query",
+				"label.anon",
 				"subs.prop.version",
 			};
 		
@@ -793,6 +794,7 @@ SearchUtils
 				engine_str,
 				auth_str,
 				url_str,
+				String.valueOf( engine.isAnonymous()),
 				String.valueOf( engine.getVersion()),
 			};
 		

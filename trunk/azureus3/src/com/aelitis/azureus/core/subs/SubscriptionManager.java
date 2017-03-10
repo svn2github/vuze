@@ -63,7 +63,8 @@ SubscriptionManager
 	createSingletonRSS(
 		String		name,
 		URL			url,
-		int			check_interval_mins )
+		int			check_interval_mins,
+		boolean		is_anon )
 	
 		throws SubscriptionException;
 	

@@ -1321,7 +1321,7 @@ EngineImpl
 	{
 		meta_search.addPotentialAssociation( this, key );
 	}
-	
+		
 	@Override
 	public Subscription 
 	getSubscription() 
@@ -1332,14 +1332,17 @@ EngineImpl
 			byte[] bytes = vf.exportToBytes();
 											
 			String url_str = "vuze://?body=" + new String( bytes, Constants.BYTE_ENCODING );
-							
+			
+			boolean is_anon = isAnonymous();
+			
 			SubscriptionManager sub_man = SubscriptionManagerFactory.getSingleton();
-	
+			
 			Subscription subs =
 				sub_man.createSingletonRSS(
 					vf.getName() + ": " + getName() + " (v" + getVersion() + ")",
 					new URL( url_str ),
-					Integer.MAX_VALUE );
+					Integer.MAX_VALUE,
+					is_anon );
 		
 			return( subs );
 			

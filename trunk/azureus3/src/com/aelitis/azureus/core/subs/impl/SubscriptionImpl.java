@@ -729,6 +729,11 @@ SubscriptionImpl
 	{
 		String str = "sub:?name=" + UrlUtils.encode(getName()) + "&id=" + Base32.encode(getShortID()) + "&v=" + getVersion();
 		
+		if ( is_anonymous ){
+			
+			str += "&a=1";
+		}
+		
 		return( "azplug:?id=subscription&arg=" + UrlUtils.encode( str ));
 	}
 	

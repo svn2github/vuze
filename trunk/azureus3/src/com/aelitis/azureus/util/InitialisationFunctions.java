@@ -117,7 +117,7 @@ public class InitialisationFunctions
 				{
 					Subscription subs =
 						SubscriptionManagerFactory.getSingleton().createSingletonRSS(
-						name, url, interval );
+						name, url, interval, false );
 					
 					if ( !subs.getName(false).equals( name )){
 					

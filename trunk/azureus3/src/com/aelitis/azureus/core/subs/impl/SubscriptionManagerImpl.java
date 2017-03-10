@@ -1452,11 +1452,12 @@ SubscriptionManagerImpl
 	createSingletonRSS(
 		String		name,
 		URL			url,
-		int			check_interval_mins )
+		int			check_interval_mins,
+		boolean		is_anon )
 		
 		throws SubscriptionException
 	{
-		return( createSingletonRSSSupport( name, url, true, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE, true ));
+		return( createSingletonRSSSupport( name, url, true, check_interval_mins, is_anon, SubscriptionImpl.ADD_TYPE_CREATE, true ));
 	}
 	
 	public Subscription
@@ -1471,7 +1472,7 @@ SubscriptionManagerImpl
 		
 		byte[] 	sid 		= null;
 		int		version		= -1;
-
+		boolean	is_anon		= false;
 		
 		int	pos = uri.indexOf( '?' );
 		
@@ -1496,6 +1497,10 @@ SubscriptionManagerImpl
 			}else if ( lhs.equals( "v" )){
 				
 				version = Integer.parseInt( rhs );
+				
+			}else if ( lhs.equals( "a" )){
+				
+				is_anon = rhs.equals( "1" );
 			}
 		}
 		
@@ -1508,6 +1513,7 @@ SubscriptionManagerImpl
 			new byte[20], 
 			sid, 
 			version, 
+			is_anon,
 			new subsLookupListener() {
 				
 				public void 
@@ -1575,13 +1581,14 @@ SubscriptionManagerImpl
 		String		name,
 		URL			url,
 		boolean		is_public,
-		int			check_interval_mins )
+		int			check_interval_mins,
+		boolean		is_anon )
 		
 		throws SubscriptionException
 	{
 		checkURL( url );
 		
-		Map	singleton_details = getSingletonMap(name, url, is_public, check_interval_mins);
+		Map	singleton_details = getSingletonMap(name, url, is_public, check_interval_mins, is_anon);
 		
 		byte[] sid = SubscriptionBodyImpl.deriveSingletonShortID(singleton_details);
 		
@@ -1595,6 +1602,7 @@ SubscriptionManagerImpl
 		URL			url,
 		boolean		is_public,
 		int			check_interval_mins,
+		boolean		is_anon,
 		int			add_type,
 		boolean		subscribe )
 		
@@ -1603,7 +1611,7 @@ SubscriptionManagerImpl
 		checkURL( url );
 		
 		try{
-			Subscription existing = lookupSingletonRSS( name, url, is_public, check_interval_mins );
+			Subscription existing = lookupSingletonRSS( name, url, is_public, check_interval_mins, is_anon );
 			
 			if ( existing != null ){
 				
@@ -1614,17 +1622,20 @@ SubscriptionManagerImpl
 			
 			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
 			
-			Map	singleton_details = getSingletonMap(name, url, is_public, check_interval_mins);
-			
-			boolean	is_anonymous = false;
-			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, is_public, is_anonymous, singleton_details, json, add_type );
+			Map	singleton_details = getSingletonMap(name, url, is_public, check_interval_mins, is_anon );
+						
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, is_public, is_anon, singleton_details, json, add_type );
 			
 			subs.setSubscribed( subscribe );
 			
 			log( "Created new singleton subscription: " + subs.getString());
 							
 			subs = addSubscription( subs );
+			
+			if ( subs.isPublic() && subs.isMine() && subs.isSearchTemplate()){
+				
+				updatePublicSubscription( subs );
+			}
 			
 			return( subs );
 			
@@ -1660,7 +1671,8 @@ SubscriptionManagerImpl
 		String		name,
 		URL			url,
 		boolean		is_public,
-		int			check_interval_mins )
+		int			check_interval_mins,
+		boolean		is_anon )
 	
 		throws SubscriptionException
 	{
@@ -1686,6 +1698,11 @@ SubscriptionManagerImpl
 				singleton_details.put( "ci", new Long( check_interval_mins ));
 			}
 			
+			if ( is_anon ){
+				
+				singleton_details.put( "a", new Long(1));
+			}
+			
 			return( singleton_details );
 		
 		}catch( Throwable e ){
@@ -1709,9 +1726,11 @@ SubscriptionManagerImpl
 			
 			int	check_interval_mins = (int)ImportExportUtils.importLong( singleton_details, "ci", SubscriptionHistoryImpl.DEFAULT_CHECK_INTERVAL_MINS );
 			
+			boolean	is_anon = ImportExportUtils.importLong( singleton_details, "a", 0 ) != 0;
+			
 				// only defined type is singleton rss
 			
-			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, true, check_interval_mins, add_type, subscribe );
+			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, true, check_interval_mins, is_anon, add_type, subscribe );
 			
 			return( s );
 			
@@ -2162,7 +2181,7 @@ SubscriptionManagerImpl
 	updatePublicSubscription(
 		final SubscriptionImpl		subs )
 	{		
-		if ( subs.isSingleton()){
+		if ( subs.isSingleton() && !( subs.isMine() && subs.isSearchTemplate())){
 			
 				// never update singletons
 			
@@ -2483,7 +2502,11 @@ SubscriptionManagerImpl
 					
 					boolean is_public = l_public==null?true:l_public.longValue()==1;
 					
-					SubscriptionImpl existing = lookupSingletonRSS(name, url, is_public, check_interval_mins );
+					Long	l_anon = (Long)map.get( "anon" );
+					
+					boolean is_anon = l_anon==null?false:l_anon.longValue()==1;
+					
+					SubscriptionImpl existing = lookupSingletonRSS(name, url, is_public, check_interval_mins, is_anon );
 					
 					if ( UrlFilter.getInstance().urlCanRPC( url.toExternalForm())){
 						
@@ -2535,7 +2558,7 @@ SubscriptionManagerImpl
 						
 						if ( existing == null ){
 					
-							SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSSSupport( name, url, is_public, check_interval_mins, SubscriptionImpl.ADD_TYPE_IMPORT, true );
+							SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSSSupport( name, url, is_public, check_interval_mins, is_anon, SubscriptionImpl.ADD_TYPE_IMPORT, true );
 																	
 							log( "Imported new singleton subscription: " + new_subs.getString());
 									
@@ -3597,7 +3620,7 @@ SubscriptionManagerImpl
 	
 	protected SubscriptionAssociationLookup
 	lookupAssociationsSupport(
-		DHTPluginInterface						dht_plugin,
+		final DHTPluginInterface				dht_plugin,
 		final byte[] 							hash,
 		final SubscriptionLookupListener		_listener )
 	
@@ -3723,6 +3746,8 @@ SubscriptionManagerImpl
 						
 						final int	ver = ((val[0]<<16)&0xff0000) | ((val[1]<<8)&0xff00) | (val[2]&0xff);
 
+							// val[3] is fixed-random
+						
 						final byte[]	sid = new byte[ val.length - 4 ];
 						
 						System.arraycopy( val, 4, sid, 0, sid.length );
@@ -3789,10 +3814,13 @@ SubscriptionManagerImpl
 										public void
 										runSupport()
 										{
+											boolean is_anon = dht_plugin!=dht_plugin_public;
+											
 											lookupSubscription( 
 												hash, 
 												sid, 
 												ver,
+												is_anon,
 												new subsLookupListener()
 												{
 													private boolean sem_done = false;
@@ -4277,10 +4305,11 @@ SubscriptionManagerImpl
 		final byte[]						association_hash,
 		final byte[]						sid,
 		final int							version,
+		boolean								is_anon,		
 		final subsLookupListener			listener )
 	{
 		try{
-			SubscriptionImpl subs = getSubscriptionFromPlatform( sid, SubscriptionImpl.ADD_TYPE_LOOKUP );
+			SubscriptionImpl subs = getSubscriptionFromPlatform( sid, is_anon, SubscriptionImpl.ADD_TYPE_LOOKUP );
 
 			log( "Added temporary subscription: " + subs.getString());
 			
@@ -4454,12 +4483,13 @@ SubscriptionManagerImpl
 	protected SubscriptionImpl
 	getSubscriptionFromPlatform(
 		byte[]		sid,
+		boolean		is_anon,
 		int			add_type )
 	
 		throws SubscriptionException
 	{
 		try{
-			PlatformSubscriptionsMessenger.subscriptionDetails details = PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
+			PlatformSubscriptionsMessenger.subscriptionDetails details = PlatformSubscriptionsMessenger.getSubscriptionBySID( sid, is_anon );
 			
 			SubscriptionImpl res = getSubscriptionFromVuzeFileContent( sid, add_type, details.getContent());
 			
@@ -6089,7 +6119,7 @@ SubscriptionManagerImpl
 		if ( !subs.isAnonymous()){
 			
 			try{
-				PlatformSubscriptionsMessenger.subscriptionDetails details = PlatformSubscriptionsMessenger.getSubscriptionBySID( sub_id );
+				PlatformSubscriptionsMessenger.subscriptionDetails details = PlatformSubscriptionsMessenger.getSubscriptionBySID( sub_id, false );
 				
 				if ( !askIfCanUpgrade( subs, new_version )){
 					

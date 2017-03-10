@@ -542,6 +542,18 @@ WebEngine
 		}
 	}
 	
+	public boolean 
+	isAnonymous() 
+	{
+		try{
+			return( AENetworkClassifier.categoriseAddress( new URL( searchURLFormat ).getHost()) != AENetworkClassifier.AT_PUBLIC );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
+	}
+	
 	protected pageDetails 
 	getWebPageContent(
 		SearchParameter[] 	searchParameters,

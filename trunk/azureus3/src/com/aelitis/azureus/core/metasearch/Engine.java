@@ -227,6 +227,9 @@ Engine
 	isShareable();
 	
 	public boolean
+	isAnonymous();
+	
+	public boolean
 	isAuthenticated();
 	
 		/**

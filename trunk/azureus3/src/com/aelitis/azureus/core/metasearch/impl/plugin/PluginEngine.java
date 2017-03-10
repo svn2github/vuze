@@ -228,6 +228,13 @@ PluginEngine
 		return( false );
 	}
 	
+	@Override
+	public boolean 
+	isAnonymous() 
+	{
+		return( false );
+	}
+	
 	public String 
 	getIcon() 
 	{

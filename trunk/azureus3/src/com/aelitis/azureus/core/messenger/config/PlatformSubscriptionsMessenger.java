@@ -105,7 +105,8 @@ PlatformSubscriptionsMessenger
 	
 	public static subscriptionDetails 
 	getSubscriptionBySID(
-		byte[]		sid )
+		byte[]		sid,
+		boolean		is_anon )
 	
 		throws PlatformMessengerException
 	{
@@ -119,7 +120,7 @@ PlatformSubscriptionsMessenger
 		
 		parameters.put( "subscription_ids", sid_list);
 		
-		Map reply = dispatcher.syncInvoke(	OP_GET_SUBS_BY_SID, parameters ); 
+		Map reply = dispatcher.syncInvoke(	OP_GET_SUBS_BY_SID, parameters, is_anon ); 
 
 		for (int i=0;i<sid_list.size();i++){
 			
