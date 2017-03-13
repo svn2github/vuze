@@ -276,7 +276,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 	    		// we want to ignore the 'move only in def folder' constraint if the user hasn't
 	    		// enabled overall move-on-complete otherwise this is confusing  
 	    	
-	    	if ( def_mi.target.getBoolean( "enabled" ) ){
+	    	if ( def_mi.target.getBoolean( "enabled", false ) ){
 	    		source.setBoolean( "default dir", "Move Only When In Default Save Dir" );
 	    		source.setBoolean( "default subdir", SUBDIR_PARAM );
 	    	}else{
@@ -294,7 +294,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 				
 			}else{
 				
-				dest.setBoolean( "enabled", def_mi.target.getBoolean( "enabled" ));	
+				dest.setBoolean( "enabled", def_mi.target.getBoolean( "enabled", false ));	
 			}
 			
 			dest.setContext( "Tag '" + tag_target.getTagName( true ) + "' move-on-complete directory" );
@@ -435,9 +435,9 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		private final Map settings = new HashMap();
 		private String context = null;
 
-		protected boolean getBoolean(String key) {
+		protected boolean getBoolean(String key, boolean def) {
 			Object result = this.settings.get(key);
-			if (result == null) {throw new RuntimeException("bad key: " + key);}
+			if (result == null) {return( def );}
 			if (result instanceof Boolean) {return ((Boolean)result).booleanValue();}
             return COConfigurationManager.getBooleanParameter((String)result);
         }
@@ -475,7 +475,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
     private static class SourceSpecification extends ParameterHelper {
 
 		public boolean matchesDownload(DownloadManager dm, ContextDescriptor context, boolean ignore_completeness ) {
-			if (this.getBoolean("default dir")) {
+			if (this.getBoolean("default dir", false)) {
 				logInfo("Checking if " + describe(dm, context) + " is inside default dirs.", dm);
 				File[] default_dirs = getDefaultDirs();
 				File current_location = dm.getSaveLocation().getParentFile();
@@ -493,7 +493,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 					logWarn(describe(dm, context) +
 					    " doesn't exist in any of the following default directories" +
 					    " (current dir: " + current_location + ", subdirectories checked: " +
-					    this.getBoolean("default subdir") + ") - " + Arrays.asList(default_dirs), dm);
+					    this.getBoolean("default subdir", false) + ") - " + Arrays.asList(default_dirs), dm);
 					return false;
 				}
 				logInfo(describe(dm, context) + " does exist inside default dirs.", dm);
@@ -501,7 +501,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 
 			// Does it work for incomplete downloads?
   			if (!dm.isDownloadComplete(false)) {
-  				boolean can_move = ignore_completeness || this.getBoolean("incomplete dl");
+  				boolean can_move = ignore_completeness || this.getBoolean("incomplete dl", false);
   				String log_message = describe(dm, context) + " is incomplete which is " +
   			    	((can_move) ? "" : "not ") + "an appropriate state.";
   				if (!can_move) {
@@ -515,7 +515,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		
 		public boolean checkDefaultDir(File location, File[] default_dirs) {
 			location = FileUtil.canonise(location);
-			boolean subdir = this.getBoolean("default subdir");
+			boolean subdir = this.getBoolean("default subdir", false);
 			for (int i=0; i<default_dirs.length; i++) {
 				if (subdir) {
 					if (FileUtil.isAncestorOf(default_dirs[i], location)) {return true;}
@@ -536,7 +536,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 			File	data_target;
 			File	torrent_target;
 
-			boolean	data_enabled = this.getBoolean("enabled");
+			boolean	data_enabled = this.getBoolean("enabled", false);
 			
 			if ( !data_enabled ){
 				
@@ -575,7 +575,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 				}
 			}
 						
-			boolean	torrent_enabled = this.getBoolean("torrent");
+			boolean	torrent_enabled = this.getBoolean("torrent", false);
 				
 			if ( !torrent_enabled ){
 				
