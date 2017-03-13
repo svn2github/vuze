@@ -4500,7 +4500,10 @@ public class OpenTorrentOptionsWindow
 											
 											if ( save_loc != null ){
 												
-												setSavePath( save_loc.getAbsolutePath());
+												if (( fl.getTagInitialSaveOptions() & TagFeatureFileLocation.FL_DATA ) != 0 ){
+												
+													setSavePath( save_loc.getAbsolutePath());
+												}
 											}
 										}
 									}else{
@@ -4513,7 +4516,9 @@ public class OpenTorrentOptionsWindow
 											
 											File save_loc = fl.getTagInitialSaveFolder();
 											
-											if ( save_loc != null && getSavePath().equals( save_loc.getAbsolutePath())){
+											if ( 	save_loc != null && 
+													( fl.getTagInitialSaveOptions() & TagFeatureFileLocation.FL_DATA ) != 0 &&
+													getSavePath().equals( save_loc.getAbsolutePath())){
 												
 												String old = (String)parent.getData( SP_KEY );
 												

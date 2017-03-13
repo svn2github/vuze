@@ -108,13 +108,16 @@ public class TagSettingsView
 		public GenericBooleanParameter	max_aggregate_sr_priority;
 
 		public folderOption 			initalSaveFolder;
-		public GenericBooleanParameter	initalSaveOptions;
+		public GenericBooleanParameter	initalSaveData;
+		public GenericBooleanParameter	initalSaveTorrent;
 		
 		public folderOption 			moveOnCompleteFolder;
-		public GenericBooleanParameter	moveOnCompleteOptions;
+		public GenericBooleanParameter	moveOnCompleteData;
+		public GenericBooleanParameter	moveOnCompleteTorrent;
 		
 		public folderOption 			copyOnCompleteFolder;
-		public GenericBooleanParameter	copyOnCompleteOptions;
+		public GenericBooleanParameter	copyOnCompleteData;
+		public GenericBooleanParameter	copyOnCompleteTorrent;
 
 		public Text constraints;
 		
@@ -761,7 +764,7 @@ public class TagSettingsView
 
 					Group gFiles = new Group(cMainComposite, SWT.NONE);
 					gFiles.setText(MessageText.getString( "label.file.settings"));
-					gridLayout = new GridLayout(5, false);
+					gridLayout = new GridLayout(6, false);
 					gFiles.setLayout(gridLayout);
 
 					gd = new GridData(SWT.FILL, SWT.NONE, true, false, 4, 1);
@@ -774,18 +777,39 @@ public class TagSettingsView
 								"label.init.save.loc") 
 							{
 								public void setFolder(File folder) {
-									params.initalSaveOptions.setEnabled( folder != null );
+									params.initalSaveData.setEnabled( folder != null );
+									params.initalSaveTorrent.setEnabled( folder != null );
 									fl.setTagInitialSaveFolder(folder);
 								}
 
 								public File getFolder() {
 									File result = fl.getTagInitialSaveFolder();
-									params.initalSaveOptions.setEnabled( result != null );
+									params.initalSaveData.setEnabled( result != null );
+									params.initalSaveTorrent.setEnabled( result != null );
 									return( result );
 								}
 							};
 
-						params.initalSaveOptions = new GenericBooleanParameter(
+						params.initalSaveData = new GenericBooleanParameter(
+								new BooleanParameterAdapter() {
+									@Override
+									public Boolean getBooleanValue(String key) {
+										return(( fl.getTagInitialSaveOptions() & TagFeatureFileLocation.FL_DATA ) != 0);
+									}
+
+									@Override
+									public void setBooleanValue(String key, boolean value) {
+										long flags = fl.getTagInitialSaveOptions();
+										if ( value ){
+											flags |= TagFeatureFileLocation.FL_DATA;
+										}else{
+											flags &= ~TagFeatureFileLocation.FL_DATA;
+										}
+										fl.setTagInitialSaveOptions(flags);
+									}
+								}, gFiles, null, "label.move.data");		
+
+						params.initalSaveTorrent = new GenericBooleanParameter(
 								new BooleanParameterAdapter() {
 									@Override
 									public Boolean getBooleanValue(String key) {
@@ -814,20 +838,41 @@ public class TagSettingsView
 							{
 								public void setFolder(File folder) {
 									
-									params.moveOnCompleteOptions.setEnabled( folder != null );
+									params.moveOnCompleteData.setEnabled( folder != null );
+									params.moveOnCompleteTorrent.setEnabled( folder != null );
 									fl.setTagMoveOnCompleteFolder(folder);
 								}
 
 								public File getFolder() {
 									File result = fl.getTagMoveOnCompleteFolder();
 									
-									params.moveOnCompleteOptions.setEnabled( result != null );
+									params.moveOnCompleteData.setEnabled( result != null );
+									params.moveOnCompleteTorrent.setEnabled( result != null );
 									
 									return( result );
 								}	
 							};
+						
+						params.moveOnCompleteData = new GenericBooleanParameter(
+								new BooleanParameterAdapter() {
+									@Override
+									public Boolean getBooleanValue(String key) {
+										return(( fl.getTagMoveOnCompleteOptions() & TagFeatureFileLocation.FL_DATA ) != 0);
+									}
+
+									@Override
+									public void setBooleanValue(String key, boolean value) {
+										long flags = fl.getTagMoveOnCompleteOptions();
+										if ( value ){
+											flags |= TagFeatureFileLocation.FL_DATA;
+										}else{
+											flags &= ~TagFeatureFileLocation.FL_DATA;
+										}
+										fl.setTagMoveOnCompleteOptions(flags);
+									}
+								}, gFiles, null, "label.move.torrent");		
 							
-						params.moveOnCompleteOptions = new GenericBooleanParameter(
+						params.moveOnCompleteTorrent = new GenericBooleanParameter(
 								new BooleanParameterAdapter() {
 									@Override
 									public Boolean getBooleanValue(String key) {
@@ -855,18 +900,39 @@ public class TagSettingsView
 							{
 								public void setFolder(File folder) 
 								{
-									params.copyOnCompleteOptions.setEnabled( folder != null );
-									fl.setTagCopyOnCompleteFolder(folder);
+									params.copyOnCompleteData.setEnabled( folder != null );
+									params.copyOnCompleteTorrent.setEnabled( folder != null );
+															fl.setTagCopyOnCompleteFolder(folder);
 								}
 
 								public File getFolder() {
 									File result = fl.getTagCopyOnCompleteFolder();
-									params.copyOnCompleteOptions.setEnabled( result != null );
-									return( result );
+									params.copyOnCompleteData.setEnabled( result != null );
+									params.copyOnCompleteTorrent.setEnabled( result != null );
+															return( result );
 								}
 							};
 					
-						params.copyOnCompleteOptions = new GenericBooleanParameter(
+						params.copyOnCompleteData = new GenericBooleanParameter(
+								new BooleanParameterAdapter() {
+									@Override
+									public Boolean getBooleanValue(String key) {
+										return(( fl.getTagCopyOnCompleteOptions() & TagFeatureFileLocation.FL_DATA ) != 0);
+									}
+
+									@Override
+									public void setBooleanValue(String key, boolean value) {
+										long flags = fl.getTagCopyOnCompleteOptions();
+										if ( value ){
+											flags |= TagFeatureFileLocation.FL_DATA;
+										}else{
+											flags &= ~TagFeatureFileLocation.FL_DATA;
+										}
+										fl.setTagCopyOnCompleteOptions(flags);
+									}
+								}, gFiles, null, "label.copy.data");		
+							
+						params.copyOnCompleteTorrent = new GenericBooleanParameter(
 								new BooleanParameterAdapter() {
 									@Override
 									public Boolean getBooleanValue(String key) {

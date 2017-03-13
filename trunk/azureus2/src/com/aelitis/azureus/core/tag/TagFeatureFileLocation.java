@@ -28,7 +28,8 @@ TagFeatureFileLocation
 	public static final long	FL_NONE			= 0x00;
 	public static final long	FL_DATA			= 0x01;
 	public static final long	FL_TORRENT		= 0x02;
-	public static final long	FL_BOTH			= 0xff;
+	public static final long	FL_BOTH			= FL_DATA | FL_TORRENT;
+	public static final long	FL_DEFAULT		= FL_DATA;
 	
 		// initial location
 	

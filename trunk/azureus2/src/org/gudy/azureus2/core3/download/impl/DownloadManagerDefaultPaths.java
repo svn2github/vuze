@@ -116,10 +116,10 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		dest.setBoolean("enabled", "Move Completed When Done");
 		dest.setString("target", "Completed Files Directory");
 		dest.setContext("completed files dir");
+		dest.setBoolean("torrent", "Move Torrent When Done");
+		dest.setString("torrent_path", "Move Torrent When Done Directory");
 
 		trans = new TransferSpecification();
-		trans.setBoolean("torrent", "Move Torrent When Done");
-		trans.setString("torrent_path", "Move Torrent When Done Directory");
 		
 		mi_1 = new MovementInformation(source, dest, trans, "Move on completion");
 		COMPLETION_DETAILS = mi_1;
@@ -135,10 +135,10 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		dest.setBoolean("enabled", "File.move.download.removed.enabled");
 		dest.setString("target", "File.move.download.removed.path");
 		dest.setContext("removed files dir");
+		dest.setBoolean("torrent", "File.move.download.removed.move_torrent");
+		dest.setString("torrent_path", "File.move.download.removed.move_torrent_path");
 
 		trans = new TransferSpecification();
-		trans.setBoolean("torrent", "File.move.download.removed.move_torrent");
-		trans.setString("torrent_path", "File.move.download.removed.move_torrent_path");
 
 		mi_1 = new MovementInformation(source, dest, trans, "Move on removal");
 		REMOVAL_DETAILS = mi_1;
@@ -175,9 +175,9 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		dest = new TargetSpecification();
 		dest.setBoolean("enabled", true);
 		dest.setString("target", "Default save path");
+		dest.setBoolean("torrent", false);
 
 		trans = new TransferSpecification();
-		trans.setBoolean("torrent", false);
 
         // Rest of the settings are the same.
 		mi_2 = new MovementInformation(source, dest, trans, "Update incomplete download");
@@ -286,23 +286,32 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 			source.setBoolean( "incomplete dl", false );
 				
 			TargetSpecification dest = new TargetSpecification();
-			dest.setBoolean( "enabled", true );
-			dest.setString( "target_raw", move_to.getAbsolutePath());
-			dest.setContext( "Tag '" + tag_target.getTagName( true ) + "' move-on-complete directory" );
-	
-			TransferSpecification trans = new TransferSpecification();
 			
+			if ( move_data ){
+				
+				dest.setBoolean( "enabled", true );
+				dest.setString( "target_raw", move_to.getAbsolutePath());
+				
+			}else{
+				
+				dest.setBoolean( "enabled", def_mi.target.getBoolean( "enabled" ));	
+			}
+			
+			dest.setContext( "Tag '" + tag_target.getTagName( true ) + "' move-on-complete directory" );
+				
 			if ( move_torrent ){
 				
-				trans.setBoolean("torrent", true );
-				trans.setString("torrent_path_raw", move_to.getAbsolutePath());
+				dest.setBoolean("torrent", true );
+				dest.setString("torrent_path_raw", move_to.getAbsolutePath());
 
 			}else{
 				
-				trans.setBoolean("torrent", "Move Torrent When Done");
-				trans.setString("torrent_path", "Move Torrent When Done Directory");
+				dest.setBoolean("torrent", "Move Torrent When Done");
+				dest.setString("torrent_path", "Move Torrent When Done Directory");
 			}
-			
+	
+			TransferSpecification trans = new TransferSpecification();
+
 			MovementInformation tag_mi = new MovementInformation(source, dest, trans, "Tag Move on Completion");
 			
 	    	return( tag_mi );
@@ -365,9 +374,9 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		TargetSpecification ts = null;
 		for (int i=0; i<DEFAULT_DIRS.length; i++) {
 			ts = DEFAULT_DIRS[i];
-			location = ts.getTarget(null, ts);
-			if (location != null) {
-				results.add(location);
+			File[] targets = ts.getTargets(null, ts);
+			if (targets[0] != null) {
+				results.add(targets[0]);
 			}
 		}
 		return (File[])results.toArray(new File[results.size()]);
@@ -386,15 +395,15 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 			return null;
 		}
 
-		File target_path = mi.target.getTarget(dm, mi);
-		if (target_path == null) {
+		File[] target_paths = mi.target.getTargets(dm, mi);
+		if (target_paths[0] == null && target_paths[1] == null) {
 			logInfo("Unable to determine an appropriate target for " +
 			    describe(dm, mi) + ".", dm);
 			return null;
 		}
 
         logInfo("Determined path for " + describe(dm, mi) + ".", dm);
-		return mi.transfer.getTransferDetails(dm, mi, target_path);
+		return mi.transfer.getTransferDetails(dm, mi, target_paths);
 	}
 
 	static boolean isInDefaultDownloadDir(DownloadManager dm) {
@@ -449,11 +458,10 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 			return((String)this.settings.get(key));
         }
         
-        protected String getString(String key) {
+        protected String getString(String key, String def) {
 			String result = (String)this.settings.get(key);
-			if (result == null) {throw new RuntimeException("bad key: " + key);}
+			if (result == null) { return( def );}
 			
-			// This try-catch should be removed, it's only here for debugging purposes.
         	return COConfigurationManager.getStringParameter(result);
         }
         
@@ -523,60 +531,69 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 			
 	private static class TargetSpecification extends ParameterHelper {
 
-		public File getTarget(DownloadManager dm, ContextDescriptor cd) {
-			//logInfo("Calculating target location for " + describe(dm, cd), lr);
-			if (!this.getBoolean("enabled")) {
-				logInfo("Target for " + describe(dm, cd) + " is not enabled.", dm);
-				return null;
+		public File[] getTargets(DownloadManager dm, ContextDescriptor cd) {
+			
+			File	data_target;
+			File	torrent_target;
+
+			boolean	data_enabled = this.getBoolean("enabled");
+			
+			if ( !data_enabled ){
+				
+				logInfo("Data target for " + describe(dm, cd) + " is not enabled.", dm);
 			}
+			
+			//logInfo("Calculating target location for " + describe(dm, cd), lr);
+
+				// need the following logic to default the torrent location to the data location
+			
 			String location = getStringRaw( "target_raw" );
 			if ( location == null ){
-				location = this.getString("target").trim();
+				location = this.getString("target", null );
+				if ( location != null ){
+					location = location.trim();
+				}
 			}
-		    if (location.length() == 0) {
-				logInfo("No explicit target for " + describe(dm, cd) + ".", dm);
-				return null;
+			if ( location == null || location.length() == 0) {
+				logInfo("No explicit data target for " + describe(dm, cd) + ".", dm);
+				data_target = null;
+			}else{
+
+				data_target = new File(FileUtil.getCanonicalFileName(location));
+				String relative_path = null;
+	
+				if( dm != null && dm.getDownloadState() != null ) {
+					relative_path = dm.getDownloadState().getRelativeSavePath();
+				}
+	
+				if (relative_path != null && relative_path.length() > 0) {
+					logInfo("Consider relative save path: " + relative_path, dm);
+	
+					// Doesn't matter if File.separator is required or not, it seems to
+					// remove duplicate file separators.
+					data_target = new File(data_target.getPath() + File.separator + relative_path);
+				}
 			}
-		    
-		    File target = new File(FileUtil.getCanonicalFileName(location));
-		    String relative_path = null;
-          
-          if( dm != null && dm.getDownloadState() != null ) {
-             relative_path = dm.getDownloadState().getRelativeSavePath();
-          }
-		    
-          if (relative_path != null && relative_path.length() > 0) {
-		    	logInfo("Consider relative save path: " + relative_path, dm);
-		    	
-		    	// Doesn't matter if File.separator is required or not, it seems to
-		    	// remove duplicate file separators.
-		    	target = new File(target.getPath() + File.separator + relative_path);
-		    }
-			return target;
-		}
-
-	}
-
-	private static class TransferSpecification extends ParameterHelper {
-
-		public SaveLocationChange getTransferDetails(DownloadManager dm, 
-				ContextDescriptor cd, File target_path) {
-			
-			if (target_path == null) {throw new NullPointerException();}
-
-			SaveLocationChange result = new SaveLocationChange();
-			result.download_location = target_path;
-			if (this.getBoolean("torrent")) {
+						
+			boolean	torrent_enabled = this.getBoolean("torrent");
 				
-				result.torrent_location = target_path;
+			if ( !torrent_enabled ){
 				
+				logInfo("Torrent target for " + describe(dm, cd) + " is not enabled.", dm);
+				
+				torrent_target = null;
+				
+			}else{
+							
+				torrent_target = data_target;
+									
 					// update if needed
 				
 				String torrent_path = this.getStringRaw( "torrent_path_raw" );
 				
 				if ( torrent_path == null ){
 					
-					torrent_path = this.getString( "torrent_path" );
+					torrent_path = this.getString( "torrent_path", null );
 				}
 				
 				if ( torrent_path != null && torrent_path.trim().length() > 0 ){
@@ -585,24 +602,45 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 					
 					if ( temp.isDirectory()){
 					
-						result.torrent_location = temp;
+						torrent_target = temp;
 						
 					}else if ( !temp.exists()){
 						
 						if ( temp.mkdirs()){
 							
-							result.torrent_location = temp;
+							torrent_target = temp;
 						}
 					}
 				}
-				
 			}
-			return result;
+			
+			return( new File[]{ data_enabled?data_target:null, torrent_enabled?torrent_target:null });
 		}
+
 	}
 
-	public static File getCompletionDirectory(DownloadManager dm) {
-		return COMPLETION_DETAILS.target.getTarget(dm, null);
+	private static class TransferSpecification{
+
+		public SaveLocationChange getTransferDetails(DownloadManager dm, 
+				ContextDescriptor cd, File[] target_paths ){
+			
+			SaveLocationChange result = new SaveLocationChange();
+			
+			File	data_target		= target_paths[0];
+			File	torrent_target	= target_paths[1];
+			
+			if ( data_target != null ){
+			
+				result.download_location = data_target;
+			}
+			
+			if ( torrent_target != null ){
+				
+				result.torrent_location = torrent_target;
+			}
+			
+			return result;
+		}
 	}
 	
 	static String describe(DownloadManager dm, ContextDescriptor cs) {

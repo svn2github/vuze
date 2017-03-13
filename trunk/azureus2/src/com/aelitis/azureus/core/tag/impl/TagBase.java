@@ -621,7 +621,7 @@ TagBase
 	{
 		if ( tag_fl != null ){
 			
-			return( readLongAttribute( AT_FL_INIT_LOC_OPT, TagFeatureFileLocation.FL_DATA ));
+			return( readLongAttribute( AT_FL_INIT_LOC_OPT, TagFeatureFileLocation.FL_DEFAULT ));
 		}
 		
 		return( TagFeatureFileLocation.FL_NONE );
@@ -698,7 +698,7 @@ TagBase
 	{
 		if ( tag_fl != null ){
 			
-			return( readLongAttribute( AT_FL_MOVE_COMP_OPT, TagFeatureFileLocation.FL_DATA ));
+			return( readLongAttribute( AT_FL_MOVE_COMP_OPT, TagFeatureFileLocation.FL_DEFAULT ));
 		}
 		
 		return( TagFeatureFileLocation.FL_NONE );
@@ -775,7 +775,7 @@ TagBase
 	{
 		if ( tag_fl != null ){
 			
-			return( readLongAttribute( AT_FL_COPY_COMP_OPT, TagFeatureFileLocation.FL_DATA ));
+			return( readLongAttribute( AT_FL_COPY_COMP_OPT, TagFeatureFileLocation.FL_DEFAULT ));
 		}
 		
 		return( TagFeatureFileLocation.FL_NONE );

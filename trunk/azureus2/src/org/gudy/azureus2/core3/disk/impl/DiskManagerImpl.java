@@ -2283,7 +2283,7 @@ DiskManagerImpl
             	}
             }
 
-            if (loc_change.hasTorrentChange() && files_moved) {
+            if (loc_change.hasTorrentChange() && ( files_moved || !move_files )){
                 moveTorrentFile(loc_change);
             }
         }
