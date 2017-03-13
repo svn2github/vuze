@@ -870,7 +870,7 @@ public class TagSettingsView
 										}
 										fl.setTagMoveOnCompleteOptions(flags);
 									}
-								}, gFiles, null, "label.move.torrent");		
+								}, gFiles, null, "label.move.data");		
 							
 						params.moveOnCompleteTorrent = new GenericBooleanParameter(
 								new BooleanParameterAdapter() {
