@@ -1643,12 +1643,14 @@ BuddyPluginBeta
 		
 		while( pos < len ){
 			
-			pos = lc_str.indexOf( "magnet:", pos );
+			int temp_pos = lc_str.indexOf( "magnet:", pos );
 			
 			int	type = -1;
 			
-			if ( pos != -1 ){
+			if ( temp_pos != -1 ){
 				
+				pos = temp_pos;
+						
 				type = 0;
 				
 			}else{ 
@@ -1657,10 +1659,12 @@ BuddyPluginBeta
 				
 				for ( String p: protocols ){
 				
-					pos = lc_str.indexOf( p, pos );
+					temp_pos = lc_str.indexOf( p, pos );
 				
-					if ( pos != -1 ){
+					if ( temp_pos != -1 ){
 					
+						pos	= temp_pos;
+						
 						type = 1;
 						
 						break;
