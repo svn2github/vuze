@@ -715,6 +715,8 @@ TagManagerImpl
 	
 	private TagPropertyUntaggedHandler	untagged_handler;
 	
+	private TagPropertyConstraintHandler	constraint_handler;
+	
 	private boolean		js_plugin_install_tried;
 
 	private
@@ -745,7 +747,7 @@ TagManagerImpl
 		
 		new TagPropertyTrackerTemplateHandler( azureus_core, this );
 		
-		new TagPropertyConstraintHandler( azureus_core, this );
+		constraint_handler = new TagPropertyConstraintHandler( azureus_core, this );
 		
 		azureus_core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
@@ -955,6 +957,16 @@ TagManagerImpl
 					}
 				}
 			});
+	}
+	
+	public void
+	setProcessingEnabled(
+		boolean	enabled )
+	{
+		if ( constraint_handler != null ){
+			
+			constraint_handler.setProcessingEnabled( enabled );
+		}
 	}
 	
 	public void 

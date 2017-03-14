@@ -28,6 +28,10 @@ TagManager
 	public boolean
 	isEnabled();
 	
+	public void
+	setProcessingEnabled(
+		boolean	enabled );
+		
 	public TagType
 	getTagType(
 		int			tag_type );

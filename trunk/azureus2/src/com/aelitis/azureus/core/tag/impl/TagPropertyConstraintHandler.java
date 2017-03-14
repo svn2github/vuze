@@ -163,6 +163,95 @@ TagPropertyConstraintHandler
 			});
 	}
 	
+	private static Object	process_lock = new Object();
+	private static int		processing_disabled_count;
+	
+	private static List<Object[]>	processing_queue = new ArrayList<Object[]>();
+	
+	public void
+	setProcessingEnabled(
+		boolean	enabled )
+	{
+		synchronized( process_lock ){
+			
+			if ( enabled ){
+				
+				processing_disabled_count--;
+				
+				if ( processing_disabled_count == 0 ){
+					
+					List<Object[]> to_do = new ArrayList<Object[]>( processing_queue );
+					
+					processing_queue.clear();
+					
+					for ( Object[] entry: to_do ){
+						
+						TagConstraint 	constraint 	= (TagConstraint)entry[0];
+						Object			target		= entry[1];
+						
+						try{
+							
+							if ( target instanceof DownloadManager ){
+								
+								constraint.apply((DownloadManager)target);
+								
+							}else{
+								
+								constraint.apply((List<DownloadManager>)target);
+							}
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			}else{
+				
+				processing_disabled_count++;
+			}
+		}
+	}
+	
+	private static boolean
+	canProcess(
+		TagConstraint		constraint,
+		DownloadManager		dm )
+	{
+		synchronized( process_lock ){
+
+			if ( processing_disabled_count == 0 ){
+				
+				return( true );
+				
+			}else{
+			
+				processing_queue.add( new Object[]{ constraint, dm });
+				
+				return( false );
+			}
+		}
+	}
+	
+	private static boolean
+	canProcess(
+		TagConstraint				constraint,
+		List<DownloadManager>		dms )
+	{
+		synchronized( process_lock ){
+
+			if ( processing_disabled_count == 0 ){
+				
+				return( true );
+				
+			}else{
+			
+				processing_queue.add( new Object[]{ constraint, dms });
+				
+				return( false );
+			}
+		}
+	}
+	
 	public void
 	tagTypeChanged(
 		TagType		tag_type )
@@ -864,6 +953,11 @@ TagPropertyConstraintHandler
 				return;
 			}
 			
+			if ( !canProcess( this, dm )){
+				
+				return;
+			}
+			
 			Set<Taggable>	existing = tag.getTagged();
 						
 			if ( testConstraint( dm )){
@@ -910,6 +1004,11 @@ TagPropertyConstraintHandler
 			}
 
 			if ( handler.isStopping()){
+				
+				return;
+			}
+			
+			if ( !canProcess( this, dms )){
 				
 				return;
 			}

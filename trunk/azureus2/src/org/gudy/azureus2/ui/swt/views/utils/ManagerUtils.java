@@ -2302,58 +2302,73 @@ public class ManagerUtils {
 				runSupport() 
 				{
 					try{
-						Tag	tag = null;
+						TagManager	tag_manager		= null;
+						Tag			tag_restored	= null;
 						
 						try{
-							TagManager	tm = TagManagerFactory.getTagManager();
+							tag_manager = TagManagerFactory.getTagManager();
 							
-							TagType tt = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL );
+							TagType tt = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL );
 							
 							String tag_name = MessageText.getString( "label.restored" );
 							
-							tag = tt.getTag( tag_name, true );
+							tag_restored = tt.getTag( tag_name, true );
 							
-							if ( tag == null ){	
+							if ( tag_restored == null ){	
 							
-								tag = tt.createTag( tag_name, true );
+								tag_restored = tt.createTag( tag_name, true );
 								
-								tag.setPublic( false );
+								tag_restored.setPublic( false );
 							}
 						}catch( Throwable e ){
 									
 							Debug.out( e );
 						}
 						
-						for ( DownloadStub dm: downloads ){
+						try{
+							if ( tag_manager != null ){
+								
+								tag_manager.setProcessingEnabled( false );
+							}
 							
-							try{
-								Download dl = dm.destubbify();
+							for ( DownloadStub dm: downloads ){
 								
-								if ( dl != null ){
-																		
-									run_when_complete.success( dm, dl );
+								try{
+									Download dl = dm.destubbify();
 									
-									if ( tag != null ){
-									
-										tag.addTaggable(PluginCoreUtils.unwrap( dl ));
-									}
-									
-									if ( start ){
+									if ( dl != null ){
+																			
+										run_when_complete.success( dm, dl );
 										
-										start( PluginCoreUtils.unwrap( dl ));
+										if ( tag_restored != null ){
+										
+											tag_restored.addTaggable(PluginCoreUtils.unwrap( dl ));
+										}
+										
+										if ( start ){
+											
+											start( PluginCoreUtils.unwrap( dl ));
+										}
+									}else{
+										
+										run_when_complete.failed( dm, new Exception( "Unknown error" ));
 									}
-								}else{
 									
-									run_when_complete.failed( dm, new Exception( "Unknown error" ));
+								}catch( Throwable e ){
+									
+									run_when_complete.failed( dm, e );
+									
+									Debug.out( e );
 								}
+							}
+						}finally{
+						
+							if ( tag_manager != null ){
 								
-							}catch( Throwable e ){
-								
-								run_when_complete.failed( dm, e );
-								
-								Debug.out( e );
+								tag_manager.setProcessingEnabled( true );
 							}
 						}
+					
 					}finally{
 													
 						run_when_complete.completed();
