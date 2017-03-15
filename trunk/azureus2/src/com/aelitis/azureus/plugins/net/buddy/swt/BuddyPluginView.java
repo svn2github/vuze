@@ -129,7 +129,7 @@ BuddyPluginView
 	
 	private	final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
 
-	private ViewDataSource	view_ds;
+	private boolean	select_classic_tab_oustanding;
 	
 	public
 	BuddyPluginView(
@@ -226,23 +226,11 @@ BuddyPluginView
 
 				current_instance = new BuddyPluginViewInstance( this, plugin, ui_instance, (Composite)event.getData());
 				
-				if ( view_ds != null ){
-					
-					if ( view_ds.classic_tab ){
+				if ( select_classic_tab_oustanding ){
 						
-						current_instance.selectClassicTab();
-					}
-				}
-				
-				break;
-			}
-			case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:{
-				
-				Object ds = event.getData();
-				
-				if ( ds instanceof ViewDataSource ){
-					
-					view_ds = (ViewDataSource)ds;
+					select_classic_tab_oustanding = false;
+						
+					current_instance.selectClassicTab();
 				}
 				
 				break;
@@ -346,11 +334,15 @@ BuddyPluginView
 							MenuItem			menu,
 							Object 				target )
 						{
-							instance.openView( UISWTInstance.VIEW_MAIN, VIEW_ID, new ViewDataSource(true ));
+							select_classic_tab_oustanding = true;
+							
+							instance.openView( UISWTInstance.VIEW_MAIN, VIEW_ID, null );
 							
 							if ( current_instance != null ){
 								
 								current_instance.selectClassicTab();
+								
+								select_classic_tab_oustanding = false;
 							}
 						}
 					});
@@ -3024,19 +3016,6 @@ BuddyPluginView
 		destroy()
 		{			
 			//System.out.println( "Destroyed" );
-		}
-	}
-	
-	private static class
-	ViewDataSource
-	{
-		private boolean	classic_tab;
-		
-		private
-		ViewDataSource(
-			boolean		ct )
-		{
-			classic_tab = ct;
 		}
 	}
 }

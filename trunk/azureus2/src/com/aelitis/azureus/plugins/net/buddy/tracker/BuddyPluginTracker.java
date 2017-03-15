@@ -932,7 +932,7 @@ outer:
 				
 				buddyData buddy_data = getBuddyData( buddy );
 				
-				buddy_data.resetTracking( download );
+				buddy_data.removeDownload( download );
 			}
 		}
 		
@@ -2250,7 +2250,7 @@ outer:
 		}
 		
 		protected void
-		resetTracking(
+		removeDownload(
 			Download		download )
 		{
 			synchronized( this ){
@@ -2260,12 +2260,7 @@ outer:
 					return;
 				}
 				
-				buddyDownloadData bdd = (buddyDownloadData)downloads_in_common.get( download );
-				
-				if ( bdd != null ){
-					
-					bdd.resetPeerCheckTime();
-				}
+				downloads_in_common.remove( download );
 			}
 		}
 		
@@ -2338,13 +2333,7 @@ outer:
 		{
 			return( last_peer_check );
 		}
-		
-		protected void
-		resetPeerCheckTime()
-		{
-			last_peer_check	= 0;
-		}
-		
+				
 		protected String
 		getString()
 		{
