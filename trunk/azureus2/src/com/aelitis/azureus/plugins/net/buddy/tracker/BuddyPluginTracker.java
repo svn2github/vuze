@@ -86,7 +86,7 @@ BuddyPluginTracker
 	private static final int	PEER_RECHECK_PERIOD		= 120*1000;
 	private static final int	PEER_RECHECK_TICKS		= PEER_RECHECK_PERIOD/BuddyPlugin.TIMER_PERIOD;
 
-	private static final int	TRACK_INTERVAL			= 10*60*1000;
+	private static final int	PEER_CHECK_INTERVAL		= 1*60*1000;
 	
 	private static final int	SHORT_ID_SIZE			= 4;
 	private static final int	FULL_ID_SIZE			= 20;
@@ -276,7 +276,7 @@ BuddyPluginTracker
 			return;
 		}
 
-		Map<BuddyPluginBuddy,List<Download>>	to_do = new HashMap<BuddyPluginBuddy,List<Download>>();
+		Map<BuddyPluginBuddy,List<Download>>	peers_to_check = new HashMap<BuddyPluginBuddy,List<Download>>();
 		
 		Set<Download> active_set = new HashSet<Download>();
 		
@@ -296,30 +296,32 @@ BuddyPluginTracker
 					
 					Iterator<Map.Entry<Download,Boolean>> it2 = active.entrySet().iterator();
 					
-					List<Download> track_now = new ArrayList<Download>();
+					List<Download> check_peers = new ArrayList<Download>();
 					
 					while( it2.hasNext()){
 						
 						Map.Entry<Download,Boolean> entry = it2.next();
 						
-						Download 	dl 	= entry.getKey();
-						boolean		now = entry.getValue();
+						Download 	dl 			= entry.getKey();
+						boolean		check_peer 	= entry.getValue();
 						
-						if ( now ){
+						if ( check_peer ){
 							
-							track_now.add( dl );
+							check_peers.add( dl );
 						}
 						
 						active_set.add( dl );
 					}
 					
-					if( track_now.size() > 0 ){
+					if ( check_peers.size() > 0 ){
 					
-						to_do.put( buddy, track_now );
+						peers_to_check.put( buddy, check_peers );
 					}
 				}
 			}
 		}
+		
+			// check the addition of peer listeners based on what's active
 		
 		synchronized( actively_tracking ){
 			
@@ -352,13 +354,15 @@ BuddyPluginTracker
 			}
 		}
 		
-		Iterator it = to_do.entrySet().iterator();
+			// check peer connections
+		
+		Iterator<Map.Entry<BuddyPluginBuddy,List<Download>>> it = peers_to_check.entrySet().iterator();
 		
 		while( it.hasNext()){
 			
-			Map.Entry	entry = (Map.Entry)it.next();
+			Map.Entry<BuddyPluginBuddy,List<Download>>	entry = it.next();
 					
-			BuddyPluginBuddy buddy = (BuddyPluginBuddy)entry.getKey();
+			BuddyPluginBuddy buddy = entry.getKey();
 			
 			if ( !buddy.isOnline( false )){
 				
@@ -375,11 +379,11 @@ BuddyPluginTracker
 			int			tcp_port	= buddy.getTCPPort();
 			int			udp_port	= buddy.getUDPPort();
 			
-			List	downloads = (List)entry.getValue();
+			List<Download>	downloads = (List<Download>)entry.getValue();
 			
 			for (int i=0;i<downloads.size();i++){
 				
-				Download	download = (Download)downloads.get(i);
+				Download	download = downloads.get(i);
 				
 				PeerManager pm = download.getPeerManager();
 				
@@ -442,8 +446,8 @@ BuddyPluginTracker
 			online = new ArrayList<BuddyPluginBuddy>( online_buddies );
 		}
 		
-		Set			downloads;
-		int			downloads_id;
+		Set<Download>			downloads;
+		int						downloads_id;
 		
 		synchronized( tracked_downloads ){
 			
@@ -1323,7 +1327,47 @@ outer:
 					
 				}else{
 					
-					new_status = BUDDY_NETWORK_INOUTBOUND;
+					boolean	all_outgoing 	= true;
+					boolean	all_incoming	= true;
+										
+					for ( Peer peer: buddy_peers ){
+							
+						boolean we_are_seed 	= peer.getManager().isSeeding();
+						boolean they_are_seed	= peer.isSeed();
+								
+						if ( !we_are_seed ){
+							
+							all_outgoing = false;
+							
+							if ( !all_incoming ){
+								
+								break;
+							}
+						}
+						
+						if ( !they_are_seed ){
+							
+							all_incoming = false;
+							
+							if ( !all_outgoing ){
+								
+								break;
+							}
+						}
+					}
+					
+					if ( all_incoming ){
+							
+						new_status = BUDDY_NETWORK_INBOUND;
+						
+					}else if ( all_outgoing ){
+						
+						new_status = BUDDY_NETWORK_OUTBOUND;
+						
+					}else{
+					
+						new_status = BUDDY_NETWORK_INOUTBOUND;
+					}
 				}
 			}
 			
@@ -2165,15 +2209,15 @@ outer:
 					return( res );
 				}
 				
-				Iterator it = downloads_in_common.entrySet().iterator();
+				Iterator<Map.Entry<Download,buddyDownloadData>> it = downloads_in_common.entrySet().iterator();
 				
 				while( it.hasNext()){
 					
-					Map.Entry	entry = (Map.Entry)it.next();
+					Map.Entry<Download,buddyDownloadData>	entry = it.next();
 			
-					Download d = (Download)entry.getKey();
+					Download d = entry.getKey();
 
-					buddyDownloadData	bdd = (buddyDownloadData)entry.getValue();
+					buddyDownloadData	bdd = entry.getValue();
 					
 					if ( d.isComplete( false ) && bdd.isRemoteComplete()){
 						
@@ -2183,14 +2227,14 @@ outer:
 						
 					}else{
 						
-						long	last_track = bdd.getTrackTime();
+						long	last_check = bdd.getPeerCheckTime();
 						
-						if ( 	last_track == 0 || 
-								now - last_track >= TRACK_INTERVAL ){
+						if ( 	last_check == 0 || 
+								now - last_check >= PEER_CHECK_INTERVAL ){
 							
-							log( d.getName() + " - tracking", false, true );
+							log( d.getName() + " - checking peer", false, true );
 
-							bdd.setTrackTime( now );
+							bdd.setPeerCheckTime( now );
 							
 							res.put( d, Boolean.TRUE);
 							
@@ -2220,7 +2264,7 @@ outer:
 				
 				if ( bdd != null ){
 					
-					bdd.resetTrackTime();
+					bdd.resetPeerCheckTime();
 				}
 			}
 		}
@@ -2247,7 +2291,7 @@ outer:
 	{
 		private boolean	local_is_complete;
 		private boolean	remote_is_complete;
-		private long	last_track;
+		private long	last_peer_check;
 		
 		protected
 		buddyDownloadData(
@@ -2283,28 +2327,28 @@ outer:
 		}
 		
 		protected void
-		setTrackTime(
+		setPeerCheckTime(
 			long	time )
 		{
-			last_track	= time;
+			last_peer_check	= time;
 		}
 		
 		protected long
-		getTrackTime()
+		getPeerCheckTime()
 		{
-			return( last_track );
+			return( last_peer_check );
 		}
 		
 		protected void
-		resetTrackTime()
+		resetPeerCheckTime()
 		{
-			last_track	= 0;
+			last_peer_check	= 0;
 		}
 		
 		protected String
 		getString()
 		{
-			return( "lic=" + local_is_complete + ",ric=" + remote_is_complete + ",lt=" + last_track );
+			return( "lic=" + local_is_complete + ",ric=" + remote_is_complete + ",lpc=" + last_peer_check );
 		}
 	}
 	

@@ -242,6 +242,7 @@ BuddyPlugin
 
 	private Set<String>	public_tags_or_categories = new HashSet<String>();
 	
+	private boolean lan_local_peers;
 	
 	private BuddyPluginBeta		beta_plugin;
 	
@@ -378,6 +379,20 @@ BuddyPlugin
 		final BooleanParameter tracker_enable 		= config.addBooleanParameter2("azbuddy.tracker.enabled", "azbuddy.tracker.enabled", true );
 		final BooleanParameter tracker_so_enable 	= config.addBooleanParameter2("azbuddy.tracker.seeding.only.enabled", "azbuddy.tracker.seeding.only.enabled", false );
 
+		final BooleanParameter buddies_lan_local 	= config.addBooleanParameter2("azbuddy.tracker.con.lan.local", "azbuddy.tracker.con.lan.local", true );
+
+		buddies_lan_local.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter 	param ) 
+					{
+						lan_local_peers = buddies_lan_local.getValue();
+					}
+				});
+		
+		lan_local_peers = buddies_lan_local.getValue();
 		
 		cat_pub.addListener(
 			new ParameterListener()
@@ -394,7 +409,8 @@ BuddyPlugin
 			"label.classic",
 			new Parameter[]{
 					classic_enabled_param, nick_name_param, online_status_param,
-					protocol_speed, enable_chat_notifications, cat_pub, tracker_enable, tracker_so_enable
+					protocol_speed, enable_chat_notifications, cat_pub, tracker_enable, tracker_so_enable,
+					buddies_lan_local
 			});
 		
 			// decentralised stuff
@@ -655,6 +671,12 @@ BuddyPlugin
 				{				
 				}
 			});
+	}
+	
+	protected boolean
+	getPeersAreLANLocal()
+	{
+		return( lan_local_peers );
 	}
 	
 	protected void

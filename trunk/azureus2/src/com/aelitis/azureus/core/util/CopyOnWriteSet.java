@@ -26,6 +26,7 @@ import java.util.Set;
 
 public class 
 CopyOnWriteSet<T> 
+	implements Iterable<T>
 {
 	private final boolean	is_identify;
 	
@@ -153,6 +154,12 @@ CopyOnWriteSet<T>
 				set.clear();
 			}
 		}
+	}
+	
+	public boolean
+	isEmpty()
+	{
+		return( set.isEmpty());
 	}
 	
 	public int

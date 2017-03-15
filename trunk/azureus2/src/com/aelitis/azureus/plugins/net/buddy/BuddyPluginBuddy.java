@@ -80,7 +80,7 @@ BuddyPluginBuddy
 	private int				last_status_seq;
 	
 	private long			post_time;
-	private InetAddress		ip;
+	private InetAddress		current_ip;
 	private int				tcp_port;
 	private int				udp_port;
 	private int				online_status	= BuddyPlugin.STATUS_ONLINE;	// default
@@ -703,18 +703,18 @@ BuddyPluginBuddy
 	public InetAddress
 	getIP()
 	{
-		return( ip );
+		return( current_ip );
 	}
 	
 	public InetAddress
 	getAdjustedIP()
 	{
-		if ( ip == null ){
+		if ( current_ip == null ){
 			
 			return( null );
 		}
 		
-		InetSocketAddress address = new InetSocketAddress( ip, tcp_port );
+		InetSocketAddress address = new InetSocketAddress( current_ip, tcp_port );
 		
 		InetSocketAddress adjusted_address = AddressUtils.adjustTCPAddress( address, true );
 		
@@ -723,7 +723,7 @@ BuddyPluginBuddy
 			return( adjusted_address.getAddress());
 		}
 		
-		address = new InetSocketAddress( ip, udp_port );
+		address = new InetSocketAddress( current_ip, udp_port );
 		
 		adjusted_address = AddressUtils.adjustUDPAddress( address, true );
 		
@@ -732,7 +732,7 @@ BuddyPluginBuddy
 			return( adjusted_address.getAddress());
 		}
 	
-		return( ip );
+		return( current_ip );
 	}
 	
 	public List
@@ -740,16 +740,16 @@ BuddyPluginBuddy
 	{
 		List	result = new ArrayList();
 		
-		if ( ip == null ){
+		if ( current_ip == null ){
 			
 			return( result );
 		}
 		
 		InetAddress adjusted = getAdjustedIP();
 		
-		if ( adjusted == ip ){
+		if ( adjusted == current_ip ){
 			
-			result.add( ip );
+			result.add( current_ip );
 			
 		}else{
 			
@@ -1281,7 +1281,7 @@ BuddyPluginBuddy
 		
 		boolean	wait = false;
 				
-		if ( ip == null ){
+		if ( current_ip == null ){
 			
 			synchronized( this ){
 				
@@ -1311,7 +1311,7 @@ BuddyPluginBuddy
 						
 						for (int i=0;i<20;i++){
 							
-							if ( ip != null ){
+							if ( current_ip != null ){
 								
 								break;
 							}
@@ -1793,17 +1793,29 @@ BuddyPluginBuddy
 		}
 	}
 	
+	private void
+	setAddress(
+		InetAddress	address )
+	{
+		if ( plugin.getPeersAreLANLocal()){
+			
+			AddressUtils.addLANRateLimitAddress( address );
+		}
+	}
+	
 	protected void
 	setCachedStatus(
 		InetAddress		_ip,
 		int				_tcp_port,
 		int				_udp_port )
 	{
+		setAddress( _ip );
+		
 		synchronized( this ){
 
-			if ( ip == null ){
+			if ( current_ip == null ){
 			
-				ip			= _ip;
+				current_ip	= _ip;
 				tcp_port	= _tcp_port;
 				udp_port	= _udp_port;
 			}
@@ -1889,12 +1901,14 @@ BuddyPluginBuddy
 				
 				post_time	= _post_time;
 				
-				if ( 	!addressesEqual( ip, _ip ) ||
+				if ( 	!addressesEqual( current_ip, _ip ) ||
 						tcp_port != _tcp_port ||
 						udp_port != _udp_port ||
 						version	 < _version ){
 					
-					ip				= _ip;
+					setAddress( _ip );
+					
+					current_ip		= _ip;
 					tcp_port		= _tcp_port;
 					udp_port		= _udp_port;
 					
@@ -2018,7 +2032,7 @@ BuddyPluginBuddy
 			
 				// no active connections
 			
-			if ( online && ip != null && !messages_queued ){
+			if ( online && current_ip != null && !messages_queued ){
 				
 					// see if we should attempt a pre-emptive connect
 				
@@ -2039,7 +2053,7 @@ BuddyPluginBuddy
 				
 				boolean closed = connection.checkTimeout( now );
 				
-				if ( 	ip != null &&
+				if ( 	current_ip != null &&
 						!closed && 
 						!messages_queued &&
 						connection.isConnected() && 
@@ -2183,6 +2197,13 @@ BuddyPluginBuddy
 		for (int i=0;i<to_close.size();i++){
 			
 			((buddyConnection)to_close.get(i)).close();
+		}
+		
+		InetAddress ip = current_ip;
+		
+		if ( ip != null ){
+			
+			AddressUtils.removeLANRateLimitAddress( ip );
 		}
 	}
 	
@@ -2401,7 +2422,7 @@ BuddyPluginBuddy
 	public String
 	getString()
 	{
-		return( "pk=" +  getShortString() + (nick_name==null?"":(",nick=" + nick_name)) + ",ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",online=" + online + ",age=" + (SystemTime.getCurrentTime() - post_time ));
+		return( "pk=" +  getShortString() + (nick_name==null?"":(",nick=" + nick_name)) + ",ip=" + current_ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",online=" + online + ",age=" + (SystemTime.getCurrentTime() - post_time ));
 	}
 
 	protected class

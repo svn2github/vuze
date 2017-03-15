@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.util.CopyOnWriteSet;
 
 public class 
 AddressUtils 
@@ -309,6 +310,7 @@ AddressUtils
 		return( instance_manager.isLANAddress( address )? LAN_LOCAL_YES:LAN_LOCAL_NO);
 	}
 	
+	private static CopyOnWriteSet<String>	expicit_lan_rates = new CopyOnWriteSet<String>( false );
 	
 	public static byte 
 	isLANLocalAddress( 
@@ -329,6 +331,20 @@ AddressUtils
 		return is_lan_local;
 	}
 	
+	public static void
+	addLANRateLimitAddress(
+		InetAddress		address )
+	{
+		expicit_lan_rates.add( address.getHostAddress());
+	}
+	
+	public static void
+	removeLANRateLimitAddress(
+		InetAddress		address )
+	{
+		expicit_lan_rates.remove( address.getHostAddress());
+	}
+	
 	public static boolean
 	applyLANRateLimits(
 		InetSocketAddress			address )
@@ -338,6 +354,16 @@ AddressUtils
 			if ( address.isUnresolved()){
 		
 				return( AENetworkClassifier.categoriseAddress( address ) == AENetworkClassifier.AT_I2P );
+			}
+		}
+		
+		if ( !expicit_lan_rates.isEmpty()){
+			
+			InetAddress a = address.getAddress();
+			
+			if ( a != null ){
+			
+				return( expicit_lan_rates.contains( a.getHostAddress()));
 			}
 		}
 		

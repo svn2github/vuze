@@ -81,6 +81,11 @@ BuddyPluginViewInstance
 	private Table 				buddy_table;
 	private StyledText 			log;
 
+	private CTabFolder  		tab_folder ;
+	private CTabItem 			beta_item;
+	private CTabItem 			classic_item;
+	
+	
 	private Text 	public_nickname;
 	private Text 	anon_nickname;
 	
@@ -104,13 +109,14 @@ BuddyPluginViewInstance
 
 		lu = plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 			
-		CTabFolder  tab_folder = new CTabFolder(composite, SWT.LEFT);
+		tab_folder = new CTabFolder(composite, SWT.LEFT);
+		
 		tab_folder.setBorderVisible(true);
 		tab_folder.setTabHeight(Utils.adjustPXForDPI(20));
 		GridData grid_data = new GridData(GridData.FILL_BOTH);
 		Utils.setLayoutData(tab_folder, grid_data);
 		
-		CTabItem beta_item = new CTabItem(tab_folder, SWT.NULL);
+		beta_item = new CTabItem(tab_folder, SWT.NULL);
 
 		beta_item.setText( lu.getLocalisedMessageText( "azbuddy.dchat.decentralized" ));
 		
@@ -119,7 +125,7 @@ BuddyPluginViewInstance
 		
 		createBeta( beta_area );
 		
-		CTabItem classic_item = new CTabItem(tab_folder, SWT.NULL);
+		classic_item = new CTabItem(tab_folder, SWT.NULL);
 
 		classic_item.setText( lu.getLocalisedMessageText(  "label.classic" ));
 		
@@ -129,6 +135,12 @@ BuddyPluginViewInstance
 		createClassic( classic_area );
 		
 		tab_folder.setSelection( beta_item );
+	}
+	
+	protected void
+	selectClassicTab()
+	{
+		tab_folder.setSelection( classic_item );
 	}
 	
 	private void

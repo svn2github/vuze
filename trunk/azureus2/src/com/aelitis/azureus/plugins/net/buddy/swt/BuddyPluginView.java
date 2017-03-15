@@ -129,6 +129,8 @@ BuddyPluginView
 	
 	private	final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
 
+	private ViewDataSource	view_ds;
+	
 	public
 	BuddyPluginView(
 		BuddyPlugin		_plugin,
@@ -175,12 +177,12 @@ BuddyPluginView
 
 		SimpleTimer.addEvent("BuddyStatusInit", SystemTime.getOffsetTime(1000),
 				new TimerEventPerformer() {
-					public void perform(
-							TimerEvent event ) 
+					public void 
+					perform(
+						TimerEvent event ) 
 					{
-						UISWTStatusEntry label = ui_instance.createStatusEntry();
-
-						label.setText(MessageText.getString("azbuddy.tracker.bbb.status.title"));
+						//UISWTStatusEntry label = ui_instance.createStatusEntry();
+						//label.setText(MessageText.getString("azbuddy.tracker.bbb.status.title"));
 
 						new statusUpdater(ui_instance);
 					}
@@ -217,12 +219,31 @@ BuddyPluginView
 				}
 								
 				event.getView().setDestroyOnDeactivate(false);
+				
 				break;
 			}
-			case UISWTViewEvent.TYPE_INITIALIZE:{
-				
+			case UISWTViewEvent.TYPE_INITIALIZE:{		
 
 				current_instance = new BuddyPluginViewInstance( this, plugin, ui_instance, (Composite)event.getData());
+				
+				if ( view_ds != null ){
+					
+					if ( view_ds.classic_tab ){
+						
+						current_instance.selectClassicTab();
+					}
+				}
+				
+				break;
+			}
+			case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:{
+				
+				Object ds = event.getData();
+				
+				if ( ds instanceof ViewDataSource ){
+					
+					view_ds = (ViewDataSource)ds;
+				}
 				
 				break;
 			}
@@ -289,7 +310,7 @@ BuddyPluginView
 		
 		protected
 		statusUpdater(
-			UISWTInstance		instance )
+			final UISWTInstance		instance )
 		{
 			status	= ui_instance.createStatusEntry();
 			label 	= ui_instance.createStatusEntry();
@@ -310,23 +331,31 @@ BuddyPluginView
 			status.setVisible( tracker.isEnabled() && has_buddies);
 			label.setVisible( tracker.isEnabled() && has_buddies);
 		
-			/*
-			MenuItem mi = plugin.getPluginInterface().getUIManager().getMenuManager().addMenuItem(
-									status.getMenuContext(),
-									"dweeble" );
+			for ( UISWTStatusEntry entry: new UISWTStatusEntry[]{ label, status }){
 			
-			mi.addListener(
-				new MenuItemListener()
-				{
-					public void
-					selected(
-						MenuItem			menu,
-						Object 				target )
+				MenuItem mi = 
+					plugin.getPluginInterface().getUIManager().getMenuManager().addMenuItem(
+							entry.getMenuContext(),
+							"Views.plugins.azbuddy.title" );
+				
+				mi.addListener(
+					new MenuItemListener()
 					{
-						System.out.println( "whee" );
-					}
-				});
-			*/
+						public void
+						selected(
+							MenuItem			menu,
+							Object 				target )
+						{
+							instance.openView( UISWTInstance.VIEW_MAIN, VIEW_ID, new ViewDataSource(true ));
+							
+							if ( current_instance != null ){
+								
+								current_instance.selectClassicTab();
+							}
+						}
+					});
+			}
+			
 			
 			UISWTStatusEntryListener click_listener = 
 				new UISWTStatusEntryListener()
@@ -337,7 +366,7 @@ BuddyPluginView
 					{
 						try{
 							plugin.getPluginInterface().getUIManager().openURL(
-									new URL( "http://wiki.vuze.com" ));
+									new URL( "https://wiki.vuze.com/w/Classic_Friends" ));
 							
 						}catch( Throwable e ){
 							
@@ -2995,6 +3024,19 @@ BuddyPluginView
 		destroy()
 		{			
 			//System.out.println( "Destroyed" );
+		}
+	}
+	
+	private static class
+	ViewDataSource
+	{
+		private boolean	classic_tab;
+		
+		private
+		ViewDataSource(
+			boolean		ct )
+		{
+			classic_tab = ct;
 		}
 	}
 }
