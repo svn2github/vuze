@@ -375,8 +375,10 @@ BuddyPlugin
 		
 		setPublicTagsOrCategories( cat_pub.getValue(), false );
 		
-		final BooleanParameter tracker_enable = config.addBooleanParameter2("azbuddy.tracker.enabled", "azbuddy.tracker.enabled", true );
+		final BooleanParameter tracker_enable 		= config.addBooleanParameter2("azbuddy.tracker.enabled", "azbuddy.tracker.enabled", true );
+		final BooleanParameter tracker_so_enable 	= config.addBooleanParameter2("azbuddy.tracker.seeding.only.enabled", "azbuddy.tracker.seeding.only.enabled", false );
 
+		
 		cat_pub.addListener(
 			new ParameterListener()
 			{
@@ -392,7 +394,7 @@ BuddyPlugin
 			"label.classic",
 			new Parameter[]{
 					classic_enabled_param, nick_name_param, online_status_param,
-					protocol_speed, enable_chat_notifications, cat_pub, tracker_enable
+					protocol_speed, enable_chat_notifications, cat_pub, tracker_enable, tracker_so_enable
 			});
 		
 			// decentralised stuff
@@ -538,7 +540,7 @@ BuddyPlugin
 		menu_item_itorrents.addFillListener( menu_fill_listener );
 		menu_item_ctorrents.addFillListener( menu_fill_listener );
 		
-		buddy_tracker = new BuddyPluginTracker( this, tracker_enable );
+		buddy_tracker = new BuddyPluginTracker( this, tracker_enable, tracker_so_enable );
 		
 		plugin_interface.getUIManager().addUIListener(
 			new UIManagerListener()
@@ -587,6 +589,8 @@ BuddyPlugin
 					cat_pub.setEnabled( classic_enabled );
 					tracker_enable.setEnabled( classic_enabled );
 					
+					tracker_so_enable.setEnabled( tracker_enable.getValue());
+					
 						// only toggle overall state on a real change
 					
 					if ( param != null ){
@@ -603,6 +607,7 @@ BuddyPlugin
 			
 		classic_enabled_param.addListener( enabled_listener );
 		beta_enabled_param.addListener( enabled_listener );
+		tracker_enable.addListener( enabled_listener );
 		
 		loadConfig();
 		

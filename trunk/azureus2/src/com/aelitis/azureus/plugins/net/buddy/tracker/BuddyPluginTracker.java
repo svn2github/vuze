@@ -50,7 +50,8 @@ import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerEvent;
 import org.gudy.azureus2.plugins.peers.PeerListener2;
 import org.gudy.azureus2.plugins.peers.PeerManager;
-import org.gudy.azureus2.plugins.peers.PeerManagerListener;
+import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
+import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
 import org.gudy.azureus2.plugins.peers.PeerStats;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
@@ -71,9 +72,10 @@ BuddyPluginTracker
 	
 	private static final Object	PEER_STATS_KEY	= new Object();
 	
-	public static final int BUDDY_NETWORK_IDLE		= 1;
-	public static final int BUDDY_NETWORK_OUTBOUND	= 2;
-	public static final int BUDDY_NETWORK_INBOUND	= 3;
+	public static final int BUDDY_NETWORK_IDLE			= 1;
+	public static final int BUDDY_NETWORK_OUTBOUND		= 2;
+	public static final int BUDDY_NETWORK_INBOUND		= 3;
+	public static final int BUDDY_NETWORK_INOUTBOUND	= 4;
 	
 	private static final int	TRACK_CHECK_PERIOD		= 15*1000;
 	private static final int	TRACK_CHECK_TICKS		= TRACK_CHECK_PERIOD/BuddyPlugin.TIMER_PERIOD;
@@ -111,29 +113,31 @@ BuddyPluginTracker
 	private boolean			tracker_enabled;
 	private boolean			seeding_only;
 	
+	private boolean			tracker_so_enabled;
+	
 	private boolean			old_plugin_enabled;
 	private boolean			old_tracker_enabled;
 	private boolean			old_seeding_only;
 	
 	private int				network_status = BUDDY_NETWORK_IDLE;
 	
-	private Set				online_buddies 			= new HashSet();
-	private Map				online_buddy_ips		= new HashMap();
+	private Set<BuddyPluginBuddy>				online_buddies 			= new HashSet<BuddyPluginBuddy>();
+	private Map<String,List<BuddyPluginBuddy>>	online_buddy_ips		= new HashMap<String,List<BuddyPluginBuddy>>();
 	
-	private Set				tracked_downloads		= new HashSet();
+	private Set<Download>	tracked_downloads		= new HashSet<Download>();
 	private int				download_set_id;
 	
-	private Set				last_processed_download_set;
+	private Set<Download>	last_processed_download_set;
 	private int				last_processed_download_set_id;
 	
-	private Map				short_id_map	= new HashMap();
-	private Map				full_id_map		= new HashMap();
+	private Map<HashWrapper,List<Download>>	short_id_map	= new HashMap<HashWrapper,List<Download>>();
+	private Map<HashWrapper,Download>		full_id_map		= new HashMap<HashWrapper,Download>();
 	
-	private Set				actively_tracking	= new HashSet();
+	private Set<Download>				actively_tracking	= new HashSet<Download>();
 		
 	private CopyOnWriteSet<Peer>	buddy_peers	= new CopyOnWriteSet<Peer>( true );
 	
-	private CopyOnWriteList	listeners = new CopyOnWriteList();
+	private CopyOnWriteList<BuddyPluginTrackerListener>	listeners = new CopyOnWriteList<BuddyPluginTrackerListener>();
 	
 	private TimerEventPeriodic	buddy_stats_timer;
 	
@@ -144,7 +148,8 @@ BuddyPluginTracker
 	public
 	BuddyPluginTracker(
 		BuddyPlugin					_plugin,
-		final BooleanParameter 		tracker_enable	)
+		final BooleanParameter 		tracker_enable,
+		final BooleanParameter		tracker_so_enable )
 	{
 		plugin		= _plugin;	
 		
@@ -162,6 +167,19 @@ BuddyPluginTracker
 					checkEnabledState();
 				}
 			});
+		
+		tracker_so_enabled = tracker_so_enable.getValue();
+		
+		tracker_so_enable.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param )
+					{
+						tracker_so_enabled = tracker_so_enable.getValue();
+					}
+				});
 		
 		// Assumed if we already have a plugin reference, that the
 		// Azureus Core is available
@@ -193,11 +211,11 @@ BuddyPluginTracker
 		
 		checkEnabledState();
 		
-		List buddies = plugin.getBuddies();
+		List<BuddyPluginBuddy> buddies = plugin.getBuddies();
 		
 		for (int i=0;i<buddies.size();i++){
 			
-			buddyAdded((BuddyPluginBuddy)buddies.get(i));
+			buddyAdded(buddies.get(i));
 		}
 		
 		plugin.addListener( this );
@@ -258,34 +276,34 @@ BuddyPluginTracker
 			return;
 		}
 
-		Map	to_do = new HashMap();
+		Map<BuddyPluginBuddy,List<Download>>	to_do = new HashMap<BuddyPluginBuddy,List<Download>>();
 		
-		Set active_set = new HashSet();
+		Set<Download> active_set = new HashSet<Download>();
 		
 		synchronized( online_buddies ){
 
-			Iterator it = online_buddies.iterator();
+			Iterator<BuddyPluginBuddy> it = online_buddies.iterator();
 				
 			while( it.hasNext()){
 				
-				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)it.next();
+				BuddyPluginBuddy	buddy = it.next();
 				
 				buddyData buddy_data = getBuddyData( buddy );
 				
-				Map active = buddy_data.getDownloadsToTrack();
+				Map<Download,Boolean> active = buddy_data.getDownloadsToTrack();
 				
 				if ( active.size() > 0 ){
 					
-					Iterator it2 = active.entrySet().iterator();
+					Iterator<Map.Entry<Download,Boolean>> it2 = active.entrySet().iterator();
 					
-					List track_now = new ArrayList();
+					List<Download> track_now = new ArrayList<Download>();
 					
 					while( it2.hasNext()){
 						
-						Map.Entry entry = (Map.Entry)it2.next();
+						Map.Entry<Download,Boolean> entry = it2.next();
 						
-						Download 	dl 	= (Download)entry.getKey();
-						boolean		now = ((Boolean)entry.getValue()).booleanValue();
+						Download 	dl 	= entry.getKey();
+						boolean		now = entry.getValue();
 						
 						if ( now ){
 							
@@ -305,11 +323,11 @@ BuddyPluginTracker
 		
 		synchronized( actively_tracking ){
 			
-			Iterator it = active_set.iterator();
+			Iterator<Download> it = active_set.iterator();
 			
 			while( it.hasNext()){
 				
-				Download dl = (Download)it.next();
+				Download dl = it.next();
 				
 				if ( !actively_tracking.contains( dl )){
 					
@@ -417,11 +435,11 @@ BuddyPluginTracker
 			return;
 		}
 		
-		List	online;
+		List<BuddyPluginBuddy>	online;
 		
 		synchronized( online_buddies ){
 
-			online = new ArrayList( online_buddies );
+			online = new ArrayList<BuddyPluginBuddy>( online_buddies );
 		}
 		
 		Set			downloads;
@@ -433,7 +451,7 @@ BuddyPluginTracker
 			
 			if ( downloads_changed ){
 				
-				last_processed_download_set 	= new HashSet( tracked_downloads );
+				last_processed_download_set 	= new HashSet<Download>( tracked_downloads );
 				last_processed_download_set_id	= download_set_id;
 			}
 			
@@ -525,7 +543,7 @@ BuddyPluginTracker
 				
 				if ( ip != null ){
 					
-					List	l = (List)online_buddy_ips.get( ip );
+					List<BuddyPluginBuddy>	l = online_buddy_ips.get( ip );
 					
 					if ( l != null ){
 						
@@ -544,11 +562,11 @@ BuddyPluginTracker
 				
 				if ( ip != null ){
 					
-					List l = (List)online_buddy_ips.get( ip );
+					List<BuddyPluginBuddy> l = online_buddy_ips.get( ip );
 					
 					if ( l == null ){
 						
-						l = new ArrayList();
+						l = new ArrayList<BuddyPluginBuddy>();
 						
 						online_buddy_ips.put( ip, l );
 					}
@@ -577,7 +595,7 @@ BuddyPluginTracker
 				
 				if ( ip != null ){
 					
-					List	l = (List)online_buddy_ips.get( ip );
+					List<BuddyPluginBuddy>	l = online_buddy_ips.get( ip );
 					
 					if ( l != null ){
 						
@@ -605,15 +623,12 @@ BuddyPluginTracker
 			
 			int	result = BUDDY_NO;
 		
-			String	tested = "";
 outer:	
 			for (int i=0;i<ips.size();i++){
 
 				String ip = (String)ips.get(i);
-				
-				tested += ip;
-				
-				List buddies =(List)online_buddy_ips.get( ip  );
+								
+				List<BuddyPluginBuddy> buddies = online_buddy_ips.get( ip  );
 			
 				if ( buddies != null ){
 									
@@ -646,8 +661,6 @@ outer:
 					}
 				}
 			}
-			
-			// log( "isBuddy: " + peer_ip + " -> " + result + ",tested=" + tested );
 			
 			return( result );
 		}
@@ -735,16 +748,16 @@ outer:
 	{
 		updateNetworkStatus();
 		
-		List	online;
+		List<BuddyPluginBuddy>	online;
 		
 		synchronized( online_buddies ){
 
-			online = new ArrayList( online_buddies );
+			online = new ArrayList<BuddyPluginBuddy>( online_buddies );
 		}
 		
 		for (int i=0;i<online.size();i++){
 			
-			buddyData buddy_data = getBuddyData((BuddyPluginBuddy)online.get(i));
+			buddyData buddy_data = getBuddyData(online.get(i));
 			
 			if ( buddy_data.hasDownloadsInCommon()){
 				
@@ -854,11 +867,11 @@ outer:
 			
 			full_id_map.put( full_id, download );
 			
-			List	dls = (List)short_id_map.get( short_id );
+			List<Download>	dls = short_id_map.get( short_id );
 			
 			if ( dls == null ){
 				
-				dls = new ArrayList();
+				dls = new ArrayList<Download>();
 				
 				short_id_map.put( short_id, dls );
 			}
@@ -907,11 +920,11 @@ outer:
 		
 		synchronized( online_buddies ){
 
-			Iterator it = online_buddies.iterator();
+			Iterator<BuddyPluginBuddy> it = online_buddies.iterator();
 				
 			while( it.hasNext()){
 				
-				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)it.next();
+				BuddyPluginBuddy	buddy = it.next();
 				
 				buddyData buddy_data = getBuddyData( buddy );
 				
@@ -970,35 +983,31 @@ outer:
 	
 	protected void
 	trackPeers(
-		final Download	download,
-		PeerManager		pm )
+		final Download			download,
+		final PeerManager		pm )
 	{
 		pm.addListener(
-			new PeerManagerListener()
+			new PeerManagerListener2()
 			{
-				public void
-				peerAdded(
-					PeerManager		manager,
-					Peer			peer )
+				@Override
+				public void 
+				eventOccurred(
+					PeerManagerEvent event ) 
 				{
-					synchronized( actively_tracking ){
-						
-						if ( !actively_tracking.contains( download )){
+					if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
+				
+						synchronized( actively_tracking ){
 							
-							manager.removeListener( this );
-							
-							return;
+							if ( !actively_tracking.contains( download )){
+								
+								pm.removeListener( this );
+								
+								return;
+							}
 						}
+					
+						trackPeer( download, event.getPeer());
 					}
-				
-					trackPeer( download, peer );
-				}
-				
-				public void
-				peerRemoved(
-					PeerManager	manager,
-					Peer		peer )
-				{
 				}
 			});
 		
@@ -1308,7 +1317,14 @@ outer:
 				
 			}else{
 				
-				new_status	= seeding_only?BUDDY_NETWORK_OUTBOUND:BUDDY_NETWORK_INBOUND;
+				if ( tracker_so_enabled ){
+				
+					new_status	= seeding_only?BUDDY_NETWORK_OUTBOUND:BUDDY_NETWORK_INBOUND;
+					
+				}else{
+					
+					new_status = BUDDY_NETWORK_INOUTBOUND;
+				}
 			}
 			
 			if ( new_status != network_status ){
@@ -1377,11 +1393,11 @@ outer:
 	
 	protected void
 	sendMessage(
-		BuddyPluginBuddy	buddy,
-		int					type,
-		Map					body )
+		BuddyPluginBuddy		buddy,
+		int						type,
+		Map<String,Object>		body )
 	{
-		Map	msg = new HashMap();
+		Map<String,Object>	msg = new HashMap<String,Object>();
 		
 		msg.put( "type", new Long( type ));
 		msg.put( "msg", body );
@@ -1392,10 +1408,10 @@ outer:
 				BuddyPluginTracker.this );
 	}
 	
-	public Map
+	public Map<String,Object>
 	messageReceived(
-		BuddyPluginBuddy	buddy,
-		Map					message )
+		BuddyPluginBuddy		buddy,
+		Map<String,Object>		message )
 	{
 		buddyData buddy_data = buddyAlive( buddy );
 		
@@ -1514,7 +1530,7 @@ outer:
 		private Set	downloads_sent;
 		private int	downloads_sent_id;
 		
-		private Map		downloads_in_common;
+		private Map<Download,buddyDownloadData>		downloads_in_common;
 		private boolean	buddy_seeding_only;
 		
 		private int		consecutive_fails;
@@ -1598,9 +1614,9 @@ outer:
 		
 		protected void
 		updateLocal(
-			Set		downloads,
-			int		id,
-			Map		diff_map )
+			Set<Download>		downloads,
+			int					id,
+			Map					diff_map )
 		{
 			if ( consecutive_fails > 0 ){
 				
@@ -1633,21 +1649,21 @@ outer:
 			
 				// first check to see if completion state changed for any common downloads
 			
-			List	comp_changed = new ArrayList();
+			List<Download>	comp_changed = new ArrayList<Download>();
 			
 			synchronized( this ){
 				
 				if ( downloads_in_common != null ){
 					
-					Iterator it = downloads_in_common.entrySet().iterator();
+					Iterator<Map.Entry<Download,buddyDownloadData>>  it = downloads_in_common.entrySet().iterator();
 					
 					while( it.hasNext()){
 						
-						Map.Entry	entry = (Map.Entry)it.next();
+						Map.Entry<Download,buddyDownloadData>	entry = it.next();
 						
-						Download d = (Download)entry.getKey();
+						Download d = entry.getKey();
 
-						buddyDownloadData	bdd = (buddyDownloadData)entry.getValue();
+						buddyDownloadData	bdd = entry.getValue();
 						
 						boolean	local_complete = d.isComplete( false );
 						
@@ -1665,9 +1681,9 @@ outer:
 				
 				byte[][] change_details = exportFullIDs( comp_changed );
 				
-				if( change_details[0].length > 0 ){
+				if ( change_details[0].length > 0 ){
 					
-					Map	msg = new HashMap();
+					Map<String,Object>	msg = new HashMap<String,Object>();
 										
 					msg.put( "seeding", new Long( seeding_only?1:0 ));
 					
@@ -1706,7 +1722,7 @@ outer:
 					
 					added	= new ArrayList();
 
-					Iterator	it1 = downloads.iterator();
+					Iterator<Download>	it1 = downloads.iterator();
 					
 					while( it1.hasNext()){
 					
@@ -1897,13 +1913,14 @@ outer:
 			sendMessage( buddy, REQUEST_TRACKER_STATUS, msg );
 		}
 		
-		protected Map
+		protected Map<String,Object>
 		receiveMessage(
-			int			type,
-			Map			msg_in )
+			int					type,
+			Map<String,Object>	msg_in )
 		{
 			int	reply_type	= -1;
-			Map	msg_out		= null;
+			
+			Map<String,Object>	msg_out		= null;
 
 			Long	l_seeding = (Long)msg_in.get( "seeding" );
 			
@@ -1968,7 +1985,7 @@ outer:
 						
 						if( common_details[0].length > 0 ){
 							
-							Map	msg = new HashMap();
+							Map<String,Object>	msg = new HashMap<String,Object>();
 												
 							msg.put( "seeding", new Long( seeding_only?1:0 ));
 							
@@ -2091,12 +2108,12 @@ outer:
    			return( new byte[][]{ hashes, states });
    		}
 		
-		protected Map
+		protected Map<Download,buddyDownloadData>
 		importFullIDs(
 			byte[]		ids,
 			byte[]		states )
 		{
-			Map	res = new HashMap();
+			Map<Download,buddyDownloadData>	res = new HashMap<Download,buddyDownloadData>();
 			
 			if ( ids != null ){
 				
@@ -2104,7 +2121,7 @@ outer:
 
 					for (int i=0;i<ids.length;i+= FULL_ID_SIZE ){
 					
-						Download dl = (Download)full_id_map.get( new HashWrapper( ids, i, FULL_ID_SIZE ));
+						Download dl = full_id_map.get( new HashWrapper( ids, i, FULL_ID_SIZE ));
 						
 						if ( dl != null ){
 							
@@ -2124,12 +2141,13 @@ outer:
 			return( res );
 		}
 		
-		protected Map
+		protected Map<Download,Boolean>
 		getDownloadsToTrack()
 		{
-			Map	res = new HashMap();
+			Map<Download,Boolean>	res = new HashMap<Download,Boolean>();
 
-			if ( seeding_only == buddy_seeding_only ){
+			
+			if ( tracker_so_enabled && seeding_only == buddy_seeding_only ){
 				
 				log( "Not tracking, buddy and me both " + (seeding_only?"seeding":"downloading"), true, false );
 

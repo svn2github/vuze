@@ -125,6 +125,7 @@ BuddyPluginView
 	private Image iconIDLE;
 	private Image iconIN;
 	private Image iconOUT;
+	private Image iconINOUT;
 	
 	private	final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
 
@@ -189,10 +190,11 @@ BuddyPluginView
 			public void runSupport() {
 				ImageLoader imageLoader = ImageLoader.getInstance();
 
-				iconNLI = imageLoader.getImage( "bbb_nli" );
-				iconIDLE = imageLoader.getImage( "bbb_idle" );
-				iconIN = imageLoader.getImage( "bbb_in" );
-				iconOUT = imageLoader.getImage( "bbb_out" );
+				iconNLI 	= imageLoader.getImage( "bbb_nli" );
+				iconIDLE 	= imageLoader.getImage( "bbb_idle" );
+				iconIN 		= imageLoader.getImage( "bbb_in" );
+				iconOUT 	= imageLoader.getImage( "bbb_out" );
+				iconINOUT 	= imageLoader.getImage( "bbb_inout" );
 			}
 		});
 		
@@ -474,9 +476,15 @@ BuddyPluginView
 						
 						enableUpdates();
 						
-					}else{
+					}else if ( network_status == BuddyPluginTracker.BUDDY_NETWORK_OUTBOUND ){
 						
 						status.setImage( iconOUT );
+						
+						enableUpdates();
+						
+					}else{
+						
+						status.setImage( iconINOUT );
 						
 						enableUpdates();
 					}
@@ -520,9 +528,13 @@ BuddyPluginView
 										
 										tt = MessageText.getString( "azbuddy.tracker.bbb.status.in" ) + ": " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkReceiveBytesPerSecond());
 										
-									}else{
+									}else if ( ns == BuddyPluginTracker.BUDDY_NETWORK_OUTBOUND ){
 										
 										tt = MessageText.getString( "azbuddy.tracker.bbb.status.out" ) + ": " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkSendBytesPerSecond());
+										
+									}else{
+										
+										tt = MessageText.getString( "azbuddy.tracker.bbb.status.inout" ) + ": " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkReceiveBytesPerSecond()) + "/" + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkSendBytesPerSecond());
 									}
 																			
 									status.setTooltipText( tt );

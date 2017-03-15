@@ -640,7 +640,12 @@ DeviceManagerImpl
 					// try to use the media server's name
 				
 				try{
-					local_service_name = (String)getUPnPManager().getUPnPAVIPC().invoke( "getServiceName", new Object[]{});
+					IPCInterface ipc = getUPnPManager().getUPnPAVIPC();
+					
+					if ( ipc != null ){
+					
+						local_service_name = (String)ipc.invoke( "getServiceName", new Object[]{});
+					}
 									
 				}catch( Throwable e ){
 				}
