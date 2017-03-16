@@ -151,8 +151,7 @@ BuddyPluginViewInstance
 		
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 3;
-		//layout.marginHeight = 0;
-		//layout.marginWidth = 0;
+	
 		main.setLayout(layout);
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		Utils.setLayoutData(main, grid_data);
@@ -1129,12 +1128,31 @@ BuddyPluginViewInstance
 	{	
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
+		
 		main.setLayout(layout);
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		Utils.setLayoutData(main, grid_data);
 
+			// info
+		
+		Composite info_area = new Composite( main, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		info_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		Utils.setLayoutData(info_area, grid_data);
+
+		Label label = new Label( info_area, SWT.NULL );
+		
+		label.setText(  lu.getLocalisedMessageText( "azbuddy.classic.info" ));
+
+		new LinkLabel(info_area, "ConfigView.label.please.visit.here", lu.getLocalisedMessageText( "azbuddy.classic.link.url" ));
+		
+		label = new Label( info_area, SWT.NULL );	
+		
 		if ( !plugin.isClassicEnabled()){
 			
 			Label control_label = new Label( main, SWT.NULL );
@@ -1142,6 +1160,7 @@ BuddyPluginViewInstance
 
 			return;
 		}
+		
 			// control area
 		
 		final Composite controls = new Composite(main, SWT.NONE);

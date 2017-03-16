@@ -1390,6 +1390,16 @@ BuddyPluginBeta
 			throw( new Exception( "Key missing" ));
 		}
 		
+		if ( protocol.startsWith( "chat:friend" )){
+		
+			if ( !key.equals( plugin.getPublicKey())){
+							
+				plugin.addBuddy(key, BuddyPlugin.SUBSYSTEM_AZ2 );
+			}
+			
+			return( null );
+		}
+		
 		if ( open_only ){
 			
 			format = null;

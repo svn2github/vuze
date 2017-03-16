@@ -114,6 +114,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.AZ3Functions;
@@ -802,6 +803,8 @@ BuddyPluginViewBetaChat
 						});
 			}
 			
+			addFriendsMenu( status_menu );
+
 				// advanced
 			
 			final Menu advanced_menu = new Menu(status_menu.getShell(), SWT.DROP_DOWN);
@@ -945,6 +948,8 @@ BuddyPluginViewBetaChat
 						}
 					}
 				});
+			
+			addFriendsMenu( status_menu );
 			
 			final MenuItem keep_alive_mi = new MenuItem( status_menu, SWT.CHECK );
 			keep_alive_mi.setText( MessageText.getString( "label.keep.alive" ));
@@ -2581,6 +2586,97 @@ BuddyPluginViewBetaChat
 				
 			}
 		}
+	}
+	
+	private void
+	addFriendsMenu(
+		Menu		menu )
+	{
+		if ( chat.isAnonymous()){
+			
+			return;
+		}
+		
+		final Menu friends_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+		MenuItem friends_menu_item = new MenuItem( menu, SWT.CASCADE);
+		friends_menu_item.setMenu(friends_menu);
+		friends_menu_item.setText(  MessageText.getString( "Views.plugins.azbuddy.title" ));
+		
+		friends_menu.addMenuListener(
+			new MenuAdapter() 
+			{
+				public void 
+				menuShown(
+					MenuEvent e ) 
+				{
+					MenuItem[] items = friends_menu.getItems();
+					
+					for (int i = 0; i < items.length; i++){
+						
+						items[i].dispose();
+					}
+					
+					boolean	enabled = plugin.isClassicEnabled();
+					
+					if ( enabled ){
+						
+						MenuItem mi = new MenuItem( friends_menu, SWT.PUSH );
+						mi.setText( MessageText.getString( "azbuddy.insert.friend.key" ));
+				
+						mi.addSelectionListener(
+								new SelectionAdapter() {				
+									public void 
+									widgetSelected(
+										SelectionEvent event ) 
+									{								
+										String key = plugin.getPublicKey();
+										
+										String uri = "chat:friend:?key=" + key;
+										
+										String my_nick = chat.getNickname( false );
+										
+										if ( my_nick.length() > 0 ){
+											
+											uri += "[[" + UrlUtils.encode( "Friend Key for " + my_nick ) + "]]";
+										}
+										
+										input_area.append( uri  );
+									}
+								});
+							
+						new MenuItem(friends_menu, SWT.SEPARATOR );
+
+						mi = new MenuItem( friends_menu, SWT.PUSH );
+						mi.setText( MessageText.getString( "azbuddy.view.friends" ));
+				
+						mi.addSelectionListener(
+								new SelectionAdapter() {				
+									public void 
+									widgetSelected(
+										SelectionEvent event ) 
+									{								
+										view.selectClassicTab();
+									}
+								});
+						
+					}else{
+						
+						MenuItem mi = new MenuItem( friends_menu, SWT.PUSH );
+						mi.setText( MessageText.getString( "devices.contextmenu.od.enable" ));
+				
+						mi.addSelectionListener(
+								new SelectionAdapter() {				
+									public void 
+									widgetSelected(
+										SelectionEvent event ) 
+									{								
+										plugin.setClassicEnabled( true );
+									}
+								});
+						
+					}
+				}
+			});
 	}
 	
 	private void

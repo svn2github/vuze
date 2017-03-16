@@ -856,7 +856,11 @@ BuddyPlugin
 	setClassicEnabled(
 		boolean		enabled )
 	{
-		if (classic_enabled_param == null) {return;}
+		if (classic_enabled_param == null){
+			
+			return;
+		}
+		
 		classic_enabled_param.setValue( enabled );
 	}
 	
@@ -2260,6 +2264,11 @@ BuddyPlugin
 		int			subsystem )
 	
 	{
+		if ( !isClassicEnabled()){
+			
+			setClassicEnabled( true );
+		}
+		
 		return( addBuddy( key, subsystem, true ));
 	}
 	

@@ -205,6 +205,26 @@ BuddyPluginView
 		checkBetaInit();
 	}
 	
+	protected UISWTInstance
+	getUISWTInstance()
+	{
+		return( ui_instance );
+	}
+	
+	protected void
+	selectClassicTab()
+	{
+		select_classic_tab_oustanding = true;
+		
+		ui_instance.openView( UISWTInstance.VIEW_MAIN, VIEW_ID, null );
+		
+		if ( current_instance != null ){
+			
+			current_instance.selectClassicTab();
+			
+			select_classic_tab_oustanding = false;
+		}
+	}
 	public boolean 
 	eventOccurred(
 		UISWTViewEvent event )
@@ -334,16 +354,7 @@ BuddyPluginView
 							MenuItem			menu,
 							Object 				target )
 						{
-							select_classic_tab_oustanding = true;
-							
-							instance.openView( UISWTInstance.VIEW_MAIN, VIEW_ID, null );
-							
-							if ( current_instance != null ){
-								
-								current_instance.selectClassicTab();
-								
-								select_classic_tab_oustanding = false;
-							}
+							selectClassicTab();
 						}
 					});
 			}
@@ -358,7 +369,7 @@ BuddyPluginView
 					{
 						try{
 							plugin.getPluginInterface().getUIManager().openURL(
-									new URL( "https://wiki.vuze.com/w/Classic_Friends" ));
+									new URL( MessageText.getString( "azbuddy.classic.link.url" )));
 							
 						}catch( Throwable e ){
 							
