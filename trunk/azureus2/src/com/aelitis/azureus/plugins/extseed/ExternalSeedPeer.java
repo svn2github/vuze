@@ -396,6 +396,10 @@ ExternalSeedPeer
 		return( reader.getPort());
 	}
 	
+	@Override
+	public boolean isLANLocal() {
+		return false;	// for the moment, could be smarter
+	}
 	
 	public final boolean[] 
 	getAvailable()

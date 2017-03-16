@@ -358,6 +358,8 @@ BuddyPluginTracker
 		
 		Iterator<Map.Entry<BuddyPluginBuddy,List<Download>>> it = peers_to_check.entrySet().iterator();
 		
+		boolean lan = plugin.getPeersAreLANLocal();
+		
 		while( it.hasNext()){
 			
 			Map.Entry<BuddyPluginBuddy,List<Download>>	entry = it.next();
@@ -403,9 +405,20 @@ BuddyPluginTracker
 					if ( 	peer.getTCPListenPort() == tcp_port ||
 							peer.getUDPListenPort() == udp_port ){
 						
-						connected = true;
+						if ( lan && !peer.isLANLocal()){
+							
+								// just in case
+							
+							AddressUtils.addLANRateLimitAddress( ip );
+							
+							pm.removePeer( peer );
+							
+						}else{
 						
-						break;
+							connected = true;
+						
+							break;
+						}
 					}	
 				}
 				

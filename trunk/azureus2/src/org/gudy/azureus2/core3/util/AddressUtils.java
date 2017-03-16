@@ -25,11 +25,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -39,7 +35,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
-import com.aelitis.azureus.core.util.CopyOnWriteSet;
 
 public class 
 AddressUtils 
@@ -65,6 +60,26 @@ AddressUtils
 	}
 	
 	private static AZInstanceManager	instance_manager;
+	
+	private static AZInstanceManager
+	getInstanceManager()
+	{
+		if ( instance_manager == null ){
+			
+			if ( AzureusCoreFactory.isCoreAvailable()){
+				
+				try{
+					instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
+					
+				}catch( Throwable e ){
+					
+					// Debug.printStackTrace(e);
+				}
+			}
+		}
+		
+		return( instance_manager );
+	}
 	
 	private static Map	host_map = null;
 	
@@ -168,18 +183,9 @@ AddressUtils
 		boolean				ext_to_lan,
 		int					port_type )
 	{
-		if ( instance_manager == null ){
-			
-			try{
-				instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
-				
-			}catch( Throwable e ){
-				
-				// Debug.printStackTrace(e);
-			}
-		}
+		AZInstanceManager im = getInstanceManager();
 		
-		if ( instance_manager == null || !instance_manager.isInitialized()){
+		if ( im == null || !im.isInitialized()){
 			
 			return( address );
 		}
@@ -188,11 +194,11 @@ AddressUtils
 		
 		if ( ext_to_lan ){
 			
-			adjusted_address	= instance_manager.getLANAddress( address, port_type );
+			adjusted_address	= im.getLANAddress( address, port_type );
 			
 		}else{
 
-			adjusted_address	= instance_manager.getExternalAddress( address, port_type );
+			adjusted_address	= im.getExternalAddress( address, port_type );
 		}
 		
 		if ( adjusted_address == null ){
@@ -220,23 +226,14 @@ AddressUtils
 
 			if ( isLANLocalAddress( address ) != LAN_LOCAL_NO ){
 
-				if ( instance_manager == null ){
-					
-					try{
-						instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
-						
-					}catch( Throwable e ){
-						
-						//Debug.printStackTrace(e);
-					}
-				}
+				AZInstanceManager im = getInstanceManager();
 				
-				if ( instance_manager == null || !instance_manager.isInitialized()){
+				if ( im == null || !im.isInitialized()){
 					
 					return( result );
 				}
 			
-				AZInstance[] instances = instance_manager.getOtherInstances();
+				AZInstance[] instances = im.getOtherInstances();
 				
 				for (int i=0;i<instances.length;i++){
 					
@@ -288,30 +285,16 @@ AddressUtils
 			return( LAN_LOCAL_NO );
 		}
 		
-		if ( instance_manager == null ){
-			
-			if ( AzureusCoreFactory.isCoreAvailable()){
-				
-				try{
-					instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
-					
-				}catch( Throwable e ){
-					
-					// Debug.printStackTrace(e);
-				}
-			}
-		}
+		AZInstanceManager im = getInstanceManager();
 		
-		if ( instance_manager == null || !instance_manager.isInitialized()){
+		if ( im == null || !im.isInitialized()){
 			
 			return( LAN_LOCAL_MAYBE );
 		}
 		
-		return( instance_manager.isLANAddress( address )? LAN_LOCAL_YES:LAN_LOCAL_NO);
+		return( im.isLANAddress( address )? LAN_LOCAL_YES:LAN_LOCAL_NO);
 	}
-	
-	private static CopyOnWriteSet<String>	expicit_lan_rates = new CopyOnWriteSet<String>( false );
-	
+		
 	public static byte 
 	isLANLocalAddress( 
 		String address ) 
@@ -331,18 +314,84 @@ AddressUtils
 		return is_lan_local;
 	}
 	
+	private static Set<InetAddress>	pending_addresses = new HashSet<InetAddress>();
+	private static TimerEventPeriodic	pa_timer;
+	
 	public static void
 	addLANRateLimitAddress(
 		InetAddress		address )
 	{
-		expicit_lan_rates.add( address.getHostAddress());
+		synchronized( pending_addresses ){
+
+			AZInstanceManager im = getInstanceManager();
+		
+			if ( im == null || !im.isInitialized()){
+				
+				pending_addresses.add( address );
+				
+				if ( pa_timer == null ){
+					
+					pa_timer = 
+						SimpleTimer.addPeriodicEvent( 
+							"au:pa",
+							250,
+							new TimerEventPerformer() {
+								
+								@Override
+								public void 
+								perform(
+									TimerEvent event) 
+								{
+									synchronized( pending_addresses ){
+										
+										AZInstanceManager im = getInstanceManager();
+									
+										if ( im != null && im.isInitialized()){										
+
+											for ( InetAddress address : pending_addresses ){
+												
+												try{
+													im.addLANAddress( address );
+													
+												}catch( Throwable e ){
+													
+												}
+											}
+											
+											pending_addresses.clear();
+											
+											pa_timer.cancel();
+											
+											pa_timer = null;
+										}
+									}		
+								}
+							});
+				}
+			}else{
+			
+				im.addLANAddress( address );
+			}
+		}
 	}
 	
 	public static void
 	removeLANRateLimitAddress(
 		InetAddress		address )
 	{
-		expicit_lan_rates.remove( address.getHostAddress());
+		synchronized( pending_addresses ){
+
+			AZInstanceManager im = getInstanceManager();
+
+			if ( im == null || !im.isInitialized()){		
+				
+				pending_addresses.remove( address );
+			
+			}else{
+			
+				im.removeLANAddress( address );
+			}
+		}
 	}
 	
 	public static boolean
@@ -357,18 +406,9 @@ AddressUtils
 			}
 		}
 		
-		if ( !expicit_lan_rates.isEmpty()){
-			
-			InetAddress a = address.getAddress();
-			
-			if ( a != null ){
-			
-				return( expicit_lan_rates.contains( a.getHostAddress()));
-			}
-		}
-		
 		return( false );
 	}
+	
 	/**
 	 * checks if the provided address is a global-scope ipv6 unicast address
 	 */

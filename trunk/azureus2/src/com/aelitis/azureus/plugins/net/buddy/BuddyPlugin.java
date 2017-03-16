@@ -673,7 +673,7 @@ BuddyPlugin
 			});
 	}
 	
-	protected boolean
+	public boolean
 	getPeersAreLANLocal()
 	{
 		return( lan_local_peers );

@@ -91,6 +91,9 @@ Peer
 
 	public int getPort();
 	
+	public boolean
+	isLANLocal();
+	
 	public boolean[] getAvailable();
 	/**
 	 * @param pieceNumber int

@@ -79,6 +79,14 @@ AZInstanceManager
 	
 		throws PatternSyntaxException;
 	
+	public void
+	addLANAddress(
+		InetAddress			address );
+	
+	public void
+	removeLANAddress(
+		InetAddress			address );
+	
 	public boolean
 	getIncludeWellKnownLANs();
 	

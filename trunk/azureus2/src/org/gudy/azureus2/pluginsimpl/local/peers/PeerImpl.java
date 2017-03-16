@@ -177,6 +177,10 @@ PeerImpl
   public int getUDPListenPort() {  return delegate.getUDPListenPort();  }
   public int getUDPNonDataListenPort() { return delegate.getUDPNonDataListenPort(); }
 	
+  @Override
+  public boolean isLANLocal() {
+	  return( delegate.isLANLocal());
+  }
 	public final boolean[] getAvailable()
 	{
 		BitFlags bf = delegate.getAvailable();

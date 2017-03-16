@@ -33,12 +33,12 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 
-
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerAdapter;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
 import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
+import com.aelitis.azureus.core.util.CopyOnWriteSet;
 import com.aelitis.azureus.core.util.NetUtils;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.net.udp.mc.MCGroup;
@@ -141,24 +141,29 @@ AZInstanceManagerImpl
 	
 	private MCGroup	 	mc_group;
 	private long		search_id_next;
-	final List		requests = new ArrayList();
+	
+	final List<Request>		requests = new ArrayList<Request>();
 	
 	final AZMyInstanceImpl		my_instance;
-	private final Map						other_instances	= new HashMap();
+	
+	private final Map<String,AZOtherInstanceImpl>						other_instances	= new HashMap<String,AZOtherInstanceImpl>();
 	
 	private volatile boolean		initialised;
-	private volatile Map			tcp_lan_to_ext	= new HashMap();
-	private volatile Map			udp_lan_to_ext	= new HashMap();
-	private volatile Map			udp2_lan_to_ext	= new HashMap();
-	private volatile Map			tcp_ext_to_lan	= new HashMap();
-	private volatile Map			udp_ext_to_lan	= new HashMap();
-	private volatile Map			udp2_ext_to_lan	= new HashMap();
 	
-	private volatile Set			lan_addresses	= new HashSet();
-	private volatile Set			ext_addresses	= new HashSet();
+	private volatile Map<InetSocketAddress,InetSocketAddress>			tcp_lan_to_ext	= new HashMap<InetSocketAddress,InetSocketAddress>();
+	private volatile Map<InetSocketAddress,InetSocketAddress>			udp_lan_to_ext	= new HashMap<InetSocketAddress,InetSocketAddress>();
+	private volatile Map<InetSocketAddress,InetSocketAddress>			udp2_lan_to_ext	= new HashMap<InetSocketAddress,InetSocketAddress>();
+	private volatile Map<InetSocketAddress,InetSocketAddress>			tcp_ext_to_lan	= new HashMap<InetSocketAddress,InetSocketAddress>();
+	private volatile Map<InetSocketAddress,InetSocketAddress>			udp_ext_to_lan	= new HashMap<InetSocketAddress,InetSocketAddress>();
+	private volatile Map<InetSocketAddress,InetSocketAddress>			udp2_ext_to_lan	= new HashMap<InetSocketAddress,InetSocketAddress>();
 	
-	private volatile List			lan_subnets		= new ArrayList();
-	private volatile List			explicit_peers 	= new ArrayList();
+	private volatile Set<InetAddress>			lan_addresses	= new HashSet<InetAddress>();
+	private volatile Set<InetAddress>			ext_addresses	= new HashSet<InetAddress>();
+	
+	private volatile List<Pattern>					lan_subnets		= new ArrayList<Pattern>();
+	private volatile List<InetSocketAddress>		explicit_peers 	= new ArrayList<InetSocketAddress>();
+	
+	private CopyOnWriteSet<InetAddress>	explicit_addresses = new CopyOnWriteSet<InetAddress>( false );
 	
 	private volatile boolean		include_well_known_lans	= true;
 	
@@ -530,7 +535,7 @@ AZInstanceManagerImpl
 								
 								for (int i=0;i<requests.size();i++){
 									
-									request	req = (request)requests.get(i);
+									Request	req = (Request)requests.get(i);
 									
 									if ( req.getID() == req_id ){
 										
@@ -839,12 +844,12 @@ AZInstanceManagerImpl
 		}
 	}
 		
-	protected Map
+	protected Map<InetSocketAddress,InetSocketAddress>
 	modifyAddress(
-		Map					map,
-		InetSocketAddress	key,
-		InetSocketAddress	value,
-		boolean				add )
+		Map<InetSocketAddress,InetSocketAddress>	map,
+		InetSocketAddress							key,
+		InetSocketAddress							value,
+		boolean										add )
 	{
 		// System.out.println( "ModAddress: " + key + " -> " + value + " - " + (add?"add":"remove"));
 		
@@ -852,13 +857,13 @@ AZInstanceManagerImpl
 
 		boolean	same = old_value != null && old_value.equals( value );
 		
-		Map	new_map = map;
+		Map<InetSocketAddress,InetSocketAddress>	new_map = map;
 		
 		if ( add ){
 			
 			if ( !same ){
 				
-				new_map	= new HashMap( map );
+				new_map	= new HashMap<InetSocketAddress,InetSocketAddress>( map );
 	
 				new_map.put( key, value );
 			}
@@ -866,7 +871,7 @@ AZInstanceManagerImpl
 			
 			if ( same ){
 				
-				new_map	= new HashMap( map );
+				new_map	= new HashMap<InetSocketAddress,InetSocketAddress>( map );
 				
 				new_map.remove( key );
 			}
@@ -985,7 +990,20 @@ AZInstanceManagerImpl
 			}
 		}
 		
-		return( false );
+		return( explicit_addresses.contains( address ));
+	}
+	
+	@Override
+	public void 
+	addLANAddress(InetAddress address) 
+	{
+		explicit_addresses.add( address );
+	}
+	
+	@Override
+	public void removeLANAddress(InetAddress address) 
+	{
+		explicit_addresses.remove( address );
 	}
 	
 	public boolean
@@ -1281,7 +1299,7 @@ AZInstanceManagerImpl
 	sendRequest(
 		int		type )
 	{
-		return( new request( type, new HashMap()).getReplies());
+		return( new Request( type, new HashMap()).getReplies());
 	}
 	
 	protected Map
@@ -1289,11 +1307,11 @@ AZInstanceManagerImpl
 		int		type,
 		Map		body )
 	{
-		return( new request( type, body ).getReplies());
+		return( new Request( type, body ).getReplies());
 	}
 	
 	protected class
-	request
+	Request
 	{
 		private long	id;
 		
@@ -1302,7 +1320,7 @@ AZInstanceManagerImpl
 		private final Map	replies			= new HashMap();
 		
 		protected
-		request(
+		Request(
 			int			type,
 			Map			body  )
 		{
