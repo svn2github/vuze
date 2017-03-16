@@ -5505,7 +5505,7 @@ SubscriptionManagerImpl
 
 									SimpleTimer.addEvent(
 										"Subs:chat:checker",
-										SystemTime.getOffsetTime( 2*60*1000 ),
+										SystemTime.getOffsetTime( 5*60*1000 ),
 										new TimerEventPerformer()
 										{	
 											public void 
