@@ -344,7 +344,7 @@ BuddyPluginView
 				MenuItem mi = 
 					plugin.getPluginInterface().getUIManager().getMenuManager().addMenuItem(
 							entry.getMenuContext(),
-							"Views.plugins.azbuddy.title" );
+							"azbuddy.view.friends" );
 				
 				mi.addListener(
 					new MenuItemListener()
@@ -493,6 +493,29 @@ BuddyPluginView
 				}else{
 					
 					int	network_status = tracker.getNetworkStatus();
+					
+					if ( network_status != BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
+						
+						long rates = tracker.getNetworkReceiveBytesPerSecond() + tracker.getNetworkSendBytesPerSecond();
+						
+						if ( rates <= 0 ){
+							
+								// defer switch until we're actually transferring
+							
+							SimpleTimer.addEvent(
+								"BP:backoff",
+								SystemTime.getOffsetTime( 1000 ),
+								new TimerEventPerformer() {
+									
+									@Override
+									public void perform(TimerEvent event) {
+										updateStatus();
+									}
+								});
+							
+							return;
+						}
+					}
 					
 					if ( network_status == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
 						
