@@ -140,7 +140,14 @@ BuddyPluginViewInstance
 	protected void
 	selectClassicTab()
 	{
-		tab_folder.setSelection( classic_item );
+		Utils.execSWTThread(
+			new Runnable() {
+				
+				@Override
+				public void run() {
+					tab_folder.setSelection( classic_item );
+				}
+			});
 	}
 	
 	private void
