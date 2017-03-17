@@ -50,6 +50,9 @@ BuddyPluginViewInterface
 		ChatInstance	chat,
 		ChatMessage		message );
 	
+	public void
+	selectClassicTab();
+	
 	public interface
 	DownloadAdapter
 	{

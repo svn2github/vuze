@@ -1395,6 +1395,8 @@ BuddyPluginBeta
 			if ( !key.equals( plugin.getPublicKey())){
 							
 				plugin.addBuddy(key, BuddyPlugin.SUBSYSTEM_AZ2 );
+				
+				plugin.getSWTUI().selectClassicTab();
 			}
 			
 			return( null );

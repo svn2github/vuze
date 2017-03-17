@@ -211,7 +211,7 @@ BuddyPluginView
 		return( ui_instance );
 	}
 	
-	protected void
+	public void
 	selectClassicTab()
 	{
 		select_classic_tab_oustanding = true;
