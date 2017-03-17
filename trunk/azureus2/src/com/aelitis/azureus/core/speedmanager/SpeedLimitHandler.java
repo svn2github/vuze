@@ -145,6 +145,8 @@ SpeedLimitHandler
 	
 	private static final String	NET_IPV4		= "IPv4";
 	private static final String	NET_IPV6		= "IPv6";
+	private static final String	NET_LAN			= "LAN";
+	private static final String	NET_WAN			= "WAN";
 	
 	final AzureusCore			core;
 	final PluginInterface 	plugin_interface;
@@ -2689,7 +2691,8 @@ SpeedLimitHandler
 				
 				if ( peer_net != null ){
 					
-					String	pub_peer_net = null;
+					String	pub_peer_net 	= null;
+					String	pub_lan			= null;
 					
 					if ( peer_net == AENetworkClassifier.AT_PUBLIC ){
 					
@@ -2700,6 +2703,15 @@ SpeedLimitHandler
 							
 						}catch( Throwable e ){
 							
+						}
+						
+						if ( peer.isLANLocal()){
+							
+							pub_lan = NET_LAN;
+							
+						}else{
+							
+							pub_lan = NET_WAN;
 						}
 					}
 					
@@ -2732,6 +2744,11 @@ SpeedLimitHandler
 								if ( pub_peer_net != null ){
 									
 									hit = nets.contains( pub_peer_net );
+								}
+								
+								if ( !hit && pub_lan != null ){
+									
+									hit = nets.contains( pub_lan );
 								}
 							}
 							
@@ -5333,6 +5350,18 @@ SpeedLimitHandler
 				}else if ( cidr_or_cc_etc.equalsIgnoreCase( "IPv6" )){
 					
 					networks.add( NET_IPV6 );
+					
+					return( true );
+					
+				}else if ( cidr_or_cc_etc.equalsIgnoreCase( "LAN" )){
+					
+					networks.add( NET_LAN );
+					
+					return( true );
+					
+				}else if ( cidr_or_cc_etc.equalsIgnoreCase( "WAN" )){
+					
+					networks.add( NET_WAN );
 					
 					return( true );
 				}
