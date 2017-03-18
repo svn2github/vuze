@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Constants;
@@ -39,6 +40,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadListener;
@@ -54,10 +56,13 @@ import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
 import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
 import org.gudy.azureus2.plugins.peers.PeerStats;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -107,8 +112,10 @@ BuddyPluginTracker
 	private static final int	BUDDY_MAYBE		= 1;
 	private static final int	BUDDY_YES		= 2;
 	
-	private BuddyPlugin		plugin;
+	private final BuddyPlugin		plugin;
 	
+	private final TorrentAttribute		ta_networks;
+
 	private boolean			plugin_enabled;
 	private boolean			tracker_enabled;
 	private boolean			seeding_only;
@@ -153,6 +160,12 @@ BuddyPluginTracker
 	{
 		plugin		= _plugin;	
 		
+		PluginInterface pi = plugin.getPluginInterface();
+				
+		TorrentManager  tm = pi.getTorrentManager();
+
+		ta_networks 			= tm.getAttribute( TorrentAttribute.TA_NETWORKS );
+
 		tracker_enabled = tracker_enable.getValue();
 		
 		tracker_enable.addListener(
@@ -1519,6 +1532,23 @@ outer:
 		Torrent	t = d.getTorrent();
 		
 		if ( t == null ){
+			
+			return( false );
+		}
+		
+		String[]	networks = d.getListAttribute( ta_networks );
+
+		boolean	ok = false;
+		
+		for ( String net: networks ){
+			
+			if ( net == AENetworkClassifier.AT_PUBLIC ){
+				
+				ok = true;
+			}
+		}
+		
+		if ( !ok ){
 			
 			return( false );
 		}
