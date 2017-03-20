@@ -61,6 +61,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.*;
+import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -73,11 +74,13 @@ BuddyPluginViewInstance
 	private static final int LOG_SUCCESS 	= 2;
 	private static final int LOG_ERROR 		= 3;
 
-	private BuddyPluginView		view;
-	private BuddyPlugin			plugin;
-	private UIInstance			ui_instance;
-	private LocaleUtilities		lu;
-	private Composite			composite;
+	private final BuddyPluginView		view;
+	private final BuddyPlugin			plugin;
+	private final UIInstance			ui_instance;
+	private final LocaleUtilities		lu;
+	private final BuddyPluginTracker	tracker;
+	
+	private Composite			composite;	
 	private Table 				buddy_table;
 	private StyledText 			log;
 
@@ -89,7 +92,7 @@ BuddyPluginViewInstance
 	private Text 	public_nickname;
 	private Text 	anon_nickname;
 	
-	private List	buddies = new ArrayList();
+	private List<BuddyPluginBuddy>	buddies = new ArrayList<BuddyPluginBuddy>();
 
 	private Button	plugin_install_button;
 	
@@ -107,6 +110,8 @@ BuddyPluginViewInstance
 		ui_instance	= _ui_instance;
 		composite	= _composite;
 
+		tracker = plugin.getTracker();
+		
 		lu = plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 			
 		tab_folder = new CTabFolder(composite, SWT.LEFT);
@@ -1465,6 +1470,7 @@ BuddyPluginViewInstance
 				"azbuddy.ui.table.rem_cat",
 				"azbuddy.ui.table.read_cat",
 				"azbuddy.ui.table.con",
+				"azbuddy.ui.table.track",
 				"azbuddy.ui.table.msg_in",
 				"azbuddy.ui.table.msg_out",
 				"azbuddy.ui.table.msg_queued",
@@ -1472,9 +1478,17 @@ BuddyPluginViewInstance
 				"MyTrackerView.bytesout",
 				"azbuddy.ui.table.ss" };
 
-		int[] sizes = { 250, 100, 100, 100, 200, 100, 100, 100, 75, 75, 75, 75, 75, 75, 40 };
+		int[] sizes = { 
+			250, 100, 100, 100, 200, 
+			100, 100, 100, 75, 75, 
+			75, 75, 75, 75, 75, 
+			40 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
+		int[] aligns = { 
+				SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, 
+				SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.CENTER,
+				SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, 
+				SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -1497,12 +1511,13 @@ BuddyPluginViewInstance
 	    columns[6].setData(new Integer(FilterComparator.FIELD_REM_CAT));
 	    columns[7].setData(new Integer(FilterComparator.FIELD_READ_CAT));
 	    columns[8].setData(new Integer(FilterComparator.FIELD_CON));
-	    columns[9].setData(new Integer(FilterComparator.FIELD_MSG_IN));
-	    columns[10].setData(new Integer(FilterComparator.FIELD_MSG_OUT));
-	    columns[11].setData(new Integer(FilterComparator.FIELD_QUEUED));
-	    columns[12].setData(new Integer(FilterComparator.FIELD_BYTES_IN));
-	    columns[13].setData(new Integer(FilterComparator.FIELD_BYTES_OUT));
-	    columns[14].setData(new Integer(FilterComparator.FIELD_SS));
+	    columns[9].setData(new Integer(FilterComparator.FIELD_TRACK));
+	    columns[10].setData(new Integer(FilterComparator.FIELD_MSG_IN));
+	    columns[11].setData(new Integer(FilterComparator.FIELD_MSG_OUT));
+	    columns[12].setData(new Integer(FilterComparator.FIELD_QUEUED));
+	    columns[13].setData(new Integer(FilterComparator.FIELD_BYTES_IN));
+	    columns[14].setData(new Integer(FilterComparator.FIELD_BYTES_OUT));
+	    columns[15].setData(new Integer(FilterComparator.FIELD_SS));
 	    
 	    
 	    final FilterComparator comparator = new FilterComparator();
@@ -1609,15 +1624,17 @@ BuddyPluginViewInstance
 
 					item.setText(8, "" + buddy.getConnectionsString());
 					
+					item.setText(9, "" + tracker.getTrackingStatus( buddy ));
+					
 					String in_frag = buddy.getMessageInFragmentDetails();
 					
-					item.setText(9, "" + buddy.getMessageInCount() + (in_frag.length()==0?"":("+" + in_frag )));
-					item.setText(10, "" + buddy.getMessageOutCount());
-					item.setText(11, "" + buddy.getMessageHandler().getMessageCount());
-					item.setText(12, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
-					item.setText(13, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
+					item.setText(10, "" + buddy.getMessageInCount() + (in_frag.length()==0?"":("+" + in_frag )));
+					item.setText(11, "" + buddy.getMessageOutCount());
+					item.setText(12, "" + buddy.getMessageHandler().getMessageCount());
+					item.setText(13, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
+					item.setText(14, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
 
-					item.setText(14, "" + buddy.getSubsystem() + " v" + buddy.getVersion());
+					item.setText(15, "" + buddy.getSubsystem() + " v" + buddy.getVersion());
 					
 					item.setData( buddy );
 				}
@@ -1736,7 +1753,7 @@ BuddyPluginViewInstance
 				getToolTip(
 					BuddyPluginBuddy	buddy )
 				{
-					List addresses = buddy.getAdjustedIPs();
+					List<InetAddress> addresses = buddy.getAdjustedIPs();
 					
 					InetAddress	ip	= buddy.getIP();
 					
@@ -1758,7 +1775,7 @@ BuddyPluginViewInstance
 					
 						for (int i=0;i<addresses.size();i++){
 							
-							str += (i==0?"":"/") + ((InetAddress)addresses.get(i)).getHostAddress();
+							str += (i==0?"":"/") + addresses.get(i).getHostAddress();
 						}
 						
 						str += "}";
@@ -2794,9 +2811,9 @@ BuddyPluginViewInstance
 
 	}
 	
-	protected static class
+	protected class
 	FilterComparator 
-		implements Comparator 
+		implements Comparator<BuddyPluginBuddy>
 	{
 		boolean ascending = false;
 
@@ -2809,23 +2826,21 @@ BuddyPluginViewInstance
 		static final int FIELD_REM_CAT 		= 6;
 		static final int FIELD_READ_CAT 	= 7;
 		static final int FIELD_CON		 	= 8;
-		static final int FIELD_MSG_IN	 	= 9;
-		static final int FIELD_MSG_OUT	 	= 10;
-		static final int FIELD_QUEUED	 	= 11;
-		static final int FIELD_BYTES_IN 	= 12;
-		static final int FIELD_BYTES_OUT 	= 13;
-		static final int FIELD_SS		 	= 14;
+		static final int FIELD_TRACK	 	= 9;
+		static final int FIELD_MSG_IN	 	= 10;
+		static final int FIELD_MSG_OUT	 	= 11;
+		static final int FIELD_QUEUED	 	= 12;
+		static final int FIELD_BYTES_IN 	= 13;
+		static final int FIELD_BYTES_OUT 	= 14;
+		static final int FIELD_SS		 	= 15;
 
 		int field = FIELD_NAME;
 
 		public int 
 		compare(
-			Object arg0,
-			Object arg1) 
+			BuddyPluginBuddy b1,
+			BuddyPluginBuddy b2) 
 		{
-			BuddyPluginBuddy b1 = (BuddyPluginBuddy) arg0;
-			BuddyPluginBuddy b2 = (BuddyPluginBuddy) arg1;
-			
 			int	res = 0;
 			
 			if(field == FIELD_NAME){				
@@ -2846,6 +2861,8 @@ BuddyPluginViewInstance
 				res = compareStrings( b1.getLocalReadTagsOrCategoriesAsString(), b2.getLocalReadTagsOrCategoriesAsString());
 			}else if(field == FIELD_CON){
 				res = b1.getConnectionsString().compareTo( b2.getConnectionsString());
+			}else if(field == FIELD_TRACK){
+				res = tracker.getTrackingStatus( b1 ).compareTo( tracker.getTrackingStatus( b2 ));
 			}else if(field == FIELD_MSG_IN){
 				res = b1.getMessageInCount() - b2.getMessageInCount();
 			}else if(field == FIELD_MSG_OUT){

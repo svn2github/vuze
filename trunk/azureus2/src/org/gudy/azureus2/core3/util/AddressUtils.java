@@ -213,11 +213,11 @@ AddressUtils
 		return( adjusted_address );
 	}
 	
-	public static List
+	public static List<String>
 	getLANAddresses(
 		String		address )
 	{
-		List	result = new ArrayList();
+		List<String>	result = new ArrayList<String>();
 		
 		result.add( address );
 		

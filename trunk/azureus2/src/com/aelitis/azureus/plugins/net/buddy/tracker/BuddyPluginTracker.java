@@ -301,7 +301,7 @@ BuddyPluginTracker
 				
 				BuddyPluginBuddy	buddy = it.next();
 				
-				buddyData buddy_data = getBuddyData( buddy );
+				BuddyTrackingData buddy_data = getBuddyData( buddy );
 				
 				Map<Download,Boolean> active = buddy_data.getDownloadsToTrack();
 				
@@ -495,7 +495,7 @@ BuddyPluginTracker
 			
 			BuddyPluginBuddy	buddy = (BuddyPluginBuddy)online.get(i);
 			
-			buddyData buddy_data = getBuddyData( buddy );
+			BuddyTrackingData buddy_data = getBuddyData( buddy );
 			
 			buddy_data.updateLocal( downloads, downloads_id, diff_map );
 		}
@@ -535,17 +535,17 @@ BuddyPluginTracker
 		}
 	}
 	
-	protected buddyData
+	protected BuddyTrackingData
 	getBuddyData(
 		BuddyPluginBuddy		buddy )
 	{
 		synchronized( online_buddies ){
 			
-			buddyData buddy_data = (buddyData)buddy.getUserData( BuddyPluginTracker.class );
+			BuddyTrackingData buddy_data = (BuddyTrackingData)buddy.getUserData( BuddyPluginTracker.class );
 
 			if ( buddy_data == null ){
 				
-				buddy_data = new buddyData( buddy );
+				buddy_data = new BuddyTrackingData( buddy );
 				
 				buddy.setUserData( BuddyPluginTracker.class, buddy_data );
 			}
@@ -554,7 +554,7 @@ BuddyPluginTracker
 		}
 	}
 	
-	protected buddyData
+	protected BuddyTrackingData
 	addBuddy(
 		BuddyPluginBuddy		buddy )
 	{
@@ -565,7 +565,7 @@ BuddyPluginTracker
 				online_buddies.add( buddy );
 			}
 			
-			buddyData bd = getBuddyData( buddy );
+			BuddyTrackingData bd = getBuddyData( buddy );
 			
 			if ( bd.hasIPChanged()){
 				
@@ -617,7 +617,7 @@ BuddyPluginTracker
 
 			if ( online_buddies.contains( buddy )){
 				
-				buddyData bd = getBuddyData( buddy );
+				BuddyTrackingData bd = getBuddyData( buddy );
 
 				online_buddies.remove( buddy );
 				
@@ -787,7 +787,7 @@ outer:
 		
 		for (int i=0;i<online.size();i++){
 			
-			buddyData buddy_data = getBuddyData(online.get(i));
+			BuddyTrackingData buddy_data = getBuddyData(online.get(i));
 			
 			if ( buddy_data.hasDownloadsInCommon()){
 				
@@ -956,7 +956,7 @@ outer:
 				
 				BuddyPluginBuddy	buddy = it.next();
 				
-				buddyData buddy_data = getBuddyData( buddy );
+				BuddyTrackingData buddy_data = getBuddyData( buddy );
 				
 				buddy_data.removeDownload( download );
 			}
@@ -1483,13 +1483,13 @@ outer:
 		BuddyPluginBuddy		buddy,
 		Map<String,Object>		message )
 	{
-		buddyData buddy_data = buddyAlive( buddy );
+		BuddyTrackingData buddy_data = buddyAlive( buddy );
 		
 		int type = ((Long)message.get( "type" )).intValue();
 		
 		Map msg = (Map)message.get( "msg" );
 		
-		return( buddy_data.receiveMessage( type, msg ));
+		return( buddy_data.receiveTrackerMessage( type, msg ));
 	}
 	
 	public void
@@ -1502,11 +1502,11 @@ outer:
 		buddyDead( buddy );
 	}
 	
-	protected buddyData
+	protected BuddyTrackingData
 	buddyAlive(
 		BuddyPluginBuddy		buddy )
 	{
-		buddyData buddy_data = addBuddy( buddy );
+		BuddyTrackingData buddy_data = addBuddy( buddy );
 		
 		buddy_data.setAlive( true );
 		
@@ -1517,12 +1517,36 @@ outer:
 	buddyDead(
 		BuddyPluginBuddy		buddy )
 	{
-		buddyData buddy_data = getBuddyData( buddy );
+		BuddyTrackingData buddy_data = getBuddyData( buddy );
 
 		if ( buddy_data != null ){
 			
 			buddy_data.setAlive( false );
 		}
+	}
+	
+	public BuddyTrackingData
+	getTrackingData(
+		BuddyPluginBuddy	buddy )
+	{
+		synchronized( online_buddies ){
+			
+			return( (BuddyTrackingData)buddy.getUserData( BuddyPluginTracker.class ));
+		}
+	}
+	
+	public String
+	getTrackingStatus(
+		BuddyPluginBuddy	buddy )
+	{
+		BuddyTrackingData data  = getTrackingData( buddy );
+		
+		if ( data == null ){
+			
+			return( "" );
+		}
+		
+		return( data.getStatus());
 	}
 	
 	protected boolean
@@ -1609,13 +1633,15 @@ outer:
 		plugin.log( "Tracker: " + str, e );
 	}
 	
-	private class
-	buddyData
+	public class
+	BuddyTrackingData
 	{
 		private BuddyPluginBuddy		buddy;
 		
-		private Set	downloads_sent;
-		private int	downloads_sent_id;
+		private Set<Download>	downloads_sent;
+		private int				downloads_sent_id;
+		
+		private int 			tracking_remote;
 		
 		private Map<Download,buddyDownloadData>		downloads_in_common;
 		private boolean	buddy_seeding_only;
@@ -1626,7 +1652,7 @@ outer:
 		private String	current_ip;
 		
 		protected
-		buddyData(
+		BuddyTrackingData(
 			BuddyPluginBuddy		_buddy )
 		{
 			buddy	= _buddy;
@@ -1777,7 +1803,7 @@ outer:
 					msg.put( "change", 		change_details[0] );
 					msg.put( "change_s", 	change_details[1] );
 
-					sendMessage( buddy, REQUEST_TRACKER_CHANGE, msg );
+					sendTrackerMessage( REQUEST_TRACKER_CHANGE, msg );
 				}
 			}
 			
@@ -1870,14 +1896,16 @@ outer:
 			msg.put( "inc", 	new Long( incremental?1:0 ));
 			msg.put( "seeding", new Long( seeding_only?1:0 ));
 			
-			sendMessage( buddy, REQUEST_TRACKER_SUMMARY, msg );
+			sendTrackerMessage( REQUEST_TRACKER_SUMMARY, msg );
 		}	
 		
 		protected Map
 		updateRemote(
 			Map		msg )
 		{			
-			List	added 	= importShortIDs((byte[])msg.get( "added" ));
+			byte[] added_bytes 		= (byte[])msg.get( "added" );
+			
+			List	added 	= importShortIDs( added_bytes );
 			
 			Map	reply = new HashMap();
 			
@@ -1890,10 +1918,12 @@ outer:
 			}
 			
 			synchronized( this ){
-
+				
 				if ( downloads_in_common != null ){
 
-					Map removed = importFullIDs( (byte[])msg.get( "removed" ), null );
+					byte[] removed_bytes	= (byte[])msg.get( "removed" );
+
+					Map removed = importFullIDs( removed_bytes, null );
 					
 					Iterator it = removed.keySet().iterator();
 					
@@ -1997,11 +2027,21 @@ outer:
 			
 			msg.put( "seeding", new Long( seeding_only?1:0 ));
 			
-			sendMessage( buddy, REQUEST_TRACKER_STATUS, msg );
+			sendTrackerMessage( REQUEST_TRACKER_STATUS, msg );
+		}
+		
+		protected void
+		sendTrackerMessage(
+			int						type,
+			Map<String,Object>		body )
+		{
+			body.put( "track", tracked_downloads.size());
+	
+			sendMessage( buddy, type, body );
 		}
 		
 		protected Map<String,Object>
-		receiveMessage(
+		receiveTrackerMessage(
 			int					type,
 			Map<String,Object>	msg_in )
 		{
@@ -2009,9 +2049,16 @@ outer:
 			
 			Map<String,Object>	msg_out		= null;
 
+			Long	l_track = (Long)msg_in.get( "track" );
+
+			if ( l_track != null ){
+				
+				tracking_remote = l_track.intValue();
+			}
+			
 			Long	l_seeding = (Long)msg_in.get( "seeding" );
 			
-			if( l_seeding != null ){
+			if ( l_seeding != null ){
 				
 				boolean old = buddy_seeding_only;
 				
@@ -2039,15 +2086,15 @@ outer:
 
 				reply_type	= REPLY_TRACKER_STATUS;
 									
-				Map downloads = importFullIDs( (byte[])msg_in.get( "changed" ), (byte[])msg_in.get( "changed_s" ) );
+				Map downloads = importFullIDs((byte[])msg_in.get( "changed" ), (byte[])msg_in.get( "changed_s" ));
 
 				updateCommonDownloads( downloads, true );
 								
 			}else if ( type == REQUEST_TRACKER_ADD ){
 
 				reply_type	= REPLY_TRACKER_ADD;
-										
-				Map downloads = importFullIDs( (byte[])msg_in.get( "added" ), (byte[])msg_in.get( "added_s" ) );
+																		
+				Map downloads = importFullIDs((byte[])msg_in.get( "added" ), (byte[])msg_in.get( "added_s" ));
 
 				updateCommonDownloads( downloads, true );
 
@@ -2057,7 +2104,7 @@ outer:
 				
 				byte[]	possible_matches 		= (byte[])msg_in.get( "added" );
 				byte[]	possible_match_states 	= (byte[])msg_in.get( "added_s" );
-
+				
 				boolean	incremental = ((Long)msg_in.get( "inc" )).intValue() == 1;
 				
 				if ( possible_matches != null && possible_match_states != null ){
@@ -2079,7 +2126,7 @@ outer:
 							msg.put( "added", 	common_details[0] );
 							msg.put( "added_s", common_details[1] );
 
-							sendMessage( buddy, REQUEST_TRACKER_ADD, msg );
+							sendTrackerMessage( REQUEST_TRACKER_ADD, msg );
 						}
 					}
 				}
@@ -2106,7 +2153,7 @@ outer:
 				}
 				
 				msg_out.put( "seeding", new Long( seeding_only?1:0 ));
-			
+							
 				reply.put( "msg", msg_out );
 
 				return( reply );
@@ -2117,13 +2164,13 @@ outer:
 		
 		protected byte[]
 		exportShortIDs(
-			List	downloads )
+			List<Download>	downloads )
 		{
 			byte[]	res = new byte[ SHORT_ID_SIZE * downloads.size() ];
 			
 			for (int i=0;i<downloads.size();i++ ){
 				
-				Download download = (Download)downloads.get(i);
+				Download download = downloads.get(i);
 				
 				downloadData download_data = (downloadData)download.getUserData( BuddyPluginTracker.class );
 				
@@ -2141,11 +2188,11 @@ outer:
 			return( res );
 		}
 		
-		protected List
+		protected List<Download>
 		importShortIDs(
 			byte[]		ids )
 		{
-			List	res = new ArrayList();
+			List<Download>	res = new ArrayList<Download>();
 			
 			if ( ids != null ){
 				
@@ -2153,7 +2200,7 @@ outer:
 
 					for (int i=0;i<ids.length;i+= SHORT_ID_SIZE ){
 					
-						List dls = (List)short_id_map.get( new HashWrapper( ids, i, SHORT_ID_SIZE ));
+						List<Download> dls = short_id_map.get( new HashWrapper( ids, i, SHORT_ID_SIZE ));
 						
 						if ( dls != null ){
 							
@@ -2168,14 +2215,14 @@ outer:
 		
 		protected byte[][]
    		exportFullIDs(
-   			List	downloads )
+   			List<Download>	downloads )
    		{
    			byte[]	hashes 	= new byte[ FULL_ID_SIZE * downloads.size() ];
    			byte[] 	states	= new byte[ downloads.size()];
    			
    			for (int i=0;i<downloads.size();i++ ){
    				
-   				Download download = (Download)downloads.get(i);
+   				Download download = downloads.get(i);
    				
    				downloadData download_data = (downloadData)download.getUserData( BuddyPluginTracker.class );
    				
@@ -2305,6 +2352,18 @@ outer:
 				
 				downloads_in_common.remove( download );
 			}
+		}
+		
+		protected String
+		getStatus()
+		{
+			Map<Download,buddyDownloadData> c = downloads_in_common;
+			
+			String str = String.valueOf( tracked_downloads.size());
+			
+			str += "/" + tracking_remote + "/" + (c==null?"0":c.size());
+			
+			return( str );
 		}
 		
 		protected void

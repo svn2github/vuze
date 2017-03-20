@@ -735,10 +735,10 @@ BuddyPluginBuddy
 		return( current_ip );
 	}
 	
-	public List
+	public List<InetAddress>
 	getAdjustedIPs()
 	{
-		List	result = new ArrayList();
+		List<InetAddress>	result = new ArrayList<InetAddress>();
 		
 		if ( current_ip == null ){
 			
