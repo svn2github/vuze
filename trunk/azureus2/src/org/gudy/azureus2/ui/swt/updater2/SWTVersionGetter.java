@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 import org.gudy.azureus2.plugins.update.UpdateChecker;
+import org.gudy.azureus2.ui.swt.Utils;
 
 
 /**
@@ -54,10 +55,7 @@ public class SWTVersionGetter {
   SWTVersionGetter(
   		UpdateChecker	_checker ) 
   {
-    this.platform 		= COConfigurationManager.getStringParameter("ConfigView.section.style.swt.library.selection");
-    if (this.platform == null || this.platform.length() == 0) {
-    	this.platform = SWT.getPlatform();
-    }
+   	this.platform = SWT.getPlatform();
     this.currentVersion = SWT.getVersion();
     
 
@@ -84,6 +82,9 @@ public class SWTVersionGetter {
   }
   
   private void downloadLatestVersion() {
+  	if (Utils.isCarbon) {
+  		return;
+  	}
   	if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Requesting latest SWT version "
 					+ "and url from version check client."));
@@ -96,48 +97,25 @@ public class SWTVersionGetter {
     
     if ( Constants.isOSX_10_5_OrHigher ){
     
-    	String target_lib = COConfigurationManager.getStringParameter( "ConfigView.section.style.swt.library.selection" );
-    	
-    	String current_lib = SWT.getPlatform();
-    	
-    	if ( target_lib.equalsIgnoreCase( current_lib )){
-    		
-    	    byte[] version_bytes = (byte[])reply.get( "swt_version_" + target_lib );
-    	    
-    	    if ( version_bytes != null ){
-    	    	
-    	    	latestVersion = Integer.parseInt( new String( version_bytes ) );
-    	    	
-    	    	msg += " version=" + latestVersion;
-    	    	
-        		byte[] url_bytes = (byte[])reply.get( "swt_url_" + target_lib );
-
-        		if ( url_bytes != null ){
-
-           			mirrors = new String[] { new String( url_bytes ) };
-        			
-        			msg += " url=" + mirrors[0];
-        		}
-        		
-        		done = true;
-    	    }
-    	}else{
-    		
-    		byte[] url_bytes = (byte[])reply.get( "swt_url_" + target_lib );
+	    byte[] version_bytes = (byte[])reply.get( "swt_version_cocoa" );
+	    
+	    if ( version_bytes != null ){
+	    	
+	    	latestVersion = Integer.parseInt( new String( version_bytes ) );
+	    	
+	    	msg += " version=" + latestVersion;
+	    	
+    		byte[] url_bytes = (byte[])reply.get( "swt_url_cocoa" );
 
     		if ( url_bytes != null ){
-    			
-    			msg += " (platform switch from " + current_lib + " to " + target_lib + ")";
-    			
-    			mirrors = new String[] { new String( url_bytes ) };
+
+       			mirrors = new String[] { new String( url_bytes ) };
     			
     			msg += " url=" + mirrors[0];
-    			
-    			latestVersion = Integer.MAX_VALUE;
-    			
-    			done = true;
     		}
-    	}
+    		
+    		done = true;
+	    }
     }
     
     if ( !done ){

@@ -185,23 +185,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			}
 		}
 		
-		if ( Constants.isOSX_10_5_OrHigher ){
-			
-			Composite cSWT = new Composite(gVarious, SWT.NULL);
-			layout = new GridLayout();
-			layout.marginHeight = 0;
-			layout.marginWidth = 0;
-			layout.numColumns = 2;
-			cSWT.setLayout(layout);
-			Utils.setLayoutData(cSWT, new GridData());
-			
-			label = new Label(cSWT, SWT.NULL);
-			label.setText( "SWT Library" );
-			String[] swtLibraries = { "carbon", "cocoa" };
-					
-			new StringListParameter(cSWT, MSG_PREFIX + "swt.library.selection", swtLibraries, swtLibraries);
-		}
-		
 		if (userMode > 0) {
   		final BooleanParameter paramEnableForceDPI = new BooleanParameter(
   				gVarious, "enable.ui.forceDPI", MSG_PREFIX + "forceDPI");
