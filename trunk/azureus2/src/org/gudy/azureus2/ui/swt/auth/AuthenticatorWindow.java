@@ -400,6 +400,11 @@ AuthenticatorWindow
 		{
 			sem	= _sem;
 			
+			if ( details == null ){
+				
+				details = "";
+			}
+			
 			if ( display.isDisposed()){
 				
 				sem.releaseForever();
@@ -475,7 +480,7 @@ AuthenticatorWindow
 			gridData.horizontalSpan = 2;
 			Utils.setLayoutData(target_value, gridData);
 	    		
-			if ( details != null ){
+			if ( details != null && details.length() > 0 ){
 				
 				Label details_label = new Label(shell,SWT.NULL);
 				Messages.setLanguageText(details_label, is_tracker?"authenticator.torrent":"authenticator.details");
