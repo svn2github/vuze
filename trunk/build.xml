@@ -6,6 +6,8 @@ extract messagebundles
 
 <project basedir="." default="package" name="VuzeClient">
 
+	<property environment="env" />
+
 	<!-- Load vars from external properties file -->
 	<condition property="using.ext.props" > <isset property="build.props.file" /> </condition>
 	<property name="build.properties" value="${build.props.file}"/>
@@ -24,9 +26,10 @@ extract messagebundles
 	<property name="dist.dir" value="dist"/>
 
 	<!-- Default variables -->
-	<property name="major.ver"  value="0000"/>
-	<property name="minor.ver"  value="00"/>
-	<property name="build.ver"  value="${major.ver}-${minor.ver}"/>
+	<property name="majormajor.ver"  value="0000"/>
+	<condition property="minor.ver" value="${env.BUILD_NUMBER}" else="00">
+		<isset property="env.BUILD_NUMBER" />
+	</condition>
 
 	<!-- Read the version line from Constants.java  in a property -->
 	<target name="loadVersionLine">
@@ -48,16 +51,18 @@ extract messagebundles
 			var majorVersion = before.match(regexp)[1];
 			project.setProperty("major.ver", majorVersion);
 		</script>
-		<echo>after=${major.ver}</echo>
 	</target>
-
-
 
 	<!-- REUSABLE REFERENCES -->
 
 
 	<target name="setMajorVersion" depends="extractVersionFromVersionLine">
-		<echo message="BUILDING: ${major.ver}" />
+		<echo message="Major version: ${major.ver}" />
+	</target>
+
+	<target name="setBuildVersion" depends="setMajorVersion">
+		<property name="build.ver"  value="${major.ver}-${minor.ver}"/>
+		<echo message="Build version: ${build.ver}" />
 	</target>
 
 	<path id="build.classpath">
@@ -92,7 +97,7 @@ extract messagebundles
 	</target>
 	
 	
-	<target name="init" depends="setMajorVersion">
+	<target name="init">
 
 		 <echo message="BUILDING: ${ant.project.name} [${ant.file}] [${build.props.file}]"/>
 		 <mkdir dir="${build.dir}"/>
@@ -100,7 +105,7 @@ extract messagebundles
 	</target>
 	   
 	
-	<target name="preprocess" if="using.ext.props" >	
+	<target name="preprocess" depends="setBuildVersion" if="using.ext.props" >
 		 <!-- Tag source with version info -->
 		 <property name="constants.file" value="${azureus2.dir}/src/org/gudy/azureus2/core3/util/Constants.java"/>
 		 <replace file="${constants.file}" token="_CVS&quot;" value="_B${minor.ver}&quot;" summary="true" />
