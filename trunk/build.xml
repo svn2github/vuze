@@ -14,8 +14,7 @@ extract messagebundles
 	<property file="${build.properties}" />	
 	<echo message="using.ext.props = ${using.ext.props}" />
 
-	<property name="build.name" value="Vuze_${build.ver}" />
-	
+
 	<property name="azureus2.dir" value="azureus2"/>
 	<property name="azureus3.dir" value="azureus3"/>
 	<property name="uis.dir" value="uis"/>
@@ -62,7 +61,11 @@ extract messagebundles
 
 	<target name="setBuildVersion" depends="setMajorVersion">
 		<property name="build.ver"  value="${major.ver}-${minor.ver}"/>
+		<property name="build.name" value="Vuze_${build.ver}" />
+
 		<echo message="Build version: ${build.ver}" />
+		<echo message="Build name: ${build.name}" />
+
 	</target>
 
 	<path id="build.classpath">
