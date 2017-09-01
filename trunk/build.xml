@@ -11,12 +11,7 @@ extract messagebundles
 	<property name="build.properties" value="${build.props.file}"/>
 	<property file="${build.properties}" />	
 	<echo message="using.ext.props = ${using.ext.props}" />
-	
-	
-	<!-- Default variables -->
-	<property name="major.ver"  value="0000"/>
-	<property name="minor.ver"  value="00"/>
-	<property name="build.ver"  value="${major.ver}-${minor.ver}"/>
+
 	<property name="build.name" value="Vuze_${build.ver}" />
 	
 	<property name="azureus2.dir" value="azureus2"/>
@@ -27,10 +22,44 @@ extract messagebundles
 	
 	<property name="build.dir" value="build"/>
 	<property name="dist.dir" value="dist"/>
-	
-	
+
+	<!-- Default variables -->
+	<property name="major.ver"  value="0000"/>
+	<property name="minor.ver"  value="00"/>
+	<property name="build.ver"  value="${major.ver}-${minor.ver}"/>
+
+	<!-- Read the version line from Constants.java  in a property -->
+	<target name="loadVersionLine">
+		<loadfile property="versionLine" srcfile="${azureus2.dir}/src/org/gudy/azureus2/core3/util/Constants.java">
+			<filterchain>
+				<linecontainsregexp>
+					<regexp pattern='  public static final String AZUREUS_VERSION  = "(.*)";'/>
+				</linecontainsregexp>
+			</filterchain>
+		</loadfile>
+	</target>
+
+	<target name="extractVersionFromVersionLine" depends="loadVersionLine">
+
+		<property name="versionLineBeforeExtract" value="${versionLine}"/>
+		<script language="javascript">
+			var regexp = '"(.*)"';
+			var before = project.getProperty("versionLineBeforeExtract");
+			var majorVersion = before.match(regexp)[1];
+			project.setProperty("major.ver", majorVersion);
+		</script>
+		<echo>after=${major.ver}</echo>
+	</target>
+
+
+
 	<!-- REUSABLE REFERENCES -->
-	
+
+
+	<target name="setMajorVersion" depends="extractVersionFromVersionLine">
+		<echo message="BUILDING: ${major.ver}" />
+	</target>
+
 	<path id="build.classpath">
 		<fileset dir="${azureus2.dir}/lib" includes="*.jar" excludes="swt-carbon.jar"/>
 		<fileset dir="${azureus3.dir}/lib" includes="*.jar" />
@@ -63,7 +92,8 @@ extract messagebundles
 	</target>
 	
 	
-	<target name="init">
+	<target name="init" depends="setMajorVersion">
+
 		 <echo message="BUILDING: ${ant.project.name} [${ant.file}] [${build.props.file}]"/>
 		 <mkdir dir="${build.dir}"/>
 	 	 <mkdir dir="${dist.dir}"/>
