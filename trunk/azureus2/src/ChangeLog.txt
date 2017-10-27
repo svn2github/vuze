@@ -1,7 +1,46 @@
 VUZE CHANGELOG
 -----------------
 
-2017.xx.yy | Vuze 5.7.5.1
+2017.10.30 | Vuze 5.7.6.0
+
+FEATURE: UI   | Classic friends meets dchat! [Parg]
+FEATURE: UI   | Handle alt networks [Parg]
+FEATURE: UI   | Option to chat about torrent errors [Parg]
+FEATURE: UI   | Option to hide auto-generated messages [Parg]
+FEATURE: UI   | Added option to move torrent on tag-move-on-complete [Parg]
+
+FEATURE: Core | Option to categorise friend connections as lan-local for rate limiting purposes [Parg]
+FEATURE: Core | Support some alternative chats [Parg]
+FEATURE: Core | Torrent location support for initial save location and copy-on-complete [Parg]
+FEATURE: Core | Added json import [Parg]
+FEATURE: Core | I2P: install on attempted dns resolution [Parg]
+
+CHANGE: UI    | Remove ConfigView.section.style.swt.library.selection [TuxPaper]
+CHANGE: UI    | Basque translation update [Azpidatziak]
+CHANGE: UI    | Double click actions for search+subs views [Parg]
+CHANGE: UI    | Made menus more consistent [Parg]
+CHANGE: UI    | Added 'date added to tag' column [Parg]
+CHANGE: UI    | Added order setting to tag limit removal - values 'time [Parg]
+CHANGE: UI    | Added to vuze' and 'time added to tag' [Parg]
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Norwegian translation update [Lislegard]
+
+CHANGE: Core  | Added option for LAN/WAN nets [Parg]
+CHANGE: Core  | Added option for buddy-boosting when both peers incomplete [Parg]
+CHANGE: Core  | Improve link parsing [Parg]
+CHANGE: Core  | Reworked location change logic to support independent data and torrent movements [Parg]
+CHANGE: Core  | Added tag option to file movement to allow separate control over data and torrent [Parg]
+CHANGE: Core  | Bring back ability to update subscription filters [Parg]
+CHANGE: Core  | Added a 'tag_age' constraint variable [Parg]
+
+BUGFIX: UI    | Fix NPE that causes thread hang [Parg]
+BUGFIX: UI    | Torrent link needs reconstructing in some cases [Parg]
+
+BUGFIX: Core  | Defer constraint application until restore-from-archive is complete to ensure that tags are appropriately applied [Parg]
+BUGFIX: Core  | Various fixes around non-public singletons [Parg]
+BUGFIX: Core  | Don't try inaccessible default constructor for built-in platform managers [Parg]
+BUGFIX: Core  | Only record addition time for persistent tag types [Parg]
+BUGFIX: Core  | Check limits more frequently; added a hack to allow tags to have a max of 0 entries [Parg]
 
 2017.02.28 | Vuze 5.7.5.0
 

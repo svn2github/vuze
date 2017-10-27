@@ -140,7 +140,7 @@ Constants
   public static final String AZUREUS_NAME	  					= "Azureus";
   public static final String AZUREUS_PROTOCOL_NAME_PRE_4813	  	= "Azureus";
   public static final String AZUREUS_PROTOCOL_NAME	  			= "Vuze";
-  public static final String AZUREUS_VERSION  = "5.7.5.1";
+  public static final String AZUREUS_VERSION  = "5.7.6.0";
   public static final String BUILD_VERSION  = "@build.version@";   //Ant replace
   public static final String AZUREUS_SUBVER	  = "";
   public static final byte[] VERSION_ID       = ("-" + "AZ" + AZUREUS_VERSION.replace(".","") + "-").getBytes();  //MUST be 8 chars long!
