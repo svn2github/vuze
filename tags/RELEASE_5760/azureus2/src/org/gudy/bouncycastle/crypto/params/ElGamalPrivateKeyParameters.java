@@ -1,0 +1,45 @@
+package org.gudy.bouncycastle.crypto.params;
+
+import java.math.BigInteger;
+
+import org.gudy.bouncycastle.crypto.params.ElGamalKeyParameters;
+import org.gudy.bouncycastle.crypto.params.ElGamalParameters;
+import org.gudy.bouncycastle.crypto.params.ElGamalPrivateKeyParameters;
+
+public class ElGamalPrivateKeyParameters
+    extends ElGamalKeyParameters
+{
+    private BigInteger      x;
+
+    public ElGamalPrivateKeyParameters(
+        BigInteger      x,
+        ElGamalParameters    params)
+    {
+        super(true, params);
+
+        this.x = x;
+    }   
+
+    public BigInteger getX()
+    {
+        return x;
+    }
+
+    public boolean equals(
+        Object  obj)
+    {
+        if (!(obj instanceof ElGamalPrivateKeyParameters))
+        {
+            return false;
+        }
+
+        ElGamalPrivateKeyParameters  pKey = (ElGamalPrivateKeyParameters)obj;
+
+        if (!pKey.getX().equals(x))
+        {
+            return false;
+        }
+
+        return super.equals(obj);
+    }
+}
